@@ -2,6 +2,23 @@
 
 En yeni giriş en üstte. Biçim: tarih — ajan — başlık, ardından **Yapılan**, **Doğrulama**, **Sıradaki**.
 
+## 27.09.2026 — Codex — Özel model UV kılavuzu (Stüdyo v1.6)
+
+**Yapılan**
+- İçe alınmış özel modellerde görünen **UV kılavuzu oluştur** düğmesi eklendi.
+- Seçili modelin `Etiket`/`Label` malzeme yuvasındaki UV0 üçgen kenarları, çeyrek ızgaralı 2048 × 2048 PNG'ye çizilir.
+- Çıktı `Uretim/<ürün>/model/uv_sablon.png` yoluna yazılır ve klasör açılır; etiket hazırlayan ajana doğrudan referans verilebilir.
+- `UvTemplateExport` otomasyon testi eklendi ve `Test.ps1` minimum eşiği 9 teste çıkarıldı.
+
+**Doğrulama**
+- `DERLE.cmd /q`: GEÇTİ.
+- `TEST.cmd /q`: GEÇTİ 9/9.
+- Testin ürettiği 2048 px PNG gözle incelendi: altı UV adası, üçgen kenarları, 0–1 sınırı ve ızgara doğru.
+
+**Sıradaki**
+- G-007: içe alınmış modeller için ölçek, yön ve pivot düzeltme alanları.
+- G-017: PET, teneke, kavanoz ve kase şekillerinin oyun içinde görsel doğrulaması.
+
 ## 27.09.2026 — Codex — Pazar payı, gerçek kuyruk sırası ve ilk Git sürümü
 
 **Yapılan**

@@ -124,6 +124,53 @@ namespace
         static const TCHAR* Names[] = { TEXT("\u00d6n"), TEXT("Arka"), TEXT("Sa\u011f"), TEXT("Sol"), TEXT("\u00dcst"), TEXT("Alt") };
         return Names[FMath::Clamp(Face, 0, 5)];
     }
+
+    bool SavePng(const FString& Path, const FStudioImage& Image, FString& OutError)
+    {
+        if (!Image.IsValid()) { OutError = TEXT("PNG i\u00e7in ge\u00e7erli g\u00f6rsel olu\u015fmad\u0131."); return false; }
+        IImageWrapperModule& Wrappers = FModuleManager::LoadModuleChecked<IImageWrapperModule>(TEXT("ImageWrapper"));
+        const TSharedPtr<IImageWrapper> Wrapper = Wrappers.CreateImageWrapper(EImageFormat::PNG);
+        if (!Wrapper.IsValid() || !Wrapper->SetRaw(Image.Pixels.GetData(), Image.Pixels.Num() * sizeof(FColor), Image.Width, Image.Height, ERGBFormat::BGRA, 8))
+        {
+            OutError = TEXT("UV k\u0131lavuzu PNG bi\u00e7imine d\u00f6n\u00fc\u015ft\u00fcr\u00fclemedi.");
+            return false;
+        }
+        IFileManager::Get().MakeDirectory(*FPaths::GetPath(Path), true);
+        const TArray64<uint8> Bytes = Wrapper->GetCompressed(100);
+        if (Bytes.IsEmpty() || !FFileHelper::SaveArrayToFile(Bytes, *Path))
+        {
+            OutError = TEXT("UV k\u0131lavuzu yaz\u0131lamad\u0131: ") + Path;
+            return false;
+        }
+        return true;
+    }
+
+    void DrawUvLine(FStudioImage& Image, const FVector2f& From, const FVector2f& To, const FColor& Color, int32 Thickness = 2)
+    {
+        constexpr int32 Margin = 32;
+        const auto Point = [&](const FVector2f& UV)
+        {
+            return FIntPoint(
+                FMath::RoundToInt(FMath::Lerp(float(Margin), float(Image.Width - Margin - 1), FMath::Clamp(UV.X, 0.f, 1.f))),
+                FMath::RoundToInt(FMath::Lerp(float(Margin), float(Image.Height - Margin - 1), FMath::Clamp(UV.Y, 0.f, 1.f))));
+        };
+        const FIntPoint A = Point(From), B = Point(To);
+        int32 X = A.X, Y = A.Y;
+        const int32 DX = FMath::Abs(B.X - A.X), SX = A.X < B.X ? 1 : -1;
+        const int32 DY = -FMath::Abs(B.Y - A.Y), SY = A.Y < B.Y ? 1 : -1;
+        int32 Error = DX + DY;
+        while (true)
+        {
+            for (int32 OY = -Thickness; OY <= Thickness; ++OY)
+                for (int32 OX = -Thickness; OX <= Thickness; ++OX)
+                    if (Image.Pixels.IsValidIndex((Y + OY) * Image.Width + X + OX) && X + OX >= 0 && X + OX < Image.Width && Y + OY >= 0 && Y + OY < Image.Height)
+                        Image.Pixels[(Y + OY) * Image.Width + X + OX] = Color;
+            if (X == B.X && Y == B.Y) break;
+            const int32 Twice = 2 * Error;
+            if (Twice >= DY) { Error += DY; X += SX; }
+            if (Twice <= DX) { Error += DX; Y += SY; }
+        }
+    }
 }
 
 FString InboxDir() { return FPaths::ConvertRelativePathToFull(FPaths::ProjectDir() / TEXT("AssetInbox")); }
@@ -854,6 +901,44 @@ UStaticMesh* ImportModelPackage(const FString& File, FString& OutPackageId, FStr
     Meta->SetStringField(TEXT("slotMaterials"), FString::Join(Applied, TEXT(", ")));
     WriteJson(Directory / TEXT("package.json"), Meta);
     return Mesh;
+}
+
+bool ExportUvTemplate(const FStudioPackage& Package, const FString& OutputFile, FString& OutError)
+{
+    UStaticMesh* Mesh = LoadObject<UStaticMesh>(nullptr, *Package.MeshPath);
+    const FMeshDescription* Description = Mesh ? Mesh->GetMeshDescription(0) : nullptr;
+    if (!Description) { OutError = TEXT("UV k\u0131lavuzu i\u00e7in kaynak model verisi bulunamad\u0131."); return false; }
+    const FStaticMeshConstAttributes Attributes(*Description);
+    const auto UVs = Attributes.GetVertexInstanceUVs();
+    const auto SlotNames = Attributes.GetPolygonGroupMaterialSlotNames();
+    if (!UVs.IsValid() || UVs.GetNumChannels() < 1) { OutError = TEXT("Modelde UV0 kanal\u0131 yok."); return false; }
+
+    FStudioImage Image;
+    Image.Width = Image.Height = 2048;
+    Image.Pixels.Init(FColor::White, Image.Width * Image.Height);
+    const FColor Grid(215, 220, 225), Edge(24, 35, 45), Border(95, 105, 115);
+    for (int32 Step = 0; Step <= 4; ++Step)
+    {
+        const float T = Step / 4.f;
+        DrawUvLine(Image, FVector2f(T, 0), FVector2f(T, 1), Step == 0 || Step == 4 ? Border : Grid, 0);
+        DrawUvLine(Image, FVector2f(0, T), FVector2f(1, T), Step == 0 || Step == 4 ? Border : Grid, 0);
+    }
+
+    int32 TriangleCount = 0;
+    for (const FTriangleID Triangle : Description->Triangles().GetElementIDs())
+    {
+        const FPolygonGroupID Group = Description->GetTrianglePolygonGroup(Triangle);
+        const FString Slot = SlotNames.IsValid() ? SlotNames[Group].ToString() : FString();
+        const bool bLabel = SlotRole(Slot) == ESlotRole::Label || Group.GetValue() == Package.LabelSlot;
+        if (!bLabel) continue;
+        const TArrayView<const FVertexInstanceID> Vertices = Description->GetTriangleVertexInstances(Triangle);
+        if (Vertices.Num() != 3) continue;
+        for (int32 EdgeIndex = 0; EdgeIndex < 3; ++EdgeIndex)
+            DrawUvLine(Image, UVs.Get(Vertices[EdgeIndex], 0), UVs.Get(Vertices[(EdgeIndex + 1) % 3], 0), Edge);
+        ++TriangleCount;
+    }
+    if (TriangleCount == 0) { OutError = TEXT("Etiket malzeme yuvas\u0131nda UV \u00fc\u00e7geni bulunamad\u0131."); return false; }
+    return SavePng(OutputFile, Image, OutError);
 }
 
 // ---------------------------------------------------------------------------------------- ready packages

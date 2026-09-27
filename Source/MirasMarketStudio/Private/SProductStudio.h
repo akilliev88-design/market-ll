@@ -42,6 +42,7 @@ private:
     FReply OnDeactivate();    // take out of the game (keeps the product)
     FReply OnCopyPrompt();
     FReply OnOpenDelivery();
+    FReply OnExportUvTemplate();
     FReply OnRemove();
     FReply OnCreateBox();
     FReply OnImportModel();

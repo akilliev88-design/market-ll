@@ -298,6 +298,24 @@ FReply SProductStudio::OnOpenDelivery()
     return FReply::Handled();
 }
 
+FReply SProductStudio::OnExportUvTemplate()
+{
+    const FStudioPackage* Package = DraftPackage();
+    if (!Package || Package->Kind != EPackageKind::Model || Package->Id.StartsWith(TEXT("shape_")))
+    {
+        Toast(TEXT("UV k\u0131lavuzu yaln\u0131z i\u00e7e al\u0131nm\u0131\u015f \u00f6zel modeller i\u00e7indir."), true);
+        return FReply::Handled();
+    }
+    if (!MarketCatalog::IsValidId(Draft.Id)) { Toast(TEXT("\u00d6nce ge\u00e7erli bir \u00fcr\u00fcn kimli\u011fi gir."), true); return FReply::Handled(); }
+    const FString Folder = ModelFolder(Draft.Id);
+    const FString Output = Folder / TEXT("uv_sablon.png");
+    FString Error;
+    if (!ExportUvTemplate(*Package, Output, Error)) { Toast(Error, true); return FReply::Handled(); }
+    FPlatformProcess::ExploreFolder(*Folder);
+    Toast(TEXT("UV k\u0131lavuzu olu\u015fturuldu: uv_sablon.png"));
+    return FReply::Handled();
+}
+
 FReply SProductStudio::OnRemove()
 {
     if (!Draft.bExisting) return FReply::Handled();
@@ -889,6 +907,12 @@ void SProductStudio::RebuildFaces()
         AddTile(bShape ? TEXT("Etiket") : TEXT("Etiket (UV)"), 0);
         if (Package->CapSlot != INDEX_NONE) AddTile(bShape ? TEXT("Kapak (\u00fcstten)") : TEXT("Kapak"), 1);
         if (Package->BodySlot != INDEX_NONE && !bShape) AddTile(TEXT("G\u00f6vde"), 2);
+        if (!bShape)
+        {
+            Row->AddSlot().AutoWidth().Padding(8.f, 0.f, 4.f, 0.f).VAlign(VAlign_Center)
+            [ SNew(SBox).WidthOverride(170.f).HeightOverride(42.f)
+                [ MakeButton(TEXT("UV k\u0131lavuzu olu\u015ftur"), &S.Secondary, FOnClicked::CreateSP(this, &SProductStudio::OnExportUvTemplate), S.Text, true, 9) ] ];
+        }
     }
     FacesSlot->SetContent(
         SNew(SBorder).BorderImage(&S.SurfaceBrush).Padding(FMargin(14.f, 12.f))

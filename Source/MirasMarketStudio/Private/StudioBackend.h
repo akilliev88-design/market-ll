@@ -95,6 +95,8 @@ namespace MirasStudio
     UMaterialInterface* EnsureGlassMaterial(FString& OutError);   // translucent, "Color" "Opacity" "Roughness"
     UStaticMesh* CreateBoxPackage(int32 WidthMm, int32 DepthMm, int32 HeightMm, FString& OutPackageId, FString& OutError);
     UStaticMesh* ImportModelPackage(const FString& File, FString& OutPackageId, FString& OutError);
+    // Draws the UV0 edges of the package's Etiket/Label material slot to a 2048px PNG.
+    bool ExportUvTemplate(const FStudioPackage& Package, const FString& OutputFile, FString& OutError);
     TArray<FStudioPackage> ScanPackages(const TArray<FMarketProduct>& Catalog);
     const FStudioPackage* FindPackage(const TArray<FStudioPackage>& Packages, const FString& Id);
     FString PackageIdForMesh(const TArray<FStudioPackage>& Packages, const FString& MeshPath);

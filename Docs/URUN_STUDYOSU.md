@@ -72,8 +72,9 @@ Yüz görselinin oranı kutu yüzünden en fazla %15 farklıysa stüdyo görseli
    - Stüdyo malzeme yuvalarını **adından** tanır: `Etiket`, `Cam`, `Kapak`, `Govde`.
    - Aynı klasörde `malzeme.json` varsa okur: cam rengi/saydamlığı, kapak ve gövde rengi. `Cam` yuvası json olmasa da otomatik saydam yapılır. Böylece etiketin kaplamadığı yerler gri kalmaz.
 2. Önerilen yön: **+X ön yüz, +Z yukarı**, pivot tabanın ortası. Farklıysa stüdyo modeli önizlemede ortalar; rafta da tabanına oturtur. Ön yüzün yönü doğru değilse modeli Blender'da düzelt.
-3. **Etiket (UV)** kutucuğuna, modelin UV açılımına göre hazırlanmış tek görseli yükle. Boş bırakırsan modelin kendi dokusu kullanılır. Modelde `Kapak`/`Govde` yuvası varsa o kutucuklar da çıkar; baskılı kapak/gövde görseli isteğe bağlıdır (yoksa malzeme.json rengi kullanılır).
-4. Bilgileri doldur, **Oyuna ekle**.
+3. **UV kılavuzu oluştur** düğmesi modelin `Etiket` malzeme yuvasındaki UV0 kenarlarını 2048 × 2048 PNG olarak `Uretim/<ürün>/model/uv_sablon.png` dosyasına yazar ve klasörü açar. Bu görseli etiket hazırlayan ajana referans olarak ver.
+4. **Etiket (UV)** kutucuğuna, modelin UV açılımına göre hazırlanmış tek görseli yükle. Boş bırakırsan modelin kendi dokusu kullanılır. Modelde `Kapak`/`Govde` yuvası varsa o kutucuklar da çıkar; baskılı kapak/gövde görseli isteğe bağlıdır (yoksa malzeme.json rengi kullanılır).
+5. Bilgileri doldur, **Oyuna ekle**.
 
 ## Mevcut ürünü değiştirmek
 
@@ -110,6 +111,5 @@ v1.5 ile `package` içine isteğe bağlı `preset` (hazır ambalaj id) ve `color
 ## Sınırlar (v1)
 
 - Kutu şablonu yalnız dikdörtgen kutudur. Şişe, silindir, poşet şablonları sonraki adım.
-- Özel model için UV şablonu dışa aktarma henüz yok (G-006).
 - Model ölçeği/pivotu için düzeltme alanı yok; stüdyo yalnızca uyarır (G-007).
 - Değişiklik oyunda görünmek için oyunun yeniden başlatılması gerekir.
