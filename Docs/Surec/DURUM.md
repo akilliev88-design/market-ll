@@ -4,7 +4,7 @@ Son güncelleme: 28.09.2026 — Codex
 
 ## Kısaca
 
-v0.2 geliştirme. Blender 5.2 üretim hattı kuruldu ve ilk gerçek ekipman tamamlandı: 1200 × 900 × 1600 mm çift yüz gondol rafı kaynak `.blend`, FBX, metadata, önizleme ve Unreal varlığı olarak üretildi. Oyun artık kodla çizilen raf yerine bu modüler mesh'i kullanıyor; ürünler dört raf seviyesine ve gerçek kullanılabilir genişliğe yerleşiyor. Görsel canlılık ve mat etiket yüzeyi ayarları çalışıyor.
+v0.2 geliştirme. Raf sistemi veri güdümlü planograma geçti: bir gondolda birden çok marka, seviye, facing, arka derinlik ve ön/arka yüz kullanılabiliyor. `RAF_PLANI.cmd` ile açılan editör planı kod yazmadan düzenliyor. Blender 5.2 hattı için kullanıcı rehberi, metadata şablonu ve Claude/harici ajan sözleşmesi hazır.
 
 ## Çalışan / var olan
 
@@ -29,6 +29,7 @@ v0.2 geliştirme. Blender 5.2 üretim hattı kuruldu ve ilk gerçek ekipman tama
 | Görsel temel v1 (`DERLE.cmd`, `TEST.cmd`, `SmokeTest.ps1`, 1280×720 sahne yakalama) | GEÇTİ; 10/10 test, ışık/raf/ürün sahnesi gözle incelendi — 28.09.2026 |
 | Canlılık geçişi v2 (referans market karşılaştırması) | GEÇTİ; derleme, 10/10 test, smoke ve 1280×720 görüntü kontrolü — 28.09.2026 |
 | Blender gondol v1 (`create` + Blender validate + Unreal import/validate + oyun) | GEÇTİ; 120×90×160 cm, 5 materyal, 3 UCX, 8 raf bölgesi; derleme, 10/10 test, smoke ve ekran görüntüsü — 28.09.2026 |
+| Planogram v1: çok marka + facing + derinlik + editör | GEÇTİ; derleme, 11/11 test, smoke (4 satış) ve 1280×720 sahne kontrolü — 28.09.2026 |
 | Stüdyoda elle deneme: kutu (açılım) → Oyuna ekle → OYNA | GEÇTİ: milk_1l oyunda; ön/yan/üst yüzler doğru, ayna yok, raf oturması doğru — 27.09.2026 |
 | Stüdyoda elle deneme: cam şişe modeli + malzeme.json | Bekliyor (henüz model yok) |
 

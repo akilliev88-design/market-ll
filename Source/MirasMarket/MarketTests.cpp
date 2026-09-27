@@ -1,5 +1,6 @@
 #include "MarketGame.h"
 #include "ProductCatalog.h"
+#include "Planogram.h"
 #include "Misc/AutomationTest.h"
 #include "Kismet/GameplayStatics.h"
 
@@ -12,6 +13,30 @@ namespace
         P.Id = TEXT("milk"); P.Cost = 170; P.BasePrice = 250;
         return { P };
     }
+}
+
+IMPLEMENT_SIMPLE_AUTOMATION_TEST(FMarketPlanogramTest, "MirasMarket.Planogram.MultiBrandDepth", EAutomationTestFlags::EditorContext | EAutomationTestFlags::EngineFilter)
+bool FMarketPlanogramTest::RunTest(const FString& Parameters)
+{
+    const FString Json = TEXT("{\"fixtures\":[{\"id\":\"sut_gondol\",\"label\":\"Sut\",\"category\":\"sut\",\"x\":0,\"y\":320}],\"placements\":[")
+        TEXT("{\"productId\":\"milk_a\",\"fixtureId\":\"sut_gondol\",\"face\":\"front\",\"level\":1,\"facings\":3,\"depth\":4,\"order\":0},")
+        TEXT("{\"productId\":\"milk_b\",\"fixtureId\":\"sut_gondol\",\"face\":\"front\",\"level\":1,\"facings\":2,\"depth\":3,\"order\":1}]}");
+    FMarketPlanogram P; TArray<FString> Errors;
+    TestTrue(TEXT("Planogram parses"), MarketPlanogram::Parse(Json, P, Errors));
+    TestEqual(TEXT("Two brands share one fixture"), P.Placements.Num(), 2);
+    if (P.Placements.Num() != 2) return false;
+    TestEqual(TEXT("Depth retained"), P.Placements[0].Depth, 4);
+    FMarketProduct A; A.Id = TEXT("milk_a"); A.WidthMm = 95;
+    FMarketProduct B; B.Id = TEXT("milk_b"); B.WidthMm = 95;
+    TArray<FMarketProduct> Catalog = { A, B };
+    TestTrue(TEXT("Blocks get different horizontal centers"), MarketPlanogram::PlacementCenterX(P, Catalog, P.Placements[0]) < MarketPlanogram::PlacementCenterX(P, Catalog, P.Placements[1]));
+    FMarketPlanogram Again; TArray<FString> Errors2;
+    TestTrue(TEXT("Serialized planogram parses"), MarketPlanogram::Parse(MarketPlanogram::Serialize(P), Again, Errors2));
+    TestEqual(TEXT("Round trip keeps facing count"), Again.Placements[1].Facings, 2);
+    FMarketProduct Cola; Cola.Id = TEXT("cola"); Cola.Category = TEXT("sut"); Catalog.Add(Cola);
+    MarketPlanogram::Reconcile(Again, Catalog);
+    TestNotNull(TEXT("New catalog product assigned"), Again.FindPlacement(TEXT("cola")));
+    return true;
 }
 
 IMPLEMENT_SIMPLE_AUTOMATION_TEST(FMarketInventoryTest, "MirasMarket.Economy.InventoryAndOrder", EAutomationTestFlags::EditorContext | EAutomationTestFlags::EngineFilter)

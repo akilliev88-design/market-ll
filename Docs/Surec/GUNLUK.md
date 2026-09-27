@@ -2,6 +2,23 @@
 
 En yeni giriş en üstte. Biçim: tarih — ajan — başlık, ardından **Yapılan**, **Doğrulama**, **Sıradaki**.
 
+## 28.09.2026 — Codex — Çok markalı planogram ve Blender devir paketi
+
+**Yapılan**
+- `Config/planograms.json` ile gondol, seviye, ön/arka yüz, facing, derinlik ve sıra veri modeli eklendi.
+- Oyun aynı gondol/seviyede farklı markaları yan yana ve her facing'i arkaya doğru ayrı paket sıralarıyla kuruyor.
+- `RAF_PLANI.cmd` ve Tools menüsündeki Raf Planı Editörü eklendi; ürün taşıma, seviye/facing/derinlik/yüz değiştirme ve dengeli/kâr/marka stratejileri atomik kaydoluyor.
+- Blender'ı Mustafa'nın elle kullanması için adım adım rehber; Claude/başka ajan için ölçülebilir görev sözleşmesi ve `equipment_template.json` hazırlandı.
+
+**Doğrulama**
+- `DERLE.cmd /q`: GEÇTİ.
+- `TEST.cmd /q`: GEÇTİ 11/11; `MirasMarket.Planogram.MultiBrandDepth` dahil.
+- `SmokeTest.ps1`: GEÇTİ; 4 satış ve kayıt/yükleme.
+- 1280×720 görüntü: Sütaş/Pınar aynı gondolda yan yana; farklı kategoriler ayrı gondollarda doğrulandı.
+
+**Sıradaki**
+- G-024 tek yüz duvar rafı; ardından planogram editörüne mağaza içi sürükle-bırak 3B önizleme.
+
 ## 28.09.2026 — Codex — Blender hattı ve ilk gerçek gondol rafı
 
 **Yapılan**

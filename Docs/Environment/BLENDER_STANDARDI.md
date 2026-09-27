@@ -1,5 +1,7 @@
 # Miras Market Blender varlık standardı
 
+Uygulamalı kullanıcı akışı: [BLENDER_KULLANICI_REHBERI.md](BLENDER_KULLANICI_REHBERI.md). Claude veya başka bir ajana verilecek hazır sözleşme: [CLAUDE_BLENDER_PROMPT.md](CLAUDE_BLENDER_PROMPT.md). Yeni ekipman metadata başlangıcı: [equipment_template.json](equipment_template.json).
+
 ## Temel sözleşme
 
 - Blender birimi metre, Unit Scale `1.0`; 1 metre Unreal'da 100 cm'dir.

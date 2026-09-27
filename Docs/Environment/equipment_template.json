@@ -1,0 +1,18 @@
+{
+  "schemaVersion": 1,
+  "id": "equipment_id",
+  "mesh": "SM_AssetName.fbx",
+  "dimensionsMm": {"width": 1200, "depth": 450, "height": 2100},
+  "origin": "floor_center",
+  "frontAxis": "-Y",
+  "materials": ["MI_PaintedMetal", "MI_PriceRail"],
+  "collision": {"policy": "custom_ucx", "pieces": 2},
+  "zones": [
+    {"id": "front_l00", "face": "front", "level": 0, "centerCm": [0, -20, 25], "usableWidthCm": 110, "usableDepthCm": 38, "clearanceHeightCm": 32}
+  ],
+  "sockets": [
+    {"id": "module_left", "locationCm": [-60, 0, 0]},
+    {"id": "module_right", "locationCm": [60, 0, 0]}
+  ],
+  "lod": {"naniteCandidate": true, "lod1TriangleRatio": 0.5, "lod2TriangleRatio": 0.2}
+}

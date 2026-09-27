@@ -5,6 +5,7 @@
 #include "GameFramework/HUD.h"
 #include "GameFramework/SaveGame.h"
 #include "MarketEconomy.h"
+#include "Planogram.h"
 #include "MarketGame.generated.h"
 
 class UTextRenderComponent;
@@ -75,6 +76,7 @@ public:
     virtual void Tick(float DeltaTime) override;
     UPROPERTY() TArray<FMarketProduct> Products;
     UPROPERTY() FMarketState State;
+    FMarketPlanogram Planogram;
     UPROPERTY() TArray<FMarketCustomer> Customers;
     UPROPERTY() TArray<TObjectPtr<UTextRenderComponent>> ShelfLabels;
     UPROPERTY() TObjectPtr<UStaticMesh> Cube;
@@ -107,6 +109,8 @@ public:
     int32 QueueSize() const;
     float RivalDiscount() const;
     void LoadCatalog();
+    void LoadPlanogram();
+    FVector ProductFixtureLocation(int32 Index) const;
     void BuildStore();
     void BuildShelfItems(int32 Index);
     void RefreshShelfItems();

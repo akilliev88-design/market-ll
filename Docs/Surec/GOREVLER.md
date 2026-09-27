@@ -29,3 +29,5 @@ Yeni görev en alta eklenir; biten görev silinmez, durumu değişir. Kimlikler 
 | G-022 | Referans market canlılığı: koyu açık tavan, sıcak zemin, raf önü dolgu, marka başlıkları ve dengeli dolu raflar | Codex | Bitti | 28.09.2026; toplam başlangıç stoğu korunarak 16 raf/16 depo, derleme + 10/10 test + smoke + görsel kontrol geçti |
 | G-023 | Blender çevre varlığı hattı ve ilk gerçek çift yüz gondol rafı | Codex | Bitti | 28.09.2026; `.blend`/FBX/metadata/önizleme, Unreal otomatik import, 120×90×160 cm + 5 materyal + 3 UCX doğrulaması, oyuna entegrasyon geçti |
 | G-024 | Tek yüz 1200 mm duvar rafı ve yan duvar kategori dizilimi | Codex | Sırada | Gondol standardını kullanacak; mağazadaki boş yan hacimleri dolduracak |
+| G-025 | Çok markalı raf planı: facing, derinlik, seviye, ön/arka yüz ve Unreal editörü | Codex | Bitti | 28.09.2026; `RAF_PLANI.cmd`, 11/11 test, smoke ve 1280×720 görsel kontrol geçti |
+| G-026 | Blender kullanıcı rehberi, ekipman metadata şablonu ve Claude ajan görev sözleşmesi | Codex | Bitti | 28.09.2026; kullanıcı ve harici ajan aynı ölçü/pivot/PBR/teslim standardını kullanıyor |

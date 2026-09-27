@@ -1,0 +1,18 @@
+{
+  "schemaVersion": 1,
+  "fixtures": [
+    {"id":"gondola_icecek","equipment":"gondola_double_1200","label":"İçecekler","category":"içecek","strategy":"manual","x":-130.0,"y":320.0,"z":0.0,"yaw":0.0},
+    {"id":"gondola_sut","equipment":"gondola_double_1200","label":"Süt ve Kahvaltı","category":"süt","strategy":"brand_block","x":0.0,"y":320.0,"z":0.0,"yaw":0.0},
+    {"id":"gondola_kuru","equipment":"gondola_double_1200","label":"Kuru Gıda","category":"kuru gıda","strategy":"balanced","x":130.0,"y":320.0,"z":0.0,"yaw":0.0},
+    {"id":"gondola_temizlik","equipment":"gondola_double_1200","label":"Temizlik","category":"temizlik","strategy":"margin","x":0.0,"y":640.0,"z":0.0,"yaw":0.0}
+  ],
+  "placements": [
+    {"productId":"sutas_sut_1l","fixtureId":"gondola_sut","face":"front","level":1,"facings":3,"depth":3,"order":0},
+    {"productId":"pinar_sut_1l","fixtureId":"gondola_sut","face":"front","level":1,"facings":3,"depth":3,"order":1},
+    {"productId":"coca_cola_1l","fixtureId":"gondola_icecek","face":"front","level":1,"facings":4,"depth":4,"order":0},
+    {"productId":"caykur_rize_turist_500g","fixtureId":"gondola_kuru","face":"front","level":0,"facings":3,"depth":4,"order":0},
+    {"productId":"ulker_potibor","fixtureId":"gondola_kuru","face":"front","level":1,"facings":4,"depth":4,"order":0},
+    {"productId":"barilla_spagetti_500g","fixtureId":"gondola_kuru","face":"front","level":2,"facings":4,"depth":4,"order":0},
+    {"productId":"ariel_toz_4kg","fixtureId":"gondola_temizlik","face":"front","level":0,"facings":2,"depth":2,"order":0}
+  ]
+}

@@ -23,7 +23,6 @@
 namespace
 {
     FString Money(int64 Value) { return FString::Printf(TEXT("%.2f TL"), Value / 100.0); }
-    FVector ShelfPosition(int32 Index) { return FVector(-130 + (Index % 3) * 130, 320 + (Index / 3) * 320, 0); }
     // World-space text uses a distance-field font without Turkish glyphs: fold to ASCII there.
     FString AsciiFold(const FString& In)
     {
@@ -111,6 +110,7 @@ void AMarketGameMode::BeginPlay()
     Cube = LoadObject<UStaticMesh>(nullptr, TEXT("/Engine/BasicShapes/Cube.Cube"));
     Sphere = LoadObject<UStaticMesh>(nullptr, TEXT("/Engine/BasicShapes/Sphere.Sphere"));
     LoadCatalog();
+    LoadPlanogram();
     State.Initialize(Products);
     BuildStore();
     if (auto* PC = UGameplayStatics::GetPlayerController(this, 0))
@@ -123,7 +123,7 @@ void AMarketGameMode::BeginPlay()
     Random.Initialize(2011);
     RefreshLabels();
     Notify(TEXT("2011, Luleburgaz. Ailenden kalan market senin. Raflara yaklas: E. Sonra O ile ac."));
-    UE_LOG(LogTemp, Display, TEXT("MirasMarket ready: %d products, %d shelves, starting cash %lld kurus."), Products.Num(), Products.Num(), State.Cash);
+    UE_LOG(LogTemp, Display, TEXT("MirasMarket ready: %d products, %d fixtures, starting cash %lld kurus."), Products.Num(), Planogram.Fixtures.Num(), State.Cash);
 }
 
 void AMarketGameMode::LoadCatalog()
@@ -143,7 +143,25 @@ void AMarketGameMode::LoadCatalog()
             P.Cost = 100; P.BasePrice = 200; Products.Add(P);
         }
     }
-    StoreRows = FMath::Max(2, FMath::DivideAndRoundUp(Products.Num(), 3));
+}
+
+void AMarketGameMode::LoadPlanogram()
+{
+    TArray<FString> Errors;
+    MarketPlanogram::LoadFile(MarketPlanogram::DefaultPath(), Planogram, Errors);
+    MarketPlanogram::Reconcile(Planogram, Products);
+    for (const FString& Error : Errors) UE_LOG(LogTemp, Warning, TEXT("MirasMarket planogram: %s"), *Error);
+    float FurthestY = 320.f;
+    for (const FPlanogramFixture& Fixture : Planogram.Fixtures) FurthestY = FMath::Max(FurthestY, Fixture.Location.Y);
+    StoreRows = FMath::Max(2, FMath::CeilToInt(FurthestY / 320.f));
+}
+
+FVector AMarketGameMode::ProductFixtureLocation(int32 Index) const
+{
+    if (!Products.IsValidIndex(Index)) return FVector::ZeroVector;
+    if (const FPlanogramPlacement* Placement = Planogram.FindPlacement(Products[Index].Id))
+        if (const FPlanogramFixture* Fixture = Planogram.FindFixture(Placement->FixtureId)) return Fixture->Location;
+    return FVector::ZeroVector;
 }
 
 AActor* AMarketGameMode::Box(FVector Location, FVector Size, FLinearColor Color, bool bCollision)
@@ -202,14 +220,13 @@ void AMarketGameMode::BuildStore()
     for (float Y = -250.f; Y < Back; Y += 110.f)
         Box(FVector(0, Y, 0.2f), FVector(1250.f, 1.2f, 0.4f), FLinearColor(.31f, .32f, .30f), false);
     UStaticMesh* Gondola = LoadObject<UStaticMesh>(nullptr, TEXT("/Game/Environment/Shelves/Gondola_1200/SM_Gondola_1200.SM_Gondola_1200"));
-    for (int32 I = 0; I < Products.Num(); ++I)
+    for (const FPlanogramFixture& Fixture : Planogram.Fixtures)
     {
-        const FVector P = ShelfPosition(I);
-        FLinearColor Header = FLinearColor(Products[I].Color) * 0.68f;
-        Header.A = 1.f;
+        const FVector P = Fixture.Location;
+        const FRotator FixtureRotation(0, Fixture.Yaw, 0);
         if (Gondola)
         {
-            auto* Shelf = GetWorld()->SpawnActor<AStaticMeshActor>(P, FRotator::ZeroRotator);
+            auto* Shelf = GetWorld()->SpawnActor<AStaticMeshActor>(P, FixtureRotation);
             Shelf->GetStaticMeshComponent()->SetStaticMesh(Gondola);
             Shelf->GetStaticMeshComponent()->SetMobility(EComponentMobility::Static);
             Shelf->GetStaticMeshComponent()->SetCollisionProfileName(TEXT("BlockAll"));
@@ -230,10 +247,22 @@ void AMarketGameMode::BuildStore()
                 Box(P + FVector(0, -45, Z + 3), FVector(116, 3, 7), ShelfEdge);
             }
         }
-        Box(P + FVector(0, -7, 147), FVector(108, 2, 15), Header, false);
+        Box(P + FixtureRotation.RotateVector(FVector(0, -7, 147)), FVector(108, 2, 15), FLinearColor(.16f, .34f, .28f), false);
+        auto* FixtureLabel = Label(P + FixtureRotation.RotateVector(FVector(0, -8.2f, 150)), FixtureRotation + FRotator(0, -90, 0), AsciiFold(Fixture.Label), 9, FColor::White);
+        FixtureLabel->SetCullDistance(800);
+    }
+    for (int32 I = 0; I < Products.Num(); ++I)
+    {
         BuildShelfItems(I);
-        auto* ShelfLabel = Label(P + FVector(0, -8.2f, 150), FRotator(0, -90, 0), AsciiFold(ProductName(I)), 8, FColor::White);
-        ShelfLabel->SetCullDistance(700);
+        const FPlanogramPlacement* Placement = Planogram.FindPlacement(Products[I].Id);
+        const FPlanogramFixture* Fixture = Placement ? Planogram.FindFixture(Placement->FixtureId) : nullptr;
+        if (!Placement || !Fixture) { ShelfLabels.Add(nullptr); continue; }
+        const bool bBack = Placement->Face == TEXT("back");
+        const FRotator FixtureRotation(0, Fixture->Yaw, 0);
+        const float CenterX = MarketPlanogram::PlacementCenterX(Planogram, Products, *Placement);
+        const FVector Local(CenterX, bBack ? 45.f : -45.f, MarketPlanogram::ShelfBaseZ + Placement->Level * MarketPlanogram::ShelfLevelStepZ + 4.f);
+        auto* ShelfLabel = Label(Fixture->Location + FixtureRotation.RotateVector(Local), FixtureRotation + FRotator(0, bBack ? 90.f : -90.f, 0), AsciiFold(ProductName(I)), 5, FColor::White);
+        ShelfLabel->SetCullDistance(500);
         ShelfLabels.Add(ShelfLabel);
     }
     Box(FVector(405, -45, 48), FVector(230, 95, 96), FLinearColor(.12f, .25f, .22f));
@@ -309,19 +338,24 @@ void AMarketGameMode::BuildShelfItems(int32 Index)
     const FVector Size = Bounds.GetSize();   // X = depth (front axis), Y = width, Z = height
     const FVector Center = Bounds.GetCenter();
     const float Bottom = Bounds.Min.Z;
-    const FRotator Facing(0, -90, 0);                    // product front (+X) faces the aisle (-Y)
     const float Gap = 2;
-    const int32 Columns = FMath::Clamp(FMath::FloorToInt32(110 / (Size.Y + Gap)), 1, 16);
-    // Only the front row is visible: the shelf body behind the boards is solid.
-    const int32 Rows = 1;
-    const int32 Levels = Size.Z <= 31 ? 4 : 1;           // tall items only fit on the open top board
-    const FVector P = ShelfPosition(Index);
-    AActor* Holder = GetWorld()->SpawnActor<AActor>(P, FRotator::ZeroRotator);
+    const FPlanogramPlacement* Placement = Planogram.FindPlacement(Product.Id);
+    const FPlanogramFixture* Fixture = Placement ? Planogram.FindFixture(Placement->FixtureId) : nullptr;
+    ShelfItemStart.Add(ShelfItems.Num());
+    if (!Placement || !Fixture) { ShelfItemCount.Add(0); return; }
+    const int32 Columns = FMath::Clamp(Placement->Facings, 1, 12);
+    const int32 Rows = FMath::Clamp(Placement->Depth, 1, 8);
+    const bool bBack = Placement->Face == TEXT("back");
+    const float FaceSign = bBack ? 1.f : -1.f;
+    const FRotator FixtureRotation(0, Fixture->Yaw, 0);
+    const FRotator Facing(0, bBack ? 90.f : -90.f, 0);
+    const float GroupCenterX = MarketPlanogram::PlacementCenterX(Planogram, Products, *Placement);
+    const FVector P = Fixture->Location;
+    AActor* Holder = GetWorld()->SpawnActor<AActor>(P, FixtureRotation);
     auto* Root = NewObject<USceneComponent>(Holder);
     Holder->SetRootComponent(Root);
     Root->RegisterComponent();
-    Root->SetWorldLocation(P);
-    ShelfItemStart.Add(ShelfItems.Num());
+    Root->SetWorldLocationAndRotation(P, FixtureRotation);
     int32 Count = 0;
     TArray<int32> ColumnOrder;
     for (int32 Step = 0; Step < Columns; ++Step)
@@ -332,10 +366,12 @@ void AMarketGameMode::BuildShelfItems(int32 Index)
     }
     for (int32 Row = 0; Row < Rows && Count < FMarketState::ShelfCapacity; ++Row)
         for (const int32 Col : ColumnOrder)
-            for (int32 Level = 0; Level < Levels && Count < FMarketState::ShelfCapacity; ++Level)
+            if (Count < FMarketState::ShelfCapacity)
             {
-                const int32 Board = Levels == 4 ? Level : 3;
-                const FVector Slot(((Col - (Columns - 1) * 0.5f) * (Size.Y + Gap)), -42 + Size.X * 0.5f + Row * (Size.X + Gap), 19.5f + Board * 34);
+                const float Front = bBack ? -MarketPlanogram::ShelfFrontY : MarketPlanogram::ShelfFrontY;
+                const FVector Slot(GroupCenterX + (Col - (Columns - 1) * 0.5f) * (Size.Y + Gap),
+                    Front - FaceSign * (Size.X * 0.5f + Row * (Size.X + Gap)),
+                    MarketPlanogram::ShelfBaseZ + Placement->Level * MarketPlanogram::ShelfLevelStepZ);
                 const FVector BoundsOffset = Facing.RotateVector(FVector(Center.X, Center.Y, 0)) + FVector(0, 0, Bottom);
                 const FVector CorrectedOffset = Facing.RotateVector(PlacementOffset);
                 const FQuat FinalRotation = Facing.Quaternion() * ModelRotation.Quaternion();
@@ -378,7 +414,7 @@ int32 AMarketGameMode::NearbyShelf() const
     int32 Result = INDEX_NONE; float Best = 170;
     for (int32 I = 0; I < Products.Num(); ++I)
     {
-        const float Distance = FVector::Dist2D(Pawn->GetActorLocation(), ShelfPosition(I));
+        const float Distance = FVector::Dist2D(Pawn->GetActorLocation(), ProductFixtureLocation(I));
         if (Distance < Best) { Best = Distance; Result = I; }
     }
     return Result;
@@ -441,7 +477,7 @@ void AMarketGameMode::RefreshLabels()
     for (int32 I = 0; I < ShelfLabels.Num(); ++I)
     {
         const auto& S = State.Stock[I];
-        ShelfLabels[I]->SetText(FText::FromString(FString::Printf(TEXT("%s\n%s  |  Raf: %d / 24"), *AsciiFold(ProductName(I)), *Money(S.Price), S.Shelf)));
+        if (ShelfLabels[I]) ShelfLabels[I]->SetText(FText::FromString(FString::Printf(TEXT("%s\n%s  |  Raf: %d / 24"), *AsciiFold(ProductName(I)), *Money(S.Price), S.Shelf)));
     }
     RefreshShelfItems();
 }
@@ -572,7 +608,7 @@ void AMarketGameMode::Tick(float DeltaTime)
         {
             auto* Pawn = UGameplayStatics::GetPlayerPawn(this, 0);
             if (!Require(Pawn != nullptr, TEXT("player spawned"))) return;
-            Pawn->SetActorLocation(ShelfPosition(0) + FVector(0, -110, 90));
+            Pawn->SetActorLocation(ProductFixtureLocation(0) + FVector(0, -110, 90));
             Command("Interact");
             if (!Require(State.Stock[0].Shelf == 24, TEXT("nearby shelf interaction"))) return;
             Pawn->SetActorLocation(FVector(-430, -180, 90));
@@ -619,7 +655,7 @@ void AMarketGameMode::Tick(float DeltaTime)
         if (C.Age > 45)
         { ++State.Lost; C.Actor->Destroy(); Customers.RemoveAt(I); continue; }
         FVector Target;
-        if (C.Stage == 0) Target = ShelfPosition(C.Product) + FVector(0, -105, 65);
+        if (C.Stage == 0) Target = ProductFixtureLocation(C.Product) + FVector(0, -105, 65);
         else if (C.Stage == 1) Target = FVector(405, 60 + QueueSize() * 62, 65);
         else Target = FVector(405, 60 + FMarketQueueRules::Rank(Customers, I) * 62, 65);
         C.Actor->SetActorLocation(FMath::VInterpConstantTo(C.Actor->GetActorLocation(), Target, DeltaTime, 180));
