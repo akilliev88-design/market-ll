@@ -1,0 +1,8 @@
+GENEL KURALLAR
+- Gerçek marka adı ve logosu kullanılır. Okuyamadığın/emin olmadığın yazıyı UYDURMA; o alanı sade bırak ve raporda "belirsiz" diye yaz. Anlamsız, bozuk harfli kelime KOYMA: küçük yazıyı düzgün yazamıyorsan o alanı sade renk bırak.
+- Barkod çizgileri olabilir; gerçek barkod numarası, fiyat, son kullanma tarihi, parti numarası YAZMA.
+- Görsel düz baskı dosyası gibi olmalı: önden, perspektifsiz; ışık, gölge, parlama, masa, arka plan, el, fotoğraf efekti YOK.
+- Bu bir BASKI DOSYASI, sunum çizimi değil. Görselin içine ölçü, "mm", piksel, koordinat (x=…, y=…), "ÖN / ÜST / FRONT / TOP / SIDE" gibi yüz adları, ok, cetvel, kesim/katlama çizgisi, açıklama notu YAZMA. Bu talimattaki sayılar sana yöneliktir; görsele girmez.
+- Yazılar net ve okunaklı olmalı. Görüntü üreticisi yazıyı bozuyorsa logoyu ve yazıları ayrı katman olarak yeniden yaz (vektör/SVG → PNG) ve görselin üstüne yerleştir.
+- Görseli ürettikten sonra kodla veya görsel düzenleyiciyle TAM piksel ölçüsüne getir. Oran tutmuyorsa kırp veya kenara aynı zemin rengini ekle.
+- Dosyalar: PNG, sRGB, tam opak (saydamlık yok).

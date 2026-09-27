@@ -1,0 +1,10 @@
+{
+  "note": "Panel sınırları (piksel, x0,y0,x1,y1). Ürün Stüdyosu açılımı bu dikdörtgenlerden keser. inset: çerçeve çizgisini atlamak için içeri kaydırma.",
+  "inset": 5,
+  "front":  [495, 541, 998, 1729],
+  "left":   [146, 541, 495, 1729],
+  "right":  [998, 541, 1346, 1729],
+  "back":   [1346, 541, 1828, 1729],
+  "top":    [495, 110, 998, 448],
+  "bottom": [495, 1835, 998, 2143]
+}

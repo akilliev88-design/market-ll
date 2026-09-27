@@ -1,0 +1,52 @@
+GÖREV: Oyun için ürün ambalajının (kutu veya paket) AÇILIMINI (6 yüz tek görselde) üret. Çıktı bir BASKI DOSYASIDIR: görselde yalnızca ambalajın kendi baskısı olur.
+
+{{URUN}}
+
+ÖLÇÜLER (sabit, aynen kullan; ölçü araştırma, tahmin etme, değiştirme)
+- Genişlik {{GENISLIK}} mm = ön yüzün yatay kenarı.
+- Derinlik {{DERINLIK}} mm = yan yüzün yatay kenarı.
+- Yükseklik {{YUKSEKLIK}} mm = dikey kenar.
+- Ön = rafta müşteriye bakan ana yüz. Sağ/Sol = önden bakan kişinin sağı/solu.
+
+ADIM 1 — ARAŞTIR (yalnız tasarım için)
+- Ürünün {{DONEM}} yılındaki ambalaj tasarımını bul (dönem kuralları aşağıda). En az 2 kaynak.
+- Her yüzde ne olduğunu not et: ön = logo + ürün adı + ana görsel; arka = içindekiler/besin tablosu; yanlar; üst; alt.
+
+ADIM 2 — GÖRSEL VE PANEL ÖLÇÜLERİ (hesaplandı)
+Görselin tamamı: {{ACILIM_PX}} piksel.
+- ÖN ve ARKA paneli: {{ACILIM_ON_PX}} piksel (dik, uzun kenar yükseklik).
+- SOL ve SAĞ paneli: {{ACILIM_YAN_PX}} piksel.
+- ÜST ve ALT paneli: {{ACILIM_UST_PX}} piksel.
+
+ADIM 3 — PANELLERİ ŞU DÜZENDE DİZ (4 sütun × 3 satır, dışarıdan görünüş)
+
+   [boş]   [ ÜST ]   [boş]   [boş]
+   [SOL]   [ ÖN  ]   [SAĞ]   [ARKA]
+   [boş]   [ ALT ]   [boş]   [boş]
+
+- Orta satırdaki 4 panel yan yana, aralarında boşluk yok; hepsinin üst kenarı kutunun üstü.
+- ÜST paneli ÖN'ün tam üstünde; alt kenarı ÖN'e değer. ALT paneli ÖN'ün tam altında; üst kenarı ÖN'e değer.
+- Açılım görselin sol üst köşesinden başlar; dış kenarda boşluk yok. Boş 6 hücre düz beyaz (#FFFFFF), içlerinde hiçbir şey yok.
+- Her panelin çevresine 2-3 piksel koyu gri (#333333) ince çizgi çek; başka çizgi yok.
+- Komşu panellerde zemin ve renk bantları kesintisiz devam etsin. Hiçbir panel ayna değil, yan yatık değil.
+- ÜST ve ALT düz yüzdür: katlama kanadı, yapıştırma payı, kulakçık, "kapak buraya" yazısı, pipet deliği çizme. Ürünün gerçek üst/alt baskısını (logo, zemin rengi) koy.
+{{KAPAK_NOTU}}
+
+GÖRSELE KESİNLİKLE YAZMA
+Panel adı (ÖN, ÜST, SOL, FRONT, TOP…), ölçü, mm, piksel, koordinat (x=…, y=…), ok, cetvel, kesim/katlama çizgisi, açıklama notu, filigran. Bu metin sana verilen talimattır; görselin içine girmez. Görselde yalnız ambalajın kendi yazıları olur.
+
+{{GENEL_KURALLAR}}
+
+{{DONEM_KURALLARI}}
+
+ADIM 4 — KONTROL ET (teslimden önce tek tek işaretle)
+[ ] Tek dosya acilim.png, tam {{ACILIM_PX}} piksel.
+[ ] Düzen yukarıdaki 4×3 gibi; ÜST ve ALT, ÖN'ün üstünde/altında.
+[ ] Görselde panel adı, ölçü, koordinat, ok, not YOK. Boş hücreler tamamen beyaz.
+[ ] Işık/gölge/perspektif yok; tam opak PNG; yazılar okunaklı ve anlamlı.
+[ ] Logo ve ürün adı {{DONEM}} yılına uygun.
+
+TESLİM
+Klasör: {{KLASOR}}
+İçinde: acilim.png, kaynak.md
+kaynak.md: dönem kanıtı, kaynak bağlantıları, "belirsiz" bıraktığın yazılar, en yakın yıl kullandıysan hangisi.

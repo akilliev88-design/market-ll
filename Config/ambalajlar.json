@@ -1,0 +1,550 @@
+{
+ "schemaVersion": 1,
+ "note": "Hazır ambalaj kütüphanesi. Ürün Stüdyosu > AMBALAJ bölümünde listelenir; stüdyo 3B şeklini kendisi üretir. Ölçüler mm. Bir kaydın ölçüsünü değiştirirsen id'sini de değiştir (eski 3B şekil kullanımda olabilir).",
+ "packages": [
+  {
+   "id": "sut_kutusu_1l",
+   "name": "Süt / meyve suyu kutusu 1 L",
+   "type": "kutu",
+   "widthMm": 95,
+   "depthMm": 64,
+   "heightMm": 195,
+   "topCap": true,
+   "notes": "karton kutu; üstte vidalı kapak olabilir (dönemine göre)"
+  },
+  {
+   "id": "sut_kutusu_200ml",
+   "name": "Küçük süt / meyve suyu kutusu 200 ml",
+   "type": "kutu",
+   "widthMm": 53,
+   "depthMm": 38,
+   "heightMm": 110,
+   "notes": "karton kutu, pipetli"
+  },
+  {
+   "id": "cay_kutusu_500g",
+   "name": "Çay kutusu 500 g",
+   "type": "kutu",
+   "widthMm": 115,
+   "depthMm": 65,
+   "heightMm": 190,
+   "notes": "karton kutu"
+  },
+  {
+   "id": "cay_kutusu_100_poset",
+   "name": "Süzen poşet çay kutusu 100'lü",
+   "type": "kutu",
+   "widthMm": 170,
+   "depthMm": 115,
+   "heightMm": 90,
+   "notes": "karton kutu"
+  },
+  {
+   "id": "kucuk_karton_kutu",
+   "name": "Küçük karton kutu (20'li çay)",
+   "type": "kutu",
+   "widthMm": 125,
+   "depthMm": 70,
+   "heightMm": 65,
+   "notes": "karton kutu"
+  },
+  {
+   "id": "stick_kutusu",
+   "name": "Stick kahve kutusu 10'lu",
+   "type": "kutu",
+   "widthMm": 130,
+   "depthMm": 55,
+   "heightMm": 150,
+   "notes": "karton kutu"
+  },
+  {
+   "id": "makarna_kutusu_500g",
+   "name": "Makarna kutusu 500 g (uzun)",
+   "type": "kutu",
+   "widthMm": 72,
+   "depthMm": 30,
+   "heightMm": 265,
+   "notes": "karton kutu"
+  },
+  {
+   "id": "peynir_kutusu_500g",
+   "name": "Peynir kabı 500 g",
+   "type": "kutu",
+   "widthMm": 120,
+   "depthMm": 90,
+   "heightMm": 60,
+   "notes": "plastik/teneke dikdörtgen kap"
+  },
+  {
+   "id": "biskuvi_kutusu",
+   "name": "Bisküvi kutusu (Halley tipi)",
+   "type": "kutu",
+   "widthMm": 190,
+   "depthMm": 105,
+   "heightMm": 45,
+   "notes": "karton kutu"
+  },
+  {
+   "id": "dondurma_kutusu_1l",
+   "name": "Dondurma kutusu 1 L",
+   "type": "kutu",
+   "widthMm": 160,
+   "depthMm": 110,
+   "heightMm": 90,
+   "notes": "karton/plastik kutu"
+  },
+  {
+   "id": "deterjan_kutusu_4kg",
+   "name": "Toz deterjan kutusu 4 kg",
+   "type": "kutu",
+   "widthMm": 280,
+   "depthMm": 110,
+   "heightMm": 330,
+   "notes": "karton kutu, sap yeri olabilir"
+  },
+  {
+   "id": "dis_macunu_kutusu",
+   "name": "Diş macunu kutusu 100 ml",
+   "type": "kutu",
+   "widthMm": 190,
+   "depthMm": 40,
+   "heightMm": 38,
+   "notes": "karton kutu, yatay durur"
+  },
+  {
+   "id": "sabun_kutusu_4lu",
+   "name": "Sabun paketi 4'lü",
+   "type": "kutu",
+   "widthMm": 190,
+   "depthMm": 65,
+   "heightMm": 55,
+   "notes": "karton/kağıt paket"
+  },
+  {
+   "id": "cips_poseti",
+   "name": "Cips poşeti (büyük)",
+   "type": "poset",
+   "widthMm": 200,
+   "depthMm": 60,
+   "heightMm": 280,
+   "notes": "yumuşak paket; oyunda düz kutu şeklinde"
+  },
+  {
+   "id": "cerez_poseti",
+   "name": "Çerez / kuruyemiş poşeti",
+   "type": "poset",
+   "widthMm": 160,
+   "depthMm": 45,
+   "heightMm": 235,
+   "notes": "yumuşak paket; oyunda düz kutu şeklinde"
+  },
+  {
+   "id": "makarna_poseti_500g",
+   "name": "Makarna poşeti 500 g",
+   "type": "poset",
+   "widthMm": 80,
+   "depthMm": 35,
+   "heightMm": 270,
+   "notes": "yumuşak paket; oyunda düz kutu şeklinde"
+  },
+  {
+   "id": "bakliyat_poseti_1kg",
+   "name": "Bakliyat / bulgur poşeti 1 kg",
+   "type": "poset",
+   "widthMm": 140,
+   "depthMm": 60,
+   "heightMm": 230,
+   "notes": "yumuşak paket; oyunda düz kutu şeklinde"
+  },
+  {
+   "id": "un_poseti_2kg",
+   "name": "Un paketi 2 kg",
+   "type": "poset",
+   "widthMm": 170,
+   "depthMm": 90,
+   "heightMm": 300,
+   "notes": "yumuşak paket; oyunda düz kutu şeklinde"
+  },
+  {
+   "id": "cay_poseti_1kg",
+   "name": "Dökme çay paketi 1 kg",
+   "type": "poset",
+   "widthMm": 190,
+   "depthMm": 70,
+   "heightMm": 300,
+   "notes": "yumuşak paket; oyunda düz kutu şeklinde"
+  },
+  {
+   "id": "kahve_paketi_100g",
+   "name": "Türk kahvesi paketi 100 g",
+   "type": "poset",
+   "widthMm": 100,
+   "depthMm": 40,
+   "heightMm": 170,
+   "notes": "yumuşak paket; oyunda düz kutu şeklinde"
+  },
+  {
+   "id": "corba_paketi",
+   "name": "Hazır çorba paketi",
+   "type": "poset",
+   "widthMm": 130,
+   "depthMm": 15,
+   "heightMm": 170,
+   "notes": "yumuşak paket; oyunda düz kutu şeklinde"
+  },
+  {
+   "id": "gofret_paketi",
+   "name": "Gofret / bar paketi",
+   "type": "poset",
+   "widthMm": 55,
+   "depthMm": 25,
+   "heightMm": 155,
+   "notes": "yumuşak paket; oyunda düz kutu şeklinde"
+  },
+  {
+   "id": "biskuvi_paketi",
+   "name": "Bisküvi paketi",
+   "type": "poset",
+   "widthMm": 65,
+   "depthMm": 45,
+   "heightMm": 185,
+   "notes": "yumuşak paket; oyunda düz kutu şeklinde"
+  },
+  {
+   "id": "kek_paketi",
+   "name": "Kek paketi (tek)",
+   "type": "poset",
+   "widthMm": 70,
+   "depthMm": 30,
+   "heightMm": 100,
+   "notes": "yumuşak paket; oyunda düz kutu şeklinde"
+  },
+  {
+   "id": "tablet_cikolata",
+   "name": "Tablet çikolata",
+   "type": "poset",
+   "widthMm": 85,
+   "depthMm": 15,
+   "heightMm": 170,
+   "notes": "yumuşak paket; oyunda düz kutu şeklinde"
+  },
+  {
+   "id": "sakiz_paketi",
+   "name": "Sakız paketi",
+   "type": "poset",
+   "widthMm": 30,
+   "depthMm": 15,
+   "heightMm": 80,
+   "notes": "yumuşak paket; oyunda düz kutu şeklinde"
+  },
+  {
+   "id": "dondurma_paketi",
+   "name": "Dondurma paketi (çubuk/külah)",
+   "type": "poset",
+   "widthMm": 100,
+   "depthMm": 35,
+   "heightMm": 200,
+   "notes": "yumuşak paket; oyunda düz kutu şeklinde"
+  },
+  {
+   "id": "tuvalet_kagidi_32",
+   "name": "Tuvalet kağıdı 32'li",
+   "type": "poset",
+   "widthMm": 400,
+   "depthMm": 300,
+   "heightMm": 380,
+   "notes": "yumuşak paket; oyunda düz kutu şeklinde"
+  },
+  {
+   "id": "havlu_kagit_8",
+   "name": "Havlu kağıt 8'li",
+   "type": "poset",
+   "widthMm": 440,
+   "depthMm": 250,
+   "heightMm": 260,
+   "notes": "yumuşak paket; oyunda düz kutu şeklinde"
+  },
+  {
+   "id": "pecete_paketi",
+   "name": "Peçete paketi",
+   "type": "poset",
+   "widthMm": 200,
+   "depthMm": 100,
+   "heightMm": 200,
+   "notes": "yumuşak paket; oyunda düz kutu şeklinde"
+  },
+  {
+   "id": "pet_sise_05l",
+   "name": "PET şişe 0,5 L",
+   "type": "pet_sise",
+   "diameterMm": 65,
+   "heightMm": 210,
+   "labelHeightMm": 60,
+   "colors": "Cam=D9EEE6/0.3;Kapak=FFFFFF",
+   "neckDiameterMm": 28,
+   "capHeightMm": 16
+  },
+  {
+   "id": "pet_sise_1l",
+   "name": "PET şişe 1 L (gazlı içecek)",
+   "type": "pet_sise",
+   "diameterMm": 80,
+   "heightMm": 300,
+   "labelHeightMm": 70,
+   "colors": "Cam=D9EEE6/0.3;Kapak=FFFFFF",
+   "neckDiameterMm": 28,
+   "capHeightMm": 18
+  },
+  {
+   "id": "pet_sise_1_5l",
+   "name": "PET şişe 1,5 L (su / soğuk çay)",
+   "type": "pet_sise",
+   "diameterMm": 88,
+   "heightMm": 330,
+   "labelHeightMm": 90,
+   "colors": "Cam=D9EEE6/0.3;Kapak=FFFFFF",
+   "neckDiameterMm": 28,
+   "capHeightMm": 18
+  },
+  {
+   "id": "pet_yag_1l",
+   "name": "Yağ şişesi 1 L",
+   "type": "pet_sise",
+   "diameterMm": 85,
+   "heightMm": 290,
+   "labelHeightMm": 110,
+   "colors": "Cam=E8C84A/0.75;Kapak=D32F2F",
+   "neckDiameterMm": 32,
+   "capHeightMm": 20
+  },
+  {
+   "id": "sikma_sise",
+   "name": "Sıkma şişe (ketçap / mayonez)",
+   "type": "pet_sise",
+   "diameterMm": 60,
+   "heightMm": 190,
+   "labelHeightMm": 90,
+   "shape": "sikma",
+   "parts": "Etiket,Govde,Kapak",
+   "colors": "Govde=D32F2F;Kapak=FFFFFF"
+  },
+  {
+   "id": "deterjan_sise_1l",
+   "name": "Sıvı deterjan şişesi 1 L",
+   "type": "pet_sise",
+   "diameterMm": 95,
+   "heightMm": 240,
+   "labelHeightMm": 120,
+   "shape": "sise_genis",
+   "parts": "Etiket,Govde,Kapak",
+   "colors": "Govde=1E7B34;Kapak=FFFFFF"
+  },
+  {
+   "id": "bulasik_sise",
+   "name": "Bulaşık deterjanı şişesi",
+   "type": "pet_sise",
+   "diameterMm": 70,
+   "heightMm": 230,
+   "labelHeightMm": 120,
+   "shape": "sise_genis",
+   "parts": "Etiket,Govde,Kapak",
+   "colors": "Govde=3BAA35;Kapak=FFFFFF"
+  },
+  {
+   "id": "yumusatici_sise",
+   "name": "Yumuşatıcı şişesi 1,5 L",
+   "type": "pet_sise",
+   "diameterMm": 110,
+   "heightMm": 250,
+   "labelHeightMm": 140,
+   "shape": "sise_genis",
+   "parts": "Etiket,Govde,Kapak",
+   "colors": "Govde=4FA3E0;Kapak=1F5FA8"
+  },
+  {
+   "id": "camasir_suyu_sise",
+   "name": "Çamaşır suyu / temizlik şişesi",
+   "type": "pet_sise",
+   "diameterMm": 80,
+   "heightMm": 250,
+   "labelHeightMm": 120,
+   "shape": "sise_genis",
+   "parts": "Etiket,Govde,Kapak",
+   "colors": "Govde=1F5FA8;Kapak=FFFFFF"
+  },
+  {
+   "id": "sampuan_sise",
+   "name": "Şampuan şişesi 500 ml",
+   "type": "pet_sise",
+   "diameterMm": 75,
+   "heightMm": 220,
+   "labelHeightMm": 120,
+   "shape": "sise_genis",
+   "parts": "Etiket,Govde,Kapak",
+   "colors": "Govde=FFFFFF;Kapak=FFFFFF"
+  },
+  {
+   "id": "krem_sise",
+   "name": "Krem temizleyici şişesi",
+   "type": "pet_sise",
+   "diameterMm": 70,
+   "heightMm": 190,
+   "labelHeightMm": 100,
+   "shape": "sise_genis",
+   "parts": "Etiket,Govde,Kapak",
+   "colors": "Govde=FFFFFF;Kapak=1F5FA8"
+  },
+  {
+   "id": "cam_sise_250ml",
+   "name": "Cam şişe 250 ml (gazoz)",
+   "type": "cam_sise",
+   "diameterMm": 60,
+   "heightMm": 225,
+   "labelHeightMm": 60,
+   "colors": "Cam=D9EEE6/0.25;Kapak=C8C8C8",
+   "neckDiameterMm": 26,
+   "capHeightMm": 8,
+   "metalCap": true
+  },
+  {
+   "id": "cam_sise_200ml",
+   "name": "Cam şişe 200 ml (maden suyu)",
+   "type": "cam_sise",
+   "diameterMm": 55,
+   "heightMm": 185,
+   "labelHeightMm": 50,
+   "colors": "Cam=CFE8D6/0.3;Kapak=C8C8C8",
+   "neckDiameterMm": 26,
+   "capHeightMm": 8,
+   "metalCap": true
+  },
+  {
+   "id": "teneke_330ml",
+   "name": "Teneke kutu 330 ml",
+   "type": "teneke",
+   "diameterMm": 66,
+   "heightMm": 115,
+   "labelHeightMm": 100,
+   "colors": "Kapak=C8C8C8",
+   "metalCap": true
+  },
+  {
+   "id": "teneke_250ml_ince",
+   "name": "İnce teneke kutu 250 ml",
+   "type": "teneke",
+   "diameterMm": 53,
+   "heightMm": 135,
+   "labelHeightMm": 120,
+   "colors": "Kapak=C8C8C8",
+   "metalCap": true
+  },
+  {
+   "id": "konserve_kucuk",
+   "name": "Konserve kutusu (küçük)",
+   "type": "teneke",
+   "diameterMm": 74,
+   "heightMm": 112,
+   "labelHeightMm": 100,
+   "colors": "Kapak=C8C8C8",
+   "metalCap": true
+  },
+  {
+   "id": "konserve_buyuk",
+   "name": "Konserve / salça tenekesi (büyük)",
+   "type": "teneke",
+   "diameterMm": 99,
+   "heightMm": 118,
+   "labelHeightMm": 105,
+   "colors": "Kapak=C8C8C8",
+   "metalCap": true
+  },
+  {
+   "id": "aerosol_buyuk",
+   "name": "Sprey kutusu (tıraş köpüğü)",
+   "type": "teneke",
+   "diameterMm": 53,
+   "heightMm": 190,
+   "labelHeightMm": 140,
+   "shape": "aerosol",
+   "colors": "Kapak=FFFFFF"
+  },
+  {
+   "id": "aerosol_deodorant",
+   "name": "Deodorant spreyi",
+   "type": "teneke",
+   "diameterMm": 50,
+   "heightMm": 150,
+   "labelHeightMm": 110,
+   "shape": "aerosol",
+   "colors": "Kapak=1A1A1A"
+  },
+  {
+   "id": "kavanoz_kahve",
+   "name": "Kavanoz (hazır kahve 200 g)",
+   "type": "kavanoz",
+   "diameterMm": 95,
+   "heightMm": 170,
+   "labelHeightMm": 80,
+   "colors": "Cam=4A2A14/0.85;Kapak=8B5A2B"
+  },
+  {
+   "id": "kavanoz_krema",
+   "name": "Kavanoz (kakaolu krema)",
+   "type": "kavanoz",
+   "diameterMm": 80,
+   "heightMm": 110,
+   "labelHeightMm": 60,
+   "colors": "Cam=5A3520/0.9;Kapak=FFFFFF"
+  },
+  {
+   "id": "kavanoz_salca",
+   "name": "Kavanoz (salça 650 g)",
+   "type": "kavanoz",
+   "diameterMm": 85,
+   "heightMm": 125,
+   "labelHeightMm": 80,
+   "colors": "Cam=B3261E/0.9;Kapak=C8C8C8",
+   "metalCap": true
+  },
+  {
+   "id": "ayran_bardagi",
+   "name": "Ayran bardağı 200 ml",
+   "type": "kase",
+   "diameterMm": 70,
+   "heightMm": 75,
+   "labelHeightMm": 65,
+   "colors": "Govde=FFFFFF;Kapak=D9D9D9",
+   "notes": "folyo kapak"
+  },
+  {
+   "id": "yogurt_kovasi_1kg",
+   "name": "Yoğurt kasesi 1 kg",
+   "type": "kase",
+   "diameterMm": 140,
+   "heightMm": 90,
+   "labelHeightMm": 80,
+   "colors": "Govde=FFFFFF;Kapak=D9D9D9",
+   "notes": "baskılı kapak"
+  },
+  {
+   "id": "labne_kasesi",
+   "name": "Labne / krem peynir kasesi",
+   "type": "kase",
+   "diameterMm": 95,
+   "heightMm": 55,
+   "labelHeightMm": 45,
+   "colors": "Govde=FFFFFF;Kapak=D9D9D9",
+   "notes": "folyo kapak"
+  },
+  {
+   "id": "kucuk_kap",
+   "name": "Küçük kap (Danino tipi)",
+   "type": "kase",
+   "diameterMm": 55,
+   "heightMm": 55,
+   "labelHeightMm": 45,
+   "colors": "Govde=FFFFFF;Kapak=D9D9D9",
+   "notes": "folyo kapak"
+  }
+ ]
+}

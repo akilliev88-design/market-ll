@@ -1,0 +1,22 @@
+GÖREV: Oyun için üretilmiş ambalaj dosyalarını teslim kurallarına göre denetle. Düzeltme YAPMA; yalnız rapor ver.
+
+{{URUN}}
+
+DENETLENECEK KLASÖR: {{KLASOR}}
+MODEL KLASÖRÜ (şişe/poşet için): {{MODEL_KLASOR}}
+BEKLENEN DOSYALAR: {{BEKLENEN_DOSYALAR}}
+BEKLENEN PİKSEL: {{BEKLENEN_PIKSEL}}
+
+KONTROLLER
+1. Dosyalar tam ve adları doğru mu?
+2. Piksel ölçüleri beklenenle aynı mı? (şişe/poşette label.png = uv_sablon.png)
+3. PNG, opak, sRGB mi?
+4. Yazılar soldan sağa okunuyor mu (ayna yok)?
+5. Yerleşim: kutu açılımında paneller doğru yerde mi; ÜST/ALT ÖN'e komşu mu? Şişede logo ortada mı, sol/sağ kenar rengi eşleşiyor mu?
+6. Yasaklar: gerçek barkod numarası, fiyat, SKT; ışık/gölge/perspektif; görsele yazılmış ölçü, "mm", piksel, koordinat, panel adı (ÖN/ÜST/SOL…), ok, not; paneller arası boşluk. (Panel çevresindeki 2-3 px ince koyu çizgi serbest.)
+7. Yazı kalitesi: anlamsız/bozuk kelime var mı? Madde madde yaz.
+8. kaynak.md dönem kanıtı ve kaynak bağlantısı içeriyor mu?
+9. Model (varsa): ölçek cm, ön -Y, taban Z=0; yuvalar yalnız {{PARCALAR}} ve malzeme.json ile birebir.
+
+TESLİM
+Aynı klasöre denetim.md: her kontrol için GEÇTİ / KALDI / BAKILAMADI + kısa gerekçe. En üstte tek satır: "YÜKLEMEYE HAZIR" veya "DÜZELTME GEREKLİ: <maddeler>".

@@ -1,0 +1,38 @@
+GÖREV: Oyun için yumuşak paketin (poşet) 3B modelini, malzeme bilgisini ve UV şablonunu hazırla. Etiket bu adımda ÇİZİLMEZ.
+
+{{URUN}}
+
+ADIM 1 — ARAŞTIR
+- Paketin gerçek şeklini (dik duran / yatık), dolu hâlini ve şeffaf pencere olup olmadığını bul.
+- Ölçüler (sabit, aynen kullan; araştırma/tahmin etme): genişlik {{GENISLIK}} mm, yükseklik {{YUKSEKLIK}} mm, dolu kalınlık {{DERINLIK}} mm.
+
+ADIM 2 — MODELİ OLUŞTUR
+- Birim cm (1 birim = 1 cm). Ön yüz Blender'da -Y'ye baksın, yukarı +Z. Pivot taban ortası (0,0,0), taban Z=0. Scale/Rotation uygula.
+- Dolu paket görünümü: hafif şişkin, üst/alt kaynak yerleri belli; aşırı buruşukluk yok.
+- 300–3000 üçgen, tek nesne, iskelet yok, normaller dışa.
+
+ADIM 3 — MALZEME YUVALARI (adlar TAM OLARAK böyle)
+- "Etiket": paketin tüm baskılı dış yüzeyi.
+- "Cam": YALNIZ şeffaf pencere varsa. Oyunda otomatik saydam.
+Başka yuva yok; yuvasız yüzey yok.
+
+ADIM 4 — UV AÇILIMI
+- "Etiket": U 0–0,5 = ÖN yüz, U 0,5–1 = ARKA yüz; ikisi de dik (V=0 üst), ayna değil. Ön panel ortası U=0,25.
+- Kaynak/dikiş şeritleri panellerin üst/alt kenarında.
+
+ADIM 5 — malzeme.json YAZ
+{"slots":[
+  {"name":"Etiket","type":"label"},
+  {"name":"Cam","type":"glass","color":"F2F2F2","opacity":0.2,"roughness":0.1}
+]}
+(Pencere yoksa yalnız Etiket satırı.)
+
+ADIM 6 — UV ŞABLONU
+- uv_sablon.png: oran (2 × genişlik) : yükseklik, hedef {{POSET_PX}} piksel. Sol yarı "ÖN", sağ yarı "ARKA", üstlerde "ÜST"; pencere alanı taralı.
+
+ADIM 7 — DIŞA AKTAR
+- FBX, Apply Transform açık, Forward -Y, Up Z, malzemeler dahil. Yeniden içe alıp kontrol et.
+
+TESLİM
+Klasör: {{MODEL_KLASOR}}
+İçinde: model.fbx, malzeme.json, uv_sablon.png, model_rapor.md (modelin ölçüleri, üçgen sayısı, etiket oranı ve pikseli, pencere var/yok)

@@ -1,0 +1,28 @@
+GÖREV: Poşetin ön ve arka baskısını {{DONEM}} dönemi için tek görselde üret.
+
+{{URUN}}
+
+ADIM 1 — ŞABLONU OKU
+- Model klasörü: {{MODEL_KLASOR}} → uv_sablon.png, model_rapor.md.
+- label.png, uv_sablon.png ile AYNI piksel ölçüsünde (yaklaşık {{POSET_PX}}).
+- SOL yarı = ÖN, SAĞ yarı = ARKA; ikisi de dik. Taralı pencere alanı oyunda saydam olur; oraya baskı koyma.
+
+ADIM 2 — ARAŞTIR
+- Paketin {{DONEM}} yılındaki ön ve arka baskısını bul (dönem kuralları aşağıda). En az 2 kaynak.
+
+ADIM 3 — GÖRSELİ ÜRET
+- Sol yarı: ön baskı (logo, ürün adı, ürün görseli, gramaj).
+- Sağ yarı: arka baskı (içindekiler, besin tablosu, pişirme bilgisi, üretici, geri dönüşüm).
+- Üst/alt kaynak şeritlerinde önemli yazı olmasın (%5 boşluk). Şablon çizgileri son görselde yok.
+
+{{GENEL_KURALLAR}}
+
+{{DONEM_KURALLARI}}
+
+ADIM 4 — KONTROL ET
+[ ] Piksel uv_sablon.png ile aynı; sol ön, sağ arka; ayna yok; yazılar anlamlı.
+[ ] {{DONEM}} yılına uygun.
+
+TESLİM
+Klasör: {{KLASOR}}
+İçinde: label.png, kaynak.md

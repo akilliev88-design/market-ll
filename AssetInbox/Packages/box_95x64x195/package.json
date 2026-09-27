@@ -1,0 +1,10 @@
+{
+	"schemaVersion": 1,
+	"id": "box_95x64x195",
+	"type": "box",
+	"widthMm": 95,
+	"depthMm": 64,
+	"heightMm": 195,
+	"atlasSize": 2048,
+	"mesh": "/Game/Products/Packages/box_95x64x195/SM_box_95x64x195.SM_box_95x64x195"
+}

@@ -1,0 +1,40 @@
+GÖREV: Oyun için dikdörtgen ürün kutusunun 6 yüzünü AYRI AYRI görsel olarak üret.
+
+{{URUN}}
+
+EKSENLER
+- Genişlik {{GENISLIK}} mm (ön yüzün yatay kenarı), Derinlik {{DERINLIK}} mm (yan yüzün yatay kenarı), Yükseklik {{YUKSEKLIK}} mm.
+- Ön = rafta müşteriye bakan ana yüz. Sağ/Sol = önden bakan kişinin sağı/solu.
+
+ADIM 1 — ARAŞTIR
+- Ürünün {{DONEM}} yılındaki ambalajını bul (dönem kuralları aşağıda). En az 2 kaynak.
+- Ölçüler sabittir; aynen kullan. Ölçü araştırma, tahmin etme, değiştirme.
+
+ADIM 2 — PİKSEL ÖLÇÜLERİ (hesaplandı)
+front.png ve back.png : {{YUZ_ON}}
+right.png ve left.png : {{YUZ_YAN}}
+top.png ve bottom.png : {{YUZ_UST}}
+
+ADIM 3 — 6 GÖRSELİ ÜRET
+Her görsel o yüzün DIŞARIDAN, TAM KARŞIDAN görünüşü (ayna yok).
+- front.png : ön yüz. Üst kenar = kutunun üstü.
+- back.png  : arka yüz. Üst kenar = kutunun üstü.
+- right.png : önden bakan kişinin SAĞINDAKİ yan yüz. Görselin SOL kenarı ön yüze komşu.
+- left.png  : önden bakan kişinin SOLUNDAKİ yan yüz. Görselin SAĞ kenarı ön yüze komşu.
+- top.png   : üst yüz. Görselin ALT kenarı ön yüze komşu.
+- bottom.png: alt yüz. Görselin ÜST kenarı ön yüze komşu.
+Kenarları birleşen yüzlerde zemin ve bantlar kesintisiz devam etmeli.
+
+{{GENEL_KURALLAR}}
+
+{{DONEM_KURALLARI}}
+
+ADIM 4 — KONTROL ET
+[ ] 6 dosya, adları tam böyle; pikseller ADIM 2 ile aynı.
+[ ] Görsellerde yüz adı, ölçü, mm, piksel, koordinat, ok, not YOK.
+[ ] Hiçbiri ayna değil; ışık/gölge/perspektif yok; tam opak.
+[ ] Logo ve ürün adı {{DONEM}} yılına uygun; yazılar anlamlı.
+
+TESLİM
+Klasör: {{KLASOR}}
+İçinde: front.png back.png right.png left.png top.png bottom.png kaynak.md

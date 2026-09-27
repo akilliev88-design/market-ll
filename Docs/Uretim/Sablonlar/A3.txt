@@ -1,0 +1,23 @@
+GÖREV: Bir kutu açılım görselindeki 6 panelin piksel sınırlarını bul ve acilim.json yaz. Görseli DEĞİŞTİRME. (Görsel ölçü çizgili, yazılı veya paneller arası boşluklu geldiyse kullanılır.)
+
+{{URUN}}
+
+GÖRSEL: {{KLASOR}}acilim.png  (adı farklıysa o dosya)
+KUTU: Genişlik {{GENISLIK}} mm, Derinlik {{DERINLIK}} mm, Yükseklik {{YUKSEKLIK}} mm
+
+PANELLER (dışarıdan görünüş)
+- Orta sıra soldan sağa: SOL (yan), ÖN, SAĞ (yan), ARKA. Görselde "SIDE, FRONT, SIDE, BACK" yazıyor olabilir.
+- ÜST paneli ÖN'ün üstünde, ALT paneli ÖN'ün altında.
+- Panel adı yazıları, ölçü çizgileri ve boşluklar panelin DIŞINDADIR; dahil etme.
+
+ADIMLAR
+1. Görseli aç; piksel boyutunu yaz.
+2. Panel kenarlarını KODLA bul (ör. Python + Pillow): koyu piksellerin uzun yatay/dikey çizgilerini tara; çerçeve yoksa renk geçişlerinden bul. Gözle tahmin etme.
+3. Her panel için [x0, y0, x1, y1] yaz (sol-üst, sağ-alt). Çerçeve çizgisi dahil olabilir; stüdyo "inset" kadar içeri kırpar.
+4. Oran kontrolü: SOL/SAĞ ≈ {{ORAN_YAN}}, ÖN/ARKA ≈ {{ORAN_ON}}, ÜST/ALT ≈ {{ORAN_UST}} (genişlik/yükseklik). %15'ten fazla sapanı raporla.
+5. 6 paneli kesip ölçülere göre temiz açılım olarak dizip acilim_kontrol.png kaydet (yalnız kontrol için).
+
+TESLİM
+Görselle AYNI klasöre acilim.json:
+{"inset": 5, "front":[x0,y0,x1,y1], "left":[..], "right":[..], "back":[..], "top":[..], "bottom":[..]}
+Ayrıca acilim_kontrol.png ve kısa rapor (görsel boyutu, panel oranları, sapmalar).

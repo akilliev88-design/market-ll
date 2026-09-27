@@ -1,0 +1,50 @@
+GÖREV: Oyun için {{AMBALAJ_TURU}} ambalajın 3B modelini, malzeme bilgisini ve UV şablonunu hazırla. Etiket bu adımda ÇİZİLMEZ.
+
+{{URUN}}
+
+ADIM 1 — ARAŞTIR
+- Ambalajın gerçek şeklini, cam/plastik rengini, kapak rengini ve dokusunu bul (üretici, e-ticaret, fotoğraf). Şekil dönemlere göre belirgin değiştiyse raporda belirt; en yaygın şekli modelle.
+- Ölçüler (sabit, aynen kullan; araştırma/tahmin etme): yükseklik {{YUKSEKLIK}} mm, en geniş çap {{CAP}} mm, etiket bandı yüksekliği {{ETIKET_YUKSEKLIGI}} mm.
+
+ADIM 2 — MODELİ OLUŞTUR (Blender, Meshy veya benzeri; son işlemler Blender'da)
+- Birim: santimetre. 1 Blender birimi = 1 cm (100 mm = 10 birim).
+- Yön: ürünün ön yüzü (etiketin ortası) Blender'da -Y yönüne baksın (Numpad 1 "Front" görünümünde ön yüz görünür). Yukarı = +Z.
+- Pivot: tabanın ortası, (0,0,0). Taban Z=0. Scale/Rotation uygula (ölçek 1,1,1).
+- 500–4000 üçgen. Tek nesne, iskelet/animasyon yok. Kamera, ışık, zemin, fazladan kopya yok. Normaller dışa bakıyor.
+- İçerik (sıvı) veya cam kalınlığı modellemek zorunlu değil.
+
+ADIM 3 — MALZEME YUVALARI (Blender malzeme adları TAM OLARAK böyle; oyun adlardan tanır)
+Bu üründe kullanılacak yuvalar: {{PARCALAR}}
+- "Etiket" : baskılı etiket yüzeyi (her dönem ayrı görselle kaplanır).
+- "Cam"    : cam / şeffaf plastik gövde → oyunda otomatik saydam.
+- "Govde"  : saydam olmayan gövde (plastik kavanoz, teneke, kase).
+- "Kapak"  : kapak / tıpa / folyo kapak.
+Başka ad KULLANMA. Her yüzey bu yuvalardan birinde olsun; yuvasız (gri) yüzey kalmasın.
+
+ADIM 4 — UV AÇILIMLARI
+- "Etiket": UV 0–1 karesini TAM kaplar, silindirik açılım, çarpıtma yok. U=0 ve U=1 ARKA ortada (dikiş arkada), U=0,5 tam ÖN ortada; U arttıkça önden bakanın solundan sağına. V=0 etiketin ÜST, V=1 ALT kenarı.
+- "Kapak" (baskılı olacaksa): UV 0–1; sol yarı üst daire, sağ yarı yan şerit.
+- "Govde" (dokulu olacaksa): Etiket ile aynı kural. "Cam": UV önemli değil.
+
+ADIM 5 — malzeme.json YAZ (renkler gerçek ürüne göre, 6 haneli HEX)
+{{MALZEME_ORNEK}}
+type: "label" (etiket), "glass" (saydam), "solid" (düz renk), "keep" (modelin kendi dokusu). opacity 0,05 çok şeffaf … 1 opak. Renksiz cam: color "D9EEE6", opacity 0,25. Yalnız modelde olan yuvaları yaz.
+
+ADIM 6 — UV ŞABLONLARI
+- uv_sablon.png: etiket oranında (π × çap : etiket yüksekliği), hedef {{ETIKET_PX}} piksel. Dış çerçeve, ortada dikey "ÖN ORTA", kenarlarda "ARKA DİKİŞ", üstte "ÜST".
+- Baskılı kapak/gövde varsa kapak_uv_sablon.png / govde_uv_sablon.png (1024x1024).
+
+ADIM 7 — DIŞA AKTAR
+- FBX: yalnız seçili nesne, Apply Transform açık, Forward -Y, Up Z, "Mesh"; malzeme adları korunur.
+- Yeniden içe alıp ölçü, yön ve yuva adlarını kontrol et.
+
+ADIM 8 — KONTROL ET
+[ ] Yükseklik mm/10 birim; ön -Y; taban Z=0; pivot taban ortası.
+[ ] Yuvalar yalnız {{PARCALAR}}; yuvasız yüzey yok.
+[ ] Etiket UV'si 0–1'i kaplıyor, ön orta U=0,5.
+[ ] malzeme.json yuva adlarıyla birebir.
+
+TESLİM
+Klasör: {{MODEL_KLASOR}}
+İçinde: model.fbx, malzeme.json, uv_sablon.png, (varsa) kapak_uv_sablon.png / govde_uv_sablon.png, model_rapor.md
+model_rapor.md: modelin ölçüleri, üçgen sayısı, yuva listesi, etiket oranı ve etiket pikseli, kapak/gövde baskısı var/yok.

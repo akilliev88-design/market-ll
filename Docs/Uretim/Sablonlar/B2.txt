@@ -1,0 +1,42 @@
+GÖREV: {{AMBALAJ_TURU}} ambalajın etiket görselini{{KAPAK_BASLIK}} {{DONEM}} dönemi için üret. 3B şekli oyun kendisi yapar; sen yalnız düz baskı görsellerini üretirsin.
+
+{{URUN}}
+
+ÖLÇÜLER (sabit, aynen kullan; ölçü araştırma, tahmin etme, değiştirme)
+- Ambalaj: {{OLCULER}}.
+- Etiket, ürünün etrafını saran bant: genişliği = çevre (π × çap), yüksekliği = etiket bandı.
+
+ADIM 1 — ARAŞTIR (yalnız tasarım için)
+- Ürünün {{DONEM}} yılındaki etiketini ve kapağını bul (dönem kuralları aşağıda). En az 2 kaynak.
+- Etiketin önünde ne var (logo, ürün adı, görsel), yanlarda/arkada ne var (içindekiler, besin tablosu, üretici, geri dönüşüm).
+- Kapağın rengini ve üstünde baskı olup olmadığını not et.
+
+ADIM 2 — label.png (AÇILMIŞ ETİKET)
+- Ölçü: {{ETIKET_OLCU}}.
+- Görsel, etiketin soyulup düz serilmiş hâli: soldan sağa ürünün çevresi.
+- Görselin YATAY ORTASI = ürünün ÖN ORTASI. Logo ve ürün adı tam ortada.
+- Sol ve sağ kenar = arkadaki dikiş; iki kenar birleşir. Zemin rengi iki kenarda aynı olsun; dikişe önemli yazı koyma (kenarlardan %3 boşluk).
+- Arka bilgiler (içindekiler, besin tablosu, üretici) ortadan uzakta, iki yana yakın.
+- Görselin üst kenarı = etiketin üst kenarı. Yazılar düz (yan yatık, ayna değil).
+
+ADIM 3 — KAPAK
+{{KAPAK_GORSEL}}
+
+GÖRSELE KESİNLİKLE YAZMA
+Ölçü, mm, piksel, koordinat, "ÖN/ARKA/DİKİŞ" gibi yer adları, ok, cetvel, kılavuz çizgisi, açıklama notu, filigran. Bu metindeki sayılar sana yöneliktir; görsele girmez.
+
+{{GENEL_KURALLAR}}
+
+{{DONEM_KURALLARI}}
+
+ADIM 4 — KONTROL ET
+[ ] label.png tam {{ETIKET_OLCU}}.
+[ ] Logo ve ürün adı yatay ortada; sol/sağ kenar zemin rengi aynı.
+[ ] Görselde ölçü, koordinat, yer adı, not YOK. Yazılar ayna değil ve anlamlı.
+[ ] Kapak maddesine uyuldu.
+[ ] {{DONEM}} yılına uygun logo/renk.
+
+TESLİM
+Klasör: {{KLASOR}}
+İçinde: {{BEKLENEN_DOSYALAR}}
+kaynak.md: dönem kanıtı, kaynak bağlantıları, "belirsiz" bıraktığın yazılar, en yakın yıl kullandıysan hangisi, kapak ve içerik rengi (HEX).

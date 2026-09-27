@@ -1,0 +1,21 @@
+GÖREV: Aşağıdaki ürünün Türkiye'deki ambalajının dönemlere göre nasıl olduğunu araştır ve tablo hâlinde raporla. Görsel ÜRETME.
+
+{{URUN}}
+
+DÖNEMLER: 2011, 2018, 2025
+
+HER DÖNEM İÇİN BUL
+1. O yıl rafta mıydı? (evet / hayır / emin değilim) — piyasaya çıkış/bitiş yılı biliniyorsa yaz.
+2. Marka sahibi şirket o yıl kimdi? (satın alma/devir olduysa yılıyla)
+3. Ambalaj tipi ve hacim/gramaj. (Ölçü araştırma; oyundaki ölçü sabit: {{OLCULER}}.)
+4. Ambalaj parçaları ve renkleri: etiket, cam/plastik rengi, kapak rengi, şeffaf pencere.
+5. Logo sürümü ve ana renkler.
+6. Ön yüzde ne var (ürün adı yazımı, ana görsel, öne çıkan yazılar).
+7. Önceki döneme göre ne değişti.
+8. En az 2 kaynak bağlantısı. Kaynak yoksa "kanıt yok" yaz, tahmin etme.
+
+KURALLAR
+- Bulamadığını uydurma; "bilinmiyor" yaz. Emin olmadığını "?" ile işaretle. Fiyat toplama.
+
+TESLİM
+Dosya: Uretim/{{URUN_KIMLIGI}}/donem_arastirmasi.md — dönem sütunlu tablo; sonda "belirsizler ve açık sorular".

@@ -1,0 +1,9 @@
+ÜRÜN BİLGİSİ (oyundan geldi; değiştirme)
+Ürün: {{URUN_ADI}}
+Marka: {{MARKA}}
+Ürün kimliği: {{URUN_KIMLIGI}}
+Dönem: {{DONEM}}
+Ambalaj: {{AMBALAJ_TURU}}
+Ölçüler: {{OLCULER}}  ({{OLCU_DURUMU}})
+Parçalar: {{PARCALAR}}
+Notlar: {{NOTLAR}}
