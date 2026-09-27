@@ -249,8 +249,16 @@ void AMarketGameMode::BuildShelfItems(int32 Index)
         }
     }
     FVector ItemScale(1);
-    FBox Bounds(FVector(-50), FVector(50));
-    if (Mesh) Bounds = Mesh->GetBoundingBox();
+    FRotator ModelRotation = FRotator::ZeroRotator;
+    FVector PlacementOffset = FVector::ZeroVector;
+    FBox SourceBounds(FVector(-50), FVector(50));
+    if (Mesh)
+    {
+        SourceBounds = Mesh->GetBoundingBox();
+        ItemScale = FVector(FMath::Clamp(Product.VisualScale, 0.001f, 1000.f));
+        ModelRotation = Product.VisualRotation;
+        PlacementOffset = Product.VisualOffsetCm;
+    }
     else
     {
         Mesh = Cube;
@@ -261,9 +269,11 @@ void AMarketGameMode::BuildShelfItems(int32 Index)
         Colored->SetVectorParameterValue(TEXT("Color"), FLinearColor(Product.Color));
         SlotMaterials = { Colored };
     }
-    const FVector Size = Bounds.GetSize() * ItemScale;   // X = depth (front axis), Y = width, Z = height
-    const FVector Center = Bounds.GetCenter() * ItemScale;
-    const float Bottom = Bounds.Min.Z * ItemScale.Z;
+    const FTransform ShapeTransform(ModelRotation, FVector::ZeroVector, ItemScale);
+    const FBox Bounds = SourceBounds.TransformBy(ShapeTransform);
+    const FVector Size = Bounds.GetSize();   // X = depth (front axis), Y = width, Z = height
+    const FVector Center = Bounds.GetCenter();
+    const float Bottom = Bounds.Min.Z;
     const FRotator Facing(0, -90, 0);                    // product front (+X) faces the aisle (-Y)
     const float Gap = 2;
     const int32 Columns = FMath::Clamp(FMath::FloorToInt32(170 / (Size.Y + Gap)), 1, 12);
@@ -284,12 +294,14 @@ void AMarketGameMode::BuildShelfItems(int32 Index)
             {
                 const int32 Board = Levels == 3 ? Level : 2;
                 const FVector Slot(((Col - (Columns - 1) * 0.5f) * (Size.Y + Gap)), -45 + Size.X * 0.5f + Row * (Size.X + Gap), 25 + Board * 44 + 2.5f);
-                const FVector Offset = Facing.RotateVector(FVector(Center.X, Center.Y, 0)) + FVector(0, 0, Bottom);
+                const FVector BoundsOffset = Facing.RotateVector(FVector(Center.X, Center.Y, 0)) + FVector(0, 0, Bottom);
+                const FVector CorrectedOffset = Facing.RotateVector(PlacementOffset);
+                const FQuat FinalRotation = Facing.Quaternion() * ModelRotation.Quaternion();
                 auto* Item = NewObject<UStaticMeshComponent>(Holder);
                 Item->SetupAttachment(Root);
                 Item->SetMobility(EComponentMobility::Movable);
                 Item->SetStaticMesh(Mesh);
-                Item->SetRelativeLocationAndRotation(Slot - Offset, Facing);
+                Item->SetRelativeLocationAndRotation(Slot - BoundsOffset + CorrectedOffset, FinalRotation.Rotator());
                 Item->SetRelativeScale3D(ItemScale);
                 Item->SetCollisionEnabled(ECollisionEnabled::NoCollision);
                 Item->SetCastShadow(false);

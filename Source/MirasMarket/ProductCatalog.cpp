@@ -182,6 +182,29 @@ bool MarketCatalog::Parse(const FString& Json, TArray<FMarketProduct>& OutProduc
             {
                 P.Materials.Add(Single);
             }
+            const TSharedPtr<FJsonObject>* Transform = nullptr;
+            if ((*Visual)->TryGetObjectField(TEXT("transform"), Transform) && Transform && Transform->IsValid())
+            {
+                double Value = 0;
+                if ((*Transform)->TryGetNumberField(TEXT("scale"), Value))
+                {
+                    if (FMath::IsFinite(Value) && Value >= 0.001 && Value <= 1000.0) P.VisualScale = float(Value);
+                    else OutErrors.Add(Where + TEXT(": visual.transform.scale gecersiz; 1 kullanildi."));
+                }
+                const auto ReadFinite = [&](const TCHAR* Key, auto& Target)
+                {
+                    double Number = 0;
+                    if (!(*Transform)->TryGetNumberField(Key, Number)) return;
+                    if (FMath::IsFinite(Number)) Target = float(Number);
+                    else OutErrors.Add(Where + TEXT(": visual.transform.") + Key + TEXT(" gecersiz; 0 kullanildi."));
+                };
+                ReadFinite(TEXT("pitch"), P.VisualRotation.Pitch);
+                ReadFinite(TEXT("yaw"), P.VisualRotation.Yaw);
+                ReadFinite(TEXT("roll"), P.VisualRotation.Roll);
+                ReadFinite(TEXT("offsetX"), P.VisualOffsetCm.X);
+                ReadFinite(TEXT("offsetY"), P.VisualOffsetCm.Y);
+                ReadFinite(TEXT("offsetZ"), P.VisualOffsetCm.Z);
+            }
         }
         if (P.bActive && CountActive(OutProducts) >= MaxProducts)
         {
@@ -234,7 +257,19 @@ FString MarketCatalog::Serialize(const TArray<FMarketProduct>& Products, const F
         {
             Out += TEXT(",\n     \"visual\":{\"package\":") + Quote(P.MeshPath) + TEXT(",\"materials\":[");
             for (int32 M = 0; M < P.Materials.Num(); ++M) Out += (M > 0 ? TEXT(",") : TEXT("")) + Quote(P.Materials[M]);
-            Out += TEXT("]}");
+            Out += TEXT("]");
+            if (!FMath::IsNearlyEqual(P.VisualScale, 1.f) || !P.VisualRotation.IsNearlyZero() || !P.VisualOffsetCm.IsNearlyZero())
+            {
+                const auto Number = [](float Value) { return FString::SanitizeFloat(Value, 6); };
+                Out += TEXT(",\"transform\":{\"scale\":") + Number(P.VisualScale);
+                Out += TEXT(",\"pitch\":") + Number(P.VisualRotation.Pitch);
+                Out += TEXT(",\"yaw\":") + Number(P.VisualRotation.Yaw);
+                Out += TEXT(",\"roll\":") + Number(P.VisualRotation.Roll);
+                Out += TEXT(",\"offsetX\":") + Number(P.VisualOffsetCm.X);
+                Out += TEXT(",\"offsetY\":") + Number(P.VisualOffsetCm.Y);
+                Out += TEXT(",\"offsetZ\":") + Number(P.VisualOffsetCm.Z) + TEXT("}");
+            }
+            Out += TEXT("}");
         }
         Out += I + 1 < Products.Num() ? TEXT("},\n") : TEXT("}\n");
     }

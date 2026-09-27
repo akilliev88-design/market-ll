@@ -19,6 +19,7 @@
 #include "Materials/MaterialExpressionTextureSampleParameter2D.h"
 #include "MeshDescription.h"
 #include "Misc/DateTime.h"
+#include "Misc/DefaultValueHelper.h"
 #include "Misc/FileHelper.h"
 #include "Misc/PackageName.h"
 #include "Misc/Paths.h"
@@ -132,14 +133,14 @@ namespace
         const TSharedPtr<IImageWrapper> Wrapper = Wrappers.CreateImageWrapper(EImageFormat::PNG);
         if (!Wrapper.IsValid() || !Wrapper->SetRaw(Image.Pixels.GetData(), Image.Pixels.Num() * sizeof(FColor), Image.Width, Image.Height, ERGBFormat::BGRA, 8))
         {
-            OutError = TEXT("UV k\u0131lavuzu PNG bi\u00e7imine d\u00f6n\u00fc\u015ft\u00fcr\u00fclemedi.");
+            OutError = TEXT("K\u0131lavuz PNG bi\u00e7imine d\u00f6n\u00fc\u015ft\u00fcr\u00fclemedi.");
             return false;
         }
         IFileManager::Get().MakeDirectory(*FPaths::GetPath(Path), true);
         const TArray64<uint8> Bytes = Wrapper->GetCompressed(100);
         if (Bytes.IsEmpty() || !FFileHelper::SaveArrayToFile(Bytes, *Path))
         {
-            OutError = TEXT("UV k\u0131lavuzu yaz\u0131lamad\u0131: ") + Path;
+            OutError = TEXT("K\u0131lavuz yaz\u0131lamad\u0131: ") + Path;
             return false;
         }
         return true;
@@ -170,6 +171,48 @@ namespace
             if (Twice >= DY) { Error += DY; X += SX; }
             if (Twice <= DX) { Error += DX; Y += SY; }
         }
+    }
+
+    void FillRect(FStudioImage& Image, const FIntRect& Rect, const FColor& Color)
+    {
+        const int32 X0 = FMath::Clamp(Rect.Min.X, 0, Image.Width);
+        const int32 Y0 = FMath::Clamp(Rect.Min.Y, 0, Image.Height);
+        const int32 X1 = FMath::Clamp(Rect.Max.X, 0, Image.Width);
+        const int32 Y1 = FMath::Clamp(Rect.Max.Y, 0, Image.Height);
+        for (int32 Y = Y0; Y < Y1; ++Y)
+            for (int32 X = X0; X < X1; ++X)
+                Image.Pixels[Y * Image.Width + X] = Color;
+    }
+
+    void StrokeRect(FStudioImage& Image, const FIntRect& Rect, const FColor& Color, int32 Thickness = 3)
+    {
+        FillRect(Image, FIntRect(Rect.Min.X, Rect.Min.Y, Rect.Max.X, Rect.Min.Y + Thickness), Color);
+        FillRect(Image, FIntRect(Rect.Min.X, Rect.Max.Y - Thickness, Rect.Max.X, Rect.Max.Y), Color);
+        FillRect(Image, FIntRect(Rect.Min.X, Rect.Min.Y, Rect.Min.X + Thickness, Rect.Max.Y), Color);
+        FillRect(Image, FIntRect(Rect.Max.X - Thickness, Rect.Min.Y, Rect.Max.X, Rect.Max.Y), Color);
+    }
+
+    void DrawPixelLine(FStudioImage& Image, FIntPoint A, FIntPoint B, const FColor& Color, int32 Thickness = 2)
+    {
+        int32 X = A.X, Y = A.Y;
+        const int32 DX = FMath::Abs(B.X - A.X), SX = A.X < B.X ? 1 : -1;
+        const int32 DY = -FMath::Abs(B.Y - A.Y), SY = A.Y < B.Y ? 1 : -1;
+        int32 Error = DX + DY;
+        while (true)
+        {
+            FillRect(Image, FIntRect(X - Thickness, Y - Thickness, X + Thickness + 1, Y + Thickness + 1), Color);
+            if (X == B.X && Y == B.Y) break;
+            const int32 Twice = Error * 2;
+            if (Twice >= DY) { Error += DY; X += SX; }
+            if (Twice <= DX) { Error += DX; Y += SY; }
+        }
+    }
+
+    FIntPoint ProductionSize(double WidthMm, double HeightMm)
+    {
+        if (WidthMm <= 0 || HeightMm <= 0) return FIntPoint::ZeroValue;
+        const double Scale = FMath::Min3(8.0, 4096.0 / WidthMm, 4096.0 / HeightMm);
+        return FIntPoint(FMath::Max(1, FMath::FloorToInt32(WidthMm * Scale)), FMath::Max(1, FMath::FloorToInt32(HeightMm * Scale)));
     }
 }
 
@@ -1502,6 +1545,18 @@ namespace
     {
         return Draft.ExistingMaterials.IsValidIndex(Slot) && !Draft.ExistingMaterials[Slot].IsEmpty();
     }
+
+    bool ParseDraftFloat(const FString& Text, float& OutValue)
+    {
+        FString Normalized = Text.TrimStartAndEnd().Replace(TEXT(","), TEXT("."));
+        return FDefaultValueHelper::ParseFloat(Normalized, OutValue) && FMath::IsFinite(OutValue);
+    }
+
+    bool ParseDraftFloat(const FString& Text, double& OutValue)
+    {
+        FString Normalized = Text.TrimStartAndEnd().Replace(TEXT(","), TEXT("."));
+        return FDefaultValueHelper::ParseDouble(Normalized, OutValue) && FMath::IsFinite(OutValue);
+    }
 }
 
 TArray<FStudioIssue> Validate(const FStudioDraft& Draft, const TArray<FMarketProduct>& Catalog, const TArray<FStudioPackage>& Packages, bool bForGame)
@@ -1525,6 +1580,32 @@ TArray<FStudioIssue> Validate(const FStudioDraft& Draft, const TArray<FMarketPro
     const int32 Units = FCString::Atoi(*Draft.CaseUnits);
     if (!Draft.CaseUnits.IsNumeric() || Units < 1 || Units > 48) Error(TEXT("Koli adedi 1\u201348 aras\u0131nda olmal\u0131."));
     const FStudioPackage* Package = FindPackage(Packages, Draft.PackageId);
+    if (Package && Package->Id.StartsWith(TEXT("model_")))
+    {
+        float Scale = 1.f;
+        if (!ParseDraftFloat(Draft.ModelScale, Scale) || Scale < 0.001f || Scale > 1000.f)
+            Error(TEXT("Model \u00f6l\u00e7e\u011fi 0,001\u20131000 aras\u0131nda olmal\u0131."));
+        const FString* Rotations[] = { &Draft.ModelPitch, &Draft.ModelYaw, &Draft.ModelRoll };
+        for (const FString* Value : Rotations)
+        {
+            float Number = 0.f;
+            if (!ParseDraftFloat(*Value, Number) || FMath::Abs(Number) > 3600.f)
+            {
+                Error(TEXT("Model d\u00f6n\u00fc\u015f\u00fc ge\u00e7ersiz; derece olarak -3600\u20133600 kullan."));
+                break;
+            }
+        }
+        const FString* Offsets[] = { &Draft.ModelOffsetX, &Draft.ModelOffsetY, &Draft.ModelOffsetZ };
+        for (const FString* Value : Offsets)
+        {
+            float Number = 0.f;
+            if (!ParseDraftFloat(*Value, Number) || FMath::Abs(Number) > 1000.f)
+            {
+                Error(TEXT("Model raf konumu ge\u00e7ersiz; santimetre olarak -1000\u20131000 kullan."));
+                break;
+            }
+        }
+    }
     if (!bForGame)
     {
         if (!Draft.PackageId.IsEmpty() && !Package) Warn(TEXT("Se\u00e7ili 3B ambalaj bulunamad\u0131: ") + Draft.PackageId);
@@ -1546,8 +1627,23 @@ TArray<FStudioIssue> Validate(const FStudioDraft& Draft, const TArray<FMarketPro
         if (!Draft.CapFile.IsEmpty() && Package->CapSlot == INDEX_NONE) Warn(TEXT("Kapak g\u00f6rseli se\u00e7ildi ama modelde 'Kapak' yuvas\u0131 yok; kullan\u0131lmayacak."));
         if (!Draft.BodyFile.IsEmpty() && Package->BodySlot == INDEX_NONE) Warn(TEXT("G\u00f6vde g\u00f6rseli se\u00e7ildi ama modelde 'Govde' yuvas\u0131 yok; kullan\u0131lmayacak."));
     }
-    if (Package && Package->Kind == EPackageKind::Model && (Package->SizeCm.GetMax() > 150 || Package->SizeCm.GetMax() < 1))
-        Warn(FString::Printf(TEXT("Model \u00f6l\u00e7\u00fcs\u00fc %.0f\u00d7%.0f\u00d7%.0f cm; birim hatas\u0131 olabilir (1 birim = 1 cm)."), Package->SizeCm.X, Package->SizeCm.Y, Package->SizeCm.Z));
+    if (Package && Package->Kind == EPackageKind::Model)
+    {
+        FVector CorrectedSize = Package->SizeCm;
+        if (Package->Id.StartsWith(TEXT("model_")))
+        {
+            float Scale = 1.f;
+            double Pitch = 0, Yaw = 0, Roll = 0;
+            ParseDraftFloat(Draft.ModelScale, Scale);
+            ParseDraftFloat(Draft.ModelPitch, Pitch);
+            ParseDraftFloat(Draft.ModelYaw, Yaw);
+            ParseDraftFloat(Draft.ModelRoll, Roll);
+            const FBox Source(-Package->SizeCm * 0.5, Package->SizeCm * 0.5);
+            CorrectedSize = Source.TransformBy(FTransform(FRotator(Pitch, Yaw, Roll), FVector::ZeroVector, FVector(Scale))).GetSize();
+        }
+        if (CorrectedSize.GetMax() > 150 || CorrectedSize.GetMax() < 1)
+            Warn(FString::Printf(TEXT("D\u00fczeltilmi\u015f model \u00f6l\u00e7\u00fcs\u00fc %.1f\u00d7%.1f\u00d7%.1f cm; birim hatas\u0131 olabilir (1 birim = 1 cm)."), CorrectedSize.X, CorrectedSize.Y, CorrectedSize.Z));
+    }
     return Issues;
 }
 
@@ -1587,6 +1683,19 @@ bool Publish(const FStudioDraft& Draft, const TArray<FStudioPackage>& Packages, 
     Product.bSizeEstimated = Draft.bSizeEstimated;
     Product.Preset = Draft.Preset;
     Product.Colors = Draft.Colors;
+    Product.VisualScale = 1.f;
+    Product.VisualRotation = FRotator::ZeroRotator;
+    Product.VisualOffsetCm = FVector::ZeroVector;
+    if (PackagePtr && PackagePtr->Id.StartsWith(TEXT("model_")))
+    {
+        ParseDraftFloat(Draft.ModelScale, Product.VisualScale);
+        ParseDraftFloat(Draft.ModelPitch, Product.VisualRotation.Pitch);
+        ParseDraftFloat(Draft.ModelYaw, Product.VisualRotation.Yaw);
+        ParseDraftFloat(Draft.ModelRoll, Product.VisualRotation.Roll);
+        ParseDraftFloat(Draft.ModelOffsetX, Product.VisualOffsetCm.X);
+        ParseDraftFloat(Draft.ModelOffsetY, Product.VisualOffsetCm.Y);
+        ParseDraftFloat(Draft.ModelOffsetZ, Product.VisualOffsetCm.Z);
+    }
     Product.bActive = bActivate || (Existing && Existing->bActive);
     if (!PackagePtr)
     {
@@ -1814,6 +1923,14 @@ void FillDraft(const FMarketProduct& P, FStudioDraft& Draft)
     Draft.bSizeEstimated = P.bSizeEstimated;
     Draft.Preset = P.Preset;
     Draft.Colors = P.Colors;
+    const auto Number = [](float Value) { return FString::SanitizeFloat(Value, 4); };
+    Draft.ModelScale = Number(P.VisualScale);
+    Draft.ModelPitch = Number(P.VisualRotation.Pitch);
+    Draft.ModelYaw = Number(P.VisualRotation.Yaw);
+    Draft.ModelRoll = Number(P.VisualRotation.Roll);
+    Draft.ModelOffsetX = Number(P.VisualOffsetCm.X);
+    Draft.ModelOffsetY = Number(P.VisualOffsetCm.Y);
+    Draft.ModelOffsetZ = Number(P.VisualOffsetCm.Z);
     Draft.ExistingMaterials = P.Materials;
 }
 
@@ -1869,6 +1986,109 @@ FString DeliveryFolder(const FString& ProductId, const FString& Era)
 FString ModelFolder(const FString& ProductId)
 {
     return FPaths::ConvertRelativePathToFull(FPaths::ProjectDir() / TEXT("Uretim") / ProductId / TEXT("model"));
+}
+
+bool ExportReadyPackageTemplates(const FStudioDraft& D, const FString& Era, TArray<FString>& OutFiles, FString& OutError)
+{
+    OutFiles.Reset();
+    if (!MarketCatalog::IsValidId(D.Id))
+    {
+        OutError = TEXT("\u00d6nce ge\u00e7erli bir \u00fcr\u00fcn kimli\u011fi gir.");
+        return false;
+    }
+    const FString Folder = DeliveryFolder(D.Id, Era);
+    IFileManager::Get().MakeDirectory(*Folder, true);
+    const FColor Border(38, 48, 58), Guide(240, 92, 75);
+    const bool bBoxLike = D.PackageType == TEXT("kutu") || D.PackageType == TEXT("poset");
+    if (bBoxLike)
+    {
+        const int32 W = FCString::Atoi(*D.WidthMm), Depth = FCString::Atoi(*D.DepthMm), H = FCString::Atoi(*D.HeightMm);
+        if (W <= 0 || Depth <= 0 || H <= 0)
+        {
+            OutError = TEXT("A\u00e7\u0131l\u0131m \u015fablonu i\u00e7in geni\u015flik, derinlik ve y\u00fckseklik gerekli.");
+            return false;
+        }
+        const double NetW = 2.0 * W + 2.0 * Depth, NetH = H + 2.0 * Depth;
+        const double Scale = FMath::Min3(8.0, 4096.0 / NetW, 4096.0 / NetH);
+        const auto Px = [Scale](double Mm) { return FMath::FloorToInt32(Mm * Scale); };
+        FStudioImage Image;
+        Image.Width = Px(NetW); Image.Height = Px(NetH);
+        Image.Pixels.Init(FColor::White, Image.Width * Image.Height);
+        const FIntRect Left(0, Px(Depth), Px(Depth), Px(Depth + H));
+        const FIntRect Front(Px(Depth), Px(Depth), Px(Depth + W), Px(Depth + H));
+        const FIntRect Right(Px(Depth + W), Px(Depth), Px(2.0 * Depth + W), Px(Depth + H));
+        const FIntRect Back(Px(2.0 * Depth + W), Px(Depth), Image.Width, Px(Depth + H));
+        const FIntRect Top(Px(Depth), 0, Px(Depth + W), Px(Depth));
+        const FIntRect Bottom(Px(Depth), Px(Depth + H), Px(Depth + W), Image.Height);
+        const FIntRect Panels[] = { Left, Front, Right, Back, Top, Bottom };
+        const FColor Colors[] = {
+            FColor(215, 238, 220), FColor(190, 224, 250), FColor(215, 238, 220),
+            FColor(225, 214, 242), FColor(252, 226, 184), FColor(247, 207, 215)
+        };
+        for (int32 Index = 0; Index < UE_ARRAY_COUNT(Panels); ++Index)
+        {
+            FillRect(Image, Panels[Index], Colors[Index]);
+            StrokeRect(Image, Panels[Index], Border, 3);
+        }
+        // The X marks only the front guide region. The production prompt explicitly removes it.
+        DrawPixelLine(Image, Front.Min + FIntPoint(10, 10), Front.Max - FIntPoint(11, 11), Guide, 2);
+        DrawPixelLine(Image, FIntPoint(Front.Max.X - 11, Front.Min.Y + 10), FIntPoint(Front.Min.X + 10, Front.Max.Y - 11), Guide, 2);
+        const FString Output = Folder / TEXT("acilim_sablonu.png");
+        if (!SavePng(Output, Image, OutError)) return false;
+        OutFiles.Add(Output);
+        return true;
+    }
+
+    if (!IsRoundPackage(D.PackageType))
+    {
+        OutError = TEXT("Bu ambalaj t\u00fcr\u00fc i\u00e7in haz\u0131r \u00fcretim \u015fablonu yok.");
+        return false;
+    }
+    const int32 Diameter = FCString::Atoi(*D.DiameterMm), LabelHeight = FCString::Atoi(*D.LabelHeightMm);
+    const FIntPoint Size = ProductionSize(UE_PI * Diameter, LabelHeight);
+    if (Size.X <= 0 || Size.Y <= 0)
+    {
+        OutError = TEXT("Etiket \u015fablonu i\u00e7in \u00e7ap ve etiket band\u0131 y\u00fcksekli\u011fi gerekli.");
+        return false;
+    }
+    FStudioImage Label;
+    Label.Width = Size.X; Label.Height = Size.Y;
+    Label.Pixels.Init(FColor(221, 234, 244), Label.Width * Label.Height);
+    const int32 Seam = FMath::Max(3, FMath::RoundToInt32(Label.Width * 0.03f));
+    const int32 FrontHalf = FMath::Max(4, FMath::RoundToInt32(Label.Width * 0.20f));
+    FillRect(Label, FIntRect(0, 0, Seam, Label.Height), FColor(249, 213, 210));
+    FillRect(Label, FIntRect(Label.Width - Seam, 0, Label.Width, Label.Height), FColor(249, 213, 210));
+    FillRect(Label, FIntRect(Label.Width / 2 - FrontHalf, 0, Label.Width / 2 + FrontHalf, Label.Height), FColor(210, 239, 218));
+    StrokeRect(Label, FIntRect(0, 0, Label.Width, Label.Height), Border, 3);
+    DrawPixelLine(Label, FIntPoint(Label.Width / 2, 0), FIntPoint(Label.Width / 2, Label.Height - 1), Guide, 2);
+    const FString LabelOutput = Folder / TEXT("label_sablonu.png");
+    if (!SavePng(LabelOutput, Label, OutError)) return false;
+    OutFiles.Add(LabelOutput);
+
+    const bool bHasCap = D.Parts.Contains(TEXT("Kapak")) && D.PackageType != TEXT("teneke");
+    if (bHasCap)
+    {
+        FStudioImage Cap;
+        Cap.Width = Cap.Height = 512;
+        Cap.Pixels.Init(FColor(237, 239, 242), Cap.Width * Cap.Height);
+        StrokeRect(Cap, FIntRect(0, 0, Cap.Width, Cap.Height), Border, 3);
+        const FIntPoint Center(Cap.Width / 2, Cap.Height / 2);
+        const int32 Radius = 230;
+        FIntPoint Previous(Center.X + Radius, Center.Y);
+        for (int32 Degree = 1; Degree <= 360; ++Degree)
+        {
+            const double Angle = FMath::DegreesToRadians(double(Degree));
+            const FIntPoint Next(Center.X + FMath::RoundToInt32(FMath::Cos(Angle) * Radius), Center.Y + FMath::RoundToInt32(FMath::Sin(Angle) * Radius));
+            DrawPixelLine(Cap, Previous, Next, Guide, 2);
+            Previous = Next;
+        }
+        DrawPixelLine(Cap, FIntPoint(Center.X, 20), FIntPoint(Center.X, Cap.Height - 21), FColor(145, 153, 161), 1);
+        DrawPixelLine(Cap, FIntPoint(20, Center.Y), FIntPoint(Cap.Width - 21, Center.Y), FColor(145, 153, 161), 1);
+        const FString CapOutput = Folder / TEXT("kapak_sablonu.png");
+        if (!SavePng(CapOutput, Cap, OutError)) return false;
+        OutFiles.Add(CapOutput);
+    }
+    return true;
 }
 
 bool BuildPrompt(const FString& TemplateId, const FStudioDraft& D, const FString& Era, FString& OutText, FString& OutError)
@@ -1997,11 +2217,24 @@ bool BuildPrompt(const FString& TemplateId, const FStudioDraft& D, const FString
     {
         V.Add(TEXT("BEKLENEN_DOSYALAR"), TEXT("acilim.png YA DA front/back/right/left/top/bottom.png; kaynak.md"));
         V.Add(TEXT("BEKLENEN_PIKSEL"), TEXT("acilim.png ") + NetPx + TEXT("; y\u00fczler: \u00f6n/arka ") + Front + TEXT(", yan ") + Side + TEXT(", \u00fcst/alt ") + Top);
+        V.Add(TEXT("SABLON_DOSYALARI"), TEXT("acilim_sablonu.png"));
+        V.Add(TEXT("SABLON_KULLANIMI"), D.Preset.IsEmpty() ? FString() :
+            TEXT("AJANA EKLENECEK \u015eABLON\n- St\u00fcdyoda \"\u015eablonlar\u0131 olu\u015ftur\" ile \u00fcretilen acilim_sablonu.png dosyas\u0131n\u0131 bu promptla birlikte y\u00fckledim.\n")
+            TEXT("- Son acilim.png, y\u00fckledi\u011fim \u015fablonla TAM AYNI piksel boyutunda ve ayn\u0131 panel s\u0131n\u0131rlar\u0131nda olmal\u0131. Tuvali yeniden boyutland\u0131rma, k\u0131rpma veya panel yerlerini de\u011fi\u015ftirme.\n")
+            TEXT("- \u015eablondaki pastel b\u00f6lge renkleri ve k\u0131rm\u0131z\u0131 X yaln\u0131z k\u0131lavuzdur; ambalaj bask\u0131s\u0131yla tamamen de\u011fi\u015ftir. Koyu kenarlar panel s\u0131n\u0131rlar\u0131n\u0131 g\u00f6sterir: ayn\u0131 yerde ADIM 3'te istenen temiz 2-3 piksel panel \u00e7izgisini yeniden \u00fcret.\n"));
     }
     else
     {
         V.Add(TEXT("BEKLENEN_DOSYALAR"), bHasCap && D.PackageType != TEXT("teneke") ? TEXT("label.png, kapak.png, kaynak.md") : TEXT("label.png, kaynak.md"));
         V.Add(TEXT("BEKLENEN_PIKSEL"), TEXT("label.png ") + V[TEXT("ETIKET_OLCU")] + (bHasCap && D.PackageType != TEXT("teneke") ? TEXT("; kapak.png 512 x 512") : TEXT("")));
+        const FString CapTemplate = bHasCap && D.PackageType != TEXT("teneke") ? TEXT(", kapak_sablonu.png") : TEXT("");
+        V.Add(TEXT("SABLON_DOSYALARI"), bCustomModel ? TEXT("uv_sablon.png") : TEXT("label_sablonu.png") + CapTemplate);
+        V.Add(TEXT("SABLON_KULLANIMI"), bCustomModel
+            ? TEXT("AJANA EKLENECEK \u015eABLON\n- Model klas\u00f6r\u00fcndeki uv_sablon.png dosyas\u0131n\u0131 bu promptla birlikte y\u00fckledim. label.png ayn\u0131 tuvalde UV adalar\u0131na g\u00f6re haz\u0131rlanmal\u0131; k\u0131lavuz \u00e7izgileri nihai dosyada kalmamal\u0131.\n")
+            : D.Preset.IsEmpty() ? FString() :
+              TEXT("AJANA EKLENECEK \u015eABLONLAR\n- St\u00fcdyoda \"\u015eablonlar\u0131 olu\u015ftur\" ile \u00fcretilen label_sablonu.png") + CapTemplate + TEXT(" dosyalar\u0131n\u0131 bu promptla birlikte y\u00fckledim.\n")
+              TEXT("- Her nihai PNG, kar\u015f\u0131l\u0131k gelen \u015fablonla TAM AYNI piksel boyutunda olmal\u0131; tuvali yeniden boyutland\u0131rma veya k\u0131rpma.\n")
+              TEXT("- Etiket \u015fablonunda ye\u015fil orta b\u00f6lge \u00fcr\u00fcn\u00fcn \u00f6n\u00fc, k\u0131rm\u0131z\u0131 kenarlar arka diki\u015f g\u00fcvenlik alan\u0131d\u0131r. Pastel renkler, orta \u00e7izgi, daire ve b\u00fct\u00fcn k\u0131lavuzlar\u0131 temiz bask\u0131yla tamamen de\u011fi\u015ftir; nihai dosyada kalmas\u0131n.\n"));
     }
     for (const TPair<FString, FString>& Pair : V)
         Text.ReplaceInline(*(TEXT("{{") + Pair.Key + TEXT("}}")), *Pair.Value);

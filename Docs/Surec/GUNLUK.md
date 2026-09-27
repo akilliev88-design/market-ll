@@ -2,6 +2,24 @@
 
 En yeni giriş en üstte. Biçim: tarih — ajan — başlık, ardından **Yapılan**, **Doğrulama**, **Sıradaki**.
 
+## 27.09.2026 — Codex — Hazır ambalaj ajan şablonları ve özel model düzeltmesi (Stüdyo v1.7)
+
+**Yapılan**
+- Hazır ambalaj seçiliyken çalışan **Şablonları oluştur** düğmesi eklendi. Kutu/poşet için `acilim_sablonu.png`; yuvarlak ambalaj için `label_sablonu.png` ve gerekiyorsa `kapak_sablonu.png` seçili dönemin teslim klasörüne yazılır.
+- Kutu kılavuzu yüzlerin kesin yerini ve ön yüzü; etiket kılavuzu ön merkez ile %3 dikiş güvenlik alanlarını; kapak kılavuzu dairesel baskı sınırını gösterir.
+- A1 ve B2 promptları, kullanıcının bu PNG'leri ajana yüklediğini varsayacak şekilde güncellendi. Ajan aynı piksel tuvalini korur ve kılavuz renk/işaretlerini temiz baskı dosyasına taşımaz.
+- Özel modeller için ölçek, Pitch/Yaw/Roll ve pivot/raf XYZ alanları eklendi. Değerler `visual.transform` içinde geriye uyumlu saklanır; önizleme ile oyun rafı aynı dönüşümü kullanır.
+
+**Doğrulama**
+- `DERLE.cmd /q`: GEÇTİ.
+- `TEST.cmd /q`: GEÇTİ 10/10; `ReadyPackageTemplates` üç PNG'nin çözülmesini, kesin boyutlarını ve prompt bağlantısını kontrol etti; katalog dönüşüm değerleri round-trip testinden geçti.
+- Üretilen kutu, sarma etiket ve kapak PNG'leri gözle incelendi; panel sırası, ön merkez, dikiş alanları ve kapak dairesi doğru.
+- `SmokeTest.ps1`: GEÇTİ; raf doldurma, sipariş, kasiyer, 4 satış, gün kapama ve disk kayıt/yükleme.
+
+**Sıradaki**
+- G-017 hazır PET/teneke/kavanoz/kase şekillerini gerçek ürün görselleriyle elle doğrula.
+- G-011 dönem etiketlerini katalog ve oyun yılına bağla.
+
 ## 27.09.2026 — Codex — Özel model UV kılavuzu (Stüdyo v1.6)
 
 **Yapılan**

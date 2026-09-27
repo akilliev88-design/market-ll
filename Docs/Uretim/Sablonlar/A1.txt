@@ -8,6 +8,8 @@ GÖREV: Oyun için ürün ambalajının (kutu veya paket) AÇILIMINI (6 yüz tek
 - Yükseklik {{YUKSEKLIK}} mm = dikey kenar.
 - Ön = rafta müşteriye bakan ana yüz. Sağ/Sol = önden bakan kişinin sağı/solu.
 
+{{SABLON_KULLANIMI}}
+
 ADIM 1 — ARAŞTIR (yalnız tasarım için)
 - Ürünün {{DONEM}} yılındaki ambalaj tasarımını bul (dönem kuralları aşağıda). En az 2 kaynak.
 - Her yüzde ne olduğunu not et: ön = logo + ürün adı + ana görsel; arka = içindekiler/besin tablosu; yanlar; üst; alt.
@@ -49,4 +51,5 @@ ADIM 4 — KONTROL ET (teslimden önce tek tek işaretle)
 TESLİM
 Klasör: {{KLASOR}}
 İçinde: acilim.png, kaynak.md
+Referans olarak yüklenen {{SABLON_DOSYALARI}} dosyasını teslim dosyalarının içine kopyalama.
 kaynak.md: dönem kanıtı, kaynak bağlantıları, "belirsiz" bıraktığın yazılar, en yakın yıl kullandıysan hangisi.

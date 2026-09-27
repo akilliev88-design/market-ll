@@ -58,6 +58,9 @@ namespace MirasStudio
         bool bSizeEstimated = true;
         FString Preset;                                   // ready package id (Config/ambalajlar.json)
         FString Colors;                                   // per-part colors "Cam=2B1A12/0.85;Kapak=E30613"
+        // Imported custom model correction; decimal text accepts comma or dot.
+        FString ModelScale = TEXT("1"), ModelPitch = TEXT("0"), ModelYaw = TEXT("0"), ModelRoll = TEXT("0");
+        FString ModelOffsetX = TEXT("0"), ModelOffsetY = TEXT("0"), ModelOffsetZ = TEXT("0");
         FString PackageId;
         FString NetFile;                                  // box: one image with the whole unfolded box (cross net)
         FString FaceFiles[FBoxPackageLayout::FaceCount]; // box: single faces (override the net face)
@@ -146,6 +149,9 @@ namespace MirasStudio
     TArray<FPromptChoice> PromptsFor(const FString& PackageType);
     FString PackageTypeLabel(const FString& PackageType);
     bool IsRoundPackage(const FString& PackageType);
+    // Creates exact-size guide PNGs for ready packages in Uretim/<product>/<era>/.
+    // Box/bag: acilim_sablonu.png. Round packages: label_sablonu.png and, when used, kapak_sablonu.png.
+    bool ExportReadyPackageTemplates(const FStudioDraft& Draft, const FString& Era, TArray<FString>& OutFiles, FString& OutError);
     // Fills Docs/Uretim/Sablonlar/<TemplateId>.txt with the draft's data and computed pixel sizes.
     bool BuildPrompt(const FString& TemplateId, const FStudioDraft& Draft, const FString& Era, FString& OutText, FString& OutError);
     FString DeliveryFolder(const FString& ProductId, const FString& Era); // absolute

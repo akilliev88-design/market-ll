@@ -201,6 +201,9 @@ void SProductStudio::ChoosePreset(const FString& PresetId)
     const FPackagePreset* Preset = FindPreset(Presets, PresetId);
     if (!Preset) return;
     ApplyPreset(*Preset, Draft);
+    Draft.ModelScale = TEXT("1");
+    Draft.ModelPitch = Draft.ModelYaw = Draft.ModelRoll = TEXT("0");
+    Draft.ModelOffsetX = Draft.ModelOffsetY = Draft.ModelOffsetZ = TEXT("0");
     bCustomPackage = false;
     PresetFilter = Preset->Type;
     FString PackageId, Error;
@@ -281,6 +284,16 @@ bool SProductStudio::CurrentPrompt(FString& OutText, FString& OutError) const
 
 FReply SProductStudio::OnCopyPrompt()
 {
+    if (!Draft.Preset.IsEmpty())
+    {
+        TArray<FString> TemplateFiles;
+        FString TemplateError;
+        if (!ExportReadyPackageTemplates(Draft, SelectedEra, TemplateFiles, TemplateError))
+        {
+            Toast(TemplateError, true);
+            return FReply::Handled();
+        }
+    }
     FString Text, Error;
     if (!CurrentPrompt(Text, Error)) { Toast(Error, true); return FReply::Handled(); }
     FPlatformApplicationMisc::ClipboardCopy(*Text);
@@ -295,6 +308,28 @@ FReply SProductStudio::OnOpenDelivery()
     const FString Folder = bModel ? ModelFolder(Draft.Id) : DeliveryFolder(Draft.Id, SelectedEra);
     IFileManager::Get().MakeDirectory(*Folder, true);
     FPlatformProcess::ExploreFolder(*Folder);
+    return FReply::Handled();
+}
+
+FReply SProductStudio::OnExportReadyTemplates()
+{
+    if (Draft.Preset.IsEmpty())
+    {
+        Toast(TEXT("\u00d6nce haz\u0131r ambalaj k\u00fct\u00fcphanesinden bir ambalaj se\u00e7."), true);
+        return FReply::Handled();
+    }
+    TArray<FString> Files;
+    FString Error;
+    if (!ExportReadyPackageTemplates(Draft, SelectedEra, Files, Error))
+    {
+        Toast(Error, true);
+        return FReply::Handled();
+    }
+    const FString Folder = DeliveryFolder(Draft.Id, SelectedEra);
+    FPlatformProcess::ExploreFolder(*Folder);
+    TArray<FString> Names;
+    for (const FString& File : Files) Names.Add(FPaths::GetCleanFilename(File));
+    Toast(TEXT("Ajan \u015fablonlar\u0131 olu\u015fturuldu: ") + FString::Join(Names, TEXT(", ")));
     return FReply::Handled();
 }
 
@@ -551,7 +586,20 @@ void SProductStudio::UpdatePreview()
         }
         if (!Parent) Toast(Error, true);
     }
-    if (Viewport.IsValid()) Viewport->ShowItem(Mesh, Materials);
+    FTransform Correction = FTransform::Identity;
+    if (Package && Package->Id.StartsWith(TEXT("model_")))
+    {
+        const auto Number = [](const FString& Text, float Default)
+        {
+            const FString Normalized = Text.TrimStartAndEnd().Replace(TEXT(","), TEXT("."));
+            return Normalized.IsNumeric() ? FCString::Atof(*Normalized) : Default;
+        };
+        const float Scale = FMath::Clamp(Number(Draft.ModelScale, 1.f), 0.001f, 1000.f);
+        const FRotator Rotation(Number(Draft.ModelPitch, 0.f), Number(Draft.ModelYaw, 0.f), Number(Draft.ModelRoll, 0.f));
+        const FVector Offset(Number(Draft.ModelOffsetX, 0.f), Number(Draft.ModelOffsetY, 0.f), Number(Draft.ModelOffsetZ, 0.f));
+        Correction = FTransform(Rotation, Offset, FVector(Scale));
+    }
+    if (Viewport.IsValid()) Viewport->ShowItem(Mesh, Materials, Correction);
     RebuildIssues();
 }
 
@@ -1188,6 +1236,45 @@ void SProductStudio::RebuildRight()
             ];
         }
 
+        if (CurrentPackage && CurrentPackage->Id.StartsWith(TEXT("model_")))
+        {
+            Content->AddSlot().AutoHeight()[ MakeSection(TEXT("\u00d6ZEL MODEL D\u00dcZELTME")) ];
+            Content->AddSlot().AutoHeight().Padding(0.f, 0.f, 0.f, 6.f)
+            [ MakeText(TEXT("Yanl\u0131\u015f birim, \u00f6n y\u00f6n veya pivotla gelen FBX/OBJ/GLB modelini burada d\u00fczelt. \u00d6nizleme ve raftaki \u00fcr\u00fcn ayn\u0131 de\u011ferleri kullan\u0131r. Konum birimi cm'dir."), 9, S.Muted, TEXT("Regular"), true) ];
+            const auto TransformField = [this](const FString& Label, FString* Target)
+            {
+                return MakeField(Label, *Target, [this, Target](const FString& Value)
+                {
+                    *Target = Value;
+                    RebuildIssues();
+                    UpdatePreview();
+                });
+            };
+            Content->AddSlot().AutoHeight().Padding(0.f, 0.f, 0.f, 6.f)
+            [
+                SNew(SHorizontalBox)
+                + SHorizontalBox::Slot().FillWidth(1.f).Padding(0.f, 0.f, 6.f, 0.f)[ TransformField(TEXT("\u00d6l\u00e7ek (1 = ayn\u0131)"), &Draft.ModelScale) ]
+                + SHorizontalBox::Slot().FillWidth(1.f).Padding(0.f, 0.f, 6.f, 0.f)[ TransformField(TEXT("Pitch \u00b0"), &Draft.ModelPitch) ]
+                + SHorizontalBox::Slot().FillWidth(1.f).Padding(0.f, 0.f, 6.f, 0.f)[ TransformField(TEXT("Yaw \u00b0"), &Draft.ModelYaw) ]
+                + SHorizontalBox::Slot().FillWidth(1.f)[ TransformField(TEXT("Roll \u00b0"), &Draft.ModelRoll) ]
+            ];
+            Content->AddSlot().AutoHeight()
+            [
+                SNew(SHorizontalBox)
+                + SHorizontalBox::Slot().FillWidth(1.f).Padding(0.f, 0.f, 6.f, 0.f)[ TransformField(TEXT("Pivot/raf X cm"), &Draft.ModelOffsetX) ]
+                + SHorizontalBox::Slot().FillWidth(1.f).Padding(0.f, 0.f, 6.f, 0.f)[ TransformField(TEXT("Pivot/raf Y cm"), &Draft.ModelOffsetY) ]
+                + SHorizontalBox::Slot().FillWidth(1.f).Padding(0.f, 0.f, 6.f, 0.f)[ TransformField(TEXT("Pivot/raf Z cm"), &Draft.ModelOffsetZ) ]
+                + SHorizontalBox::Slot().FillWidth(0.8f).VAlign(VAlign_Bottom)
+                [ MakeButton(TEXT("S\u0131f\u0131rla"), &S.Ghost, FOnClicked::CreateLambda([this]()
+                    {
+                        Draft.ModelScale = TEXT("1");
+                        Draft.ModelPitch = Draft.ModelYaw = Draft.ModelRoll = TEXT("0");
+                        Draft.ModelOffsetX = Draft.ModelOffsetY = Draft.ModelOffsetZ = TEXT("0");
+                        RebuildRight(); UpdatePreview(); return FReply::Handled();
+                    }), S.Muted, true, 9) ]
+            ];
+        }
+
         // Part colors for turned shapes / imported models (Cam, Govde, Kapak) ------------------
         if (CurrentPackage && CurrentPackage->Kind == EPackageKind::Model)
         {
@@ -1275,10 +1362,15 @@ void SProductStudio::RebuildRight()
         [
             SNew(SHorizontalBox)
             + SHorizontalBox::Slot().FillWidth(1.f).Padding(0.f, 0.f, 6.f, 0.f)
+            [ MakeButton(TEXT("\u015eablonlar\u0131 olu\u015ftur"), &S.Secondary, FOnClicked::CreateSP(this, &SProductStudio::OnExportReadyTemplates), S.Text, !Draft.Preset.IsEmpty(), 9) ]
+            + SHorizontalBox::Slot().FillWidth(1.f).Padding(0.f, 0.f, 6.f, 0.f)
             [ MakeButton(TEXT("Promptu kopyala"), &S.Primary, FOnClicked::CreateSP(this, &SProductStudio::OnCopyPrompt), S.AccentText, true, 10) ]
             + SHorizontalBox::Slot().FillWidth(1.f)
             [ MakeButton(TEXT("Teslim klas\u00f6r\u00fcn\u00fc a\u00e7"), &S.Secondary, FOnClicked::CreateSP(this, &SProductStudio::OnOpenDelivery), S.Text, true, 10) ]
         ];
+        if (!Draft.Preset.IsEmpty())
+            Content->AddSlot().AutoHeight().Padding(0.f, 5.f, 0.f, 0.f)
+            [ MakeText(TEXT("\u00d6nce \u015fablonlar\u0131 olu\u015ftur; PNG dosyalar\u0131n\u0131 promptla birlikte ajana y\u00fckle. Ajan ayn\u0131 tuval ve b\u00f6lge \u00f6l\u00e7\u00fclerinde temiz bask\u0131 dosyas\u0131 verir."), 8, S.Muted, TEXT("Regular"), true) ];
         Content->AddSlot().AutoHeight().Padding(0.f, 8.f, 0.f, 0.f)[ SAssignNew(PromptSlot, SBox) ];
 
         // Special shapes the library cannot make ------------------------------------------------

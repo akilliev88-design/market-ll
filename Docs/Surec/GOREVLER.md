@@ -11,7 +11,7 @@ Yeni görev en alta eklenir; biten görev silinmez, durumu değişir. Kimlikler 
 | G-004 | Git deposu kur (`git init`, ilk commit, `.gitattributes` ile uasset/png/fbx için LFS kararı) | Codex | Bitti | 27.09.2026; Unreal çıktıları hariç, ikili varlıklar Git LFS ile izleniyor |
 | G-005 | Kutu yüzlerinin dışa doğru baktığını ve etiketlerin ayna olmadığını editörde gözle doğrula | Mustafa / Codex | Bitti | 27.09.2026; milk_1l ekran görüntüsünde ön/yan/üst doğru, ayna yok |
 | G-006 | Özel modeller için UV şablonu dışa aktarma (etiket hazırlarken kılavuz PNG) | Codex | Bitti | 27.09.2026; Etiket yuvası UV0 → 2048 px PNG, derleme ve UvTemplateExport testi geçti |
-| G-007 | Ölçek/pivot düzeltme alanı (içe alınan model yanlış birimle gelirse) | Açık | Sırada | Stüdyo şimdilik uyarı veriyor |
+| G-007 | Ölçek/pivot düzeltme alanı (içe alınan model yanlış birimle gelirse) | Codex | Bitti | 27.09.2026; ölçek + Pitch/Yaw/Roll + pivot/raf XYZ, katalog/önizleme/oyun bağlantısı ve test geçti |
 | G-008 | Oyunda rakip indiriminin 5 günün 4'ünde açık olması (Day % 5 <= 3) — tasarım kararı | Mustafa | Sırada | İlk incelemede bulundu |
 | G-009 | Müşterisiz gün yerel payı düşürüyor (memnuniyet 0 sayılıyor) | Codex | Bitti | 27.09.2026; ziyaretçi yoksa pay korunuyor, otomasyon testi eklendi |
 | G-010 | Kuyruk sırası dizi sırasına göre; yoldaki müşteri önce bekleyenin önüne geçebiliyor | Codex | Bitti | 27.09.2026; varış bileti/rütbesi ve QueueArrivalOrder testi eklendi |
@@ -23,3 +23,4 @@ Yeni görev en alta eklenir; biten görev silinmez, durumu değişir. Kimlikler 
 | G-016 | Ürün ölçülerini doğrula (hepsi tahmini); D promptu gerçek ölçüleri raporlar | Mustafa / Açık | Sırada | Stüdyoda "Ölçü: doğrulanmış" işareti |
 | G-017 | Stüdyo v1.5: hazır ambalaj kütüphanesi, üretilen şişe/teneke/kavanoz/kase şekilleri ve parça renkleri | Claude / Codex | Doğrulama bekliyor | Derleme + 9/9 test + smoke geçti; dört şeklin yönü elle incelenecek |
 | G-018 | Smoke testini katalogdaki değişken koli adedi ve maliyetle uyumlu hâle getir | Codex | Bitti | 27.09.2026; smoke geçti |
+| G-019 | Hazır ambalajlar için ajana verilecek gerçek ölçülü PNG şablonları ve şablona bağlı prompt | Codex | Bitti | 27.09.2026; kutu/etiket/kapak kılavuzları, prompt kuralları, görsel kontrol ve otomasyon testi geçti |

@@ -19,6 +19,11 @@ struct FMarketProduct
     UPROPERTY() FString MeshPath;
     // Per material slot override (index = mesh slot). Empty entry = keep the package mesh's own material.
     UPROPERTY() TArray<FString> Materials;
+    // Optional correction for an imported custom mesh. Ready packages keep the identity values.
+    UPROPERTY() float VisualScale = 1.f;
+    UPROPERTY() FRotator VisualRotation = FRotator::ZeroRotator;
+    // Placement offset after automatic bottom/center alignment, in centimetres.
+    UPROPERTY() FVector VisualOffsetCm = FVector::ZeroVector;
     // Studio-only production data. Inactive products stay in the catalog (preparation list)
     // but are not stocked in the game.
     UPROPERTY() bool bActive = true;

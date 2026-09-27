@@ -32,7 +32,7 @@ public:
     virtual ~SStudioViewport() override;
 
     // Materials: per slot override, nullptr = mesh default.
-    void ShowItem(UStaticMesh* Mesh, const TArray<UMaterialInterface*>& Materials);
+    void ShowItem(UStaticMesh* Mesh, const TArray<UMaterialInterface*>& Materials, const FTransform& Correction = FTransform::Identity);
     void SetSpinning(bool bInSpin) { bSpin = bInSpin; }
     bool IsSpinning() const { return bSpin; }
     void ResetView();
@@ -52,5 +52,6 @@ private:
     float Distance = 60.f;
     float Yaw = 0.f;
     TWeakObjectPtr<UStaticMesh> LastMesh;
+    FTransform LastCorrection = FTransform::Identity;
     bool bSpin = true;
 };

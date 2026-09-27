@@ -85,7 +85,7 @@ void SStudioViewport::TickScene(float DeltaSeconds)
     Turntable->SetRelativeRotation(FRotator(0.f, Yaw, 0.f));
 }
 
-void SStudioViewport::ShowItem(UStaticMesh* Mesh, const TArray<UMaterialInterface*>& Materials)
+void SStudioViewport::ShowItem(UStaticMesh* Mesh, const TArray<UMaterialInterface*>& Materials, const FTransform& Correction)
 {
     if (!Item) return;
     Item->SetStaticMesh(Mesh);
@@ -94,15 +94,19 @@ void SStudioViewport::ShowItem(UStaticMesh* Mesh, const TArray<UMaterialInterfac
     if (!Mesh) return;
     for (int32 Slot = 0; Slot < Materials.Num(); ++Slot)
         if (Materials[Slot]) Item->SetMaterial(Slot, Materials[Slot]);
-    if (LastMesh.Get() == Mesh) return; // same package: keep the user's camera
+    if (LastMesh.Get() == Mesh && LastCorrection.Equals(Correction)) return; // same package/correction: keep the user's camera
     LastMesh = Mesh;
-    const FBox Bounds = Mesh->GetBoundingBox();
+    LastCorrection = Correction;
+    const FTransform ShapeTransform(Correction.GetRotation(), FVector::ZeroVector, Correction.GetScale3D());
+    const FBox Bounds = Mesh->GetBoundingBox().TransformBy(ShapeTransform);
     const FVector Center = Bounds.GetCenter();
-    Item->SetRelativeLocation(FVector(-Center.X, -Center.Y, -Bounds.Min.Z));
+    Item->SetRelativeRotation(Correction.Rotator());
+    Item->SetRelativeScale3D(Correction.GetScale3D());
+    Item->SetRelativeLocation(FVector(-Center.X, -Center.Y, -Bounds.Min.Z) + Correction.GetTranslation());
     const float Radius = FMath::Max(1.f, float(Bounds.GetExtent().Size()));
     const float FloorScale = Radius * 2.6f / 100.f;
     Floor->SetRelativeScale3D(FVector(FloorScale, FloorScale, 0.01f));
-    LookAt = FVector(0, 0, Bounds.GetSize().Z * 0.5f);
+    LookAt = FVector(0, 0, Bounds.GetSize().Z * 0.5f) + Correction.GetTranslation();
     Distance = Radius / FMath::Tan(FMath::DegreesToRadians(15.f)) * 1.15f;
     Yaw = 0.f;
     Turntable->SetRelativeRotation(FRotator::ZeroRotator);

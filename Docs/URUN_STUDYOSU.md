@@ -29,6 +29,16 @@
 - **Parça renkleri**: ürün kataloğunda `package.colors` = `"Cam=2B1A12/0.85;Kapak=E30613"` (HEX, isteğe bağlı saydamlık). Yayımlarken ürüne özel `MI_<ürün>_<parça>` (ambalajın parça materyalinin çocuğu) oluşturulur. Görsel yüklenen parçada görsel kazanır.
 - Bir hazır ambalajın ölçüsünü değiştirirsen **id'sini de değiştir**; eski 3B şekil diskte kalır ve kullanan ürünler bozulmaz.
 
+## Ajana ölçülü şablon verme (v1.7)
+
+Hazır ambalaj seçiliyken dönemini seç ve **Şablonları oluştur** düğmesine bas. Stüdyo doğrudan `Uretim/<ürün>/<yıl>/` klasörüne ajana yükleyeceğin kılavuzları yazar:
+
+- Kutu / poşet: `acilim_sablonu.png`. Tuval ve altı panel ürünün gerçek oranlarıyla oluşturulur; kırmızı X ön yüzü gösterir.
+- Şişe / teneke / kavanoz / kase: `label_sablonu.png`. Yeşil orta bölge ön yüz, kırmızı iki kenar arka dikiş güvenlik alanıdır.
+- Ayrı kapağı olan yuvarlak ambalaj: ayrıca 512 × 512 `kapak_sablonu.png`.
+
+Ardından **Promptu kopyala**. Prompt, şablon dosyalarının adını ve kullanım kuralını içerir. Şablon PNG'lerini promptla birlikte ajana yükle. Ajan nihai `acilim.png`, `label.png` ve gerekiyorsa `kapak.png` dosyalarını karşılık gelen şablonla aynı piksel ölçüsünde verir; pastel renkler ve kılavuz işaretleri son görsele taşınmaz.
+
 ## Yeni ürün: kutu şablonu yolu (önerilen)
 
 1. **+ Yeni ürün**.
@@ -71,7 +81,7 @@ Yüz görselinin oranı kutu yüzünden en fazla %15 farklıysa stüdyo görseli
 1. **Model içe al…** ile FBX, OBJ, GLB veya glTF seç (prompt B1/C1 çıktısı: `Uretim/<ürün>/model/model.fbx`). Model tek parça ve iskeletsiz olmalı; 1 birim = 1 cm.
    - Stüdyo malzeme yuvalarını **adından** tanır: `Etiket`, `Cam`, `Kapak`, `Govde`.
    - Aynı klasörde `malzeme.json` varsa okur: cam rengi/saydamlığı, kapak ve gövde rengi. `Cam` yuvası json olmasa da otomatik saydam yapılır. Böylece etiketin kaplamadığı yerler gri kalmaz.
-2. Önerilen yön: **+X ön yüz, +Z yukarı**, pivot tabanın ortası. Farklıysa stüdyo modeli önizlemede ortalar; rafta da tabanına oturtur. Ön yüzün yönü doğru değilse modeli Blender'da düzelt.
+2. Önerilen yön: **+X ön yüz, +Z yukarı**, pivot tabanın ortası. Model farklı birim veya yönle geldiyse **ÖZEL MODEL DÜZELTME** alanındaki ölçek, Pitch/Yaw/Roll ve Pivot/raf X/Y/Z değerlerini kullan. Önizleme ve oyun rafı aynı değerleri kullanır; katalogda kalıcı saklanır. `1` ölçek modeli değiştirmez, konum değerleri santimetredir.
 3. **UV kılavuzu oluştur** düğmesi modelin `Etiket` malzeme yuvasındaki UV0 kenarlarını 2048 × 2048 PNG olarak `Uretim/<ürün>/model/uv_sablon.png` dosyasına yazar ve klasörü açar. Bu görseli etiket hazırlayan ajana referans olarak ver.
 4. **Etiket (UV)** kutucuğuna, modelin UV açılımına göre hazırlanmış tek görseli yükle. Boş bırakırsan modelin kendi dokusu kullanılır. Modelde `Kapak`/`Govde` yuvası varsa o kutucuklar da çıkar; baskılı kapak/gövde görseli isteğe bağlıdır (yoksa malzeme.json rengi kullanılır).
 5. Bilgileri doldur, **Oyuna ekle**.
@@ -103,13 +113,14 @@ v1.5 ile `package` içine isteğe bağlı `preset` (hazır ambalaj id) ve `color
 {"id":"sutas_sut_1l","realName":"Sütaş Süt 1 L","fictionalName":"Trakya Süt 1 L","category":"süt",
  "cost":1.70,"price":2.50,"caseUnits":12,"color":"EEF1E9",
  "visual":{"package":"/Game/Products/Packages/box_70x50x200/SM_box_70x50x200.SM_box_70x50x200",
-           "materials":["/Game/Products/Items/sutas_sut_1l/MI_sutas_sut_1l.MI_sutas_sut_1l"]}}
+           "materials":["/Game/Products/Items/sutas_sut_1l/MI_sutas_sut_1l.MI_sutas_sut_1l"],
+           "transform":{"scale":1,"pitch":0,"yaw":0,"roll":0,"offsetX":0,"offsetY":0,"offsetZ":0}}}
 ```
 
-`visual.materials` malzeme yuvası sırasıyla ürüne özel materyallerdir; boş dize = ambalajın kendi materyali. Eski `visual.material` (tek) alanı da okunur ve yuva 0 sayılır. `visual`, `category`, `caseUnits` isteğe bağlıdır; v1 dosyaları olduğu gibi okunur. En fazla 24 ürün.
+`visual.materials` malzeme yuvası sırasıyla ürüne özel materyallerdir; boş dize = ambalajın kendi materyali. `visual.transform` yalnız özel model düzeltmesi gerektiğinde yazılır; yoksa kimlik dönüşümü kullanılır. Eski `visual.material` (tek) alanı da okunur ve yuva 0 sayılır. `visual`, `category`, `caseUnits` isteğe bağlıdır; v1 dosyaları olduğu gibi okunur. En fazla 24 ürün.
 
-## Sınırlar (v1)
+## Sınırlar (v1.7)
 
-- Kutu şablonu yalnız dikdörtgen kutudur. Şişe, silindir, poşet şablonları sonraki adım.
-- Model ölçeği/pivotu için düzeltme alanı yok; stüdyo yalnızca uyarır (G-007).
+- Hazır şekiller kutu/poşet, şişe, teneke, kavanoz ve kase ailelerini kapsar; özel siluet gerektiğinde model içe alma yolu kullanılır.
+- Dönem klasörleri üretilebilir ancak oyun henüz yalnız seçili tek etiketi gösterir (G-011).
 - Değişiklik oyunda görünmek için oyunun yeniden başlatılması gerekir.

@@ -156,6 +156,8 @@ bool FMarketCatalogTest::RunTest(const FString& Parameters)
         Draft.PackageType = TEXT("cam_sise"); Draft.DiameterMm = 62; Draft.HeightMm = 230; Draft.LabelHeightMm = 70;
         Draft.Parts = TEXT("Etiket,Cam,Kapak"); Draft.Notes = TEXT("yesil cam"); Draft.bSizeEstimated = true;
         Draft.Preset = TEXT("cam_sise_250ml"); Draft.Colors = TEXT("Cam=2B1A12/0.85;Kapak=E30613");
+        Draft.MeshPath = TEXT("/Game/Products/Packages/model_test/SM_model_test.SM_model_test");
+        Draft.VisualScale = 0.01f; Draft.VisualRotation = FRotator(0.f, 90.f, -90.f); Draft.VisualOffsetCm = FVector(1.5f, -2.f, 3.f);
         TArray<FMarketProduct> WithPrep = Products; WithPrep.Add(Draft);
         TArray<FMarketProduct> Back; TArray<FString> Errors3;
         TestTrue(TEXT("Catalog with preparation item parses"), MarketCatalog::Parse(MarketCatalog::Serialize(WithPrep, Note), Back, Errors3));
@@ -166,6 +168,7 @@ bool FMarketCatalogTest::RunTest(const FString& Parameters)
             TestTrue(TEXT("Preparation data round trip"), !R.bActive && R.Brand == TEXT("Marka") && R.PackageType == TEXT("cam_sise") && R.DiameterMm == 62 &&
                 R.HeightMm == 230 && R.LabelHeightMm == 70 && R.Parts == TEXT("Etiket,Cam,Kapak") && R.Notes == TEXT("yesil cam") && R.bSizeEstimated &&
                 R.Preset == TEXT("cam_sise_250ml") && R.Colors == TEXT("Cam=2B1A12/0.85;Kapak=E30613"));
+            TestTrue(TEXT("Imported model correction round trip"), FMath::IsNearlyEqual(R.VisualScale, 0.01f) && R.VisualRotation.Equals(Draft.VisualRotation) && R.VisualOffsetCm.Equals(Draft.VisualOffsetCm));
             TestTrue(TEXT("Active products default to active"), Back[0].bActive);
         }
         else AddError(TEXT("Preparation item lost in round trip"));

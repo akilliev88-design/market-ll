@@ -6,6 +6,8 @@ GÖREV: {{AMBALAJ_TURU}} ambalajın etiket görselini{{KAPAK_BASLIK}} {{DONEM}} 
 - Ambalaj: {{OLCULER}}.
 - Etiket, ürünün etrafını saran bant: genişliği = çevre (π × çap), yüksekliği = etiket bandı.
 
+{{SABLON_KULLANIMI}}
+
 ADIM 1 — ARAŞTIR (yalnız tasarım için)
 - Ürünün {{DONEM}} yılındaki etiketini ve kapağını bul (dönem kuralları aşağıda). En az 2 kaynak.
 - Etiketin önünde ne var (logo, ürün adı, görsel), yanlarda/arkada ne var (içindekiler, besin tablosu, üretici, geri dönüşüm).
@@ -39,4 +41,5 @@ ADIM 4 — KONTROL ET
 TESLİM
 Klasör: {{KLASOR}}
 İçinde: {{BEKLENEN_DOSYALAR}}
+Referans olarak yüklenen {{SABLON_DOSYALARI}} dosyalarını teslim dosyalarının içine kopyalama.
 kaynak.md: dönem kanıtı, kaynak bağlantıları, "belirsiz" bıraktığın yazılar, en yakın yıl kullandıysan hangisi, kapak ve içerik rengi (HEX).
