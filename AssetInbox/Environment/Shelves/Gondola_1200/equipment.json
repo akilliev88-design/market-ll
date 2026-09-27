@@ -1,0 +1,106 @@
+{
+  "schemaVersion": 1,
+  "id": "gondola_double_1200",
+  "displayName": "Çift Yüz Gondol Rafı 1200",
+  "family": "gondola_double",
+  "source": "Blender procedural master",
+  "dimensionsMm": {
+    "width": 1200,
+    "depth": 900,
+    "height": 1600
+  },
+  "customerFaces": [
+    "front",
+    "back"
+  ],
+  "frontAxis": "-Y",
+  "shelfZones": [
+    {
+      "face": "front",
+      "level": 0,
+      "widthMm": 1120,
+      "depthMm": 370,
+      "heightMm": 310
+    },
+    {
+      "face": "front",
+      "level": 1,
+      "widthMm": 1120,
+      "depthMm": 370,
+      "heightMm": 310
+    },
+    {
+      "face": "front",
+      "level": 2,
+      "widthMm": 1120,
+      "depthMm": 370,
+      "heightMm": 310
+    },
+    {
+      "face": "front",
+      "level": 3,
+      "widthMm": 1120,
+      "depthMm": 370,
+      "heightMm": 310
+    },
+    {
+      "face": "back",
+      "level": 0,
+      "widthMm": 1120,
+      "depthMm": 370,
+      "heightMm": 310
+    },
+    {
+      "face": "back",
+      "level": 1,
+      "widthMm": 1120,
+      "depthMm": 370,
+      "heightMm": 310
+    },
+    {
+      "face": "back",
+      "level": 2,
+      "widthMm": 1120,
+      "depthMm": 370,
+      "heightMm": 310
+    },
+    {
+      "face": "back",
+      "level": 3,
+      "widthMm": 1120,
+      "depthMm": 370,
+      "heightMm": 310
+    }
+  ],
+  "anchors": {
+    "left": [
+      -600,
+      0,
+      0
+    ],
+    "right": [
+      600,
+      0,
+      0
+    ],
+    "frontEndcap": [
+      0,
+      -450,
+      0
+    ],
+    "backEndcap": [
+      0,
+      450,
+      0
+    ]
+  },
+  "materials": [
+    "MI_Shelf_PaintedMetal",
+    "MI_Shelf_BackPanel",
+    "MI_Shelf_WarmWood",
+    "MI_Shelf_PriceRail",
+    "MI_Shelf_Rubber"
+  ],
+  "collision": "3 UCX boxes",
+  "lodPolicy": "LOD0 master; LOD1/LOD2 will be generated during Unreal import"
+}

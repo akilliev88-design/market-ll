@@ -2,6 +2,28 @@
 
 En yeni giriş en üstte. Biçim: tarih — ajan — başlık, ardından **Yapılan**, **Doğrulama**, **Sıradaki**.
 
+## 28.09.2026 — Codex — Blender hattı ve ilk gerçek gondol rafı
+
+**Yapılan**
+- Blender 5.2.2 LTS kurulumuyla tekrar üretilebilir çevre varlığı hattı kuruldu. `create_gondola_shelf.py` ölçülü modeli, materyalleri, UCX parçalarını, FBX'i, kaynak `.blend` dosyasını, ekipman metadatasını ve 1024×768 önizlemeyi üretir.
+- İlk ana ekipman `SM_Gondola_1200`: 1200 × 900 × 1600 mm, çift müşteri yüzü, dört raf seviyesi, fiyat rayları, ahşap taban/başlık, 5 materyal yuvası, 3 UCX çarpışma kutusu ve 8 planogram bölgesi.
+- Blender doğrulayıcısı ölçü, zemin merkezli origin, uygulanmış ölçek, materyaller, UCX adları, metadata ve çıktı dosyalarını kontrol eder.
+- `IMPORT_ENVIRONMENT.cmd` FBX'i Unreal'a otomatik içe alır ve Unreal tarafında ölçü, materyal ve çarpışma primitive'lerini doğrular. Batch hata kodu aktarımı da başarısız doğrulamayı başarı saymayacak biçimde kuruldu.
+- Oyun kodu içe aktarılan gondol mesh'ini kullanıyor. Üç 120 cm modül yan yana bir reyon sırası oluşturuyor; ürünler 112 cm raf genişliğinde merkezden dışa ve dört kata yerleşiyor. Mesh yoksa küçük prosedürel raf yedeği kalıyor.
+- Smoke testi eski sabit raf koordinatı yerine `ShelfPosition(0)` değerini kullanacak şekilde dayanıklı hâle getirildi.
+
+**Doğrulama**
+- Blender kalite kapısı: GEÇTİ — 1200×900×1600 mm, 5 materyal, 3 UCX, 8 bölge.
+- Unreal içe aktarma kalite kapısı: GEÇTİ — 120×90×160 cm, 5 materyal, 3 collision primitive.
+- `DERLE.cmd /q`: GEÇTİ.
+- `TEST.cmd /q`: GEÇTİ 10/10.
+- `SmokeTest.ps1`: GEÇTİ; yeni raf konumunda etkileşim, satış ve kayıt/yükleme tamamlandı.
+- 1280×720 oyun yakalamasında ölçek, yön, üçlü modül birleşimi ve dört raf ürün oturması gözle doğrulandı.
+
+**Sıradaki**
+- G-024: 1200 mm tek yüz duvar rafını üret ve yan duvar kategori dizilimini kur.
+- G-021: PBR terrazzo zemin ile metal/ahşap raf dokularını üretim hattına ekle.
+
 ## 28.09.2026 — Codex — Referans markete göre canlılık geçişi
 
 **Yapılan**

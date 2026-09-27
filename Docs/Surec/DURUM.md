@@ -4,7 +4,7 @@ Son güncelleme: 28.09.2026 — Codex
 
 ## Kısaca
 
-v0.2 geliştirme. Mağazanın ilk görsel gerçekçilik ve canlılık geçişi tamamlandı: etiket yüzeyleri mat ambalaj tepkisi veriyor; koyu açık tavan, sıcak zemin, görünür armatürler, raf önü dolgu ışığı, marka renkli başlıklar ve üç kata yayılan daha dolu raflar var. Başlangıçtaki toplam ürün adedi değişmeden dağılım 16 raf / 16 depo oldu. Stüdyo v1.7'nin hazır ambalaj şablonları ve özel model düzeltmeleri çalışıyor.
+v0.2 geliştirme. Blender 5.2 üretim hattı kuruldu ve ilk gerçek ekipman tamamlandı: 1200 × 900 × 1600 mm çift yüz gondol rafı kaynak `.blend`, FBX, metadata, önizleme ve Unreal varlığı olarak üretildi. Oyun artık kodla çizilen raf yerine bu modüler mesh'i kullanıyor; ürünler dört raf seviyesine ve gerçek kullanılabilir genişliğe yerleşiyor. Görsel canlılık ve mat etiket yüzeyi ayarları çalışıyor.
 
 ## Çalışan / var olan
 
@@ -28,6 +28,7 @@ v0.2 geliştirme. Mağazanın ilk görsel gerçekçilik ve canlılık geçişi t
 | `SmokeTest.ps1` | GEÇTİ; 5 müşteri satışı, gün kapama ve disk kayıt/yükleme — 27.09.2026 |
 | Görsel temel v1 (`DERLE.cmd`, `TEST.cmd`, `SmokeTest.ps1`, 1280×720 sahne yakalama) | GEÇTİ; 10/10 test, ışık/raf/ürün sahnesi gözle incelendi — 28.09.2026 |
 | Canlılık geçişi v2 (referans market karşılaştırması) | GEÇTİ; derleme, 10/10 test, smoke ve 1280×720 görüntü kontrolü — 28.09.2026 |
+| Blender gondol v1 (`create` + Blender validate + Unreal import/validate + oyun) | GEÇTİ; 120×90×160 cm, 5 materyal, 3 UCX, 8 raf bölgesi; derleme, 10/10 test, smoke ve ekran görüntüsü — 28.09.2026 |
 | Stüdyoda elle deneme: kutu (açılım) → Oyuna ekle → OYNA | GEÇTİ: milk_1l oyunda; ön/yan/üst yüzler doğru, ayna yok, raf oturması doğru — 27.09.2026 |
 | Stüdyoda elle deneme: cam şişe modeli + malzeme.json | Bekliyor (henüz model yok) |
 
@@ -46,6 +47,6 @@ Yok.
 
 ## Sıradaki adımlar
 
-1. G-021: Raf, zemin, duvar, tavan ve kasa için PBR malzeme paketi üretip Stüdyo dışı çevre varlığı iş akışını kur.
-2. Mustafa: PET/teneke/kavanoz/kase türlerinden birer ürün üretip Oyuna ekle; etiket yönü, kapak ve malzeme yuvalarını gözle doğrula (G-017).
-3. G-011 dönem etiketleri: 2011/2018/2025/2033 görsellerini katalogda tutup oyun yılına göre seç.
+1. G-024: Aynı standardı kullanan 1200 mm tek yüz duvar rafı üret; yan duvarlardaki boşluğu kategori raflarıyla doldur.
+2. G-021: Terrazzo zemin ve raf için gerçek PBR doku setlerini ana materyallere bağla.
+3. Mustafa: PET/teneke/kavanoz/kase türlerinden birer ürün üretip Oyuna ekle; etiket yönü, kapak ve malzeme yuvalarını gözle doğrula (G-017).

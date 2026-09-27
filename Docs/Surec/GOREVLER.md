@@ -27,3 +27,5 @@ Yeni görev en alta eklenir; biten görev silinmez, durumu değişir. Kimlikler 
 | G-020 | İlk görsel gerçekçilik geçişi: etiket parlama kontrolü, dengeli mağaza ışığı, renk düzeni, metal raf ve zemin derzleri | Codex | Bitti | 28.09.2026; derleme, 10/10 test, smoke ve 1280×720 sahne karşılaştırması geçti |
 | G-021 | Çevre PBR varlık geçişi: raf/zemin/duvar/tavan/kasa doku setleri ve ayrıntılı prop modelleri | Açık | Sırada | Teknik ışık temeli hazır; Blender/asset üretim standardı ve çevre içe aktarma hattı kurulacak |
 | G-022 | Referans market canlılığı: koyu açık tavan, sıcak zemin, raf önü dolgu, marka başlıkları ve dengeli dolu raflar | Codex | Bitti | 28.09.2026; toplam başlangıç stoğu korunarak 16 raf/16 depo, derleme + 10/10 test + smoke + görsel kontrol geçti |
+| G-023 | Blender çevre varlığı hattı ve ilk gerçek çift yüz gondol rafı | Codex | Bitti | 28.09.2026; `.blend`/FBX/metadata/önizleme, Unreal otomatik import, 120×90×160 cm + 5 materyal + 3 UCX doğrulaması, oyuna entegrasyon geçti |
+| G-024 | Tek yüz 1200 mm duvar rafı ve yan duvar kategori dizilimi | Codex | Sırada | Gondol standardını kullanacak; mağazadaki boş yan hacimleri dolduracak |

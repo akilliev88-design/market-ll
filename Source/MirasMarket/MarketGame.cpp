@@ -23,7 +23,7 @@
 namespace
 {
     FString Money(int64 Value) { return FString::Printf(TEXT("%.2f TL"), Value / 100.0); }
-    FVector ShelfPosition(int32 Index) { return FVector(-270 + (Index % 3) * 270, 320 + (Index / 3) * 320, 0); }
+    FVector ShelfPosition(int32 Index) { return FVector(-130 + (Index % 3) * 130, 320 + (Index / 3) * 320, 0); }
     // World-space text uses a distance-field font without Turkish glyphs: fold to ASCII there.
     FString AsciiFold(const FString& In)
     {
@@ -201,27 +201,38 @@ void AMarketGameMode::BuildStore()
         Box(FVector(X, Middle, 0.2f), FVector(1.2f, Length, 0.4f), FLinearColor(.31f, .32f, .30f), false);
     for (float Y = -250.f; Y < Back; Y += 110.f)
         Box(FVector(0, Y, 0.2f), FVector(1250.f, 1.2f, 0.4f), FLinearColor(.31f, .32f, .30f), false);
+    UStaticMesh* Gondola = LoadObject<UStaticMesh>(nullptr, TEXT("/Game/Environment/Shelves/Gondola_1200/SM_Gondola_1200.SM_Gondola_1200"));
     for (int32 I = 0; I < Products.Num(); ++I)
     {
         const FVector P = ShelfPosition(I);
-        const FLinearColor ShelfMetal(.20f, .21f, .20f);
-        const FLinearColor ShelfEdge(.055f, .06f, .055f);
-        const FLinearColor Wood(.28f, .13f, .055f);
         FLinearColor Header = FLinearColor(Products[I].Color) * 0.68f;
         Header.A = 1.f;
-        Box(P + FVector(0, 30, 67), FVector(245, 3, 134), FLinearColor(.115f, .12f, .11f));
-        Box(P + FVector(-121, -7, 67), FVector(6, 76, 134), Wood);
-        Box(P + FVector(121, -7, 67), FVector(6, 76, 134), Wood);
-        Box(P + FVector(0, -7, 10), FVector(245, 78, 20), Wood);
-        for (int32 Level = 0; Level < 3; ++Level)
+        if (Gondola)
         {
-            const float Z = 25 + Level * 44;
-            Box(P + FVector(0, -8, Z), FVector(250, 80, 4), ShelfMetal);
-            Box(P + FVector(0, -49, Z + 3), FVector(250, 3, 7), ShelfEdge);
+            auto* Shelf = GetWorld()->SpawnActor<AStaticMeshActor>(P, FRotator::ZeroRotator);
+            Shelf->GetStaticMeshComponent()->SetStaticMesh(Gondola);
+            Shelf->GetStaticMeshComponent()->SetMobility(EComponentMobility::Static);
+            Shelf->GetStaticMeshComponent()->SetCollisionProfileName(TEXT("BlockAll"));
         }
-        Box(P + FVector(0, -48, 154), FVector(245, 4, 30), Header);
+        else
+        {
+            const FLinearColor ShelfMetal(.20f, .21f, .20f);
+            const FLinearColor ShelfEdge(.055f, .06f, .055f);
+            const FLinearColor Wood(.28f, .13f, .055f);
+            Box(P + FVector(0, 30, 67), FVector(120, 3, 134), FLinearColor(.115f, .12f, .11f));
+            Box(P + FVector(-58, -7, 67), FVector(5, 76, 134), Wood);
+            Box(P + FVector(58, -7, 67), FVector(5, 76, 134), Wood);
+            Box(P + FVector(0, -7, 10), FVector(120, 78, 20), Wood);
+            for (int32 Level = 0; Level < 4; ++Level)
+            {
+                const float Z = 18 + Level * 34;
+                Box(P + FVector(0, -8, Z), FVector(120, 80, 3), ShelfMetal);
+                Box(P + FVector(0, -45, Z + 3), FVector(116, 3, 7), ShelfEdge);
+            }
+        }
+        Box(P + FVector(0, -7, 147), FVector(108, 2, 15), Header, false);
         BuildShelfItems(I);
-        auto* ShelfLabel = Label(P + FVector(0, -51, 160), FRotator(0, -90, 0), AsciiFold(ProductName(I)), 10, FColor::White);
+        auto* ShelfLabel = Label(P + FVector(0, -8.2f, 150), FRotator(0, -90, 0), AsciiFold(ProductName(I)), 8, FColor::White);
         ShelfLabel->SetCullDistance(700);
         ShelfLabels.Add(ShelfLabel);
     }
@@ -300,10 +311,10 @@ void AMarketGameMode::BuildShelfItems(int32 Index)
     const float Bottom = Bounds.Min.Z;
     const FRotator Facing(0, -90, 0);                    // product front (+X) faces the aisle (-Y)
     const float Gap = 2;
-    const int32 Columns = FMath::Clamp(FMath::FloorToInt32(230 / (Size.Y + Gap)), 1, 16);
+    const int32 Columns = FMath::Clamp(FMath::FloorToInt32(110 / (Size.Y + Gap)), 1, 16);
     // Only the front row is visible: the shelf body behind the boards is solid.
     const int32 Rows = 1;
-    const int32 Levels = Size.Z <= 38 ? 3 : 1;           // tall items only fit on the open top board
+    const int32 Levels = Size.Z <= 31 ? 4 : 1;           // tall items only fit on the open top board
     const FVector P = ShelfPosition(Index);
     AActor* Holder = GetWorld()->SpawnActor<AActor>(P, FRotator::ZeroRotator);
     auto* Root = NewObject<USceneComponent>(Holder);
@@ -312,12 +323,19 @@ void AMarketGameMode::BuildShelfItems(int32 Index)
     Root->SetWorldLocation(P);
     ShelfItemStart.Add(ShelfItems.Num());
     int32 Count = 0;
+    TArray<int32> ColumnOrder;
+    for (int32 Step = 0; Step < Columns; ++Step)
+    {
+        const int32 Offset = Step == 0 ? 0 : (Step + 1) / 2 * (Step % 2 == 1 ? -1 : 1);
+        const int32 Column = FMath::Clamp((Columns - 1) / 2 + Offset, 0, Columns - 1);
+        if (!ColumnOrder.Contains(Column)) ColumnOrder.Add(Column);
+    }
     for (int32 Row = 0; Row < Rows && Count < FMarketState::ShelfCapacity; ++Row)
-        for (int32 Col = 0; Col < Columns && Count < FMarketState::ShelfCapacity; ++Col)
+        for (const int32 Col : ColumnOrder)
             for (int32 Level = 0; Level < Levels && Count < FMarketState::ShelfCapacity; ++Level)
             {
-                const int32 Board = Levels == 3 ? Level : 2;
-                const FVector Slot(((Col - (Columns - 1) * 0.5f) * (Size.Y + Gap)), -45 + Size.X * 0.5f + Row * (Size.X + Gap), 25 + Board * 44 + 2.5f);
+                const int32 Board = Levels == 4 ? Level : 3;
+                const FVector Slot(((Col - (Columns - 1) * 0.5f) * (Size.Y + Gap)), -42 + Size.X * 0.5f + Row * (Size.X + Gap), 19.5f + Board * 34);
                 const FVector BoundsOffset = Facing.RotateVector(FVector(Center.X, Center.Y, 0)) + FVector(0, 0, Bottom);
                 const FVector CorrectedOffset = Facing.RotateVector(PlacementOffset);
                 const FQuat FinalRotation = Facing.Quaternion() * ModelRotation.Quaternion();
@@ -554,7 +572,7 @@ void AMarketGameMode::Tick(float DeltaTime)
         {
             auto* Pawn = UGameplayStatics::GetPlayerPawn(this, 0);
             if (!Require(Pawn != nullptr, TEXT("player spawned"))) return;
-            Pawn->SetActorLocation(FVector(-270, 210, 90));
+            Pawn->SetActorLocation(ShelfPosition(0) + FVector(0, -110, 90));
             Command("Interact");
             if (!Require(State.Stock[0].Shelf == 24, TEXT("nearby shelf interaction"))) return;
             Pawn->SetActorLocation(FVector(-430, -180, 90));
