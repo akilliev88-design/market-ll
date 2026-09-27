@@ -18,7 +18,7 @@ IMPLEMENT_SIMPLE_AUTOMATION_TEST(FMarketInventoryTest, "MirasMarket.Economy.Inve
 bool FMarketInventoryTest::RunTest(const FString& Parameters)
 {
     auto Catalog = TestCatalog(); FMarketState S; S.Initialize(Catalog);
-    TestEqual(TEXT("Shelf filled from warehouse"), S.Restock(0), 16);
+    TestEqual(TEXT("Shelf filled from warehouse"), S.Restock(0), 8);
     TestEqual(TEXT("Stock conserved"), S.Stock[0].Shelf + S.Stock[0].Warehouse, 32);
     TestTrue(TEXT("Order accepted"), S.Order(0, Catalog));
     TestEqual(TEXT("Cash debited once in kurus"), S.Cash, int64(32960));
@@ -39,12 +39,12 @@ IMPLEMENT_SIMPLE_AUTOMATION_TEST(FMarketSaleTest, "MirasMarket.Economy.SaleAndPr
 bool FMarketSaleTest::RunTest(const FString& Parameters)
 {
     auto Catalog = TestCatalog(); FMarketState S; S.Initialize(Catalog);
-    TestFalse(TEXT("Overselling is forbidden"), S.Sell(0, 9, 250, Catalog));
+    TestFalse(TEXT("Overselling is forbidden"), S.Sell(0, 17, 250, Catalog));
     TestFalse(TEXT("Negative quantity is forbidden"), S.Sell(0, -1, 250, Catalog));
     S.Stock[0].Price = 300;
     TestTrue(TEXT("Existing basket respects its 250 kurus quote"), S.Sell(0, 4, 250, Catalog));
     TestEqual(TEXT("Cash includes exact receipt"), S.Cash, int64(36000));
-    TestEqual(TEXT("Sold inventory removed"), S.Stock[0].Shelf, 4);
+    TestEqual(TEXT("Sold inventory removed"), S.Stock[0].Shelf, 12);
     TestEqual(TEXT("Cost of goods recorded"), S.CostOfGoods, int64(680));
     S.CloseDay();
     TestEqual(TEXT("Profit is revenue minus cost and daily expenses"), S.LastProfit, int64(-1880));

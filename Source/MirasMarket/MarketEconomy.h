@@ -46,8 +46,8 @@ struct FMarketStock
 {
     GENERATED_BODY()
     UPROPERTY() FString Id;
-    UPROPERTY() int32 Shelf = 8;
-    UPROPERTY() int32 Warehouse = 24;
+    UPROPERTY() int32 Shelf = 16;
+    UPROPERTY() int32 Warehouse = 16;
     UPROPERTY() int32 Incoming = 0;
     UPROPERTY() int64 Price = 0;
 };

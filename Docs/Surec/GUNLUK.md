@@ -2,6 +2,24 @@
 
 En yeni giriş en üstte. Biçim: tarih — ajan — başlık, ardından **Yapılan**, **Doğrulama**, **Sıradaki**.
 
+## 28.09.2026 — Codex — Referans markete göre canlılık geçişi
+
+**Yapılan**
+- Kullanıcının market referansı mevcut sahneyle karşılaştırıldı. Farkın yalnız pozlama olmadığı; ürün yoğunluğu, sıcak zemin, koyu açık tavan, görünür armatür, renkli reyon iletişimi ve raf önü ışığından oluştuğu belirlendi.
+- Tavan koyu açık tavan görünümüne, zemin sıcak tona çevrildi; kirişler ve daha ince ışık panelleri eklendi. Beyaz dengesi 4850 K yapıldı, bloom azaltıldı, doygunluk ve kontrast ölçülü artırıldı.
+- Raflar genişletildi; koyu metal tabla, ahşap yan/alt parçalar ve ürün renginden başlık panoları eklendi. Ürün yerleşimi sütun öncelikli yapılarak mevcut stok üç kata dengeli dağıtıldı.
+- Toplam başlangıç stoğu 32'de tutuldu; daha canlı ilk görünüm için 8 raf/24 depo dağılımı 16 raf/16 depo oldu.
+- Her raf sırasına yumuşak koridor dolgu ışığı eklendi; ambalaj önlerinin karanlık silüet olması engellendi.
+
+**Doğrulama**
+- `DERLE.cmd /q`: GEÇTİ.
+- `TEST.cmd /q`: GEÇTİ 10/10; ekonomi testleri yeni 16/16 dağılımının koruma ve satış kurallarını doğruluyor.
+- `SmokeTest.ps1`: GEÇTİ.
+- 1280×720 sahne çıktısı referansla gözle karşılaştırıldı; raf doluluğu, sıcaklık, renkli başlıklar ve ambalaj okunurluğu belirgin arttı.
+
+**Sıradaki**
+- G-021 kapsamında gerçek PBR terrazzo zemin, raf metal/ahşap dokuları, fiyat etiketleri, kategori tabelaları ve çok ürünlü raf modülleri hazırlanacak.
+
 ## 28.09.2026 — Codex — Mağazada ilk görsel gerçekçilik geçişi
 
 **Yapılan**

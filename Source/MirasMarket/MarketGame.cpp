@@ -182,13 +182,13 @@ void AMarketGameMode::BuildStore()
     const float Back = 400 + StoreRows * 320;
     const float Length = Back + 310;
     const float Middle = (Back - 300) / 2;
-    Box(FVector(0, Middle, -15), FVector(1250, Length, 30), FLinearColor(.52f, .53f, .49f));
-    Box(FVector(0, Middle, 355), FVector(1250, Length, 15), FLinearColor(.70f, .71f, .66f));
-    Box(FVector(-625, Middle, 165), FVector(20, Length, 360), FLinearColor(.31f, .43f, .38f));
-    Box(FVector(625, Middle, 165), FVector(20, Length, 360), FLinearColor(.31f, .43f, .38f));
-    Box(FVector(0, Back, 165), FVector(1250, 20, 360), FLinearColor(.32f, .43f, .38f));
-    Box(FVector(-405, -300, 165), FVector(440, 20, 360), FLinearColor(.32f, .43f, .38f));
-    Box(FVector(405, -300, 165), FVector(440, 20, 360), FLinearColor(.32f, .43f, .38f));
+    Box(FVector(0, Middle, -15), FVector(1250, Length, 30), FLinearColor(.50f, .39f, .28f));
+    Box(FVector(0, Middle, 355), FVector(1250, Length, 15), FLinearColor(.055f, .045f, .035f));
+    Box(FVector(-625, Middle, 165), FVector(20, Length, 360), FLinearColor(.38f, .47f, .39f));
+    Box(FVector(625, Middle, 165), FVector(20, Length, 360), FLinearColor(.38f, .47f, .39f));
+    Box(FVector(0, Back, 165), FVector(1250, 20, 360), FLinearColor(.39f, .47f, .39f));
+    Box(FVector(-405, -300, 165), FVector(440, 20, 360), FLinearColor(.39f, .47f, .39f));
+    Box(FVector(405, -300, 165), FVector(440, 20, 360), FLinearColor(.39f, .47f, .39f));
     // Entrance is a visual opening with an invisible boundary for the prototype.
     auto* Boundary = Box(FVector(0, -310, 165), FVector(360, 20, 360), FLinearColor::Black);
     Boundary->SetActorHiddenInGame(true);
@@ -204,19 +204,24 @@ void AMarketGameMode::BuildStore()
     for (int32 I = 0; I < Products.Num(); ++I)
     {
         const FVector P = ShelfPosition(I);
-        const FLinearColor ShelfMetal(.63f, .65f, .63f);
-        const FLinearColor ShelfEdge(.20f, .22f, .21f);
-        Box(P + FVector(0, 30, 67), FVector(185, 3, 134), FLinearColor(.46f, .48f, .46f));
-        Box(P + FVector(-91, -7, 67), FVector(4, 76, 134), ShelfMetal);
-        Box(P + FVector(91, -7, 67), FVector(4, 76, 134), ShelfMetal);
+        const FLinearColor ShelfMetal(.20f, .21f, .20f);
+        const FLinearColor ShelfEdge(.055f, .06f, .055f);
+        const FLinearColor Wood(.28f, .13f, .055f);
+        FLinearColor Header = FLinearColor(Products[I].Color) * 0.68f;
+        Header.A = 1.f;
+        Box(P + FVector(0, 30, 67), FVector(245, 3, 134), FLinearColor(.115f, .12f, .11f));
+        Box(P + FVector(-121, -7, 67), FVector(6, 76, 134), Wood);
+        Box(P + FVector(121, -7, 67), FVector(6, 76, 134), Wood);
+        Box(P + FVector(0, -7, 10), FVector(245, 78, 20), Wood);
         for (int32 Level = 0; Level < 3; ++Level)
         {
             const float Z = 25 + Level * 44;
-            Box(P + FVector(0, -8, Z), FVector(190, 80, 4), FLinearColor(.69f, .70f, .67f));
-            Box(P + FVector(0, -49, Z + 3), FVector(190, 3, 7), ShelfEdge);
+            Box(P + FVector(0, -8, Z), FVector(250, 80, 4), ShelfMetal);
+            Box(P + FVector(0, -49, Z + 3), FVector(250, 3, 7), ShelfEdge);
         }
+        Box(P + FVector(0, -48, 154), FVector(245, 4, 30), Header);
         BuildShelfItems(I);
-        auto* ShelfLabel = Label(P + FVector(0, -50, 177), FRotator(0, -90, 0), AsciiFold(ProductName(I)), 11, FColor::White);
+        auto* ShelfLabel = Label(P + FVector(0, -51, 160), FRotator(0, -90, 0), AsciiFold(ProductName(I)), 10, FColor::White);
         ShelfLabel->SetCullDistance(700);
         ShelfLabels.Add(ShelfLabel);
     }
@@ -231,8 +236,9 @@ void AMarketGameMode::BuildStore()
     Label(FVector(0, Back - 30, 140), FRotator(0, -90, 0), TEXT("DEPO  /  Siparisler ertesi sabah gelir"), 20);
     for (float Y = 40.f; Y < Back; Y += 430.f)
     {
-        Box(FVector(-300.f, Y, 347.f), FVector(390.f, 48.f, 4.f), FLinearColor(.92f, .91f, .84f), false);
-        Box(FVector(300.f, Y, 347.f), FVector(390.f, 48.f, 4.f), FLinearColor(.92f, .91f, .84f), false);
+        Box(FVector(0.f, Y, 337.f), FVector(1250.f, 10.f, 12.f), FLinearColor(.045f, .04f, .035f), false);
+        Box(FVector(-300.f, Y, 347.f), FVector(290.f, 28.f, 4.f), FLinearColor(.95f, .89f, .72f), false);
+        Box(FVector(300.f, Y, 347.f), FVector(290.f, 28.f, 4.f), FLinearColor(.95f, .89f, .72f), false);
     }
     MarketVisuals::BuildStoreLighting(GetWorld(), Back);
 }
@@ -294,7 +300,7 @@ void AMarketGameMode::BuildShelfItems(int32 Index)
     const float Bottom = Bounds.Min.Z;
     const FRotator Facing(0, -90, 0);                    // product front (+X) faces the aisle (-Y)
     const float Gap = 2;
-    const int32 Columns = FMath::Clamp(FMath::FloorToInt32(170 / (Size.Y + Gap)), 1, 12);
+    const int32 Columns = FMath::Clamp(FMath::FloorToInt32(230 / (Size.Y + Gap)), 1, 16);
     // Only the front row is visible: the shelf body behind the boards is solid.
     const int32 Rows = 1;
     const int32 Levels = Size.Z <= 38 ? 3 : 1;           // tall items only fit on the open top board
@@ -307,8 +313,8 @@ void AMarketGameMode::BuildShelfItems(int32 Index)
     ShelfItemStart.Add(ShelfItems.Num());
     int32 Count = 0;
     for (int32 Row = 0; Row < Rows && Count < FMarketState::ShelfCapacity; ++Row)
-        for (int32 Level = 0; Level < Levels && Count < FMarketState::ShelfCapacity; ++Level)
-            for (int32 Col = 0; Col < Columns && Count < FMarketState::ShelfCapacity; ++Col)
+        for (int32 Col = 0; Col < Columns && Count < FMarketState::ShelfCapacity; ++Col)
+            for (int32 Level = 0; Level < Levels && Count < FMarketState::ShelfCapacity; ++Level)
             {
                 const int32 Board = Levels == 3 ? Level : 2;
                 const FVector Slot(((Col - (Columns - 1) * 0.5f) * (Size.Y + Gap)), -45 + Size.X * 0.5f + Row * (Size.X + Gap), 25 + Board * 44 + 2.5f);

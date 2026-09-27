@@ -4,7 +4,7 @@ Son güncelleme: 28.09.2026 — Codex
 
 ## Kısaca
 
-v0.2 geliştirme. Mağazanın ilk görsel gerçekçilik geçişi tamamlandı: etiket yüzeyleri mat ambalaj tepkisi veriyor, ışık patlamaları azaltıldı, sabit beyaz dengesi/renk düzeni eklendi ve yekpare kahverengi raflar açık metal market raflarına dönüştürüldü. Stüdyo v1.7'nin hazır ambalaj şablonları ve özel model düzeltmeleri çalışıyor.
+v0.2 geliştirme. Mağazanın ilk görsel gerçekçilik ve canlılık geçişi tamamlandı: etiket yüzeyleri mat ambalaj tepkisi veriyor; koyu açık tavan, sıcak zemin, görünür armatürler, raf önü dolgu ışığı, marka renkli başlıklar ve üç kata yayılan daha dolu raflar var. Başlangıçtaki toplam ürün adedi değişmeden dağılım 16 raf / 16 depo oldu. Stüdyo v1.7'nin hazır ambalaj şablonları ve özel model düzeltmeleri çalışıyor.
 
 ## Çalışan / var olan
 
@@ -27,6 +27,7 @@ v0.2 geliştirme. Mağazanın ilk görsel gerçekçilik geçişi tamamlandı: et
 | `DERLE.cmd` + `TEST.cmd` (v1.7: hazır ambalaj ajan şablonları + özel model dönüşümü) | GEÇTİ; test 10/10, kutu/etiket/kapak PNG'leri görsel incelendi — 27.09.2026 |
 | `SmokeTest.ps1` | GEÇTİ; 5 müşteri satışı, gün kapama ve disk kayıt/yükleme — 27.09.2026 |
 | Görsel temel v1 (`DERLE.cmd`, `TEST.cmd`, `SmokeTest.ps1`, 1280×720 sahne yakalama) | GEÇTİ; 10/10 test, ışık/raf/ürün sahnesi gözle incelendi — 28.09.2026 |
+| Canlılık geçişi v2 (referans market karşılaştırması) | GEÇTİ; derleme, 10/10 test, smoke ve 1280×720 görüntü kontrolü — 28.09.2026 |
 | Stüdyoda elle deneme: kutu (açılım) → Oyuna ekle → OYNA | GEÇTİ: milk_1l oyunda; ön/yan/üst yüzler doğru, ayna yok, raf oturması doğru — 27.09.2026 |
 | Stüdyoda elle deneme: cam şişe modeli + malzeme.json | Bekliyor (henüz model yok) |
 
