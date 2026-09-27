@@ -102,6 +102,8 @@ namespace
         Instance->PreEditChange(nullptr);
         Instance->SetParentEditorOnly(Parent);
         Instance->SetTextureParameterValueEditorOnly(FMaterialParameterInfo(TEXT("Label")), Label);
+        Instance->SetScalarParameterValueEditorOnly(FMaterialParameterInfo(TEXT("Roughness")), 0.82f);
+        Instance->SetScalarParameterValueEditorOnly(FMaterialParameterInfo(TEXT("Specular")), 0.20f);
         Instance->PostEditChange();
         Package->MarkPackageDirty();
         if (bNew) FAssetRegistryModule::AssetCreated(Instance);
@@ -701,13 +703,15 @@ UMaterialInterface* EnsureLabelMaterial(FString& OutError)
     return EnsureMaster(TEXT("M_ProductLabel"), [](UMaterial* M)
     {
         auto* Label = Expression<UMaterialExpressionTextureSampleParameter2D>(M, -420, 0);
-        auto* Roughness = Scalar(M, TEXT("Roughness"), 0.55f, 260);
-        if (!Label || !Roughness) return false;
+        auto* Roughness = Scalar(M, TEXT("Roughness"), 0.82f, 260);
+        auto* Specular = Scalar(M, TEXT("Specular"), 0.20f, 380);
+        if (!Label || !Roughness || !Specular) return false;
         Label->ParameterName = TEXT("Label");
         Label->Texture = LoadObject<UTexture2D>(nullptr, TEXT("/Engine/EngineResources/DefaultTexture.DefaultTexture"));
         Label->SamplerType = SAMPLERTYPE_Color;
         UMaterialEditingLibrary::ConnectMaterialProperty(Label, TEXT("RGB"), MP_BaseColor);
         UMaterialEditingLibrary::ConnectMaterialProperty(Roughness, TEXT(""), MP_Roughness);
+        UMaterialEditingLibrary::ConnectMaterialProperty(Specular, TEXT(""), MP_Specular);
         return true;
     }, OutError);
 }

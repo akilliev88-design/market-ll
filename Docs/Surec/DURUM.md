@@ -1,10 +1,10 @@
 # Güncel durum
 
-Son güncelleme: 27.09.2026 — Codex
+Son güncelleme: 28.09.2026 — Codex
 
 ## Kısaca
 
-v0.2 geliştirme. Stüdyo v1.7 derlendi ve otomasyon doğrulaması geçti. Hazır ambalajlar için gerçek piksel ölçülü ajan şablonları üretilebilir; promptlar yüklenen şablonun tuvalini ve bölgelerini korur. İçe alınan özel modellerin ölçek, yön ve pivot/raf konumu Stüdyo'dan düzeltilip katalogda saklanır ve oyunda uygulanır.
+v0.2 geliştirme. Mağazanın ilk görsel gerçekçilik geçişi tamamlandı: etiket yüzeyleri mat ambalaj tepkisi veriyor, ışık patlamaları azaltıldı, sabit beyaz dengesi/renk düzeni eklendi ve yekpare kahverengi raflar açık metal market raflarına dönüştürüldü. Stüdyo v1.7'nin hazır ambalaj şablonları ve özel model düzeltmeleri çalışıyor.
 
 ## Çalışan / var olan
 
@@ -26,6 +26,7 @@ v0.2 geliştirme. Stüdyo v1.7 derlendi ve otomasyon doğrulaması geçti. Hazı
 | `DERLE.cmd` + `TEST.cmd` (v1.6: özel model UV kılavuzu) | GEÇTİ; 2048 px PNG görsel olarak incelendi — 27.09.2026 |
 | `DERLE.cmd` + `TEST.cmd` (v1.7: hazır ambalaj ajan şablonları + özel model dönüşümü) | GEÇTİ; test 10/10, kutu/etiket/kapak PNG'leri görsel incelendi — 27.09.2026 |
 | `SmokeTest.ps1` | GEÇTİ; 5 müşteri satışı, gün kapama ve disk kayıt/yükleme — 27.09.2026 |
+| Görsel temel v1 (`DERLE.cmd`, `TEST.cmd`, `SmokeTest.ps1`, 1280×720 sahne yakalama) | GEÇTİ; 10/10 test, ışık/raf/ürün sahnesi gözle incelendi — 28.09.2026 |
 | Stüdyoda elle deneme: kutu (açılım) → Oyuna ekle → OYNA | GEÇTİ: milk_1l oyunda; ön/yan/üst yüzler doğru, ayna yok, raf oturması doğru — 27.09.2026 |
 | Stüdyoda elle deneme: cam şişe modeli + malzeme.json | Bekliyor (henüz model yok) |
 
@@ -36,6 +37,7 @@ v0.2 geliştirme. Stüdyo v1.7 derlendi ve otomasyon doğrulaması geçti. Hazı
 - İçe alınan FBX'te ön yüz yönü ilk gerçek modelde doğrulanmalı; gerekirse Stüdyo'daki Pitch/Yaw/Roll alanlarıyla düzeltilir.
 - `M_ProductGlass` saydam materyali ilk kez oluşturulacak; UE 5.8'de `BlendMode` erişimi uyarı verebilir.
 - Oyun şimdilik tek etiket gösterir (dönem etiketleri G-011).
+- Prosedürel mağaza artık daha okunaklıdır; fotogerçekçi hedef için sonraki turda raf/zemin/duvar PBR doku setleri ve ayrıntılı prop modelleri gerekir (G-021).
 
 ## Devam notu
 
@@ -43,6 +45,6 @@ Yok.
 
 ## Sıradaki adımlar
 
-1. Mustafa: PET/teneke/kavanoz/kase türlerinden birer ürün üretip Oyuna ekle; etiket yönü, kapak ve malzeme yuvalarını gözle doğrula (G-017).
-2. Ajan görsellerindeki bozuk küçük yazılar (ör. "Süteadürcanıya") içerik kalitesi sorunu: E promptunun 6b maddesi yakalar.
+1. G-021: Raf, zemin, duvar, tavan ve kasa için PBR malzeme paketi üretip Stüdyo dışı çevre varlığı iş akışını kur.
+2. Mustafa: PET/teneke/kavanoz/kase türlerinden birer ürün üretip Oyuna ekle; etiket yönü, kapak ve malzeme yuvalarını gözle doğrula (G-017).
 3. G-011 dönem etiketleri: 2011/2018/2025/2033 görsellerini katalogda tutup oyun yılına göre seç.

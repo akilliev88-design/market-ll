@@ -1,15 +1,14 @@
 #include "MarketGame.h"
+#include "MarketVisuals.h"
 #include "ProductCatalog.h"
 #include "Camera/CameraComponent.h"
 #include "Components/CapsuleComponent.h"
 #include "Components/InputComponent.h"
 #include "Components/StaticMeshComponent.h"
 #include "Components/TextRenderComponent.h"
-#include "Components/PointLightComponent.h"
 #include "Engine/Canvas.h"
 #include "Engine/Engine.h"
 #include "Engine/StaticMeshActor.h"
-#include "Engine/PointLight.h"
 #include "Engine/GameViewportClient.h"
 #include "GameFramework/CharacterMovementComponent.h"
 #include "GameFramework/PlayerStart.h"
@@ -183,13 +182,13 @@ void AMarketGameMode::BuildStore()
     const float Back = 400 + StoreRows * 320;
     const float Length = Back + 310;
     const float Middle = (Back - 300) / 2;
-    Box(FVector(0, Middle, -15), FVector(1250, Length, 30), FLinearColor(.57f, .57f, .51f));
-    Box(FVector(0, Middle, 355), FVector(1250, Length, 15), FLinearColor(.46f, .5f, .45f));
-    Box(FVector(-625, Middle, 165), FVector(20, Length, 360), FLinearColor(.2f, .38f, .35f));
-    Box(FVector(625, Middle, 165), FVector(20, Length, 360), FLinearColor(.2f, .38f, .35f));
-    Box(FVector(0, Back, 165), FVector(1250, 20, 360), FLinearColor(.22f, .37f, .33f));
-    Box(FVector(-405, -300, 165), FVector(440, 20, 360), FLinearColor(.22f, .37f, .33f));
-    Box(FVector(405, -300, 165), FVector(440, 20, 360), FLinearColor(.22f, .37f, .33f));
+    Box(FVector(0, Middle, -15), FVector(1250, Length, 30), FLinearColor(.52f, .53f, .49f));
+    Box(FVector(0, Middle, 355), FVector(1250, Length, 15), FLinearColor(.70f, .71f, .66f));
+    Box(FVector(-625, Middle, 165), FVector(20, Length, 360), FLinearColor(.31f, .43f, .38f));
+    Box(FVector(625, Middle, 165), FVector(20, Length, 360), FLinearColor(.31f, .43f, .38f));
+    Box(FVector(0, Back, 165), FVector(1250, 20, 360), FLinearColor(.32f, .43f, .38f));
+    Box(FVector(-405, -300, 165), FVector(440, 20, 360), FLinearColor(.32f, .43f, .38f));
+    Box(FVector(405, -300, 165), FVector(440, 20, 360), FLinearColor(.32f, .43f, .38f));
     // Entrance is a visual opening with an invisible boundary for the prototype.
     auto* Boundary = Box(FVector(0, -310, 165), FVector(360, 20, 360), FLinearColor::Black);
     Boundary->SetActorHiddenInGame(true);
@@ -197,12 +196,25 @@ void AMarketGameMode::BuildStore()
     Box(FVector(0, -1750, 220), FVector(1200, 200, 440), FLinearColor(.18f, .23f, .32f), false);
     Label(FVector(0, -1635, 270), FRotator(0, 90, 0), TEXT("BEREKET MARKET\nRakibin buyumeye hazirlaniyor"), 40, FColor(250, 185, 64));
     Label(FVector(0, Back - 20, 310), FRotator(0, -90, 0), TEXT("MIRAS MARKET  /  LULEBURGAZ 2011"), 26, FColor(245, 212, 131));
+    // Fine grout lines break up the single-color floor without requiring a heavy tile mesh.
+    for (float X = -550.f; X <= 550.f; X += 110.f)
+        Box(FVector(X, Middle, 0.2f), FVector(1.2f, Length, 0.4f), FLinearColor(.31f, .32f, .30f), false);
+    for (float Y = -250.f; Y < Back; Y += 110.f)
+        Box(FVector(0, Y, 0.2f), FVector(1250.f, 1.2f, 0.4f), FLinearColor(.31f, .32f, .30f), false);
     for (int32 I = 0; I < Products.Num(); ++I)
     {
         const FVector P = ShelfPosition(I);
-        Box(P + FVector(0, 0, 64), FVector(185, 65, 128), FLinearColor(.36f, .27f, .17f));
+        const FLinearColor ShelfMetal(.63f, .65f, .63f);
+        const FLinearColor ShelfEdge(.20f, .22f, .21f);
+        Box(P + FVector(0, 30, 67), FVector(185, 3, 134), FLinearColor(.46f, .48f, .46f));
+        Box(P + FVector(-91, -7, 67), FVector(4, 76, 134), ShelfMetal);
+        Box(P + FVector(91, -7, 67), FVector(4, 76, 134), ShelfMetal);
         for (int32 Level = 0; Level < 3; ++Level)
-            Box(P + FVector(0, -8, 25 + Level * 44), FVector(190, 80, 5), FLinearColor(.8f, .78f, .68f));
+        {
+            const float Z = 25 + Level * 44;
+            Box(P + FVector(0, -8, Z), FVector(190, 80, 4), FLinearColor(.69f, .70f, .67f));
+            Box(P + FVector(0, -49, Z + 3), FVector(190, 3, 7), ShelfEdge);
+        }
         BuildShelfItems(I);
         auto* ShelfLabel = Label(P + FVector(0, -50, 177), FRotator(0, -90, 0), AsciiFold(ProductName(I)), 11, FColor::White);
         ShelfLabel->SetCullDistance(700);
@@ -217,17 +229,12 @@ void AMarketGameMode::BuildStore()
     for (int32 I = 0; I < 6; ++I)
         Box(FVector(-480 + I * 190, Back - 90, 30), FVector(70, 60, 60), FLinearColor(.54f, .34f, .17f));
     Label(FVector(0, Back - 30, 140), FRotator(0, -90, 0), TEXT("DEPO  /  Siparisler ertesi sabah gelir"), 20);
-    TArray<FVector> LightSpots;
-    for (float Y = 100; Y < Back; Y += 650) { LightSpots.Add(FVector(-330, Y, 320)); LightSpots.Add(FVector(330, Y, 320)); }
-    for (const FVector& P : LightSpots)
+    for (float Y = 40.f; Y < Back; Y += 430.f)
     {
-        auto* Light = GetWorld()->SpawnActor<APointLight>(P, FRotator::ZeroRotator);
-        Light->SetMobility(EComponentMobility::Movable);
-        Light->PointLightComponent->SetIntensity(15000);
-        Light->PointLightComponent->SetAttenuationRadius(1450);
-        Light->PointLightComponent->SetLightColor(FLinearColor(1.f, .91f, .74f));
-        Light->PointLightComponent->SetCastShadows(false);
+        Box(FVector(-300.f, Y, 347.f), FVector(390.f, 48.f, 4.f), FLinearColor(.92f, .91f, .84f), false);
+        Box(FVector(300.f, Y, 347.f), FVector(390.f, 48.f, 4.f), FLinearColor(.92f, .91f, .84f), false);
     }
+    MarketVisuals::BuildStoreLighting(GetWorld(), Back);
 }
 
 void AMarketGameMode::BuildShelfItems(int32 Index)
@@ -258,6 +265,17 @@ void AMarketGameMode::BuildShelfItems(int32 Index)
         ItemScale = FVector(FMath::Clamp(Product.VisualScale, 0.001f, 1000.f));
         ModelRotation = Product.VisualRotation;
         PlacementOffset = Product.VisualOffsetCm;
+        const int32 MaterialCount = FMath::Max(Mesh->GetStaticMaterials().Num(), SlotMaterials.Num());
+        SlotMaterials.SetNum(MaterialCount);
+        for (int32 MaterialSlot = 0; MaterialSlot < MaterialCount; ++MaterialSlot)
+        {
+            UMaterialInterface* Source = SlotMaterials[MaterialSlot];
+            if (!Source) Source = Mesh->GetMaterial(MaterialSlot);
+            const FString SlotName = Mesh->GetStaticMaterials().IsValidIndex(MaterialSlot)
+                ? Mesh->GetStaticMaterials()[MaterialSlot].MaterialSlotName.ToString()
+                : FString();
+            SlotMaterials[MaterialSlot] = MarketVisuals::CreatePackageSurface(this, Source, SlotName);
+        }
     }
     else
     {

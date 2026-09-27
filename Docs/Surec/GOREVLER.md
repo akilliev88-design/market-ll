@@ -24,3 +24,5 @@ Yeni görev en alta eklenir; biten görev silinmez, durumu değişir. Kimlikler 
 | G-017 | Stüdyo v1.5: hazır ambalaj kütüphanesi, üretilen şişe/teneke/kavanoz/kase şekilleri ve parça renkleri | Claude / Codex | Doğrulama bekliyor | Derleme + 9/9 test + smoke geçti; dört şeklin yönü elle incelenecek |
 | G-018 | Smoke testini katalogdaki değişken koli adedi ve maliyetle uyumlu hâle getir | Codex | Bitti | 27.09.2026; smoke geçti |
 | G-019 | Hazır ambalajlar için ajana verilecek gerçek ölçülü PNG şablonları ve şablona bağlı prompt | Codex | Bitti | 27.09.2026; kutu/etiket/kapak kılavuzları, prompt kuralları, görsel kontrol ve otomasyon testi geçti |
+| G-020 | İlk görsel gerçekçilik geçişi: etiket parlama kontrolü, dengeli mağaza ışığı, renk düzeni, metal raf ve zemin derzleri | Codex | Bitti | 28.09.2026; derleme, 10/10 test, smoke ve 1280×720 sahne karşılaştırması geçti |
+| G-021 | Çevre PBR varlık geçişi: raf/zemin/duvar/tavan/kasa doku setleri ve ayrıntılı prop modelleri | Açık | Sırada | Teknik ışık temeli hazır; Blender/asset üretim standardı ve çevre içe aktarma hattı kurulacak |

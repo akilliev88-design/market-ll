@@ -2,6 +2,26 @@
 
 En yeni giriş en üstte. Biçim: tarih — ajan — başlık, ardından **Yapılan**, **Doğrulama**, **Sıradaki**.
 
+## 28.09.2026 — Codex — Mağazada ilk görsel gerçekçilik geçişi
+
+**Yapılan**
+- Ürünlerin `Label`/`Etiket` malzeme yuvaları çalışma anında dinamik yüzeye bağlandı; kâğıt/karton ambalaj için roughness `0.82`, specular `0.20` uygulanarak ışıkta beyazlayan etiketler okunur hâle getirildi.
+- Ürün Stüdyosu'nun bundan sonra yayımlayacağı etiket malzemelerine aynı yüzey değerleri yazıldı; yeni ana etiket malzemesine Specular parametresi eklendi.
+- 15.000 şiddetli sıcak nokta ışıkları kaldırıldı. 5050 K geniş kaynaklı düşük güçlü alan aydınlatması, düşük bloom ve sabit renk/kontrast düzeni eklendi.
+- Kahverengi yekpare raf blokları; ince arkalık, dikme, açık raf tablası ve koyu fiyat rayı bulunan metal market raflarına çevrildi. Zemine ince karo derzleri ve tavana görünür armatür panelleri eklendi.
+- Kullanıcının yeni ürün kataloğu, AssetInbox, Content/Products ve Uretim dosyaları değiştirilmeden korundu.
+
+**Doğrulama**
+- `Tools/escape_unicode.py`: çalıştırıldı.
+- `DERLE.cmd /q`: GEÇTİ.
+- `TEST.cmd /q`: GEÇTİ 10/10.
+- `SmokeTest.ps1`: GEÇTİ; temel oynanış, satış, gün kapama ve kayıt/yükleme tamamlandı.
+- 1280×720 render-offscreen önce/sonra görüntüleri gözle incelendi; etiketler okunuyor, eski sert beyaz ışık patlamaları azaldı, raf ve zemin formu ayrıştı.
+
+**Sıradaki**
+- G-021: teknik ışık temelinin üstüne gerçek PBR çevre materyalleri ve ayrıntılı raf/kasa prop modelleri ekle.
+- G-017: PET/teneke/kavanoz/kase örneklerinde etiket, cam/gövde ve kapak tepkisini yakından doğrula.
+
 ## 27.09.2026 — Codex — Hazır ambalaj ajan şablonları ve özel model düzeltmesi (Stüdyo v1.7)
 
 **Yapılan**
