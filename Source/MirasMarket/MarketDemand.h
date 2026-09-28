@@ -39,9 +39,12 @@ namespace MarketDemand
     int32 PickWanted(const FMarketState& State, float RollPool, float RollIndex);
     // Available = shelf units not already in other shoppers' baskets. WantedQuantity 1..4.
     FVisit Decide(const FMarketState& State, const TArray<FMarketProduct>& Products, int32 Wanted, int32 Available,
-        float RivalDiscount, int32 WantedQuantity, float RollPrice);
+        float RivalDiscount, int32 WantedQuantity, float RollPrice, float MarketShareOverride = -1.f);
     // Counts a shopper who did not buy (buyers are counted by FMarketState::Sell at the till).
     void RecordLoss(FMarketState& State, const FVisit& Visit);
+    // Records the product reason without counting a whole lost shopper. Used by multi-item baskets;
+    // the visit is counted once when the shopper pays or leaves with an empty basket.
+    void RecordItemFailure(FMarketState& State, const FVisit& Visit);
     // A shopper who gave up in the shop (crowd, waited too long at the till, still inside at closing).
     void RecordWaitingLoss(FMarketState& State);
 

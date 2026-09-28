@@ -69,17 +69,48 @@ int32 FMarketState::Restock(int32 Index, int32 MaxUnits)
 
 bool FMarketState::Sell(int32 Index, int32 Quantity, int64 QuotedPrice, const TArray<FMarketProduct>& Products)
 {
-    if (!Stock.IsValidIndex(Index) || !Products.IsValidIndex(Index) || Quantity <= 0 || QuotedPrice <= 0) return false;
-    auto& Item = Stock[Index];
-    if (Item.Shelf < Quantity) return false;
-    Item.Shelf -= Quantity;
-    const int64 Receipt = QuotedPrice * Quantity;
+    FMarketSaleLine Line;
+    Line.Product = Index; Line.Quantity = Quantity; Line.QuotedPrice = QuotedPrice;
+    return SellBasket({ Line }, Products);
+}
+
+bool FMarketState::SellBasket(const TArray<FMarketSaleLine>& Lines, const TArray<FMarketProduct>& Products, int64* OutReceipt, int32* OutUnits)
+{
+    if (Lines.Num() == 0 || Stock.Num() != Products.Num()) return false;
+    TArray<int32> Required;
+    Required.Init(0, Stock.Num());
+    TArray<bool> HasLine;
+    HasLine.Init(false, Stock.Num());
+    int64 Receipt = 0;
+    int32 Units = 0;
+    for (const FMarketSaleLine& Line : Lines)
+    {
+        if (!Stock.IsValidIndex(Line.Product) || Line.Quantity <= 0 || Line.QuotedPrice <= 0) return false;
+        if (Required[Line.Product] > MAX_int32 - Line.Quantity) return false;
+        Required[Line.Product] += Line.Quantity;
+        HasLine[Line.Product] = true;
+        if (Line.QuotedPrice > MAX_int64 / Line.Quantity) return false;
+        const int64 LineReceipt = Line.QuotedPrice * Line.Quantity;
+        if (Receipt > MAX_int64 - LineReceipt || Units > MAX_int32 - Line.Quantity) return false;
+        Receipt += LineReceipt;
+        Units += Line.Quantity;
+    }
+    for (int32 I = 0; I < Required.Num(); ++I)
+        if (Required[I] > Stock[I].Shelf) return false;
+
+    for (const FMarketSaleLine& Line : Lines)
+    {
+        FMarketStock& Item = Stock[Line.Product];
+        Item.Shelf -= Line.Quantity;
+        Item.Today.Sold += Line.Quantity;
+        CostOfGoods += Products[Line.Product].Cost * Line.Quantity;
+    }
+    for (int32 I = 0; I < HasLine.Num(); ++I) if (HasLine[I]) ++Stock[I].Today.Buyers;
     Cash += Receipt;
     Revenue += Receipt;
-    CostOfGoods += Products[Index].Cost * Quantity;
     ++Served;
-    Item.Today.Sold += Quantity;
-    ++Item.Today.Buyers;
+    if (OutReceipt) *OutReceipt = Receipt;
+    if (OutUnits) *OutUnits = Units;
     return true;
 }
 
@@ -178,6 +209,14 @@ bool FMarketState::IsStructurallyValid() const
         Seen.Add(Item.Id, &bDuplicate);
         if (bDuplicate || Item.Id.IsEmpty() || Item.Capacity < 0 || Item.Capacity > MaxShelfCapacity || Item.Shelf < 0 || Item.Shelf > Item.Capacity || Item.Warehouse < 0 || Item.Dock < 0 || Item.Incoming < 0 ||
             Item.Warehouse + Item.Dock + Item.Incoming > StorageCapacity || Item.Price < 10) return false;
+    }
+    TSet<int32> CustomerIds;
+    for (const FMarketLoyalty& Customer : Loyalty)
+    {
+        bool bDuplicate = false;
+        CustomerIds.Add(Customer.CustomerId, &bDuplicate);
+        if (bDuplicate || Customer.CustomerId < 0 || Customer.CustomerId >= 32 || Customer.Visits < 0 ||
+            !FMath::IsFinite(Customer.Satisfaction) || Customer.Satisfaction < 0.f || Customer.Satisfaction > 100.f) return false;
     }
     return true;
 }

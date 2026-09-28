@@ -2,6 +2,22 @@
 
 En yeni giriş en üstte. Biçim: tarih — ajan — başlık, ardından **Yapılan**, **Doğrulama**, **Sıradaki**.
 
+## 28.09.2026 — Codex — Müşteri sepeti, ikame ve sadakat (G-053)
+
+**Yapılan**
+- Her müşteri 1–4 farklı ürünlü listeyle geliyor ve raflara sırayla yürüyor. Rafta yok, bitmiş veya pahalı ürün için aynı kategorideki en uygun mevcut alternatifin rafına gidiyor.
+- Hiçbir şey almayan müşteri artık kapıda kaybolmuyor; mağazayı dolaşıp çıkışa yürüyor. Kısmi sepetler de kasaya gidebiliyor.
+- Sepet satışı atomik yapıldı; bütün satırlar doğrulanmadan para ve stok değişmiyor, çok ürünlü sepet tek hizmet verilen müşteri sayılıyor.
+- 24 kişilik kayıtlı mahalle havuzu eklendi. Listeyi karşılama ve bekleme memnuniyeti değiştiriyor; memnun tekrar müşterisi fiyata biraz daha hoşgörülü. Yönetim masası havuz, ortalama memnuniyet, tekrar gelen ve ziyaret sayısını gösteriyor.
+- Davranış `MarketBasket.*` içine ayrıldı; kullanım ve denge notları `Docs/MUSTERI_ALISVERISI.md` dosyasında.
+
+**Doğrulama**
+- `DERLE.cmd /q`: geçti, uyarı yok.
+- `TEST.cmd /q`: 22/22 geçti; `Customers.BasketAndLoyalty` liste, ikame, tekrar ziyaret, memnuniyet ve atomik sepeti kapsıyor.
+- `SmokeTest.ps1`: geçti; gerçek dünyada müşteri satışı, gün kapama ve yeni sadakat verisinin disk kayıt/yüklemesi tamamlandı.
+
+**Sıradaki**: G-054 hafta hedefi ve hikâye için borç tutarı/başarısızlık kararı; ardından G-055 30 dakikalık oynanış testi.
+
 ## 28.09.2026 — Claude — Sipariş yardımı (G-058, G-052 eki)
 
 **Mustafa**: Claude'un hazırladığı ayrı G-052 paketi, Codex G-052'yi bitirdiği için yazılmadı. Karar: "Codex'inki kalsın, eksikleri ekle."

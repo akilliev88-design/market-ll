@@ -11,6 +11,7 @@
 #include "PlanogramEdit.h"
 #include "StaffPlanner.h"
 #include "MarketDemand.h"
+#include "MarketBasket.h"
 #include "MarketOrderAdvice.h"
 #include "MarketGame.generated.h"
 
@@ -75,15 +76,31 @@ public:
 };
 
 USTRUCT()
+struct FMarketBasketItem
+{
+    GENERATED_BODY()
+    int32 Product = INDEX_NONE;
+    int32 Quantity = 0;
+    int64 QuotedPrice = 0;
+    bool bSubstitute = false;
+};
+
+USTRUCT()
 struct FMarketCustomer
 {
     GENERATED_BODY()
     UPROPERTY() TObjectPtr<AActor> Actor = nullptr;
-    int32 Product = 0;
-    int32 Quantity = 1;
-    int64 QuotedPrice = 0;
+    int32 CustomerId = INDEX_NONE;
+    bool bReturning = false;
+    TArray<int32> ShoppingList;
+    int32 ShoppingIndex = 0;
+    TArray<FMarketBasketItem> Basket;
+    int32 Product = INDEX_NONE; // current shelf target (wanted product or substitute)
+    bool bTryingSubstitute = false;
+    uint8 OriginalFailure = static_cast<uint8>(MarketDemand::EVisit::NotCarried);
+    int32 Fulfilled = 0;
     float Age = 0;
-    int32 Stage = 0;
+    int32 Stage = 0; // 0 shopping, 1 approaching till, 2 queued, 3 leaving without a purchase
     int32 QueueTicket = INDEX_NONE;
     // MetaHuman visual state (unused for the simple box shoppers).
     bool bHuman = false;
@@ -91,6 +108,7 @@ struct FMarketCustomer
     // Aisle waypoints before the stage target (shoppers walk around fixtures, not through them).
     TArray<FVector> Route;
     int32 RouteStage = -1;
+    int32 RouteProduct = INDEX_NONE;
 };
 
 enum class EWorkerStage : uint8 { Idle, ToDepot, Loading, ToShelf, Working, ToDelivery, DeliveryLoading, DeliveryToDepot, DeliveryUnloading };
@@ -294,6 +312,12 @@ public:
     bool NearOffice() const;
     bool NearCounter() const;
     int32 QueueSize() const;
+    int32 ReservedUnits(int32 Product) const;
+    TArray<int32> AvailableShelfUnits() const;
+    FVector CustomerBrowseLocation(int32 Product) const;
+    void ResolveCustomerItem(FMarketCustomer& Customer);
+    void AdvanceCustomerList(FMarketCustomer& Customer);
+    FString LoyaltySummary() const;
     float RivalDiscount() const;
     // Office line for one product: our price, the rival's price and the share of shoppers who accept it.
     FString PriceSummary(int32 Index) const;

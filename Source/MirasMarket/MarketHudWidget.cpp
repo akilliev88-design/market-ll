@@ -346,6 +346,11 @@ TSharedRef<SWidget> SMarketHud::OfficeCard()
             ]
             + SVerticalBox::Slot().AutoHeight().Padding(0.f, 2.f, 0.f, 0.f)
             [
+                SNew(STextBlock).Font(Font("Regular", 9)).ColorAndOpacity(Muted).AutoWrapText(true)
+                .Text_Lambda([this] { const AMarketGameMode* G = Game.Get(); return FText::FromString(G && !G->bTestMode ? G->LoyaltySummary() : FString()); })
+            ]
+            + SVerticalBox::Slot().AutoHeight().Padding(0.f, 2.f, 0.f, 0.f)
+            [
                 // Price decision: our shelf price against the rival's and how many shoppers accept it (MarketDemand).
                 SNew(STextBlock).Font(Font("Regular", 10)).ColorAndOpacity(Cream)
                 .Text_Lambda([this] { const AMarketGameMode* G = Game.Get(); return FText::FromString(G ? G->PriceSummary(G->Selected) : FString()); })

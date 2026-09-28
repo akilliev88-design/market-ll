@@ -74,6 +74,25 @@ struct FMarketStock
     UPROPERTY() FMarketDemandStats Yesterday;
 };
 
+// A small, stable neighbourhood pool makes repeat shoppers meaningful without saving world actors.
+// Older saves simply start with an empty list.
+USTRUCT()
+struct FMarketLoyalty
+{
+    GENERATED_BODY()
+    UPROPERTY() int32 CustomerId = INDEX_NONE;
+    UPROPERTY() float Satisfaction = 50.f;
+    UPROPERTY() int32 Visits = 0;
+};
+
+// One checkout line. Runtime-only; SellBasket validates every line before changing money or stock.
+struct FMarketSaleLine
+{
+    int32 Product = INDEX_NONE;
+    int32 Quantity = 0;
+    int64 QuotedPrice = 0;
+};
+
 // Money uses integer kurus. Inventory is removed only when a checkout succeeds.
 USTRUCT()
 struct FMarketState
@@ -117,6 +136,7 @@ struct FMarketState
     // Last morning's simple supplier event. Damaged/missing units were paid for but never enter stock.
     UPROPERTY() int32 LastDeliveryMissing = 0;
     UPROPERTY() int32 LastDeliveryDamaged = 0;
+    UPROPERTY() TArray<FMarketLoyalty> Loyalty;
 
     void Initialize(const TArray<FMarketProduct>& Products);
     bool Order(int32 Index, const TArray<FMarketProduct>& Products);
@@ -128,6 +148,8 @@ struct FMarketState
     // Warehouse -> shelf, at most MaxUnits (the player moves all that fits, a worker one unit at a time).
     int32 Restock(int32 Index, int32 MaxUnits = MAX_int32);
     bool Sell(int32 Index, int32 Quantity, int64 QuotedPrice, const TArray<FMarketProduct>& Products);
+    // Atomically sells a whole shopper basket and counts it as one served customer.
+    bool SellBasket(const TArray<FMarketSaleLine>& Lines, const TArray<FMarketProduct>& Products, int64* OutReceipt = nullptr, int32* OutUnits = nullptr);
     void CloseDay();
     // Sets each row's shelf capacity (index = catalog order). Units above a smaller capacity go
     // back to the warehouse while storage has room; returns units that did not fit anywhere.

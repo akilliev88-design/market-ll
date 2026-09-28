@@ -49,6 +49,7 @@ v0.2 geliştirme. **Yeni oyun rafları boş açılır**; başlangıç stoğu dep
 | G-052: çok ürünlü sipariş listesi + arka kapıda fiziksel mal kabul + oyuncu/görevli taşıması + eksik/hasarlı olay | **GEÇTİ** — derleme, 20/20 test ve smoke — 28.09.2026 |
 | G-057: ölçülmüş yürüyüş klibi hızına göre ayak kayması düzeltmesi | **GEÇTİ** — 376,276 cm / 1,5 sn kök hareketi ölçüldü; 140 cm/sn oyun hızında oynatma 0,558 — 28.09.2026 |
 | G-058: sipariş önerisi + 50 TL toptancı asgarisi | **GEÇTİ** — derleme, 21/21 test ve smoke — 28.09.2026 |
+| G-053: 1–4 ürünlü müşteri listesi + kategori ikamesi + görünür boş sepet çıkışı + sadakat | **GEÇTİ** — derleme, 22/22 test ve smoke — 28.09.2026 |
 | Stüdyoda elle deneme: kutu (açılım) → Oyuna ekle → OYNA | GEÇTİ: milk_1l oyunda; ön/yan/üst yüzler doğru, ayna yok, raf oturması doğru — 27.09.2026 |
 | Stüdyoda elle deneme: cam şişe modeli + malzeme.json | Bekliyor (henüz model yok) |
 
@@ -73,11 +74,11 @@ Görsel ve raf dizme işleri yeterli seviyede; bir süre **donduruldu**. Önceli
 
 G-052 ve G-057 tamamlandı. Sipariş masasında B/V ile çok ürünlü liste hazırlanır ve N ile onaylanır; ertesi sabah koliler KABUL stoğunda ve arka kapıda görünür. Oyuncu E ile depoya taşır, reyon görevlileri bunu otomatik önceliklendirir. MetaHuman yürüyüş oynatma oranı klibin ölçülen 250,85 cm/sn kök hızına bağlandı; 12 cm/sn altında beklemeye geçer.
 
-G-058 doğrulandı: masada L önerilen siparişi taslağa yazar, seçili ürünün stok ve talep özeti görünür; N ile onaylanan siparişte 50 TL toptancı asgarisi uygulanır.
+G-058 doğrulandı. G-053 tamamlandı: müşteriler 1–4 farklı rafı gezer, aynı kategoride ikameye yönelir, boş sepetle kapıdan çıkar ve mahalle müşterilerinin memnuniyeti kayıtta korunur. Sepet kasada atomik olarak satılır.
 
 ## Sıradaki adımlar
 
 0. Mustafa: oyunda MetaHuman ayak basışını yeniden dene; masada birkaç ürünü B ile listeye ekle, N ile onayla, günü kapat ve arka kapıdaki koliyi E ile depoya taşı.
-1. G-053 alışveriş listesi → G-054 hafta hedefi (borç tutarı ve G-008 rakip kararı Mustafa'da) → G-055 oyun testi.
+1. G-054 hafta hedefi (borç tutarı ve G-008 rakip kararı Mustafa'da) → G-055 oyun testi.
 2. Paralel (Mustafa): İlk Hafta için 20–40 ürünü gerçek ambalajıyla hazırla; 97 ürünün hepsi gerekmiyor.
 3. Dondurulanlar (İlk Hafta bitince): G-021 servis reyonları, G-042 MetaHuman çeşitliliği, FAB paketleri, G-017 ambalaj yönü denemeleri.

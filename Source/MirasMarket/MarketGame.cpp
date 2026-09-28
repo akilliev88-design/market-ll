@@ -699,6 +699,7 @@ void AMarketGameMode::RefreshShelfItems()
 FString AMarketGameMode::ProductName(int32 Index) const { return State.bRealBrands ? Products[Index].RealName : Products[Index].FictionalName; }
 void AMarketGameMode::Notify(const FString& Text) { Message = Text; MessageTime = 9; }
 float AMarketGameMode::RivalDiscount() const { return State.Day >= 3 && State.Day % 5 <= 3 ? .85f : 1.f; }
+FString AMarketGameMode::LoyaltySummary() const { return MarketBasket::Summary(State); }
 FString AMarketGameMode::OrderAdvice(int32 Index) const
 {
     if (!State.Stock.IsValidIndex(Index) || !Products.IsValidIndex(Index)) return FString();
@@ -1036,19 +1037,11 @@ void AMarketGameMode::Command(FName Action)
 void AMarketGameMode::SpawnCustomer()
 {
     if (Customers.Num() >= 9) { MarketDemand::RecordWaitingLoss(State); return; } // too crowded: turns away at the door
-    // What the shopper wants and whether they buy it: MarketDemand (price against the rival, empty shelf,
-    // product not carried). Shoppers who do not buy are counted with their reason for the day report.
-    const float RollPool = Random.FRand();
-    const float RollIndex = Random.FRand();
-    const int32 Wanted = MarketDemand::PickWanted(State, RollPool, RollIndex);
-    int32 Reserved = 0;
-    for (const auto& Other : Customers) if (Other.Product == Wanted) Reserved += Other.Quantity;
-    const int32 Available = State.Stock.IsValidIndex(Wanted) ? State.Stock[Wanted].Shelf - Reserved : 0;
-    const int32 WantedQuantity = Random.RandRange(1, 4);
-    const MarketDemand::FVisit Visit = MarketDemand::Decide(State, Products, Wanted, Available, RivalDiscount(), WantedQuantity, Random.FRand());
-    if (Visit.Result != MarketDemand::EVisit::Buy) { MarketDemand::RecordLoss(State, Visit); return; }
     FMarketCustomer C;
-    C.Product = Visit.Product; C.Quantity = Visit.Quantity; C.QuotedPrice = State.Stock[Visit.Product].Price;
+    C.CustomerId = MarketBasket::ChooseCustomer(State, Random.FRand(), Random.FRand(), C.bReturning);
+    C.ShoppingList = MarketBasket::BuildList(State, Random.RandRange(MarketBasket::MinListSize, MarketBasket::MaxListSize), Random);
+    if (C.ShoppingList.Num() == 0) return;
+    C.Product = C.ShoppingList[0];
     if (AActor* Human = MarketPeople::Spawn(GetWorld(), People, FVector(0, -230, 0), Random.RandRange(0, 1 << 20), C.Shopper))
     {
         C.Actor = Human; C.bHuman = true;
@@ -1057,6 +1050,90 @@ void AMarketGameMode::SpawnCustomer()
     }
     C.Actor = SimplePerson(FVector(0, -230, 0), FLinearColor::MakeFromHSV8(Random.RandRange(0, 255), 130, 210));
     Customers.Add(C);
+}
+
+int32 AMarketGameMode::ReservedUnits(int32 Product) const
+{
+    int32 Reserved = 0;
+    for (const FMarketCustomer& Customer : Customers)
+        for (const FMarketBasketItem& Item : Customer.Basket)
+            if (Item.Product == Product) Reserved += Item.Quantity;
+    return Reserved;
+}
+
+TArray<int32> AMarketGameMode::AvailableShelfUnits() const
+{
+    TArray<int32> Available;
+    Available.SetNum(State.Stock.Num());
+    for (int32 I = 0; I < State.Stock.Num(); ++I) Available[I] = FMath::Max(0, State.Stock[I].Shelf - ReservedUnits(I));
+    return Available;
+}
+
+FVector AMarketGameMode::CustomerBrowseLocation(int32 Product) const
+{
+    if (State.Stock.IsValidIndex(Product) && State.Stock[Product].Capacity > 0) return ProductFixtureLocation(Product);
+    if (Products.IsValidIndex(Product))
+    {
+        for (int32 I = 0; I < Products.Num(); ++I)
+            if (State.Stock.IsValidIndex(I) && State.Stock[I].Capacity > 0 &&
+                Products[I].Category.Equals(Products[Product].Category, ESearchCase::IgnoreCase)) return ProductFixtureLocation(I);
+    }
+    // The product/category is not ranged: the shopper still enters, looks along the first aisle, then leaves.
+    return FVector(Product % 2 == 0 ? -150.f : 150.f, 310.f + (Product % 3) * 55.f, 0.f);
+}
+
+void AMarketGameMode::AdvanceCustomerList(FMarketCustomer& Customer)
+{
+    ++Customer.ShoppingIndex;
+    Customer.bTryingSubstitute = false;
+    Customer.Route.Reset();
+    Customer.RouteStage = -1;
+    Customer.RouteProduct = INDEX_NONE;
+    if (Customer.ShoppingIndex < Customer.ShoppingList.Num()) Customer.Product = Customer.ShoppingList[Customer.ShoppingIndex];
+    else Customer.Stage = Customer.Basket.Num() > 0 ? 1 : 3;
+}
+
+void AMarketGameMode::ResolveCustomerItem(FMarketCustomer& Customer)
+{
+    if (!Customer.ShoppingList.IsValidIndex(Customer.ShoppingIndex)) { AdvanceCustomerList(Customer); return; }
+    const int32 Wanted = Customer.ShoppingList[Customer.ShoppingIndex];
+    const TArray<int32> Available = AvailableShelfUnits();
+    const int32 Quantity = Random.RandRange(1, 4);
+    const float PersonalShare = MarketBasket::EffectiveMarketShare(State, Customer.CustomerId);
+    const MarketDemand::FVisit Visit = MarketDemand::Decide(State, Products, Customer.Product,
+        Available.IsValidIndex(Customer.Product) ? Available[Customer.Product] : 0,
+        RivalDiscount(), Quantity, Random.FRand(), PersonalShare);
+    if (Visit.Result == MarketDemand::EVisit::Buy)
+    {
+        FMarketBasketItem Item;
+        Item.Product = Visit.Product; Item.Quantity = Visit.Quantity; Item.QuotedPrice = State.Stock[Visit.Product].Price;
+        Item.bSubstitute = Customer.bTryingSubstitute;
+        Customer.Basket.Add(Item);
+        ++Customer.Fulfilled;
+        AdvanceCustomerList(Customer);
+        return;
+    }
+
+    if (!Customer.bTryingSubstitute)
+    {
+        TSet<int32> Excluded;
+        for (const FMarketBasketItem& Item : Customer.Basket) Excluded.Add(Item.Product);
+        const int32 Substitute = MarketBasket::FindSubstitute(State, Products, Wanted, Available, Excluded, RivalDiscount());
+        if (Substitute != INDEX_NONE)
+        {
+            Customer.OriginalFailure = static_cast<uint8>(Visit.Result);
+            Customer.Product = Substitute;
+            Customer.bTryingSubstitute = true;
+            Customer.Route.Reset(); Customer.RouteStage = -1; Customer.RouteProduct = INDEX_NONE;
+            return;
+        }
+    }
+
+    MarketDemand::FVisit Failure = Visit;
+    Failure.Product = Wanted;
+    if (Customer.bTryingSubstitute) Failure.Result = static_cast<MarketDemand::EVisit>(Customer.OriginalFailure);
+    MarketDemand::RecordItemFailure(State, Failure);
+    AdvanceCustomerList(Customer);
 }
 
 AActor* AMarketGameMode::SimplePerson(const FVector& Floor, const FLinearColor& Color)
@@ -1077,9 +1154,19 @@ void AMarketGameMode::Checkout()
     const int32 I = FMarketQueueRules::FindFront(Customers);
     if (I == INDEX_NONE) { Notify(TEXT("Kasada odeme bekleyen musteri yok.")); return; }
     const auto& C = Customers[I];
-    if (State.Sell(C.Product, C.Quantity, C.QuotedPrice, Products))
-        Notify(FString::Printf(TEXT("Satis: %d x %s  +%s"), C.Quantity, *ProductName(C.Product), *Money(C.Quantity * C.QuotedPrice)));
+    TArray<FMarketSaleLine> Lines;
+    for (const FMarketBasketItem& Item : C.Basket)
+    {
+        FMarketSaleLine Line;
+        Line.Product = Item.Product; Line.Quantity = Item.Quantity; Line.QuotedPrice = Item.QuotedPrice;
+        Lines.Add(Line);
+    }
+    int64 Receipt = 0;
+    int32 Units = 0;
+    if (State.SellBasket(Lines, Products, &Receipt, &Units))
+        Notify(FString::Printf(TEXT("Sepet satildi: %d farkli urun, %d adet  +%s%s"), Lines.Num(), Units, *Money(Receipt), C.bReturning ? TEXT("  \u00b7  sadik musteri") : TEXT("")));
     else { ++State.Lost; Notify(TEXT("Sepet karsilanamadi; musteri ayrildi.")); }
+    MarketBasket::RecordVisit(State, C.CustomerId, C.ShoppingList.Num(), C.Fulfilled, false);
     C.Actor->Destroy(); Customers.RemoveAt(I); RefreshLabels();
 }
 
@@ -1100,29 +1187,24 @@ void AMarketGameMode::Tick(float DeltaTime)
     {
         auto& C = Customers[I];
         C.Age += DeltaTime;
-        if (C.Age > 45)
-        { MarketDemand::RecordWaitingLoss(State); C.Actor->Destroy(); Customers.RemoveAt(I); continue; }
-        FVector Target;
-        if (C.Stage == 0) Target = ProductFixtureLocation(C.Product) + FVector(0, 0, 65);
-        else if (C.Stage == 1) Target = FVector(405, 60 + QueueSize() * 62, 65);
-        else Target = FVector(405, 60 + FMarketQueueRules::Rank(Customers, I) * 62, 65);
-        if (C.RouteStage != C.Stage)
+        if (C.Age > 90)
         {
-            // Walk the open lanes: x = +/-150 runs between the bulk island and the gondolas,
-            // y = 120 is the front corridor between counter/desk and the island.
+            MarketDemand::RecordWaitingLoss(State);
+            MarketBasket::RecordVisit(State, C.CustomerId, C.ShoppingList.Num(), 0, true);
+            C.Actor->Destroy(); Customers.RemoveAt(I); continue;
+        }
+        FVector Target;
+        if (C.Stage == 0) Target = CustomerBrowseLocation(C.Product) + FVector(0, 0, 65);
+        else if (C.Stage == 1) Target = FVector(405, 60 + QueueSize() * 62, 65);
+        else if (C.Stage == 2) Target = FVector(405, 60 + FMarketQueueRules::Rank(Customers, I) * 62, 65);
+        else Target = FVector(0, -270, 65);
+        if (C.RouteStage != C.Stage || (C.Stage == 0 && C.RouteProduct != C.Product))
+        {
             C.RouteStage = C.Stage;
-            C.Route.Reset();
+            C.RouteProduct = C.Product;
             const FVector Here = C.Actor->GetActorLocation();
-            if (C.Stage == 0)
-            {
-                const float Lane = Target.X >= 0 ? 150.f : -150.f;
-                C.Route = { FVector(Lane, 120.f, Target.Z), FVector(Lane, Target.Y, Target.Z) };
-            }
-            else if (C.Stage == 1)
-            {
-                const float Lane = Here.X >= 0 ? 150.f : -150.f;
-                C.Route = { FVector(Lane, Here.Y, Target.Z), FVector(Lane, 120.f, Target.Z) };
-            }
+            C.Route = AisleRoute(FVector(Here.X, Here.Y, 0.f), FVector(Target.X, Target.Y, 0.f));
+            for (FVector& Point : C.Route) Point.Z = Target.Z;
         }
         const bool bOnRoute = C.Route.Num() > 0;
         if (bOnRoute) Target = C.Route[0];
@@ -1142,8 +1224,14 @@ void AMarketGameMode::Tick(float DeltaTime)
         }
         else if (FVector::Dist2D(C.Actor->GetActorLocation(), Target) < 5)
         {
-            if (C.Stage == 0) C.Stage = 1;
+            if (C.Stage == 0) ResolveCustomerItem(C);
             else if (C.Stage == 1) { C.Stage = 2; C.QueueTicket = NextQueueTicket++; }
+            else if (C.Stage == 3)
+            {
+                ++State.Lost;
+                MarketBasket::RecordVisit(State, C.CustomerId, C.ShoppingList.Num(), 0, false);
+                C.Actor->Destroy(); Customers.RemoveAt(I); continue;
+            }
         }
         ++I;
     }
@@ -1159,7 +1247,12 @@ void AMarketGameMode::CloseShop()
 {
     bOpen = false;
     // No reserved goods have left inventory. Unfinished baskets are lost sales.
-    for (const auto& C : Customers) { MarketDemand::RecordWaitingLoss(State); C.Actor->Destroy(); }
+    for (const auto& C : Customers)
+    {
+        MarketDemand::RecordWaitingLoss(State);
+        MarketBasket::RecordVisit(State, C.CustomerId, C.ShoppingList.Num(), 0, true);
+        C.Actor->Destroy();
+    }
     Customers.Empty();
     State.CloseDay(); RefreshLabels(); RefreshDeliveryCrates();
     ReportTime = 30;

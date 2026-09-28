@@ -39,7 +39,7 @@ int32 MarketDemand::PickWanted(const FMarketState& State, float RollPool, float 
 }
 
 MarketDemand::FVisit MarketDemand::Decide(const FMarketState& State, const TArray<FMarketProduct>& Products, int32 Wanted, int32 Available,
-    float RivalDiscount, int32 WantedQuantity, float RollPrice)
+    float RivalDiscount, int32 WantedQuantity, float RollPrice, float MarketShareOverride)
 {
     FVisit Visit;
     Visit.Product = Wanted;
@@ -54,7 +54,8 @@ MarketDemand::FVisit MarketDemand::Decide(const FMarketState& State, const TArra
         return Visit;
     }
     const double Ratio = PriceRatio(State.Stock[Wanted].Price, RivalPrice(Products[Wanted], RivalDiscount));
-    if (RollPrice >= BuyChance(Ratio, State.MarketShare))
+    const float Share = MarketShareOverride >= 0.f ? MarketShareOverride : State.MarketShare;
+    if (RollPrice >= BuyChance(Ratio, Share))
     {
         Visit.Result = EVisit::Expensive;
         return Visit;
@@ -71,6 +72,12 @@ void MarketDemand::RecordLoss(FMarketState& State, const FVisit& Visit)
 {
     if (Visit.Result == EVisit::Buy) return;
     ++State.Lost;
+    RecordItemFailure(State, Visit);
+}
+
+void MarketDemand::RecordItemFailure(FMarketState& State, const FVisit& Visit)
+{
+    if (Visit.Result == EVisit::Buy) return;
     if (!State.Stock.IsValidIndex(Visit.Product)) return;
     FMarketDemandStats& Today = State.Stock[Visit.Product].Today;
     if (Visit.Result == EVisit::NotCarried) ++Today.NotCarried;
