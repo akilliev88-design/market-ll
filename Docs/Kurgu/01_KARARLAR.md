@@ -17,7 +17,7 @@ Sahiplik (M, 28.09.2026): 3B model üretimi, mağaza modeli ve arayüz tasarım�
 | A05 | Maaş günleri | Ayın 1'i, 15'i ve son iş günü trafik/sepet artar; ay sonu bütçe daralır (C) | `MarketCalendar` | Derlenmedi (G-061) |
 | A06 | Enflasyon | Yıllık TÜFE yaklaşığı; 2025 sonrası kurgu senaryo (C) | Derlenmedi (G-063) |
 | A07 | Asgari ücret | Tarihsel net yaklaşığı; ücret beklentisi bunu izler (C) | Derlenmedi (G-063) |
-| A08 | Yer | Lüleburgaz esinli kurgu semtler (İstasyon başlangıç). Sonra Trakya, Türkiye, Bulgaristan pilotu (C) | `MarketBranches` | Tasarım |
+| A08 | Yer | Lüleburgaz esinli kurgu semtler (İstasyon başlangıç). Sonra Trakya, Türkiye, Bulgaristan pilotu (C) | Derlenmedi (G-068) |
 | A09 | Stratejik ilerletme | Görevler devredildiyse gün/hafta/ay oynamadan simüle edilir; aynı kurallar (C; plan 01 §3) | `MarketDirector` | Tasarım |
 | A10 | Zorluk | Ekonomi, rakip saldırganlığı, olay yoğunluğu ayrı ayar (plan) | `MarketDirector` | Tasarım |
 | A11 | Gerçek marka adları | Ürünlerde gerçek marka görünür; F8 kurgu adlara çevirir (M) | `ProductCatalog` | Uygulandı |
@@ -85,7 +85,7 @@ Sahiplik (M, 28.09.2026): 3B model üretimi, mağaza modeli ve arayüz tasarım�
 | F02 | Kasiyer, reyon görevlisi, İK, mali müşavir | G-060 kuralları | `MarketStaff` | Derlenmedi |
 | F03 | Cem | Babanın çırağı, özel aday; eğitimle müdür (C) | Derlenmedi (G-066) |
 | F04 | Eğitim ve terfi | Eğitim günü = kapasite kaybı, sonrasında beceri artışı; iç terfi (plan 06 §5) | `MarketStaff` | Tasarım |
-| F05 | Şube müdürü | Hedef + yetki; sipariş/fiyat/personel sınırları içinde karar (plan 06 §4) | `MarketBranches` | Sırada |
+| F05 | Şube müdürü | Hedef + yetki; sipariş/fiyat/personel sınırları içinde karar (plan 06 §4) | Derlenmedi (G-068) |
 | F06 | Vardiya | Sabah/akşam, hafta sonu; İK planlar (plan) | `MarketStaff` | Tasarım |
 | F07 | İş kazası | Sigorta ve çalışan güveni (plan 01 §11) | `MarketEvents` | Tasarım |
 | F08 | Suistimal | Küçük kasa farkı, şüphe kanıt değil (plan 06 §6, G-060) | `MarketStaff` | Derlenmedi |
@@ -109,10 +109,10 @@ Sahiplik (M, 28.09.2026): 3B model üretimi, mağaza modeli ve arayüz tasarım�
 |---|---|---|---|---|
 | H01 | Elle raf dizme | R modu, bloklar (G-045…047) | `PlanogramEdit` | Uygulandı |
 | H02 | Görevli dizme kuralları | Boş raf, rafta olmayan ürün, dar blok (G-049); acemi yalnız doldurur (G-060) | `StaffPlanner` | Uygulandı / Derlenmedi |
-| H03 | **Yeni şube otomatik dizilimi** | Kategori komşuluğu, talep ve marja orantılı yüz, göz hizası, ağır ürün alt raf, her ürüne en az bir koli; şablon kaydet/uygula (C; M: dizilim mantığı Claude'da) | `MarketLayout` | Sırada |
-| H04 | Şube açma süreci | Semt → kira → tadilat → izin → işe alım → stok → açılış kampanyası → olgunlaşma (C; plan 01 §10) | `MarketBranches` | Sırada |
-| H05 | Uzak şube simülasyonu | Özet talep, tek veri kaynağı, çift sayım yok (plan O05) | `MarketBranches` | Sırada |
-| H06 | Yamyamlık | Yakın şubeler birbirinden müşteri çalar (plan) | `MarketBranches` | Sırada |
+| H03 | **Yeni şube otomatik dizilimi** | Kategori komşuluğu, talep ve marja orantılı yüz, göz hizası, ağır ürün alt raf, her ürüne en az bir koli; şablon kaydet/uygula (C; M: dizilim mantığı Claude'da) | Derlenmedi (G-068) |
+| H04 | Şube açma süreci | Semt → kira → tadilat → izin → işe alım → stok → açılış kampanyası → olgunlaşma (C; plan 01 §10) | Derlenmedi (G-068) |
+| H05 | Uzak şube simülasyonu | Özet talep, tek veri kaynağı, çift sayım yok (plan O05) | Derlenmedi (G-068) |
+| H06 | Yamyamlık | Yakın şubeler birbirinden müşteri çalar (plan) | Derlenmedi (G-068) |
 | H07 | Formatlar | Mahalle marketi, indirim, süpermarket, premium, hipermarket… güç seviyesi değil (plan 04 §2) | `MarketBranches` | Tasarım |
 | H08 | Servis reyonları | Manav, kasap, fırın… reçete ve fire; dondu (G-021) | — | Tasarım |
 | H09 | Olaylar | Arıza, kesinti, denetim, düğün, kar, geri çağırma; günde en çok 1 büyük olay (C) | Derlenmedi (G-066) |
@@ -121,7 +121,7 @@ Sahiplik (M, 28.09.2026): 3B model üretimi, mağaza modeli ve arayüz tasarım�
 
 | No | Konu | Karar | Modül | Durum |
 |---|---|---|---|---|
-| I01 | İkinci şube | Borç kapalı + 950 TL + 3 kârlı gün + %35 pay (G-054); gerçek şube sistemiyle değişecek | `MarketCampaign` → `MarketBranches` | Kısmen |
+| I01 | İkinci şube | Borç kapalı + 950 TL + 3 kârlı gün + %35 pay (G-054); gerçek şube sistemiyle değişecek | Derlenmedi (G-068) |
 | I02 | Bölge deposu ve kamyon | Trakya aşaması; rota, soğuk zincir (plan 01 §8) | `MarketCompany` | Tasarım |
 | I03 | Ulusal aşama | Bölge müdürlükleri, merkezi satın alma, özel marka (plan) | `MarketCompany` | Tasarım |
 | I04 | Uluslararası | İlk pilot Bulgaristan (C; plan A04 açık bırakmıştı) | `MarketCompany` | Tasarım |

@@ -10,6 +10,7 @@
 #include "MarketFinance.h"
 #include "MarketCredit.h"
 #include "MarketFreshness.h"
+#include "MarketBranches.h"
 #include "Brushes/SlateColorBrush.h"
 #include "Engine/Texture2D.h"
 #include "ImageUtils.h"
@@ -1269,43 +1270,87 @@ TSharedRef<SWidget> SMarketMenu::StaffPage()
 
 TSharedRef<SWidget> SMarketMenu::BranchesPage()
 {
+    // G-068: the family shop, the branches (simulated) and the districts where a new one can open.
     auto G = [this] { return Game.Get(); };
+    TSharedRef<SVerticalBox> Shops = SNew(SVerticalBox);
+    for (int32 Slot = 0; Slot < 8; ++Slot)
+    {
+        Shops->AddSlot().AutoHeight().Padding(0.f, 4.f)
+        [
+            SNew(SBorder).BorderImage(&SmallBrush).BorderBackgroundColor(Col(ERole::Inset)).Padding(FMargin(12.f, 8.f))
+            .Visibility_Lambda([G, Slot] { return G() && G()->State.Branches.IsValidIndex(Slot) ? EVisibility::Visible : EVisibility::Collapsed; })
+            [
+                SNew(SHorizontalBox)
+                + SHorizontalBox::Slot().FillWidth(1.f).VAlign(VAlign_Center)
+                [ Label([G, Slot] { return G() ? MarketBranches::Summary(G()->State, Slot, G()->Products) : FString(); }, 10, ERole::Text, false, true) ]
+                + SHorizontalBox::Slot().AutoWidth().VAlign(VAlign_Center).Padding(8.f, 0.f, 0.f, 0.f)
+                [ Button([] { return FString(TEXT("Kapat")); }, [this, Slot] { Manage(TEXT("CloseBranch"), Slot); }, false,
+                    [G, Slot] { return G() && G()->State.Branches.IsValidIndex(Slot) && G()->State.Branches[Slot].Stage != static_cast<uint8>(MarketBranches::EStage::Closed); }) ]
+            ]
+        ];
+    }
+    TSharedRef<SVerticalBox> Districts = SNew(SVerticalBox);
+    for (int32 D = 1; D < static_cast<int32>(MarketBranches::EDistrict::Count); ++D)
+    {
+        const MarketBranches::EDistrict District = static_cast<MarketBranches::EDistrict>(D);
+        Districts->AddSlot().AutoHeight().Padding(0.f, 3.f)
+        [
+            SNew(SHorizontalBox)
+            + SHorizontalBox::Slot().FillWidth(1.f).VAlign(VAlign_Center)
+            [ Label([G, District]
+            {
+                const MarketBranches::FDistrict& Info = MarketBranches::DistrictInfo(District);
+                return FString::Printf(TEXT("%s \u00b7 %s \u00b7 kira %s/ay \u00b7 a\u00e7\u0131l\u0131\u015f %s"), Info.Name, Info.Note, *MarketMenuUi::Tl(Info.Rent),
+                    G() ? *MarketMenuUi::Tl(MarketBranches::OpeningCost(G()->State, G()->Products, District, TEXT("mahalle"))) : TEXT(""));
+            }, 10, ERole::Text, false, true) ]
+            + SHorizontalBox::Slot().AutoWidth().VAlign(VAlign_Center).Padding(8.f, 0.f, 4.f, 0.f)
+            [ Button([] { return FString(TEXT("K\u00fc\u00e7\u00fck a\u00e7")); }, [this, D] { Manage(TEXT("OpenBranch"), D * 10 + 0); }) ]
+            + SHorizontalBox::Slot().AutoWidth().VAlign(VAlign_Center)
+            [ Button([] { return FString(TEXT("Mahalle marketi a\u00e7")); }, [this, D] { Manage(TEXT("OpenBranch"), D * 10 + 1); }, true) ]
+        ];
+    }
     return SNew(SScrollBox)
     + SScrollBox::Slot()
     [
-        SNew(SHorizontalBox)
-        + SHorizontalBox::Slot().FillWidth(1.f).Padding(0.f, 0.f, 12.f, 0.f)
+        SNew(SVerticalBox)
+        + SVerticalBox::Slot().AutoHeight()
         [
-            Card(SNew(SVerticalBox)
-                + SVerticalBox::Slot().AutoHeight()[ Fixed(TEXT("\u015eUBELER\u0130N"), 9, ERole::Muted, true) ]
-                + SVerticalBox::Slot().AutoHeight().Padding(0.f, 10.f, 0.f, 0.f)
-                [
-                    SNew(SBorder).BorderImage(&SmallBrush).BorderBackgroundColor(Col(ERole::Inset)).Padding(FMargin(12.f, 10.f))
+            SNew(SHorizontalBox)
+            + SHorizontalBox::Slot().FillWidth(1.4f).Padding(0.f, 0.f, 12.f, 0.f)
+            [
+                Card(SNew(SVerticalBox)
+                    + SVerticalBox::Slot().AutoHeight()[ Fixed(TEXT("\u015eUBELER\u0130N"), 9, ERole::Muted, true) ]
+                    + SVerticalBox::Slot().AutoHeight().Padding(0.f, 10.f, 0.f, 0.f)
                     [
-                        SNew(SVerticalBox)
-                        + SVerticalBox::Slot().AutoHeight()[ Fixed(TEXT("L\u00fcleburgaz \u00b7 Merkez"), 13, ERole::Text, true) ]
-                        + SVerticalBox::Slot().AutoHeight()[ Fixed(TEXT("Babadan kalan mahalle marketi \u00b7 buradas\u0131n"), 10, ERole::Muted) ]
+                        SNew(SBorder).BorderImage(&SmallBrush).BorderBackgroundColor(Col(ERole::Inset)).Padding(FMargin(12.f, 10.f))
+                        [
+                            SNew(SVerticalBox)
+                            + SVerticalBox::Slot().AutoHeight()[ Fixed(TEXT("L\u00fcleburgaz \u00b7 \u0130stasyon"), 13, ERole::Text, true) ]
+                            + SVerticalBox::Slot().AutoHeight()[ Fixed(TEXT("Babadan kalan mahalle marketi \u00b7 buradas\u0131n"), 10, ERole::Muted) ]
+                        ]
                     ]
-                ]
-                + SVerticalBox::Slot().AutoHeight().Padding(0.f, 8.f, 0.f, 0.f)
-                [
-                    SNew(SBorder).BorderImage(&SmallBrush).BorderBackgroundColor(Col(ERole::Inset)).Padding(FMargin(12.f, 10.f))
-                    .Visibility_Lambda([G] { return G() && G()->State.bSecondStore ? EVisibility::Visible : EVisibility::Collapsed; })
-                    [
-                        SNew(SVerticalBox)
-                        + SVerticalBox::Slot().AutoHeight()[ Fixed(TEXT("\u0130kinci \u015fube"), 13, ERole::Text, true) ]
-                        + SVerticalBox::Slot().AutoHeight()
-                        [ Label([G] { return G() ? FString::Printf(TEXT("D\u00fcnk\u00fc katk\u0131s\u0131 %s"), *MarketMenuUi::Tl(G()->State.LastBranchProfit)) : FString(); }, 10, ERole::Muted) ]
-                    ]
-                ]
-                + SVerticalBox::Slot().AutoHeight().Padding(0.f, 14.f, 0.f, 0.f)
-                [ Fixed(TEXT("\u0130l haritas\u0131 ve \u015fube a\u00e7ma plan\u0131 sonraki ad\u0131mda gelecek."), 10, ERole::Muted) ])
+                    + SVerticalBox::Slot().AutoHeight()[ Shops ]
+                    + SVerticalBox::Slot().AutoHeight().Padding(0.f, 8.f, 0.f, 0.f)
+                    [ Label([G] { return G() && G()->State.Branches.Num() > 0 ? FString::Printf(TEXT("\u015eubelerin d\u00fcnk\u00fc toplam katk\u0131s\u0131 %s."), *MarketMenuUi::Tl(G()->State.LastBranchProfit)) : FString(TEXT("Hen\u00fcz \u015fube yok.")); }, 10, ERole::Muted) ]
+                    + SVerticalBox::Slot().AutoHeight().Padding(0.f, 8.f, 0.f, 0.f).HAlign(HAlign_Left)
+                    [ Button([] { return FString(TEXT("Cem'i \u015fube m\u00fcd\u00fcr\u00fc yap")); },
+                        [this] { Manage(TEXT("Promote"), 900001); }, false,
+                        [G] { return G() && MarketBranches::OpenCount(G()->State) > 0 && G()->State.Staff.ContainsByPredicate([](const FMarketEmployee& E) { return E.Id == 900001; }); }) ])
+            ]
+            + SHorizontalBox::Slot().FillWidth(1.f)
+            [
+                Card(SNew(SVerticalBox)
+                    + SVerticalBox::Slot().AutoHeight().Padding(0.f, 0.f, 0.f, 8.f)[ Fixed(TEXT("\u0130LK \u015eUBE \u0130\u00c7\u0130N"), 9, ERole::Muted, true) ]
+                    + SVerticalBox::Slot().AutoHeight()[ GoalList() ])
+            ]
         ]
-        + SHorizontalBox::Slot().FillWidth(1.f)
+        + SVerticalBox::Slot().AutoHeight().Padding(0.f, 12.f, 0.f, 0.f)
         [
             Card(SNew(SVerticalBox)
-                + SVerticalBox::Slot().AutoHeight().Padding(0.f, 0.f, 0.f, 8.f)[ Fixed(TEXT("\u0130K\u0130NC\u0130 \u015eUBE \u0130\u00c7\u0130N"), 9, ERole::Muted, true) ]
-                + SVerticalBox::Slot().AutoHeight()[ GoalList() ])
+                + SVerticalBox::Slot().AutoHeight().Padding(0.f, 0.f, 0.f, 6.f)[ Fixed(TEXT("L\u00dcLEBURGAZ SEMTLER\u0130 \u00b7 YEN\u0130 \u015eUBE"), 9, ERole::Muted, true) ]
+                + SVerticalBox::Slot().AutoHeight()[ Districts ]
+                + SVerticalBox::Slot().AutoHeight().Padding(0.f, 8.f, 0.f, 0.f)
+                [ Fixed(TEXT("A\u00e7\u0131l\u0131\u015f: depozito ve tadilat (5 g\u00fcn) \u2192 ruhsat (3 g\u00fcn; m\u00fc\u015favir yoksa 3 g\u00fcn daha) \u2192 i\u015fe al\u0131m \u2192 a\u00e7\u0131l\u0131\u015f sto\u011fu. Raflar otomatik planlan\u0131r; \u015fube her g\u00fcn ayn\u0131 kurallarla i\u015fler. \u00dc\u00e7\u00fcnc\u00fc \u015fube i\u00e7in \u0130K m\u00fcd\u00fcr\u00fc gerekir."), 10, ERole::Muted) ])
         ]
     ];
 }

@@ -11,12 +11,13 @@
 #include "MarketFreshness.h"
 #include "MarketCredit.h"
 #include "MarketFinance.h"
+#include "MarketBranches.h"
 
 float MarketDirector::TrafficFactor(const FMarketState& State, const TArray<FString>& Aisles)
 {
     return MarketCalendar::TrafficFactor(State.Day, State.RivalSeed) * MarketRivals::TrafficFactor(State.Day, State.RivalSeed, Aisles)
         * MarketPromotions::TrafficFactor(State) * MarketCompetitors::TrafficFactor(State)
-        * MarketEvents::Factor(State, MarketEvents::EModifier::Traffic);
+        * MarketEvents::Factor(State, MarketEvents::EModifier::Traffic) * MarketBranches::MainShopFactor(State);
 }
 
 double MarketDirector::ToleranceBonus(const FMarketState& State, const FMarketProduct& Product)
@@ -113,6 +114,19 @@ bool MarketDirector::Command(FMarketState& State, const TArray<FMarketProduct>& 
     if (Action == TEXT("CollectCredit")) return MarketCredit::CollectAll(State, OutMessage) > 0;
     if (Action == TEXT("TakeLoan")) return MarketFinance::TakeLoan(State, Arg, OutMessage);
     if (Action == TEXT("RepayLoan")) return MarketFinance::RepayAll(State, OutMessage);
+    if (Action == TEXT("OpenBranch"))
+    {
+        static const TCHAR* Formats[3] = { TEXT("kucuk"), TEXT("mahalle"), TEXT("buyuk") };
+        return MarketBranches::Open(State, Products, static_cast<MarketBranches::EDistrict>(FMath::Clamp(Arg / 10, 0, static_cast<int32>(MarketBranches::EDistrict::Count) - 1)),
+            Formats[FMath::Clamp(Arg % 10, 0, 2)], OutMessage);
+    }
+    if (Action == TEXT("CloseBranch")) return MarketBranches::Close(State, Arg, OutMessage);
+    if (Action == TEXT("Promote"))
+    {
+        int32 Newest = INDEX_NONE;
+        for (int32 I = 0; I < State.Branches.Num(); ++I) if (State.Branches[I].Stage != static_cast<uint8>(MarketBranches::EStage::Closed)) Newest = I;
+        return MarketBranches::Promote(State, Arg, Newest, OutMessage);
+    }
     if (Action == TEXT("DeclineOffer")) { MarketPromotions::DeclineOffer(State); OutMessage = TEXT("Selim'in teklifi geri \u00e7evrildi."); return true; }
     OutMessage = FString::Printf(TEXT("Bilinmeyen karar: %s"), *Action.ToString());
     return false;
@@ -134,6 +148,7 @@ void MarketDirector::CloseDay(FMarketState& State, const TArray<FMarketProduct>&
     MarketFreshness::CloseDay(State, Products);  // batches, waste, donations (G-067) - before the books
     MarketCredit::CloseDay(State);               // paydays of the credit book (G-067)
     MarketCompetitors::CloseDay(State, Products, MarketRivals::Aisles(Products)); // shares, rivals' moves, poaching (G-065)
+    MarketBranches::CloseDay(State, Products);   // opening steps and the simulated day of every branch (G-068)
     MarketStaff::CloseDay(State);     // till, fatigue, morale, notices, HR, accountant and the weekly tax (G-060)
     MarketEvents::CloseDay(State, Products); // decisions past their day, modifiers, snow, a new neighbourhood event (G-066)
     MarketStory::CloseDay(State, Products);  // scenes, milestones, chapters (G-066)

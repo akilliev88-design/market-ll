@@ -136,7 +136,8 @@ void FMarketState::CloseDay()
     Marketing = 0;
     OtherCosts = 0;
     // The second branch is an explicit aggregate prototype: net daily contribution.
-    LastBranchProfit = bSecondStore ? FMath::RoundToInt64(800 + MarketShare * 35) : 0;
+    // With real branches (MarketBranches) their day is simulated separately and added by MarketBranches::CloseDay.
+    LastBranchProfit = bSecondStore && Branches.Num() == 0 ? FMath::RoundToInt64(800 + MarketShare * 35) : 0;
     LastRevenue = Revenue;
     LastCostOfGoods = CostOfGoods;
     LastProfit = Revenue - CostOfGoods - LastOperatingCost + LastBranchProfit;

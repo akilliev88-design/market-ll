@@ -264,6 +264,46 @@ struct FMarketLoan
     UPROPERTY() bool bMortgage = false;  // the family shop's deed stands behind it
 };
 
+// One product in a branch that is not visited (MarketBranches.h).
+USTRUCT()
+struct FMarketBranchItem
+{
+    GENERATED_BODY()
+    UPROPERTY() FString ProductId;
+    UPROPERTY() int32 Units = 0;         // shelf + back room
+    UPROPERTY() int32 Capacity = 0;      // from the branch's automatic shelf plan (MarketLayout)
+    UPROPERTY() int32 Incoming = 0;      // ordered by the manager, arrives at the next close
+    UPROPERTY() int32 LastSold = 0;
+    UPROPERTY() int32 LastEmpty = 0;
+};
+
+// A branch of the company, simulated from the same rules without walking customers (MarketBranches.h).
+USTRUCT()
+struct FMarketBranch
+{
+    GENERATED_BODY()
+    UPROPERTY() FString Name;
+    UPROPERTY() uint8 District = 0;      // MarketBranches::EDistrict
+    UPROPERTY() FString Format;          // kucuk, mahalle, buyuk (MarketLayout::Fixtures)
+    UPROPERTY() uint8 Stage = 0;         // MarketBranches::EStage
+    UPROPERTY() int32 StageUntil = 0;
+    UPROPERTY() int32 OpenedDay = 0;
+    UPROPERTY() int64 Rent = 0;          // per month, kurus at the time of signing
+    UPROPERTY() int32 Workers = 0;
+    UPROPERTY() FString ManagerName;
+    UPROPERTY() int32 ManagerSkill = 0;  // 0 = no manager: the player's standing orders
+    UPROPERTY() int32 ManagerHonesty = 70;
+    UPROPERTY() int64 ManagerWage = 0;
+    UPROPERTY() float PriceIndex = 1.f;  // shelf prices / list price
+    UPROPERTY() float Maturity = 0.f;    // 0..1: the district's habit of shopping here
+    UPROPERTY() float Satisfaction = 55.f;
+    UPROPERTY() TArray<FMarketBranchItem> Items;
+    UPROPERTY() int64 LastRevenue = 0;
+    UPROPERTY() int64 LastProfit = 0;
+    UPROPERTY() int32 LastShoppers = 0;
+    UPROPERTY() int64 WeekProfit = 0;
+};
+
 // The accountant's books for the running tax period (one week) and the declared tax (MarketStaff.h).
 USTRUCT()
 struct FMarketBooks
@@ -395,6 +435,8 @@ struct FMarketState
     UPROPERTY() TArray<FMarketLoan> Loans;
     UPROPERTY() int32 NegativeCashDays = 0;
     UPROPERTY() int32 TroubleStage = 0;
+    // Branches (MarketBranches.h). bSecondStore stays true while at least one branch exists (older code and saves).
+    UPROPERTY() TArray<FMarketBranch> Branches;
     // Local share at the start of the last day close (MarketCompetitors replaces the simple satisfaction update).
     UPROPERTY() float ShareBeforeClose = 25.f;
     // Evening report lines of the background systems (MarketDirector clears it at every day close).

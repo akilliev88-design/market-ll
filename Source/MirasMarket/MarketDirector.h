@@ -39,7 +39,9 @@ namespace MarketDirector
     // changed. Actions: Supplier (Arg = MarketSuppliers::ESupplier), PayBills, PassOnPriceRise,
     // Discount10 / Discount20 / MultiBuy / Endcap (Arg = product), Flyer, StopPromotion (Arg = index), AcceptOffer, DeclineOffer,
     // Decide (Arg = option of the first waiting decision: story scenes and events),
-    // FreshPolicy (Arg 0..2), CreditLimit (Arg step 0..3), CollectCredit, TakeLoan (Arg step 0..2), RepayLoan.
+    // FreshPolicy (Arg 0..2), CreditLimit (Arg step 0..3), CollectCredit, TakeLoan (Arg step 0..2), RepayLoan,
+    // OpenBranch (Arg = district * 10 + format 0 k\u00fc\u00e7\u00fck / 1 mahalle / 2 b\u00fcy\u00fck), CloseBranch (Arg = index),
+    // Promote (Arg = employee id; runs the newest open branch).
     bool Command(FMarketState& State, const TArray<FMarketProduct>& Products, FName Action, int32 Arg, FString& OutMessage);
     // Evening report of the background systems: wholesalers, staff, tax, ...
     FString ReportText(const FMarketState& State);

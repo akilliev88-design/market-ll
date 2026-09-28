@@ -1061,12 +1061,12 @@ void AMarketGameMode::Command(FName Action)
         }
         else if (Action == "Expand")
         {
-            if (State.bSecondStore) Notify(TEXT("Ikinci sube acik. Bu prototipte subenin gunluk net katkisi hesaplanir."));
-            else if (MarketCampaign::ExpandBlock(State) == MarketCampaign::EExpandBlock::Debt)
-                Notify(FString::Printf(TEXT("\u00d6nce baban\u0131n borcunu kapat (kalan %s, masada P). Bor\u00e7lu d\u00fckk\u00e2n b\u00fcy\u00fcyemez."), *Money(State.InheritedDebt)));
-            else if (MarketCampaign::ExpandBlock(State) != MarketCampaign::EExpandBlock::None)
-                Notify(TEXT("Ikinci sube: 950 TL nakit, 3 karli gun ve en az %35 yerel musteri payi gerekli."));
-            else { State.Cash -= 95000; State.bSecondStore = true; Notify(TEXT("IKINCI SUBEN ACILDI! Prototip hedefi tamam. Isletmeye devam edebilirsin.")); }
+            // G-068: G opens a real branch in \u00c7ar\u015f\u0131; the menu's \u015eubeler page has every district and format.
+            FString Text;
+            if (MarketCampaign::DebtOpen(State))
+                Text = FString::Printf(TEXT("\u00d6nce baban\u0131n borcunu kapat (kalan %s, masada P). Bor\u00e7lu d\u00fckk\u00e2n b\u00fcy\u00fcyemez."), *Money(State.InheritedDebt));
+            else MarketDirector::Command(State, Products, TEXT("OpenBranch"), static_cast<int32>(MarketBranches::EDistrict::Carsi) * 10 + 1, Text);
+            Notify(Text);
         }
     }
 }
