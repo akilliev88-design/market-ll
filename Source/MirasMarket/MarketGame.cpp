@@ -1084,7 +1084,7 @@ void AMarketGameMode::SpawnCustomer()
         if (MarketCustomers::ComesNow(static_cast<MarketCustomers::ESegment>(C.Segment), Progress, State.Day, Random.FRand())) break;
     }
     const MarketCustomers::ESegment Segment = static_cast<MarketCustomers::ESegment>(C.Segment);
-    C.BudgetLeft = MarketCustomers::VisitBudget(Segment, State.Day);
+    C.BudgetLeft = FMath::RoundToInt64(MarketCustomers::VisitBudget(Segment, State.Day) * MarketDirector::BudgetFactor(State, C.Segment)); // cards (G-069)
     C.ShoppingList = MarketCustomers::BuildList(State, Products, Segment, Random);
     if (C.ShoppingList.Num() == 0) return;
     C.Product = C.ShoppingList[0];
@@ -1219,11 +1219,21 @@ void AMarketGameMode::Checkout()
         Line.Product = Item.Product; Line.Quantity = Item.Quantity; Line.QuotedPrice = Item.QuotedPrice;
         Lines.Add(Line);
     }
+    // Cash, card or meal card (G-069). Without a POS some card shoppers leave the basket at the till.
+    const uint8 Method = MarketDirector::PaymentMethod(State, C.Segment, Random.FRand());
+    if (Method == 3 && MarketDirector::LeavesWithoutCard(State, Random.FRand()))
+    {
+        ++State.Lost;
+        Notify(TEXT("\"Kart gecmiyor mu?\" Musteri sepeti kasada birakip gitti."));
+        MarketBasket::RecordVisit(State, C.CustomerId, C.ShoppingList.Num(), 0, true);
+        C.Actor->Destroy(); Customers.RemoveAt(I); RefreshLabels();
+        return;
+    }
     int64 Receipt = 0;
     int32 Units = 0;
     if (State.SellBasket(Lines, Products, &Receipt, &Units))
     {
-        const FString Credit = MarketDirector::OnCheckout(State, C.CustomerId, Receipt, Random.FRand()); // veresiye (G-067)
+        const FString Credit = MarketDirector::OnCheckout(State, C.CustomerId, Receipt, Random.FRand(), Method); // veresiye (G-067), payment (G-069)
         Notify(FString::Printf(TEXT("Sepet satildi: %d farkli urun, %d adet  +%s%s"), Lines.Num(), Units, *Money(Receipt), C.bReturning ? TEXT("  \u00b7  sadik musteri") : TEXT(""))
             + (Credit.IsEmpty() ? FString() : TEXT("\n") + Credit));
     }

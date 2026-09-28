@@ -46,7 +46,7 @@ Sahiplik (M, 28.09.2026): 3B model üretimi, mağaza modeli ve arayüz tasarım�
 | C05 | Veresiye | Tanınan müşteriye limitli; maaş gününde tahsilat, az sayıda batık (C; plan) | Derlenmedi (G-067) |
 | C06 | Bekleme ve kalabalık | 90 sn sabır, 9 kişi sınırı (mevcut); segmente göre sabır (C) | Derlenmedi (G-062) |
 | C07 | İade ve şikâyet | Bozuk/yanlış ürün iadesi; iade kabulü memnuniyet, reddi itibar kaybı (plan 01 §11) | Derlenmedi (G-066) |
-| C08 | Ödeme yöntemleri | Nakit, kredi kartı (POS komisyonu %1,5–2, ertesi gün hesaba), yemek kartı (2013 sonrası yaygın, komisyon yüksek). Kart kabulü bazı segmentlerin sepetini büyütür (C; plan 01 §11) | `MarketPayments` | Tasarım |
+| C08 | Ödeme yöntemleri | Nakit, kredi kartı (POS komisyonu %1,5–2, ertesi gün hesaba), yemek kartı (2013 sonrası yaygın, komisyon yüksek). Kart kabulü bazı segmentlerin sepetini büyütür (C; plan 01 §11) | `MarketPayments` | Derlenmedi (G-069) |
 | C09 | Sadakat kartı / uygulama | İlçe zinciri aşamasında; puan maliyeti karşılığında tekrar ziyaret (plan) | `MarketPromotions` | Tasarım |
 
 ## D. Ticaret
@@ -63,7 +63,7 @@ Sahiplik (M, 28.09.2026): 3B model üretimi, mağaza modeli ve arayüz tasarım�
 | D08 | Tazelik ve fire | Parti + son kullanma, FEFO, son gün indirimi, fire nedeni raporda (plan) | Derlenmedi (G-067) |
 | D09 | Atık ve bağış | Son günü geçmemiş ama satılamayan ürün bağışlanabilir: fire yazılır, itibar artar (plan 01 §11) | Derlenmedi (G-067) |
 | D10 | Depozito/iade ambalaj | Cam şişe depozitosu (ülke profiline bağlı, Türkiye 2011'de yaygın değil) (plan) | ülke profili | Tasarım |
-| D11 | **İnternet mağazacılığı** | Dönemle açılır. 2011–2013: telefonla sipariş ve mahalleye paket servis (bakkal geleneği, küçük sepet, sadakat artırır). 2014+: kendi web sitesi, toplama görevlisi, teslimat slotu. 2016+: pazar yeri/hızlı teslimat platformları (komisyonlu kanal, kurgu platform adı). 2020: salgın dönemi talep sıçraması (kurgu senaryo profili, gerçek olayın saygılı anılması). Online sipariş raftaki stoğu paylaşır (ayrılmış stok), toplama rotası, teslimat maliyeti, eksik ürün ikamesi, online müşteri memnuniyeti. Bölgesel aşamada karanlık mağaza (yalnızca sipariş toplayan depo) (C; plan 01 §11, 04 §2) | `MarketOnline` | Sırada |
+| D11 | **İnternet mağazacılığı** | Dönemle açılır. 2011–2013: telefonla sipariş ve mahalleye paket servis (bakkal geleneği, küçük sepet, sadakat artırır). 2014+: kendi web sitesi, toplama görevlisi, teslimat slotu. 2016+: pazar yeri/hızlı teslimat platformları (komisyonlu kanal, kurgu platform adı). 2020: salgın dönemi talep sıçraması (kurgu senaryo profili, gerçek olayın saygılı anılması). Online sipariş raftaki stoğu paylaşır (ayrılmış stok), toplama rotası, teslimat maliyeti, eksik ürün ikamesi, online müşteri memnuniyeti. Bölgesel aşamada karanlık mağaza (yalnızca sipariş toplayan depo) (C; plan 01 §11, 04 §2) | `MarketOnline` | Derlenmedi (G-069): telefon/web/platform, ayrılmış stok yerine kapanışta depo→raf toplama, ikame kuralı, kurye kapasitesi, itibar/yıldız, ilçe online payı ve dükkândan müşteri kaybı, 2020-21 profili. Karanlık mağaza şirket büyümesine kaldı |
 | D12 | Kasa önü ve dürtüsel ürün | Kasa önü rafı sepete küçük ek ürün getirir (plan 04) | `MarketCustomers` | Tasarım |
 
 ## E. Rekabet
@@ -130,5 +130,5 @@ Sahiplik (M, 28.09.2026): 3B model üretimi, mağaza modeli ve arayüz tasarım�
 ## Açık sorular (Mustafa)
 
 1. Sat ya da devam kararında "sattın" sonu gerçekten kampanyayı bitirsin mi, yoksa sadece bir sahne olup oyuncu yine devam edebilsin mi? Öneri: son sahnesi gösterilir, oyuncu isterse "aslında satmadım" diyerek geri döner.
-2. 2020 salgın dönemi oyunda anılsın mı? Öneri: kurgu "salgın dönemi" senaryosu, kapanma günleri ve online sipariş patlaması, ölüm veya hastalık içeriği yok.
+2. 2020 salgın dönemi oyunda anılsın mı? (G-069 öneriyi uyguladı, `bPandemic` varsayılan açık; Mustafa "hayır" derse varsayılan kapatılır.) Öneri: kurgu "salgın dönemi" senaryosu, kapanma günleri ve online sipariş patlaması, ölüm veya hastalık içeriği yok.
 3. Enflasyonun 2021–2023 sertliği aynen mi, yoksa zorluk ayarıyla mı? Öneri: varsayılan tarihsel, "rahat" zorlukta yarıya indirilmiş.

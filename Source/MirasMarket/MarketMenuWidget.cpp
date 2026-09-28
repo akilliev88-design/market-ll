@@ -8,6 +8,8 @@
 #include "MarketEvents.h"
 #include "MarketStory.h"
 #include "MarketFinance.h"
+#include "MarketOnline.h"
+#include "MarketPayments.h"
 #include "MarketCredit.h"
 #include "MarketFreshness.h"
 #include "MarketBranches.h"
@@ -613,6 +615,37 @@ TSharedRef<SWidget> SMarketMenu::MoneyCard()
         ]);
 }
 
+TSharedRef<SWidget> SMarketMenu::OnlineCard()
+{
+    // G-069: order channels of the era, couriers, the missing-item rule and payment methods.
+    auto G = [this] { return Game.Get(); };
+    auto Era = [G](MarketOnline::EChannel Channel) { return [G, Channel] { return G() && G()->State.Day >= MarketOnline::OpenDay(Channel); }; };
+    auto Toggle = [G](MarketOnline::EChannel Channel) { return [G, Channel] { return FString::Printf(TEXT("%s: %s"), *MarketOnline::ChannelName(Channel), G() && MarketOnline::IsOn(G()->State, Channel) ? TEXT("a\u00e7\u0131k") : TEXT("kapal\u0131")); }; };
+    auto Flip = [this, G](MarketOnline::EChannel Channel) { return [this, G, Channel] { Manage(TEXT("OnlineChannel"), static_cast<int32>(Channel) * 10 + (G() && MarketOnline::IsOn(G()->State, Channel) ? 0 : 1)); }; };
+    return Card(SNew(SVerticalBox)
+        + SVerticalBox::Slot().AutoHeight()[ Fixed(TEXT("S\u0130PAR\u0130\u015e \u00b7 KURYE \u00b7 \u00d6DEME"), 9, ERole::Muted, true) ]
+        + SVerticalBox::Slot().AutoHeight().Padding(0.f, 6.f, 0.f, 8.f)
+        [ Label([G] { return G() ? MarketOnline::Summary(G()->State) + TEXT("\n") + MarketPayments::Summary(G()->State) : FString(); }, 11, ERole::Text, false, true) ]
+        + SVerticalBox::Slot().AutoHeight()
+        [
+            SNew(SWrapBox).UseAllottedSize(true).InnerSlotPadding(FVector2D(6.f, 6.f))
+            + SWrapBox::Slot()[ Button(Toggle(MarketOnline::EChannel::Phone), Flip(MarketOnline::EChannel::Phone)) ]
+            + SWrapBox::Slot()[ Button(Toggle(MarketOnline::EChannel::Web), Flip(MarketOnline::EChannel::Web), false, Era(MarketOnline::EChannel::Web)) ]
+            + SWrapBox::Slot()[ Button(Toggle(MarketOnline::EChannel::Platform), Flip(MarketOnline::EChannel::Platform), false, Era(MarketOnline::EChannel::Platform)) ]
+            + SWrapBox::Slot()[ Button([] { return FString(TEXT("Kurye al")); }, [this] { Manage(TEXT("HireCourier"), 0); }) ]
+            + SWrapBox::Slot()[ Button([] { return FString(TEXT("Kurye b\u0131rak")); }, [this] { Manage(TEXT("FireCourier"), 0); }, false, [G] { return G() && G()->State.Online.Couriers > 0; }) ]
+            + SWrapBox::Slot()[ Button([G] { return FString(G() && G()->State.Online.bFreeDelivery ? TEXT("Teslimat: \u00fccretsiz") : TEXT("Teslimat: \u00fccretli")); },
+                                       [this, G] { Manage(TEXT("FreeDelivery"), G() && G()->State.Online.bFreeDelivery ? 0 : 1); }) ]
+            + SWrapBox::Slot()[ Button([G] { static const TCHAR* Rules[3] = { TEXT("Eksikte: sor"), TEXT("Eksikte: benzeri"), TEXT("Eksikte: \u00e7\u0131kar") };
+                                             return FString(Rules[G() ? FMath::Clamp<int32>(G()->State.Online.Substitute, 0, 2) : 1]); },
+                                       [this, G] { Manage(TEXT("Substitute"), G() ? (G()->State.Online.Substitute + 1) % 3 : 1); }) ]
+            + SWrapBox::Slot()[ Button([G] { return FString(G() && G()->State.Payments.bCard ? TEXT("POS: var") : TEXT("POS: yok")); },
+                                       [this, G] { Manage(TEXT("Card"), G() && G()->State.Payments.bCard ? 0 : 1); }) ]
+            + SWrapBox::Slot()[ Button([G] { return FString(G() && G()->State.Payments.bMealCard ? TEXT("Yemek kart\u0131: al\u0131n\u0131yor") : TEXT("Yemek kart\u0131: yok")); },
+                                       [this, G] { Manage(TEXT("MealCard"), G() && G()->State.Payments.bMealCard ? 0 : 1); }) ]
+        ]);
+}
+
 TSharedRef<SWidget> SMarketMenu::SummaryPage()
 {
     auto G = [this] { return Game.Get(); };
@@ -623,6 +656,7 @@ TSharedRef<SWidget> SMarketMenu::SummaryPage()
         + SVerticalBox::Slot().AutoHeight()[ DecisionCard() ]
         + SVerticalBox::Slot().AutoHeight().Padding(0.f, 0.f, 0.f, 12.f)[ StoryCard() ]
         + SVerticalBox::Slot().AutoHeight().Padding(0.f, 0.f, 0.f, 12.f)[ MoneyCard() ]
+        + SVerticalBox::Slot().AutoHeight().Padding(0.f, 0.f, 0.f, 12.f)[ OnlineCard() ]
         + SVerticalBox::Slot().AutoHeight()
         [
             SNew(SHorizontalBox)

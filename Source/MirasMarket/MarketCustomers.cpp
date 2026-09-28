@@ -4,6 +4,7 @@
 #include "MarketPrices.h"
 #include "MarketPromotions.h"
 #include "MarketEvents.h"
+#include "MarketOnline.h"
 
 namespace MarketCustomers
 {
@@ -140,7 +141,8 @@ TArray<int32> MarketCustomers::BuildList(const FMarketState& State, const TArray
         const MarketGoods::EGroup Group = MarketGoods::Classify(Products[I].Category);
         const float Weight = P.Preference[static_cast<int32>(Group)] * MarketCalendar::GroupFactor(State.Day, State.RivalSeed, Group)
             * MarketPromotions::Interest(State, Products, I) // discounts, gondola head, flyer
-            * MarketEvents::Factor(State, MarketEvents::EModifier::Interest, Group); // events, the shop's identity
+            * MarketEvents::Factor(State, MarketEvents::EModifier::Interest, Group) // events, the shop's identity
+            * MarketOnline::GroupFactor(State, Group); // panic buying of March 2020
         if (State.Stock[I].Capacity > 0) { Carried[I] = Weight; CarriedTotal += Weight; }
         else { Missing[I] = Weight; MissingTotal += Weight; }
     }

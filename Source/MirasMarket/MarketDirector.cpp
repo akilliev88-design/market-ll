@@ -12,12 +12,15 @@
 #include "MarketCredit.h"
 #include "MarketFinance.h"
 #include "MarketBranches.h"
+#include "MarketOnline.h"
+#include "MarketPayments.h"
 
 float MarketDirector::TrafficFactor(const FMarketState& State, const TArray<FString>& Aisles)
 {
     return MarketCalendar::TrafficFactor(State.Day, State.RivalSeed) * MarketRivals::TrafficFactor(State.Day, State.RivalSeed, Aisles)
         * MarketPromotions::TrafficFactor(State) * MarketCompetitors::TrafficFactor(State)
-        * MarketEvents::Factor(State, MarketEvents::EModifier::Traffic) * MarketBranches::MainShopFactor(State);
+        * MarketEvents::Factor(State, MarketEvents::EModifier::Traffic) * MarketBranches::MainShopFactor(State)
+        * MarketOnline::StoreTrafficFactor(State) * MarketPayments::TrafficFactor(State);
 }
 
 double MarketDirector::ToleranceBonus(const FMarketState& State, const FMarketProduct& Product)
@@ -32,7 +35,7 @@ float MarketDirector::RivalPriceFactor(const FMarketState& State, const TArray<F
 
 float MarketDirector::DemandWeight(const FMarketState& State, const FMarketProduct& Product)
 {
-    return MarketCalendar::CategoryFactor(State.Day, State.RivalSeed, Product.Category);
+    return MarketCalendar::CategoryFactor(State.Day, State.RivalSeed, Product.Category) * MarketOnline::GroupFactor(State, MarketGoods::Classify(Product.Category));
 }
 
 float MarketDirector::OrderScale(const FMarketState& State, const FMarketProduct& Product)
@@ -71,9 +74,29 @@ void MarketDirector::ApplyPrices(const FMarketState& State, const TArray<FMarket
     MarketSuppliers::ApplyPrices(State, CatalogBase, Products);
 }
 
-FString MarketDirector::OnCheckout(FMarketState& State, int32 CustomerId, int64 Receipt, float Roll)
+uint8 MarketDirector::PaymentMethod(const FMarketState& State, uint8 Segment, float Roll)
 {
-    return MarketCredit::OnCheckout(State, CustomerId, Receipt, Roll);
+    return static_cast<uint8>(MarketPayments::Choose(State, static_cast<MarketCustomers::ESegment>(Segment), Roll));
+}
+
+bool MarketDirector::LeavesWithoutCard(FMarketState& State, float Roll)
+{
+    return MarketPayments::LeavesWithoutCard(State, Roll);
+}
+
+float MarketDirector::BudgetFactor(const FMarketState& State, uint8 Segment)
+{
+    return MarketPayments::BudgetFactor(State, static_cast<MarketCustomers::ESegment>(Segment));
+}
+
+FString MarketDirector::OnCheckout(FMarketState& State, int32 CustomerId, int64 Receipt, float Roll, uint8 Method)
+{
+    // A basket written in the credit book is not paid now; everything else settles by its payment method.
+    const int64 CashBefore = State.Cash;
+    const FString Credit = MarketCredit::OnCheckout(State, CustomerId, Receipt, Roll);
+    if (State.Cash != CashBefore) return Credit;
+    const FString Paid = MarketPayments::Settle(State, static_cast<MarketPayments::EMethod>(FMath::Min<uint8>(Method, 3)), Receipt);
+    return Credit.IsEmpty() ? Paid : Paid.IsEmpty() ? Credit : Credit + TEXT(" ") + Paid;
 }
 
 FString MarketDirector::OnOrder(FMarketState& State, int64 Bill)
@@ -127,6 +150,21 @@ bool MarketDirector::Command(FMarketState& State, const TArray<FMarketProduct>& 
         for (int32 I = 0; I < State.Branches.Num(); ++I) if (State.Branches[I].Stage != static_cast<uint8>(MarketBranches::EStage::Closed)) Newest = I;
         return MarketBranches::Promote(State, Arg, Newest, OutMessage);
     }
+    if (Action == TEXT("OnlineChannel"))
+        return MarketOnline::SetChannel(State, static_cast<MarketOnline::EChannel>(FMath::Clamp(Arg / 10, 0, 2)), Arg % 10 != 0, OutMessage);
+    if (Action == TEXT("HireCourier")) return MarketOnline::HireCourier(State, OutMessage);
+    if (Action == TEXT("FireCourier")) return MarketOnline::FireCourier(State, OutMessage);
+    if (Action == TEXT("Substitute")) return MarketOnline::SetSubstitute(State, Arg, OutMessage);
+    if (Action == TEXT("FreeDelivery")) return MarketOnline::SetFreeDelivery(State, Arg != 0, OutMessage);
+    if (Action == TEXT("Card")) return MarketPayments::SetCard(State, Arg != 0, OutMessage);
+    if (Action == TEXT("MealCard")) return MarketPayments::SetMealCard(State, Arg != 0, OutMessage);
+    if (Action == TEXT("PandemicProfile"))
+    {
+        if (State.Online.bPandemic == (Arg != 0)) { OutMessage = TEXT("Salg\u0131n d\u00f6nemi ayar\u0131 zaten b\u00f6yle."); return false; }
+        State.Online.bPandemic = Arg != 0;
+        OutMessage = State.Online.bPandemic ? TEXT("2020-2021 salg\u0131n d\u00f6nemi oyunda olacak.") : TEXT("2020-2021 salg\u0131n d\u00f6nemi oyunda olmayacak.");
+        return true;
+    }
     if (Action == TEXT("DeclineOffer")) { MarketPromotions::DeclineOffer(State); OutMessage = TEXT("Selim'in teklifi geri \u00e7evrildi."); return true; }
     OutMessage = FString::Printf(TEXT("Bilinmeyen karar: %s"), *Action.ToString());
     return false;
@@ -149,6 +187,8 @@ void MarketDirector::CloseDay(FMarketState& State, const TArray<FMarketProduct>&
     MarketCredit::CloseDay(State);               // paydays of the credit book (G-067)
     MarketCompetitors::CloseDay(State, Products, MarketRivals::Aisles(Products)); // shares, rivals' moves, poaching (G-065)
     MarketBranches::CloseDay(State, Products);   // opening steps and the simulated day of every branch (G-068)
+    MarketPayments::CloseDay(State);             // card money arrives, commissions and POS rent (G-069)
+    MarketOnline::CloseDay(State, Products);     // phone, web and platform orders picked from our stock (G-069)
     MarketStaff::CloseDay(State);     // till, fatigue, morale, notices, HR, accountant and the weekly tax (G-060)
     MarketEvents::CloseDay(State, Products); // decisions past their day, modifiers, snow, a new neighbourhood event (G-066)
     MarketStory::CloseDay(State, Products);  // scenes, milestones, chapters (G-066)

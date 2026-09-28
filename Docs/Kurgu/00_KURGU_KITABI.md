@@ -140,6 +140,34 @@ Ziyaret edilmeyen şubeler **özet simülasyonla** işler. Talebi semt, segment,
 
 Müdür: şubeye **hedef ve yetki** verilir (asgari bulunurluk, fiyat bandı, sipariş bütçesi, personel sayısı). Müdür bunlar içinde sipariş verir, fiyatı rakibe göre ayarlar ve istisnaları raporlar. Müdürün becerisi ve dürüstlüğü G-060 kişi modelinden gelir.
 
+### İnternet mağazacılığı ve ödeme (G-069, uygulandı, derlenmedi)
+
+Kanallar dönemle açılır (`MarketOnline`):
+
+- **Telefon siparişi (2011+):** bakkal geleneği. Tanıdık müşteri (3+ ziyaret, memnun) arar; en çok emekliler ve aileler. Kurye yoksa günde 4 siparişi kapanıştan sonra oyuncu götürür. Evde hizmet almak sadakat sayılır.
+- **Web sitesi (2014+):** kurulum ve barındırma masrafı var, en az bir kurye ister, kartla ödenir (%1,8). Bütün semtten büyük sepetler gelir. İnsanların siteyi öğrenmesi iki ay sürer.
+- **Platform (2016+, kurgu ad "Getirsin"):** kuryeyi platform sağlar, komisyonu %18'dir. Sipariş sayısını yıldız belirler; yıldız, online itibardan gelir.
+
+Online sipariş dükkânın stoğunu paylaşır: kapanışta önce depodan, sonra raftan toplanır. Eksik ürün için oyuncu bir kural seçer: müşteriyi arayıp sorar, aynı reyondan benzerini koyar ya da ürünü çıkarır. Kuryenin taşıyabileceğinden fazla sipariş gelirse bir kısmı geç kalır, bir kısmı iptal olur. Her iki durumda itibar düşer. Toplama işi reyon görevlisini yorar.
+
+İlçedeki market alışverişinin bir kısmı her yıl internete kayar: 2016'da ~%1,2, 2023'te ~%5. Bu müşteriler **her dükkânın** kapısından eksilir. Yalnızca online olan dükkân bir kısmını sipariş olarak geri kazanır. Online olmamanın bedeli yavaş yavaş azalan müşteridir; online olmanın bedeli kurye, komisyon ve toplama işidir. Kurye sabit maliyettir, bu yüzden hacim yoksa zarar ettirir (taklitli simülasyon: 2024'te 4 sipariş/gün için 2 kurye zarar ettirir).
+
+**2020–2021 profili (açık soru 2, varsayılan açık, `PandemicProfile` komutuyla kapatılır):**
+
+- Mart 2020'de on günlük panik alışverişi: temel gıda, temizlik ve kâğıt talebi ×2.
+- 2020 baharında ve 2020-21 kışında hafta sonu kısıtlamaları: dükkân kısa saat açık, müşteri ×0,4.
+- 29 Nisan – 17 Mayıs 2021 tam kapanma.
+- Online payı ×3,5, sonra ×2,5, 2022 sonuna kadar ×1,4.
+- Hastalık ya da ölüm içeriği yoktur.
+
+**Ödeme (`MarketPayments`):**
+
+- **Kartla ödemek isteyenlerin payı yıllara göre artar:** 2011'de %25, 2021'de %75. Emekliler nakit öder; beyaz yakalılar ve öğrenciler kart kullanır; çocuklar hep nakit öder.
+- **POS yoksa:** kart isteyen müşterinin %35'i sepeti kasada bırakır, kalanı söylenerek nakit öder.
+- **POS varsa:** aylık kira ve %1,8 komisyon ödenir; para ertesi gün hesaba geçer. Kartla ödeyen müşteri sepete biraz daha fazla koyar.
+- **Yemek kartı:** POS ister. Komisyonu %6'dır ve aylık aidatı vardır; karşılığında öğlen işçiler uğrar (müşteri +%3).
+- **Veresiyeye yazılan sepet** o gün ödenmez.
+
 ## 11. Finans
 
 - **Nakit, borç ve varlık** ayrı izlenir. Ay sonunda (Necati Bey varsa) kâr-zarar, nakit akışı ve basit bilanço hazırlanır.
@@ -167,7 +195,10 @@ Sonlar: **Sattın** (2. bölüm), **Mahallenin dükkânı** (tek dükkânda kal�
 | Hikâye bölümleri ve olaylar | `MarketStory`, `MarketEvents` | G-066 |
 | Tazelik, veresiye, finans | `MarketFreshness`, `MarketCredit`, `MarketFinance` | G-067 |
 | Şubeler ve otomatik raf dizimi | `MarketBranches`, `MarketLayout` | G-068 |
-| Şirket büyümesi | `MarketCompany` | G-069 |
+| İnternet mağazacılığı ve ödeme | `MarketOnline`, `MarketPayments` | G-069, derlenmedi |
+| İnsan hareketi zekâsı | `MarketPeople` | G-070 |
+| Stratejik ilerletme ve zorluk | `MarketDirector` | G-071 |
+| Şirket büyümesi | `MarketCompany` | G-072 |
 | Oyuna bağlama noktası | `MarketDirector` | her adımda büyür |
 
 Her adım: modül + test + `MarketDirector` bağlantısı + bu kitapta ilgili bölümün "uygulandı" notu + GUNLUK girişi + commit.

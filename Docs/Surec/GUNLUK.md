@@ -2,6 +2,39 @@
 
 En yeni giriş en üstte. Biçim: tarih — ajan — başlık, ardından **Yapılan**, **Doğrulama**, **Sıradaki**.
 
+## 28.09.2026 — Claude (Claude Code, bulut) — İnternet mağazacılığı ve ödeme G-069 — DERLENMEDİ
+
+**Yapılan**
+- `MarketOnline`: dönemle açılan üç kanal var. Telefon siparişi 2011'den, web sitesi 2014'ten, kurgu "Getirsin" platformu 2016'dan açılır.
+  - Siparişler kapanışta önce depodan, sonra raftan toplanır.
+  - Eksik ürün için kural seçilir: müşteriye sor, aynı reyondan benzerini koy ya da ürünü çıkar.
+  - Kurye kapasitesini aşan sipariş geç kalır ya da iptal olur. Online itibar ve platform yıldızı buna göre değişir. Toplama işi görevliyi yorar.
+  - İlçedeki alışverişin internete kayan kısmı her dükkânın müşterisini azaltır; yalnızca online olan dükkân bir kısmını geri kazanır.
+  - 2020-21 profili: panik alışverişi, kısıtlamalar ve online patlaması.
+- `MarketPayments`: nakit, kart ve yemek kartı.
+  - Kart kullanımı yıla ve müşteri segmentine göre değişir.
+  - POS yoksa kart isteyen müşterinin %35'i gider.
+  - POS kirası ve komisyonu var; kart parası ertesi gün gelir.
+  - Yemek kartı öğlen işçi getirir.
+- Director bağlantıları: trafik, talep, bütçe, kasada ödeme ve komutlar.
+- `MarketGame::Checkout` ödeme yöntemini seçiyor; menü özetine SİPARİŞ · KURYE · ÖDEME kartı eklendi.
+- Kurgu kitabına yeni bölüm eklendi; kararlarda D11 ve C08 güncellendi; AGENTS haritası ve GOREVLER (G-069…G-072) yenilendi.
+
+**Varsayımlar**
+- İlçe online payı yaklaşık Türkiye değerleri: 2016'da %1,2, 2023'te %5.
+- Platform komisyonu %18, POS komisyonu %1,8, yemek kartı komisyonu %6.
+- Salgın profili varsayılan açık (açık soru 2).
+
+**Denge (30 günlük taklit simülasyonu)**
+- 2011, telefon, kuryesiz: günde ~1,6 sipariş, +18 TL net.
+- Aynı durumda kuryeyle: başa baş.
+- Nisan 2020: günde ~13 sipariş, +276 TL.
+- 2024'te 2 kurye ve 4 sipariş: zarar. Kurye kararı önemli.
+
+**Doğrulama**: Unreal yok, **derlenmedi**. Saf mantık taklit ortamında derlendi; 25 test geçti, stok ve para korunumu her kapanışta kontrol edildi.
+
+**Sıradaki**: G-070 hareket zekâsı, G-071 stratejik ilerletme ve zorluk, G-072 şirket büyümesi.
+
 ## 28.09.2026 — Claude (Claude Code, bulut) — Hikâye, para ve şubeler G-066…G-068 — DERLENMEDİ
 
 **Yapılan**

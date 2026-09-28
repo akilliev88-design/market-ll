@@ -304,6 +304,58 @@ struct FMarketBranch
     UPROPERTY() int64 WeekProfit = 0;
 };
 
+// Online orders (MarketOnline.h): channels by era, the delivery team and what the last closed day did.
+// Older saves load everything off.
+USTRUCT()
+struct FMarketOnline
+{
+    GENERATED_BODY()
+    UPROPERTY() bool bPhone = false;          // phone orders + delivery to the street (2011+)
+    UPROPERTY() bool bWeb = false;            // own web shop (2014+)
+    UPROPERTY() bool bPlatform = false;       // fast-delivery platform (2016+), commission
+    UPROPERTY() bool bFreeDelivery = true;    // false = a delivery fee below the free basket
+    UPROPERTY() uint8 Substitute = 1;         // 0 call and ask, 1 same aisle, 2 leave it out
+    UPROPERTY() bool bPandemic = true;        // the 2020-2021 period profile (karar D11, open question)
+    UPROPERTY() int32 Couriers = 0;
+    UPROPERTY() int32 WebOpenedDay = 0;
+    UPROPERTY() float Reputation = 60.f;      // online customers' opinion 0..100 (platform stars follow it)
+    UPROPERTY() int32 LastOrders = 0;
+    UPROPERTY() int32 LastLate = 0;
+    UPROPERTY() int32 LastCancelled = 0;
+    UPROPERTY() int32 LastMissing = 0;
+    UPROPERTY() int32 LastSubstituted = 0;
+    UPROPERTY() int64 LastRevenue = 0;
+    UPROPERTY() int64 LastCosts = 0;          // couriers, packaging, commissions, the site
+    UPROPERTY() int64 LastProfit = 0;
+    UPROPERTY() int32 WeekOrders = 0;
+    UPROPERTY() int64 WeekProfit = 0;
+    UPROPERTY() int32 TotalOrders = 0;
+};
+
+// How shoppers pay (MarketPayments.h). Card money arrives one day later, minus the bank's commission.
+USTRUCT()
+struct FMarketPayments
+{
+    GENERATED_BODY()
+    UPROPERTY() bool bCard = false;           // a POS terminal (monthly rent, commission)
+    UPROPERTY() bool bMealCard = false;       // meal cards (higher commission, office workers come)
+    UPROPERTY() int64 CardToday = 0;          // card sales of the running day (net of commission)
+    UPROPERTY() int64 CardTomorrow = 0;       // yesterday's card sales, paid in at this day's close
+    UPROPERTY() int64 Commission = 0;         // commission of the running day
+    // Baskets of the running day by method; NoCard = wanted to pay by card without a POS, NoCardLost = left.
+    UPROPERTY() int32 Cash = 0;
+    UPROPERTY() int32 Card = 0;
+    UPROPERTY() int32 Meal = 0;
+    UPROPERTY() int32 NoCard = 0;
+    UPROPERTY() int32 NoCardLost = 0;
+    UPROPERTY() int32 LastCash = 0;
+    UPROPERTY() int32 LastCard = 0;
+    UPROPERTY() int32 LastMeal = 0;
+    UPROPERTY() int32 LastNoCard = 0;
+    UPROPERTY() int32 LastNoCardLost = 0;
+    UPROPERTY() int64 LastCommission = 0;
+};
+
 // The accountant's books for the running tax period (one week) and the declared tax (MarketStaff.h).
 USTRUCT()
 struct FMarketBooks
@@ -437,6 +489,9 @@ struct FMarketState
     UPROPERTY() int32 TroubleStage = 0;
     // Branches (MarketBranches.h). bSecondStore stays true while at least one branch exists (older code and saves).
     UPROPERTY() TArray<FMarketBranch> Branches;
+    // Online orders and payment methods (MarketOnline.h, MarketPayments.h).
+    UPROPERTY() FMarketOnline Online;
+    UPROPERTY() FMarketPayments Payments;
     // Local share at the start of the last day close (MarketCompetitors replaces the simple satisfaction update).
     UPROPERTY() float ShareBeforeClose = 25.f;
     // Evening report lines of the background systems (MarketDirector clears it at every day close).
