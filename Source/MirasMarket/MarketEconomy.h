@@ -192,6 +192,45 @@ struct FMarketCompetitor
     UPROPERTY() int32 Told = 0;          // bit flags of one-time news already told
 };
 
+// A choice waiting for the player (MarketEvents.h): story scenes and neighbourhood events.
+USTRUCT()
+struct FMarketDecision
+{
+    GENERATED_BODY()
+    UPROPERTY() FString Id;              // "event.fridge", "story.sell", ...
+    UPROPERTY() FString Title;
+    UPROPERTY() FString Text;
+    UPROPERTY() TArray<FString> Options;
+    UPROPERTY() int32 Deadline = 0;      // decided automatically (DefaultOption) at the close of this day
+    UPROPERTY() int32 DefaultOption = 0;
+    UPROPERTY() int32 Arg = 0;           // event data (product, amount, ...)
+};
+
+// A lasting effect of an event, the story or the shop's identity (MarketEvents.h).
+USTRUCT()
+struct FMarketModifier
+{
+    GENERATED_BODY()
+    UPROPERTY() uint8 Kind = 0;          // MarketEvents::EModifier
+    UPROPERTY() uint8 Group = 255;       // MarketGoods::EGroup, 255 = every group
+    UPROPERTY() float Value = 1.f;       // factor (traffic, interest, cost) or amount (price tolerance)
+    UPROPERTY() int32 FirstDay = 0;
+    UPROPERTY() int32 LastDay = 0;
+    UPROPERTY() FString Source;
+};
+
+// Where the story is (MarketStory.h).
+USTRUCT()
+struct FMarketStoryState
+{
+    GENERATED_BODY()
+    UPROPERTY() int32 Chapter = 1;
+    UPROPERTY() int64 Beats = 0;             // bit flags of scenes already played
+    UPROPERTY() uint8 Identity = 0;          // MarketStory::EIdentity (0 = not chosen)
+    UPROPERTY() uint8 Ending = 0;            // MarketStory::EEnding reached last (0 = none)
+    UPROPERTY() TArray<FString> Memories;    // milestones, newest last ("12 Mart 2011: ilk k\u00e2rl\u0131 g\u00fcn")
+};
+
 // The accountant's books for the running tax period (one week) and the declared tax (MarketStaff.h).
 USTRUCT()
 struct FMarketBooks
@@ -301,8 +340,16 @@ struct FMarketState
     UPROPERTY() TArray<FMarketPromotion> Promotions;
     UPROPERTY() FMarketPromotion Offer;
     UPROPERTY() int64 Marketing = 0;
+    // Other costs of today (repairs, fines, a rented generator): paid at the day close with the operating costs.
+    UPROPERTY() int64 OtherCosts = 0;
     // Competing companies of the district (MarketCompetitors.h).
     UPROPERTY() TArray<FMarketCompetitor> Competitors;
+    // Story, choices waiting for the player, lasting effects and the history of events (MarketStory, MarketEvents).
+    UPROPERTY() FMarketStoryState Story;
+    UPROPERTY() TArray<FMarketDecision> Decisions;
+    UPROPERTY() TArray<FMarketModifier> Modifiers;
+    UPROPERTY() TArray<FString> EventLog;      // "id@day" of events that happened (cooldowns)
+    UPROPERTY() int32 DeliveryDelayDay = 0;    // the delivery of this day's close waits one more day (snow, broken truck)
     // Local share at the start of the last day close (MarketCompetitors replaces the simple satisfaction update).
     UPROPERTY() float ShareBeforeClose = 25.f;
     // Evening report lines of the background systems (MarketDirector clears it at every day close).

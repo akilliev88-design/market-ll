@@ -5,11 +5,20 @@
 #include "MarketSuppliers.h"
 #include "MarketPromotions.h"
 #include "MarketCompetitors.h"
+#include "MarketEvents.h"
+#include "MarketStory.h"
+#include "MarketGoods.h"
 
 float MarketDirector::TrafficFactor(const FMarketState& State, const TArray<FString>& Aisles)
 {
     return MarketCalendar::TrafficFactor(State.Day, State.RivalSeed) * MarketRivals::TrafficFactor(State.Day, State.RivalSeed, Aisles)
-        * MarketPromotions::TrafficFactor(State) * MarketCompetitors::TrafficFactor(State);
+        * MarketPromotions::TrafficFactor(State) * MarketCompetitors::TrafficFactor(State)
+        * MarketEvents::Factor(State, MarketEvents::EModifier::Traffic);
+}
+
+double MarketDirector::ToleranceBonus(const FMarketState& State, const FMarketProduct& Product)
+{
+    return MarketEvents::Tolerance(State, MarketGoods::Classify(Product.Category));
 }
 
 float MarketDirector::RivalPriceFactor(const FMarketState& State, const TArray<FString>& Aisles, const FString& Category)
@@ -90,6 +99,7 @@ bool MarketDirector::Command(FMarketState& State, const TArray<FMarketProduct>& 
     if (Action == TEXT("Flyer")) return MarketPromotions::Start(State, Products, EKind::Flyer, INDEX_NONE, 0, OutMessage);
     if (Action == TEXT("StopPromotion")) return MarketPromotions::Stop(State, Arg, OutMessage);
     if (Action == TEXT("AcceptOffer")) return MarketPromotions::AcceptOffer(State, Products, OutMessage);
+    if (Action == TEXT("Decide")) return MarketEvents::Decide(State, Products, Arg, OutMessage);
     if (Action == TEXT("DeclineOffer")) { MarketPromotions::DeclineOffer(State); OutMessage = TEXT("Selim'in teklifi geri \u00e7evrildi."); return true; }
     OutMessage = FString::Printf(TEXT("Bilinmeyen karar: %s"), *Action.ToString());
     return false;
@@ -110,4 +120,6 @@ void MarketDirector::CloseDay(FMarketState& State, const TArray<FMarketProduct>&
     MarketPromotions::CloseDay(State, Products); // running promotions, results, funded offers (G-064)
     MarketCompetitors::CloseDay(State, Products, MarketRivals::Aisles(Products)); // shares, rivals' moves, poaching (G-065)
     MarketStaff::CloseDay(State);     // till, fatigue, morale, notices, HR, accountant and the weekly tax (G-060)
+    MarketEvents::CloseDay(State, Products); // decisions past their day, modifiers, snow, a new neighbourhood event (G-066)
+    MarketStory::CloseDay(State, Products);  // scenes, milestones, chapters (G-066)
 }

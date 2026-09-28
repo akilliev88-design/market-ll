@@ -128,8 +128,9 @@ int64 FMarketState::DailyPayroll() const
 void FMarketState::CloseDay()
 {
     // Rent-free family shop: electricity, water, bags and upkeep follow the monthly price list (MarketPrices).
-    LastOperatingCost = FMath::RoundToInt64(2200.0 * MarketPrices::ListLevel(Day)) + DailyPayroll() + Marketing;
+    LastOperatingCost = FMath::RoundToInt64(2200.0 * MarketPrices::ListLevel(Day)) + DailyPayroll() + Marketing + OtherCosts;
     Marketing = 0;
+    OtherCosts = 0;
     // The second branch is an explicit aggregate prototype: net daily contribution.
     LastBranchProfit = bSecondStore ? FMath::RoundToInt64(800 + MarketShare * 35) : 0;
     LastRevenue = Revenue;
@@ -159,10 +160,14 @@ void FMarketState::CloseDay()
         const uint32 Risk = MarketSuppliers::Info(static_cast<MarketSuppliers::ESupplier>(Supplier)).DeliveryRisk;
         const int32 Missing = Item.Incoming >= 2 && Hash % 23u < Risk ? 1 : 0;
         const int32 Damaged = Item.Incoming - Missing >= 2 && (Hash / 23u) % 17u < Risk ? 1 : 0;
-        LastDeliveryMissing += Missing;
-        LastDeliveryDamaged += Damaged;
-        Item.Dock += Item.Incoming - Missing - Damaged;
-        Item.Incoming = 0;
+        // The truck did not come (snow, breakdown): the goods stay on the way one more day.
+        if (DeliveryDelayDay != Day)
+        {
+            LastDeliveryMissing += Missing;
+            LastDeliveryDamaged += Damaged;
+            Item.Dock += Item.Incoming - Missing - Damaged;
+            Item.Incoming = 0;
+        }
         Item.Yesterday = Item.Today;
         Item.Today = FMarketDemandStats();
     }
@@ -230,7 +235,7 @@ bool FMarketState::IsStructurallyValid() const
             Item.Warehouse + Item.Dock + Item.Incoming > StorageCapacity || Item.Price < 10) return false;
     }
     if (Books.TaxDue < 0 || Books.VatCarry < 0 || Purchases < 0 || NextEmployeeId < 1) return false;
-    if (Marketing < 0) return false;
+    if (Marketing < 0 || OtherCosts < 0 || Story.Chapter < 0) return false;
     if (!FMath::IsFinite(ShelfPriceLevel) || ShelfPriceLevel <= 0.0 || Supplier >= static_cast<uint8>(MarketSuppliers::ESupplier::Count)) return false;
     for (const FMarketPayable& Bill : Payables) if (Bill.Amount < 0) return false;
     TSet<int32> EmployeeIds;

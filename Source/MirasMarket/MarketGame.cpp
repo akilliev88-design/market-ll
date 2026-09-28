@@ -1149,7 +1149,8 @@ void AMarketGameMode::ResolveCustomerItem(FMarketCustomer& Customer)
     const float PersonalShare = MarketBasket::EffectiveMarketShare(State, Customer.CustomerId);
     MarketDemand::FVisit Visit = MarketDemand::Decide(State, Products, Customer.Product,
         Available.IsValidIndex(Customer.Product) ? Available[Customer.Product] : 0,
-        RivalPriceFactor(Customer.Product), Quantity, Random.FRand(), PersonalShare, MarketCustomers::Profile(Segment).PriceTolerance,
+        RivalPriceFactor(Customer.Product), Quantity, Random.FRand(), PersonalShare,
+        MarketCustomers::Profile(Segment).PriceTolerance + (Products.IsValidIndex(Customer.Product) ? MarketDirector::ToleranceBonus(State, Products[Customer.Product]) : 0.0),
         MarketPromotions::UnitPrice(State, Products, Customer.Product, Quantity));
     int64 PaidUnit = 0;
     if (Visit.Result == MarketDemand::EVisit::Buy)

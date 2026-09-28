@@ -2,6 +2,8 @@
 #include "MarketCalendar.h"
 #include "MarketPrices.h"
 #include "MarketPromotions.h"
+#include "MarketEvents.h"
+#include "MarketGoods.h"
 
 namespace MarketSuppliers
 {
@@ -75,7 +77,8 @@ int64 MarketSuppliers::UnitCost(const FMarketState& State, const FMarketProduct&
 {
     const double Level = MarketPrices::ListLevel(State.Day);
     const double Deal = Index != INDEX_NONE ? MarketPromotions::CostFactor(State, Index) : 1.0;
-    return FMath::Max<int64>(1, FMath::RoundToInt64(Base.Cost * Level * (1.0 - Discount(State, Current(State))) * Deal));
+    const double Identity = MarketEvents::Factor(State, MarketEvents::EModifier::CostFactor, MarketGoods::Classify(Base.Category)); // quality/discount identity
+    return FMath::Max<int64>(1, FMath::RoundToInt64(Base.Cost * Level * (1.0 - Discount(State, Current(State))) * Deal * Identity));
 }
 
 int64 MarketSuppliers::ListPrice(const FMarketState& State, const FMarketProduct& Base)

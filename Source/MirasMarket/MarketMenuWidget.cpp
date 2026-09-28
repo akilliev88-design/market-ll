@@ -5,6 +5,8 @@
 #include "MarketSuppliers.h"
 #include "MarketPromotions.h"
 #include "MarketCompetitors.h"
+#include "MarketEvents.h"
+#include "MarketStory.h"
 #include "Brushes/SlateColorBrush.h"
 #include "Engine/Texture2D.h"
 #include "ImageUtils.h"
@@ -507,6 +509,77 @@ TSharedRef<SWidget> SMarketMenu::GoalList()
         ];
 }
 
+TSharedRef<SWidget> SMarketMenu::DecisionCard()
+{
+    // G-066: the first choice waiting for the player (story scene or neighbourhood event), with its options.
+    auto G = [this] { return Game.Get(); };
+    auto Pending = [G]() -> const FMarketDecision* { return G() ? MarketEvents::Pending(G()->State) : nullptr; };
+    TSharedRef<SHorizontalBox> Options = SNew(SHorizontalBox);
+    for (int32 Option = 0; Option < 3; ++Option)
+    {
+        Options->AddSlot().AutoWidth().Padding(0.f, 0.f, 8.f, 0.f)
+        [
+            SNew(SBox).Visibility_Lambda([Pending, Option] { const FMarketDecision* D = Pending(); return D && D->Options.IsValidIndex(Option) ? EVisibility::Visible : EVisibility::Collapsed; })
+            [ Button([Pending, Option] { const FMarketDecision* D = Pending(); return D && D->Options.IsValidIndex(Option) ? D->Options[Option] : FString(); },
+                [this, Option] { Manage(TEXT("Decide"), Option); }, Option == 0) ]
+        ];
+    }
+    return SNew(SBox).Visibility_Lambda([Pending] { return Pending() ? EVisibility::Visible : EVisibility::Collapsed; }).Padding(FMargin(0.f, 0.f, 0.f, 12.f))
+    [
+        Card(SNew(SVerticalBox)
+            + SVerticalBox::Slot().AutoHeight()[ Label([Pending] { const FMarketDecision* D = Pending(); return D ? D->Title.ToUpper() : FString(); }, 9, ERole::Accent, true) ]
+            + SVerticalBox::Slot().AutoHeight().Padding(0.f, 6.f, 0.f, 10.f)[ Label([Pending] { const FMarketDecision* D = Pending(); return D ? D->Text : FString(); }, 12, ERole::Text, false, true) ]
+            + SVerticalBox::Slot().AutoHeight()[ Options ]
+            + SVerticalBox::Slot().AutoHeight().Padding(0.f, 8.f, 0.f, 0.f)
+            [ Label([G, Pending]
+            {
+                const FMarketDecision* D = Pending();
+                if (!D || !G()) return FString();
+                const int32 More = G()->State.Decisions.Num() - 1;
+                return FString::Printf(TEXT("Se\u00e7mezsen %d. g\u00fcn\u00fcn sonunda \"%s\" ge\u00e7erli olur.%s"), D->Deadline,
+                    D->Options.IsValidIndex(D->DefaultOption) ? *D->Options[D->DefaultOption] : TEXT(""), More > 0 ? *FString::Printf(TEXT(" S\u0131rada %d karar daha var."), More) : TEXT(""));
+            }, 9, ERole::Muted, false, true) ])
+    ];
+}
+
+TSharedRef<SWidget> SMarketMenu::StoryCard()
+{
+    // G-066: the chapter, its goals and the shop's identity.
+    auto G = [this] { return Game.Get(); };
+    TSharedRef<SVerticalBox> Goals = SNew(SVerticalBox);
+    for (int32 Slot = 0; Slot < 5; ++Slot)
+    {
+        auto Goal = [G, Slot](MarketStory::FObjective& Out)
+        {
+            if (!G()) return false;
+            const TArray<MarketStory::FObjective> All = MarketStory::Objectives(G()->State);
+            if (!All.IsValidIndex(Slot)) return false;
+            Out = All[Slot];
+            return true;
+        };
+        Goals->AddSlot().AutoHeight().Padding(0.f, 3.f)
+        [
+            SNew(SHorizontalBox).Visibility_Lambda([Goal] { MarketStory::FObjective O; return Goal(O) ? EVisibility::Visible : EVisibility::Collapsed; })
+            + SHorizontalBox::Slot().AutoWidth().VAlign(VAlign_Center).Padding(0.f, 0.f, 10.f, 0.f)[ Dot([Goal] { MarketStory::FObjective O; return Goal(O) && O.bDone; }) ]
+            + SHorizontalBox::Slot().FillWidth(1.f).VAlign(VAlign_Center)
+            [ Label([Goal] { MarketStory::FObjective O; return Goal(O) ? O.Text + (O.bLater ? FString(TEXT(" (sonraki g\u00fcncelleme)")) : FString()) : FString(); }, 11, ERole::Text) ]
+        ];
+    }
+    return Card(SNew(SVerticalBox)
+        + SVerticalBox::Slot().AutoHeight()
+        [ Label([G] { return G() ? FString::Printf(TEXT("B\u00d6L\u00dcM %d \u00b7 %s"), G()->State.Story.Chapter, *MarketStory::ChapterTitle(G()->State.Story.Chapter).ToUpper()) : FString(); }, 9, ERole::Muted, true) ]
+        + SVerticalBox::Slot().AutoHeight().Padding(0.f, 8.f, 0.f, 0.f)[ Goals ]
+        + SVerticalBox::Slot().AutoHeight().Padding(0.f, 8.f, 0.f, 0.f)
+        [ Label([G]
+        {
+            if (!G()) return FString();
+            const FMarketStoryState& Story = G()->State.Story;
+            FString Text = FString::Printf(TEXT("Kimlik: %s"), *MarketStory::IdentityName(static_cast<MarketStory::EIdentity>(Story.Identity)));
+            if (Story.Memories.Num() > 0) Text += TEXT(" \u00b7 son hat\u0131ra: ") + Story.Memories.Last();
+            return Text;
+        }, 10, ERole::Muted, false, true) ]);
+}
+
 TSharedRef<SWidget> SMarketMenu::SummaryPage()
 {
     auto G = [this] { return Game.Get(); };
@@ -514,6 +587,8 @@ TSharedRef<SWidget> SMarketMenu::SummaryPage()
     + SScrollBox::Slot()
     [
         SNew(SVerticalBox)
+        + SVerticalBox::Slot().AutoHeight()[ DecisionCard() ]
+        + SVerticalBox::Slot().AutoHeight().Padding(0.f, 0.f, 0.f, 12.f)[ StoryCard() ]
         + SVerticalBox::Slot().AutoHeight()
         [
             SNew(SHorizontalBox)
@@ -1253,6 +1328,7 @@ TSharedRef<SWidget> SMarketMenu::DayReport()
     + SScrollBox::Slot()
     [
         SNew(SVerticalBox)
+        + SVerticalBox::Slot().AutoHeight()[ DecisionCard() ]
         + SVerticalBox::Slot().AutoHeight()
         [
             Label([G] { return G() && G()->State.Day > 1 ? FString::Printf(TEXT("%d. g\u00fcn kapand\u0131"), G()->State.Day - 1) : FString(TEXT("Hen\u00fcz kapanm\u0131\u015f g\u00fcn yok. O ile a\u00e7\u0131p g\u00fcn\u00fc bitirince rapor burada.")); }, 13, ERole::Muted, true)

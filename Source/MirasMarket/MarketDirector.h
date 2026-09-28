@@ -13,6 +13,8 @@ namespace MarketDirector
     float TrafficFactor(const FMarketState& State, const TArray<FString>& Aisles);
     // What shoppers think the rivals charge for an aisle today, relative to the list price (MarketCompetitors).
     float RivalPriceFactor(const FMarketState& State, const TArray<FString>& Aisles, const FString& Category);
+    // Extra price tolerance of shoppers for a product today (the shop's identity, events), added to the segment's.
+    double ToleranceBonus(const FMarketState& State, const FMarketProduct& Product);
     // How much a product is wanted today relative to an ordinary day (calendar season, weather, special days).
     float DemandWeight(const FMarketState& State, const FMarketProduct& Product);
     // For the order suggestion: expected demand on the day an order placed now is on the shelf (the next day),
@@ -33,7 +35,8 @@ namespace MarketDirector
     FString OnOrder(FMarketState& State, int64 Bill);
     // Management decisions of the background systems that are not staff decisions. False + message when nothing
     // changed. Actions: Supplier (Arg = MarketSuppliers::ESupplier), PayBills, PassOnPriceRise,
-    // Discount10 / Discount20 / MultiBuy / Endcap (Arg = product), Flyer, StopPromotion (Arg = index), AcceptOffer, DeclineOffer.
+    // Discount10 / Discount20 / MultiBuy / Endcap (Arg = product), Flyer, StopPromotion (Arg = index), AcceptOffer, DeclineOffer,
+    // Decide (Arg = option of the first waiting decision: story scenes and events).
     bool Command(FMarketState& State, const TArray<FMarketProduct>& Products, FName Action, int32 Arg, FString& OutMessage);
     // Evening report of the background systems: wholesalers, staff, tax, ...
     FString ReportText(const FMarketState& State);

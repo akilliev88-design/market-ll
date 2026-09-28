@@ -28,12 +28,12 @@ Sahiplik (M, 28.09.2026): 3B model üretimi, mağaza modeli ve arayüz tasarım�
 | No | Konu | Karar | Modül | Durum |
 |---|---|---|---|---|
 | B01 | Babanın borcu | 300 TL, süresiz, kapanmadan ikinci şube yok (M) | `MarketCampaign` | Uygulandı |
-| B02 | Bölümler | 7 bölüm: Defter → Karşı Dükkân → İkinci Tabela → Trakya → Türkiye → Sınır Ötesi → Miras (C) | `MarketStory` | Sırada |
-| B03 | Karakterler | Nermin teyze, Cem, Selim, Necati Bey, Kadir Bereketoğlu, Derya, banka müdürü (C; plan) | `MarketStory` | Sırada |
-| B04 | Sat ya da devam | Bölüm 2'de Bereket Market teklifi; satmak bir sondur, oyun kaydı kalır (C; plan) | `MarketStory` | Sırada |
-| B05 | Strateji kimliği | Mahallenin Bakkalı / Kaliteli Yerel / Hızlı İndirim Zinciri (C; plan) | `MarketStory` | Sırada |
+| B02 | Bölümler | 7 bölüm: Defter → Karşı Dükkân → İkinci Tabela → Trakya → Türkiye → Sınır Ötesi → Miras (C) | Derlenmedi (G-066) |
+| B03 | Karakterler | Nermin teyze, Cem, Selim, Necati Bey, Kadir Bereketoğlu, Derya, banka müdürü (C; plan) | Derlenmedi (G-066) |
+| B04 | Sat ya da devam | Bölüm 2'de Bereket Market teklifi; satmak bir sondur, oyun kaydı kalır (C; plan) | Derlenmedi (G-066) |
+| B05 | Strateji kimliği | Mahallenin Bakkalı / Kaliteli Yerel / Hızlı İndirim Zinciri (C; plan) | Derlenmedi (G-066) |
 | B06 | Başarısızlık | Oyun bitmez; küçülme ve toparlanma yolu var. Sonlar "kaybettin" değildir (M: borç ödenmezse tek şubede kalır) | `MarketFinance`, `MarketStory` | Tasarım |
-| B07 | Dönüm noktası hatıraları | İlk kârlı gün, borcun kapanması, ilk şube… kalıcı liste (C) | `MarketStory` | Sırada |
+| B07 | Dönüm noktası hatıraları | İlk kârlı gün, borcun kapanması, ilk şube… kalıcı liste (C) | Derlenmedi (G-066) |
 
 ## C. Müşteri
 
@@ -45,7 +45,7 @@ Sahiplik (M, 28.09.2026): 3B model üretimi, mağaza modeli ve arayüz tasarım�
 | C04 | Sadakat | 24 kişilik mahalle havuzu (G-053); veresiye ve sadakat kartı ile genişler | `MarketBasket`, `MarketCredit` | Kısmen |
 | C05 | Veresiye | Tanınan müşteriye limitli; maaş gününde tahsilat, az sayıda batık (C; plan) | `MarketCredit` | Sırada |
 | C06 | Bekleme ve kalabalık | 90 sn sabır, 9 kişi sınırı (mevcut); segmente göre sabır (C) | Derlenmedi (G-062) |
-| C07 | İade ve şikâyet | Bozuk/yanlış ürün iadesi; iade kabulü memnuniyet, reddi itibar kaybı (plan 01 §11) | `MarketEvents` | Tasarım |
+| C07 | İade ve şikâyet | Bozuk/yanlış ürün iadesi; iade kabulü memnuniyet, reddi itibar kaybı (plan 01 §11) | Derlenmedi (G-066) |
 | C08 | Ödeme yöntemleri | Nakit, kredi kartı (POS komisyonu %1,5–2, ertesi gün hesaba), yemek kartı (2013 sonrası yaygın, komisyon yüksek). Kart kabulü bazı segmentlerin sepetini büyütür (C; plan 01 §11) | `MarketPayments` | Tasarım |
 | C09 | Sadakat kartı / uygulama | İlçe zinciri aşamasında; puan maliyeti karşılığında tekrar ziyaret (plan) | `MarketPromotions` | Tasarım |
 
@@ -83,7 +83,7 @@ Sahiplik (M, 28.09.2026): 3B model üretimi, mağaza modeli ve arayüz tasarım�
 |---|---|---|---|---|
 | F01 | Kişi olarak çalışan | Beceri, hız, dayanıklılık, gizli dürüstlük, moral, yorgunluk (G-060) | `MarketStaff` | Derlenmedi |
 | F02 | Kasiyer, reyon görevlisi, İK, mali müşavir | G-060 kuralları | `MarketStaff` | Derlenmedi |
-| F03 | Cem | Babanın çırağı, özel aday; eğitimle müdür (C) | `MarketStory`, `MarketStaff` | Sırada |
+| F03 | Cem | Babanın çırağı, özel aday; eğitimle müdür (C) | Derlenmedi (G-066) |
 | F04 | Eğitim ve terfi | Eğitim günü = kapasite kaybı, sonrasında beceri artışı; iç terfi (plan 06 §5) | `MarketStaff` | Tasarım |
 | F05 | Şube müdürü | Hedef + yetki; sipariş/fiyat/personel sınırları içinde karar (plan 06 §4) | `MarketBranches` | Sırada |
 | F06 | Vardiya | Sabah/akşam, hafta sonu; İK planlar (plan) | `MarketStaff` | Tasarım |
@@ -115,7 +115,7 @@ Sahiplik (M, 28.09.2026): 3B model üretimi, mağaza modeli ve arayüz tasarım�
 | H06 | Yamyamlık | Yakın şubeler birbirinden müşteri çalar (plan) | `MarketBranches` | Sırada |
 | H07 | Formatlar | Mahalle marketi, indirim, süpermarket, premium, hipermarket… güç seviyesi değil (plan 04 §2) | `MarketBranches` | Tasarım |
 | H08 | Servis reyonları | Manav, kasap, fırın… reçete ve fire; dondu (G-021) | — | Tasarım |
-| H09 | Olaylar | Arıza, kesinti, denetim, düğün, kar, geri çağırma; günde en çok 1 büyük olay (C) | `MarketEvents` | Sırada |
+| H09 | Olaylar | Arıza, kesinti, denetim, düğün, kar, geri çağırma; günde en çok 1 büyük olay (C) | Derlenmedi (G-066) |
 
 ## I. Büyüme
 

@@ -93,6 +93,8 @@ private:
     TSharedRef<SWidget> DayReport();
     TSharedRef<SWidget> WeekReport();
     TSharedRef<SWidget> GoalList();
+    TSharedRef<SWidget> DecisionCard();   // G-066 waiting choice (story / event)
+    TSharedRef<SWidget> StoryCard();      // G-066 chapter goals, identity, last memory
 
 public:
     // Raporlar page: which tab is shown (the game opens the day tab when the shop closes).
