@@ -1,0 +1,11 @@
+{
+	"schemaVersion": 1,
+	"id": "shape_kucuk_kap",
+	"type": "shape",
+	"preset": "kucuk_kap",
+	"shape": "kase",
+	"diameterMm": 55,
+	"heightMm": 55,
+	"labelHeightMm": 45,
+	"mesh": "/Game/Products/Packages/shape_kucuk_kap/SM_shape_kucuk_kap.SM_shape_kucuk_kap"
+}

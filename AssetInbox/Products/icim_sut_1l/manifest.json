@@ -1,0 +1,14 @@
+{
+	"labelMode": "box_net",
+	"schemaVersion": 1,
+	"productId": "icim_sut_1l",
+	"package": "box_95x64x195",
+	"labels":
+	{
+		"net": "Labels/net.jpg"
+	},
+	"materials": [
+		"/Game/Products/Items/icim_sut_1l/MI_icim_sut_1l.MI_icim_sut_1l"
+	],
+	"publishedAt": "2026-09-28T09:20:24.163Z"
+}

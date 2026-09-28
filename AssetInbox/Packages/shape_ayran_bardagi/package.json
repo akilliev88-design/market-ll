@@ -1,0 +1,11 @@
+{
+	"schemaVersion": 1,
+	"id": "shape_ayran_bardagi",
+	"type": "shape",
+	"preset": "ayran_bardagi",
+	"shape": "kase",
+	"diameterMm": 70,
+	"heightMm": 75,
+	"labelHeightMm": 65,
+	"mesh": "/Game/Products/Packages/shape_ayran_bardagi/SM_shape_ayran_bardagi.SM_shape_ayran_bardagi"
+}

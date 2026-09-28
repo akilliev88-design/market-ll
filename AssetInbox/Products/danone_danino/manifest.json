@@ -1,0 +1,17 @@
+{
+	"labelMode": "model_uv",
+	"schemaVersion": 1,
+	"productId": "danone_danino",
+	"package": "shape_kucuk_kap",
+	"labels":
+	{
+		"label": "Labels/label.jpg",
+		"cap": "Labels/cap.jpg"
+	},
+	"materials": [
+		"/Game/Products/Items/danone_danino/MI_danone_danino.MI_danone_danino",
+		"/Game/Products/Items/danone_danino/MI_danone_danino_govde.MI_danone_danino_govde",
+		"/Game/Products/Items/danone_danino/MI_danone_danino_Kapak.MI_danone_danino_Kapak"
+	],
+	"publishedAt": "2026-09-28T15:52:02.710Z"
+}

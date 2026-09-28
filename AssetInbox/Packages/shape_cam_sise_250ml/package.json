@@ -1,0 +1,11 @@
+{
+	"schemaVersion": 1,
+	"id": "shape_cam_sise_250ml",
+	"type": "shape",
+	"preset": "cam_sise_250ml",
+	"shape": "sise",
+	"diameterMm": 60,
+	"heightMm": 225,
+	"labelHeightMm": 60,
+	"mesh": "/Game/Products/Packages/shape_cam_sise_250ml/SM_shape_cam_sise_250ml.SM_shape_cam_sise_250ml"
+}

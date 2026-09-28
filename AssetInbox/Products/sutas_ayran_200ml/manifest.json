@@ -1,0 +1,17 @@
+{
+	"labelMode": "model_uv",
+	"schemaVersion": 1,
+	"productId": "sutas_ayran_200ml",
+	"package": "shape_ayran_bardagi",
+	"labels":
+	{
+		"label": "Labels/label.jpg",
+		"cap": "Labels/cap.jpg"
+	},
+	"materials": [
+		"/Game/Products/Items/sutas_ayran_200ml/MI_sutas_ayran_200ml.MI_sutas_ayran_200ml",
+		"/Game/Products/Items/sutas_ayran_200ml/MI_sutas_ayran_200ml_govde.MI_sutas_ayran_200ml_govde",
+		"/Game/Products/Items/sutas_ayran_200ml/MI_sutas_ayran_200ml_Kapak.MI_sutas_ayran_200ml_Kapak"
+	],
+	"publishedAt": "2026-09-28T09:27:23.249Z"
+}

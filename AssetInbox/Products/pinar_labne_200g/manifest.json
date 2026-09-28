@@ -1,0 +1,17 @@
+{
+	"labelMode": "model_uv",
+	"schemaVersion": 1,
+	"productId": "pinar_labne_200g",
+	"package": "shape_labne_kasesi",
+	"labels":
+	{
+		"label": "Labels/label.jpg",
+		"cap": "Labels/cap.jpg"
+	},
+	"materials": [
+		"/Game/Products/Items/pinar_labne_200g/MI_pinar_labne_200g.MI_pinar_labne_200g",
+		"/Game/Products/Items/pinar_labne_200g/MI_pinar_labne_200g_govde.MI_pinar_labne_200g_govde",
+		"/Game/Products/Items/pinar_labne_200g/MI_pinar_labne_200g_Kapak.MI_pinar_labne_200g_Kapak"
+	],
+	"publishedAt": "2026-09-28T15:28:19.340Z"
+}

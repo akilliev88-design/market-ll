@@ -1,0 +1,11 @@
+{
+	"schemaVersion": 1,
+	"id": "shape_labne_kasesi",
+	"type": "shape",
+	"preset": "labne_kasesi",
+	"shape": "kase",
+	"diameterMm": 95,
+	"heightMm": 55,
+	"labelHeightMm": 45,
+	"mesh": "/Game/Products/Packages/shape_labne_kasesi/SM_shape_labne_kasesi.SM_shape_labne_kasesi"
+}

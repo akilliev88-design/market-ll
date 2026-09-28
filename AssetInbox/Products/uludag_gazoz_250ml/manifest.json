@@ -1,0 +1,16 @@
+{
+	"labelMode": "model_uv",
+	"schemaVersion": 1,
+	"productId": "uludag_gazoz_250ml",
+	"package": "shape_cam_sise_250ml",
+	"labels":
+	{
+		"label": "Labels/label.jpg"
+	},
+	"materials": [
+		"/Game/Products/Items/uludag_gazoz_250ml/MI_uludag_gazoz_250ml.MI_uludag_gazoz_250ml",
+		"/Game/Products/Items/uludag_gazoz_250ml/MI_uludag_gazoz_250ml_cam.MI_uludag_gazoz_250ml_cam",
+		"/Game/Products/Items/uludag_gazoz_250ml/MI_uludag_gazoz_250ml_kapak.MI_uludag_gazoz_250ml_kapak"
+	],
+	"publishedAt": "2026-09-28T16:12:31.467Z"
+}

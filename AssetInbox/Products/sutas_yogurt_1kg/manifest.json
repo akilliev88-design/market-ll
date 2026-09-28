@@ -1,0 +1,17 @@
+{
+	"labelMode": "model_uv",
+	"schemaVersion": 1,
+	"productId": "sutas_yogurt_1kg",
+	"package": "shape_yogurt_kovasi_1kg",
+	"labels":
+	{
+		"label": "Labels/label.jpg",
+		"cap": "Labels/cap.jpg"
+	},
+	"materials": [
+		"/Game/Products/Items/sutas_yogurt_1kg/MI_sutas_yogurt_1kg.MI_sutas_yogurt_1kg",
+		"/Game/Products/Items/sutas_yogurt_1kg/MI_sutas_yogurt_1kg_govde.MI_sutas_yogurt_1kg_govde",
+		"/Game/Products/Items/sutas_yogurt_1kg/MI_sutas_yogurt_1kg_Kapak.MI_sutas_yogurt_1kg_Kapak"
+	],
+	"publishedAt": "2026-09-28T09:30:44.719Z"
+}

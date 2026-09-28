@@ -1,0 +1,11 @@
+{
+	"schemaVersion": 1,
+	"id": "shape_teneke_330ml",
+	"type": "shape",
+	"preset": "teneke_330ml",
+	"shape": "teneke",
+	"diameterMm": 66,
+	"heightMm": 115,
+	"labelHeightMm": 100,
+	"mesh": "/Game/Products/Packages/shape_teneke_330ml/SM_shape_teneke_330ml.SM_shape_teneke_330ml"
+}

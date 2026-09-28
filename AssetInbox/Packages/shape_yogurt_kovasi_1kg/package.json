@@ -1,0 +1,11 @@
+{
+	"schemaVersion": 1,
+	"id": "shape_yogurt_kovasi_1kg",
+	"type": "shape",
+	"preset": "yogurt_kovasi_1kg",
+	"shape": "kase",
+	"diameterMm": 140,
+	"heightMm": 90,
+	"labelHeightMm": 80,
+	"mesh": "/Game/Products/Packages/shape_yogurt_kovasi_1kg/SM_shape_yogurt_kovasi_1kg.SM_shape_yogurt_kovasi_1kg"
+}
