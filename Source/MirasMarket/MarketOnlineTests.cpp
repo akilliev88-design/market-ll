@@ -144,15 +144,15 @@ bool FMarketPaymentsTest::RunTest(const FString& Parameters)
     FString Message;
 
     TestTrue(TEXT("Cards spread over the years"), MarketPayments::CardShare(1) < MarketPayments::CardShare(MarketCalendar::GameDayOf(2021, 1, 1)));
-    TestEqual(TEXT("A child pays cash"), MarketPayments::Choose(S, ESegment::Child, 0.f), EMethod::Cash);
-    TestEqual(TEXT("An office worker wants a card, there is no POS"), MarketPayments::Choose(S, ESegment::Worker, 0.f), EMethod::NoCard);
+    TestTrue(TEXT("A child pays cash"), MarketPayments::Choose(S, ESegment::Child, 0.f) == EMethod::Cash);
+    TestTrue(TEXT("An office worker wants a card, there is no POS"), MarketPayments::Choose(S, ESegment::Worker, 0.f) == EMethod::NoCard);
     TestTrue(TEXT("Some leave"), MarketPayments::LeavesWithoutCard(S, 0.1f));
     TestFalse(TEXT("Others pay cash"), MarketPayments::LeavesWithoutCard(S, 0.9f));
     TestFalse(TEXT("Meal cards need a POS"), MarketPayments::SetMealCard(S, true, Message));
     TestTrue(TEXT("POS"), MarketDirector::Command(S, Products, TEXT("Card"), 1, Message));
     TestTrue(TEXT("Meal cards"), MarketDirector::Command(S, Products, TEXT("MealCard"), 1, Message));
-    TestEqual(TEXT("With a POS the card works"), MarketPayments::Choose(S, ESegment::Worker, 0.35f), EMethod::Card);
-    TestEqual(TEXT("Meal card first for office workers"), MarketPayments::Choose(S, ESegment::Worker, 0.f), EMethod::MealCard);
+    TestTrue(TEXT("With a POS the card works"), MarketPayments::Choose(S, ESegment::Worker, 0.35f) == EMethod::Card);
+    TestTrue(TEXT("Meal card first for office workers"), MarketPayments::Choose(S, ESegment::Worker, 0.f) == EMethod::MealCard);
     TestTrue(TEXT("Card shoppers spend a little more"), MarketPayments::BudgetFactor(S, ESegment::Worker) > 1.f);
 
     // A card basket: not in the drawer today, in the bank tomorrow, minus 1.8 %.

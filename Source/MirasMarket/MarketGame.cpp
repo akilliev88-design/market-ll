@@ -1087,6 +1087,15 @@ void AMarketGameMode::SpawnCustomer()
     C.BudgetLeft = FMath::RoundToInt64(MarketCustomers::VisitBudget(Segment, State.Day) * MarketDirector::BudgetFactor(State, C.Segment)); // cards (G-069)
     C.ShoppingList = MarketCustomers::BuildList(State, Products, Segment, Random);
     if (C.ShoppingList.Num() == 0) return;
+    // G-070: the person's own walk, and the list put in a walking order (families keep theirs).
+    C.Gait = MarketMotion::MakeGait(Segment, C.CustomerId, State.RivalSeed);
+    {
+        TArray<FVector> Stops;
+        for (int32 Wanted : C.ShoppingList) Stops.Add(CustomerBrowseLocation(Wanted));
+        TArray<int32> Ordered;
+        for (int32 Index : MarketMotion::OrderVisits(Stops, FVector(0, -230, 0), FVector(405, 60, 0), C.Gait.Style)) Ordered.Add(C.ShoppingList[Index]);
+        C.ShoppingList = Ordered;
+    }
     C.Product = C.ShoppingList[0];
     if (AActor* Human = MarketPeople::Spawn(GetWorld(), People, FVector(0, -230, 0), Random.RandRange(0, 1 << 20), C.Shopper))
     {
@@ -1266,6 +1275,30 @@ void AMarketGameMode::Tick(float DeltaTime)
             MarketBasket::RecordVisit(State, C.CustomerId, C.ShoppingList.Num(), 0, true);
             C.Actor->Destroy(); Customers.RemoveAt(I); continue;
         }
+        // G-070: standing still (looking around, chatting with a neighbour).
+        if (C.Pause > 0.f)
+        {
+            C.Pause -= DeltaTime;
+            if (C.bHuman)
+            {
+                FVector Direction = C.Shopper.MoveDirection;
+                bool bMoving = false;
+                C.Actor->SetActorLocation(MarketPeople::MoveToward(C.Shopper, C.Actor->GetActorLocation(), C.Actor->GetActorLocation(), 0.f, DeltaTime, Direction, bMoving));
+                MarketPeople::Update(C.Actor, People, C.Shopper, Direction, false, MetaHumanYawOffset, DeltaTime);
+            }
+            ++I; continue;
+        }
+        if (C.Stage == 0 && C.Browse <= 0.f && Random.FRand() < C.Gait.PauseChance * DeltaTime) { C.Pause = C.Gait.PauseSeconds; ++I; continue; }
+        if (!C.bChatted && C.bReturning && C.Stage == 0)
+            for (int32 J = 0; J < Customers.Num(); ++J)
+            {
+                FMarketCustomer& Other = Customers[J];
+                if (J == I || Other.bChatted || !Other.bReturning || Other.Stage != 0 || !Other.Actor) continue;
+                if (FVector::Dist2D(C.Actor->GetActorLocation(), Other.Actor->GetActorLocation()) > 120.f) continue;
+                C.bChatted = Other.bChatted = true; // one meeting per visit
+                if (MarketMotion::Chats(C.Gait, Other.Gait, Random.FRand())) C.Pause = Other.Pause = MarketMotion::ChatSeconds(Random.FRand());
+                break;
+            }
         FVector Target;
         if (C.Stage == 0) Target = CustomerBrowseLocation(C.Product) + FVector(0, 0, 65);
         else if (C.Stage == 1) Target = FVector(405, 60 + QueueSize() * 62, 65);
@@ -1283,14 +1316,35 @@ void AMarketGameMode::Tick(float DeltaTime)
         if (bOnRoute) Target = C.Route[0];
         if (C.bHuman) Target.Z = 0.f; // MetaHuman origin is at the feet
         const FVector From = C.Actor->GetActorLocation();
+        // G-070: the person's pace, a little drift, and room for the others (keep right, slow down behind someone).
+        int32 BasketUnits = 0;
+        for (const FMarketBasketItem& Item : C.Basket) BasketUnits += Item.Quantity;
+        float Pace = MarketMotion::Speed(C.Gait, Profile.WalkSpeed, BasketUnits, FMath::Clamp(DayTime / 240.f, 0.f, 1.f));
+        FVector Step = Target;
+        if (C.Stage != 2)
+        {
+            TArray<FVector> Others;
+            for (int32 J = 0; J < Customers.Num(); ++J) if (J != I && Customers[J].Actor) Others.Add(Customers[J].Actor->GetActorLocation());
+            for (const FMarketWorker& W : Workers) if (W.Actor) Others.Add(W.Actor->GetActorLocation());
+            float Yield = 1.f;
+            Step = MarketMotion::Steer(From, Target, Others, C.Gait.PersonalSpace, Yield);
+            Pace *= Yield;
+            C.WalkTime += DeltaTime;
+            const FVector Along = FVector(Target.X - From.X, Target.Y - From.Y, 0.f);
+            if (Along.Size() > 80.f)
+            {
+                const FVector Side = FVector(-Along.Y, Along.X, 0.f).GetSafeNormal();
+                Step += Side * MarketMotion::SwayOffset(C.Gait, C.WalkTime);
+            }
+        }
         if (C.bHuman)
         {
             FVector Direction;
             bool bMoving = false;
-            C.Actor->SetActorLocation(MarketPeople::MoveToward(C.Shopper, From, Target, Profile.WalkSpeed, DeltaTime, Direction, bMoving));
+            C.Actor->SetActorLocation(MarketPeople::MoveToward(C.Shopper, From, Step, Pace, DeltaTime, Direction, bMoving));
             MarketPeople::Update(C.Actor, People, C.Shopper, Direction, bMoving, MetaHumanYawOffset, DeltaTime);
         }
-        else C.Actor->SetActorLocation(FMath::VInterpConstantTo(From, Target, DeltaTime, Profile.WalkSpeed * 1.25f));
+        else C.Actor->SetActorLocation(FMath::VInterpConstantTo(From, Step, DeltaTime, Pace * 1.25f));
         if (bOnRoute)
         {
             if (FVector::Dist2D(C.Actor->GetActorLocation(), Target) < 8) C.Route.RemoveAt(0);
@@ -1299,11 +1353,29 @@ void AMarketGameMode::Tick(float DeltaTime)
         {
             if (C.Stage == 0)
             {
-                // Look at the shelf first: a retiree reads the labels, a child grabs and goes.
+                // Look at the shelf first: a retiree reads the labels, a child grabs and goes; a regular knows the
+                // shelf, an empty one means searching, a price above the rival's means comparing (G-070).
+                if (C.BrowseNeed < 0.f)
+                {
+                    const bool bOnShelf = State.Stock.IsValidIndex(C.Product) && State.Stock[C.Product].Shelf > ReservedUnits(C.Product);
+                    const float Rival = Products.IsValidIndex(C.Product) ? static_cast<float>(Products[C.Product].BasePrice) * RivalPriceFactor(C.Product) : 0.f;
+                    const float Ratio = Rival > 0.f && State.Stock.IsValidIndex(C.Product) ? static_cast<float>(State.Stock[C.Product].Price) / Rival : 0.f;
+                    C.BrowseNeed = MarketMotion::BrowseSeconds(Profile.BrowseSeconds, C.Gait.Style, C.bReturning, bOnShelf, Ratio);
+                }
                 C.Browse += DeltaTime;
-                if (C.Browse >= Profile.BrowseSeconds) { C.Browse = 0.f; ResolveCustomerItem(C); }
+                if (C.Browse >= C.BrowseNeed) { C.Browse = 0.f; C.BrowseNeed = -1.f; ResolveCustomerItem(C); }
             }
-            else if (C.Stage == 1) { C.Stage = 2; C.QueueTicket = NextQueueTicket++; }
+            else if (C.Stage == 1)
+            {
+                // Seeing the queue: with a small basket and little time, some put the basket down and leave (G-070).
+                if (MarketMotion::Balks(static_cast<MarketCustomers::ESegment>(C.Segment), QueueSize(), BasketUnits, Random.FRand()))
+                {
+                    MarketDemand::RecordWaitingLoss(State);
+                    MarketBasket::RecordVisit(State, C.CustomerId, C.ShoppingList.Num(), 0, true);
+                    C.Actor->Destroy(); Customers.RemoveAt(I); continue;
+                }
+                C.Stage = 2; C.QueueTicket = NextQueueTicket++;
+            }
             else if (C.Stage == 3)
             {
                 ++State.Lost;

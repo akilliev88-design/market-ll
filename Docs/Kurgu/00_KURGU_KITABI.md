@@ -98,6 +98,28 @@ Müşteri bir **segment** ve bir **alışveriş amacı** ile gelir (`MarketCusto
 
 Semt değişince segment payları değişir (Üniversite yolunda öğrenci %40). Bütçe maaş gününde artar, ay sonunda düşer. Müşteri listesini semt + mevsim + hava + bayram ağırlıklarıyla seçer. Pahalı gelen ürünü alma ihtimali segmentin duyarlılığına göre değişir. Sadakat (G-053) ve rakip fiyatı (G-054) korunur.
 
+**Hareket (G-070, `MarketMotion`, uygulandı, derlenmedi).** Her mahalle sakininin sabit bir yürüyüşü vardır:
+
+| Kim | Yürüyüş |
+|---|---|
+| Emekliler | Çoğu ağır adımlı yürür, durup etrafa bakar ve sohbeti sever |
+| Aileler | Oyalanır, sık durur, listeyi yazdığı sırayla gezer |
+| İş çıkışı | Seri yürür, kapanışa doğru hızlanır |
+| Öğrenciler | Yarısı telefona dalıktır: yalpalar, raf önünde uzun kalır |
+| Çocuklar | Koşturur ve önce istediği şeye gider |
+
+Dolu sepet yavaşlatır. Diğerleri listelerini en kısa yürüyüş sırasına koyar (en yakın raf, sonra 2-opt).
+
+Raf önünde:
+
+- Tanıdık müşteri yeri bilir, hızlıdır.
+- Raf boşsa aramaya zaman harcar.
+- Fiyat rakipten pahalıysa ürünü alıp karşılaştırır.
+
+Kasada kuyruk sepetine göre uzunsa bazıları sepeti bırakır. İş çıkışı ve çocuklar en az bekleyenlerdir, dolu sepetli emekli en çok bekleyendir.
+
+Kalabalıkta herkes kişisel alanını korur: öndekinin arkasında yavaşlar, karşıdan gelene sağdan geçer. Reyon dışına çıkmaz. İki sadık müşteri karşılaşınca 3–7 saniye sohbet edebilir. En çok iki emekli sohbet eder; iş çıkışı ve çocuk pek durmaz.
+
 **Veresiye:** tanınan müşteriler (sadakat havuzu) ödeme gününe kadar deftere yazdırabilir. Oyuncu kişi başı limit koyar. Ödemeler maaş günlerinde gelir; bazıları gecikir, çok azı hiç ödemez. Veresiye sadakati ve Nermin teyzenin gözündeki itibarı artırır ama nakdi bağlar (`MarketCredit`).
 
 ## 7. Rakipler
@@ -196,7 +218,7 @@ Sonlar: **Sattın** (2. bölüm), **Mahallenin dükkânı** (tek dükkânda kal�
 | Tazelik, veresiye, finans | `MarketFreshness`, `MarketCredit`, `MarketFinance` | G-067 |
 | Şubeler ve otomatik raf dizimi | `MarketBranches`, `MarketLayout` | G-068 |
 | İnternet mağazacılığı ve ödeme | `MarketOnline`, `MarketPayments` | G-069, derlenmedi |
-| İnsan hareketi zekâsı | `MarketPeople` | G-070 |
+| İnsan hareketi zekâsı | `MarketMotion` (+ `MarketPeople` animasyon) | G-070, derlenmedi |
 | Stratejik ilerletme ve zorluk | `MarketDirector` | G-071 |
 | Şirket büyümesi | `MarketCompany` | G-072 |
 | Oyuna bağlama noktası | `MarketDirector` | her adımda büyür |

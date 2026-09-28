@@ -2,6 +2,24 @@
 
 En yeni giriş en üstte. Biçim: tarih — ajan — başlık, ardından **Yapılan**, **Doğrulama**, **Sıradaki**.
 
+## 28.09.2026 — Claude (Claude Code, bulut) — İnsan hareketi zekâsı G-070 — DERLENMEDİ
+
+**Yapılan**
+- `MarketMotion` (dünyadan bağımsız): her mahalle sakininin sabit yürüme tarzı ve hızı (ağır adımlı emekli, oyalanan aile, seri iş çıkışı, telefona dalık öğrenci, koşturan çocuk). Dolu sepet yavaşlatır; acelesi olan kapanışta hızlanır.
+- Alışveriş listesi yürüme sırasına konur (en yakın raf + 2-opt). Aile listeyi yazdığı sırayla gezer, çocuk önce isteğine gider.
+- Raf önü süresi: tanıdık müşteri hızlıdır, boş rafta aranır, pahalı üründe karşılaştırılır.
+- Kuyruğu görünce vazgeçme vardır (sepete ve segmente göre).
+- Kalabalıkta kişisel alan korunur: öndekinin arkasında yavaşlanır, karşıdan gelene sağdan geçilir, en fazla 25 cm sapılır.
+- Etrafa bakma duraklamaları ve iki tanıdığın 3–7 saniyelik sohbeti.
+- `MarketGame.cpp`: `SpawnCustomer` yürüyüşü ve rota sırasını kurar. `Tick` içinde duraklama/sohbet, hız, kalabalık, yalpalama, raf süresi ve kuyruktan vazgeçme işler. MetaHuman animasyonu (`MarketPeople`) gerçek hızı izlediği için adım hızı kendiliğinden uyar.
+- Kurgu kitabı §6, karar C10, AGENTS haritası ve GOREVLER güncellendi. `Test.ps1` en az 44 test bekler.
+
+**Varsayımlar**: sağdan geçme (Türkiye trafiği); kuyruk hoşgörüsü iş çıkışı/çocuk 2, emekli 5, diğerleri 3 kişi, her sepet adedi +0,5 (en çok 8 adet).
+
+**Doğrulama**: Unreal yok, **derlenmedi**. Taklit ortamında 26 test geçti. Smoke'ta raf önü süresi ve kuyruktan vazgeçme satış sayısını biraz düşürebilir.
+
+**Sıradaki**: G-071 stratejik ilerletme ve zorluk, G-072 şirket büyümesi.
+
 ## 28.09.2026 — Claude (Claude Code, bulut) — İnternet mağazacılığı ve ödeme G-069 — DERLENMEDİ
 
 **Yapılan**

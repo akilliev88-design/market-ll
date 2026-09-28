@@ -45,6 +45,7 @@ Sahiplik (M, 28.09.2026): 3B model üretimi, mağaza modeli ve arayüz tasarım�
 | C04 | Sadakat | 24 kişilik mahalle havuzu (G-053); veresiye ve sadakat kartı ile genişler | `MarketBasket`, `MarketCredit` | Kısmen |
 | C05 | Veresiye | Tanınan müşteriye limitli; maaş gününde tahsilat, az sayıda batık (C; plan) | Derlenmedi (G-067) |
 | C06 | Bekleme ve kalabalık | 90 sn sabır, 9 kişi sınırı (mevcut); segmente göre sabır (C) | Derlenmedi (G-062) |
+| C10 | Yürüyüş ve hareket | Kişiye sabit yürüme tarzı (ağır adımlı, seri, oyalanan, telefona dalık, koşturan); kısa rota sırası (aile yazdığı sırayla, çocuk önce isteğine); raf önü süresi (tanıdık hızlı, boş raf arama, pahalıda karşılaştırma); kuyruğu görünce vazgeçme; kişisel alan, sağdan geçme, arkada yavaşlama; tanıdıklar sohbet eder (C) | Derlenmedi (G-070) |
 | C07 | İade ve şikâyet | Bozuk/yanlış ürün iadesi; iade kabulü memnuniyet, reddi itibar kaybı (plan 01 §11) | Derlenmedi (G-066) |
 | C08 | Ödeme yöntemleri | Nakit, kredi kartı (POS komisyonu %1,5–2, ertesi gün hesaba), yemek kartı (2013 sonrası yaygın, komisyon yüksek). Kart kabulü bazı segmentlerin sepetini büyütür (C; plan 01 §11) | `MarketPayments` | Derlenmedi (G-069) |
 | C09 | Sadakat kartı / uygulama | İlçe zinciri aşamasında; puan maliyeti karşılığında tekrar ziyaret (plan) | `MarketPromotions` | Tasarım |

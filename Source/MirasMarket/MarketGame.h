@@ -8,6 +8,7 @@
 #include "Planogram.h"
 #include "MarketVisuals.h"
 #include "MarketPeople.h"
+#include "MarketMotion.h"
 #include "PlanogramEdit.h"
 #include "StaffPlanner.h"
 #include "MarketDemand.h"
@@ -120,6 +121,12 @@ struct FMarketCustomer
     TArray<FVector> Route;
     int32 RouteStage = -1;
     int32 RouteProduct = INDEX_NONE;
+    // How this person moves (MarketMotion, G-070): walking style, a stop to look around or chat, time on the shelf.
+    MarketMotion::FGait Gait;
+    float Pause = 0.f;
+    float WalkTime = 0.f;
+    float BrowseNeed = -1.f;  // seconds needed at the current shelf (-1 = not decided yet)
+    bool bChatted = false;
 };
 
 enum class EWorkerStage : uint8 { Idle, ToDepot, Loading, ToShelf, Working, ToDelivery, DeliveryLoading, DeliveryToDepot, DeliveryUnloading };
