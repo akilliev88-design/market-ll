@@ -1,8 +1,10 @@
 # Güncel durum
 
-Son güncelleme: 28.09.2026 — Claude (G-060 personel ve muhasebe, DERLENMEDİ)
+Son güncelleme: 28.09.2026 — Claude (G-060…G-065 arka plan sistemleri, DERLENMEDİ)
 
 ## Kısaca
+
+**28.09.2026 kararı (Mustafa):** 3B model üretimi, mağaza modeli ve arayüz tasarımı dışında oyunun bütün kurgusu ve arka plan zekâsı Claude'da. Kurgu kitabı ve karar tablosu: `Docs/Kurgu/00_KURGU_KITABI.md`, `Docs/Kurgu/01_KARARLAR.md`. Yeni sistemler `MarketDirector` üzerinden oyuna bağlanır.
 
 v0.2 geliştirme. **Yeni oyun rafları boş açılır**; başlangıç stoğu depodadır ve oyuncu R modu/E ile yerleştirmeyi doğrudan deneyebilir. Raflar elle ve önizlemeyle dizilir; **reyon görevlileri** (G-049 geçti) boş rafları depodan doldurur, rafta olmayan ürünü kendi reyonuna dizer ve dar bloğu genişletir. Blender mağaza kiti yedi parçaya çıktı: gondol/duvar rafı, dökme ada, servisli açık tavan, ayrıntılı kasa, yönetim masası, cam kapılı soğutucu ve manav adası. Otomatik yerleştirme yok; yeni ürün "Rafta değil" durumunda başlar.
 
@@ -87,9 +89,11 @@ G-059 doğrulandı: M ile tıklanabilir yönetim menüsü (oyun durur); sipariş
 
 **G-060 (Claude, derlenmedi):** personel artık kişi kişi (`MarketStaff.*`, `Docs/PERSONEL_VE_MUHASEBE.md`). Değişen dosyalar: `MarketEconomy.h/.cpp` (kadro, aday, defter alanları; `DailyPayroll`; siparişler `Purchases`'a yazılır), `MarketStaff.h/.cpp` (yeni), `MarketStaffTests.cpp` (yeni, 3 test), `MarketGame.h/.cpp` (H/J/K kişiyle, kasiyer hızı, gün sonunda `MarketStaff::CloseDay`, yüklemede `Migrate`), `MarketWorkers.cpp` (görevli hızı/taşıma/acemi yalnız doldurur, adıyla yürür), `MarketMenu.cpp` (`StaffCommand`), `MarketMenuWidget.cpp` (Personel sayfası yeniden, gün raporunda PERSONEL VE VERGİ), `Test.ps1` en az 27 test. Derleme hatası çıkarsa en olası yerler Slate sözdizimi (`StaffPage`) ve `MarketStaff.cpp` içindeki UE API kullanımları.
 
+**G-061…G-065 (Claude, derlenmedi):** takvim/hava/bayram (`MarketCalendar`), müşteri segmentleri (`MarketCustomers`), tedarik/enflasyon (`MarketPrices`, `MarketSuppliers`), oyuncu kampanyaları (`MarketPromotions`), rakip şirketler ve pay modeli (`MarketCompetitors`), tek bağlantı noktası (`MarketDirector`). Hepsi saf mantık + test; taklit ortamında (Linux g++) derlenip testleri geçti. Unreal derlemesi yapılmadı. Oyun kodunda değişen yerler: `MarketGame.cpp` (müşteri doğuşu, raf önü bakma, sabır, bütçe, kampanya fiyatı, fiyat yenileme, sipariş vadesi, etiket), `MarketGame.h`, `MarketMenu.cpp` (`StaffCommand` → `MarketDirector::Command`), `MarketMenuWidget.cpp` (Sipariş: toptancı kartı; Ürünler: kampanya düğmeleri; Rakipler: şirket satırları; Raporlar: işletme haberleri), `MarketHudWidget.cpp` (tarih). `Test.ps1` en az 34 test.
+
 ## Sıradaki adımlar
 
-00. Codex/Mustafa: G-060'ı derle ve test et (`DERLE.cmd /q`, `TEST.cmd /q` → 27, `SmokeTest.ps1`). Sonra oyunda M → Personel: aday al, Necati Bey ile anlaş, 7. günün vergisini gör.
+00. Codex/Mustafa: G-060…G-065'i derle ve test et (`DERLE.cmd /q`, `TEST.cmd /q` → 34, `SmokeTest.ps1`). Derleme hatası en çok Slate menü eklerinde ve UE API ayrıntılarında beklenir. Sonra oyunda: M → Personel (aday al, müşavir), Sipariş (toptancı kartı), Ürünler (kampanya), Rakipler (şirketler); akşam raporunda yarının hava/bayram tahmini.
 0. Mustafa: oyunda MetaHuman ayak basışını yeniden dene; masada birkaç ürünü B ile listeye ekle, N ile onayla, günü kapat ve arka kapıdaki koliyi E ile depoya taşı.
 1. Mustafa: M ile menüyü aç, günü kapat, raporu gör. Sonra G-055 oyun testi: borç, rakip haberleri ve hafta raporu dengesi.
 2. Paralel (Mustafa): İlk Hafta için 20–40 ürünü gerçek ambalajıyla hazırla; 97 ürünün hepsi gerekmiyor.

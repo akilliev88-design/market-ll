@@ -2,6 +2,24 @@
 
 En yeni giriş en üstte. Biçim: tarih — ajan — başlık, ardından **Yapılan**, **Doğrulama**, **Sıradaki**.
 
+## 28.09.2026 — Claude (Claude Code, bulut) — Arka plan sistemleri G-061…G-065 — DERLENMEDİ
+
+**Mustafa**: "3B model, mağaza modeli ve arayüz tasarımı dışında oyunun bütün kurgusu ve arka plan zekâsı sende; müşteri yürüyüşünden alışveriş davranışına, online satışın sonuçlarına kadar her şey." Kararlar dosyası istendi.
+
+**Yapılan**
+- `Docs/Kurgu/00_KURGU_KITABI.md` (hikâye, zaman, yer, karakterler, bölümler, müşteri, rakip, tedarik, mağaza, şube, finans, büyüme) ve `Docs/Kurgu/01_KARARLAR.md` (bütün konular tek tabloda, internet mağazacılığı dahil; durum sütunu).
+- G-061 `MarketCalendar` + `MarketGoods` + `MarketDirector`: gün 1 = 7 Mart 2011 Pzt; hava, gerçek bayram/tatil, maaş günü; trafik, kategori talebi, sipariş önerisi yarına bakar; akşam raporunda yarının tahmini; HUD/menüde tarih.
+- G-062 `MarketCustomers`: 6 segment; saat/hafta sonu/yaz; zevk × takvim ağırlıklı liste; adet, bütçe, fiyat toleransı, sabır, yürüme hızı, raf önünde bakma.
+- G-063 `MarketPrices` + `MarketSuppliers`: yıllık TÜFE yaklaşığı, aylık zam listesi, asgari ücret endeksi; Selim güven/vade/iskonto, Özdemir Toptan; zammı rafa yansıtma.
+- G-064 `MarketPromotions`: reyon indirimi, 3 al 2 öde, broşür, gondol başı, toptancı destekli teklif; sonuç raporu.
+- G-065 `MarketCompetitors`: ilçe pay modeli (fiyat, doluluk, hizmet, sadakat, kampanya, yakınlık) paya ve trafiğe yön verir; Bereket'in fiyat savaşları; zincir açılışları; personel ayartma.
+
+**Varsayımlar**: 2011–2024 enflasyon/asgari ücret/kredi faizi yaklaşık tarihsel, 2025+ kurgu; vergi oyun modeli; Şok 15 Temmuz 2011'de ilçeye girer; pay dengesi 60 günlük simülasyonla ayarlandı (adil ~%25, iyi oyun %35-40).
+
+**Doğrulama**: Unreal yok, **derlenmedi**. Saf mantık Linux g++ + Unreal taklidiyle `-Wall -Wextra` derlendi; 14 test (yeni 9 + eski 5) geçti. Slate ve dünya kodu derlenmedi.
+
+**Sıradaki**: Codex: DERLE/TEST (34)/Smoke. Claude: hikâye ve olaylar (G-066), tazelik/veresiye/finans (G-067), şubeler ve otomatik raf dizilimi (G-068), online satış ve ödeme (G-069), hareket zekâsı (G-070), şirket büyümesi.
+
 ## 28.09.2026 — Claude (Claude Code, bulut) — Personel ve muhasebe (G-060) — DERLENMEDİ
 
 **Mustafa**: "Modellerle uğraşmayacağız; arka planda dönen kurguyu kur: mali müşavir, İK müdürü, kasiyer, reyon görevlisi nasıl davranacak."
