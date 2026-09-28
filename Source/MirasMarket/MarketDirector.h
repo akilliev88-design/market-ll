@@ -30,7 +30,8 @@ namespace MarketDirector
     // After a successful FMarketState::SubmitOrder: wholesaler volume and payment terms. Returns an extra line.
     FString OnOrder(FMarketState& State, int64 Bill);
     // Management decisions of the background systems that are not staff decisions. False + message when nothing
-    // changed. Actions: Supplier (Arg = MarketSuppliers::ESupplier), PayBills, PassOnPriceRise.
+    // changed. Actions: Supplier (Arg = MarketSuppliers::ESupplier), PayBills, PassOnPriceRise,
+    // Discount10 / Discount20 / MultiBuy / Endcap (Arg = product), Flyer, StopPromotion (Arg = index), AcceptOffer, DeclineOffer.
     bool Command(FMarketState& State, const TArray<FMarketProduct>& Products, FName Action, int32 Arg, FString& OutMessage);
     // Evening report of the background systems: wholesalers, staff, tax, ...
     FString ReportText(const FMarketState& State);

@@ -1,6 +1,7 @@
 #include "MarketSuppliers.h"
 #include "MarketCalendar.h"
 #include "MarketPrices.h"
+#include "MarketPromotions.h"
 
 namespace MarketSuppliers
 {
@@ -70,10 +71,11 @@ int32 MarketSuppliers::TermsDays(const FMarketState& State, ESupplier Supplier)
     return A->Trust >= LongTermsTrust ? 14 : A->Trust >= TermsTrust ? 7 : 0;
 }
 
-int64 MarketSuppliers::UnitCost(const FMarketState& State, const FMarketProduct& Base)
+int64 MarketSuppliers::UnitCost(const FMarketState& State, const FMarketProduct& Base, int32 Index)
 {
     const double Level = MarketPrices::ListLevel(State.Day);
-    return FMath::Max<int64>(1, FMath::RoundToInt64(Base.Cost * Level * (1.0 - Discount(State, Current(State)))));
+    const double Deal = Index != INDEX_NONE ? MarketPromotions::CostFactor(State, Index) : 1.0;
+    return FMath::Max<int64>(1, FMath::RoundToInt64(Base.Cost * Level * (1.0 - Discount(State, Current(State))) * Deal));
 }
 
 int64 MarketSuppliers::ListPrice(const FMarketState& State, const FMarketProduct& Base)
@@ -90,7 +92,7 @@ void MarketSuppliers::ApplyPrices(const FMarketState& State, const TArray<FMarke
         const FMarketProduct* Source = Base.IsValidIndex(I) && Base[I].Id == Out[I].Id ? &Base[I]
             : Base.FindByPredicate([&Out, I](const FMarketProduct& P) { return P.Id == Out[I].Id; });
         if (!Source) continue;
-        Out[I].Cost = UnitCost(State, *Source);
+        Out[I].Cost = UnitCost(State, *Source, I);
         Out[I].BasePrice = ListPrice(State, *Source);
     }
 }

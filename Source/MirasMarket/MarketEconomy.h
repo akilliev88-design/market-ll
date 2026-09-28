@@ -157,6 +157,23 @@ struct FMarketPayable
     UPROPERTY() int32 DueDay = 0;
 };
 
+// A promotion the player runs (MarketPromotions.h). Also used for the wholesaler's pending offer.
+USTRUCT()
+struct FMarketPromotion
+{
+    GENERATED_BODY()
+    UPROPERTY() uint8 Kind = 0;          // MarketPromotions::EKind
+    UPROPERTY() int32 Product = INDEX_NONE;
+    UPROPERTY() FString Category;        // aisle promotions
+    UPROPERTY() int32 Percent = 0;
+    UPROPERTY() int32 StartDay = 0;      // 0 = not started (an offer)
+    UPROPERTY() int32 EndDay = 0;        // last day in effect
+    UPROPERTY() int64 Cost = 0;          // money paid for it (flyers)
+    UPROPERTY() int32 Sold = 0;          // units of the promoted products sold while it ran
+    UPROPERTY() int32 Baseline = 0;      // units the same days sold before (the report compares)
+    UPROPERTY() int64 MarginLost = 0;    // price given away, kurus
+};
+
 // The accountant's books for the running tax period (one week) and the declared tax (MarketStaff.h).
 USTRUCT()
 struct FMarketBooks
@@ -261,6 +278,11 @@ struct FMarketState
     UPROPERTY() TArray<FMarketSupplierAccount> SupplierAccounts;
     UPROPERTY() TArray<FMarketPayable> Payables;
     UPROPERTY() double ShelfPriceLevel = 1.0;
+    // Promotions (MarketPromotions.h): running and finished-but-not-reported ones, the wholesaler's offer, and the
+    // marketing money spent today (paid at the day close with the other operating costs).
+    UPROPERTY() TArray<FMarketPromotion> Promotions;
+    UPROPERTY() FMarketPromotion Offer;
+    UPROPERTY() int64 Marketing = 0;
     // Evening report lines of the background systems (MarketDirector clears it at every day close).
     UPROPERTY() TArray<FString> DayNews;
 

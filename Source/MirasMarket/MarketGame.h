@@ -18,6 +18,7 @@
 #include "MarketStaff.h"
 #include "MarketDirector.h"
 #include "MarketCustomers.h"
+#include "MarketPromotions.h"
 #include "MarketGame.generated.h"
 
 class UTextRenderComponent;

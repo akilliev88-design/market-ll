@@ -100,4 +100,6 @@ public:
 private:
     void Do(FName Action, int32 Product = INDEX_NONE);
     void Go(int32 Page);
+    // Management decisions of the background systems (staff, wholesaler, promotions): AMarketGameMode::StaffCommand.
+    void Manage(FName Action, int32 Arg);
 };

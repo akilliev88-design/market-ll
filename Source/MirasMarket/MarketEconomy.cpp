@@ -128,7 +128,8 @@ int64 FMarketState::DailyPayroll() const
 void FMarketState::CloseDay()
 {
     // Rent-free family shop: electricity, water, bags and upkeep follow the monthly price list (MarketPrices).
-    LastOperatingCost = FMath::RoundToInt64(2200.0 * MarketPrices::ListLevel(Day)) + DailyPayroll();
+    LastOperatingCost = FMath::RoundToInt64(2200.0 * MarketPrices::ListLevel(Day)) + DailyPayroll() + Marketing;
+    Marketing = 0;
     // The second branch is an explicit aggregate prototype: net daily contribution.
     LastBranchProfit = bSecondStore ? FMath::RoundToInt64(800 + MarketShare * 35) : 0;
     LastRevenue = Revenue;
@@ -228,6 +229,7 @@ bool FMarketState::IsStructurallyValid() const
             Item.Warehouse + Item.Dock + Item.Incoming > StorageCapacity || Item.Price < 10) return false;
     }
     if (Books.TaxDue < 0 || Books.VatCarry < 0 || Purchases < 0 || NextEmployeeId < 1) return false;
+    if (Marketing < 0) return false;
     if (!FMath::IsFinite(ShelfPriceLevel) || ShelfPriceLevel <= 0.0 || Supplier >= static_cast<uint8>(MarketSuppliers::ESupplier::Count)) return false;
     for (const FMarketPayable& Bill : Payables) if (Bill.Amount < 0) return false;
     TSet<int32> EmployeeIds;

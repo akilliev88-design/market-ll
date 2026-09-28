@@ -43,7 +43,8 @@ namespace MarketSuppliers
     int32 TermsDays(const FMarketState& State, ESupplier Supplier);
 
     // What the shop pays for one unit today and the market's reference retail price (rivals price around it).
-    int64 UnitCost(const FMarketState& State, const FMarketProduct& Base);
+    // Index (catalog order) lets a wholesaler-funded promotion lower one product's cost (MarketPromotions).
+    int64 UnitCost(const FMarketState& State, const FMarketProduct& Base, int32 Index = INDEX_NONE);
     int64 ListPrice(const FMarketState& State, const FMarketProduct& Base);
     // Writes today's costs and list prices of the catalog (Base, 2011 values) into the game's products.
     void ApplyPrices(const FMarketState& State, const TArray<FMarketProduct>& Base, TArray<FMarketProduct>& Out);

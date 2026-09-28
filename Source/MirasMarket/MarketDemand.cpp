@@ -39,7 +39,7 @@ int32 MarketDemand::PickWanted(const FMarketState& State, float RollPool, float 
 }
 
 MarketDemand::FVisit MarketDemand::Decide(const FMarketState& State, const TArray<FMarketProduct>& Products, int32 Wanted, int32 Available,
-    float RivalDiscount, int32 WantedQuantity, float RollPrice, float MarketShareOverride, double PriceTolerance)
+    float RivalDiscount, int32 WantedQuantity, float RollPrice, float MarketShareOverride, double PriceTolerance, int64 OurPrice)
 {
     FVisit Visit;
     Visit.Product = Wanted;
@@ -53,7 +53,7 @@ MarketDemand::FVisit MarketDemand::Decide(const FMarketState& State, const TArra
         Visit.Result = EVisit::Empty;
         return Visit;
     }
-    const double Ratio = PriceRatio(State.Stock[Wanted].Price, RivalPrice(Products[Wanted], RivalDiscount));
+    const double Ratio = PriceRatio(OurPrice > 0 ? OurPrice : State.Stock[Wanted].Price, RivalPrice(Products[Wanted], RivalDiscount));
     const float Share = MarketShareOverride >= 0.f ? MarketShareOverride : State.MarketShare;
     if (RollPrice >= BuyChance(Ratio, Share, PriceTolerance))
     {

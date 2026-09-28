@@ -38,9 +38,10 @@ namespace MarketDemand
     // Which product a new shopper wants. Rolls are 0..1 (FRandomStream in the game, fixed values in tests).
     // INDEX_NONE only when there are no products at all.
     int32 PickWanted(const FMarketState& State, float RollPool, float RollIndex);
+    // OurPrice: the price the shopper actually pays (promotions, MarketPromotions::UnitPrice); 0 = the shelf price.
     // Available = shelf units not already in other shoppers' baskets. WantedQuantity 1..8 (segment, MarketCustomers).
     FVisit Decide(const FMarketState& State, const TArray<FMarketProduct>& Products, int32 Wanted, int32 Available,
-        float RivalDiscount, int32 WantedQuantity, float RollPrice, float MarketShareOverride = -1.f, double PriceTolerance = 0.0);
+        float RivalDiscount, int32 WantedQuantity, float RollPrice, float MarketShareOverride = -1.f, double PriceTolerance = 0.0, int64 OurPrice = 0);
     // Counts a shopper who did not buy (buyers are counted by FMarketState::Sell at the till).
     void RecordLoss(FMarketState& State, const FVisit& Visit);
     // Records the product reason without counting a whole lost shopper. Used by multi-item baskets;

@@ -3,10 +3,12 @@
 #include "MarketRivals.h"
 #include "MarketStaff.h"
 #include "MarketSuppliers.h"
+#include "MarketPromotions.h"
 
 float MarketDirector::TrafficFactor(const FMarketState& State, const TArray<FString>& Aisles)
 {
-    return MarketCalendar::TrafficFactor(State.Day, State.RivalSeed) * MarketRivals::TrafficFactor(State.Day, State.RivalSeed, Aisles);
+    return MarketCalendar::TrafficFactor(State.Day, State.RivalSeed) * MarketRivals::TrafficFactor(State.Day, State.RivalSeed, Aisles)
+        * MarketPromotions::TrafficFactor(State);
 }
 
 float MarketDirector::DemandWeight(const FMarketState& State, const FMarketProduct& Product)
@@ -74,6 +76,15 @@ bool MarketDirector::Command(FMarketState& State, const TArray<FMarketProduct>& 
             : FString(TEXT("Raf fiyatlar\u0131 zaten g\u00fcncel liste d\u00fczeyinde."));
         return Changed > 0;
     }
+    using MarketPromotions::EKind;
+    if (Action == TEXT("Discount10")) return MarketPromotions::Start(State, Products, EKind::AisleDiscount, Arg, 10, OutMessage);
+    if (Action == TEXT("Discount20")) return MarketPromotions::Start(State, Products, EKind::AisleDiscount, Arg, 20, OutMessage);
+    if (Action == TEXT("MultiBuy")) return MarketPromotions::Start(State, Products, EKind::MultiBuy, Arg, 0, OutMessage);
+    if (Action == TEXT("Endcap")) return MarketPromotions::Start(State, Products, EKind::Endcap, Arg, 0, OutMessage);
+    if (Action == TEXT("Flyer")) return MarketPromotions::Start(State, Products, EKind::Flyer, INDEX_NONE, 0, OutMessage);
+    if (Action == TEXT("StopPromotion")) return MarketPromotions::Stop(State, Arg, OutMessage);
+    if (Action == TEXT("AcceptOffer")) return MarketPromotions::AcceptOffer(State, Products, OutMessage);
+    if (Action == TEXT("DeclineOffer")) { MarketPromotions::DeclineOffer(State); OutMessage = TEXT("Selim'in teklifi geri \u00e7evrildi."); return true; }
     OutMessage = FString::Printf(TEXT("Bilinmeyen karar: %s"), *Action.ToString());
     return false;
 }
@@ -90,5 +101,6 @@ void MarketDirector::CloseDay(FMarketState& State, const TArray<FMarketProduct>&
 {
     State.DayNews.Reset();
     MarketSuppliers::CloseDay(State); // price list, payment terms, bills due, wholesaler news (G-063)
+    MarketPromotions::CloseDay(State, Products); // running promotions, results, funded offers (G-064)
     MarketStaff::CloseDay(State);     // till, fatigue, morale, notices, HR, accountant and the weekly tax (G-060)
 }

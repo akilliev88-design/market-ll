@@ -2,6 +2,7 @@
 #include "MarketCalendar.h"
 #include "MarketDemand.h"
 #include "MarketPrices.h"
+#include "MarketPromotions.h"
 
 namespace MarketCustomers
 {
@@ -136,7 +137,8 @@ TArray<int32> MarketCustomers::BuildList(const FMarketState& State, const TArray
     for (int32 I = 0; I < Products.Num() && I < State.Stock.Num(); ++I)
     {
         const MarketGoods::EGroup Group = MarketGoods::Classify(Products[I].Category);
-        const float Weight = P.Preference[static_cast<int32>(Group)] * MarketCalendar::GroupFactor(State.Day, State.RivalSeed, Group);
+        const float Weight = P.Preference[static_cast<int32>(Group)] * MarketCalendar::GroupFactor(State.Day, State.RivalSeed, Group)
+            * MarketPromotions::Interest(State, Products, I); // discounts, gondola head, flyer
         if (State.Stock[I].Capacity > 0) { Carried[I] = Weight; CarriedTotal += Weight; }
         else { Missing[I] = Weight; MissingTotal += Weight; }
     }

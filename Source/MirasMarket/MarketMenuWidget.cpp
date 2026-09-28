@@ -3,6 +3,7 @@
 #include "MarketGame.h"
 #include "ProductCatalog.h"
 #include "MarketSuppliers.h"
+#include "MarketPromotions.h"
 #include "Brushes/SlateColorBrush.h"
 #include "Engine/Texture2D.h"
 #include "ImageUtils.h"
@@ -313,6 +314,11 @@ TSharedRef<SWidget> SMarketMenu::Dot(TFunction<bool()> Done)
 void SMarketMenu::Do(FName Action, int32 Product)
 {
     if (AMarketGameMode* G = Game.Get()) G->MenuCommand(Action, Product);
+}
+
+void SMarketMenu::Manage(FName Action, int32 Arg)
+{
+    if (AMarketGameMode* G = Game.Get()) G->StaffCommand(Action, Arg);
 }
 
 void SMarketMenu::Go(int32 Page)
@@ -897,7 +903,48 @@ TSharedRef<SWidget> SMarketMenu::PricesPage()
             }, 10, ERole::Muted, false, true)
         ]
         + SVerticalBox::Slot().AutoHeight().Padding(0.f, 8.f, 0.f, 0.f)
-        [ Label([G, Current] { return G() ? G()->OrderAdvice(Current()) : FString(); }, 10, ERole::Muted, false, true) ],
+        [ Label([G, Current] { return G() ? G()->OrderAdvice(Current()) : FString(); }, 10, ERole::Muted, false, true) ]
+        // G-064 promotions for the selected product / its aisle; running ones and the wholesaler's offer.
+        + SVerticalBox::Slot().AutoHeight().Padding(0.f, 18.f, 0.f, 6.f)[ Fixed(TEXT("KAMPANYA"), 9, ERole::Muted, true) ]
+        + SVerticalBox::Slot().AutoHeight()
+        [
+            SNew(SWrapBox).UseAllottedSize(true).InnerSlotPadding(FVector2D(6.f, 6.f))
+            + SWrapBox::Slot()[ Button([] { return FString(TEXT("Reyonda %10")); }, [this, Current] { Manage(TEXT("Discount10"), Current()); }) ]
+            + SWrapBox::Slot()[ Button([] { return FString(TEXT("Reyonda %20")); }, [this, Current] { Manage(TEXT("Discount20"), Current()); }) ]
+            + SWrapBox::Slot()[ Button([] { return FString(TEXT("3 al 2 \u00f6de")); }, [this, Current] { Manage(TEXT("MultiBuy"), Current()); }) ]
+            + SWrapBox::Slot()[ Button([] { return FString(TEXT("Gondol ba\u015f\u0131na koy")); }, [this, Current] { Manage(TEXT("Endcap"), Current()); }) ]
+            + SWrapBox::Slot()[ Button([] { return FString(TEXT("Bro\u015f\u00fcr da\u011f\u0131t")); }, [this] { Manage(TEXT("Flyer"), INDEX_NONE); }) ]
+        ]
+        + SVerticalBox::Slot().AutoHeight().Padding(0.f, 8.f, 0.f, 0.f)
+        [
+            Label([G]
+            {
+                if (!G()) return FString();
+                TArray<FString> Lines;
+                for (const FMarketPromotion* P : MarketPromotions::Active(G()->State))
+                    Lines.Add(FString::Printf(TEXT("\u2022 %s \u00b7 %d. g\u00fcne kadar"), *MarketPromotions::Describe(*P, G()->Products), P->EndDay));
+                if (G()->State.Offer.Product != INDEX_NONE && G()->State.Offer.EndDay >= G()->State.Day)
+                    Lines.Add(TEXT("Toptanc\u0131 teklifi bekliyor: ") + MarketPromotions::Describe(G()->State.Offer, G()->Products));
+                return Lines.Num() > 0 ? FString::Join(Lines, TEXT("\n")) : FString(TEXT("Y\u00fcr\u00fcyen kampanya yok."));
+            }, 10, ERole::Text, false, true)
+        ]
+        + SVerticalBox::Slot().AutoHeight().Padding(0.f, 8.f, 0.f, 0.f)
+        [
+            SNew(SHorizontalBox)
+            + SHorizontalBox::Slot().AutoWidth().Padding(0.f, 0.f, 6.f, 0.f)
+            [ Button([] { return FString(TEXT("Teklifi kabul et")); }, [this] { Manage(TEXT("AcceptOffer"), INDEX_NONE); }, true,
+                [G] { return G() && G()->State.Offer.Product != INDEX_NONE && G()->State.Offer.EndDay >= G()->State.Day; }) ]
+            + SHorizontalBox::Slot().AutoWidth().Padding(0.f, 0.f, 6.f, 0.f)
+            [ Button([] { return FString(TEXT("Geri \u00e7evir")); }, [this] { Manage(TEXT("DeclineOffer"), INDEX_NONE); }, false,
+                [G] { return G() && G()->State.Offer.Product != INDEX_NONE && G()->State.Offer.EndDay >= G()->State.Day; }) ]
+            + SHorizontalBox::Slot().AutoWidth()
+            [ Button([] { return FString(TEXT("Son kampanyay\u0131 durdur")); }, [this, G]
+                {
+                    if (!G()) return;
+                    for (int32 I = G()->State.Promotions.Num() - 1; I >= 0; --I)
+                        if (MarketPromotions::IsActive(G()->State.Promotions[I], G()->State.Day)) { Manage(TEXT("StopPromotion"), I); return; }
+                }, false, [G] { return G() && MarketPromotions::Active(G()->State).Num() > 0; }) ]
+        ],
         ERole::Panel, FMargin(22.f, 20.f));
 
     return SNew(SHorizontalBox)

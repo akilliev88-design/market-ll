@@ -874,7 +874,12 @@ void AMarketGameMode::RefreshLabels()
 {
     for (int32 L = 0; L < ShelfLabels.Num() && ShelfLabelProduct.IsValidIndex(L); ++L)
         if (ShelfLabels[L] && State.Stock.IsValidIndex(ShelfLabelProduct[L]))
-            ShelfLabels[L]->SetText(FText::FromString(Money(State.Stock[ShelfLabelProduct[L]].Price)));
+        {
+            // The tag shows the single-unit price the shopper pays today and the promotion (3D text: ASCII).
+            const int32 P = ShelfLabelProduct[L];
+            const FString Badge = MarketCatalog::FoldTurkish(MarketPromotions::Badge(State, Products, P));
+            ShelfLabels[L]->SetText(FText::FromString(Money(MarketPromotions::UnitPrice(State, Products, P, 1)) + (Badge.IsEmpty() ? FString() : TEXT("\n") + Badge.ToUpper())));
+        }
     RefreshShelfItems();
 }
 
@@ -1140,22 +1145,25 @@ void AMarketGameMode::ResolveCustomerItem(FMarketCustomer& Customer)
     const int32 Wanted = Customer.ShoppingList[Customer.ShoppingIndex];
     const TArray<int32> Available = AvailableShelfUnits();
     const MarketCustomers::ESegment Segment = static_cast<MarketCustomers::ESegment>(Customer.Segment);
-    const int32 Quantity = MarketCustomers::Quantity(Segment, Random);
+    const int32 Quantity = MarketPromotions::AdjustQuantity(State, Customer.Product, MarketCustomers::Quantity(Segment, Random)); // 3 al 2 \u00f6de
     const float PersonalShare = MarketBasket::EffectiveMarketShare(State, Customer.CustomerId);
     MarketDemand::FVisit Visit = MarketDemand::Decide(State, Products, Customer.Product,
         Available.IsValidIndex(Customer.Product) ? Available[Customer.Product] : 0,
-        RivalPriceFactor(Customer.Product), Quantity, Random.FRand(), PersonalShare, MarketCustomers::Profile(Segment).PriceTolerance);
+        RivalPriceFactor(Customer.Product), Quantity, Random.FRand(), PersonalShare, MarketCustomers::Profile(Segment).PriceTolerance,
+        MarketPromotions::UnitPrice(State, Products, Customer.Product, Quantity));
+    int64 PaidUnit = 0;
     if (Visit.Result == MarketDemand::EVisit::Buy)
     {
         // The wallet: take fewer when the money runs out; nothing at all counts as "too expensive" for this shopper.
-        Visit.Quantity = MarketCustomers::Affordable(Customer.BudgetLeft, State.Stock[Visit.Product].Price, Visit.Quantity);
+        PaidUnit = MarketPromotions::UnitPrice(State, Products, Visit.Product, Visit.Quantity);
+        Visit.Quantity = MarketCustomers::Affordable(Customer.BudgetLeft, PaidUnit, Visit.Quantity);
         if (Visit.Quantity <= 0) Visit.Result = MarketDemand::EVisit::Expensive;
-        else Customer.BudgetLeft -= State.Stock[Visit.Product].Price * Visit.Quantity;
+        else { PaidUnit = MarketPromotions::UnitPrice(State, Products, Visit.Product, Visit.Quantity); Customer.BudgetLeft -= PaidUnit * Visit.Quantity; }
     }
     if (Visit.Result == MarketDemand::EVisit::Buy)
     {
         FMarketBasketItem Item;
-        Item.Product = Visit.Product; Item.Quantity = Visit.Quantity; Item.QuotedPrice = State.Stock[Visit.Product].Price;
+        Item.Product = Visit.Product; Item.Quantity = Visit.Quantity; Item.QuotedPrice = PaidUnit; // promotion price is kept at the till
         Item.bSubstitute = Customer.bTryingSubstitute;
         Customer.Basket.Add(Item);
         ++Customer.Fulfilled;

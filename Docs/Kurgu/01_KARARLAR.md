@@ -58,7 +58,7 @@ Sahiplik (M, 28.09.2026): 3B model üretimi, mağaza modeli ve arayüz tasarım�
 | D03 | Tedarikçiler | Trakya Gıda (Selim), Özdemir Toptan (kurgu, ucuz/riskli), üretici doğrudan, kendi depo (C) | Derlenmedi (G-063) |
 | D04 | Vade ve iskonto | Düzenli ödemeyle vade; hacimle iskonto (C) | Derlenmedi (G-063) |
 | D05 | Zam duyurusu | Ayın 1'i liste fiyatı güncellenir, oyuncuya zam listesi gelir (C) | Derlenmedi (G-063) |
-| D06 | Oyuncu kampanyaları | Reyon indirimi, 3 al 2 öde, broşür, gondol başı, tedarikçi destekli (C; plan) | `MarketPromotions` | Sırada |
+| D06 | Oyuncu kampanyaları | Reyon indirimi, 3 al 2 öde, broşür, gondol başı, tedarikçi destekli (C; plan) | Derlenmedi (G-064) |
 | D07 | Özel marka | Ulusal aşamada "Miras" markası; üretici sözleşmesi, kalite riski (plan) | `MarketCompany` | Tasarım |
 | D08 | Tazelik ve fire | Parti + son kullanma, FEFO, son gün indirimi, fire nedeni raporda (plan) | `MarketFreshness` | Sırada |
 | D09 | Atık ve bağış | Son günü geçmemiş ama satılamayan ürün bağışlanabilir: fire yazılır, itibar artar (plan 01 §11) | `MarketFreshness` | Tasarım |
