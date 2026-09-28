@@ -23,6 +23,13 @@ struct MIRASMARKET_API FPlanogramPlacement
     int32 Facings = 2;
     int32 Depth = 3;
     int32 Order = 0;
+    // Fine placement along the shelf, measured from the automatically packed position. The editor
+    // changes this in 5 cm steps and rejects shelf-edge or neighbouring-block overlaps.
+    float OffsetCm = 0.f;
+    // 0 = front facing, 1 = quarter-turn on the shelf, 2 = laid on its side (boxes/bags only).
+    int32 Orientation = 0;
+    // Units vertically stacked at every facing/depth slot. Limited by package type and shelf clearance.
+    int32 Stack = 1;
     // Runtime-only extra block created by FillToCapacity on an empty level (never saved).
     bool bExtra = false;
 };
@@ -42,7 +49,8 @@ struct MIRASMARKET_API FPlanogramEquipment
     float UsableDepthCm = 37.f;
     bool bDoubleSided = true;
     float RailFrontY[8] = { 45.f, 45.f, 45.f, 45.f, 0.f, 0.f, 0.f, 0.f }; // |y| of the price-rail front
-    float RailAboveTopZ = 2.5f;    // price-rail center above the shelf top
+    float RailAboveTopZ = -1.2f;   // slim ticket strip hangs below the shelf top
+    float LevelClearanceCm[8] = { 30.f, 30.f, 30.f, 38.f, 0.f, 0.f, 0.f, 0.f };
     float SignZ = 176.f;           // category sign center height
     float SignY = 0.f;             // sign center |y| (0 = on top, both faces)
     float SignWidthCm = 112.f;
@@ -66,7 +74,7 @@ struct MIRASMARKET_API FMarketPlanogram
 
 namespace MarketPlanogram
 {
-    constexpr int32 SchemaVersion = 1;
+    constexpr int32 SchemaVersion = 2;
     constexpr float UsableWidthCm = 110.f;
     constexpr float ShelfFrontY = -42.f;
     constexpr float ShelfBaseZ = 19.5f;
@@ -92,6 +100,12 @@ namespace MarketPlanogram
     MIRASMARKET_API void Reconcile(FMarketPlanogram& Planogram, const TArray<FMarketProduct>& Products);
     MIRASMARKET_API float NominalWidthCm(const FMarketProduct& Product);
     MIRASMARKET_API float NominalDepthCm(const FMarketProduct& Product);
+    MIRASMARKET_API float NominalHeightCm(const FMarketProduct& Product);
+    MIRASMARKET_API float OrientedWidthCm(const FMarketProduct& Product, int32 Orientation);
+    MIRASMARKET_API float OrientedDepthCm(const FMarketProduct& Product, int32 Orientation);
+    MIRASMARKET_API float OrientedHeightCm(const FMarketProduct& Product, int32 Orientation);
+    MIRASMARKET_API bool CanLayOnSide(const FMarketProduct& Product);
+    MIRASMARKET_API int32 MaxStackFor(const FMarketProduct& Product, int32 Orientation, float ClearanceCm);
     // Rows of this product that fit front-to-back on one shelf face.
     MIRASMARKET_API int32 DepthThatFits(const FMarketProduct& Product, float UsableDepth = UsableDepthCm);
     // Shelf units of one placement (facings x depth).
@@ -108,6 +122,7 @@ namespace MarketPlanogram
     // Width rules. A level is one fixture + face + shelf level; its blocks must fit in the equipment width.
     MIRASMARKET_API bool IsDoubleSided(const FPlanogramFixture& Fixture);
     MIRASMARKET_API float BlockWidthCm(const FMarketProduct& Product, int32 Facings);
+    MIRASMARKET_API float BlockWidthCm(const FMarketProduct& Product, const FPlanogramPlacement& Placement);
     // Used width of a level (blocks + gaps). IgnoreProductId leaves one product out (for "what if" checks).
     MIRASMARKET_API float LevelUsedWidthCm(const FMarketPlanogram& Planogram, const TArray<FMarketProduct>& Products,
         const FString& FixtureId, const FString& Face, int32 Level, const FString& IgnoreProductId = FString());
@@ -120,4 +135,7 @@ namespace MarketPlanogram
         const FPlanogramFixture& Fixture, FPlanogramPlacement& Placement, int32 PreferredLevel = 0);
     // Human readable warning per overflowing level (ASCII). Empty = everything fits.
     MIRASMARKET_API void FindOverflows(const FMarketPlanogram& Planogram, const TArray<FMarketProduct>& Products, TArray<FString>& OutWarnings);
+    // Tests a fine-position edit against the shelf edges and other blocks on the same level.
+    MIRASMARKET_API bool CanSetOffset(const FMarketPlanogram& Planogram, const TArray<FMarketProduct>& Products,
+        const FPlanogramPlacement& Placement, float NewOffsetCm, FString* OutReason = nullptr);
 }

@@ -2,6 +2,24 @@
 
 En yeni giriş en üstte. Biçim: tarih — ajan — başlık, ardından **Yapılan**, **Doğrulama**, **Sıradaki**.
 
+## 28.09.2026 — Codex — Planogram v2 ve gerçek raf önü
+
+**Yapılan**
+- Raf Planı Editörü'ne gerçek ambalaj küçük görselleri, seviye/yüz bazlı raf şeması ve ürün bloğunu 5 cm adımlarla taşıma eklendi. Raf kenarına taşan veya komşu marka bloğuyla çakışan hareket reddediliyor.
+- Ambalaj önden/çeyrek tur/uygunsa yan yatırılmış duruşlara geçirilebiliyor. Dengeli ambalajlar raf yüksekliği elverdiğinde üst üste dizilebiliyor; kapasite `önde × derinlik × istif` olarak hesaplanıyor.
+- `planograms.json` şema v2 oldu; `offsetCm`, `orientation`, `stack` alanları v1 dosyalarında isteğe bağlı ve geriye uyumlu. İnce ayar yapıldığında otomatik dolum kapanıyor.
+- Gondol ve duvar reyonunun fiyat profili ürünleri örten yüksek ön setten, raf tablasının altına asılan yaklaşık 4 cm'lik ince raya çevrildi. Blender mağaza kiti yol aktarımı ve hata kodu koruması düzeltildi; varlıklar yeniden üretilip Unreal'a aktarıldı.
+
+**Doğrulama**
+- `DERLE.cmd /q`: geçti.
+- `TEST.cmd /q`: 15/15 geçti; yeni `MirasMarket.Planogram.ManualPlacement` konum, çakışma, yön ve istif sınırlarını kapsıyor.
+- `SmokeTest.ps1`: geçti; 3 müşteri satışı, raf doldurma, sipariş, işe alma, gün kapama ve disk kayıt/yükleme.
+- Blender üretimi ve Unreal çevre varlığı doğrulaması: 0 hata, 0 uyarı. Beş adet 1280×720 oyun görüntüsünde ince fiyat rayı, raf yönleri, ürün oturması ve etiket malzemeleri gözle incelendi.
+- Değişen C++ kaynakları ASCII kontrolünden geçti. Windows otomasyon yüzeyi Unreal penceresini listelemediği için editör panelinin piksel düzeni bu oturumda ayrıca yakalanamadı.
+
+**Sıradaki**
+- `RAF_PLANI.cmd` ile panelin son görsel düzenini kullanıcıyla birlikte kontrol et; ardından kategori başına ambalaj/marka sayısını artır ve kasa, soğutucu, manav, fırın modüllerine geç.
+
 ## 28.09.2026 — Codex — Opus sonrası inceleme, doğrulama ve ışık dengesi
 
 **Yapılan**

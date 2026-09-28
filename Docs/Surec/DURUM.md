@@ -4,7 +4,7 @@ Son güncelleme: 28.09.2026 — Codex
 
 ## Kısaca
 
-v0.2 geliştirme. Raf sistemi veri güdümlü planograma geçti. Referans mağazaya yaklaşan ilk Blender iç mekân kiti oyunda: iki yanda 240 cm duvar reyonları, giriş odağında şeffaf hazneli kuru gıda adası, tavanda siyah taşıyıcılar, galvaniz kanal ve lineer armatürler var. `BLENDER_MAGAZA_KITI.cmd` bu üç varlığı yeniden üretip Unreal'a aktarır.
+v0.2 geliştirme. Raf sistemi veri güdümlü planogram v2'ye geçti. Ürün bloğu rafta 5 cm adımlarla taşınabilir, çeyrek tur döndürülebilir, uygun kutu/poşet yan yatırılabilir ve raf yüksekliği elverdiğinde üst üste dizilebilir. Editör gerçek ambalaj küçük görseli ile kat/seviye raf şeması gösterir. Blender gondol ve duvar reyonlarında fiyat etiketi profili, raf önündeki yüksek set yerine raf altına asılan ince raydır.
 
 ## Çalışan / var olan
 
@@ -36,6 +36,7 @@ v0.2 geliştirme. Raf sistemi veri güdümlü planograma geçti. Referans mağaz
 | `SON_KONTROL.cmd` (G-028 + G-029…G-034) | GEÇTİ — Mustafa çalıştırdı; derleme, malzemeler, 14 test, smoke ve ekran görüntüsü — 28.09.2026 |
 | Opus sonrası birleşik sürüm (G-028…G-043) | **GEÇTİ** — `DERLE.cmd`, 14/14 otomasyon, smoke, PBR malzeme aktarımı ve beş açılı görsel kontrol — 28.09.2026 |
 | Nötr-sıcak market ışığı ayarı | **GEÇTİ** — beyaz raf/etiket dengesi ve ürün renkleri beş adet 1280x720 görüntüde incelendi — 28.09.2026 |
+| Planogram v2: serbest konum, yön, istif, raf önizlemesi ve ince fiyat rayı | **GEÇTİ** — derleme, 15/15 test, smoke, Blender/Unreal varlık doğrulaması ve beş açılı oyun görüntüsü — 28.09.2026 |
 | Stüdyoda elle deneme: kutu (açılım) → Oyuna ekle → OYNA | GEÇTİ: milk_1l oyunda; ön/yan/üst yüzler doğru, ayna yok, raf oturması doğru — 27.09.2026 |
 | Stüdyoda elle deneme: cam şişe modeli + malzeme.json | Bekliyor (henüz model yok) |
 
@@ -50,15 +51,16 @@ v0.2 geliştirme. Raf sistemi veri güdümlü planograma geçti. Referans mağaz
 - Lumen + mesafe alanları açık (`DefaultEngine.ini`); ilk açılışta shader derlemesi uzun sürebilir.
 - `gorsel_malzemeler.py` Unreal Python malzeme grafiği kuruyor; pin adı uyuşmazsa `GORSEL_son.log` içinde `MIRAS_MATERIALS_ERROR` yazar ve oyun düz renklere düşer (çökmez).
 - MetaHuman smoke ve yükleme günlüğüyle doğrulandı; yüz, saç ve kıyafet kalitesi normal oyun kamerasında ayrı bir yakın plan turunda incelenmeli.
+- Raf Planı Editörü derlendi ve davranış kuralları otomasyonla doğrulandı; bu oturumdaki Windows otomasyon yüzeyi Unreal penceresini sunmadığı için panelin son piksel düzeni elle açılarak ayrıca görülebilir.
 
 ## Devam notu
 
-Opus ile eklenen G-028…G-043 işleri Codex tarafından yeniden okundu ve topluca doğrulandı. Varsayılan ışık, ilk beşli yakalamadaki turuncu renk baskısı giderilerek nötr-sıcak market tonuna ayarlandı. Derleme, 14/14 test, smoke, PBR malzeme hazırlama ve ikinci beşli yakalama geçti. Açık iş yeni içerik çeşitliliğidir; bu doğrulanmış temeli bozacak yarım kod yoktur.
+G-044 tamamlandı. `Config/planograms.json` şema v2 oldu; v1 dosyaları geriye uyumlu okunuyor. Raf Planı Editörü konum/yön/istif kontrolleri, gerçek ambalaj küçük görseli ve raf şeması kazandı. Oyunda yön ve istif gerçek ürün dönüşümüne/kapasitesine bağlandı. Blender gondol ve duvar rafı ince fiyat rayıyla yeniden üretildi ve Unreal'a aktarıldı. Derleme, 15/15 test, smoke ve beş açılı oyun kontrolü geçti; yarım kod yoktur.
 
 ## Sıradaki adımlar
 
 00. Mustafa: `Docs/Environment/FAB_PAKET_LISTESI.md` paketlerini indir (G-042); Claude bağlayacak.
-1. Raf tekrarını azalt: her kategoriye daha fazla gerçek ürün/ambalaj ekle ve planogram editöründe aynı seviyede marka bloklarını karıştır.
+1. Raf tekrarını azalt: her kategoriye daha fazla gerçek ürün/ambalaj ekle ve planogram editöründe aynı seviyede marka bloklarını karıştır. Editörü `RAF_PLANI.cmd` ile açıp yeni raf şemasının son piksel düzenini Mustafa ile birlikte kontrol et.
 2. G-021'i sürdür: kasa, soğutucu, manav, fırın ve servis reyonları için Blender modülleri üret.
 3. `MH_Teyze`yi normal oyun kamerasında yakın planda kontrol et; ardından `MH_Amca`, `MH_Anne`, `MH_Genc` ve döneme uygun kıyafetleri ekle (G-042).
 4. Mustafa: PET/teneke/kavanoz/kase türlerinden birer ürün üretip Oyuna ekle; etiket yönü, kapak ve malzeme yuvalarını gözle doğrula (G-017).

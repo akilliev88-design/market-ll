@@ -1,8 +1,12 @@
 #include "SPlanogramStudio.h"
 
+#include "AssetThumbnail.h"
+#include "AssetRegistry/AssetData.h"
 #include "ProductCatalog.h"
 #include "Widgets/Input/SButton.h"
 #include "Widgets/Layout/SBorder.h"
+#include "Widgets/Layout/SBox.h"
+#include "Widgets/SCanvas.h"
 #include "Widgets/Layout/SScrollBox.h"
 #include "Widgets/Layout/SSeparator.h"
 #include "Widgets/SBoxPanel.h"
@@ -16,6 +20,7 @@ namespace
 
 void SPlanogramStudio::Construct(const FArguments& InArgs)
 {
+    ThumbnailPool = MakeShared<FAssetThumbnailPool>(64);
     ChildSlot
     [
         SNew(SBorder).Padding(18).BorderBackgroundColor(FLinearColor(.035f, .045f, .043f))
@@ -129,6 +134,80 @@ void SPlanogramStudio::ToggleFace(int32 ProductIndex)
     Save(TEXT("Gondol y\u00fcz\u00fc de\u011fi\u015ftirildi."));
 }
 
+void SPlanogramStudio::ChangeOffset(int32 ProductIndex, float DeltaCm)
+{
+    if (!Products.IsValidIndex(ProductIndex)) return;
+    FPlanogramPlacement* P = Planogram.FindPlacement(Products[ProductIndex].Id);
+    if (!P) return;
+    const float Target = FMath::GridSnap(P->OffsetCm + DeltaCm, 5.f);
+    FString Reason;
+    if (!MarketPlanogram::CanSetOffset(Planogram, Products, *P, Target, &Reason))
+    {
+        Status = TEXT("Konum degismedi: ") + Reason;
+        Rebuild();
+        return;
+    }
+    P->OffsetCm = Target;
+    Planogram.bAutoFill = false;
+    Save(TEXT("Urun rafta 5 cm aralikla tasindi; kesin yerlesim icin otomatik dolum kapatildi."));
+}
+
+void SPlanogramStudio::CycleOrientation(int32 ProductIndex)
+{
+    if (!Products.IsValidIndex(ProductIndex)) return;
+    FPlanogramPlacement* P = Planogram.FindPlacement(Products[ProductIndex].Id);
+    if (!P) return;
+    const FMarketProduct& Product = Products[ProductIndex];
+    int32 Next = (P->Orientation + 1) % 3;
+    if (Next == 2 && !MarketPlanogram::CanLayOnSide(Product)) Next = 0;
+    const FPlanogramPlacement Before = *P;
+    P->Orientation = Next;
+    const FPlanogramEquipment Spec = MarketPlanogram::EquipmentFor(Planogram, P->FixtureId);
+    P->Stack = FMath::Min(P->Stack, MarketPlanogram::MaxStackFor(Product, P->Orientation, Spec.LevelClearanceCm[P->Level]));
+    float Width = 0.f;
+    FString Reason;
+    if (!MarketPlanogram::FitsOnLevel(Planogram, Products, P->FixtureId, P->Face, P->Level, P->ProductId, P->Facings, &Width) ||
+        !MarketPlanogram::CanSetOffset(Planogram, Products, *P, P->OffsetCm, &Reason))
+    {
+        *P = Before;
+        Status = TEXT("Bu yonde sigmiyor: ") + (Reason.IsEmpty() ? FString::Printf(TEXT("raf %.1f cm, kullanim %.1f cm."), Spec.UsableWidthCm, Width) : Reason);
+        Rebuild();
+        return;
+    }
+    Planogram.bAutoFill = false;
+    Save(TEXT("Urun yonu kaydedildi; kesin yerlesim icin otomatik dolum kapatildi."));
+}
+
+void SPlanogramStudio::ChangeStack(int32 ProductIndex, int32 Delta)
+{
+    if (!Products.IsValidIndex(ProductIndex)) return;
+    FPlanogramPlacement* P = Planogram.FindPlacement(Products[ProductIndex].Id);
+    if (!P) return;
+    const FPlanogramEquipment Spec = MarketPlanogram::EquipmentFor(Planogram, P->FixtureId);
+    const int32 MaxStack = MarketPlanogram::MaxStackFor(Products[ProductIndex], P->Orientation, Spec.LevelClearanceCm[P->Level]);
+    const int32 Target = FMath::Clamp(P->Stack + Delta, 1, MaxStack);
+    if (Target == P->Stack)
+    {
+        Status = MaxStack == 1 ? TEXT("Bu ambalaj ust uste dizilmeye uygun degil veya raf yuksekligi yetmiyor.")
+                               : FString::Printf(TEXT("Bu rafta en fazla %d kat olur."), MaxStack);
+        Rebuild();
+        return;
+    }
+    P->Stack = Target;
+    Planogram.bAutoFill = false;
+    Save(TEXT("Ust uste dizim kaydedildi; kapasite kat sayisina gore guncellendi."));
+}
+
+void SPlanogramStudio::ResetFinePlacement(int32 ProductIndex)
+{
+    if (!Products.IsValidIndex(ProductIndex)) return;
+    if (FPlanogramPlacement* P = Planogram.FindPlacement(Products[ProductIndex].Id))
+    {
+        P->OffsetCm = 0.f; P->Orientation = 0; P->Stack = 1;
+        Save(TEXT("Urun otomatik merkez, dik yon ve tek kata donduruldu."));
+    }
+}
+
 void SPlanogramStudio::ApplyStrategy(const FString& Strategy)
 {
     if (!Planogram.Fixtures.IsValidIndex(SelectedFixture)) return;
@@ -183,12 +262,72 @@ void SPlanogramStudio::AddFixture()
 
 FString SPlanogramStudio::PlacementSummary(const FPlanogramPlacement& P) const
 {
-    return FString::Printf(TEXT("Seviye %d  |  \u00d6nde %d  |  Derinlik %d  |  %s"), P.Level + 1, P.Facings, P.Depth, P.Face == TEXT("back") ? TEXT("arka y\u00fcz") : TEXT("\u00f6n y\u00fcz"));
+    const TCHAR* Orientation = P.Orientation == 1 ? TEXT("yana donuk") : (P.Orientation == 2 ? TEXT("yan yatmis") : TEXT("dik"));
+    return FString::Printf(TEXT("Seviye %d | Onde %d | Derinlik %d | %d kat | %s | konum %+.0f cm | %s"),
+        P.Level + 1, P.Facings, P.Depth, P.Stack, Orientation, P.OffsetCm, P.Face == TEXT("back") ? TEXT("arka yuz") : TEXT("on yuz"));
+}
+
+TSharedRef<SWidget> SPlanogramStudio::BuildShelfPreview(const FPlanogramFixture& Fixture)
+{
+    const FPlanogramEquipment Spec = MarketPlanogram::Equipment(Fixture.EquipmentId);
+    TSharedRef<SVerticalBox> Preview = SNew(SVerticalBox);
+    TArray<FString> Faces = { TEXT("front") };
+    if (Spec.bDoubleSided) Faces.Add(TEXT("back"));
+    constexpr float CanvasWidth = 740.f;
+    constexpr float InnerWidth = 710.f;
+    constexpr float CanvasHeight = 58.f;
+    const float Scale = InnerWidth / Spec.UsableWidthCm;
+    for (const FString& Face : Faces)
+    {
+        Preview->AddSlot().AutoHeight().Padding(0, 7, 0, 3)
+        [ SNew(STextBlock).Text(FText::FromString(Face == TEXT("back") ? TEXT("ARKA YUZ RAF ONIZLEMESI") : TEXT("ON YUZ RAF ONIZLEMESI"))).ColorAndOpacity(Muted()) ];
+        for (int32 Level = Spec.Levels - 1; Level >= 0; --Level)
+        {
+            TSharedRef<SCanvas> Canvas = SNew(SCanvas);
+            Canvas->AddSlot().Position(FVector2D(15.f, 5.f)).Size(FVector2D(InnerWidth, 48.f))
+            [ SNew(SBorder).Padding(0).BorderBackgroundColor(FLinearColor(.075f, .085f, .082f)) ];
+            for (const FPlanogramPlacement& Placement : Planogram.Placements)
+            {
+                if (Placement.FixtureId != Fixture.Id || Placement.Face != Face || Placement.Level != Level) continue;
+                const FMarketProduct* Product = Products.FindByPredicate([&](const FMarketProduct& X){ return X.Id == Placement.ProductId; });
+                if (!Product) continue;
+                const float Span = MarketPlanogram::BlockWidthCm(*Product, Placement);
+                const float Center = MarketPlanogram::PlacementCenterX(Planogram, Products, Placement);
+                const float X = 15.f + (Center + Spec.UsableWidthCm * .5f - Span * .5f) * Scale;
+                const float W = FMath::Max(26.f, Span * Scale);
+                const float H = FMath::Min(44.f, 23.f + (Placement.Stack - 1) * 7.f);
+                const FString Marker = Placement.Orientation == 1 ? TEXT(" >") : (Placement.Orientation == 2 ? TEXT(" =") : TEXT(""));
+                Canvas->AddSlot().Position(FVector2D(X, 50.f - H)).Size(FVector2D(W, H))
+                [ SNew(SBorder).Padding(FMargin(4,2)).BorderBackgroundColor(FLinearColor(Product->Color).CopyWithNewOpacity(.82f))
+                  [ SNew(STextBlock).Text(FText::FromString((Product->Brand.IsEmpty() ? Product->RealName : Product->Brand) + Marker)).ColorAndOpacity(FLinearColor::White) ] ];
+            }
+            Preview->AddSlot().AutoHeight()
+            [ SNew(SHorizontalBox)
+              + SHorizontalBox::Slot().AutoWidth().VAlign(VAlign_Center).Padding(0,0,7,0)[SNew(STextBlock).Text(FText::FromString(FString::Printf(TEXT("S%d"), Level + 1))).ColorAndOpacity(Muted())]
+              + SHorizontalBox::Slot().AutoWidth()[SNew(SBox).WidthOverride(CanvasWidth).HeightOverride(CanvasHeight)[Canvas]] ];
+        }
+    }
+    return Preview;
+}
+
+TSharedRef<SWidget> SPlanogramStudio::BuildProductThumbnail(const FMarketProduct& Product)
+{
+    if (ThumbnailPool && !Product.MeshPath.IsEmpty())
+        if (UObject* Asset = LoadObject<UObject>(nullptr, *Product.MeshPath))
+        {
+            TSharedPtr<FAssetThumbnail> Thumbnail = MakeShared<FAssetThumbnail>(FAssetData(Asset), 72, 72, ThumbnailPool);
+            Thumbnails.Add(Thumbnail);
+            return SNew(SBox).WidthOverride(72).HeightOverride(72)[Thumbnail->MakeThumbnailWidget()];
+        }
+    return SNew(SBox).WidthOverride(72).HeightOverride(72)
+    [ SNew(SBorder).BorderBackgroundColor(FLinearColor(Product.Color)).HAlign(HAlign_Center).VAlign(VAlign_Center)
+      [ SNew(STextBlock).Text(FText::FromString(Product.Brand.Left(1))).ColorAndOpacity(FLinearColor::White) ] ];
 }
 
 void SPlanogramStudio::Rebuild()
 {
     if (!FixtureBox || !ProductBox) return;
+    Thumbnails.Reset();
     FixtureBox->ClearChildren(); ProductBox->ClearChildren();
     FixtureBox->AddSlot().AutoHeight().Padding(0, 0, 0, 8)
     [ SNew(SButton).Text(FText::FromString(TEXT("+ Yeni gondol"))).OnClicked_Lambda([this]{ AddFixture(); return FReply::Handled(); }) ];
@@ -210,6 +349,7 @@ void SPlanogramStudio::Rebuild()
         + SHorizontalBox::Slot().AutoWidth().Padding(0,0,5,0)[SNew(SButton).Text(FText::FromString(TEXT("K\u00e2r odakl\u0131"))).OnClicked_Lambda([this]{ApplyStrategy(TEXT("margin")); return FReply::Handled();})]
         + SHorizontalBox::Slot().AutoWidth()[SNew(SButton).Text(FText::FromString(TEXT("Marka blo\u011fu"))).OnClicked_Lambda([this]{ApplyStrategy(TEXT("brand_block")); return FReply::Handled();})]
     ];
+    ProductBox->AddSlot().AutoHeight().Padding(0, 0, 0, 10)[BuildShelfPreview(F)];
     {
         // Width usage per level; the game places blocks centered within UsableWidthCm.
         TArray<FString> Faces = { TEXT("front") };
@@ -246,6 +386,7 @@ void SPlanogramStudio::Rebuild()
             SNew(SBorder).Padding(8).BorderBackgroundColor(bHere ? FLinearColor(.09f,.16f,.14f) : FLinearColor(.065f,.07f,.07f))
             [
                 SNew(SVerticalBox)
+                + SVerticalBox::Slot().AutoHeight().Padding(0,0,0,5)[BuildProductThumbnail(Products[I])]
                 + SVerticalBox::Slot().AutoHeight()[SNew(STextBlock).Text(FText::FromString(Products[I].RealName + TEXT("  \u2022  ") + Products[I].Brand)).ColorAndOpacity(Ink())]
                 + SVerticalBox::Slot().AutoHeight().Padding(0,3)[SNew(STextBlock).Text(FText::FromString(bHere ? PlacementSummary(*P) : TEXT("Ba\u015fka gondolda"))).ColorAndOpacity(Muted())]
                 + SVerticalBox::Slot().AutoHeight()
@@ -259,6 +400,16 @@ void SPlanogramStudio::Rebuild()
                     + SHorizontalBox::Slot().AutoWidth().Padding(0,0,3,0)[SNew(SButton).Text(FText::FromString(TEXT("Derinlik \u2212"))).IsEnabled(bHere).OnClicked_Lambda([this,I]{ChangeValue(I,2,-1); return FReply::Handled();})]
                     + SHorizontalBox::Slot().AutoWidth().Padding(0,0,5,0)[SNew(SButton).Text(FText::FromString(TEXT("+"))).IsEnabled(bHere).OnClicked_Lambda([this,I]{ChangeValue(I,2,1); return FReply::Handled();})]
                     + SHorizontalBox::Slot().AutoWidth()[SNew(SButton).Text(FText::FromString(TEXT("Y\u00fcz\u00fc \u00e7evir"))).IsEnabled(bHere).OnClicked_Lambda([this,I]{ToggleFace(I); return FReply::Handled();})]
+                ]
+                + SVerticalBox::Slot().AutoHeight().Padding(0,4,0,0)
+                [
+                    SNew(SHorizontalBox)
+                    + SHorizontalBox::Slot().AutoWidth().Padding(0,0,3,0)[SNew(SButton).Text(FText::FromString(TEXT("\u2190 5 cm"))).IsEnabled(bHere).OnClicked_Lambda([this,I]{ChangeOffset(I,-5.f); return FReply::Handled();})]
+                    + SHorizontalBox::Slot().AutoWidth().Padding(0,0,7,0)[SNew(SButton).Text(FText::FromString(TEXT("5 cm \u2192"))).IsEnabled(bHere).OnClicked_Lambda([this,I]{ChangeOffset(I,5.f); return FReply::Handled();})]
+                    + SHorizontalBox::Slot().AutoWidth().Padding(0,0,7,0)[SNew(SButton).Text(FText::FromString(TEXT("Y\u00f6n\u00fc de\u011fi\u015ftir"))).IsEnabled(bHere).OnClicked_Lambda([this,I]{CycleOrientation(I); return FReply::Handled();})]
+                    + SHorizontalBox::Slot().AutoWidth().Padding(0,0,3,0)[SNew(SButton).Text(FText::FromString(TEXT("Kat \u2212"))).IsEnabled(bHere).OnClicked_Lambda([this,I]{ChangeStack(I,-1); return FReply::Handled();})]
+                    + SHorizontalBox::Slot().AutoWidth().Padding(0,0,7,0)[SNew(SButton).Text(FText::FromString(TEXT("Kat +"))).IsEnabled(bHere).OnClicked_Lambda([this,I]{ChangeStack(I,1); return FReply::Handled();})]
+                    + SHorizontalBox::Slot().AutoWidth()[SNew(SButton).Text(FText::FromString(TEXT("Yerle\u015fimi s\u0131f\u0131rla"))).IsEnabled(bHere).OnClicked_Lambda([this,I]{ResetFinePlacement(I); return FReply::Handled();})]
                 ]
             ]
         ];

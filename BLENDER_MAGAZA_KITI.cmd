@@ -7,10 +7,12 @@ if not exist "%BLENDER_EXE%" (
 )
 
 echo Blender magazasi varliklari uretiliyor...
-"%BLENDER_EXE%" --background --python "%~dp0Tools\Blender\create_store_kit.py" -- "%~dp0"
-if not "%ERRORLEVEL%"=="0" exit /b 1
+"%BLENDER_EXE%" --background --python "%~dp0Tools\Blender\create_store_kit.py" -- "%~dp0."
+set "BLENDER_RESULT=%ERRORLEVEL%"
+if not "%BLENDER_RESULT%"=="0" exit /b %BLENDER_RESULT%
 
 call "%~dp0IMPORT_ENVIRONMENT.cmd"
-if not "%ERRORLEVEL%"=="0" exit /b 1
+set "IMPORT_RESULT=%ERRORLEVEL%"
+if not "%IMPORT_RESULT%"=="0" exit /b %IMPORT_RESULT%
 
 echo BLENDER MAGAZA KITI HAZIR.

@@ -173,7 +173,8 @@ def wall_shelf():
     for level, z in enumerate((.14, .50, .86, 1.22, 1.58, 1.94)):
         depth = .48 if level < 2 else .42
         parts.append(cube("Shelf", (0, -.02, z), (2.35, depth, .028), dark, .006))
-        parts.append(cube("Rail", (0, -.255 if level < 2 else -.225, z + .045), (2.35, .025, .075), rail, .004))
+        # Ticket strip hangs from the shelf edge. It must not form a raised barrier in front of products.
+        parts.append(cube("Rail", (0, -.255 if level < 2 else -.225, z - .012), (2.35, .018, .040), rail, .003))
     parts += [cube("Base", (0, .02, .07), (2.40, .46, .14), wood, .009), cube("Header", (0, .18, 2.13), (2.40, .12, .18), wood, .009)]
     model = join(parts, "SM_WallShelf_2400", "wall_shelf_2400", (2400, 500, 2250))
     collisions = [collision("SM_WallShelf_2400", 0, (0, .2, 1.1), (2.4, .12, 2.2)), collision("SM_WallShelf_2400", 1, (0, 0, .12), (2.4, .5, .24))]

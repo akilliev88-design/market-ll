@@ -382,7 +382,7 @@ void AMarketGameMode::BuildStore()
             {
                 const float Z = 18 + Level * 34;
                 SurfaceBox(P + FVector(0, -8, Z), FVector(120, 80, 3), EMarketSurface::ShelfMetal);
-                SurfaceBox(P + FVector(0, -45, Z + 3), FVector(116, 3, 7), EMarketSurface::PriceRail);
+                SurfaceBox(P + FVector(0, -45, Z - 2), FVector(116, 1.8f, 4), EMarketSurface::PriceRail);
             }
         }
         // Category sign: on top of a gondola (readable from both aisles) or on a wall shelf's header.
@@ -523,11 +523,6 @@ void AMarketGameMode::BuildShelfItems(int32 Index)
         Colored->SetVectorParameterValue(TEXT("Color"), FLinearColor(Product.Color));
         SlotMaterials = { Colored };
     }
-    const FTransform ShapeTransform(ModelRotation, FVector::ZeroVector, ItemScale);
-    const FBox Bounds = SourceBounds.TransformBy(ShapeTransform);
-    const FVector Size = Bounds.GetSize();   // X = depth (front axis), Y = width, Z = height
-    const FVector Center = Bounds.GetCenter();
-    const float Bottom = Bounds.Min.Z;
     const float Gap = 2;
     TArray<FTransform>& Slots = ShelfSlots.AddDefaulted_GetRef();
     TArray<FVector>& Approach = ShelfApproach.AddDefaulted_GetRef();
@@ -564,7 +559,6 @@ void AMarketGameMode::BuildShelfItems(int32 Index)
     ShelfInstances.Add(Instances);
     TArray<TWeakObjectPtr<UStaticMeshComponent>>& Singles = ShelfSingles.AddDefaulted_GetRef();
 
-    const FVector BoundsCenterOffset(Center.X, Center.Y, 0);
     struct FSlot { int32 Row; int32 Seq; FTransform Transform; };
     TArray<FSlot> Ordered;
     for (const FPlanogramPlacement& Placement : Planogram.Placements)
@@ -575,6 +569,14 @@ void AMarketGameMode::BuildShelfItems(int32 Index)
         const FPlanogramEquipment Spec = MarketPlanogram::Equipment(Fixture->EquipmentId);
         const int32 Level = FMath::Clamp(Placement.Level, 0, Spec.Levels - 1);
         const int32 Columns = FMath::Clamp(Placement.Facings, 1, MarketPlanogram::MaxFacings);
+        const FRotator DisplayRotation = Placement.Orientation == 1 ? FRotator(0.f, 90.f, 0.f)
+            : (Placement.Orientation == 2 ? FRotator(0.f, 0.f, 90.f) : FRotator::ZeroRotator);
+        const FQuat DisplayModelRotation = DisplayRotation.Quaternion() * ModelRotation.Quaternion();
+        const FBox Bounds = SourceBounds.TransformBy(FTransform(DisplayModelRotation, FVector::ZeroVector, ItemScale));
+        const FVector Size = Bounds.GetSize();   // after authored orientation: X = depth, Y = width, Z = height
+        const FVector Center = Bounds.GetCenter();
+        const float Bottom = Bounds.Min.Z;
+        const FVector BoundsCenterOffset(Center.X, Center.Y, 0);
         // Never draw rows past the shelf's usable depth, even if the mesh is deeper than the catalog says.
         const int32 RowsByMesh = FMath::Max(1, FMath::FloorToInt((Spec.UsableDepthCm + Gap) / FMath::Max(1.f, Size.X + Gap)));
         const int32 Rows = FMath::Clamp(FMath::Min(Placement.Depth, RowsByMesh), 1, MarketPlanogram::MaxDepth);
@@ -587,7 +589,9 @@ void AMarketGameMode::BuildShelfItems(int32 Index)
         const float Front = bBack ? -Spec.FrontY : Spec.FrontY;
         const FVector BoundsOffset = Facing.RotateVector(BoundsCenterOffset) + FVector(0, 0, Bottom);
         const FVector CorrectedOffset = Facing.RotateVector(PlacementOffset);
-        const FQuat FinalRotation = Facing.Quaternion() * ModelRotation.Quaternion();
+        const FQuat FinalRotation = Facing.Quaternion() * DisplayModelRotation;
+        const int32 Stacks = FMath::Clamp(Placement.Stack, 1,
+            MarketPlanogram::MaxStackFor(Product, Placement.Orientation, Spec.LevelClearanceCm[Level]));
         TArray<int32> ColumnOrder;
         for (int32 Step = 0; Step < Columns; ++Step)
         {
@@ -597,19 +601,21 @@ void AMarketGameMode::BuildShelfItems(int32 Index)
         }
         for (int32 Row = 0; Row < Rows; ++Row)
             for (const int32 Col : ColumnOrder)
-            {
-                const FVector SlotLocal(GroupCenterX + (Col - (Columns - 1) * 0.5f) * (Size.Y + Gap),
-                    Front - FaceSign * (Size.X * 0.5f + Row * (Size.X + Gap)),
-                    Spec.LevelTopZ[Level]);
-                // Hand-stocked look: each unit sits a little off the grid and turned a few degrees.
-                // Deterministic per product/slot so the shelf looks the same every run.
-                FRandomStream Hand(Index * 7919 + Ordered.Num() * 131 + 17);
-                const float Nudge = FMath::Min(Gap * 0.45f, 0.9f);
-                const FVector Jitter(Hand.FRandRange(-Nudge, Nudge), -FaceSign * Hand.FRandRange(0.f, Row == 0 ? 2.5f : 1.f), 0.f);
-                const FQuat Turn(FVector::UpVector, FMath::DegreesToRadians(Hand.FRandRange(-4.f, 4.f)));
-                const FTransform Local(Turn * FinalRotation, SlotLocal + Jitter - BoundsOffset + CorrectedOffset, ItemScale);
-                Ordered.Add({ Row, Ordered.Num(), Local * FixtureXf });
-            }
+                for (int32 StackIndex = 0; StackIndex < Stacks; ++StackIndex)
+                {
+                    const FVector SlotLocal(GroupCenterX + (Col - (Columns - 1) * 0.5f) * (Size.Y + Gap),
+                        Front - FaceSign * (Size.X * 0.5f + Row * (Size.X + Gap)),
+                        Spec.LevelTopZ[Level] + StackIndex * (Size.Z + .6f));
+                    // Hand-stocked look: each unit sits a little off the grid and turned a few degrees.
+                    // Stacked units keep a smaller turn so the pile remains physically believable.
+                    FRandomStream Hand(Index * 7919 + Ordered.Num() * 131 + 17);
+                    const float Nudge = FMath::Min(Gap * (StackIndex == 0 ? .45f : .20f), StackIndex == 0 ? .9f : .4f);
+                    const FVector Jitter(Hand.FRandRange(-Nudge, Nudge), -FaceSign * Hand.FRandRange(0.f, Row == 0 ? 2.5f : 1.f), 0.f);
+                    const float MaxTurn = StackIndex == 0 ? 4.f : 1.5f;
+                    const FQuat Turn(FVector::UpVector, FMath::DegreesToRadians(Hand.FRandRange(-MaxTurn, MaxTurn)));
+                    const FTransform Local(Turn * FinalRotation, SlotLocal + Jitter - BoundsOffset + CorrectedOffset, ItemScale);
+                    Ordered.Add({ Row, Ordered.Num(), Local * FixtureXf });
+                }
         // Shopper spot: 70 cm in front of the block, on the floor.
         Approach.Add(FixtureXf.TransformPosition(FVector(GroupCenterX, Front + FaceSign * 70.f, 0)));
     }

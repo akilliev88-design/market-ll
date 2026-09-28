@@ -102,6 +102,41 @@ bool FMarketPlanogramWidthTest::RunTest(const FString& Parameters)
     return true;
 }
 
+IMPLEMENT_SIMPLE_AUTOMATION_TEST(FMarketManualPlacementTest, "MirasMarket.Planogram.ManualPlacement", EAutomationTestFlags::EditorContext | EAutomationTestFlags::EngineFilter)
+bool FMarketManualPlacementTest::RunTest(const FString& Parameters)
+{
+    FMarketProduct Box; Box.Id = TEXT("box"); Box.PackageType = TEXT("kutu"); Box.WidthMm = 100; Box.DepthMm = 50; Box.HeightMm = 120;
+    FMarketProduct Other = Box; Other.Id = TEXT("other");
+    TArray<FMarketProduct> Catalog = { Box, Other };
+    FMarketPlanogram P;
+    FPlanogramFixture Fixture; Fixture.Id = TEXT("gondol"); P.Fixtures.Add(Fixture);
+    FPlanogramPlacement A; A.ProductId = Box.Id; A.FixtureId = Fixture.Id; A.Level = 0; A.Facings = 1; A.Depth = 1; A.Order = 0;
+    FPlanogramPlacement B = A; B.ProductId = Other.Id; B.Order = 1;
+    P.Placements = { A, B };
+
+    TestEqual(TEXT("Front orientation uses package width"), MarketPlanogram::BlockWidthCm(Box, P.Placements[0]), 10.f);
+    P.Placements[0].Orientation = 1;
+    TestEqual(TEXT("Quarter turn uses package depth"), MarketPlanogram::BlockWidthCm(Box, P.Placements[0]), 5.f);
+    P.Placements[0].Orientation = 2;
+    TestEqual(TEXT("Laid box uses package height across shelf"), MarketPlanogram::BlockWidthCm(Box, P.Placements[0]), 12.f);
+    TestTrue(TEXT("Boxes may be laid on side"), MarketPlanogram::CanLayOnSide(Box));
+    TestEqual(TEXT("Twelve cm boxes stack twice in thirty cm clearance"), MarketPlanogram::MaxStackFor(Box, 0, 30.f), 2);
+
+    P.Placements[0].Orientation = 0;
+    TestTrue(TEXT("Moving away from neighbour is allowed"), MarketPlanogram::CanSetOffset(P, Catalog, P.Placements[0], -5.f));
+    TestFalse(TEXT("Moving into neighbour is rejected"), MarketPlanogram::CanSetOffset(P, Catalog, P.Placements[0], 5.f));
+    TestFalse(TEXT("Moving beyond shelf edge is rejected"), MarketPlanogram::CanSetOffset(P, Catalog, P.Placements[0], -100.f));
+
+    P.Placements[0].OffsetCm = -5.f; P.Placements[0].Orientation = 1; P.Placements[0].Stack = 2;
+    TestEqual(TEXT("Stack multiplies physical capacity"), MarketPlanogram::Capacity(P.Placements[0]), 2);
+    FMarketPlanogram Again; TArray<FString> Errors;
+    TestTrue(TEXT("Manual placement round trip parses"), MarketPlanogram::Parse(MarketPlanogram::Serialize(P), Again, Errors));
+    TestEqual(TEXT("Offset survives round trip"), Again.Placements[0].OffsetCm, -5.f);
+    TestEqual(TEXT("Orientation survives round trip"), Again.Placements[0].Orientation, 1);
+    TestEqual(TEXT("Stack survives round trip"), Again.Placements[0].Stack, 2);
+    return true;
+}
+
 IMPLEMENT_SIMPLE_AUTOMATION_TEST(FMarketPlanogramFillTest, "MirasMarket.Planogram.FillToCapacity", EAutomationTestFlags::EditorContext | EAutomationTestFlags::EngineFilter)
 bool FMarketPlanogramFillTest::RunTest(const FString& Parameters)
 {

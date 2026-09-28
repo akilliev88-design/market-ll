@@ -122,7 +122,8 @@ def build_model():
             depth = 0.43 if index == 0 else 0.40
             shelf_y = face * (0.23 if index == 0 else 0.215)
             visible.append(cube("ShelfBoard", (0, shelf_y, z), (1.16, depth, 0.026), painted, 0.008))
-            visible.append(cube("PriceRail", (0, front_y, z + 0.038), (1.16, 0.020, 0.070), rail, 0.005))
+            # Slim ticket strip below the shelf lip; products remain fully visible from the aisle.
+            visible.append(cube("PriceRail", (0, front_y, z - 0.012), (1.16, 0.018, 0.040), rail, 0.003))
 
     # Small top sign carrier: the actual category sign remains data-driven in Unreal.
     for face in (-1, 1):

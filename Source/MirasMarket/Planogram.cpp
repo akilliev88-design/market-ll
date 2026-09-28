@@ -117,10 +117,16 @@ bool MarketPlanogram::Parse(const FString& Json, FMarketPlanogram& OutPlanogram,
         Obj->TryGetNumberField(TEXT("facings"), Placement.Facings);
         Obj->TryGetNumberField(TEXT("depth"), Placement.Depth);
         Obj->TryGetNumberField(TEXT("order"), Placement.Order);
+        Obj->TryGetNumberField(TEXT("offsetCm"), Placement.OffsetCm);
+        Obj->TryGetNumberField(TEXT("orientation"), Placement.Orientation);
+        Obj->TryGetNumberField(TEXT("stack"), Placement.Stack);
         Placement.Face = Placement.Face == TEXT("back") ? TEXT("back") : TEXT("front");
         Placement.Level = FMath::Clamp(Placement.Level, 0, MaxLevels - 1);
         Placement.Facings = FMath::Clamp(Placement.Facings, 1, MaxFacings);
         Placement.Depth = FMath::Clamp(Placement.Depth, 1, MaxDepth);
+        Placement.OffsetCm = FMath::Clamp(Placement.OffsetCm, -500.f, 500.f);
+        Placement.Orientation = FMath::Clamp(Placement.Orientation, 0, 2);
+        Placement.Stack = FMath::Clamp(Placement.Stack, 1, 8);
         OutPlanogram.Placements.Add(Placement);
     }
     return true;
@@ -142,8 +148,8 @@ FString MarketPlanogram::Serialize(const FMarketPlanogram& Planogram)
     for (int32 I = 0; I < Saved.Num(); ++I)
     {
         const FPlanogramPlacement& P = *Saved[I];
-        Out += FString::Printf(TEXT("    {\"productId\":%s,\"fixtureId\":%s,\"face\":%s,\"level\":%d,\"facings\":%d,\"depth\":%d,\"order\":%d}%s\n"),
-            *Quote(P.ProductId), *Quote(P.FixtureId), *Quote(P.Face), P.Level, P.Facings, P.Depth, P.Order,
+        Out += FString::Printf(TEXT("    {\"productId\":%s,\"fixtureId\":%s,\"face\":%s,\"level\":%d,\"facings\":%d,\"depth\":%d,\"order\":%d,\"offsetCm\":%.1f,\"orientation\":%d,\"stack\":%d}%s\n"),
+            *Quote(P.ProductId), *Quote(P.FixtureId), *Quote(P.Face), P.Level, P.Facings, P.Depth, P.Order, P.OffsetCm, P.Orientation, P.Stack,
             I + 1 < Saved.Num() ? TEXT(",") : TEXT(""));
     }
     return Out + TEXT("  ]\n}\n");
@@ -244,7 +250,8 @@ FPlanogramEquipment MarketPlanogram::Equipment(const FString& EquipmentId)
         E.MeshYaw = 180.f;
         E.UsableDepthCm = 37.f;
         E.bDoubleSided = false;
-        E.RailAboveTopZ = 3.1f;
+        E.RailAboveTopZ = -1.8f;
+        for (int32 I = 0; I < 5; ++I) E.LevelClearanceCm[I] = I < 4 ? 31.f : 38.f;
         E.bSignOnTop = false;
         E.SignZ = 213.f;
         E.SignY = 11.2f;
@@ -266,6 +273,11 @@ float MarketPlanogram::BlockWidthCm(const FMarketProduct& Product, int32 Facings
     return FMath::Max(1, Facings) * (NominalWidthCm(Product) + ItemGapCm) - ItemGapCm;
 }
 
+float MarketPlanogram::BlockWidthCm(const FMarketProduct& Product, const FPlanogramPlacement& Placement)
+{
+    return FMath::Max(1, Placement.Facings) * (OrientedWidthCm(Product, Placement.Orientation) + ItemGapCm) - ItemGapCm;
+}
+
 float MarketPlanogram::LevelUsedWidthCm(const FMarketPlanogram& Planogram, const TArray<FMarketProduct>& Products,
     const FString& FixtureId, const FString& Face, int32 Level, const FString& IgnoreProductId)
 {
@@ -277,7 +289,7 @@ float MarketPlanogram::LevelUsedWidthCm(const FMarketPlanogram& Planogram, const
         if (!IgnoreProductId.IsEmpty() && Placement.ProductId == IgnoreProductId) continue;
         if (const FMarketProduct* Product = FindProduct(Products, Placement.ProductId))
         {
-            Total += BlockWidthCm(*Product, Placement.Facings);
+            Total += BlockWidthCm(*Product, Placement);
             ++Blocks;
         }
     }
@@ -289,7 +301,10 @@ bool MarketPlanogram::FitsOnLevel(const FMarketPlanogram& Planogram, const TArra
 {
     const float Others = LevelUsedWidthCm(Planogram, Products, FixtureId, Face, Level, ProductId);
     const FMarketProduct* Product = FindProduct(Products, ProductId);
-    const float Width = Product ? Others + (Others > 0.f ? ProductGapCm : 0.f) + BlockWidthCm(*Product, Facings) : Others;
+    FPlanogramPlacement Candidate;
+    if (const FPlanogramPlacement* Existing = Planogram.FindPlacement(ProductId)) Candidate = *Existing;
+    Candidate.Facings = Facings;
+    const float Width = Product ? Others + (Others > 0.f ? ProductGapCm : 0.f) + BlockWidthCm(*Product, Candidate) : Others;
     if (OutWidthCm) *OutWidthCm = Width;
     return Width <= EquipmentFor(Planogram, FixtureId).UsableWidthCm + KINDA_SMALL_NUMBER;
 }
@@ -332,6 +347,24 @@ void MarketPlanogram::FindOverflows(const FMarketPlanogram& Planogram, const TAr
                     OutWarnings.Add(FString::Printf(TEXT("%s / %s yuz / seviye %d: %.1f cm dolu, raf %.1f cm."),
                         *Fixture.Id, FCString::Strcmp(Face, TEXT("back")) == 0 ? TEXT("arka") : TEXT("on"), Level + 1, Width, Spec.UsableWidthCm));
             }
+    for (const FPlanogramPlacement& Placement : Planogram.Placements)
+    {
+        const FMarketProduct* Product = FindProduct(Products, Placement.ProductId);
+        if (!Product) continue;
+        const FPlanogramEquipment PlacementSpec = EquipmentFor(Planogram, Placement.FixtureId);
+        const int32 Level = FMath::Clamp(Placement.Level, 0, FMath::Max(0, PlacementSpec.Levels - 1));
+        if (Placement.Orientation == 2 && !CanLayOnSide(*Product))
+            OutWarnings.Add(Placement.ProductId + TEXT(": bu ambalaj yan yatirilamaz."));
+        const int32 MaxStack = MaxStackFor(*Product, Placement.Orientation, PlacementSpec.LevelClearanceCm[Level]);
+        if (Placement.Stack > MaxStack)
+            OutWarnings.Add(FString::Printf(TEXT("%s: %d kat sigmiyor; en fazla %d."), *Placement.ProductId, Placement.Stack, MaxStack));
+        if (!FMath::IsNearlyZero(Placement.OffsetCm))
+        {
+            FString Reason;
+            if (!CanSetOffset(Planogram, Products, Placement, Placement.OffsetCm, &Reason))
+                OutWarnings.Add(Placement.ProductId + TEXT(": ") + Reason);
+        }
+    }
     }
 }
 
@@ -349,6 +382,43 @@ float MarketPlanogram::NominalDepthCm(const FMarketProduct& Product)
     return FMath::Max(2.f, Millimeters / 10.f);
 }
 
+float MarketPlanogram::NominalHeightCm(const FMarketProduct& Product)
+{
+    return FMath::Max(2.f, (Product.HeightMm > 0 ? Product.HeightMm : 200.f) / 10.f);
+}
+
+float MarketPlanogram::OrientedWidthCm(const FMarketProduct& Product, int32 Orientation)
+{
+    if (Orientation == 1) return NominalDepthCm(Product);
+    if (Orientation == 2) return NominalHeightCm(Product);
+    return NominalWidthCm(Product);
+}
+
+float MarketPlanogram::OrientedDepthCm(const FMarketProduct& Product, int32 Orientation)
+{
+    return Orientation == 1 ? NominalWidthCm(Product) : NominalDepthCm(Product);
+}
+
+float MarketPlanogram::OrientedHeightCm(const FMarketProduct& Product, int32 Orientation)
+{
+    return Orientation == 2 ? NominalWidthCm(Product) : NominalHeightCm(Product);
+}
+
+bool MarketPlanogram::CanLayOnSide(const FMarketProduct& Product)
+{
+    return Product.PackageType == TEXT("kutu") || Product.PackageType == TEXT("poset");
+}
+
+int32 MarketPlanogram::MaxStackFor(const FMarketProduct& Product, int32 Orientation, float ClearanceCm)
+{
+    const bool bStable = Product.PackageType == TEXT("kutu") || Product.PackageType == TEXT("poset") ||
+        Product.PackageType == TEXT("teneke") || Product.PackageType == TEXT("kase");
+    if (!bStable || (Orientation == 2 && !CanLayOnSide(Product))) return 1;
+    constexpr float StackGapCm = .6f;
+    return FMath::Clamp(FMath::FloorToInt((ClearanceCm + StackGapCm) /
+        FMath::Max(1.f, OrientedHeightCm(Product, Orientation) + StackGapCm)), 1, 8);
+}
+
 int32 MarketPlanogram::DepthThatFits(const FMarketProduct& Product, float UsableDepth)
 {
     return FMath::Clamp(FMath::FloorToInt((UsableDepth + ItemGapCm) / (NominalDepthCm(Product) + ItemGapCm)), 1, MaxDepth);
@@ -356,7 +426,7 @@ int32 MarketPlanogram::DepthThatFits(const FMarketProduct& Product, float Usable
 
 int32 MarketPlanogram::Capacity(const FPlanogramPlacement& Placement)
 {
-    return FMath::Max(1, Placement.Facings) * FMath::Max(1, Placement.Depth);
+    return FMath::Max(1, Placement.Facings) * FMath::Max(1, Placement.Depth) * FMath::Max(1, Placement.Stack);
 }
 
 int32 MarketPlanogram::ProductCapacity(const FMarketPlanogram& Planogram, const FString& ProductId)
@@ -406,7 +476,8 @@ int32 MarketPlanogram::FillToCapacity(FMarketPlanogram& Planogram, const TArray<
 
     for (FPlanogramPlacement& Placement : Planogram.Placements)
         if (const FMarketProduct* Product = FindProduct(Products, Placement.ProductId))
-            Placement.Depth = DepthThatFits(*Product, EquipmentFor(Planogram, Placement.FixtureId).UsableDepthCm); // physical fit
+            Placement.Depth = FMath::Clamp(FMath::FloorToInt((EquipmentFor(Planogram, Placement.FixtureId).UsableDepthCm + ItemGapCm) /
+                (OrientedDepthCm(*Product, Placement.Orientation) + ItemGapCm)), 1, MaxDepth); // physical fit
 
     int32 Added = 0;
     bool bGrew = true;
@@ -453,7 +524,7 @@ float MarketPlanogram::PlacementCenterX(const FMarketPlanogram& Planogram, const
     for (const FPlanogramPlacement* Candidate : Group)
     {
         const FMarketProduct* Product = FindProduct(Products, Candidate->ProductId);
-        const float Span = BlockWidthCm(*Product, Candidate->Facings);
+        const float Span = BlockWidthCm(*Product, *Candidate);
         Spans.Add(Span); Total += Span;
     }
     Total += FMath::Max(0, Group.Num() - 1) * ProductGapCm;
@@ -461,8 +532,39 @@ float MarketPlanogram::PlacementCenterX(const FMarketPlanogram& Planogram, const
     for (int32 I = 0; I < Group.Num(); ++I)
     {
         const float Center = Cursor + Spans[I] * 0.5f;
-        if (Group[I]->ProductId == Placement.ProductId) return Center;
+        if (Group[I]->ProductId == Placement.ProductId) return Center + Placement.OffsetCm;
         Cursor += Spans[I] + ProductGapCm;
     }
     return 0.f;
+}
+
+bool MarketPlanogram::CanSetOffset(const FMarketPlanogram& Planogram, const TArray<FMarketProduct>& Products,
+    const FPlanogramPlacement& Placement, float NewOffsetCm, FString* OutReason)
+{
+    const FMarketProduct* Product = FindProduct(Products, Placement.ProductId);
+    if (!Product) return false;
+    const FPlanogramEquipment Spec = EquipmentFor(Planogram, Placement.FixtureId);
+    const float AutoCenter = PlacementCenterX(Planogram, Products, Placement) - Placement.OffsetCm;
+    const float Center = AutoCenter + NewOffsetCm;
+    const float Half = BlockWidthCm(*Product, Placement) * .5f;
+    if (Center - Half < -Spec.UsableWidthCm * .5f - KINDA_SMALL_NUMBER || Center + Half > Spec.UsableWidthCm * .5f + KINDA_SMALL_NUMBER)
+    {
+        if (OutReason) *OutReason = TEXT("Urun blogu raf kenarini asiyor.");
+        return false;
+    }
+    for (const FPlanogramPlacement& Other : Planogram.Placements)
+    {
+        if (&Other == &Placement || Other.ProductId == Placement.ProductId || Other.FixtureId != Placement.FixtureId ||
+            Other.Face != Placement.Face || Other.Level != Placement.Level) continue;
+        const FMarketProduct* OtherProduct = FindProduct(Products, Other.ProductId);
+        if (!OtherProduct) continue;
+        const float OtherCenter = PlacementCenterX(Planogram, Products, Other);
+        const float Required = Half + BlockWidthCm(*OtherProduct, Other) * .5f + ProductGapCm;
+        if (FMath::Abs(Center - OtherCenter) < Required - KINDA_SMALL_NUMBER)
+        {
+            if (OutReason) *OutReason = TEXT("Urun blogu komsu urunle cakisiyor.");
+            return false;
+        }
+    }
+    return true;
 }

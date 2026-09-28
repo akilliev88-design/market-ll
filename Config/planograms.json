@@ -1,5 +1,5 @@
 {
-  "schemaVersion": 1,
+  "schemaVersion": 2,
   "autoFill": true,
   "fixtures": [
     {"id":"gondola_icecek","equipment":"gondola_double_1200","label":"İçecekler","category":"içecek","strategy":"manual","x":260.0,"y":550.0,"z":0.0,"yaw":0.0},
