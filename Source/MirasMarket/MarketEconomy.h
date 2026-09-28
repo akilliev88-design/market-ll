@@ -62,6 +62,8 @@ struct FMarketStock
     // The inherited opening inventory is kept in the warehouse; loaded saves preserve their values.
     UPROPERTY() int32 Shelf = 0;
     UPROPERTY() int32 Warehouse = 32;
+    // Arrived at the rear door but not carried into storage yet.
+    UPROPERTY() int32 Dock = 0;
     UPROPERTY() int32 Incoming = 0;
     UPROPERTY() int64 Price = 0;
     // Units that physically fit this product's shelf block (planogram facings x depth).
@@ -112,9 +114,17 @@ struct FMarketState
     // Part of Lost: shoppers who gave up inside the shop (crowd, till queue, closing time).
     UPROPERTY() int32 LostWaiting = 0;
     UPROPERTY() int32 LastLostWaiting = 0;
+    // Last morning's simple supplier event. Damaged/missing units were paid for but never enter stock.
+    UPROPERTY() int32 LastDeliveryMissing = 0;
+    UPROPERTY() int32 LastDeliveryDamaged = 0;
 
     void Initialize(const TArray<FMarketProduct>& Products);
     bool Order(int32 Index, const TArray<FMarketProduct>& Products);
+    // Atomically submits a multi-product order. Cases is indexed like Products; no money or stock is
+    // changed when any line is invalid. Returns the paid bill and ordered units when requested.
+    bool SubmitOrder(const TArray<int32>& Cases, const TArray<FMarketProduct>& Products, int64* OutBill = nullptr, int32* OutUnits = nullptr);
+    // Rear door -> warehouse. The caller supplies a case-sized limit for visible carrying.
+    int32 ReceiveDelivery(int32 Index, int32 MaxUnits = MAX_int32);
     // Warehouse -> shelf, at most MaxUnits (the player moves all that fits, a worker one unit at a time).
     int32 Restock(int32 Index, int32 MaxUnits = MAX_int32);
     bool Sell(int32 Index, int32 Quantity, int64 QuotedPrice, const TArray<FMarketProduct>& Products);
@@ -126,6 +136,7 @@ struct FMarketState
     int32 FillShelfFree(int32 Index);
     // TEST MODE: delivers Units straight to the warehouse (storage limit kept), no cash.
     int32 ReceiveFree(int32 Index, int32 Units);
+    int32 DeliveryUnits() const;
     // Save data is internally consistent (ranges, unique ids). Does not look at the catalog.
     bool IsStructurallyValid() const;
     // Structurally valid AND stock rows match the catalog one-to-one in the same order.

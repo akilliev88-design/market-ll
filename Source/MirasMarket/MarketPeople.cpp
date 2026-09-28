@@ -128,9 +128,16 @@ FVector MoveToward(FShopper& Shopper, const FVector& Here, const FVector& Target
     return Here + OutDirection * Step;
 }
 
+float WalkPlaybackRate(float WorldSpeed)
+{
+    constexpr float AuthoredWalkSpeed = 376.2764f / 1.5f;
+    return FMath::Clamp(WorldSpeed / AuthoredWalkSpeed, .15f, 1.25f);
+}
+
 void Update(AActor* Actor, const FLibrary& Library, FShopper& Shopper, const FVector& Direction, bool bMoving, float YawOffset, float DeltaTime)
 {
     if (!Actor) return;
+    const bool bWalkCycle = bMoving && Shopper.CurrentSpeed >= 12.f;
     if (bMoving && !Direction.IsNearlyZero())
     {
         // Skeletal meshes face +Y in mesh space: turn the actor so the body looks along Direction,
@@ -138,17 +145,17 @@ void Update(AActor* Actor, const FLibrary& Library, FShopper& Shopper, const FVe
         const FRotator Want(0.f, Direction.Rotation().Yaw - 90.f - Shopper.MeshYaw + YawOffset, 0.f);
         Actor->SetActorRotation(FMath::RInterpTo(Actor->GetActorRotation(), Want, DeltaTime, Shopper.TurnResponse));
     }
-    if (!Shopper.bStarted || Shopper.bWalking != bMoving)
+    if (!Shopper.bStarted || Shopper.bWalking != bWalkCycle)
     {
         Shopper.bStarted = true;
-        Shopper.bWalking = bMoving;
-        Play(Shopper, bMoving ? Library.Walk.Get() : Library.Idle.Get());
+        Shopper.bWalking = bWalkCycle;
+        Play(Shopper, bWalkCycle ? Library.Walk.Get() : Library.Idle.Get());
     }
     if (USkeletalMeshComponent* Body = Shopper.Body.Get())
     {
         // The current prototype uses an in-place walk. Matching its playback to world speed removes
         // most visible foot sliding until the shared retargeted Animation Blueprint is installed.
-        Body->SetPlayRate(bMoving ? FMath::Clamp(Shopper.CurrentSpeed / 145.f, .55f, 1.15f) : FMath::Lerp(.94f, 1.04f, Shopper.AnimationPhase));
+        Body->SetPlayRate(bWalkCycle ? WalkPlaybackRate(Shopper.CurrentSpeed) : FMath::Lerp(.94f, 1.04f, Shopper.AnimationPhase));
     }
 }
 }

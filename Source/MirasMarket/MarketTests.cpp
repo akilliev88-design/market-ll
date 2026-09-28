@@ -38,6 +38,8 @@ bool FMarketLocomotionTest::RunTest(const FString& Parameters)
     Position = MarketPeople::MoveToward(Shopper, Position, FVector(100, 0, 0), 140.f, .1f, Direction, bMoving);
     TestFalse(TEXT("Settles at the destination"), bMoving);
     TestEqual(TEXT("Settled speed is zero"), Shopper.CurrentSpeed, 0.f);
+    TestTrue(TEXT("Authored walk speed plays at one"), FMath::IsNearlyEqual(MarketPeople::WalkPlaybackRate(250.8509f), 1.f, .001f));
+    TestTrue(TEXT("Market walking speed slows the clip"), FMath::IsNearlyEqual(MarketPeople::WalkPlaybackRate(140.f), .558f, .002f));
     return true;
 }
 
@@ -326,13 +328,48 @@ bool FMarketInventoryTest::RunTest(const FString& Parameters)
     TestEqual(TEXT("Not delivered early"), S.Stock[0].Warehouse, 8);
     TestEqual(TEXT("Twelve units in transit"), S.Stock[0].Incoming, 12);
     S.CloseDay();
-    TestEqual(TEXT("Next day delivery"), S.Stock[0].Warehouse, 20);
+    TestEqual(TEXT("Warehouse waits for physical receiving"), S.Stock[0].Warehouse, 8);
     TestEqual(TEXT("Transit cleared"), S.Stock[0].Incoming, 0);
+    TestEqual(TEXT("Arrival plus supplier issue conserves the shipment"),
+        S.Stock[0].Dock + S.LastDeliveryMissing + S.LastDeliveryDamaged, 12);
+    const int32 Arrived = S.Stock[0].Dock;
+    TestEqual(TEXT("Rear door moves into warehouse"), S.ReceiveDelivery(0), Arrived);
+    TestEqual(TEXT("Received delivery reaches storage"), S.Stock[0].Warehouse, 8 + Arrived);
     TestEqual(TEXT("Purchase does not duplicate cost of goods"), S.LastProfit, int64(-2200));
     S.Cash = 0;
     TestFalse(TEXT("Cannot spend missing cash"), S.Order(0, Catalog));
     TestEqual(TEXT("Failed order preserves stock"), S.Stock[0].Incoming, 0);
     TestFalse(TEXT("Bad catalog index rejected"), S.Order(99, Catalog));
+    return true;
+}
+
+IMPLEMENT_SIMPLE_AUTOMATION_TEST(FMarketDeliveryTest, "MirasMarket.Economy.MultiOrderAndDelivery", EAutomationTestFlags::EditorContext | EAutomationTestFlags::EngineFilter)
+bool FMarketDeliveryTest::RunTest(const FString& Parameters)
+{
+    FMarketProduct Milk; Milk.Id = TEXT("milk"); Milk.Cost = 170; Milk.BasePrice = 250; Milk.CaseUnits = 12;
+    FMarketProduct Tea; Tea.Id = TEXT("tea"); Tea.Cost = 480; Tea.BasePrice = 675; Tea.CaseUnits = 6;
+    const TArray<FMarketProduct> Catalog = { Milk, Tea };
+    FMarketState S; S.Initialize(Catalog);
+    S.Stock[0].Warehouse = S.Stock[1].Warehouse = 0;
+    const TArray<int32> Cases = { 2, 1 };
+    int64 Bill = 0;
+    int32 Units = 0;
+    TestTrue(TEXT("Multi-product list submits atomically"), S.SubmitOrder(Cases, Catalog, &Bill, &Units));
+    TestEqual(TEXT("Both lines share one bill"), Bill, int64(2 * 12 * 170 + 6 * 480));
+    TestEqual(TEXT("All ordered units counted"), Units, 30);
+    TestEqual(TEXT("Milk in transit"), S.Stock[0].Incoming, 24);
+    TestEqual(TEXT("Tea in transit"), S.Stock[1].Incoming, 6);
+    const int64 CashAfterOrder = S.Cash;
+    S.Cash = 0;
+    TestFalse(TEXT("Failed list changes no line"), S.SubmitOrder(Cases, Catalog));
+    TestEqual(TEXT("Failed list preserves shipments"), S.Stock[0].Incoming + S.Stock[1].Incoming, 30);
+    S.Cash = CashAfterOrder;
+    S.CloseDay();
+    TestEqual(TEXT("Every unit arrives or is reported missing/damaged"),
+        S.DeliveryUnits() + S.LastDeliveryMissing + S.LastDeliveryDamaged, 30);
+    const int32 Dock = S.Stock[0].Dock;
+    TestEqual(TEXT("One visible case can be received"), S.ReceiveDelivery(0, 12), FMath::Min(12, Dock));
+    TestTrue(TEXT("Delivery state validates"), S.IsStructurallyValid());
     return true;
 }
 
@@ -377,6 +414,7 @@ bool FMarketSaveTest::RunTest(const FString& Parameters)
     auto* Save = NewObject<UMarketSave>();
     Save->State.Initialize(Catalog);
     Save->State.Order(0, Catalog);
+    Save->State.Stock[0].Dock = 3;
     Save->State.bRealBrands = false;
     Save->State.bCashier = true;
     TArray<uint8> Bytes;
@@ -385,6 +423,7 @@ bool FMarketSaveTest::RunTest(const FString& Parameters)
     if (!TestNotNull(TEXT("Restore typed save"), Restored)) return false;
     TestEqual(TEXT("Cash survives round trip"), Restored->State.Cash, Save->State.Cash);
     TestEqual(TEXT("Pending shipment survives round trip"), Restored->State.Stock[0].Incoming, 12);
+    TestEqual(TEXT("Rear-door stock survives round trip"), Restored->State.Stock[0].Dock, 3);
     TestFalse(TEXT("Brand presentation survives round trip"), Restored->State.bRealBrands);
     TestTrue(TEXT("Employee survives round trip"), Restored->State.bCashier);
     TestTrue(TEXT("Current catalog validates"), Restored->State.IsValidFor(Catalog));

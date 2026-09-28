@@ -141,6 +141,8 @@ void AMarketGameMode::WorkerFinish(FMarketWorker& Worker)
     Worker.Job = StaffPlanner::FJob();
     Worker.Stage = EWorkerStage::Idle;
     Worker.Carry = 0;
+    Worker.DeliveryProduct = INDEX_NONE;
+    Worker.Route.Reset();
     Worker.Retries = 0;
     Worker.Timer = 0.4f;
     if (Worker.Carton) { Worker.Carton->Destroy(); Worker.Carton = nullptr; }
@@ -151,7 +153,25 @@ void AMarketGameMode::WorkerThink(int32 WorkerIndex)
     FMarketWorker& Worker = Workers[WorkerIndex];
     TSet<int32> Busy;
     for (int32 Other = 0; Other < Workers.Num(); ++Other)
-        if (Other != WorkerIndex && Workers[Other].Job.Kind != StaffPlanner::EJob::None) Busy.Add(Workers[Other].Job.Product);
+        if (Other != WorkerIndex)
+        {
+            if (Workers[Other].Job.Kind != StaffPlanner::EJob::None) Busy.Add(Workers[Other].Job.Product);
+            if (Workers[Other].DeliveryProduct != INDEX_NONE) Busy.Add(Workers[Other].DeliveryProduct);
+        }
+    // Morning deliveries are handled before shelf work. One visible case is carried from the rear
+    // door to storage per trip, so hiring another worker shortens a busy receiving morning.
+    for (int32 Product = 0; Product < State.Stock.Num(); ++Product)
+    {
+        if (State.Stock[Product].Dock <= 0 || Busy.Contains(Product)) continue;
+        Worker.Job = StaffPlanner::FJob();
+        Worker.DeliveryProduct = Product;
+        Worker.Carry = FMath::Min(State.Stock[Product].Dock,
+            Products.IsValidIndex(Product) ? FMath::Clamp(Products[Product].CaseUnits, 1, 48) : State.Stock[Product].Dock);
+        Worker.bResting = false;
+        Worker.Stage = EWorkerStage::ToDelivery;
+        WorkerGoTo(Worker, DeliverySpot(Product));
+        return;
+    }
     TArray<TPair<int32, FString>> NoRoom;
     // While the player arranges (R) the plan belongs to the player: workers only refill.
     const StaffPlanner::FJob Job = StaffPlanner::ChooseJob(Planogram, Products, State, Busy, Unplaceable, !bArrange, &NoRoom);
@@ -286,6 +306,34 @@ void AMarketGameMode::TickWorkers(float DeltaTime)
             RefreshShelfItems();
             if (Worker.Carry <= 0) WorkerFinish(Worker);
             break;
+        case EWorkerStage::ToDelivery:
+            if (bAtGoal) { Worker.Stage = EWorkerStage::DeliveryLoading; Worker.Timer = WorkerLoadSeconds; }
+            break;
+        case EWorkerStage::DeliveryLoading:
+            Worker.Timer -= DeltaTime;
+            if (Worker.Timer <= 0.f)
+            {
+                if (!State.Stock.IsValidIndex(Worker.DeliveryProduct) || State.Stock[Worker.DeliveryProduct].Dock <= 0) { WorkerFinish(Worker); break; }
+                Worker.Carry = FMath::Min(Worker.Carry, State.Stock[Worker.DeliveryProduct].Dock);
+                Worker.Carton = SurfaceBox(Worker.Actor->GetActorLocation(), FVector(38.f, 30.f, 24.f), EMarketSurface::Cardboard, false);
+                Worker.Stage = EWorkerStage::DeliveryToDepot;
+                WorkerGoTo(Worker, DepotSpot());
+            }
+            break;
+        case EWorkerStage::DeliveryToDepot:
+            if (bAtGoal) { Worker.Stage = EWorkerStage::DeliveryUnloading; Worker.Timer = WorkerLoadSeconds; }
+            break;
+        case EWorkerStage::DeliveryUnloading:
+            Worker.Timer -= DeltaTime;
+            if (Worker.Timer <= 0.f)
+            {
+                const int32 Product = Worker.DeliveryProduct;
+                const int32 Received = State.ReceiveDelivery(Product, Worker.Carry);
+                if (Received > 0) Notify(FString::Printf(TEXT("%s: %s mal kabulden depoya tasindi (%d adet)."), *Worker.Name, *ProductName(Product), Received));
+                RefreshDeliveryCrates();
+                WorkerFinish(Worker);
+            }
+            break;
         }
         const FVector Floor = Worker.Actor->GetActorLocation() - FVector(0, 0, Worker.bHuman ? 0.f : BoxPersonLift);
         if (Worker.Carton) // the case is held in front of the chest
@@ -307,7 +355,7 @@ FString AMarketGameMode::WorkerSummary() const
     FString Out;
     for (const FMarketWorker& Worker : Workers)
     {
-        const int32 P = Worker.Job.Product;
+        const int32 P = Worker.DeliveryProduct != INDEX_NONE ? Worker.DeliveryProduct : Worker.Job.Product;
         const FString Product = Products.IsValidIndex(P) ? ProductName(P) : FString();
         FString Doing;
         switch (Worker.Stage)
@@ -321,6 +369,10 @@ FString AMarketGameMode::WorkerSummary() const
                 : TEXT("raf\u0131na g\u00f6t\u00fcr\u00fcyor: ") + Product;
             break;
         case EWorkerStage::Working: Doing = FString::Printf(TEXT("dolduruyor: %s (%d)"), *Product, Worker.Carry); break;
+        case EWorkerStage::ToDelivery:
+        case EWorkerStage::DeliveryLoading: Doing = TEXT("mal kabulden aliyor: ") + Product; break;
+        case EWorkerStage::DeliveryToDepot:
+        case EWorkerStage::DeliveryUnloading: Doing = TEXT("depoya tasiyor: ") + Product; break;
         }
         Out += (Out.IsEmpty() ? FString() : FString(TEXT("\n"))) + Worker.Name + TEXT(": ") + Doing;
     }

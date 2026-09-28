@@ -77,7 +77,7 @@ void AMarketCharacter::SetupPlayerInputComponent(UInputComponent* Input)
     static const TCHAR* Forwarded[] = { TEXT("Arrange"), TEXT("ArrangePlace"), TEXT("ArrangeUp"), TEXT("ArrangeDown"), TEXT("ArrangeLeft"),
         TEXT("ArrangeRight"), TEXT("ArrangeRemove"), TEXT("ArrangeTurn"), TEXT("ArrangeStack"), TEXT("ArrangeGrab"), TEXT("ArrangePick"),
         TEXT("ArrangeNext"), TEXT("ArrangePrev"), TEXT("ArrangeGapDown"), TEXT("ArrangeGapUp"), TEXT("PrevProduct"),
-        TEXT("HireStocker"), TEXT("FireStocker") };
+        TEXT("HireStocker"), TEXT("FireStocker"), TEXT("ConfirmOrder"), TEXT("RemoveOrder") };
     for (const TCHAR* Name : Forwarded)
         Input->BindAction<FMarketCommandDelegate>(FName(Name), IE_Pressed, this, &AMarketCharacter::SendCommand, FName(Name));
 }
@@ -128,6 +128,7 @@ void AMarketGameMode::BeginPlay()
     LoadCatalog();
     LoadPlanogram();
     State.Initialize(Products);
+    OrderDraftCases.Init(0, Products.Num());
     ApplyCapacities();
     if (bUseMetaHumans)
     {
@@ -140,6 +141,7 @@ void AMarketGameMode::BeginPlay()
     // Opening inventory waits in the warehouse. Test mode keeps free stocking controls, but the player
     // still starts by experiencing the empty shop and choosing what to place on the shelves.
     BuildStore();
+    RefreshDeliveryCrates();
     if (auto* PC = UGameplayStatics::GetPlayerController(this, 0))
     {
         if (APawn* Pawn = PC->GetPawn()) Pawn->SetActorLocation(FVector(0, -180, 100));
@@ -798,7 +800,15 @@ FString AMarketGameMode::ContextHint() const
 {
     // "K: text" = key K does the action (the HUD draws K as a key cap). Proper Turkish: Slate font.
     if (bArrange) return ArrangeHint();
-    if (NearOffice()) return FString::Printf(TEXT("B: %d adet sipari\u015f ver   \u00b7   TAB \u00fcr\u00fcn   \u00b7   +/- fiyat   \u00b7   H kasiyer   \u00b7   J reyon g\u00f6revlisi (K \u00e7\u0131kar)   \u00b7   G ikinci \u015fube"), Products[Selected].CaseUnits);
+    if (CarriedDeliveryProduct != INDEX_NONE)
+    {
+        const APawn* Pawn = UGameplayStatics::GetPlayerPawn(this, 0);
+        return Pawn && FVector::Dist2D(Pawn->GetActorLocation(), DepotSpot()) < 155.f
+            ? TEXT("E: Koliyi depoya birak") : TEXT("Koliyi arka depodaki kabul noktasina gotur");
+    }
+    if (const int32 Delivery = NearbyDelivery(); Delivery != INDEX_NONE)
+        return FString::Printf(TEXT("E: %s kolisini al  \u00b7  depoya gotur"), *ProductName(Delivery));
+    if (NearOffice()) return FString::Printf(TEXT("B: %d adetlik koliyi listeye ekle   \u00b7   V azalt   \u00b7   N sipari\u015fi onayla   \u00b7   TAB \u00fcr\u00fcn   \u00b7   +/- fiyat"), Products[Selected].CaseUnits);
     if (NearCounter()) return FString::Printf(TEXT("E: S\u0131radaki m\u00fc\u015fterinin \u00f6demesini al   \u00b7   bekleyen %d"), QueueSize());
     const int32 I = NearbyShelf();
     if (I != INDEX_NONE)
@@ -835,8 +845,13 @@ void AMarketGameMode::Command(FName Action)
     }
     else if (Action == "Interact")
     {
-        if (NearCounter()) Checkout();
-        else if (NearOffice()) Notify(TEXT("TAB: \u00fcr\u00fcn se\u00e7 / B: koli sipari\u015f / +/-: fiyat / H: kasiyer / J: reyon g\u00f6revlisi (K: \u00e7\u0131kar) / G: ikinci \u015fube"));
+        if (CarriedDeliveryProduct != INDEX_NONE) { if (!FinishPlayerDelivery()) Notify(TEXT("Koliyi arka depodaki kabul noktasina gotur.")); }
+        else if (const int32 Delivery = NearbyDelivery(); Delivery != INDEX_NONE)
+        {
+            if (StartPlayerDelivery(Delivery)) Notify(FString::Printf(TEXT("%s kolisini aldin. Arka depodaki kabul noktasina gotur ve E'ye bas."), *ProductName(Delivery)));
+        }
+        else if (NearCounter()) Checkout();
+        else if (NearOffice()) Notify(TEXT("TAB/Q: urun sec / B: listeye koli ekle / V: azalt / N: siparisi onayla / +/-: fiyat / H: kasiyer / J: reyon gorevlisi"));
         else if (const int32 I = NearbyShelf(); I != INDEX_NONE)
         {
             Selected = I;
@@ -909,7 +924,7 @@ void AMarketGameMode::Command(FName Action)
         }
         else
         {
-            State.Initialize(Products); ApplyCapacities(); ResetWorkerJobs();
+            State.Initialize(Products); ApplyCapacities(); ResetWorkerJobs(); OrderDraftCases.Init(0, Products.Num()); RefreshDeliveryCrates();
             RefreshLabels(); ResetConfirmUntil = -1; Notify(TEXT("Yeni kampanya basladi. Raflar bos; urunleri depodan sen yerlestir ve O ile ac."));
         }
     }
@@ -923,7 +938,31 @@ void AMarketGameMode::Command(FName Action)
             const int32 Units = State.ReceiveFree(Selected, FMath::Clamp(Products[Selected].CaseUnits, 1, 48));
             Notify(Units > 0 ? FString::Printf(TEXT("TEST: %d adet bedava ve hemen depoya geldi."), Units) : FString(TEXT("Depo dolu (120 adet).")));
         }
-        else if (Action == "Order") Notify(State.Order(Selected, Products) ? FString::Printf(TEXT("%d adet siparis verildi. Odeme simdi; teslim ertesi sabah depoya."), Products[Selected].CaseUnits) : FString(TEXT("Yetersiz nakit veya depo + siparis limiti (120 adet).")));
+        else if (Action == "Order")
+        {
+            if (!OrderDraftCases.IsValidIndex(Selected)) OrderDraftCases.Init(0, Products.Num());
+            const int32 Units = FMath::Clamp(Products[Selected].CaseUnits, 1, 48);
+            const FMarketStock& Item = State.Stock[Selected];
+            if (OrderDraftCases[Selected] >= 9 || Item.Warehouse + Item.Dock + Item.Incoming + (OrderDraftCases[Selected] + 1) * Units > FMarketState::StorageCapacity)
+                Notify(TEXT("Bu urun icin depo + mal kabul + yoldaki siparis limiti 120 adet."));
+            else { ++OrderDraftCases[Selected]; Notify(ProductName(Selected) + TEXT(" listeye eklendi. N ile tum listeyi onayla.\n") + OrderDraftSummary()); }
+        }
+        else if (Action == "RemoveOrder")
+        {
+            if (OrderDraftCases.IsValidIndex(Selected) && OrderDraftCases[Selected] > 0) --OrderDraftCases[Selected];
+            Notify(OrderDraftSummary());
+        }
+        else if (Action == "ConfirmOrder")
+        {
+            int64 Bill = 0;
+            int32 Units = 0;
+            if (State.SubmitOrder(OrderDraftCases, Products, &Bill, &Units))
+            {
+                OrderDraftCases.Init(0, Products.Num());
+                Notify(FString::Printf(TEXT("Siparis onaylandi: %d adet, %s. Yarin sabah arka kapida; depoya tasinmasi gerekir."), Units, *Money(Bill)));
+            }
+            else Notify(TEXT("Siparis onaylanamadi: liste bos, nakit yetersiz veya urun deposu 120 adet sinirini asiyor."));
+        }
         else if (Action == "PriceUp" || Action == "PriceDown")
         {
             auto& Item = State.Stock[Selected];
@@ -1027,6 +1066,7 @@ void AMarketGameMode::Tick(float DeltaTime)
     Super::Tick(DeltaTime);
     MessageTime = FMath::Max(0.f, MessageTime - DeltaTime);
     TickArrange();
+    TickPlayerDelivery();
     ReportTime = FMath::Max(0.f, ReportTime - DeltaTime);
     if (!TickAutomation()) return; // -MirasSmoke / -MirasCapture runs (MarketAutomation.cpp)
     TickWorkers(DeltaTime); // shelf staff work whether the shop is open or not (MarketWorkers.cpp)
@@ -1099,10 +1139,13 @@ void AMarketGameMode::CloseShop()
     // No reserved goods have left inventory. Unfinished baskets are lost sales.
     for (const auto& C : Customers) { MarketDemand::RecordWaitingLoss(State); C.Actor->Destroy(); }
     Customers.Empty();
-    State.CloseDay(); RefreshLabels();
+    State.CloseDay(); RefreshLabels(); RefreshDeliveryCrates();
     ReportTime = 30;
     const bool bSaved = SaveCampaign();
-    Notify(FString::Printf(TEXT("Gun bitti. Net sonuc: %s. Siparisler depoya geldi. %s"), *Money(State.LastProfit), bSaved ? TEXT("Otomatik kaydedildi.") : TEXT("KAYIT YAZILAMADI; F5 ile yeniden dene.")));
+    FString Delivery = State.DeliveryUnits() > 0 ? FString::Printf(TEXT(" %d urun arka kapida; depoya tasi."), State.DeliveryUnits()) : FString();
+    if (State.LastDeliveryMissing + State.LastDeliveryDamaged > 0)
+        Delivery += FString::Printf(TEXT(" Tedarik sorunu: %d eksik, %d hasarli."), State.LastDeliveryMissing, State.LastDeliveryDamaged);
+    Notify(FString::Printf(TEXT("Gun bitti. Net sonuc: %s.%s %s"), *Money(State.LastProfit), *Delivery, bSaved ? TEXT("Otomatik kaydedildi.") : TEXT("KAYIT YAZILAMADI; F5 ile yeniden dene.")));
 }
 bool AMarketGameMode::SaveCampaign()
 {
@@ -1114,12 +1157,12 @@ void AMarketGameMode::LoadCampaign()
 {
     auto* Save = Cast<UMarketSave>(UGameplayStatics::LoadGameFromSlot(MarketSaveSlot(), 0));
     if (!Save || !Save->State.IsStructurallyValid()) { Notify(TEXT("Uyumlu kayit bulunamadi. Mevcut kampanya korunuyor.")); return; }
-    State = Save->State; Selected = 0;
+    State = Save->State; Selected = 0; OrderDraftCases.Init(0, Products.Num());
     TArray<FString> Added, Removed;
     State.ReconcileWith(Products, &Added, &Removed);
     ApplyCapacities();
     ResetWorkerJobs(); // stock rows may have moved; workers pick new jobs
-    RefreshLabels();
+    RefreshLabels(); RefreshDeliveryCrates();
     if (Added.Num() + Removed.Num() > 0)
         Notify(FString::Printf(TEXT("Kampanya yuklendi. Katalog degismis: %d yeni urun (raf bos, siparis ver), %d kaldirilan urun."), Added.Num(), Removed.Num()));
     else Notify(TEXT("Kampanya yuklendi. Hazir oldugunda O ile marketi ac."));

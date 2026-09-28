@@ -217,6 +217,7 @@ TSharedRef<SWidget> SMarketHud::StockCard()
             + SHorizontalBox::Slot().FillWidth(1.f)[ SNew(STextBlock).Text(FText::FromString(TEXT("STOK"))).Font(Font("Bold", 8, 180)).ColorAndOpacity(Muted) ]
             + SHorizontalBox::Slot().AutoWidth()[ SNew(SBox).WidthOverride(150.f)[ SNew(STextBlock).Text(FText::FromString(TEXT("RAF"))).Font(Font("Bold", 8, 120)).ColorAndOpacity(Muted) ] ]
             + SHorizontalBox::Slot().AutoWidth()[ SNew(SBox).WidthOverride(46.f)[ SNew(STextBlock).Text(FText::FromString(TEXT("DEPO"))).Font(Font("Bold", 8, 120)).ColorAndOpacity(Muted) ] ]
+            + SHorizontalBox::Slot().AutoWidth()[ SNew(SBox).WidthOverride(46.f)[ SNew(STextBlock).Text(FText::FromString(TEXT("KABUL"))).Font(Font("Bold", 8, 120)).ColorAndOpacity(Muted) ] ]
             + SHorizontalBox::Slot().AutoWidth()[ SNew(SBox).WidthOverride(46.f)[ SNew(STextBlock).Text(FText::FromString(TEXT("YOLDA"))).Font(Font("Bold", 8, 120)).ColorAndOpacity(Muted) ] ]
         ];
     const AMarketGameMode* G0 = Game.Get();
@@ -281,6 +282,14 @@ TSharedRef<SWidget> SMarketHud::StockCard()
             [
                 SNew(SBox).WidthOverride(46.f)
                 [
+                    SNew(STextBlock).Font(Font("Regular", 10)).ColorAndOpacity(Honey)
+                    .Text_Lambda([this, I] { const AMarketGameMode* G = Game.Get(); return FText::AsNumber(G && G->State.Stock.IsValidIndex(I) ? G->State.Stock[I].Dock : 0); })
+                ]
+            ]
+            + SHorizontalBox::Slot().AutoWidth().VAlign(VAlign_Center)
+            [
+                SNew(SBox).WidthOverride(46.f)
+                [
                     SNew(STextBlock).Font(Font("Regular", 10)).ColorAndOpacity(Cream)
                     .Text_Lambda([this, I] { const AMarketGameMode* G = Game.Get(); return FText::AsNumber(G && G->State.Stock.IsValidIndex(I) ? G->State.Stock[I].Incoming : 0); })
                 ]
@@ -321,8 +330,13 @@ TSharedRef<SWidget> SMarketHud::OfficeCard()
                     const FMarketProduct& P = G->Products[G->Selected];
                     return FText::FromString(G->bTestMode
                         ? FString::Printf(TEXT("Koli %d adet  \u00b7  test modunda bedava, hemen depoda"), P.CaseUnits)
-                        : FString::Printf(TEXT("Koli %d \u00d7 %s = %s  \u00b7  ertesi sabah depoda"), P.CaseUnits, *Lira(P.Cost), *Lira(P.Cost * P.CaseUnits)));
+                        : FString::Printf(TEXT("Koli %d \u00d7 %s = %s  \u00b7  ertesi sabah arka kap\u0131da"), P.CaseUnits, *Lira(P.Cost), *Lira(P.Cost * P.CaseUnits)));
                 })
+            ]
+            + SVerticalBox::Slot().AutoHeight().Padding(0.f, 8.f, 0.f, 0.f)
+            [
+                SNew(STextBlock).Font(Font("Regular", 9)).ColorAndOpacity(Teal).AutoWrapText(true)
+                .Text_Lambda([this] { const AMarketGameMode* G = Game.Get(); return FText::FromString(G ? G->OrderDraftSummary() : FString()); })
             ]
             + SVerticalBox::Slot().AutoHeight().Padding(0.f, 2.f, 0.f, 0.f)
             [
@@ -337,7 +351,8 @@ TSharedRef<SWidget> SMarketHud::OfficeCard()
                 [
                     SNew(SHorizontalBox)
                     + SHorizontalBox::Slot().AutoWidth()[ KeyRow(TEXT("TAB"), TEXT("\u00dcr\u00fcn")) ]
-                    + SHorizontalBox::Slot().AutoWidth()[ KeyRow(TEXT("B"), TEXT("Sipari\u015f")) ]
+                    + SHorizontalBox::Slot().AutoWidth()[ KeyRow(TEXT("B/V"), TEXT("Koli +/-")) ]
+                    + SHorizontalBox::Slot().AutoWidth()[ KeyRow(TEXT("N"), TEXT("Onayla")) ]
                     + SHorizontalBox::Slot().AutoWidth()[ KeyRow(TEXT("+/-"), TEXT("Fiyat")) ]
                 ]
                 + SVerticalBox::Slot().AutoHeight().Padding(0.f, 4.f, 0.f, 0.f)

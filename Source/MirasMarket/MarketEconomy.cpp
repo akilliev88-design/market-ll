@@ -15,13 +15,46 @@ void FMarketState::Initialize(const TArray<FMarketProduct>& Products)
 bool FMarketState::Order(int32 Index, const TArray<FMarketProduct>& Products)
 {
     if (!Stock.IsValidIndex(Index) || !Products.IsValidIndex(Index)) return false;
-    const int32 Units = FMath::Clamp(Products[Index].CaseUnits, 1, 48);
-    const int64 Bill = Products[Index].Cost * Units;
-    auto& Item = Stock[Index];
-    if (Cash < Bill || Item.Incoming + Item.Warehouse + Units > StorageCapacity) return false;
+    TArray<int32> Cases;
+    Cases.Init(0, Products.Num());
+    Cases[Index] = 1;
+    return SubmitOrder(Cases, Products);
+}
+
+bool FMarketState::SubmitOrder(const TArray<int32>& Cases, const TArray<FMarketProduct>& Products, int64* OutBill, int32* OutUnits)
+{
+    if (Products.Num() != Stock.Num() || Cases.Num() != Products.Num()) return false;
+    int64 Bill = 0;
+    int32 TotalUnits = 0;
+    for (int32 I = 0; I < Products.Num(); ++I)
+    {
+        if (Cases[I] < 0 || Cases[I] > 9) return false;
+        const int32 CaseUnits = FMath::Clamp(Products[I].CaseUnits, 1, 48);
+        const int32 Units = Cases[I] * CaseUnits;
+        if (Units > 0 && Stock[I].Warehouse + Stock[I].Dock + Stock[I].Incoming + Units > StorageCapacity) return false;
+        if (Products[I].Cost < 0 || (Units > 0 && Products[I].Cost > MAX_int64 / Units)) return false;
+        const int64 LineBill = Products[I].Cost * Units;
+        if (Bill > MAX_int64 - LineBill) return false;
+        Bill += LineBill;
+        TotalUnits += Units;
+    }
+    if (TotalUnits <= 0 || Cash < Bill) return false;
     Cash -= Bill;
-    Item.Incoming += Units;
+    for (int32 I = 0; I < Products.Num(); ++I)
+        Stock[I].Incoming += Cases[I] * FMath::Clamp(Products[I].CaseUnits, 1, 48);
+    if (OutBill) *OutBill = Bill;
+    if (OutUnits) *OutUnits = TotalUnits;
     return true;
+}
+
+int32 FMarketState::ReceiveDelivery(int32 Index, int32 MaxUnits)
+{
+    if (!Stock.IsValidIndex(Index) || MaxUnits <= 0) return 0;
+    FMarketStock& Item = Stock[Index];
+    const int32 Amount = FMath::Clamp(FMath::Min(Item.Dock, MaxUnits), 0, FMath::Max(0, StorageCapacity - Item.Warehouse - Item.Incoming));
+    Item.Dock -= Amount;
+    Item.Warehouse += Amount;
+    return Amount;
 }
 
 int32 FMarketState::Restock(int32 Index, int32 MaxUnits)
@@ -68,9 +101,20 @@ void FMarketState::CloseDay()
         const float Satisfaction = static_cast<float>(Served) / (Served + Lost);
         MarketShare = FMath::Clamp(MarketShare * 0.8f + (12.f + 53.f * Satisfaction) * 0.2f, 5.f, 65.f);
     }
-    for (auto& Item : Stock)
+    LastDeliveryMissing = 0;
+    LastDeliveryDamaged = 0;
+    for (int32 I = 0; I < Stock.Num(); ++I)
     {
-        Item.Warehouse += Item.Incoming;
+        FMarketStock& Item = Stock[I];
+        // Stable per day/product: supplier problems cannot be rerolled by reloading a save.
+        uint32 Hash = 2166136261u;
+        for (const TCHAR Character : Item.Id) { Hash ^= static_cast<uint32>(Character); Hash *= 16777619u; }
+        Hash ^= static_cast<uint32>(Day * 7919 + I * 104729);
+        const int32 Missing = Item.Incoming >= 2 && Hash % 23u == 0u ? 1 : 0;
+        const int32 Damaged = Item.Incoming - Missing >= 2 && (Hash / 23u) % 17u == 0u ? 1 : 0;
+        LastDeliveryMissing += Missing;
+        LastDeliveryDamaged += Damaged;
+        Item.Dock += Item.Incoming - Missing - Damaged;
         Item.Incoming = 0;
         Item.Yesterday = Item.Today;
         Item.Today = FMarketDemandStats();
@@ -91,7 +135,7 @@ int32 FMarketState::ApplyShelfCapacities(const TArray<int32>& Capacities)
         if (Item.Shelf <= Item.Capacity) continue;
         const int32 Excess = Item.Shelf - Item.Capacity;
         Item.Shelf = Item.Capacity;
-        const int32 Room = FMath::Max(0, StorageCapacity - Item.Warehouse - Item.Incoming);
+        const int32 Room = FMath::Max(0, StorageCapacity - Item.Warehouse - Item.Dock - Item.Incoming);
         const int32 Moved = FMath::Min(Excess, Room);
         Item.Warehouse += Moved;
         Discarded += Excess - Moved;
@@ -112,9 +156,16 @@ int32 FMarketState::ReceiveFree(int32 Index, int32 Units)
 {
     if (!Stock.IsValidIndex(Index) || Units <= 0) return 0;
     auto& Item = Stock[Index];
-    const int32 Added = FMath::Clamp(Units, 0, FMath::Max(0, StorageCapacity - Item.Warehouse - Item.Incoming));
+    const int32 Added = FMath::Clamp(Units, 0, FMath::Max(0, StorageCapacity - Item.Warehouse - Item.Dock - Item.Incoming));
     Item.Warehouse += Added;
     return Added;
+}
+
+int32 FMarketState::DeliveryUnits() const
+{
+    int32 Total = 0;
+    for (const FMarketStock& Item : Stock) Total += Item.Dock;
+    return Total;
 }
 
 bool FMarketState::IsStructurallyValid() const
@@ -125,8 +176,8 @@ bool FMarketState::IsStructurallyValid() const
     {
         bool bDuplicate = false;
         Seen.Add(Item.Id, &bDuplicate);
-        if (bDuplicate || Item.Id.IsEmpty() || Item.Capacity < 0 || Item.Capacity > MaxShelfCapacity || Item.Shelf < 0 || Item.Shelf > Item.Capacity || Item.Warehouse < 0 || Item.Incoming < 0 ||
-            Item.Warehouse + Item.Incoming > StorageCapacity || Item.Price < 10) return false;
+        if (bDuplicate || Item.Id.IsEmpty() || Item.Capacity < 0 || Item.Capacity > MaxShelfCapacity || Item.Shelf < 0 || Item.Shelf > Item.Capacity || Item.Warehouse < 0 || Item.Dock < 0 || Item.Incoming < 0 ||
+            Item.Warehouse + Item.Dock + Item.Incoming > StorageCapacity || Item.Price < 10) return false;
     }
     return true;
 }

@@ -48,6 +48,9 @@ namespace MarketPeople
     // never overshoots Target; OutDirection/OutMoving drive the animation and body orientation.
     FVector MoveToward(FShopper& Shopper, const FVector& Here, const FVector& Target, float BaseSpeed,
         float DeltaTime, FVector& OutDirection, bool& bOutMoving);
+    // MF_Unarmed_Walk_Fwd travels 376.276 cm in 1.5 s. Match that authored root speed
+    // to our in-place actor speed so a planted foot remains still against the floor.
+    float WalkPlaybackRate(float WorldSpeed);
     // Faces the walking direction and switches walk / idle animation.
     void Update(AActor* Actor, const FLibrary& Library, FShopper& Shopper, const FVector& Direction, bool bMoving, float YawOffset, float DeltaTime);
 }

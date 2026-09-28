@@ -92,7 +92,7 @@ struct FMarketCustomer
     int32 RouteStage = -1;
 };
 
-enum class EWorkerStage : uint8 { Idle, ToDepot, Loading, ToShelf, Working };
+enum class EWorkerStage : uint8 { Idle, ToDepot, Loading, ToShelf, Working, ToDelivery, DeliveryLoading, DeliveryToDepot, DeliveryUnloading };
 
 // One shelf worker (reyon gorevlisi) walking in the store. Units stay in the depot until the worker puts
 // them on the shelf one by one, so nothing is lost if the trip is cut short.
@@ -112,6 +112,7 @@ struct FMarketWorker
     FVector Facing = FVector(0, 1, 0);
     float Timer = 0.f;
     int32 Carry = 0;                // units still to put on the shelf this trip
+    int32 DeliveryProduct = INDEX_NONE;
     int32 Retries = 0;              // new spots tried after the planned one was taken
     bool bResting = false;
 };
@@ -183,6 +184,13 @@ public:
     TSet<int32> Unplaceable;        // products with no room on their category's shelves (cleared when the plan changes)
     TSet<int32> NoRoomTold;         // "no room" already reported to the player for these products
     int32 WorkerPlanVersion = -1;
+    // Office multi-product order draft. One integer case count per catalog row; the draft itself is
+    // deliberately not a save concern until N submits it atomically into State.Incoming.
+    TArray<int32> OrderDraftCases;
+    UPROPERTY() TArray<TObjectPtr<AActor>> DeliveryCrates;
+    UPROPERTY() TArray<TObjectPtr<UTextRenderComponent>> DeliveryCrateLabels;
+    int32 CarriedDeliveryProduct = INDEX_NONE;
+    UPROPERTY() TObjectPtr<AActor> CarriedDeliveryCrate = nullptr;
     void SyncWorkers();
     void ResetWorkerJobs();
     void TickWorkers(float DeltaTime);
@@ -194,7 +202,16 @@ public:
     void WorkerGoTo(FMarketWorker& Worker, const FVector& Goal);
     FString WorkerSummary() const;
     FVector DepotSpot() const;
+    FVector DeliverySpot(int32 ProductIndex) const;
     FVector WorkerRestSpot(int32 Index) const;
+    int32 NearbyDelivery() const;
+    void RefreshDeliveryCrates();
+    bool StartPlayerDelivery(int32 ProductIndex);
+    bool FinishPlayerDelivery();
+    void TickPlayerDelivery();
+    int32 OrderDraftCaseCount() const;
+    int64 OrderDraftBill() const;
+    FString OrderDraftSummary() const;
     // Shopper / worker standing spot in front of a block (floor level).
     FVector BlockApproachSpot(const FPlanogramPlacement& Placement, float CenterX) const;
     // Walk along the open lanes (x = +/-150), crossing at the front corridor or behind the last gondola.

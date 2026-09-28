@@ -1,6 +1,6 @@
 # Güncel durum
 
-Son güncelleme: 28.09.2026 — Codex (G-051, G-056)
+Son güncelleme: 28.09.2026 — Codex (G-052, G-057)
 
 ## Kısaca
 
@@ -46,6 +46,8 @@ v0.2 geliştirme. **Yeni oyun rafları boş açılır**; başlangıç stoğu dep
 | G-050: Blender kasa/masa/soğutucu/manav/tavan ayrıntıları + boş raf başlangıcı | **GEÇTİ** — 7 varlıkta 0 hata/0 uyarı, derleme, 17/17 test, smoke ve 5 açılı görüntü — 28.09.2026 |
 | G-051: fiyat ve müşteri talebi (`MarketDemand`, kayıp nedenleri, gün raporunda 3 sorun, masada rakip fiyatı, `Customers.PriceAndDemand` testi) | **GEÇTİ** — birleşik derleme, 19/19 test ve smoke — 28.09.2026 |
 | G-056: MetaHuman ortak retarget + doğal hareket + `BP_MH_*` otomatik keşif | **GEÇTİ** — iki animasyon üretildi; 1 MetaHuman ve dönüştürülmüş yürüyüş/bekleme smoke günlüğünde yüklendi — 28.09.2026 |
+| G-052: çok ürünlü sipariş listesi + arka kapıda fiziksel mal kabul + oyuncu/görevli taşıması + eksik/hasarlı olay | **GEÇTİ** — derleme, 20/20 test ve smoke — 28.09.2026 |
+| G-057: ölçülmüş yürüyüş klibi hızına göre ayak kayması düzeltmesi | **GEÇTİ** — 376,276 cm / 1,5 sn kök hareketi ölçüldü; 140 cm/sn oyun hızında oynatma 0,558 — 28.09.2026 |
 | Stüdyoda elle deneme: kutu (açılım) → Oyuna ekle → OYNA | GEÇTİ: milk_1l oyunda; ön/yan/üst yüzler doğru, ayna yok, raf oturması doğru — 27.09.2026 |
 | Stüdyoda elle deneme: cam şişe modeli + malzeme.json | Bekliyor (henüz model yok) |
 
@@ -68,11 +70,11 @@ Görsel ve raf dizme işleri yeterli seviyede; bir süre **donduruldu**. Önceli
 
 ## Devam notu
 
-G-051 ve G-056 tamamlandı. İnsanlar artık hedefe yaklaşırken frenliyor, köşede yavaşlıyor, farklı hız/fazla yürüyor ve animasyon hızı dünya hızını izliyor. `METAHUMAN_ANIMASYON_HAZIRLA.cmd` ortak IK/retarget ile yürüyüş/bekleme üretir; oyun bütün `BP_MH_*` karakterlerini otomatik bulur. Bir sonraki insan işi, normal oyun kamerasında ayak/saç/kıyafet kontrolü ve raf alma/ödeme klipli ortak Animation Blueprint'tir.
+G-052 ve G-057 tamamlandı. Sipariş masasında B/V ile çok ürünlü liste hazırlanır ve N ile onaylanır; ertesi sabah koliler KABUL stoğunda ve arka kapıda görünür. Oyuncu E ile depoya taşır, reyon görevlileri bunu otomatik önceliklendirir. MetaHuman yürüyüş oynatma oranı klibin ölçülen 250,85 cm/sn kök hızına bağlandı; 12 cm/sn altında beklemeye geçer.
 
 ## Sıradaki adımlar
 
-0. Mustafa: oyunda MetaHuman ayak basışı/dönüşünü ve masada +/- fiyat → gün raporundaki "NEREDE MÜŞTERİ KAYBETTİN" bölümünü gözle dene.
-1. G-052 sipariş ve mal kabul → G-053 alışveriş listesi → G-054 hafta hedefi (borç tutarı ve G-008 rakip kararı Mustafa'da) → G-055 oyun testi.
+0. Mustafa: oyunda MetaHuman ayak basışını yeniden dene; masada birkaç ürünü B ile listeye ekle, N ile onayla, günü kapat ve arka kapıdaki koliyi E ile depoya taşı.
+1. G-053 alışveriş listesi → G-054 hafta hedefi (borç tutarı ve G-008 rakip kararı Mustafa'da) → G-055 oyun testi.
 2. Paralel (Mustafa): İlk Hafta için 20–40 ürünü gerçek ambalajıyla hazırla; 97 ürünün hepsi gerekmiyor.
 3. Dondurulanlar (İlk Hafta bitince): G-021 servis reyonları, G-042 MetaHuman çeşitliliği, FAB paketleri, G-017 ambalaj yönü denemeleri.

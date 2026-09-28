@@ -31,6 +31,7 @@ Limit aniden biterse sonraki ajan GUNLUK/DURUM ile dosyaların son hâlini karş
 | `Source/MirasMarket/StaffPlanner.*` | Reyon görevlisinin kararları (dünyadan bağımsız, test edilir): raf doldur, rafta olmayan ürünü kategorisinin reyonuna koy, bir koli almayan bloğu genişlet. |
 | `Source/MirasMarket/MarketDemand.*` | Müşteri kararları (dünyadan bağımsız, test edilir): hangi ürünü ister, rakip fiyatına göre alır mı, kayıp nedeni sayımı, gün raporunun en büyük 3 sorunu. |
 | `Source/MirasMarket/MarketWorkers.cpp` | Oyundaki reyon görevlileri: yürüme, koli taşıma, rafa tek tek dizme (`AMarketGameMode::TickWorkers`). |
+| `Source/MirasMarket/MarketDelivery.cpp` | Çok ürünlü sipariş taslağı, arka kapıdaki fiziksel koliler ve oyuncunun mal kabul taşıması. |
 | `Source/MirasMarket/PlanogramEdit.*` | Blok blok elle dizme kuralları (`PlanBlock`, `AddBlock`, `AddToRowEnd`, taşı/kaldır/önde/yön/istif/aralık). Oyun ve editör ortak kullanır; reyon görevlileri de (`StaffPlanner`) bunu kullanır. |
 | `Source/MirasMarket/MarketTests.cpp` | Unreal otomasyon testleri (`MirasMarket.*`). |
 | `Source/MirasMarketStudio/` | Yalnızca editörde çalışan **Ürün Stüdyosu** ve **Raf Planı** modülü. Arayüz: `SProductStudio`, `SPlanogramStudio`, `SStudioViewport`, `StudioStyle`. Arka uç (`StudioBackend.h`) konulara bölünmüştür: `StudioBackend.cpp` (dosya/görsel/açılım), `StudioMeshes.cpp` (malzeme, kutu/şekil/model 3B), `StudioPresets.cpp` (hazır ambalajlar, parça renkleri), `StudioProducts.cpp` (kontrol, yayımla), `StudioPrompts.cpp` (promptlar, teslim klasörü). Ortak iç yardımcılar `StudioBackendInternal.h`. |
@@ -41,6 +42,7 @@ Limit aniden biterse sonraki ajan GUNLUK/DURUM ile dosyaların son hâlini karş
 | `Docs/Surec/` | Devir belgeleri: DURUM, GOREVLER, GUNLUK. |
 | `Docs/URUN_STUDYOSU.md` | Stüdyonun kullanım kılavuzu ve dosya standardı. |
 | `Docs/METAHUMAN_REHBERI.md` | İnsan görünüşü, ortak animasyon dönüştürme ve kalabalık standardı. |
+| `Docs/MAL_KABUL.md` | Çok ürünlü sipariş listesi, arka kapı teslimatı ve depoya taşıma kontrolleri. |
 | `Docs/Uretim/` | Mustafa'nın dış ajanlara vereceği **kısa, kopyala-yapıştır promptlar** (A1/A2 kutu, B1/B2 şişe, C1/C2 poşet, D araştırma, E kontrol) ve marka/ürün listesi. Stüdyo davranışı değişirse bu promptları da güncelle. |
 | `Uretim/` | Dış ajanların teslim klasörü: `Uretim/<ürün>/model/`, `Uretim/<ürün>/<yıl>/`. |
 | `Docs/Uretim/Sablonlar/` | Stüdyonun ürün verisiyle doldurduğu prompt şablonları (`{{YER_TUTUCU}}`). Yeni yer tutucu eklersen `StudioPrompts.cpp` → `BuildPrompt` içine de ekle. |

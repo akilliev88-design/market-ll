@@ -40,7 +40,8 @@ bool AMarketGameMode::TickAutomation()
             const int32 OrderedUnits = FMath::Clamp(Products[0].CaseUnits, 1, 48);
             const int64 CashBeforeOrder = State.Cash;
             Command("Order");
-            if (!Require(State.Stock[0].Incoming == OrderedUnits && State.Cash == CashBeforeOrder - Products[0].Cost * OrderedUnits, TEXT("office order"))) return false;
+            Command("ConfirmOrder");
+            if (!Require(State.Stock[0].Incoming == OrderedUnits && State.Cash == CashBeforeOrder - Products[0].Cost * OrderedUnits, TEXT("multi-product office order"))) return false;
             const int64 CashBeforeHire = State.Cash;
             Command("Hire");
             if (!Require(State.bCashier && State.Cash == CashBeforeHire - 12000, TEXT("hire cashier"))) return false;
@@ -56,12 +57,18 @@ bool AMarketGameMode::TickAutomation()
         if (SmokeStage == 1 && GetWorld()->GetTimeSeconds() > 25)
         {
             CloseShop();
-            if (!Require(State.Day == 2 && State.LastServed > 0 && State.Stock[0].Incoming == 0, TEXT("customer sale and next-day delivery"))) return false;
+            if (!Require(State.Day == 2 && State.LastServed > 0 && State.Stock[0].Incoming == 0 && State.Stock[0].Dock > 0,
+                TEXT("customer sale and next-day rear-door delivery"))) return false;
+            const int32 DockBefore = State.Stock[0].Dock;
+            const int32 WarehouseBefore = State.Stock[0].Warehouse;
+            const int32 Received = State.ReceiveDelivery(0, FMath::Clamp(Products[0].CaseUnits, 1, 48));
+            if (!Require(Received > 0 && State.Stock[0].Dock == DockBefore - Received && State.Stock[0].Warehouse == WarehouseBefore + Received,
+                TEXT("delivery receiving into warehouse"))) return false;
             const int64 SavedCash = State.Cash;
             State.Cash = 0;
             LoadCampaign();
             if (!Require(State.Cash == SavedCash && State.bCashier, TEXT("disk save and load"))) return false;
-            UE_LOG(LogTemp, Display, TEXT("MirasMarket smoke PASSED: player, restock, order, hiring, %d customer sales, day close, disk save/load."), State.LastServed);
+            UE_LOG(LogTemp, Display, TEXT("MirasMarket smoke PASSED: player, restock, multi-order, rear-door receiving, hiring, %d customer sales, day close, disk save/load."), State.LastServed);
             SmokeStage = 2;
             FPlatformMisc::RequestExitWithStatus(false, 0);
         }

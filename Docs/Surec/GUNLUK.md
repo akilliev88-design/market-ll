@@ -2,6 +2,23 @@
 
 En yeni giriş en üstte. Biçim: tarih — ajan — başlık, ardından **Yapılan**, **Doğrulama**, **Sıradaki**.
 
+## 28.09.2026 — Codex — Ayak kayması kalibrasyonu ve sipariş/mal kabul (G-052, G-057)
+
+**Yapılan**
+- Retarget edilmiş `MF_Unarmed_Walk_Fwd` klibi kare kare ölçüldü: kök 1,5 saniyede 376,276 cm, yani 250,85 cm/sn ilerliyor. Eski 145 cm/sn tahmini kaldırıldı; oynatma oranı gerçek dünya hızına bağlandı. 12 cm/sn altındaki başlangıç/duruş hareketi bekleme animasyonuna geçiyor.
+- Yönetim masasında çok ürünlü sipariş taslağı eklendi: B koli ekler, V azaltır, N bütün listeyi atomik onaylar. Para veya ürün başına depo sınırı yetmiyorsa siparişin hiçbir satırı uygulanmaz.
+- `Dock/KABUL` stoğu eklendi. Yoldaki ürünler gün kapanınca doğrudan depoya geçmek yerine arka kapıda etiketli fiziksel koliler olarak belirir. Oyuncu E ile alıp kabul noktasına taşır.
+- Reyon görevlileri sabah mal kabulü raf işlerinden önce yapar; koliyi arka kapıdan alıp depoya yürüyerek taşır.
+- Eksik/hasarlı tedarikçi olayı eklendi. Kayıt yeniden yüklenerek sonuç değiştirilemez; kayıp adet gün sonu bildirimine girer.
+- Stok paneline KABUL sütunu, yönetim masasına sipariş listesi özeti; `Docs/MAL_KABUL.md` kullanım rehberi eklendi.
+
+**Doğrulama**
+- `DERLE.cmd /q`: geçti.
+- `TEST.cmd /q`: 20/20 geçti; `Economy.MultiOrderAndDelivery` dahil.
+- `SmokeTest.ps1`: geçti; çoklu sipariş, ertesi sabah arka kapı, depoya kabul, 2 müşteri satışı, gün sonu ve disk kayıt/yükleme doğrulandı.
+
+**Sıradaki**: Mustafa hareket ve koli taşıma akışını ekranda deneyecek. Ana geliştirme G-053: müşterinin 1–4 ürünlük alışveriş listesi, ikame ve tekrar gelen müşteri.
+
 ## 28.09.2026 — Codex — MetaHuman hareketi, ortak animasyon ve G-051 doğrulaması (G-056)
 
 **Yapılan**

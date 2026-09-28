@@ -19,7 +19,7 @@ tekrar çalıştırılabilir; aynı adları günceller.
 
 ## Hareket standardı
 
-- Dünya hızı ile animasyon hızı eşlenir; hız değişince ayak kayması azalır.
+- Dünya hızı, klibin ölçülen kök hızıyla eşlenir (`376,276 cm / 1,5 sn = 250,85 cm/sn`); hız değişince ayak kayması azalır.
 - Her insanda küçük yürüme hızı, hızlanma, fren ve dönüş farkı vardır.
 - Hedefe yaklaşırken fren yapılır; koridor köşelerinde hız düşer ve dönüş yumuşatılır.
 - Animasyon başlangıç anı kişiye göre değişir; kalabalık aynı adımla yürümez.
