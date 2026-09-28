@@ -11,6 +11,7 @@
 #include "PlanogramEdit.h"
 #include "StaffPlanner.h"
 #include "MarketDemand.h"
+#include "MarketOrderAdvice.h"
 #include "MarketGame.generated.h"
 
 class UTextRenderComponent;
@@ -296,6 +297,8 @@ public:
     float RivalDiscount() const;
     // Office line for one product: our price, the rival's price and the share of shoppers who accept it.
     FString PriceSummary(int32 Index) const;
+    // Office line for one product: shelf, depot, rear door, yesterday's demand and the suggested cases (MarketOrderAdvice).
+    FString OrderAdvice(int32 Index) const;
     // Day report: yesterday's biggest reasons for lost shoppers, one per line (MarketDemand::TopProblems).
     FString DayProblemsText() const;
     void LoadCatalog();

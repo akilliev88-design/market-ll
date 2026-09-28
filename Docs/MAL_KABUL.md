@@ -5,7 +5,12 @@
 - `TAB / Q`: ürün seç.
 - `B`: seçili üründen bir koliyi sipariş listesine ekle.
 - `V`: seçili üründen bir koliyi listeden çıkar.
-- `N`: listedeki bütün ürünleri tek sipariş olarak onayla.
+- `L`: önerilen siparişi listeye yaz. Öneri: dünkü satış + rafı boş bulan her müşteri için ~2 adet, %25 pay;
+  raftaki, depodaki, arka kapıdaki ve yoldaki mal düşülür; ürün başına 120 adet depo sınırı ve 9 koli.
+  Listede daha fazlası varsa azaltmaz. Rafta yeri olmayan ürüne öneri çıkmaz (önce R ile reyona koy).
+- `N`: listedeki bütün ürünleri tek sipariş olarak onayla. Toptancı en az **50 TL**'lik siparişle gelir.
+
+Masa kartında seçili ürün için raf, depo, kabul, yolda, dünkü satış, boş raf ve öneri tek satırda görünür.
 
 Onay atomiktir: nakit veya ürünün depo sınırı yetmiyorsa hiçbir satır satın alınmaz. Ödeme onayda
 yapılır. Stok tablosundaki **YOLDA** sütunu onaylanan, **KABUL** sütunu arka kapıya ulaşan ürünleri

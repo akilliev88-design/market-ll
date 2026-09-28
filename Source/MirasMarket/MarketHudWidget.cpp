@@ -340,6 +340,12 @@ TSharedRef<SWidget> SMarketHud::OfficeCard()
             ]
             + SVerticalBox::Slot().AutoHeight().Padding(0.f, 2.f, 0.f, 0.f)
             [
+                // Order help for the selected product: stock, yesterday's demand, suggested cases (MarketOrderAdvice).
+                SNew(STextBlock).Font(Font("Regular", 9)).ColorAndOpacity(Muted).AutoWrapText(true)
+                .Text_Lambda([this] { const AMarketGameMode* G = Game.Get(); return FText::FromString(G && !G->bTestMode ? G->OrderAdvice(G->Selected) : FString()); })
+            ]
+            + SVerticalBox::Slot().AutoHeight().Padding(0.f, 2.f, 0.f, 0.f)
+            [
                 // Price decision: our shelf price against the rival's and how many shoppers accept it (MarketDemand).
                 SNew(STextBlock).Font(Font("Regular", 10)).ColorAndOpacity(Cream)
                 .Text_Lambda([this] { const AMarketGameMode* G = Game.Get(); return FText::FromString(G ? G->PriceSummary(G->Selected) : FString()); })
@@ -352,6 +358,7 @@ TSharedRef<SWidget> SMarketHud::OfficeCard()
                     SNew(SHorizontalBox)
                     + SHorizontalBox::Slot().AutoWidth()[ KeyRow(TEXT("TAB"), TEXT("\u00dcr\u00fcn")) ]
                     + SHorizontalBox::Slot().AutoWidth()[ KeyRow(TEXT("B/V"), TEXT("Koli +/-")) ]
+                    + SHorizontalBox::Slot().AutoWidth()[ KeyRow(TEXT("L"), TEXT("\u00d6neri")) ]
                     + SHorizontalBox::Slot().AutoWidth()[ KeyRow(TEXT("N"), TEXT("Onayla")) ]
                     + SHorizontalBox::Slot().AutoWidth()[ KeyRow(TEXT("+/-"), TEXT("Fiyat")) ]
                 ]

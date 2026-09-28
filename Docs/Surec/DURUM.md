@@ -48,6 +48,7 @@ v0.2 geliştirme. **Yeni oyun rafları boş açılır**; başlangıç stoğu dep
 | G-056: MetaHuman ortak retarget + doğal hareket + `BP_MH_*` otomatik keşif | **GEÇTİ** — iki animasyon üretildi; 1 MetaHuman ve dönüştürülmüş yürüyüş/bekleme smoke günlüğünde yüklendi — 28.09.2026 |
 | G-052: çok ürünlü sipariş listesi + arka kapıda fiziksel mal kabul + oyuncu/görevli taşıması + eksik/hasarlı olay | **GEÇTİ** — derleme, 20/20 test ve smoke — 28.09.2026 |
 | G-057: ölçülmüş yürüyüş klibi hızına göre ayak kayması düzeltmesi | **GEÇTİ** — 376,276 cm / 1,5 sn kök hareketi ölçüldü; 140 cm/sn oyun hızında oynatma 0,558 — 28.09.2026 |
+| G-058: sipariş önerisi + 50 TL toptancı asgarisi | **GEÇTİ** — derleme, 21/21 test ve smoke — 28.09.2026 |
 | Stüdyoda elle deneme: kutu (açılım) → Oyuna ekle → OYNA | GEÇTİ: milk_1l oyunda; ön/yan/üst yüzler doğru, ayna yok, raf oturması doğru — 27.09.2026 |
 | Stüdyoda elle deneme: cam şişe modeli + malzeme.json | Bekliyor (henüz model yok) |
 
@@ -71,6 +72,8 @@ Görsel ve raf dizme işleri yeterli seviyede; bir süre **donduruldu**. Önceli
 ## Devam notu
 
 G-052 ve G-057 tamamlandı. Sipariş masasında B/V ile çok ürünlü liste hazırlanır ve N ile onaylanır; ertesi sabah koliler KABUL stoğunda ve arka kapıda görünür. Oyuncu E ile depoya taşır, reyon görevlileri bunu otomatik önceliklendirir. MetaHuman yürüyüş oynatma oranı klibin ölçülen 250,85 cm/sn kök hızına bağlandı; 12 cm/sn altında beklemeye geçer.
+
+G-058 doğrulandı: masada L önerilen siparişi taslağa yazar, seçili ürünün stok ve talep özeti görünür; N ile onaylanan siparişte 50 TL toptancı asgarisi uygulanır.
 
 ## Sıradaki adımlar
 

@@ -77,7 +77,7 @@ void AMarketCharacter::SetupPlayerInputComponent(UInputComponent* Input)
     static const TCHAR* Forwarded[] = { TEXT("Arrange"), TEXT("ArrangePlace"), TEXT("ArrangeUp"), TEXT("ArrangeDown"), TEXT("ArrangeLeft"),
         TEXT("ArrangeRight"), TEXT("ArrangeRemove"), TEXT("ArrangeTurn"), TEXT("ArrangeStack"), TEXT("ArrangeGrab"), TEXT("ArrangePick"),
         TEXT("ArrangeNext"), TEXT("ArrangePrev"), TEXT("ArrangeGapDown"), TEXT("ArrangeGapUp"), TEXT("PrevProduct"),
-        TEXT("HireStocker"), TEXT("FireStocker"), TEXT("ConfirmOrder"), TEXT("RemoveOrder") };
+        TEXT("HireStocker"), TEXT("FireStocker"), TEXT("ConfirmOrder"), TEXT("RemoveOrder"), TEXT("SuggestOrder") };
     for (const TCHAR* Name : Forwarded)
         Input->BindAction<FMarketCommandDelegate>(FName(Name), IE_Pressed, this, &AMarketCharacter::SendCommand, FName(Name));
 }
@@ -699,6 +699,16 @@ void AMarketGameMode::RefreshShelfItems()
 FString AMarketGameMode::ProductName(int32 Index) const { return State.bRealBrands ? Products[Index].RealName : Products[Index].FictionalName; }
 void AMarketGameMode::Notify(const FString& Text) { Message = Text; MessageTime = 9; }
 float AMarketGameMode::RivalDiscount() const { return State.Day >= 3 && State.Day % 5 <= 3 ? .85f : 1.f; }
+FString AMarketGameMode::OrderAdvice(int32 Index) const
+{
+    if (!State.Stock.IsValidIndex(Index) || !Products.IsValidIndex(Index)) return FString();
+    const FMarketStock& Item = State.Stock[Index];
+    if (Item.Capacity <= 0)
+        return FString::Printf(TEXT("Rafta yeri yok  \u00b7  depo %d  \u00b7  \u00f6nce R ile reyona koy (d\u00fcn %d m\u00fc\u015fteri sordu)"), Item.Warehouse, Item.Yesterday.NotCarried);
+    return FString::Printf(TEXT("Raf %d/%d  \u00b7  depo %d  \u00b7  kabul %d  \u00b7  yolda %d  \u00b7  d\u00fcn %d sat\u0131\u015f, %d bo\u015f raf  \u00b7  \u00f6neri %d koli"),
+        Item.Shelf, Item.Capacity, Item.Warehouse, Item.Dock, Item.Incoming, Item.Yesterday.Sold, Item.Yesterday.Empty,
+        MarketOrderAdvice::SuggestCases(State, Products, Index));
+}
 FString AMarketGameMode::PriceSummary(int32 Index) const
 {
     if (!Products.IsValidIndex(Index) || !State.Stock.IsValidIndex(Index)) return FString();
@@ -808,7 +818,7 @@ FString AMarketGameMode::ContextHint() const
     }
     if (const int32 Delivery = NearbyDelivery(); Delivery != INDEX_NONE)
         return FString::Printf(TEXT("E: %s kolisini al  \u00b7  depoya gotur"), *ProductName(Delivery));
-    if (NearOffice()) return FString::Printf(TEXT("B: %d adetlik koliyi listeye ekle   \u00b7   V azalt   \u00b7   N sipari\u015fi onayla   \u00b7   TAB \u00fcr\u00fcn   \u00b7   +/- fiyat"), Products[Selected].CaseUnits);
+    if (NearOffice()) return FString::Printf(TEXT("B: %d adetlik koliyi listeye ekle   \u00b7   V azalt   \u00b7   L \u00f6neri   \u00b7   N sipari\u015fi onayla   \u00b7   TAB \u00fcr\u00fcn   \u00b7   +/- fiyat"), Products[Selected].CaseUnits);
     if (NearCounter()) return FString::Printf(TEXT("E: S\u0131radaki m\u00fc\u015fterinin \u00f6demesini al   \u00b7   bekleyen %d"), QueueSize());
     const int32 I = NearbyShelf();
     if (I != INDEX_NONE)
@@ -851,7 +861,7 @@ void AMarketGameMode::Command(FName Action)
             if (StartPlayerDelivery(Delivery)) Notify(FString::Printf(TEXT("%s kolisini aldin. Arka depodaki kabul noktasina gotur ve E'ye bas."), *ProductName(Delivery)));
         }
         else if (NearCounter()) Checkout();
-        else if (NearOffice()) Notify(TEXT("TAB/Q: urun sec / B: listeye koli ekle / V: azalt / N: siparisi onayla / +/-: fiyat / H: kasiyer / J: reyon gorevlisi"));
+        else if (NearOffice()) Notify(TEXT("TAB/Q: urun sec / B: listeye koli ekle / V: azalt / L: onerilen siparis / N: siparisi onayla (en az 50 TL) / +/-: fiyat / H: kasiyer / J: reyon gorevlisi"));
         else if (const int32 I = NearbyShelf(); I != INDEX_NONE)
         {
             Selected = I;
@@ -951,6 +961,18 @@ void AMarketGameMode::Command(FName Action)
         {
             if (OrderDraftCases.IsValidIndex(Selected) && OrderDraftCases[Selected] > 0) --OrderDraftCases[Selected];
             Notify(OrderDraftSummary());
+        }
+        else if (Action == "SuggestOrder")
+        {
+            // L: raise every line of the draft to the suggestion (yesterday's demand + empty shelves); never lowers a line.
+            const int32 Changed = MarketOrderAdvice::FillSuggested(State, Products, OrderDraftCases);
+            Notify(Changed > 0 ? FString::Printf(TEXT("\u00d6nerilen sipari\u015f listeye yaz\u0131ld\u0131 (%d \u00fcr\u00fcn). N ile onayla.\n"), Changed) + OrderDraftSummary()
+                               : FString(TEXT("\u00d6neriye g\u00f6re ek koli gerekmiyor: raf, depo, arka kap\u0131 ve yoldaki mal yeterli.")));
+        }
+        else if (Action == "ConfirmOrder" && OrderDraftCaseCount() > 0 && OrderDraftBill() < MarketOrderAdvice::MinimumOrder)
+        {
+            Notify(FString::Printf(TEXT("Toptanc\u0131 en az %s sipari\u015fle gelir; liste \u015fu an %s. Koli ekle (B) veya \u00f6neriyi yaz (L)."),
+                *Money(MarketOrderAdvice::MinimumOrder), *Money(OrderDraftBill())));
         }
         else if (Action == "ConfirmOrder")
         {

@@ -2,6 +2,21 @@
 
 En yeni giriş en üstte. Biçim: tarih — ajan — başlık, ardından **Yapılan**, **Doğrulama**, **Sıradaki**.
 
+## 28.09.2026 — Claude — Sipariş yardımı (G-058, G-052 eki)
+
+**Mustafa**: Claude'un hazırladığı ayrı G-052 paketi, Codex G-052'yi bitirdiği için yazılmadı. Karar: "Codex'inki kalsın, eksikleri ekle."
+
+**Yapılan**
+- `MarketOrderAdvice.h/.cpp` (dünyadan bağımsız): önerilen koli = max(raf kapasitesi, (dünkü satış + 2 × boş raf müşterisi) × 1,25) − raf − depo − kabul − yolda; 120 adet depo sınırı ve 9 koli (SubmitOrder ile aynı). Rafta yeri olmayan ürüne 0.
+- Masada `L` (SuggestOrder): taslağın her satırını öneriye yükseltir, hiç azaltmaz. Masa kartında seçili ürün için "Raf · depo · kabul · yolda · dün satış, boş raf · öneri" satırı.
+- `N` onayında toptancı asgari siparişi 50 TL; altındaysa onaylanmaz, mesaj söyler. Smoke asgariye ulaşana kadar B'ye basıyor.
+- Test `MirasMarket.Economy.OrderAdvice` (ayrı dosya `MarketOrderAdviceTests.cpp`); `Test.ps1` en az 21. `Docs/MAL_KABUL.md`, AGENTS haritası güncellendi.
+- Claude'un paketindeki öbür fikirler (ödemenin mal kabulde yapılması, taşıma ücreti, kabul edilmeyen malın gün sonunda iadesi) Codex'in "onayda öde + koli taşı" düzeniyle çeliştiği için eklenmedi; istenirse ayrı karar.
+
+**Doğrulama**: Codex tarafından `DERLE.cmd`, 21/21 otomasyon testi ve smoke geçirildi.
+
+**Sıradaki**: G-053 alışveriş listesi.
+
 ## 28.09.2026 — Codex — Ayak kayması kalibrasyonu ve sipariş/mal kabul (G-052, G-057)
 
 **Yapılan**

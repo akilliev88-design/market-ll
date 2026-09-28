@@ -37,11 +37,12 @@ bool AMarketGameMode::TickAutomation()
             if (!Require(State.Stock[0].Shelf == ExpectedShelf && State.Stock[0].Shelf + State.Stock[0].Warehouse == Before.Shelf + Before.Warehouse,
                 TEXT("nearby shelf interaction"))) return false;
             Pawn->SetActorLocation(FVector(-430, -180, 90));
-            const int32 OrderedUnits = FMath::Clamp(Products[0].CaseUnits, 1, 48);
+            // Cases until the wholesaler's minimum order (MarketOrderAdvice::MinimumOrder) is reached.
             const int64 CashBeforeOrder = State.Cash;
-            Command("Order");
+            for (int32 Press = 0; Press < MarketOrderAdvice::MaxCases && OrderDraftBill() < MarketOrderAdvice::MinimumOrder; ++Press) Command("Order");
+            const int32 OrderedUnits = (OrderDraftCases.IsValidIndex(0) ? OrderDraftCases[0] : 0) * FMath::Clamp(Products[0].CaseUnits, 1, 48);
             Command("ConfirmOrder");
-            if (!Require(State.Stock[0].Incoming == OrderedUnits && State.Cash == CashBeforeOrder - Products[0].Cost * OrderedUnits, TEXT("multi-product office order"))) return false;
+            if (!Require(OrderedUnits > 0 && State.Stock[0].Incoming == OrderedUnits && State.Cash == CashBeforeOrder - Products[0].Cost * OrderedUnits, TEXT("multi-product office order"))) return false;
             const int64 CashBeforeHire = State.Cash;
             Command("Hire");
             if (!Require(State.bCashier && State.Cash == CashBeforeHire - 12000, TEXT("hire cashier"))) return false;
