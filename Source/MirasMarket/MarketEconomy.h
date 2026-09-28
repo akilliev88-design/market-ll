@@ -41,6 +41,18 @@ struct FMarketProduct
     UPROPERTY() FString Colors;          // per-part colors, e.g. "Cam=2B1A12/0.85;Kapak=E30613" (hex, optional /opacity)
 };
 
+// One product's shoppers in one day (MarketDemand.h). Older saves load zeros.
+USTRUCT()
+struct FMarketDemandStats
+{
+    GENERATED_BODY()
+    UPROPERTY() int32 Sold = 0;        // units sold at the till
+    UPROPERTY() int32 Buyers = 0;      // shoppers who paid for it
+    UPROPERTY() int32 Empty = 0;       // wanted it, the shelf was empty
+    UPROPERTY() int32 Expensive = 0;   // found it too expensive against the rival
+    UPROPERTY() int32 NotCarried = 0;  // asked for it, but it is on no shelf
+};
+
 USTRUCT()
 struct FMarketStock
 {
@@ -55,6 +67,9 @@ struct FMarketStock
     // Units that physically fit this product's shelf block (planogram facings x depth).
     // Older saves have no value and load as the v0.1 default.
     UPROPERTY() int32 Capacity = 24;
+    // Shoppers of the running day and of the last closed day (the day report reads Yesterday).
+    UPROPERTY() FMarketDemandStats Today;
+    UPROPERTY() FMarketDemandStats Yesterday;
 };
 
 // Money uses integer kurus. Inventory is removed only when a checkout succeeds.
@@ -94,6 +109,9 @@ struct FMarketState
     UPROPERTY() int32 Lost = 0;
     UPROPERTY() int32 LastServed = 0;
     UPROPERTY() int32 LastLost = 0;
+    // Part of Lost: shoppers who gave up inside the shop (crowd, till queue, closing time).
+    UPROPERTY() int32 LostWaiting = 0;
+    UPROPERTY() int32 LastLostWaiting = 0;
 
     void Initialize(const TArray<FMarketProduct>& Products);
     bool Order(int32 Index, const TArray<FMarketProduct>& Products);

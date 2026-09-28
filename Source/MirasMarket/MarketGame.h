@@ -10,6 +10,7 @@
 #include "MarketPeople.h"
 #include "PlanogramEdit.h"
 #include "StaffPlanner.h"
+#include "MarketDemand.h"
 #include "MarketGame.generated.h"
 
 class UTextRenderComponent;
@@ -276,6 +277,10 @@ public:
     bool NearCounter() const;
     int32 QueueSize() const;
     float RivalDiscount() const;
+    // Office line for one product: our price, the rival's price and the share of shoppers who accept it.
+    FString PriceSummary(int32 Index) const;
+    // Day report: yesterday's biggest reasons for lost shoppers, one per line (MarketDemand::TopProblems).
+    FString DayProblemsText() const;
     void LoadCatalog();
     void ApplyCapacities();
     int32 FillAllShelves();

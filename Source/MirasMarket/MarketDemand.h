@@ -1,0 +1,59 @@
+#pragma once
+#include "CoreMinimal.h"
+#include "MarketEconomy.h"
+
+// Shopper decisions, independent of the world (tested in MarketTests.cpp: MirasMarket.Customers.PriceAndDemand).
+// A shopper comes in wanting one product. Most ask for something the shop carries (on a shelf plan); the rest ask
+// for any active product, so missing products show up as lost shoppers in the day report. Whether they buy depends
+// on the shelf price against the rival's price for the same product and on the shop's local share (loyalty).
+// Every lost shopper gets a reason (empty shelf / too expensive / not carried / waited too long) for the report.
+namespace MarketDemand
+{
+    // Share of shoppers who ask for a product that is on a shelf plan (the rest ask for any product).
+    constexpr float CarriedShare = 0.85f;
+    // Price ratio (ours / rival) at which half of the shoppers still buy, before the local share bonus.
+    constexpr double HalfBuyRatio = 1.15;
+    // Loyal shops are forgiven more: +0.1 ratio at 25 % local share, +0.26 at 65 %.
+    constexpr double ShareBonusPerPercent = 1.0 / 250.0;
+    // How sharply shoppers react around the half point (smaller = sharper).
+    constexpr double Steepness = 0.07;
+
+    enum class EVisit : uint8 { Buy, NotCarried, Empty, Expensive };
+
+    struct FVisit
+    {
+        EVisit Result = EVisit::NotCarried;
+        int32 Product = INDEX_NONE;
+        int32 Quantity = 0;
+    };
+
+    // The rival's shelf price for the same product (list price, minus the rival's campaign discount).
+    int64 RivalPrice(const FMarketProduct& Product, float RivalDiscount);
+    double PriceRatio(int64 OurPrice, int64 TheirPrice);
+    // 0..1: the share of shoppers who accept this price ratio.
+    double BuyChance(double Ratio, float MarketShare);
+    // Step of the +/- price keys: about 5 % of the list price in whole 5 kurus, at least 5 kurus.
+    int64 PriceStep(const FMarketProduct& Product);
+    // Which product a new shopper wants. Rolls are 0..1 (FRandomStream in the game, fixed values in tests).
+    // INDEX_NONE only when there are no products at all.
+    int32 PickWanted(const FMarketState& State, float RollPool, float RollIndex);
+    // Available = shelf units not already in other shoppers' baskets. WantedQuantity 1..4.
+    FVisit Decide(const FMarketState& State, const TArray<FMarketProduct>& Products, int32 Wanted, int32 Available,
+        float RivalDiscount, int32 WantedQuantity, float RollPrice);
+    // Counts a shopper who did not buy (buyers are counted by FMarketState::Sell at the till).
+    void RecordLoss(FMarketState& State, const FVisit& Visit);
+    // A shopper who gave up in the shop (crowd, waited too long at the till, still inside at closing).
+    void RecordWaitingLoss(FMarketState& State);
+
+    enum class EProblem : uint8 { Waiting, NotCarried, Empty, Expensive };
+
+    struct FProblem
+    {
+        EProblem Kind = EProblem::Waiting;
+        int32 Product = INDEX_NONE; // INDEX_NONE for Waiting
+        int32 Count = 0;
+    };
+
+    // Yesterday's biggest reasons for lost shoppers, largest first (ties: kind order, then catalog order).
+    TArray<FProblem> TopProblems(const FMarketState& State, int32 MaxCount = 3);
+}

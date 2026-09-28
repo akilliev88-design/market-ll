@@ -45,6 +45,8 @@ bool FMarketState::Sell(int32 Index, int32 Quantity, int64 QuotedPrice, const TA
     Revenue += Receipt;
     CostOfGoods += Products[Index].Cost * Quantity;
     ++Served;
+    Item.Today.Sold += Quantity;
+    ++Item.Today.Buyers;
     return true;
 }
 
@@ -60,6 +62,7 @@ void FMarketState::CloseDay()
     if (LastProfit > 0) ++ProfitableDays;
     LastServed = Served;
     LastLost = Lost;
+    LastLostWaiting = LostWaiting;
     if (Served + Lost > 0)
     {
         const float Satisfaction = static_cast<float>(Served) / (Served + Lost);
@@ -69,10 +72,12 @@ void FMarketState::CloseDay()
     {
         Item.Warehouse += Item.Incoming;
         Item.Incoming = 0;
+        Item.Yesterday = Item.Today;
+        Item.Today = FMarketDemandStats();
     }
     ++Day;
     Revenue = CostOfGoods = 0;
-    Served = Lost = 0;
+    Served = Lost = LostWaiting = 0;
 }
 
 int32 FMarketState::ApplyShelfCapacities(const TArray<int32>& Capacities)

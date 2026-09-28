@@ -120,8 +120,17 @@ bool AMarketGameMode::WorkerWalk(FMarketWorker& Worker, float DeltaTime)
     if (bMoving)
     {
         const FVector Next = Worker.Route[0];
-        Worker.Facing = (Next - Here).GetSafeNormal2D();
-        Worker.Actor->SetActorLocation(FMath::VInterpConstantTo(Here, Next, DeltaTime, WorkerWalkSpeed) + Lift);
+        if (Worker.bHuman)
+        {
+            bool bActuallyMoving = false;
+            Worker.Actor->SetActorLocation(MarketPeople::MoveToward(Worker.Shopper, Here, Next, WorkerWalkSpeed,
+                DeltaTime, Worker.Facing, bActuallyMoving) + Lift);
+        }
+        else
+        {
+            Worker.Facing = (Next - Here).GetSafeNormal2D();
+            Worker.Actor->SetActorLocation(FMath::VInterpConstantTo(Here, Next, DeltaTime, WorkerWalkSpeed) + Lift);
+        }
     }
     if (Worker.bHuman) MarketPeople::Update(Worker.Actor, People, Worker.Shopper, Worker.Facing, bMoving, MetaHumanYawOffset, DeltaTime);
     return !bMoving;

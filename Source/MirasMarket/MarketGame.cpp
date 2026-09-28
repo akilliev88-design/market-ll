@@ -697,6 +697,41 @@ void AMarketGameMode::RefreshShelfItems()
 FString AMarketGameMode::ProductName(int32 Index) const { return State.bRealBrands ? Products[Index].RealName : Products[Index].FictionalName; }
 void AMarketGameMode::Notify(const FString& Text) { Message = Text; MessageTime = 9; }
 float AMarketGameMode::RivalDiscount() const { return State.Day >= 3 && State.Day % 5 <= 3 ? .85f : 1.f; }
+FString AMarketGameMode::PriceSummary(int32 Index) const
+{
+    if (!Products.IsValidIndex(Index) || !State.Stock.IsValidIndex(Index)) return FString();
+    const int64 Ours = State.Stock[Index].Price;
+    const int64 Theirs = MarketDemand::RivalPrice(Products[Index], RivalDiscount());
+    const double Chance = MarketDemand::BuyChance(MarketDemand::PriceRatio(Ours, Theirs), State.MarketShare);
+    return FString::Printf(TEXT("Fiyat %s  \u00b7  rakip %s%s  \u00b7  alan m\u00fc\u015fteri ~%%%d"),
+        *Money(Ours), *Money(Theirs), RivalDiscount() < 1.f ? TEXT(" (indirimde)") : TEXT(""), FMath::RoundToInt32(Chance * 100.0));
+}
+FString AMarketGameMode::DayProblemsText() const
+{
+    const TArray<MarketDemand::FProblem> Problems = MarketDemand::TopProblems(State, 3);
+    if (Problems.Num() == 0) return TEXT("Kay\u0131p m\u00fc\u015fteri yok. Herkes arad\u0131\u011f\u0131n\u0131 buldu.");
+    TArray<FString> Lines;
+    for (const MarketDemand::FProblem& Problem : Problems)
+    {
+        const FString Shown = Products.IsValidIndex(Problem.Product) ? ProductName(Problem.Product) : FString();
+        switch (Problem.Kind)
+        {
+        case MarketDemand::EProblem::Waiting:
+            Lines.Add(FString::Printf(TEXT("\u2022 %d m\u00fc\u015fteri i\u00e7eride beklemekten vazge\u00e7ti. Kasiyer al veya kasada E ile h\u0131zl\u0131 \u00f6de."), Problem.Count));
+            break;
+        case MarketDemand::EProblem::NotCarried:
+            Lines.Add(FString::Printf(TEXT("\u2022 %d m\u00fc\u015fteri %s sordu ama rafta yok. R ile reyona koy."), Problem.Count, *Shown));
+            break;
+        case MarketDemand::EProblem::Empty:
+            Lines.Add(FString::Printf(TEXT("\u2022 %s rafta bitti: %d m\u00fc\u015fteri eli bo\u015f d\u00f6nd\u00fc. Depodan doldur veya sipari\u015f ver."), *Shown, Problem.Count));
+            break;
+        case MarketDemand::EProblem::Expensive:
+            Lines.Add(FString::Printf(TEXT("\u2022 %d m\u00fc\u015fteri %s fiyat\u0131n\u0131 pahal\u0131 buldu. Masada rakip fiyat\u0131na bak."), Problem.Count, *Shown));
+            break;
+        }
+    }
+    return FString::Join(Lines, TEXT("\n"));
+}
 int32 AMarketGameMode::NearbyShelf() const
 {
     const auto* Pawn = UGameplayStatics::GetPlayerPawn(this, 0);
@@ -892,8 +927,10 @@ void AMarketGameMode::Command(FName Action)
         else if (Action == "PriceUp" || Action == "PriceDown")
         {
             auto& Item = State.Stock[Selected];
-            Item.Price = FMath::Clamp<int64>(Item.Price + (Action == "PriceUp" ? 25 : -25), 10, Products[Selected].BasePrice * 3);
+            const int64 Step = MarketDemand::PriceStep(Products[Selected]);
+            Item.Price = FMath::Clamp<int64>(Item.Price + (Action == "PriceUp" ? Step : -Step), 10, Products[Selected].BasePrice * 3);
             RefreshLabels();
+            Notify(FString::Printf(TEXT("%s: %s"), *ProductName(Selected), *PriceSummary(Selected)));
         }
         else if (Action == "Hire")
         {
@@ -937,22 +974,20 @@ void AMarketGameMode::Command(FName Action)
 
 void AMarketGameMode::SpawnCustomer()
 {
-    if (Customers.Num() >= 9) { ++State.Lost; return; }
-    // Shoppers only ask for products that are on the shelves.
-    TArray<int32> OnShelf;
-    for (int32 P = 0; P < Products.Num(); ++P)
-        if (State.Stock.IsValidIndex(P) && State.Stock[P].Capacity > 0) OnShelf.Add(P);
-    if (OnShelf.Num() == 0) { ++State.Lost; return; }
-    const int32 I = OnShelf[Random.RandRange(0, OnShelf.Num() - 1)];
-    const int32 Quantity = Random.RandRange(1, 4);
+    if (Customers.Num() >= 9) { MarketDemand::RecordWaitingLoss(State); return; } // too crowded: turns away at the door
+    // What the shopper wants and whether they buy it: MarketDemand (price against the rival, empty shelf,
+    // product not carried). Shoppers who do not buy are counted with their reason for the day report.
+    const float RollPool = Random.FRand();
+    const float RollIndex = Random.FRand();
+    const int32 Wanted = MarketDemand::PickWanted(State, RollPool, RollIndex);
     int32 Reserved = 0;
-    for (const auto& Other : Customers) if (Other.Product == I) Reserved += Other.Quantity;
-    const double Reference = Products[I].BasePrice * RivalDiscount();
-    const double Tolerance = Random.FRandRange(1.02f, 1.5f) + State.MarketShare / 500.0;
-    if (State.Stock[I].Shelf - Reserved < Quantity || State.Stock[I].Price > Reference * Tolerance)
-    { ++State.Lost; return; }
+    for (const auto& Other : Customers) if (Other.Product == Wanted) Reserved += Other.Quantity;
+    const int32 Available = State.Stock.IsValidIndex(Wanted) ? State.Stock[Wanted].Shelf - Reserved : 0;
+    const int32 WantedQuantity = Random.RandRange(1, 4);
+    const MarketDemand::FVisit Visit = MarketDemand::Decide(State, Products, Wanted, Available, RivalDiscount(), WantedQuantity, Random.FRand());
+    if (Visit.Result != MarketDemand::EVisit::Buy) { MarketDemand::RecordLoss(State, Visit); return; }
     FMarketCustomer C;
-    C.Product = I; C.Quantity = Quantity; C.QuotedPrice = State.Stock[I].Price;
+    C.Product = Visit.Product; C.Quantity = Visit.Quantity; C.QuotedPrice = State.Stock[Visit.Product].Price;
     if (AActor* Human = MarketPeople::Spawn(GetWorld(), People, FVector(0, -230, 0), Random.RandRange(0, 1 << 20), C.Shopper))
     {
         C.Actor = Human; C.bHuman = true;
@@ -1004,7 +1039,7 @@ void AMarketGameMode::Tick(float DeltaTime)
         auto& C = Customers[I];
         C.Age += DeltaTime;
         if (C.Age > 45)
-        { ++State.Lost; C.Actor->Destroy(); Customers.RemoveAt(I); continue; }
+        { MarketDemand::RecordWaitingLoss(State); C.Actor->Destroy(); Customers.RemoveAt(I); continue; }
         FVector Target;
         if (C.Stage == 0) Target = ProductFixtureLocation(C.Product) + FVector(0, 0, 65);
         else if (C.Stage == 1) Target = FVector(405, 60 + QueueSize() * 62, 65);
@@ -1031,12 +1066,14 @@ void AMarketGameMode::Tick(float DeltaTime)
         if (bOnRoute) Target = C.Route[0];
         if (C.bHuman) Target.Z = 0.f; // MetaHuman origin is at the feet
         const FVector From = C.Actor->GetActorLocation();
-        C.Actor->SetActorLocation(FMath::VInterpConstantTo(From, Target, DeltaTime, C.bHuman ? 140.f : 180.f));
         if (C.bHuman)
         {
-            const bool bMoving = FVector::Dist2D(From, Target) > 6.f;
-            MarketPeople::Update(C.Actor, People, C.Shopper, Target - From, bMoving, MetaHumanYawOffset, DeltaTime);
+            FVector Direction;
+            bool bMoving = false;
+            C.Actor->SetActorLocation(MarketPeople::MoveToward(C.Shopper, From, Target, 140.f, DeltaTime, Direction, bMoving));
+            MarketPeople::Update(C.Actor, People, C.Shopper, Direction, bMoving, MetaHumanYawOffset, DeltaTime);
         }
+        else C.Actor->SetActorLocation(FMath::VInterpConstantTo(From, Target, DeltaTime, 180.f));
         if (bOnRoute)
         {
             if (FVector::Dist2D(C.Actor->GetActorLocation(), Target) < 8) C.Route.RemoveAt(0);
@@ -1060,11 +1097,10 @@ void AMarketGameMode::CloseShop()
 {
     bOpen = false;
     // No reserved goods have left inventory. Unfinished baskets are lost sales.
-    State.Lost += Customers.Num();
-    for (const auto& C : Customers) C.Actor->Destroy();
+    for (const auto& C : Customers) { MarketDemand::RecordWaitingLoss(State); C.Actor->Destroy(); }
     Customers.Empty();
     State.CloseDay(); RefreshLabels();
-    ReportTime = 20;
+    ReportTime = 30;
     const bool bSaved = SaveCampaign();
     Notify(FString::Printf(TEXT("Gun bitti. Net sonuc: %s. Siparisler depoya geldi. %s"), *Money(State.LastProfit), bSaved ? TEXT("Otomatik kaydedildi.") : TEXT("KAYIT YAZILAMADI; F5 ile yeniden dene.")));
 }

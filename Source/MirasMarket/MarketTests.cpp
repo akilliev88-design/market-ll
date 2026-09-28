@@ -3,6 +3,8 @@
 #include "Planogram.h"
 #include "PlanogramEdit.h"
 #include "StaffPlanner.h"
+#include "MarketDemand.h"
+#include "MarketPeople.h"
 #include "Misc/AutomationTest.h"
 #include "Kismet/GameplayStatics.h"
 
@@ -15,6 +17,28 @@ namespace
         P.Id = TEXT("milk"); P.Cost = 170; P.BasePrice = 250;
         return { P };
     }
+}
+
+IMPLEMENT_SIMPLE_AUTOMATION_TEST(FMarketLocomotionTest, "MirasMarket.People.Locomotion", EAutomationTestFlags::EditorContext | EAutomationTestFlags::EngineFilter)
+bool FMarketLocomotionTest::RunTest(const FString& Parameters)
+{
+    MarketPeople::FShopper Shopper;
+    FVector Position = FVector::ZeroVector;
+    FVector Direction;
+    bool bMoving = false;
+    Position = MarketPeople::MoveToward(Shopper, Position, FVector(1000, 0, 0), 140.f, .1f, Direction, bMoving);
+    TestTrue(TEXT("Starts below full walking speed"), bMoving && Shopper.CurrentSpeed > 0.f && Shopper.CurrentSpeed < 140.f);
+    const float FirstStep = Position.X;
+    Position = MarketPeople::MoveToward(Shopper, Position, FVector(1000, 0, 0), 140.f, .1f, Direction, bMoving);
+    TestTrue(TEXT("Accelerates instead of sliding at constant speed"), Position.X - FirstStep > FirstStep);
+
+    Shopper.CurrentSpeed = 140.f;
+    Position = MarketPeople::MoveToward(Shopper, FVector(99, 0, 0), FVector(100, 0, 0), 140.f, 1.f, Direction, bMoving);
+    TestTrue(TEXT("Never overshoots a stop"), FMath::IsNearlyEqual(Position.X, 100.0));
+    Position = MarketPeople::MoveToward(Shopper, Position, FVector(100, 0, 0), 140.f, .1f, Direction, bMoving);
+    TestFalse(TEXT("Settles at the destination"), bMoving);
+    TestEqual(TEXT("Settled speed is zero"), Shopper.CurrentSpeed, 0.f);
+    return true;
 }
 
 IMPLEMENT_SIMPLE_AUTOMATION_TEST(FMarketPlanogramTest, "MirasMarket.Planogram.MultiBrandDepth", EAutomationTestFlags::EditorContext | EAutomationTestFlags::EngineFilter)
@@ -621,6 +645,82 @@ bool FMarketStaffTest::RunTest(const FString& Parameters)
     TestTrue(TEXT("Save with two workers is valid"), S.IsStructurallyValid());
     S.Stockers = FMarketState::MaxStockers + 1;
     TestFalse(TEXT("Too many workers rejected"), S.IsStructurallyValid());
+    return true;
+}
+IMPLEMENT_SIMPLE_AUTOMATION_TEST(FMarketDemandTest, "MirasMarket.Customers.PriceAndDemand", EAutomationTestFlags::EditorContext | EAutomationTestFlags::EngineFilter)
+bool FMarketDemandTest::RunTest(const FString& Parameters)
+{
+    FMarketProduct Milk; Milk.Id = TEXT("milk"); Milk.Cost = 170; Milk.BasePrice = 250;
+    FMarketProduct Cola; Cola.Id = TEXT("cola"); Cola.Cost = 180; Cola.BasePrice = 275;
+    FMarketProduct Soap; Soap.Id = TEXT("soap"); Soap.Cost = 1400; Soap.BasePrice = 1990;
+    FMarketProduct Ayran; Ayran.Id = TEXT("ayran"); Ayran.Cost = 45; Ayran.BasePrice = 75;
+    const TArray<FMarketProduct> Catalog = { Milk, Cola, Soap };
+    FMarketState S; S.Initialize(Catalog);
+    S.ApplyShelfCapacities({ 10, 10, 0 }); // soap is on no shelf
+    S.Stock[0].Shelf = 5; S.Stock[0].Warehouse = 0;
+    S.Stock[1].Shelf = 0;
+
+    // Prices
+    TestEqual(TEXT("Rival sells at list price"), MarketDemand::RivalPrice(Milk, 1.f), int64(250));
+    TestEqual(TEXT("Rival campaign lowers its price"), MarketDemand::RivalPrice(Milk, .85f), int64(213));
+    TestEqual(TEXT("Price step for a 2.50 product"), MarketDemand::PriceStep(Milk), int64(15));
+    TestEqual(TEXT("Cheap product still moves in 5 kurus"), MarketDemand::PriceStep(Ayran), int64(5));
+    TestEqual(TEXT("Price step for an expensive product"), MarketDemand::PriceStep(Soap), int64(100));
+    TestTrue(TEXT("Almost everyone buys at the rival's price"), MarketDemand::BuyChance(1.0, 25.f) > 0.95);
+    TestTrue(TEXT("Half buy 25 % over the rival at 25 % share"), FMath::Abs(MarketDemand::BuyChance(1.25, 25.f) - 0.5) < 0.01);
+    TestTrue(TEXT("Hardly anyone buys 50 % over the rival"), MarketDemand::BuyChance(1.5, 25.f) < 0.05);
+    TestTrue(TEXT("Dearer = fewer buyers"), MarketDemand::BuyChance(1.1, 25.f) > MarketDemand::BuyChance(1.2, 25.f));
+    TestTrue(TEXT("Loyal shop is forgiven more"), MarketDemand::BuyChance(1.2, 60.f) > MarketDemand::BuyChance(1.2, 10.f));
+
+    // Who wants what
+    TestEqual(TEXT("Most shoppers ask for carried products"), MarketDemand::PickWanted(S, 0.1f, 0.99f), 1);
+    TestEqual(TEXT("Some ask for any product"), MarketDemand::PickWanted(S, 0.95f, 0.99f), 2);
+    FMarketState Bare; Bare.Initialize(Catalog); Bare.ApplyShelfCapacities({ 0, 0, 0 });
+    TestEqual(TEXT("Nothing on shelves: shoppers still ask"), MarketDemand::PickWanted(Bare, 0.1f, 0.f), 0);
+
+    // Decisions
+    MarketDemand::FVisit V = MarketDemand::Decide(S, Catalog, 2, 0, 1.f, 1, 0.f);
+    TestTrue(TEXT("Product on no shelf is not carried"), V.Result == MarketDemand::EVisit::NotCarried);
+    MarketDemand::RecordLoss(S, V); MarketDemand::RecordLoss(S, V);
+    V = MarketDemand::Decide(S, Catalog, 1, 0, 1.f, 1, 0.f);
+    TestTrue(TEXT("Empty shelf"), V.Result == MarketDemand::EVisit::Empty);
+    MarketDemand::RecordLoss(S, V);
+    V = MarketDemand::Decide(S, Catalog, 0, 5, 1.f, 3, 0.5f);
+    TestTrue(TEXT("Fair price: buys"), V.Result == MarketDemand::EVisit::Buy && V.Quantity == 3);
+    S.Stock[0].Price = 500;
+    V = MarketDemand::Decide(S, Catalog, 0, 5, 1.f, 3, 0.5f);
+    TestTrue(TEXT("Double price: too expensive"), V.Result == MarketDemand::EVisit::Expensive);
+    MarketDemand::RecordLoss(S, V);
+    S.Stock[0].Price = 290;
+    V = MarketDemand::Decide(S, Catalog, 0, 5, 1.f, 4, 0.f);
+    TestTrue(TEXT("Pricey: only what is needed"), V.Result == MarketDemand::EVisit::Buy && V.Quantity == 2);
+    S.Stock[0].Price = 225;
+    V = MarketDemand::Decide(S, Catalog, 0, 5, 1.f, 2, 0.5f);
+    TestTrue(TEXT("Bargain: one more"), V.Result == MarketDemand::EVisit::Buy && V.Quantity == 3);
+    V = MarketDemand::Decide(S, Catalog, 0, 1, 1.f, 3, 0.5f);
+    TestTrue(TEXT("Takes what is left on the shelf"), V.Result == MarketDemand::EVisit::Buy && V.Quantity == 1);
+    TestEqual(TEXT("Every shopper who did not buy is lost"), S.Lost, 4);
+
+    // Counting and the day report
+    TestTrue(TEXT("Sale"), S.Sell(0, 2, 225, Catalog));
+    TestEqual(TEXT("Sold units counted"), S.Stock[0].Today.Sold, 2);
+    for (int32 I = 0; I < 4; ++I) MarketDemand::RecordWaitingLoss(S);
+    TestEqual(TEXT("Waiting shoppers are lost too"), S.Lost, 8);
+    TestEqual(TEXT("No report before the day closes"), MarketDemand::TopProblems(S).Num(), 0);
+    S.CloseDay();
+    TestEqual(TEXT("Yesterday keeps the sales"), S.Stock[0].Yesterday.Sold, 2);
+    TestEqual(TEXT("Today starts empty"), S.Stock[0].Today.Sold + S.Stock[2].Today.NotCarried, 0);
+    TestEqual(TEXT("Waiting losses move to the report"), S.LastLostWaiting, 4);
+    TestEqual(TEXT("New day, no waiting losses"), S.LostWaiting, 0);
+    const TArray<MarketDemand::FProblem> Problems = MarketDemand::TopProblems(S, 3);
+    TestEqual(TEXT("Three biggest problems"), Problems.Num(), 3);
+    if (Problems.Num() == 3)
+    {
+        TestTrue(TEXT("1: waiting (4)"), Problems[0].Kind == MarketDemand::EProblem::Waiting && Problems[0].Count == 4);
+        TestTrue(TEXT("2: soap not carried (2)"), Problems[1].Kind == MarketDemand::EProblem::NotCarried && Problems[1].Product == 2 && Problems[1].Count == 2);
+        TestTrue(TEXT("3: tie broken by kind: empty cola before expensive milk"), Problems[2].Kind == MarketDemand::EProblem::Empty && Problems[2].Product == 1);
+    }
+    TestTrue(TEXT("State with demand stats is still a valid save"), S.IsStructurallyValid());
     return true;
 }
 #endif

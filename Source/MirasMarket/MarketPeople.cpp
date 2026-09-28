@@ -1,10 +1,13 @@
 #include "MarketPeople.h"
 
 #include "Animation/AnimSequence.h"
+#include "AssetRegistry/AssetRegistryModule.h"
 #include "Components/SkeletalMeshComponent.h"
+#include "Engine/Blueprint.h"
 #include "Engine/SkeletalMesh.h"
 #include "Engine/World.h"
 #include "GameFramework/Actor.h"
+#include "Modules/ModuleManager.h"
 
 namespace MarketPeople
 {
@@ -37,16 +40,31 @@ namespace
         if (!Body || !Anim) return;
         Body->SetAnimationMode(EAnimationMode::AnimationSingleNode);
         Body->PlayAnimation(Anim, true);
+        Body->SetPosition(Shopper.AnimationPhase * Anim->GetPlayLength(), false);
     }
 }
 
 FLibrary Load()
 {
     FLibrary Library;
-    for (const TCHAR* Name : { TEXT("MH_Teyze"), TEXT("MH_Amca"), TEXT("MH_Anne"), TEXT("MH_Genc") })
+    // Every assembled BP_MH_* below /Game/MetaHumans is available automatically. Adding a new
+    // customer appearance no longer requires a C++ name list or another build.
+    IAssetRegistry& Registry = FModuleManager::LoadModuleChecked<FAssetRegistryModule>(TEXT("AssetRegistry")).Get();
+    TArray<FString> PathsToScan{TEXT("/Game/MetaHumans")};
+    Registry.ScanPathsSynchronous(PathsToScan, true);
+    FARFilter Filter;
+    Filter.PackagePaths.Add(TEXT("/Game/MetaHumans"));
+    Filter.ClassPaths.Add(UBlueprint::StaticClass()->GetClassPathName());
+    Filter.bRecursivePaths = true;
+    TArray<FAssetData> Assets;
+    Registry.GetAssets(Filter, Assets);
+    Assets.Sort([](const FAssetData& A, const FAssetData& B) { return A.AssetName.LexicalLess(B.AssetName); });
+    for (const FAssetData& Asset : Assets)
     {
-        const FString Path = FString::Printf(TEXT("/Game/MetaHumans/%s/BP_%s.BP_%s_C"), Name, Name, Name);
-        if (UClass* Class = LoadClass<AActor>(nullptr, *Path, nullptr, QuietLoad(), nullptr)) Library.Classes.Add(Class);
+        if (!Asset.AssetName.ToString().StartsWith(TEXT("BP_MH_"))) continue;
+        if (UBlueprint* Blueprint = Cast<UBlueprint>(Asset.GetAsset()))
+            if (Blueprint->GeneratedClass && Blueprint->GeneratedClass->IsChildOf(AActor::StaticClass()))
+                Library.Classes.AddUnique(TSubclassOf<AActor>(Blueprint->GeneratedClass));
     }
     Library.Walk = FirstAnim({
         TEXT("/Game/MetaHumans/Animasyon/MF_Unarmed_Walk_Fwd.MF_Unarmed_Walk_Fwd"),
@@ -70,8 +88,44 @@ AActor* Spawn(UWorld* World, const FLibrary& Library, const FVector& FloorLocati
     Actor->SetActorEnableCollision(false);
     OutShopper = FShopper();
     OutShopper.Body = FindBody(Actor);
+    OutShopper.SpeedScale = Pick.FRandRange(.88f, 1.08f);
+    OutShopper.Acceleration = Pick.FRandRange(185.f, 245.f);
+    OutShopper.Deceleration = Pick.FRandRange(285.f, 355.f);
+    OutShopper.TurnResponse = Pick.FRandRange(5.5f, 8.5f);
+    OutShopper.AnimationPhase = Pick.FRand();
     if (OutShopper.Body.IsValid()) OutShopper.MeshYaw = OutShopper.Body->GetComponentRotation().Yaw - Actor->GetActorRotation().Yaw;
     return Actor;
+}
+
+FVector MoveToward(FShopper& Shopper, const FVector& Here, const FVector& Target, float BaseSpeed,
+    float DeltaTime, FVector& OutDirection, bool& bOutMoving)
+{
+    FVector Delta = Target - Here;
+    Delta.Z = 0.f;
+    const float Distance = Delta.Size();
+    OutDirection = Distance > KINDA_SMALL_NUMBER ? Delta / Distance : FVector::ZeroVector;
+    if (DeltaTime <= 0.f || Distance < 1.f)
+    {
+        Shopper.CurrentSpeed = 0.f;
+        bOutMoving = false;
+        return FVector(Target.X, Target.Y, Here.Z);
+    }
+
+    // Brake early enough to avoid the old glide-and-snap stop. At a sharp corner the actor first
+    // shortens its step, giving the visible body time to turn before it continues down the next aisle.
+    const float StopLimitedSpeed = FMath::Sqrt(FMath::Max(0.f, 2.f * Shopper.Deceleration * Distance));
+    float DesiredSpeed = FMath::Min(BaseSpeed * Shopper.SpeedScale, StopLimitedSpeed);
+    if (!Shopper.MoveDirection.IsNearlyZero() && !OutDirection.IsNearlyZero())
+    {
+        const float Alignment = FVector::DotProduct(Shopper.MoveDirection, OutDirection);
+        if (Alignment < .25f) DesiredSpeed *= FMath::GetMappedRangeValueClamped(FVector2D(-1.f, .25f), FVector2D(.22f, 1.f), Alignment);
+    }
+    const float Rate = DesiredSpeed > Shopper.CurrentSpeed ? Shopper.Acceleration : Shopper.Deceleration;
+    Shopper.CurrentSpeed = FMath::FInterpConstantTo(Shopper.CurrentSpeed, DesiredSpeed, DeltaTime, Rate);
+    const float Step = FMath::Min(Distance, Shopper.CurrentSpeed * DeltaTime);
+    bOutMoving = Step > .05f;
+    if (bOutMoving) Shopper.MoveDirection = OutDirection;
+    return Here + OutDirection * Step;
 }
 
 void Update(AActor* Actor, const FLibrary& Library, FShopper& Shopper, const FVector& Direction, bool bMoving, float YawOffset, float DeltaTime)
@@ -82,13 +136,19 @@ void Update(AActor* Actor, const FLibrary& Library, FShopper& Shopper, const FVe
         // Skeletal meshes face +Y in mesh space: turn the actor so the body looks along Direction,
         // whatever rotation the blueprint gives the body. YawOffset (DefaultGame.ini) is a manual fix-up.
         const FRotator Want(0.f, Direction.Rotation().Yaw - 90.f - Shopper.MeshYaw + YawOffset, 0.f);
-        Actor->SetActorRotation(FMath::RInterpTo(Actor->GetActorRotation(), Want, DeltaTime, 8.f));
+        Actor->SetActorRotation(FMath::RInterpTo(Actor->GetActorRotation(), Want, DeltaTime, Shopper.TurnResponse));
     }
     if (!Shopper.bStarted || Shopper.bWalking != bMoving)
     {
         Shopper.bStarted = true;
         Shopper.bWalking = bMoving;
         Play(Shopper, bMoving ? Library.Walk.Get() : Library.Idle.Get());
+    }
+    if (USkeletalMeshComponent* Body = Shopper.Body.Get())
+    {
+        // The current prototype uses an in-place walk. Matching its playback to world speed removes
+        // most visible foot sliding until the shared retargeted Animation Blueprint is installed.
+        Body->SetPlayRate(bMoving ? FMath::Clamp(Shopper.CurrentSpeed / 145.f, .55f, 1.15f) : FMath::Lerp(.94f, 1.04f, Shopper.AnimationPhase));
     }
 }
 }

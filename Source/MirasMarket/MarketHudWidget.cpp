@@ -324,6 +324,12 @@ TSharedRef<SWidget> SMarketHud::OfficeCard()
                         : FString::Printf(TEXT("Koli %d \u00d7 %s = %s  \u00b7  ertesi sabah depoda"), P.CaseUnits, *Lira(P.Cost), *Lira(P.Cost * P.CaseUnits)));
                 })
             ]
+            + SVerticalBox::Slot().AutoHeight().Padding(0.f, 2.f, 0.f, 0.f)
+            [
+                // Price decision: our shelf price against the rival's and how many shoppers accept it (MarketDemand).
+                SNew(STextBlock).Font(Font("Regular", 10)).ColorAndOpacity(Cream)
+                .Text_Lambda([this] { const AMarketGameMode* G = Game.Get(); return FText::FromString(G ? G->PriceSummary(G->Selected) : FString()); })
+            ]
             + SVerticalBox::Slot().AutoHeight().Padding(0.f, 10.f, 0.f, 0.f)
             [
                 SNew(SVerticalBox)
@@ -506,6 +512,16 @@ TSharedRef<SWidget> SMarketHud::ReportCard()
             [ Line([](const AMarketGameMode& G) { return FString::Printf(TEXT("Gider %s  \u00b7  ikinci \u015fube katk\u0131s\u0131 %s"), *Lira(G.State.LastOperatingCost), *Lira(G.State.LastBranchProfit)); }, Font("Regular", 11), Cream) ]
             + SVerticalBox::Slot().AutoHeight().Padding(0.f, 2.f, 0.f, 0.f)
             [ Line([](const AMarketGameMode& G) { return FString::Printf(TEXT("%d sat\u0131\u015f  \u00b7  %d kay\u0131p m\u00fc\u015fteri"), G.State.LastServed, G.State.LastLost); }, Font("Regular", 11), Cream) ]
+            + SVerticalBox::Slot().AutoHeight().Padding(0.f, 10.f, 0.f, 0.f)
+            [ Line([](const AMarketGameMode&) { return FString(TEXT("NEREDE M\u00dc\u015eTER\u0130 KAYBETT\u0130N")); }, Font("Bold", 8, 180), Muted) ]
+            + SVerticalBox::Slot().AutoHeight().Padding(0.f, 4.f, 0.f, 0.f)
+            [
+                SNew(SBox).MaxDesiredWidth(560.f)
+                [
+                    SNew(STextBlock).Font(Font("Regular", 10)).ColorAndOpacity(Honey).AutoWrapText(true)
+                    .Text_Lambda([this] { const AMarketGameMode* G = Game.Get(); return FText::FromString(G ? G->DayProblemsText() : FString()); })
+                ]
+            ]
             + SVerticalBox::Slot().AutoHeight().Padding(0.f, 10.f, 0.f, 0.f)
             [ Line([](const AMarketGameMode&) { return FString(TEXT("Raflar\u0131 doldur, fiyatlar\u0131 ayarla, O ile a\u00e7.")); }, Font("Regular", 9), Muted) ]
         , FMargin(24.f, 18.f))

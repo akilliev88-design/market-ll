@@ -29,6 +29,7 @@ Limit aniden biterse sonraki ajan GUNLUK/DURUM ile dosyaların son hâlini karş
 | `Source/MirasMarket/MarketArrange.cpp` | Oyunda raf dizme modu (R): nişan, hayalet önizleme, RAF DÜZENİ paneli verisi. |
 | `Source/MirasMarket/Planogram.*` | Raf planı verisi (`Config/planograms.json`, şema v3), ekipman ölçüleri, genişlik/derinlik/istif hesapları. |
 | `Source/MirasMarket/StaffPlanner.*` | Reyon görevlisinin kararları (dünyadan bağımsız, test edilir): raf doldur, rafta olmayan ürünü kategorisinin reyonuna koy, bir koli almayan bloğu genişlet. |
+| `Source/MirasMarket/MarketDemand.*` | Müşteri kararları (dünyadan bağımsız, test edilir): hangi ürünü ister, rakip fiyatına göre alır mı, kayıp nedeni sayımı, gün raporunun en büyük 3 sorunu. |
 | `Source/MirasMarket/MarketWorkers.cpp` | Oyundaki reyon görevlileri: yürüme, koli taşıma, rafa tek tek dizme (`AMarketGameMode::TickWorkers`). |
 | `Source/MirasMarket/PlanogramEdit.*` | Blok blok elle dizme kuralları (`PlanBlock`, `AddBlock`, `AddToRowEnd`, taşı/kaldır/önde/yön/istif/aralık). Oyun ve editör ortak kullanır; reyon görevlileri de (`StaffPlanner`) bunu kullanır. |
 | `Source/MirasMarket/MarketTests.cpp` | Unreal otomasyon testleri (`MirasMarket.*`). |
@@ -39,10 +40,12 @@ Limit aniden biterse sonraki ajan GUNLUK/DURUM ile dosyaların son hâlini karş
 | `Docs/Planlama/` | v0.2 tasarım paketi (hedef oyun). |
 | `Docs/Surec/` | Devir belgeleri: DURUM, GOREVLER, GUNLUK. |
 | `Docs/URUN_STUDYOSU.md` | Stüdyonun kullanım kılavuzu ve dosya standardı. |
+| `Docs/METAHUMAN_REHBERI.md` | İnsan görünüşü, ortak animasyon dönüştürme ve kalabalık standardı. |
 | `Docs/Uretim/` | Mustafa'nın dış ajanlara vereceği **kısa, kopyala-yapıştır promptlar** (A1/A2 kutu, B1/B2 şişe, C1/C2 poşet, D araştırma, E kontrol) ve marka/ürün listesi. Stüdyo davranışı değişirse bu promptları da güncelle. |
 | `Uretim/` | Dış ajanların teslim klasörü: `Uretim/<ürün>/model/`, `Uretim/<ürün>/<yıl>/`. |
 | `Docs/Uretim/Sablonlar/` | Stüdyonun ürün verisiyle doldurduğu prompt şablonları (`{{YER_TUTUCU}}`). Yeni yer tutucu eklersen `StudioPrompts.cpp` → `BuildPrompt` içine de ekle. |
 | `Config/ambalajlar.json` | Hazır ambalaj kütüphanesi (stüdyo 3B şekli kendisi üretir). Ölçü değişirse id de değişir. |
+| `Tools/MetaHuman/hazirla_animasyon.py` | Ortak IK/retarget varlıklarını ve MetaHuman yürüyüş/bekleme kopyalarını üretir. |
 | `Tools/Arsiv/katalog_olustur.py` | Arşiv. Katalogu ürün listesinden sıfırdan üretirdi; stüdyodaki değişiklikleri ve ambalaj atamalarını SİLER. Kullanma. |
 
 ## 4. Komutlar (Windows, proje kökü)

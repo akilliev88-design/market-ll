@@ -1,6 +1,6 @@
 # Güncel durum
 
-Son güncelleme: 28.09.2026 — Codex
+Son güncelleme: 28.09.2026 — Codex (G-051, G-056)
 
 ## Kısaca
 
@@ -44,6 +44,8 @@ v0.2 geliştirme. **Yeni oyun rafları boş açılır**; başlangıç stoğu dep
 | G-048: kod temizliği (eski raf planı kodu ve strateji düğmeleri silindi, ortak yardımcılar, `MarketAutomation.cpp`, Stüdyo arka ucu 5 dosyaya bölündü, `RebuildRight` parçalandı) | GEÇTİ — derleme, 16/16 test, smoke (2 satış) — 28.09.2026 |
 | G-049: reyon görevlisi (J/K, yürüyerek raf doldurma, rafta olmayan ürünü kategorisinin reyonuna dizme, dar bloğu genişletme, `Staff.Planner` testi) | **GEÇTİ** — derleme, 17/17 test ve smoke — 28.09.2026 |
 | G-050: Blender kasa/masa/soğutucu/manav/tavan ayrıntıları + boş raf başlangıcı | **GEÇTİ** — 7 varlıkta 0 hata/0 uyarı, derleme, 17/17 test, smoke ve 5 açılı görüntü — 28.09.2026 |
+| G-051: fiyat ve müşteri talebi (`MarketDemand`, kayıp nedenleri, gün raporunda 3 sorun, masada rakip fiyatı, `Customers.PriceAndDemand` testi) | **GEÇTİ** — birleşik derleme, 19/19 test ve smoke — 28.09.2026 |
+| G-056: MetaHuman ortak retarget + doğal hareket + `BP_MH_*` otomatik keşif | **GEÇTİ** — iki animasyon üretildi; 1 MetaHuman ve dönüştürülmüş yürüyüş/bekleme smoke günlüğünde yüklendi — 28.09.2026 |
 | Stüdyoda elle deneme: kutu (açılım) → Oyuna ekle → OYNA | GEÇTİ: milk_1l oyunda; ön/yan/üst yüzler doğru, ayna yok, raf oturması doğru — 27.09.2026 |
 | Stüdyoda elle deneme: cam şişe modeli + malzeme.json | Bekliyor (henüz model yok) |
 
@@ -57,18 +59,20 @@ v0.2 geliştirme. **Yeni oyun rafları boş açılır**; başlangıç stoğu dep
 - Prosedürel mağaza artık daha okunaklıdır; fotogerçekçi hedef için sonraki turda raf/zemin/duvar PBR doku setleri ve ayrıntılı prop modelleri gerekir (G-021).
 - Lumen + mesafe alanları açık (`DefaultEngine.ini`); ilk açılışta shader derlemesi uzun sürebilir.
 - `gorsel_malzemeler.py` Unreal Python malzeme grafiği kuruyor; pin adı uyuşmazsa `GORSEL_son.log` içinde `MIRAS_MATERIALS_ERROR` yazar ve oyun düz renklere düşer (çökmez).
-- MetaHuman smoke ve yükleme günlüğüyle doğrulandı; yüz, saç ve kıyafet kalitesi normal oyun kamerasında ayrı bir yakın plan turunda incelenmeli.
+- MetaHuman ortak yürüyüş/bekleme animasyonları doğru iskelete dönüştürüldü ve smoke günlüğünde yüklendi. Yüz, saç, kıyafet ve ayak basışı normal oyun kamerasında elle incelenmeli; raf alma/ödeme klipleri henüz yok.
 - Raf Planı Editörü derlendi ve davranış kuralları otomasyonla doğrulandı; bu oturumdaki Windows otomasyon yüzeyi Unreal penceresini sunmadığı için panelin son piksel düzeni elle açılarak ayrıca görülebilir.
+
+## Yön kararı (28.09.2026, Mustafa onayladı)
+
+Görsel ve raf dizme işleri yeterli seviyede; bir süre **donduruldu**. Öncelik **"İlk Hafta" oynanabilir dilimi**: bir oyuncu 7 günü baştan sona oynayabilmeli (sipariş → mal kabul → raf → fiyat → satış → gün raporu → hafta hedefi). Görevler G-051…G-055. Başarı ölçütü: yeni biri ilk 30 dakikada döngüyü anlıyor ve ilk kararının sonucunu görüyor.
 
 ## Devam notu
 
-Yarım kod işi yok. Opus/Claude tarafından eklenen G-049 Codex tarafından derlenip test edildi. Kullanıcının ürün kataloğu ve ürün varlığı çalışma dosyaları korunuyor.
+G-051 ve G-056 tamamlandı. İnsanlar artık hedefe yaklaşırken frenliyor, köşede yavaşlıyor, farklı hız/fazla yürüyor ve animasyon hızı dünya hızını izliyor. `METAHUMAN_ANIMASYON_HAZIRLA.cmd` ortak IK/retarget ile yürüyüş/bekleme üretir; oyun bütün `BP_MH_*` karakterlerini otomatik bulur. Bir sonraki insan işi, normal oyun kamerasında ayak/saç/kıyafet kontrolü ve raf alma/ödeme klipli ortak Animation Blueprint'tir.
 
 ## Sıradaki adımlar
 
-0. Mustafa: oyunu açıp boş raflarda R yerleştirme deneyimini dene; yönetim masasında J ile görevli alıp depodan raf doldurmasını izle (F1 panelinde yaptığı iş görünür).
-00. Mustafa: `Docs/Environment/FAB_PAKET_LISTESI.md` paketlerini indir (G-042); Claude bağlayacak.
-1. Raf tekrarını azalt: her kategoriye daha fazla gerçek ürün/ambalaj ekle ve planogram editöründe aynı seviyede marka bloklarını karıştır.
-2. G-021'i sürdür: fırın, kasap/şarküteri, pasta-lokum, restoran ve elektronik servis reyonları için Blender modülleri üret.
-3. `MH_Teyze`yi normal oyun kamerasında yakın planda kontrol et; ardından `MH_Amca`, `MH_Anne`, `MH_Genc` ve döneme uygun kıyafetleri ekle (G-042).
-4. Mustafa: PET/teneke/kavanoz/kase türlerinden birer ürün üretip Oyuna ekle; etiket yönü, kapak ve malzeme yuvalarını gözle doğrula (G-017).
+0. Mustafa: oyunda MetaHuman ayak basışı/dönüşünü ve masada +/- fiyat → gün raporundaki "NEREDE MÜŞTERİ KAYBETTİN" bölümünü gözle dene.
+1. G-052 sipariş ve mal kabul → G-053 alışveriş listesi → G-054 hafta hedefi (borç tutarı ve G-008 rakip kararı Mustafa'da) → G-055 oyun testi.
+2. Paralel (Mustafa): İlk Hafta için 20–40 ürünü gerçek ambalajıyla hazırla; 97 ürünün hepsi gerekmiyor.
+3. Dondurulanlar (İlk Hafta bitince): G-021 servis reyonları, G-042 MetaHuman çeşitliliği, FAB paketleri, G-017 ambalaj yönü denemeleri.

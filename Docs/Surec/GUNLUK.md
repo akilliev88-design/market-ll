@@ -2,6 +2,41 @@
 
 En yeni giriş en üstte. Biçim: tarih — ajan — başlık, ardından **Yapılan**, **Doğrulama**, **Sıradaki**.
 
+## 28.09.2026 — Codex — MetaHuman hareketi, ortak animasyon ve G-051 doğrulaması (G-056)
+
+**Yapılan**
+- Claude'un G-051 fiyat/talep değişiklikleri önce ayrı olarak derlendi ve doğrulandı; kayıt uyumluluğu ve yeni talep testi korundu.
+- Müşteri ve reyon görevlisi hareketi ortak `MarketPeople::MoveToward` çekirdeğine taşındı. Karakterler artık hızlanıyor, hedefe yaklaşırken frenliyor, köşede yavaşlıyor ve kişiye göre hızlanma/dönüş farkı gösteriyor. Animasyon oynatma hızı gerçek dünya hızını izliyor; başlangıç fazı değiştiği için kalabalık aynı adımla yürümüyor.
+- Oyun `Content/MetaHumans` altındaki bütün `BP_MH_*` Blueprintlerini otomatik tarıyor; yeni karakter eklemek için C++ listesi değiştirmek gerekmiyor.
+- `METAHUMAN_ANIMASYON_HAZIRLA.cmd` ve `Tools/MetaHuman/hazirla_animasyon.py` eklendi. Quinn yürüyüş/bekleme animasyonları otomatik IK Rig ve IK Retargeter ile MetaHuman gövde iskeletine dönüştürüldü; çıktılar `Content/MetaHumans/Animasyon` altında.
+- `Docs/METAHUMAN_REHBERI.md` yeni karakter, çeşitlilik, performans ve sonraki Animation Blueprint standardını anlatıyor.
+- `MirasMarket.People.Locomotion` testi eklendi; toplam asgari test sayısı 19 oldu.
+
+**Doğrulama**
+- `METAHUMAN_ANIMASYON_HAZIRLA.cmd` eşdeğeri: geçti; `MF_Unarmed_Walk_Fwd` ve `MM_Idle` üretildi.
+- `DERLE.cmd /q`: geçti.
+- `TEST.cmd /q`: 19/19 geçti.
+- `SmokeTest.ps1`: geçti; günlükte 1 MetaHuman, dönüştürülmüş iki animasyon, 2 müşteri satışı, gün sonu ve disk kayıt/yükleme doğrulandı.
+
+**Sıradaki**: Mustafa normal oyun kamerasında ayak basışı, saç/kıyafet takibi ve dönüşleri gözle deneyecek. Sonra ana yol G-052 sipariş ve mal kabul; sonraki insan animasyonu raf alma/sepet/kasa klipli ortak Animation Blueprint.
+
+## 28.09.2026 — Claude — Yol haritası ve İlk Hafta 1/5: fiyat ve müşteri talebi (G-051)
+
+**Mustafa**: "Oyunda baya yol kat ettik, ilerleme yolumuz ne olmalı?" Öneri: görsel/raf işlerini dondur, "İlk Hafta" oynanabilir dilimini kur (planlamadaki P5). Mustafa: "evet yap bakalım".
+
+**Yapılan**
+- GOREVLER: G-051…G-055 (fiyat/talep, sipariş ve mal kabul, alışveriş listesi, hafta hedefi, oyun testi). DURUM'a yön kararı eklendi.
+- `MarketDemand.*` (dünyadan bağımsız): müşterilerin %85'i rafta olan üründen, %15'i herhangi bir aktif üründen ister. Alma ihtimali rakip fiyatına oranla yumuşak eğri: rakip fiyatında ~%97, %25 pahalıda (yerel pay %25 iken) %50, %50 pahalıda ~%3; yerel pay yükseldikçe müşteri daha hoşgörülü. Ucuzsa bir fazla alır, pahalıysa en fazla 2; rafta az kaldıysa kalanı alır (eskiden hiç almıyordu).
+- Her kayıp müşterinin nedeni sayılır: rafta bitti / pahalı / rafta yok / içeride beklemekten vazgeçti (kalabalık, kuyruk, kapanış). Ürün başına `Today`/`Yesterday` sayaçları kayda girer; eski kayıtlar sıfırla açılır.
+- Gün raporunda "NEREDE MÜŞTERİ KAYBETTİN": en büyük 3 sorun ve ne yapılacağı (rapor 30 sn açık kalır; F1 ile her zaman).
+- Yönetim masasında seçili ürün için "Fiyat · rakip · alan müşteri ~%" satırı; +/- adımı artık liste fiyatının ~%5'i (0,75 TL ayranda 5 kuruş, deterjanda 1 TL; eskiden her üründe 25 kuruş).
+- Rakip indirimi (`RivalDiscount`, G-008) aynen korundu.
+- Test `MirasMarket.Customers.PriceAndDemand` (18. test); `Test.ps1` en az 18 bekler. AGENTS haritasına `MarketDemand` eklendi.
+
+**Doğrulama**: Derlenmedi. Dosyalar geri okunup karşılaştırıldı; ASCII ve parantez dengesi betikle kontrol edildi; test beklentileri elle hesaplandı.
+
+**Sıradaki**: `SON_KONTROL.cmd` (beklenen 18 test + smoke). Ardından G-052.
+
 ## 28.09.2026 — Codex — Opus birleşimi, gerçekçi mağaza ekipmanları ve boş raf başlangıcı (G-049, G-050)
 
 **Yapılan**
