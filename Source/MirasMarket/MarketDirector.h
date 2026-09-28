@@ -24,6 +24,17 @@ namespace MarketDirector
     // Evening report: tomorrow's calendar forecast (State.Day is already tomorrow after a day close).
     FString TomorrowText(const FMarketState& State);
 
+    // Today's costs and list prices (monthly price list, wholesaler discount) from the 2011 catalog values.
+    // Call after loading/starting a campaign and after every day close.
+    void ApplyPrices(const FMarketState& State, const TArray<FMarketProduct>& CatalogBase, TArray<FMarketProduct>& Products);
+    // After a successful FMarketState::SubmitOrder: wholesaler volume and payment terms. Returns an extra line.
+    FString OnOrder(FMarketState& State, int64 Bill);
+    // Management decisions of the background systems that are not staff decisions. False + message when nothing
+    // changed. Actions: Supplier (Arg = MarketSuppliers::ESupplier), PayBills, PassOnPriceRise.
+    bool Command(FMarketState& State, const TArray<FMarketProduct>& Products, FName Action, int32 Arg, FString& OutMessage);
+    // Evening report of the background systems: wholesalers, staff, tax, ...
+    FString ReportText(const FMarketState& State);
+
     // Call right after FMarketState::CloseDay (State.Day is already the next day), before MarketCampaign::CloseDay.
     void CloseDay(FMarketState& State, const TArray<FMarketProduct>& Products);
 }

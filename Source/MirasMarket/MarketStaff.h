@@ -46,8 +46,9 @@ namespace MarketStaff
     FString RoleName(ERole Role);
     ERole RoleOf(const FMarketEmployee& Employee);
 
-    // Wage the market pays for this role and skill (morale compares the actual wage with it).
-    int64 FairWage(ERole Role, int32 Skill);
+    // Wage the market pays for this role and skill on a game day (follows the minimum wage, MarketPrices).
+    // Morale compares the actual wage with it, so a wage that is never raised slowly becomes a low wage.
+    int64 FairWage(ERole Role, int32 Skill, int32 GameDay = 1);
     // True when the employee works today (hired, not on the day off). Off = rests, still paid.
     bool OnDuty(const FMarketState& State, const FMarketEmployee& Employee);
     int32 Count(const FMarketState& State, ERole Role);

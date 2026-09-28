@@ -45,7 +45,7 @@ namespace MarketCustomers
     // are asked for about 85 % of the time (as MarketDemand::CarriedShare); the rest shows what is missing.
     TArray<int32> BuildList(const FMarketState& State, const TArray<FMarketProduct>& Products, ESegment Segment, FRandomStream& Random);
     int32 Quantity(ESegment Segment, FRandomStream& Random);
-    // Money for this visit: segment budget x the calendar's wallet factor (paydays, month end).
+    // Money for this visit: segment budget x the calendar's wallet factor (paydays, month end) x wage level.
     int64 VisitBudget(ESegment Segment, int32 GameDay);
     // Units of a product that fit in what is left of the budget (at least 1 when one unit fits).
     int32 Affordable(int64 BudgetLeft, int64 Price, int32 Wanted);

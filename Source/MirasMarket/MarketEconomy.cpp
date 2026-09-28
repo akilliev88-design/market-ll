@@ -1,4 +1,6 @@
 #include "MarketEconomy.h"
+#include "MarketPrices.h"
+#include "MarketSuppliers.h"
 
 void FMarketState::Initialize(const TArray<FMarketProduct>& Products)
 {
@@ -125,7 +127,8 @@ int64 FMarketState::DailyPayroll() const
 
 void FMarketState::CloseDay()
 {
-    LastOperatingCost = 2200 + DailyPayroll();
+    // Rent-free family shop: electricity, water, bags and upkeep follow the monthly price list (MarketPrices).
+    LastOperatingCost = FMath::RoundToInt64(2200.0 * MarketPrices::ListLevel(Day)) + DailyPayroll();
     // The second branch is an explicit aggregate prototype: net daily contribution.
     LastBranchProfit = bSecondStore ? FMath::RoundToInt64(800 + MarketShare * 35) : 0;
     LastRevenue = Revenue;
@@ -150,8 +153,10 @@ void FMarketState::CloseDay()
         uint32 Hash = 2166136261u;
         for (const TCHAR Character : Item.Id) { Hash ^= static_cast<uint32>(Character); Hash *= 16777619u; }
         Hash ^= static_cast<uint32>(Day * 7919 + I * 104729);
-        const int32 Missing = Item.Incoming >= 2 && Hash % 23u == 0u ? 1 : 0;
-        const int32 Damaged = Item.Incoming - Missing >= 2 && (Hash / 23u) % 17u == 0u ? 1 : 0;
+        // A cheap, careless wholesaler loses and breaks more (MarketSuppliers::Info().DeliveryRisk; 1 = v0.1 odds).
+        const uint32 Risk = MarketSuppliers::Info(static_cast<MarketSuppliers::ESupplier>(Supplier)).DeliveryRisk;
+        const int32 Missing = Item.Incoming >= 2 && Hash % 23u < Risk ? 1 : 0;
+        const int32 Damaged = Item.Incoming - Missing >= 2 && (Hash / 23u) % 17u < Risk ? 1 : 0;
         LastDeliveryMissing += Missing;
         LastDeliveryDamaged += Damaged;
         Item.Dock += Item.Incoming - Missing - Damaged;
@@ -223,6 +228,8 @@ bool FMarketState::IsStructurallyValid() const
             Item.Warehouse + Item.Dock + Item.Incoming > StorageCapacity || Item.Price < 10) return false;
     }
     if (Books.TaxDue < 0 || Books.VatCarry < 0 || Purchases < 0 || NextEmployeeId < 1) return false;
+    if (!FMath::IsFinite(ShelfPriceLevel) || ShelfPriceLevel <= 0.0 || Supplier >= static_cast<uint8>(MarketSuppliers::ESupplier::Count)) return false;
+    for (const FMarketPayable& Bill : Payables) if (Bill.Amount < 0) return false;
     TSet<int32> EmployeeIds;
     for (const TArray<FMarketEmployee>* People : { &Staff, &Candidates })
         for (const FMarketEmployee& Employee : *People)

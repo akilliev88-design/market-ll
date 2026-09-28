@@ -1,0 +1,71 @@
+#pragma once
+
+#include "CoreMinimal.h"
+#include "MarketEconomy.h"
+
+// Wholesalers, payment terms and price lists (G-063, Docs/Kurgu/00_KURGU_KITABI.md \u00a78). Independent of the world,
+// tested (MirasMarket.Suppliers.*).
+//  - Prices: the catalog's cost and list price are 2011 values; the game uses them x MarketPrices::ListLevel, which
+//    moves on the 1st of every month (the wholesaler's "zam listesi"). The rival's shelf price follows the same
+//    list, so a player who does not pass the rise on sells cheaper than the rivals but earns less.
+//  - Trakya G\u0131da Da\u011f\u0131t\u0131m (Selim): the father's wholesaler. Pays in cash at first; trust grows with orders and
+//    payments on time and brings 7, then 14 days of payment terms; monthly volume brings a 3-5 % discount.
+//  - \u00d6zdemir Toptan (fictional): from day 14, 4 % cheaper, but three times the missing/broken goods and no terms.
+//  - A late payment costs trust, closes the terms and adds a 2 % late fee.
+namespace MarketSuppliers
+{
+    enum class ESupplier : uint8 { TrakyaGida = 0, Ozdemir = 1, Count };
+
+    struct FInfo
+    {
+        const TCHAR* Name = TEXT("");
+        const TCHAR* Contact = TEXT("");
+        float BaseDiscount = 0.f;
+        uint32 DeliveryRisk = 1;     // x missing/damaged odds of the v0.1 delivery (FMarketState::CloseDay)
+        int32 UnlockDay = 1;
+        bool bOffersTerms = false;
+    };
+
+    constexpr int32 TermsTrust = 60;        // 7 days of payment terms
+    constexpr int32 LongTermsTrust = 80;    // 14 days
+    constexpr int64 VolumeTier1 = 150000;   // 1.500 TL in about 30 days: 3 %
+    constexpr int64 VolumeTier2 = 400000;   // 4.000 TL: 5 %
+    constexpr float LateFee = 0.02f;
+
+    const FInfo& Info(ESupplier Supplier);
+    ESupplier Current(const FMarketState& State);
+    const FMarketSupplierAccount* FindAccount(const FMarketState& State, ESupplier Supplier);
+    FMarketSupplierAccount& Account(FMarketState& State, ESupplier Supplier);
+    bool Available(const FMarketState& State, ESupplier Supplier);
+    // Total discount off the list for the current relationship (base + volume).
+    float Discount(const FMarketState& State, ESupplier Supplier);
+    // Days of payment terms the supplier gives today (0 = cash).
+    int32 TermsDays(const FMarketState& State, ESupplier Supplier);
+
+    // What the shop pays for one unit today and the market's reference retail price (rivals price around it).
+    int64 UnitCost(const FMarketState& State, const FMarketProduct& Base);
+    int64 ListPrice(const FMarketState& State, const FMarketProduct& Base);
+    // Writes today's costs and list prices of the catalog (Base, 2011 values) into the game's products.
+    void ApplyPrices(const FMarketState& State, const TArray<FMarketProduct>& Base, TArray<FMarketProduct>& Out);
+
+    // After FMarketState::SubmitOrder succeeded with Bill: counts the volume and, with terms, gives the cash back
+    // and writes the bill to be paid later. Returns a Turkish line for the player ("" = nothing to add).
+    FString OnOrder(FMarketState& State, int64 Bill);
+    bool Switch(FMarketState& State, ESupplier Supplier, FString& OutMessage);
+    // Pays every open bill now if the cash allows; returns the amount paid.
+    int64 PayBills(FMarketState& State);
+    int64 OpenBills(const FMarketState& State);
+
+    // How far the shelf prices are behind the list (0.05 = the list is 5 % above the last price update).
+    double PriceGap(const FMarketState& State);
+    // Raises every shelf price by the gap (rounded to 5 kurus), within the allowed price range. Returns the number
+    // of prices changed. Products are the game's current (today's) products.
+    int32 PassOnPriceRise(FMarketState& State, const TArray<FMarketProduct>& Products);
+
+    // One line for the order page: who, trust, terms, discount, open bills, price gap.
+    FString Summary(const FMarketState& State);
+
+    // Day close (after FMarketState::CloseDay): volume decay, trust, bills due, next month's price list and the
+    // wholesalers' news in State.DayNews.
+    void CloseDay(FMarketState& State);
+}

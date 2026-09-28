@@ -2,6 +2,7 @@
 #include "MarketCalendar.h"
 #include "MarketRivals.h"
 #include "MarketStaff.h"
+#include "MarketSuppliers.h"
 
 float MarketDirector::TrafficFactor(const FMarketState& State, const TArray<FString>& Aisles)
 {
@@ -44,7 +45,50 @@ FString MarketDirector::TomorrowText(const FMarketState& State)
     return MarketCalendar::Forecast(State.Day, State.RivalSeed);
 }
 
+void MarketDirector::ApplyPrices(const FMarketState& State, const TArray<FMarketProduct>& CatalogBase, TArray<FMarketProduct>& Products)
+{
+    MarketSuppliers::ApplyPrices(State, CatalogBase, Products);
+}
+
+FString MarketDirector::OnOrder(FMarketState& State, int64 Bill)
+{
+    return MarketSuppliers::OnOrder(State, Bill);
+}
+
+bool MarketDirector::Command(FMarketState& State, const TArray<FMarketProduct>& Products, FName Action, int32 Arg, FString& OutMessage)
+{
+    if (Action == TEXT("Supplier"))
+        return MarketSuppliers::Switch(State, static_cast<MarketSuppliers::ESupplier>(FMath::Clamp(Arg, 0, static_cast<int32>(MarketSuppliers::ESupplier::Count) - 1)), OutMessage);
+    if (Action == TEXT("PayBills"))
+    {
+        const int64 Paid = MarketSuppliers::PayBills(State);
+        OutMessage = Paid > 0 ? FString::Printf(TEXT("Toptanc\u0131 faturalar\u0131 \u00f6dendi: %s TL."), *FString::Printf(TEXT("%lld,%02lld"), static_cast<long long>(Paid / 100), static_cast<long long>(Paid % 100)))
+            : MarketSuppliers::OpenBills(State) > 0 ? FString(TEXT("Faturalar i\u00e7in kasada yeterli para yok.")) : FString(TEXT("A\u00e7\u0131k fatura yok."));
+        return Paid > 0;
+    }
+    if (Action == TEXT("PassOnPriceRise"))
+    {
+        const double Gap = MarketSuppliers::PriceGap(State);
+        const int32 Changed = MarketSuppliers::PassOnPriceRise(State, Products);
+        OutMessage = Changed > 0 ? FString::Printf(TEXT("Zam raflara yans\u0131t\u0131ld\u0131: %d \u00fcr\u00fcnde fiyat %%%.1f artt\u0131."), Changed, Gap * 100.0)
+            : FString(TEXT("Raf fiyatlar\u0131 zaten g\u00fcncel liste d\u00fczeyinde."));
+        return Changed > 0;
+    }
+    OutMessage = FString::Printf(TEXT("Bilinmeyen karar: %s"), *Action.ToString());
+    return false;
+}
+
+FString MarketDirector::ReportText(const FMarketState& State)
+{
+    TArray<FString> Lines = State.DayNews;
+    const FString Staff = MarketStaff::ReportText(State);
+    if (!Staff.IsEmpty()) Lines.Add(Staff);
+    return FString::Join(Lines, TEXT("\n"));
+}
+
 void MarketDirector::CloseDay(FMarketState& State, const TArray<FMarketProduct>& Products)
 {
-    MarketStaff::CloseDay(State); // till, fatigue, morale, notices, HR, accountant and the weekly tax (G-060)
+    State.DayNews.Reset();
+    MarketSuppliers::CloseDay(State); // price list, payment terms, bills due, wholesaler news (G-063)
+    MarketStaff::CloseDay(State);     // till, fatigue, morale, notices, HR, accountant and the weekly tax (G-060)
 }

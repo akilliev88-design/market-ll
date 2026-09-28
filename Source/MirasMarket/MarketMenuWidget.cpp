@@ -2,6 +2,7 @@
 
 #include "MarketGame.h"
 #include "ProductCatalog.h"
+#include "MarketSuppliers.h"
 #include "Brushes/SlateColorBrush.h"
 #include "Engine/Texture2D.h"
 #include "ImageUtils.h"
@@ -646,7 +647,25 @@ TSharedRef<SWidget> SMarketMenu::OrdersPage()
         ];
     }
 
+    // G-063 wholesaler: who we buy from, terms, open bills and passing the monthly price rise on to the shelves.
+    auto Act = [this](FName Action, int32 Arg) { if (AMarketGameMode* Mode = Game.Get()) Mode->StaffCommand(Action, Arg); };
     return SNew(SVerticalBox)
+        + SVerticalBox::Slot().AutoHeight().Padding(0.f, 0.f, 0.f, 10.f)
+        [
+            Card(
+                SNew(SHorizontalBox)
+                + SHorizontalBox::Slot().FillWidth(1.f).VAlign(VAlign_Center)
+                [ Label([G] { return G() ? MarketSuppliers::Summary(G()->State) : FString(); }, 11, ERole::Text, false, true) ]
+                + SHorizontalBox::Slot().AutoWidth().VAlign(VAlign_Center).Padding(8.f, 0.f, 0.f, 0.f)
+                [ Button([G] { return FString(G() && G()->State.Supplier == 0 ? TEXT("\u00d6zdemir'e ge\u00e7") : TEXT("Selim'e d\u00f6n")); },
+                    [Act, G] { if (G()) Act(TEXT("Supplier"), G()->State.Supplier == 0 ? 1 : 0); }, false,
+                    [G] { return G() && (G()->State.Supplier != 0 || MarketSuppliers::Available(G()->State, MarketSuppliers::ESupplier::Ozdemir)); }) ]
+                + SHorizontalBox::Slot().AutoWidth().VAlign(VAlign_Center).Padding(8.f, 0.f, 0.f, 0.f)
+                [ Button([] { return FString(TEXT("Faturalar\u0131 \u00f6de")); }, [Act] { Act(TEXT("PayBills"), 0); }, false, [G] { return G() && MarketSuppliers::OpenBills(G()->State) > 0; }) ]
+                + SHorizontalBox::Slot().AutoWidth().VAlign(VAlign_Center).Padding(8.f, 0.f, 0.f, 0.f)
+                [ Button([] { return FString(TEXT("Zamm\u0131 yans\u0131t")); }, [Act] { Act(TEXT("PassOnPriceRise"), 0); }, false, [G] { return G() && MarketSuppliers::PriceGap(G()->State) >= 0.005; }) ],
+                ERole::Panel, FMargin(18.f, 10.f))
+        ]
         + SVerticalBox::Slot().AutoHeight()[ CategoryChips(&OrderCategory) ]
         + SVerticalBox::Slot().AutoHeight().Padding(12.f, 14.f, 12.f, 4.f)
         [
@@ -1228,9 +1247,9 @@ TSharedRef<SWidget> SMarketMenu::DayReport()
                             return Text;
                         }, 11, ERole::Text, false, true)
                     ]
-                    + SVerticalBox::Slot().AutoHeight().Padding(0.f, 14.f, 0.f, 6.f)[ Fixed(TEXT("PERSONEL VE VERG\u0130"), 9, ERole::Muted, true) ]
+                    + SVerticalBox::Slot().AutoHeight().Padding(0.f, 14.f, 0.f, 6.f)[ Fixed(TEXT("\u0130\u015eLETME: TEDAR\u0130K, PERSONEL, VERG\u0130"), 9, ERole::Muted, true) ]
                     + SVerticalBox::Slot().AutoHeight()
-                    [ Label([G] { const FString Text = G() ? MarketStaff::ReportText(G()->State) : FString(); return Text.IsEmpty() ? FString(TEXT("Olay yok.")) : Text; }, 11, ERole::Text, false, true) ])
+                    [ Label([G] { const FString Text = G() ? MarketDirector::ReportText(G()->State) : FString(); return Text.IsEmpty() ? FString(TEXT("Olay yok.")) : Text; }, 11, ERole::Text, false, true) ])
             ]
         ]
     ];

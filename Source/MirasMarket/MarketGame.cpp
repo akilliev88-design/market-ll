@@ -130,6 +130,7 @@ void AMarketGameMode::BeginPlay()
     LoadPlanogram();
     State.Initialize(Products);
     State.RivalSeed = FMath::Rand();
+    RefreshPrices();
     RivalAisles = MarketRivals::Aisles(Products);
     OrderDraftCases.Init(0, Products.Num());
     ApplyCapacities();
@@ -177,6 +178,12 @@ void AMarketGameMode::LoadCatalog()
             P.Cost = 100; P.BasePrice = 200; Products.Add(P);
         }
     }
+    CatalogBase = Products;
+}
+
+void AMarketGameMode::RefreshPrices()
+{
+    MarketDirector::ApplyPrices(State, CatalogBase, Products); // monthly price list, wholesaler discount (G-063)
 }
 
 void AMarketGameMode::LoadPlanogram()
@@ -966,7 +973,7 @@ void AMarketGameMode::Command(FName Action)
         }
         else
         {
-            State.Initialize(Products); State.RivalSeed = FMath::Rand(); bWeekJustEnded = false; ApplyCapacities(); SyncWorkers(); ResetWorkerJobs(); OrderDraftCases.Init(0, Products.Num()); RefreshDeliveryCrates();
+            State.Initialize(CatalogBase); State.RivalSeed = FMath::Rand(); RefreshPrices(); bWeekJustEnded = false; ApplyCapacities(); SyncWorkers(); ResetWorkerJobs(); OrderDraftCases.Init(0, Products.Num()); RefreshDeliveryCrates();
             RefreshLabels(); ResetConfirmUntil = -1; Notify(TEXT("Yeni kampanya basladi. Raflar bos; urunleri depodan sen yerlestir ve O ile ac."));
         }
     }
@@ -1014,7 +1021,9 @@ void AMarketGameMode::Command(FName Action)
             if (State.SubmitOrder(OrderDraftCases, Products, &Bill, &Units))
             {
                 OrderDraftCases.Init(0, Products.Num());
-                Notify(FString::Printf(TEXT("Siparis onaylandi: %d adet, %s. Yarin sabah arka kapida; depoya tasinmasi gerekir."), Units, *Money(Bill)));
+                const FString Terms = MarketDirector::OnOrder(State, Bill); // wholesaler volume and payment terms
+                Notify(FString::Printf(TEXT("Siparis onaylandi: %d adet, %s. Yarin sabah arka kapida; depoya tasinmasi gerekir."), Units, *Money(Bill))
+                    + (Terms.IsEmpty() ? FString() : TEXT("\n") + Terms));
             }
             else Notify(TEXT("Siparis onaylanamadi: liste bos, nakit yetersiz veya urun deposu 120 adet sinirini asiyor."));
         }
@@ -1308,6 +1317,7 @@ void AMarketGameMode::CloseShop()
     Customers.Empty();
     State.CloseDay();
     MarketDirector::CloseDay(State, Products); // every background system (staff, books, ...) in a fixed order
+    RefreshPrices();                           // a new month brings a new price list
     SyncWorkers();                // days off and leavers change who walks tomorrow
     RefreshLabels(); RefreshDeliveryCrates();
     bWeekJustEnded = MarketCampaign::CloseDay(State); // weekly report every 7 days
@@ -1332,6 +1342,7 @@ void AMarketGameMode::LoadCampaign()
     State = Save->State; Selected = 0; bWeekJustEnded = false; OrderDraftCases.Init(0, Products.Num());
     MarketStaff::Migrate(State); // older saves: the cashier/stocker flags become people
     TArray<FString> Added, Removed;
+    RefreshPrices(); // today's list before the price range check of ReconcileWith
     State.ReconcileWith(Products, &Added, &Removed);
     ApplyCapacities();
     SyncWorkers();     // the walking workers follow the loaded roster

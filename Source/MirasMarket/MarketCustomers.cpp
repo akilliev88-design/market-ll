@@ -1,6 +1,7 @@
 #include "MarketCustomers.h"
 #include "MarketCalendar.h"
 #include "MarketDemand.h"
+#include "MarketPrices.h"
 
 namespace MarketCustomers
 {
@@ -169,7 +170,8 @@ int32 MarketCustomers::Quantity(ESegment Segment, FRandomStream& Random)
 
 int64 MarketCustomers::VisitBudget(ESegment Segment, int32 GameDay)
 {
-    return static_cast<int64>(FMath::RoundToDouble(Profile(Segment).Budget * static_cast<double>(MarketCalendar::BudgetFactor(GameDay))));
+    // Wallets grow with wages (minimum wage steps), not with the shop's own prices.
+    return static_cast<int64>(FMath::RoundToDouble(Profile(Segment).Budget * static_cast<double>(MarketCalendar::BudgetFactor(GameDay)) * MarketPrices::WageIndex(GameDay)));
 }
 
 int32 MarketCustomers::Affordable(int64 BudgetLeft, int64 Price, int32 Wanted)

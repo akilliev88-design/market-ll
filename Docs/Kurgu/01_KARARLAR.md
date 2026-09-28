@@ -15,8 +15,8 @@ Sahiplik (M, 28.09.2026): 3B model üretimi, mağaza modeli ve arayüz tasarım�
 | A03 | Bayram ve özel günler | 2011'in gerçek tarihleri; hicri bayramlar her yıl ~11 gün kayar (C) | `MarketCalendar` | Derlenmedi (G-061) |
 | A04 | Mevsim ve hava | Deterministik; kategori talebini ve yayayı etkiler (C) | `MarketCalendar` | Derlenmedi (G-061) |
 | A05 | Maaş günleri | Ayın 1'i, 15'i ve son iş günü trafik/sepet artar; ay sonu bütçe daralır (C) | `MarketCalendar` | Derlenmedi (G-061) |
-| A06 | Enflasyon | Yıllık TÜFE yaklaşığı; 2025 sonrası kurgu senaryo (C) | `MarketSuppliers` | Sırada |
-| A07 | Asgari ücret | Tarihsel net yaklaşığı; ücret beklentisi bunu izler (C) | `MarketSuppliers`, `MarketStaff` | Sırada |
+| A06 | Enflasyon | Yıllık TÜFE yaklaşığı; 2025 sonrası kurgu senaryo (C) | Derlenmedi (G-063) |
+| A07 | Asgari ücret | Tarihsel net yaklaşığı; ücret beklentisi bunu izler (C) | Derlenmedi (G-063) |
 | A08 | Yer | Lüleburgaz esinli kurgu semtler (İstasyon başlangıç). Sonra Trakya, Türkiye, Bulgaristan pilotu (C) | `MarketBranches` | Tasarım |
 | A09 | Stratejik ilerletme | Görevler devredildiyse gün/hafta/ay oynamadan simüle edilir; aynı kurallar (C; plan 01 §3) | `MarketDirector` | Tasarım |
 | A10 | Zorluk | Ekonomi, rakip saldırganlığı, olay yoğunluğu ayrı ayar (plan) | `MarketDirector` | Tasarım |
@@ -55,9 +55,9 @@ Sahiplik (M, 28.09.2026): 3B model üretimi, mağaza modeli ve arayüz tasarım�
 |---|---|---|---|---|
 | D01 | Sipariş ve mal kabul | Çok ürünlü liste, ertesi sabah arka kapı, eksik/hasar (Codex G-052) | `MarketEconomy`, `MarketDelivery` | Uygulandı |
 | D02 | Sipariş önerisi | Dünkü talep × 1,25; 50 TL asgari (G-058) | `MarketOrderAdvice` | Uygulandı |
-| D03 | Tedarikçiler | Trakya Gıda (Selim), Özdemir Toptan (kurgu, ucuz/riskli), üretici doğrudan, kendi depo (C) | `MarketSuppliers` | Sırada |
-| D04 | Vade ve iskonto | Düzenli ödemeyle vade; hacimle iskonto (C) | `MarketSuppliers` | Sırada |
-| D05 | Zam duyurusu | Ayın 1'i liste fiyatı güncellenir, oyuncuya zam listesi gelir (C) | `MarketSuppliers` | Sırada |
+| D03 | Tedarikçiler | Trakya Gıda (Selim), Özdemir Toptan (kurgu, ucuz/riskli), üretici doğrudan, kendi depo (C) | Derlenmedi (G-063) |
+| D04 | Vade ve iskonto | Düzenli ödemeyle vade; hacimle iskonto (C) | Derlenmedi (G-063) |
+| D05 | Zam duyurusu | Ayın 1'i liste fiyatı güncellenir, oyuncuya zam listesi gelir (C) | Derlenmedi (G-063) |
 | D06 | Oyuncu kampanyaları | Reyon indirimi, 3 al 2 öde, broşür, gondol başı, tedarikçi destekli (C; plan) | `MarketPromotions` | Sırada |
 | D07 | Özel marka | Ulusal aşamada "Miras" markası; üretici sözleşmesi, kalite riski (plan) | `MarketCompany` | Tasarım |
 | D08 | Tazelik ve fire | Parti + son kullanma, FEFO, son gün indirimi, fire nedeni raporda (plan) | `MarketFreshness` | Sırada |

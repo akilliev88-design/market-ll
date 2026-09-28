@@ -361,6 +361,9 @@ public:
     void ToggleMenuTheme();
     void LoadMenuSettings();
     void LoadCatalog();
+    // The catalog's 2011 costs and list prices; Products carries today's (MarketDirector::ApplyPrices).
+    TArray<FMarketProduct> CatalogBase;
+    void RefreshPrices();
     void ApplyCapacities();
     int32 FillAllShelves();
     UMaterialInterface* Surface(EMarketSurface Kind);

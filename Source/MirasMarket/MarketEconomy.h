@@ -135,6 +135,28 @@ struct FMarketEmployee
     UPROPERTY() TArray<int64> RecentTill;  // cashiers: till difference of the last worked days, newest last (max 7)
 };
 
+// One wholesaler relationship (MarketSuppliers.h). Older saves start with no accounts (created on first use).
+USTRUCT()
+struct FMarketSupplierAccount
+{
+    GENERATED_BODY()
+    UPROPERTY() uint8 Supplier = 0;     // MarketSuppliers::ESupplier
+    UPROPERTY() int32 Trust = 40;       // 0..100: payment terms and support grow with it
+    UPROPERTY() int64 Volume30 = 0;     // purchases of about the last 30 days (decays by 1/30 a day), kurus
+    UPROPERTY() int32 OnTime = 0;
+    UPROPERTY() int32 Late = 0;
+};
+
+// A bill bought on payment terms, due at the close of DueDay.
+USTRUCT()
+struct FMarketPayable
+{
+    GENERATED_BODY()
+    UPROPERTY() uint8 Supplier = 0;
+    UPROPERTY() int64 Amount = 0;
+    UPROPERTY() int32 DueDay = 0;
+};
+
 // The accountant's books for the running tax period (one week) and the declared tax (MarketStaff.h).
 USTRUCT()
 struct FMarketBooks
@@ -233,6 +255,14 @@ struct FMarketState
     UPROPERTY() int64 LastTaxPaid = 0;
     UPROPERTY() int64 LastPenalty = 0;
     UPROPERTY() TArray<FString> StaffNews;
+    // Wholesale (MarketSuppliers.h): the chosen wholesaler, relationships, bills on terms and the list-price level
+    // the shelf prices were last raised to (the "zam" the player has passed on).
+    UPROPERTY() uint8 Supplier = 0;
+    UPROPERTY() TArray<FMarketSupplierAccount> SupplierAccounts;
+    UPROPERTY() TArray<FMarketPayable> Payables;
+    UPROPERTY() double ShelfPriceLevel = 1.0;
+    // Evening report lines of the background systems (MarketDirector clears it at every day close).
+    UPROPERTY() TArray<FString> DayNews;
 
     // Wages of everyone on the payroll (paid days off included). Staff empty = the v0.1 flags (older saves, tests).
     int64 DailyPayroll() const;

@@ -1,5 +1,6 @@
 #include "MarketStaff.h"
 #include "StaffPlanner.h"
+#include "MarketPrices.h"
 
 // Internal rules (not in the header). Inside namespace MarketStaff so the MarketStaff:: definitions below find them
 // without a using-directive (the module is a unity build).
@@ -67,7 +68,7 @@ namespace MarketStaff
         // Most people are honest; about one in eight is not (never visible, see the accountant).
         const int32 Trust = static_cast<int32>((B >> 8) % 100u);
         C.Honesty = Trust < 12 ? 15 + Trust : 55 + Trust % 45;
-        C.DailyWage = Round50(MarketStaff::FairWage(Role, C.Skill) * (0.90 + ((B >> 16) % 26u) / 100.0));
+        C.DailyWage = Round50(MarketStaff::FairWage(Role, C.Skill, State.Day) * (0.90 + ((B >> 16) % 26u) / 100.0));
         C.Morale = 70.f;
         return C;
     }
@@ -143,11 +144,11 @@ MarketStaff::ERole MarketStaff::RoleOf(const FMarketEmployee& Employee)
     return static_cast<ERole>(FMath::Min<uint8>(Employee.Role, 3));
 }
 
-int64 MarketStaff::FairWage(ERole Role, int32 Skill)
+int64 MarketStaff::FairWage(ERole Role, int32 Skill, int32 GameDay)
 {
     if (Role == ERole::Accountant) return AccountantDailyFee;
     const double Base = Role == ERole::HrManager ? 3500.0 : 2000.0;
-    return Round50(Base * (0.8 + 0.5 * FMath::Clamp(Skill, 0, 100) / 100.0));
+    return Round50(Base * (0.8 + 0.5 * FMath::Clamp(Skill, 0, 100) / 100.0) * MarketPrices::WageIndex(GameDay));
 }
 
 bool MarketStaff::OnDuty(const FMarketState& State, const FMarketEmployee& Employee)
@@ -469,7 +470,7 @@ void MarketStaff::CloseDay(FMarketState& State)
     {
         const ERole Role = RoleOf(E);
         if (Role == ERole::Accountant) continue;
-        const float WageRatio = static_cast<float>(E.DailyWage) / static_cast<float>(FMath::Max<int64>(1, FairWage(Role, E.Skill)));
+        const float WageRatio = static_cast<float>(E.DailyWage) / static_cast<float>(FMath::Max<int64>(1, FairWage(Role, E.Skill, State.Day)));
         const float Target = 60.f + (WageRatio - 1.f) * 100.f - FMath::Max(0.f, E.Fatigue - 50.f) * 0.6f + (bHr ? 5.f : 0.f);
         E.Morale = FMath::Clamp(E.Morale + (Target - E.Morale) * 0.2f, 0.f, 100.f);
     }
@@ -531,7 +532,7 @@ void MarketStaff::CloseDay(FMarketState& State)
         if (E.LeaveDay == 0 && E.LowMoraleDays >= 3)
         {
             E.LeaveDay = State.Day + NoticeDays - 1;
-            const float WageRatio = static_cast<float>(E.DailyWage) / static_cast<float>(FMath::Max<int64>(1, FairWage(Role, E.Skill)));
+            const float WageRatio = static_cast<float>(E.DailyWage) / static_cast<float>(FMath::Max<int64>(1, FairWage(Role, E.Skill, State.Day)));
             const TCHAR* Why = WageRatio < 0.95f ? TEXT("\u00fccretini d\u00fc\u015f\u00fck buluyor") : E.Fatigue >= 60.f ? TEXT("\u00e7ok yoruldu") : TEXT("i\u015finden mutsuz");
             News.Add(FString::Printf(TEXT("%s istifa dilek\u00e7esi verdi: %s. %d. g\u00fcn\u00fcn sonunda ayr\u0131lacak. Zam veya izin fikrini de\u011fi\u015ftirebilir."), *E.Name, Why, E.LeaveDay));
             if (bHr) News.Add(FString::Printf(TEXT("\u0130K: %s i\u00e7in %%10 zam \u00f6nerisi (yeni \u00fccret %s)."), *E.Name, *Tl(Round50(E.DailyWage * 1.10))));

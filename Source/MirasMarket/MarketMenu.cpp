@@ -131,6 +131,7 @@ void AMarketGameMode::StaffCommand(FName Action, int32 Id)
         bChanged = true;
         Text = State.bHrAutoReplace ? TEXT("\u0130K ayr\u0131lan\u0131n yerine uygun aday\u0131 kendisi alacak.") : TEXT("\u0130K ayr\u0131lan\u0131n yerine kimseyi almayacak; adaylar\u0131 sen se\u00e7ersin.");
     }
-    if (bChanged) SyncWorkers(); // a day off, a hire or a firing changes who walks in the store
+    else bChanged = MarketDirector::Command(State, Products, Action, Id, Text); // wholesaler, prices, ...
+    if (bChanged) { SyncWorkers(); RefreshPrices(); RefreshLabels(); } // people, supplier discount, shelf prices
     if (!Text.IsEmpty()) Notify(Text);
 }
