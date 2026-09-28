@@ -10,9 +10,9 @@ double MarketDemand::PriceRatio(int64 OurPrice, int64 TheirPrice)
     return static_cast<double>(FMath::Max<int64>(1, OurPrice)) / static_cast<double>(FMath::Max<int64>(1, TheirPrice));
 }
 
-double MarketDemand::BuyChance(double Ratio, float MarketShare)
+double MarketDemand::BuyChance(double Ratio, float MarketShare, double PriceTolerance)
 {
-    const double Half = HalfBuyRatio + FMath::Clamp(MarketShare, 0.f, 100.f) * ShareBonusPerPercent;
+    const double Half = HalfBuyRatio + FMath::Clamp(MarketShare, 0.f, 100.f) * ShareBonusPerPercent + PriceTolerance;
     return 1.0 / (1.0 + FMath::Exp((Ratio - Half) / Steepness));
 }
 
@@ -39,7 +39,7 @@ int32 MarketDemand::PickWanted(const FMarketState& State, float RollPool, float 
 }
 
 MarketDemand::FVisit MarketDemand::Decide(const FMarketState& State, const TArray<FMarketProduct>& Products, int32 Wanted, int32 Available,
-    float RivalDiscount, int32 WantedQuantity, float RollPrice, float MarketShareOverride)
+    float RivalDiscount, int32 WantedQuantity, float RollPrice, float MarketShareOverride, double PriceTolerance)
 {
     FVisit Visit;
     Visit.Product = Wanted;
@@ -55,12 +55,12 @@ MarketDemand::FVisit MarketDemand::Decide(const FMarketState& State, const TArra
     }
     const double Ratio = PriceRatio(State.Stock[Wanted].Price, RivalPrice(Products[Wanted], RivalDiscount));
     const float Share = MarketShareOverride >= 0.f ? MarketShareOverride : State.MarketShare;
-    if (RollPrice >= BuyChance(Ratio, Share))
+    if (RollPrice >= BuyChance(Ratio, Share, PriceTolerance))
     {
         Visit.Result = EVisit::Expensive;
         return Visit;
     }
-    int32 Quantity = FMath::Clamp(WantedQuantity, 1, 4);
+    int32 Quantity = FMath::Clamp(WantedQuantity, 1, 8); // traders buy by the half case (MarketCustomers)
     if (Ratio <= 0.92) ++Quantity;                          // a clear bargain: one more
     else if (Ratio > 1.10) Quantity = FMath::Min(Quantity, 2); // pricey: only what is needed
     Visit.Result = EVisit::Buy;

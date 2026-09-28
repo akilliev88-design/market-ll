@@ -40,11 +40,11 @@ Sahiplik (M, 28.09.2026): 3B model üretimi, mağaza modeli ve arayüz tasarım�
 | No | Konu | Karar | Modül | Durum |
 |---|---|---|---|---|
 | C01 | Alışveriş listesi | 1–4 ürün, ikame, boş sepetle çıkış (Codex G-053) | `MarketBasket` | Uygulandı |
-| C02 | Segmentler | Emekli, ev, çalışan, öğrenci, esnaf, çocuk; semtle değişen pay (C) | `MarketCustomers` | Sırada |
-| C03 | Fiyat kararı | Rakip reyon fiyatı + sadakat (G-051/054); segment duyarlılığı eklenecek | `MarketDemand` | Kısmen |
+| C02 | Segmentler | Emekli, ev, çalışan, öğrenci, esnaf, çocuk; semtle değişen pay (C) | Derlenmedi (G-062) |
+| C03 | Fiyat kararı | Rakip reyon fiyatı + sadakat (G-051/054); segment duyarlılığı eklenecek | Derlenmedi (G-062) |
 | C04 | Sadakat | 24 kişilik mahalle havuzu (G-053); veresiye ve sadakat kartı ile genişler | `MarketBasket`, `MarketCredit` | Kısmen |
 | C05 | Veresiye | Tanınan müşteriye limitli; maaş gününde tahsilat, az sayıda batık (C; plan) | `MarketCredit` | Sırada |
-| C06 | Bekleme ve kalabalık | 90 sn sabır, 9 kişi sınırı (mevcut); segmente göre sabır (C) | `MarketCustomers` | Kısmen |
+| C06 | Bekleme ve kalabalık | 90 sn sabır, 9 kişi sınırı (mevcut); segmente göre sabır (C) | Derlenmedi (G-062) |
 | C07 | İade ve şikâyet | Bozuk/yanlış ürün iadesi; iade kabulü memnuniyet, reddi itibar kaybı (plan 01 §11) | `MarketEvents` | Tasarım |
 | C08 | Ödeme yöntemleri | Nakit, kredi kartı (POS komisyonu %1,5–2, ertesi gün hesaba), yemek kartı (2013 sonrası yaygın, komisyon yüksek). Kart kabulü bazı segmentlerin sepetini büyütür (C; plan 01 §11) | `MarketPayments` | Tasarım |
 | C09 | Sadakat kartı / uygulama | İlçe zinciri aşamasında; puan maliyeti karşılığında tekrar ziyaret (plan) | `MarketPromotions` | Tasarım |

@@ -1061,8 +1061,17 @@ void AMarketGameMode::SpawnCustomer()
 {
     if (Customers.Num() >= 9) { MarketDemand::RecordWaitingLoss(State); return; } // too crowded: turns away at the door
     FMarketCustomer C;
-    C.CustomerId = MarketBasket::ChooseCustomer(State, Random.FRand(), Random.FRand(), C.bReturning);
-    C.ShoppingList = MarketBasket::BuildList(State, Random.RandRange(MarketBasket::MinListSize, MarketBasket::MaxListSize), Random);
+    // Who comes depends on the hour: retirees in the morning, children after school, workers in the evening.
+    const float Progress = FMath::Clamp(DayTime / 240.f, 0.f, 1.f);
+    for (int32 Try = 0; Try < 3; ++Try)
+    {
+        C.CustomerId = MarketBasket::ChooseCustomer(State, Random.FRand(), Random.FRand(), C.bReturning);
+        C.Segment = static_cast<uint8>(MarketCustomers::SegmentOf(C.CustomerId, State.RivalSeed));
+        if (MarketCustomers::ComesNow(static_cast<MarketCustomers::ESegment>(C.Segment), Progress, State.Day, Random.FRand())) break;
+    }
+    const MarketCustomers::ESegment Segment = static_cast<MarketCustomers::ESegment>(C.Segment);
+    C.BudgetLeft = MarketCustomers::VisitBudget(Segment, State.Day);
+    C.ShoppingList = MarketCustomers::BuildList(State, Products, Segment, Random);
     if (C.ShoppingList.Num() == 0) return;
     C.Product = C.ShoppingList[0];
     if (AActor* Human = MarketPeople::Spawn(GetWorld(), People, FVector(0, -230, 0), Random.RandRange(0, 1 << 20), C.Shopper))
@@ -1121,11 +1130,19 @@ void AMarketGameMode::ResolveCustomerItem(FMarketCustomer& Customer)
     if (!Customer.ShoppingList.IsValidIndex(Customer.ShoppingIndex)) { AdvanceCustomerList(Customer); return; }
     const int32 Wanted = Customer.ShoppingList[Customer.ShoppingIndex];
     const TArray<int32> Available = AvailableShelfUnits();
-    const int32 Quantity = Random.RandRange(1, 4);
+    const MarketCustomers::ESegment Segment = static_cast<MarketCustomers::ESegment>(Customer.Segment);
+    const int32 Quantity = MarketCustomers::Quantity(Segment, Random);
     const float PersonalShare = MarketBasket::EffectiveMarketShare(State, Customer.CustomerId);
-    const MarketDemand::FVisit Visit = MarketDemand::Decide(State, Products, Customer.Product,
+    MarketDemand::FVisit Visit = MarketDemand::Decide(State, Products, Customer.Product,
         Available.IsValidIndex(Customer.Product) ? Available[Customer.Product] : 0,
-        RivalPriceFactor(Customer.Product), Quantity, Random.FRand(), PersonalShare);
+        RivalPriceFactor(Customer.Product), Quantity, Random.FRand(), PersonalShare, MarketCustomers::Profile(Segment).PriceTolerance);
+    if (Visit.Result == MarketDemand::EVisit::Buy)
+    {
+        // The wallet: take fewer when the money runs out; nothing at all counts as "too expensive" for this shopper.
+        Visit.Quantity = MarketCustomers::Affordable(Customer.BudgetLeft, State.Stock[Visit.Product].Price, Visit.Quantity);
+        if (Visit.Quantity <= 0) Visit.Result = MarketDemand::EVisit::Expensive;
+        else Customer.BudgetLeft -= State.Stock[Visit.Product].Price * Visit.Quantity;
+    }
     if (Visit.Result == MarketDemand::EVisit::Buy)
     {
         FMarketBasketItem Item;
@@ -1210,7 +1227,8 @@ void AMarketGameMode::Tick(float DeltaTime)
     {
         auto& C = Customers[I];
         C.Age += DeltaTime;
-        if (C.Age > 90)
+        const MarketCustomers::FProfile& Profile = MarketCustomers::Profile(static_cast<MarketCustomers::ESegment>(C.Segment));
+        if (C.Age > Profile.Patience)
         {
             MarketDemand::RecordWaitingLoss(State);
             MarketBasket::RecordVisit(State, C.CustomerId, C.ShoppingList.Num(), 0, true);
@@ -1237,17 +1255,22 @@ void AMarketGameMode::Tick(float DeltaTime)
         {
             FVector Direction;
             bool bMoving = false;
-            C.Actor->SetActorLocation(MarketPeople::MoveToward(C.Shopper, From, Target, 140.f, DeltaTime, Direction, bMoving));
+            C.Actor->SetActorLocation(MarketPeople::MoveToward(C.Shopper, From, Target, Profile.WalkSpeed, DeltaTime, Direction, bMoving));
             MarketPeople::Update(C.Actor, People, C.Shopper, Direction, bMoving, MetaHumanYawOffset, DeltaTime);
         }
-        else C.Actor->SetActorLocation(FMath::VInterpConstantTo(From, Target, DeltaTime, 180.f));
+        else C.Actor->SetActorLocation(FMath::VInterpConstantTo(From, Target, DeltaTime, Profile.WalkSpeed * 1.25f));
         if (bOnRoute)
         {
             if (FVector::Dist2D(C.Actor->GetActorLocation(), Target) < 8) C.Route.RemoveAt(0);
         }
         else if (FVector::Dist2D(C.Actor->GetActorLocation(), Target) < 5)
         {
-            if (C.Stage == 0) ResolveCustomerItem(C);
+            if (C.Stage == 0)
+            {
+                // Look at the shelf first: a retiree reads the labels, a child grabs and goes.
+                C.Browse += DeltaTime;
+                if (C.Browse >= Profile.BrowseSeconds) { C.Browse = 0.f; ResolveCustomerItem(C); }
+            }
             else if (C.Stage == 1) { C.Stage = 2; C.QueueTicket = NextQueueTicket++; }
             else if (C.Stage == 3)
             {

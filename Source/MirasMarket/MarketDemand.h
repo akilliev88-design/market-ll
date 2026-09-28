@@ -31,15 +31,16 @@ namespace MarketDemand
     int64 RivalPrice(const FMarketProduct& Product, float RivalDiscount);
     double PriceRatio(int64 OurPrice, int64 TheirPrice);
     // 0..1: the share of shoppers who accept this price ratio.
-    double BuyChance(double Ratio, float MarketShare);
+    // PriceTolerance: the shopper's segment (MarketCustomers), added to the half-buy ratio.
+    double BuyChance(double Ratio, float MarketShare, double PriceTolerance = 0.0);
     // Step of the +/- price keys: about 5 % of the list price in whole 5 kurus, at least 5 kurus.
     int64 PriceStep(const FMarketProduct& Product);
     // Which product a new shopper wants. Rolls are 0..1 (FRandomStream in the game, fixed values in tests).
     // INDEX_NONE only when there are no products at all.
     int32 PickWanted(const FMarketState& State, float RollPool, float RollIndex);
-    // Available = shelf units not already in other shoppers' baskets. WantedQuantity 1..4.
+    // Available = shelf units not already in other shoppers' baskets. WantedQuantity 1..8 (segment, MarketCustomers).
     FVisit Decide(const FMarketState& State, const TArray<FMarketProduct>& Products, int32 Wanted, int32 Available,
-        float RivalDiscount, int32 WantedQuantity, float RollPrice, float MarketShareOverride = -1.f);
+        float RivalDiscount, int32 WantedQuantity, float RollPrice, float MarketShareOverride = -1.f, double PriceTolerance = 0.0);
     // Counts a shopper who did not buy (buyers are counted by FMarketState::Sell at the till).
     void RecordLoss(FMarketState& State, const FVisit& Visit);
     // Records the product reason without counting a whole lost shopper. Used by multi-item baskets;

@@ -17,6 +17,7 @@
 #include "MarketOrderAdvice.h"
 #include "MarketStaff.h"
 #include "MarketDirector.h"
+#include "MarketCustomers.h"
 #include "MarketGame.generated.h"
 
 class UTextRenderComponent;
@@ -97,6 +98,9 @@ struct FMarketCustomer
     UPROPERTY() TObjectPtr<AActor> Actor = nullptr;
     int32 CustomerId = INDEX_NONE;
     bool bReturning = false;
+    uint8 Segment = 0;        // MarketCustomers::ESegment: pace, patience, taste, budget
+    int64 BudgetLeft = 0;     // money left for this visit
+    float Browse = 0.f;       // seconds already spent looking at the current shelf
     TArray<int32> ShoppingList;
     int32 ShoppingIndex = 0;
     TArray<FMarketBasketItem> Basket;
