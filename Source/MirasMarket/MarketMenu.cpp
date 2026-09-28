@@ -2,6 +2,7 @@
 // routing the menu's buttons through the same Command() rules as the office-desk keys.
 #include "MarketGame.h"
 #include "MarketMenuWidget.h"
+#include "ProductCatalog.h"
 #include "Framework/Application/SlateApplication.h"
 #include "GameFramework/PlayerController.h"
 #include "Misc/CommandLine.h"
@@ -102,4 +103,34 @@ void AMarketGameMode::ClearOrderDraft()
 {
     OrderDraftCases.Init(0, Products.Num());
     Notify(TEXT("Sipari\u015f listesi temizlendi."));
+}
+
+void AMarketGameMode::StaffCommand(FName Action, int32 Id)
+{
+    // Personnel and tax decisions (G-060). The rules live in MarketStaff; this only routes and tells the player.
+    MarketStaff::Migrate(State);
+    FString Text;
+    bool bChanged = false;
+    if (Action == TEXT("HireCandidate"))
+        bChanged = MarketStaff::Hire(State, State.Candidates.IndexOfByPredicate([Id](const FMarketEmployee& C) { return C.Id == Id; }), Text);
+    else if (Action == TEXT("Fire")) bChanged = MarketStaff::Fire(State, Id, Text);
+    else if (Action == TEXT("Raise")) bChanged = MarketStaff::Raise(State, Id, Text);
+    else if (Action == TEXT("DayOff")) bChanged = MarketStaff::GiveDayOff(State, Id, bOpen, Text);
+    else if (Action == TEXT("Warn")) bChanged = MarketStaff::Warn(State, Id, Text);
+    else if (Action == TEXT("HireAccountant")) bChanged = MarketStaff::HireAccountant(State, Text);
+    else if (Action == TEXT("PayTax"))
+    {
+        const int64 Paid = MarketStaff::PayTax(State);
+        bChanged = Paid > 0;
+        Text = Paid > 0 ? FString::Printf(TEXT("Vergi \u00f6dendi: %s TL. Kalan %s TL."), *MarketCatalog::Money(Paid), *MarketCatalog::Money(State.Books.TaxDue))
+            : State.Books.TaxDue > 0 ? FString(TEXT("Vergi i\u00e7in kasada para yok.")) : FString(TEXT("\u00d6denecek vergi yok."));
+    }
+    else if (Action == TEXT("HrAutoReplace"))
+    {
+        State.bHrAutoReplace = !State.bHrAutoReplace;
+        bChanged = true;
+        Text = State.bHrAutoReplace ? TEXT("\u0130K ayr\u0131lan\u0131n yerine uygun aday\u0131 kendisi alacak.") : TEXT("\u0130K ayr\u0131lan\u0131n yerine kimseyi almayacak; adaylar\u0131 sen se\u00e7ersin.");
+    }
+    if (bChanged) SyncWorkers(); // a day off, a hire or a firing changes who walks in the store
+    if (!Text.IsEmpty()) Notify(Text);
 }

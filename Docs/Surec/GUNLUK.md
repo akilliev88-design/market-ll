@@ -2,6 +2,26 @@
 
 En yeni giriş en üstte. Biçim: tarih — ajan — başlık, ardından **Yapılan**, **Doğrulama**, **Sıradaki**.
 
+## 28.09.2026 — Claude (Claude Code, bulut) — Personel ve muhasebe (G-060) — DERLENMEDİ
+
+**Mustafa**: "Modellerle uğraşmayacağız; arka planda dönen kurguyu kur: mali müşavir, İK müdürü, kasiyer, reyon görevlisi nasıl davranacak."
+
+**Yapılan**
+- `MarketStaff.h/.cpp` (dünyadan bağımsız): çalışanlar artık kişi (ad, ücret, beceri, hız, dayanıklılık, gizli dürüstlük, moral, yorgunluk). Aday havuzu: her zaman bir kasiyer ve bir görevli adayı; İK yokken 3 aday/haftalık, İK varken 6 aday/3 günde bir ve gerçek değerler + referans notu.
+- Kasiyer: sepet süresi kişiye ve sepet büyüklüğüne bağlı (sabit 4 sn kalktı). Beceri ve yorgunluğa göre küçük kasa farkları. Dürüst olmayan kasiyer (~1/8, görünmez) bazı günler küçük eksik yapar, uyarılınca azalır.
+- Reyon görevlisi: yürüme ve dizme hızı kişiye bağlı, taşıdığı adet beceriye bağlı (12–24). Becerisi 45'in altındaki acemi yalnızca raf doldurur. Dizdiği adet yorgunluğa eklenir.
+- Moral/yorgunluk/istifa: moral ücrete, yorgunluğa ve İK ilgisine göre değişir. Üç gün moral 30'un altında kalan istifa dilekçesi verir ve iki gün sonra ayrılır; zam veya izin fikrini değiştirebilir. Çalışan işte öğrenir, zamanla zam bekler.
+- İK müdürü (3 çalışandan sonra): her gün en mutsuz kişiyle konuşur, yorguna (yerine bakan varsa) izin verir, ayrılanın yerine aday alır, %8 ücret pazarlığı yapar.
+- Mali müşavir Necati Bey (4 TL/gün): haftalık vergiyi (KDV %8 × (satış − alış) + gelir vergisi %15) %10 daha az çıkarır, zamanında öder, inceleme gelmez; kasa eksiği desenini bildirir, nakit uyarısı verir. Müşavir yoksa oyuncu 3 gün içinde öder, gecikmeye %5 + günlük %1 ceza işler, haftaların ~1/6'sında inceleme cezası gelir.
+- Oyuna bağlantı: H/J/K havuzdaki en iyi adayla çalışır; kasiyer hızı; gün sonunda `MarketStaff::CloseDay`; eski kayıtlar `Migrate` ile kişilere dönüşür (aynı ücret); menü Personel sayfası yeniden yazıldı (çalışanlar + Zam/İzin/Uyar/Çıkar, adaylar + İşe al, müşavir, vergi, İK); gün raporunda "PERSONEL VE VERGİ".
+- `Docs/PERSONEL_VE_MUHASEBE.md` tasarım ve sayılar; `AGENTS.md` haritası, `Docs/MENU.md`; `Test.ps1` en az 27 test.
+
+**Varsayımlar (Mustafa onaylamalı)**: vergi dönemi 1 hafta; oranlar oyun içi basitleştirme; müşavir baştan seçilebilir dış hizmet; İK 3 çalışandan sonra; en fazla 2 kasiyer; hırsızlık yalnızca küçük kasa eksiği olarak var ve asla tek günde kanıtlanmaz.
+
+**Doğrulama**: Bu oturum Linux bulut ortamında; Unreal yok, **derlenmedi**. Saf mantık (`MarketEconomy`, `MarketStaff`, `MarketStaffTests`, `MarketCampaign`, `MarketRivals` ve testleri) küçük bir Unreal taklidiyle g++ `-Wall -Wextra` ile uyarısız derlendi. `Staff.PeopleAndMorale`, `Staff.TaxAndAccountant`, `Staff.TillAndHr`, `Campaign.DebtAndWeek`, `Rivals.News` geçti. Rastgeleye bağlı test beklentileri FRandomStream taklidiyle ayrıca doğrulandı. Slate (`StaffPage`) ve dünya kodu derlenmedi. `escape_unicode --check` temiz.
+
+**Sıradaki**: Codex: `DERLE.cmd /q`, `TEST.cmd /q` (27), `SmokeTest.ps1`. Mustafa: M → Personel'i dene. G-055'te vergi ve ücret dengesine bak (vergi borç ödemeyi yavaşlatır).
+
 ## 29.09.2026 — Codex — G-054/G-059 doğrulaması ve GitHub hazırlığı
 
 **Yapılan**

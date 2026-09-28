@@ -107,6 +107,52 @@ struct FMarketDayRecord
     UPROPERTY() int64 Cash = 0;
 };
 
+// One person on the payroll or in the hiring pool (MarketStaff.h). Skill/Speed/Stamina are learned by the player
+// only through the HR manager; Honesty is never shown. Older saves have no employees and are migrated from the
+// bCashier/Stockers flags (MarketStaff::Migrate).
+USTRUCT()
+struct FMarketEmployee
+{
+    GENERATED_BODY()
+    UPROPERTY() int32 Id = 0;
+    UPROPERTY() FString Name;
+    UPROPERTY() uint8 Role = 0;            // MarketStaff::ERole
+    UPROPERTY() int32 Skill = 50;          // 0..100: fewer till errors, faster checkout, may re-plan shelves
+    UPROPERTY() int32 Speed = 50;          // 0..100: walking and hand speed
+    UPROPERTY() int32 Stamina = 50;        // 0..100: how fast fatigue builds up
+    UPROPERTY() int32 Honesty = 70;        // 0..100, hidden: low values can mean small till shortages
+    UPROPERTY() int64 DailyWage = 2000;    // kurus per day
+    UPROPERTY() float Morale = 70.f;       // 0..100
+    UPROPERTY() float Fatigue = 0.f;       // 0..100
+    UPROPERTY() int32 HiredDay = 0;
+    UPROPERTY() int32 DaysWorked = 0;
+    UPROPERTY() int32 OffDay = 0;          // day number the employee has off (0 = none)
+    UPROPERTY() int32 LowMoraleDays = 0;
+    UPROPERTY() int32 LeaveDay = 0;        // gave notice: leaves at the close of this day (0 = staying)
+    UPROPERTY() int32 WarnedDay = 0;       // last warning about the till
+    UPROPERTY() int32 FlaggedWeek = 0;     // accountant already reported this person's till in this week
+    UPROPERTY() int32 WorkToday = 0;       // units shelved today (stockers; the world reports them)
+    UPROPERTY() TArray<int64> RecentTill;  // cashiers: till difference of the last worked days, newest last (max 7)
+};
+
+// The accountant's books for the running tax period (one week) and the declared tax (MarketStaff.h).
+USTRUCT()
+struct FMarketBooks
+{
+    GENERATED_BODY()
+    UPROPERTY() int64 PeriodSales = 0;
+    UPROPERTY() int64 PeriodPurchases = 0;
+    UPROPERTY() int64 PeriodProfit = 0;
+    UPROPERTY() int64 VatCarry = 0;        // input VAT larger than output VAT carried into the next period
+    UPROPERTY() int64 TaxDue = 0;          // declared and unpaid (penalties included)
+    UPROPERTY() int64 TaxDeclared = 0;     // the last declaration without penalties (late penalty base)
+    UPROPERTY() int32 TaxDueDay = 0;       // must be paid by the close of this day
+    UPROPERTY() int64 PenaltyThisTax = 0;  // late penalty already added to the last declaration
+    UPROPERTY() int64 TotalTaxPaid = 0;
+    UPROPERTY() int64 TotalPenalties = 0;
+    UPROPERTY() int32 Audits = 0;
+};
+
 // Money uses integer kurus. Inventory is removed only when a checkout succeeds.
 USTRUCT()
 struct FMarketState
@@ -171,6 +217,25 @@ struct FMarketState
     // Every closed day, oldest first (MarketCampaign::CloseDay). Kept for ten game years at most.
     UPROPERTY() TArray<FMarketDayRecord> History;
     UPROPERTY() TArray<FMarketLoyalty> Loyalty;
+    // People (MarketStaff.h). bCashier/Stockers above are kept in step with the roster by MarketStaff::SyncCounts:
+    // they say who is ON DUTY today, which is what the world (till, walking workers) needs.
+    UPROPERTY() TArray<FMarketEmployee> Staff;
+    UPROPERTY() TArray<FMarketEmployee> Candidates;
+    UPROPERTY() int32 NextEmployeeId = 1;
+    UPROPERTY() int32 CandidatesDay = 0;    // day the hiring pool was last refreshed (0 = never)
+    UPROPERTY() bool bHrAutoReplace = true; // HR manager hires a replacement when someone leaves
+    UPROPERTY() FMarketBooks Books;
+    // Goods bought from the wholesaler today / on the last closed day (the accountant's input VAT).
+    UPROPERTY() int64 Purchases = 0;
+    UPROPERTY() int64 LastPurchases = 0;
+    // What the staff and the books did at the last day close (day report).
+    UPROPERTY() int64 LastTillDifference = 0;
+    UPROPERTY() int64 LastTaxPaid = 0;
+    UPROPERTY() int64 LastPenalty = 0;
+    UPROPERTY() TArray<FString> StaffNews;
+
+    // Wages of everyone on the payroll (paid days off included). Staff empty = the v0.1 flags (older saves, tests).
+    int64 DailyPayroll() const;
 
     void Initialize(const TArray<FMarketProduct>& Products);
     bool Order(int32 Index, const TArray<FMarketProduct>& Products);

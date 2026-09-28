@@ -4,6 +4,7 @@
 #include "MarketGame.h"
 #include "ProductCatalog.h"
 #include "StaffPlanner.h"
+#include "MarketStaff.h"
 #include "Camera/PlayerCameraManager.h"
 #include "Components/TextRenderComponent.h"
 #include "Engine/World.h"
@@ -16,6 +17,29 @@ namespace
     constexpr float WorkerUnitSeconds = 0.3f; // one unit onto the shelf
     constexpr float WorkerThinkSeconds = 1.2f;
     constexpr float BoxPersonLift = 65.f;     // box people are centred, MetaHumans stand on their feet
+
+    // The person behind a walking worker (MarketStaff). Older saves without a roster: nullptr = v0.1 worker.
+    const FMarketEmployee* WorkerPerson(const FMarketState& State, const FMarketWorker& Worker)
+    {
+        return State.Staff.FindByPredicate([&Worker](const FMarketEmployee& E) { return E.Id == Worker.EmployeeId; });
+    }
+    // Speed and fatigue: faster walking and hands for a quick, rested worker.
+    float WorkerPace(const FMarketState& State, const FMarketWorker& Worker)
+    {
+        const FMarketEmployee* E = WorkerPerson(State, Worker);
+        return E ? MarketStaff::WorkSpeed(*E) : 1.f;
+    }
+    int32 WorkerCarryLimit(const FMarketState& State, const FMarketWorker& Worker)
+    {
+        const FMarketEmployee* E = WorkerPerson(State, Worker);
+        return E ? MarketStaff::CarryUnits(*E) : StaffPlanner::CarryUnits;
+    }
+    // Only experienced workers put new blocks on the shelves or widen them; beginners refill.
+    bool WorkerMayPlan(const FMarketState& State, const FMarketWorker& Worker)
+    {
+        const FMarketEmployee* E = WorkerPerson(State, Worker);
+        return !E || MarketStaff::MayEditPlan(*E);
+    }
 }
 
 FVector AMarketGameMode::DepotSpot() const { return FVector(-385.f, StoreBack() - 165.f, 0.f); }
@@ -68,7 +92,15 @@ bool AMarketGameMode::CommitPlan(FString& OutError)
 void AMarketGameMode::SyncWorkers()
 {
     const int32 Wanted = FMath::Clamp(State.Stockers, 0, FMarketState::MaxStockers);
-    while (Workers.Num() > Wanted)
+    // Worker I walks for the I-th stocker on duty. When that person changed (day off, left, fired) the workers
+    // from there on are sent home and spawned again with the right names.
+    int32 Keep = FMath::Min(Workers.Num(), Wanted);
+    for (int32 I = 0; I < Keep; ++I)
+    {
+        const FMarketEmployee* OnDuty = MarketStaff::OnDutyAt(State, MarketStaff::ERole::Stocker, I);
+        if (OnDuty && OnDuty->Id != Workers[I].EmployeeId) { Keep = I; break; }
+    }
+    while (Workers.Num() > Keep)
     {
         FMarketWorker& Leaving = Workers.Last();
         if (Leaving.Carton) Leaving.Carton->Destroy();
@@ -80,7 +112,9 @@ void AMarketGameMode::SyncWorkers()
     {
         const int32 Index = Workers.Num();
         FMarketWorker Worker;
-        Worker.Name = StaffPlanner::WorkerName(Index);
+        const FMarketEmployee* OnDuty = MarketStaff::OnDutyAt(State, MarketStaff::ERole::Stocker, Index);
+        Worker.Name = OnDuty ? OnDuty->Name : StaffPlanner::WorkerName(Index);
+        Worker.EmployeeId = OnDuty ? OnDuty->Id : INDEX_NONE;
         const FVector Spot = WorkerRestSpot(Index);
         if (AActor* Human = MarketPeople::Spawn(GetWorld(), People, Spot, 7001 + Index * 97, Worker.Shopper))
         {
@@ -123,13 +157,13 @@ bool AMarketGameMode::WorkerWalk(FMarketWorker& Worker, float DeltaTime)
         if (Worker.bHuman)
         {
             bool bActuallyMoving = false;
-            Worker.Actor->SetActorLocation(MarketPeople::MoveToward(Worker.Shopper, Here, Next, WorkerWalkSpeed,
+            Worker.Actor->SetActorLocation(MarketPeople::MoveToward(Worker.Shopper, Here, Next, WorkerWalkSpeed * WorkerPace(State, Worker),
                 DeltaTime, Worker.Facing, bActuallyMoving) + Lift);
         }
         else
         {
             Worker.Facing = (Next - Here).GetSafeNormal2D();
-            Worker.Actor->SetActorLocation(FMath::VInterpConstantTo(Here, Next, DeltaTime, WorkerWalkSpeed) + Lift);
+            Worker.Actor->SetActorLocation(FMath::VInterpConstantTo(Here, Next, DeltaTime, WorkerWalkSpeed * WorkerPace(State, Worker)) + Lift);
         }
     }
     if (Worker.bHuman) MarketPeople::Update(Worker.Actor, People, Worker.Shopper, Worker.Facing, bMoving, MetaHumanYawOffset, DeltaTime);
@@ -173,8 +207,8 @@ void AMarketGameMode::WorkerThink(int32 WorkerIndex)
         return;
     }
     TArray<TPair<int32, FString>> NoRoom;
-    // While the player arranges (R) the plan belongs to the player: workers only refill.
-    const StaffPlanner::FJob Job = StaffPlanner::ChooseJob(Planogram, Products, State, Busy, Unplaceable, !bArrange, &NoRoom);
+    // While the player arranges (R) the plan belongs to the player: workers only refill. Beginners only refill too.
+    const StaffPlanner::FJob Job = StaffPlanner::ChooseJob(Planogram, Products, State, Busy, Unplaceable, !bArrange && WorkerMayPlan(State, Worker), &NoRoom);
     for (const TPair<int32, FString>& Item : NoRoom)
     {
         Unplaceable.Add(Item.Key);
@@ -199,8 +233,9 @@ void AMarketGameMode::WorkerLoaded(FMarketWorker& Worker)
     const int32 P = Worker.Job.Product;
     if (!State.Stock.IsValidIndex(P) || !Products.IsValidIndex(P)) { WorkerFinish(Worker); return; }
     const FMarketStock& Stock = State.Stock[P];
-    const int32 Room = Worker.Job.Kind == StaffPlanner::EJob::Refill ? Stock.Capacity - Stock.Shelf : StaffPlanner::CarryUnits;
-    Worker.Carry = FMath::Clamp(FMath::Min(Room, Stock.Warehouse), 0, StaffPlanner::CarryUnits);
+    const int32 Limit = WorkerCarryLimit(State, Worker);
+    const int32 Room = Worker.Job.Kind == StaffPlanner::EJob::Refill ? Stock.Capacity - Stock.Shelf : Limit;
+    Worker.Carry = FMath::Clamp(FMath::Min(Room, Stock.Warehouse), 0, Limit);
     if (Worker.Carry <= 0 && Worker.Job.Kind == StaffPlanner::EJob::Refill) { WorkerFinish(Worker); return; }
     FVector Goal;
     if (Worker.Job.Kind == StaffPlanner::EJob::Refill)
@@ -268,7 +303,7 @@ void AMarketGameMode::WorkerAtShelf(FMarketWorker& Worker)
             Worker.Actor->SetActorRotation(FRotator(0.f, Worker.Facing.Rotation().Yaw - 90.f - Worker.Shopper.MeshYaw + MetaHumanYawOffset, 0.f));
     }
     Worker.Stage = EWorkerStage::Working;
-    Worker.Timer = WorkerUnitSeconds;
+    Worker.Timer = WorkerUnitSeconds / WorkerPace(State, Worker);
 }
 
 void AMarketGameMode::TickWorkers(float DeltaTime)
@@ -288,7 +323,7 @@ void AMarketGameMode::TickWorkers(float DeltaTime)
             if (Worker.Timer <= 0.f) { Worker.Timer = WorkerThinkSeconds; WorkerThink(Index); }
             break;
         case EWorkerStage::ToDepot:
-            if (bAtGoal) { Worker.Stage = EWorkerStage::Loading; Worker.Timer = WorkerLoadSeconds; }
+            if (bAtGoal) { Worker.Stage = EWorkerStage::Loading; Worker.Timer = WorkerLoadSeconds / WorkerPace(State, Worker); }
             break;
         case EWorkerStage::Loading:
             Worker.Timer -= DeltaTime;
@@ -300,14 +335,15 @@ void AMarketGameMode::TickWorkers(float DeltaTime)
         case EWorkerStage::Working:
             Worker.Timer -= DeltaTime;
             if (Worker.Timer > 0.f) break;
-            Worker.Timer = WorkerUnitSeconds;
+            Worker.Timer = WorkerUnitSeconds / WorkerPace(State, Worker);
             if (Worker.Carry <= 0 || State.Restock(Worker.Job.Product, 1) == 0) { WorkerFinish(Worker); break; }
             --Worker.Carry;
+            MarketStaff::RecordWork(State, Worker.EmployeeId, 1); // fatigue at the day close
             RefreshShelfItems();
             if (Worker.Carry <= 0) WorkerFinish(Worker);
             break;
         case EWorkerStage::ToDelivery:
-            if (bAtGoal) { Worker.Stage = EWorkerStage::DeliveryLoading; Worker.Timer = WorkerLoadSeconds; }
+            if (bAtGoal) { Worker.Stage = EWorkerStage::DeliveryLoading; Worker.Timer = WorkerLoadSeconds / WorkerPace(State, Worker); }
             break;
         case EWorkerStage::DeliveryLoading:
             Worker.Timer -= DeltaTime;
@@ -321,7 +357,7 @@ void AMarketGameMode::TickWorkers(float DeltaTime)
             }
             break;
         case EWorkerStage::DeliveryToDepot:
-            if (bAtGoal) { Worker.Stage = EWorkerStage::DeliveryUnloading; Worker.Timer = WorkerLoadSeconds; }
+            if (bAtGoal) { Worker.Stage = EWorkerStage::DeliveryUnloading; Worker.Timer = WorkerLoadSeconds / WorkerPace(State, Worker); }
             break;
         case EWorkerStage::DeliveryUnloading:
             Worker.Timer -= DeltaTime;

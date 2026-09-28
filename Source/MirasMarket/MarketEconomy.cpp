@@ -40,6 +40,7 @@ bool FMarketState::SubmitOrder(const TArray<int32>& Cases, const TArray<FMarketP
     }
     if (TotalUnits <= 0 || Cash < Bill) return false;
     Cash -= Bill;
+    Purchases += Bill;
     for (int32 I = 0; I < Products.Num(); ++I)
         Stock[I].Incoming += Cases[I] * FMath::Clamp(Products[I].CaseUnits, 1, 48);
     if (OutBill) *OutBill = Bill;
@@ -114,9 +115,17 @@ bool FMarketState::SellBasket(const TArray<FMarketSaleLine>& Lines, const TArray
     return true;
 }
 
+int64 FMarketState::DailyPayroll() const
+{
+    if (Staff.Num() == 0) return (bCashier ? 2000 : 0) + FMath::Clamp(Stockers, 0, MaxStockers) * StockerDailyWage;
+    int64 Total = 0;
+    for (const FMarketEmployee& Employee : Staff) Total += FMath::Max<int64>(0, Employee.DailyWage);
+    return Total;
+}
+
 void FMarketState::CloseDay()
 {
-    LastOperatingCost = 2200 + (bCashier ? 2000 : 0) + FMath::Clamp(Stockers, 0, MaxStockers) * StockerDailyWage;
+    LastOperatingCost = 2200 + DailyPayroll();
     // The second branch is an explicit aggregate prototype: net daily contribution.
     LastBranchProfit = bSecondStore ? FMath::RoundToInt64(800 + MarketShare * 35) : 0;
     LastRevenue = Revenue;
@@ -150,6 +159,8 @@ void FMarketState::CloseDay()
         Item.Yesterday = Item.Today;
         Item.Today = FMarketDemandStats();
     }
+    LastPurchases = Purchases;
+    Purchases = 0;
     ++Day;
     Revenue = CostOfGoods = 0;
     Served = Lost = LostWaiting = 0;
@@ -211,6 +222,16 @@ bool FMarketState::IsStructurallyValid() const
         if (bDuplicate || Item.Id.IsEmpty() || Item.Capacity < 0 || Item.Capacity > MaxShelfCapacity || Item.Shelf < 0 || Item.Shelf > Item.Capacity || Item.Warehouse < 0 || Item.Dock < 0 || Item.Incoming < 0 ||
             Item.Warehouse + Item.Dock + Item.Incoming > StorageCapacity || Item.Price < 10) return false;
     }
+    if (Books.TaxDue < 0 || Books.VatCarry < 0 || Purchases < 0 || NextEmployeeId < 1) return false;
+    TSet<int32> EmployeeIds;
+    for (const TArray<FMarketEmployee>* People : { &Staff, &Candidates })
+        for (const FMarketEmployee& Employee : *People)
+        {
+            bool bDuplicate = false;
+            if (People == &Staff) EmployeeIds.Add(Employee.Id, &bDuplicate);
+            if (bDuplicate || Employee.Role > 3 || Employee.DailyWage < 0 || !FMath::IsFinite(Employee.Morale) || !FMath::IsFinite(Employee.Fatigue) ||
+                Employee.Morale < 0.f || Employee.Morale > 100.f || Employee.Fatigue < 0.f || Employee.Fatigue > 100.f) return false;
+        }
     TSet<int32> CustomerIds;
     for (const FMarketLoyalty& Customer : Loyalty)
     {

@@ -1,6 +1,6 @@
 # Güncel durum
 
-Son güncelleme: 29.09.2026 — Codex (G-054 + G-059 doğrulandı)
+Son güncelleme: 28.09.2026 — Claude (G-060 personel ve muhasebe, DERLENMEDİ)
 
 ## Kısaca
 
@@ -54,6 +54,7 @@ GitHub ana deposu: `https://github.com/m07tas/market-ll` (`main`). Unreal/Blende
 | G-053: 1–4 ürünlü müşteri listesi + kategori ikamesi + görünür boş sepet çıkışı + sadakat | **GEÇTİ** — derleme, 22/22 test ve smoke — 28.09.2026 |
 | G-054: babadan kalan borç (P), hafta raporu, günlük rakip haberleri (BİM/Migros/A101), reyona göre rakip fiyatı | **GEÇTİ** — derleme, 24/24 test ve smoke — 29.09.2026 |
 | G-059: tıklanabilir yönetim menüsü (M), kalıcı gün sonu/hafta raporu, açık/koyu tema, logo yuvası, günlük geçmiş | **GEÇTİ** — derleme, 24/24 test ve smoke — 29.09.2026 |
+| G-060: personel ve muhasebe (kişi olarak çalışanlar, aday havuzu, kasiyer hızı/kasa farkı, görevli hızı, moral/istifa, İK müdürü, mali müşavir, haftalık vergi, menü Personel sayfası) | **DERLENMEDİ** — saf mantık (`MarketEconomy` + `MarketStaff` + testler) Linux'ta g++ ve Unreal taklidiyle derlendi; `Staff.*` 3 test ve `Campaign`/`Rivals` testleri geçti. Slate menüsü ve dünya bağlantısı derlenmedi — 28.09.2026 |
 | Stüdyoda elle deneme: kutu (açılım) → Oyuna ekle → OYNA | GEÇTİ: milk_1l oyunda; ön/yan/üst yüzler doğru, ayna yok, raf oturması doğru — 27.09.2026 |
 | Stüdyoda elle deneme: cam şişe modeli + malzeme.json | Bekliyor (henüz model yok) |
 
@@ -84,8 +85,11 @@ G-054 doğrulandı: 300 TL babadan kalan borç masada P ile ödenir; kapanmadan 
 
 G-059 doğrulandı: M ile tıklanabilir yönetim menüsü (oyun durur); sipariş, fiyat karşılaştırma, personel, rakipler, şubeler, raporlar. Gün sonu raporu menüde kalır ("Yeni güne başla"). Açık/koyu tema. Ayrıntı: `Docs/MENU.md`.
 
+**G-060 (Claude, derlenmedi):** personel artık kişi kişi (`MarketStaff.*`, `Docs/PERSONEL_VE_MUHASEBE.md`). Değişen dosyalar: `MarketEconomy.h/.cpp` (kadro, aday, defter alanları; `DailyPayroll`; siparişler `Purchases`'a yazılır), `MarketStaff.h/.cpp` (yeni), `MarketStaffTests.cpp` (yeni, 3 test), `MarketGame.h/.cpp` (H/J/K kişiyle, kasiyer hızı, gün sonunda `MarketStaff::CloseDay`, yüklemede `Migrate`), `MarketWorkers.cpp` (görevli hızı/taşıma/acemi yalnız doldurur, adıyla yürür), `MarketMenu.cpp` (`StaffCommand`), `MarketMenuWidget.cpp` (Personel sayfası yeniden, gün raporunda PERSONEL VE VERGİ), `Test.ps1` en az 27 test. Derleme hatası çıkarsa en olası yerler Slate sözdizimi (`StaffPage`) ve `MarketStaff.cpp` içindeki UE API kullanımları.
+
 ## Sıradaki adımlar
 
+00. Codex/Mustafa: G-060'ı derle ve test et (`DERLE.cmd /q`, `TEST.cmd /q` → 27, `SmokeTest.ps1`). Sonra oyunda M → Personel: aday al, Necati Bey ile anlaş, 7. günün vergisini gör.
 0. Mustafa: oyunda MetaHuman ayak basışını yeniden dene; masada birkaç ürünü B ile listeye ekle, N ile onayla, günü kapat ve arka kapıdaki koliyi E ile depoya taşı.
 1. Mustafa: M ile menüyü aç, günü kapat, raporu gör. Sonra G-055 oyun testi: borç, rakip haberleri ve hafta raporu dengesi.
 2. Paralel (Mustafa): İlk Hafta için 20–40 ürünü gerçek ambalajıyla hazırla; 97 ürünün hepsi gerekmiyor.

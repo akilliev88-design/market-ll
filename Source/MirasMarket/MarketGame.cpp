@@ -888,7 +888,7 @@ void AMarketGameMode::Command(FName Action)
             if (StartPlayerDelivery(Delivery)) Notify(FString::Printf(TEXT("%s kolisini aldin. Arka depodaki kabul noktasina gotur ve E'ye bas."), *ProductName(Delivery)));
         }
         else if (NearCounter()) Checkout();
-        else if (NearOffice()) Notify(TEXT("TAB/Q: urun sec / B: listeye koli ekle / V: azalt / L: onerilen siparis / N: siparisi onayla (en az 50 TL) / +/-: fiyat / H: kasiyer / J: reyon gorevlisi / P: borc ode (50 TL) / M: menu"));
+        else if (NearOffice()) Notify(TEXT("TAB/Q: urun sec / B: listeye koli ekle / V: azalt / L: onerilen siparis / N: siparisi onayla (en az 50 TL) / +/-: fiyat / H: kasiyer / J: reyon gorevlisi / P: borc ode (50 TL) / M: menu (personel, vergi)"));
         else if (const int32 I = NearbyShelf(); I != INDEX_NONE)
         {
             Selected = I;
@@ -961,7 +961,7 @@ void AMarketGameMode::Command(FName Action)
         }
         else
         {
-            State.Initialize(Products); State.RivalSeed = FMath::Rand(); bWeekJustEnded = false; ApplyCapacities(); ResetWorkerJobs(); OrderDraftCases.Init(0, Products.Num()); RefreshDeliveryCrates();
+            State.Initialize(Products); State.RivalSeed = FMath::Rand(); bWeekJustEnded = false; ApplyCapacities(); SyncWorkers(); ResetWorkerJobs(); OrderDraftCases.Init(0, Products.Num()); RefreshDeliveryCrates();
             RefreshLabels(); ResetConfirmUntil = -1; Notify(TEXT("Yeni kampanya basladi. Raflar bos; urunleri depodan sen yerlestir ve O ile ac."));
         }
     }
@@ -1020,35 +1020,15 @@ void AMarketGameMode::Command(FName Action)
             RefreshLabels();
             Notify(FString::Printf(TEXT("%s: %s"), *ProductName(Selected), *PriceSummary(Selected)));
         }
-        else if (Action == "Hire")
+        else if (Action == "Hire" || Action == "HireStocker" || Action == "FireStocker")
         {
-            if (State.bCashier) Notify(TEXT("Kasiyerin zaten var. Gunluk ucret: 20 TL."));
-            else if (State.Cash < 12000) Notify(TEXT("Ise alim icin 120 TL gerekiyor. Gunluk ucret: 20 TL."));
-            else { State.Cash -= 12000; State.bCashier = true; Notify(TEXT("Kasiyer ise alindi. 4 saniyede bir odeme alir; gunluk ucret 20 TL.")); }
-        }
-        else if (Action == "HireStocker")
-        {
-            if (State.Stockers >= FMarketState::MaxStockers) Notify(FString::Printf(TEXT("En fazla %d reyon g\u00f6revlisi \u00e7al\u0131\u015fabilir."), FMarketState::MaxStockers));
-            else if (State.Cash < FMarketState::StockerHireCost) Notify(TEXT("Reyon g\u00f6revlisi i\u00e7in 120 TL gerekiyor. G\u00fcnl\u00fck \u00fccret 20 TL."));
-            else
-            {
-                State.Cash -= FMarketState::StockerHireCost;
-                ++State.Stockers;
-                SyncWorkers();
-                Notify(FString::Printf(TEXT("Reyon g\u00f6revlisi %s i\u015fe ba\u015flad\u0131: raflar\u0131 depodan doldurur, rafta olmayan \u00fcr\u00fcnleri kendi reyonuna dizer, dar kalan bloklar\u0131 geni\u015fletir. G\u00fcnl\u00fck \u00fccret 20 TL."),
-                    *StaffPlanner::WorkerName(State.Stockers - 1)));
-            }
-        }
-        else if (Action == "FireStocker")
-        {
-            if (State.Stockers <= 0) Notify(TEXT("Reyon g\u00f6revlin yok. J ile i\u015fe al."));
-            else
-            {
-                const FString Leaving = StaffPlanner::WorkerName(State.Stockers - 1);
-                --State.Stockers;
-                SyncWorkers();
-                Notify(FString::Printf(TEXT("%s i\u015ften ayr\u0131ld\u0131. Kalan reyon g\u00f6revlisi: %d."), *Leaving, State.Stockers));
-            }
+            // H / J: the best candidate of the pool (MarketStaff). The menu's Personel page picks a person.
+            FString Text;
+            MarketStaff::Migrate(State);
+            const bool bDone = Action == "FireStocker" ? MarketStaff::FireLast(State, MarketStaff::ERole::Stocker, Text)
+                : MarketStaff::HireBest(State, Action == "Hire" ? MarketStaff::ERole::Cashier : MarketStaff::ERole::Stocker, Text);
+            if (bDone) SyncWorkers();
+            Notify(Text);
         }
         else if (Action == "PayDebt")
         {
@@ -1274,8 +1254,14 @@ void AMarketGameMode::Tick(float DeltaTime)
     }
     if (State.bCashier)
     {
+        // The cashier's pace depends on the person (speed, routine, fatigue) and on the basket size (MarketStaff).
         AutoCheckoutTimer += DeltaTime;
-        if (AutoCheckoutTimer >= 4 && QueueSize() > 0) { Checkout(); AutoCheckoutTimer = 0; }
+        const int32 Front = FMarketQueueRules::FindFront(Customers);
+        int32 Units = 0;
+        if (Front != INDEX_NONE) for (const FMarketBasketItem& Item : Customers[Front].Basket) Units += Item.Quantity;
+        const FMarketEmployee* Cashier = MarketStaff::OnDutyAt(State, MarketStaff::ERole::Cashier, 0);
+        const float Needed = Cashier ? MarketStaff::CheckoutSeconds(*Cashier, Units) : 4.f;
+        if (AutoCheckoutTimer >= Needed && QueueSize() > 0) { Checkout(); AutoCheckoutTimer = 0; }
     }
     if (DayTime >= 240) CloseShop();
 }
@@ -1291,7 +1277,10 @@ void AMarketGameMode::CloseShop()
         C.Actor->Destroy();
     }
     Customers.Empty();
-    State.CloseDay(); RefreshLabels(); RefreshDeliveryCrates();
+    State.CloseDay();
+    MarketStaff::CloseDay(State); // till, fatigue, morale, notices, HR, accountant and the weekly tax
+    SyncWorkers();                // days off and leavers change who walks tomorrow
+    RefreshLabels(); RefreshDeliveryCrates();
     bWeekJustEnded = MarketCampaign::CloseDay(State); // weekly report every 7 days
     ReportTime = 30;
     const bool bSaved = SaveCampaign();
@@ -1312,9 +1301,11 @@ void AMarketGameMode::LoadCampaign()
     auto* Save = Cast<UMarketSave>(UGameplayStatics::LoadGameFromSlot(MarketSaveSlot(), 0));
     if (!Save || !Save->State.IsStructurallyValid()) { Notify(TEXT("Uyumlu kayit bulunamadi. Mevcut kampanya korunuyor.")); return; }
     State = Save->State; Selected = 0; bWeekJustEnded = false; OrderDraftCases.Init(0, Products.Num());
+    MarketStaff::Migrate(State); // older saves: the cashier/stocker flags become people
     TArray<FString> Added, Removed;
     State.ReconcileWith(Products, &Added, &Removed);
     ApplyCapacities();
+    SyncWorkers();     // the walking workers follow the loaded roster
     ResetWorkerJobs(); // stock rows may have moved; workers pick new jobs
     RefreshLabels(); RefreshDeliveryCrates();
     if (Added.Num() + Removed.Num() > 0)

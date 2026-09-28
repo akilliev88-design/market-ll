@@ -15,6 +15,7 @@
 #include "MarketRivals.h"
 #include "MarketBasket.h"
 #include "MarketOrderAdvice.h"
+#include "MarketStaff.h"
 #include "MarketGame.generated.h"
 
 class UTextRenderComponent;
@@ -126,6 +127,7 @@ struct FMarketWorker
     UPROPERTY() TObjectPtr<AActor> Carton = nullptr;   // carried case (only while carrying)
     UPROPERTY() TObjectPtr<UTextRenderComponent> Tag = nullptr; // name above the head
     FString Name;
+    int32 EmployeeId = INDEX_NONE;  // MarketStaff roster person (speed, carried units, fatigue)
     bool bHuman = false;
     MarketPeople::FShopper Shopper;
     EWorkerStage Stage = EWorkerStage::Idle;
@@ -347,6 +349,9 @@ public:
     void CloseMenu();
     void OpenDayReport();
     void MenuCommand(FName Action, int32 Product = INDEX_NONE);
+    // Personnel and tax decisions on one person (MarketStaff.h): HireCandidate, Fire, Raise, DayOff, Warn
+    // (Id = employee/candidate id), HireAccountant, PayTax, HrAutoReplace. From the menu; no desk distance needed.
+    void StaffCommand(FName Action, int32 Id = INDEX_NONE);
     void ClearOrderDraft();
     void ToggleMenuTheme();
     void LoadMenuSettings();

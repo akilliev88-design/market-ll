@@ -8,7 +8,7 @@ Tasarım: claude.ai "Miras Market Menü Tasarımı" maketi (açık/koyu tema). K
 |---|---|
 | **M** | Menüyü her yerden açar. Oyun durur, fare imleci çıkar. |
 | M, TAB, Esc | Menüyü kapatır (Esc menü açıkken oyundan çıkmaz). |
-| 1–7 | Özet, Sipariş, Ürünler ve fiyat, Rakipler, Personel, Şubeler, Raporlar |
+| 1–7 | Özet, Sipariş, Ürünler ve fiyat, Rakipler, Personel (G-060: çalışanlar, adaylar, İK, mali müşavir ve vergi; `Docs/PERSONEL_VE_MUHASEBE.md`), Şubeler, Raporlar |
 | Kenar çubuğu "Açık tema / Koyu tema" | Tema; `GameUserSettings.ini` → `[MirasMarket.Menu] LightTheme` |
 
 - Gün kapanınca menü **Raporlar** sayfasında açılır (7. günde Hafta sekmesi). "Yeni güne başla" kapatır.
