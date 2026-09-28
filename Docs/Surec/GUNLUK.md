@@ -2,6 +2,145 @@
 
 En yeni giriş en üstte. Biçim: tarih — ajan — başlık, ardından **Yapılan**, **Doğrulama**, **Sıradaki**.
 
+## 28.09.2026 — Codex — Opus birleşimi, gerçekçi mağaza ekipmanları ve boş raf başlangıcı (G-049, G-050)
+
+**Yapılan**
+- Opus/Claude tarafından eklenen reyon görevlisi, serbest planogram ve bölünmüş kaynak dosyaları yeniden incelendi; ürün kataloğu ve kullanıcının yeni ürün varlıkları korunarak birleşik sürüm doğrulandı.
+- Blender mağaza kiti 7 varlığa çıkarıldı. Kasa; konveyör, tarayıcı, kasa çekmecesi, ekran, fiş ve paketleme alanı aldı. Yönetim masasına çekmeceler, monitör, klavye, fare ve evrak eklendi. Üç kapılı soğutucu ve iki yüzlü manav adası eklendi. Açık tavana kablo tavaları, elektrik boruları, askılar ve sprinkler hattı eklendi.
+- Yeni oyun ve F6 ile yeni kampanya artık raf stoğu 0, depo stoğu 32 ile başlıyor. Kayıt yükleme eski stok değerlerini koruyor. Test modu F3 ile isteğe bağlı dolum yapıyor.
+- Smoke senaryosu boş başlangıca uyarlandı: kendi test akışında ürünleri depodan normal kuralla rafa taşıyor; oyuncu başlangıcını değiştirmiyor.
+
+**Doğrulama**
+- `DERLE.cmd /q`: geçti.
+- `TEST.cmd /q`: 17/17 geçti; `NewGameShelvesEmpty` ve `Staff.Planner` dahil.
+- `SmokeTest.ps1`: geçti; 2 müşteri satışı, raf doldurma, sipariş, kasiyer, gün sonu ve kayıt/yükleme.
+- Yedi Blender/Unreal çevre varlığı ölçü, materyal ve çarpışma kontrolünde 0 hata/0 uyarı verdi.
+- Beş adet 1280×720 oyun görüntüsünde boş raflar, ince fiyat rayları, soğutucu yönü ve tavan servisleri gözle incelendi.
+
+**Sıradaki**: Mustafa boş raflarda R ile yerleştirmeyi ve J ile reyon görevlisini deneyecek. Sonraki görsel tur fırın, kasap/şarküteri ve servis reyonları.
+
+## 28.09.2026 — Claude — Reyon görevlisi (G-049)
+
+**Mustafa**: G-048 SON_KONTROL geçti (derleme, 16/16 test, smoke). Sıradaki iş: çalışanlar rafı dizsin. Seçimler: boşalan rafı depodan doldursun + rafta olmayan ürünü dizsin + dar blokları genişletsin; yürüyen karakter. Oyuncunun dizimi için: "yerleşim yaptıktan sonra düzeltmeye gelmesin; boş kaldıkça reyonların hepsiyle ilgilenebilir, ben dizmişim o dizmiş diye bir şey yok" → görevli hiçbir bloğu taşımaz/silmez/daraltmaz, yalnız boşluğa ekler veya boşluğa doğru genişletir; kimin koyduğuna bakmaz.
+
+**Yapılan**
+- `StaffPlanner.*` (dünyadan bağımsız karar): öncelik yarısı boş raf > rafta olmayan ürün > beşte biri eksik raf > bir koli almayan blok. Yeni blok: ürün kategorisiyle aynı `category`'deki reyonlar (Türkçe harf/büyük-küçük farkı yok), aynı marka yanı +40, önde adet (bir koli, 2–6), düzenli (komşuya/kenara bitişik), göz hizası. Kurallar `PlanogramEdit` (PlanBlock/AddBlock/ChangeFacings).
+- `MarketWorkers.cpp`: görevli depoya yürür (arka koridor), koli alır (elinde karton), müşterilerle aynı şeritlerden reyona gider, blok koyar/genişletir, ürünleri 0,3 sn'de bir tek tek rafa koyar; iş yoksa depo yanında bekler. Başında "GOREVLI AHMET" yazısı kameraya döner. MetaHuman yoksa kiremit renkli kutu adam.
+- Ekonomi: `Stockers` (kayda girer, eski kayıtlar 0), işe alım 120 TL, günlük 20 TL; `Restock(Index, MaxUnits)`.
+- Masada J al / K çıkar; HUD'da J tuşu, F1 panelinde görevlilerin ne yaptığı.
+- Ortak parçalar: `SimplePerson` (müşteri ve görevli kutu adamı), `BlockApproachSpot`, `CommitPlan` (R modu ve görevli aynı kaydetme yolu).
+- Test `MirasMarket.Staff.Planner` (17. test); `Test.ps1` en az 17 bekler.
+
+**Doğrulama**: Derlenmedi. Dosyalar geri okunup karşılaştırıldı; ASCII ve parantez dengesi betikle kontrol edildi.
+
+**Sıradaki**: `SON_KONTROL.cmd` (beklenen 17 test); oyunda J ile görevli al ve izle.
+
+## 28.09.2026 — Claude — Kod temizliği (G-048)
+
+**Mustafa**: G-047 "çok güzel oldu". Koddaki şişmeleri inceleyelim; dört başlığın hepsi seçildi. Strateji düğmeleri için: "bütün marketleri ben dizmeyeceğim, çalışanlar dizecek; etkilemiyorsa kaldırılabilir" → kaldırıldı; çalışan dizmesi `PlanogramEdit` üzerine kurulacak (`RAF_PLANI_EDITORU.md`).
+
+**Yapılan** (oyunda görünür değişiklik yok)
+- Raf planı artıkları: eski otomatik yerleşim (`PlaceOnFixture`, `FitsOnLevel`, `DepthThatFits`), kullanılmayan sabitler (`UsableWidthCm`, `ShelfFrontY`, `LevelCount`…), `IsDoubleSided`, `strategy` alanı ve editördeki üç strateji düğmesi silindi. `PhysicalDepth` `MarketPlanogram`'a taşındı.
+- Tekrarlanan yardımcılar birleşti: `MarketCatalog::FindProduct`, `IndexOfProduct`, `JsonQuote`, `FoldTurkish` (3B yazı ve tabelalar için, eski `AsciiFold`/`Fold3D` yerine); `MarketGame` para yazısı `MarketCatalog::Money` kullanıyor.
+- `MarketGame.cpp`: smoke/görüntü çalıştırmaları `MarketAutomation.cpp` → `TickAutomation()`.
+- Ürün Stüdyosu: 122 KB'lık `StudioBackend.cpp` beşe bölündü (Backend, Meshes, Presets, Products, Prompts + `StudioBackendInternal.h`); iki çizgi çizme kodu teke indi; kutu ve şekil paketlerinin ortak mesh kaydetme/`package.json` yazma kodu `BuildMeshAsset` / `WritePackageMeta` oldu. `SProductStudio::RebuildRight` (390 satır) beş bölüm işlevine ayrıldı.
+- `WidthLimit` testi eski `PlaceAll` yerine `AddToRowEnd` ile yeniden yazıldı (test sayısı 16).
+- `.gitignore`: `__pycache__/`, `*.pyc`. `katalog_olustur.py` kopyası `Tools/Arsiv/` altına kondu. AGENTS.md proje haritası yeni dosyalarla güncellendi.
+
+**Mustafa'nın elle yapacağı** (Claude bu klasörde dosya silemiyor): kökteki `Build-backup-*.json/.log` (6 dosya), `Build.json`, `Build.log`; `Tools/Blender/__pycache__/`; `Tools/katalog_olustur.py` (kopyası `Tools/Arsiv/` içinde).
+
+**Doğrulama**: Derlenmedi. Dosyalar geri okunup karşılaştırıldı; ASCII ve parantez dengesi betikle kontrol edildi.
+
+**Sıradaki**: `SON_KONTROL.cmd` (beklenen 16 test).
+
+## 28.09.2026 — Claude — Çift sayıda önde adette eksik çizilen sütun (G-047 ek 2)
+
+**Mustafa**: Yeşil şerit ürünün genişliğinden çok uzun; ancak az yer kalınca kısalıyor (önde 1'e düşünce) ve ürünler yan yana konabiliyor.
+
+**Teşhis**: `BlockSlotTransforms` önde sütunlarını ortadan dışa sıralarken çift sayılarda son sütunu kaybediyordu (önde 2 → 1 ürün, önde 4 → 3 ürün çizilir). Yer ve kapasite doğru ayrılıyor, ama ekranda ve hayalette bir sütun eksik olduğundan blok gerçekte olduğundan geniş görünüyordu. Bu hata eski dizilimden beri vardı.
+
+**Yapılan**: Sütunlar 0..N-1 eksiksiz üretilip ortaya uzaklığa göre sıralanıyor (`MarketGame.cpp`).
+
+**Doğrulama**: Derlenmedi; dosya geri okunup karşılaştırıldı.
+
+## 28.09.2026 — Claude — Raf kenarları ve düzen görünümü (G-047 ek)
+
+**Mustafa**: G-047 genel olarak düzeldi ama ürün hâlâ boyundan fazla yer istiyor gibi; köşelere konamıyor.
+
+**Teşhis**
+- Kullanılabilir genişlik gondolda 110 cm, duvar reyonunda 230 cm idi; Blender'da raf tablası 116 / 235 cm ve dikmeler ürünlerin arkasında (gövde ortasında / arka panelde). Kenarda ~3 cm kullanılamıyordu.
+- Köşedeki boşluk görünen alan stoksuz bir bloğun (Sütaş, raf stoğu 0/20) ayrılmış yeriydi; düzen modunda boş görünüyordu.
+
+**Yapılan**
+- Gondol kullanılabilir genişliği 116 cm, duvar reyonu 235 cm.
+- Düzen modunda (R) bütün bloklar stoktan bağımsız dolu çizilir; R ile çıkınca gerçek stoğa döner. Panel açıklaması buna göre.
+- Testler yeni genişliklere göre güncellendi (geniş paket 58 cm).
+
+**Doğrulama**
+- Derlenmedi. Dosyalar geri okunup karşılaştırıldı.
+
+## 28.09.2026 — Claude — Dip dibe dizme ve aralık ayarı (G-047)
+
+**Mustafa**: G-046 "gayet güzel". Ekran görüntüsünde nişanın solunda ürünler yan yana dizilebiliyor, başka yerlerde o kadar yakın dizilemiyor. Geometri uyuyorsa dip dibe (küçük toleransla) dizilebilsin; istenirse araya mesafe koyma ayarı olsun. G-046: derleme (MarketArrange.cpp'de iki C4458 gölgeleme hatası düzeltildi), 16/16 test ve smoke geçti.
+
+**Teşhis**
+- Görüntüdeki orta boşluk Coca-Cola bloğuydu (önde 4, 38 cm, raf stoğu 0/12): yer ayrılmış ama ürün yok, bu yüzden boş raf gibi görünüyordu ("en geniş boşluk 0 cm").
+- Bloklar arası 2 cm + önde ürünler arası 2 cm zorunluydu; ekranda ürün aralığı mesh genişliğine göre çiziliyor, ayrılan yer katalog genişliğine göre hesaplanıyordu.
+- 3B etiket yazı tipinde Türkçe harf yok ("Buraya s m yor").
+
+**Yapılan**
+- Bloklar arası zorunlu boşluk 0,3 cm tolerans; önde ürünler arası 0,5 cm; derinlik sıraları 2 cm (ayrı sabit). Önde ürünler ekranda da katalog genişliğiyle dizilir (mesh daha genişse mesh).
+- Blok başına `GapCm` (json `gap`): komşularla en az bu kadar aralık. Oyunda Z / X (nişandaki blok ya da elindeki), editörde Aralık − / +; yer yoksa reddedilir.
+- Nişan alınan raftaki bütün bloklar gri şeritle gösterilir; nişandaki boş blok için panelde "stok yok, yeri ayrılmış" açıklaması.
+- 3B etiketler Türkçe harfsiz yazılır; panel 400 px.
+- Testler: genişlik 50,5 cm, yan yana yapışma 10,3 cm, aralık kabul/ret ve json gidiş-dönüş.
+
+**Doğrulama**
+- Derlenmedi. Dosyalar geri okunup karşılaştırıldı; C++ kaynakları ASCII.
+
+**Sıradaki**
+- Mustafa: `SON_KONTROL.cmd`; oyunda dene. Ekranın sağ ve alt kenarı görüntüde kesiliyor: pencere ekrandan büyük olabilir, F11 ile tam ekran dene.
+
+## 28.09.2026 — Claude — Önizlemeli, esnek raf dizme (G-046)
+
+**Mustafa**: G-045 derlendi (16/16 test, smoke geçti) ama dizme "doğru düzgün çalışmıyor": yerleştirirken önizleme yok, bilgi menüsü yetersiz, sağa sola kaydırınca aynı ürünü ekleyemiyor (ürün başına tek blok vardı, E ürünü taşıyordu). Rahat ve esnek olmalı.
+
+**Yapılan**
+- Veri: blok başına serbest konum `XCm` (şema v3, `x`); aynı ürün istenildiği kadar blokta. Eski v2 dosyası açılışta eski dizilişin gösterdiği yere sabitlenir (`ResolvePositions`). Kurallar: raf kenarı + bloklar arası en az 2 cm; `FindFreeX` en yakın boşluğa yapıştırır.
+- `PlanogramEdit` blok indeksli: `PlanBlock` (önizleme ile kayıt aynı hesap), `AddBlock`, `AddToRowEnd`, `MoveBlock`, `RemoveBlock`, `ChangeFacings` (merkezden büyür, gerekirse biraz kayar), `Nudge` (komşuya dayanınca durur), `CycleOrientation`, `ChangeStack`, `ToggleFace`.
+- Oyun (R, market kapalı): artı işaretinden ışın → reyon/yüz/seviye/X. Elindeki ürünün hayaleti (ön sıra + katlar, gerçek ambalaj), yeşil/kırmızı şerit ve üstte etiket; nişandaki blok turuncu, taşınan blok mavi. Sol tık/E koy (tekrar tekrar), tekerlek/TAB/Q ürün, sağ tık/DEL kaldır, F taşı, C kopyala, +/- Y U nişandaki bloğa ya da elindekine, oklar 5 cm / üst-alt raf.
+- HUD: sağda RAF DÜZENİ paneli — reyon/yüz/raf, doluluk çubuğu + en geniş boşluk + raf yüksekliği, elindeki ürünün ölçüsü/yönü/kapasite hesabı/raf ve depo stoğu, nişandaki blok, "tıklarsan ne olur" (yeşil/kırmızı, neden), o an çalışan tuşlar.
+- Raf stoğu çizimi `LoadProductLook` + `BlockSlotTransforms` olarak ayrıldı; hayalet de bunları kullanır.
+- Editör: reyondaki bloklar seviye seviye listelenir (kaydır, önde, yön, kat, seviyeye taşı, yüz çevir, aynısından ekle, kaldır); "Ürün ekle" bölümünde her ürün için Ön/Arka S1… düğmeleri.
+- Testler: `Planogram.ManualPlacement` → `Planogram.FreePosition`; `HandArrangement` blok tabanlı yeniden yazıldı; `MultiBrandDepth` v2→v3 dönüşümü ve aynı ürünün iki bloğu.
+
+**Doğrulama**
+- Derlenmedi. Dosyalar geri okunup karşılaştırıldı; C++ kaynakları ASCII.
+
+**Sıradaki**
+- Mustafa: `SON_KONTROL.cmd`; oyunda R ile dene. Hayalet ürünler opak (saydam malzeme yok); gerekirse sonra saydam önizleme malzemesi eklenir.
+
+## 28.09.2026 — Claude — Elle raf dizme (editör + oyun içi R) ve planogram hata düzeltmeleri (G-045)
+
+**Mustafa**: "Ürün ekle dediğimde rastgele kendi belirlediği yerlere koyuyor; istediğim yere dizemiyorum. Oyun içinde de dizmek istiyorum." Kararlar: yeni ürün rafa konmaz ("Rafta değil", satılmaz); otomatik dolum tamamen kalkar.
+
+**Teşhis**
+- `Reconcile` her açılışta planda olmayan ürünleri ilk boş seviyeye koyuyordu (11 ürünün 4'ü planda yoktu); `autoFill` boş seviyelere başka ürünlerin kopyalarını ekleyip blokları genişletiyordu.
+- İnceleme hataları: `FindOverflows` ürün döngüsü reyon döngüsünün içindeydi (uyarılar reyon sayısı kadar tekrar); genişleme elle kaydırılmış blokları raftan itebiliyordu; ek bloklar birincil bloğun yönüyle ölçülüyordu; kapasite sığmayan istifi de sayıyordu; editörde durum mesajı listenin en altında kalıyordu.
+
+**Yapılan**
+- `PlanogramEdit.h/.cpp`: ortak dizme işlemleri (PutOnLevel, Remove, ChangeFacings, MoveInRow, Nudge, CycleOrientation, ChangeStack, ToggleFace, ResetFine). Her işlem kopya üzerinde yapılır; eski ve yeni seviye genişlik + ince ayar kontrolünden geçmezse plan değişmez ve nedeni döner.
+- `Planogram.*`: Reconcile, FillToCapacity, bExtra, bAutoFill kaldırıldı; `FitDepth` (derinlik = fiziksel), `EffectiveStack`, `ProductCapacity(…, Products, …)` (sığan istif), `LevelOffsetsFit`; FindOverflows parantez hatası; sıra eşitliğinde kararlı sıralama. Eski `autoFill` alanı okunur, etkisizdir, yazılmaz.
+- Oyun: `MarketArrange.cpp` — market kapalıyken reyon önünde R: oklar seviye/blok, TAB/Q ürün, E koy, +/- önde, Z/X sıra, Y yön, U kat, DEL kaldır, R bitir. Parlayan şerit seçimi gösterir; her değişiklik `planograms.json`'a yazılır ve raf stoğu/etiketleri yeniden kurulur (`RebuildShelfContents`); test modunda yeni konan ürün bedava dolar. Rafta olmayan ürünün kapasitesi 0 (stok depoda), müşteri yalnız raftaki ürünleri ister. HUD F1 paneline R eklendi.
+- Editör: kartta S1…S5 seviye düğmeleri (ürünü o seviyenin sağ ucuna koyar), Sırada sola/sağa, Raftan kaldır; Derinlik düğmeleri ve otomatik dolum düğmesi kaldırıldı; liste sırası bu reyon → rafta değil → diğerleri; durum mesajı başlığın altında.
+- Testler: `Planogram.FillToCapacity` yerine `Planogram.HandArrangement` (elle koyma, sıra, genişlik reddi, ince ayar koruması, istif kapasitesi, iki reyonda tek uyarı, duvar reyonu arka yüz reddi, autoFill yok sayılır); kapasite 0 testi; eski yerleştirme testleri yardımcı `PlaceAll` ile.
+
+**Doğrulama**
+- Derlenmedi. Dosyalar geri okunup karşılaştırıldı; C++ kaynakları ASCII.
+
+**Sıradaki**
+- Mustafa: `SON_KONTROL.cmd`. Hata olursa `Saved/Logs/DERLE_son.log`. Sonra oyunda bir reyonda R ile dene; 4 süt/ayran/yoğurt ürünü "Rafta değil", istediğin yere koy.
+
 ## 28.09.2026 — Codex — Planogram v2 ve gerçek raf önü
 
 **Yapılan**

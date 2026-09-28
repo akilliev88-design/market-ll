@@ -42,6 +42,7 @@ private:
     TSharedRef<SWidget> ControlsCard();
     TSharedRef<SWidget> HintCard();
     TSharedRef<SWidget> ReportCard();
+    TSharedRef<SWidget> ArrangeCard();
 
     bool ShowStock() const;
     FString HintKey() const;

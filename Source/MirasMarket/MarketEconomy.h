@@ -46,8 +46,10 @@ struct FMarketStock
 {
     GENERATED_BODY()
     UPROPERTY() FString Id;
-    UPROPERTY() int32 Shelf = 16;
-    UPROPERTY() int32 Warehouse = 16;
+    // A new game starts with empty shelves so the first stocking pass is part of the experience.
+    // The inherited opening inventory is kept in the warehouse; loaded saves preserve their values.
+    UPROPERTY() int32 Shelf = 0;
+    UPROPERTY() int32 Warehouse = 32;
     UPROPERTY() int32 Incoming = 0;
     UPROPERTY() int64 Price = 0;
     // Units that physically fit this product's shelf block (planogram facings x depth).
@@ -65,12 +67,18 @@ struct FMarketState
     // Sanity bound for save validation only; real capacity comes from the planogram.
     static constexpr int32 MaxShelfCapacity = 5000;
     static constexpr int32 StorageCapacity = 120;
+    // Shelf staff (reyon gorevlisi): hired at the office, paid every day like the cashier.
+    static constexpr int32 MaxStockers = 3;
+    static constexpr int64 StockerHireCost = 12000;
+    static constexpr int64 StockerDailyWage = 2000;
 
     UPROPERTY() int32 Version = 1;
     UPROPERTY() int32 Day = 1;
     UPROPERTY() int64 Cash = 35000;
     UPROPERTY() TArray<FMarketStock> Stock;
     UPROPERTY() bool bCashier = false;
+    // Shelf staff count (older saves load 0).
+    UPROPERTY() int32 Stockers = 0;
     UPROPERTY() bool bSecondStore = false;
     UPROPERTY() bool bRealBrands = true;
     UPROPERTY() int32 ProfitableDays = 0;
@@ -89,7 +97,8 @@ struct FMarketState
 
     void Initialize(const TArray<FMarketProduct>& Products);
     bool Order(int32 Index, const TArray<FMarketProduct>& Products);
-    int32 Restock(int32 Index);
+    // Warehouse -> shelf, at most MaxUnits (the player moves all that fits, a worker one unit at a time).
+    int32 Restock(int32 Index, int32 MaxUnits = MAX_int32);
     bool Sell(int32 Index, int32 Quantity, int64 QuotedPrice, const TArray<FMarketProduct>& Products);
     void CloseDay();
     // Sets each row's shelf capacity (index = catalog order). Units above a smaller capacity go

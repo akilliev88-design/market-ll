@@ -1,0 +1,27 @@
+{
+  "schemaVersion": 1,
+  "id": "produce_island_2400",
+  "displayName": "Manav Adasi 2400",
+  "family": "produce_island",
+  "dimensionsMm": {
+    "width": 2400,
+    "depth": 1200,
+    "height": 1400
+  },
+  "customerFaces": [
+    "front",
+    "back"
+  ],
+  "frontAxis": "-Y",
+  "shelfZones": [],
+  "materials": [
+    "Wood",
+    "Black",
+    "PriceRail",
+    "Green",
+    "Red",
+    "Orange",
+    "Yellow"
+  ],
+  "collision": "2 UCX boxes"
+}

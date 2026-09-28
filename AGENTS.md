@@ -25,8 +25,14 @@ Limit aniden biterse sonraki ajan GUNLUK/DURUM ile dosyaların son hâlini karş
 | `Source/MirasMarket/MarketEconomy.*` | Para, stok, sipariş, satış, gün sonu, kayıt uzlaştırma. Dünyadan bağımsız ve test edilebilir. |
 | `Source/MirasMarket/ProductCatalog.*` | `Config/products.json` okuma/yazma, kutu atlas yerleşimi (`FBoxPackageLayout`). Oyun ve stüdyo ortak kullanır. |
 | `Source/MirasMarket/MarketGame.*` | Prototip GameMode, karakter, sahne, müşteri, HUD. Tek dosyayı daha fazla büyütme; yeni sistemleri ayrı sınıflara ayır. |
+| `Source/MirasMarket/MarketAutomation.cpp` | `-MirasSmoke` ve `-MirasCapture` otomatik oynanış/görüntü çalıştırmaları (`AMarketGameMode::TickAutomation`). |
+| `Source/MirasMarket/MarketArrange.cpp` | Oyunda raf dizme modu (R): nişan, hayalet önizleme, RAF DÜZENİ paneli verisi. |
+| `Source/MirasMarket/Planogram.*` | Raf planı verisi (`Config/planograms.json`, şema v3), ekipman ölçüleri, genişlik/derinlik/istif hesapları. |
+| `Source/MirasMarket/StaffPlanner.*` | Reyon görevlisinin kararları (dünyadan bağımsız, test edilir): raf doldur, rafta olmayan ürünü kategorisinin reyonuna koy, bir koli almayan bloğu genişlet. |
+| `Source/MirasMarket/MarketWorkers.cpp` | Oyundaki reyon görevlileri: yürüme, koli taşıma, rafa tek tek dizme (`AMarketGameMode::TickWorkers`). |
+| `Source/MirasMarket/PlanogramEdit.*` | Blok blok elle dizme kuralları (`PlanBlock`, `AddBlock`, `AddToRowEnd`, taşı/kaldır/önde/yön/istif/aralık). Oyun ve editör ortak kullanır; reyon görevlileri de (`StaffPlanner`) bunu kullanır. |
 | `Source/MirasMarket/MarketTests.cpp` | Unreal otomasyon testleri (`MirasMarket.*`). |
-| `Source/MirasMarketStudio/` | Yalnızca editörde çalışan **Ürün Stüdyosu** modülü (Slate arayüzü + `StudioBackend`). |
+| `Source/MirasMarketStudio/` | Yalnızca editörde çalışan **Ürün Stüdyosu** ve **Raf Planı** modülü. Arayüz: `SProductStudio`, `SPlanogramStudio`, `SStudioViewport`, `StudioStyle`. Arka uç (`StudioBackend.h`) konulara bölünmüştür: `StudioBackend.cpp` (dosya/görsel/açılım), `StudioMeshes.cpp` (malzeme, kutu/şekil/model 3B), `StudioPresets.cpp` (hazır ambalajlar, parça renkleri), `StudioProducts.cpp` (kontrol, yayımla), `StudioPrompts.cpp` (promptlar, teslim klasörü). Ortak iç yardımcılar `StudioBackendInternal.h`. |
 | `Config/products.json` | Ürün kataloğu, şema v2. Stüdyo yazar; elle de düzenlenebilir. |
 | `Content/Products/` | Stüdyonun ürettiği varlıklar: `Packages/<ambalaj>/SM_*`, `Items/<ürün>/T_*_Label`, `MI_*`, `Materials/M_ProductLabel`. Elle düzenleme. |
 | `AssetInbox/` | Kullanıcının getirdiği ham dosyaların kopyası ve manifestler. Stüdyo yazar; kaynak arşivi olarak saklanır. |
@@ -35,9 +41,9 @@ Limit aniden biterse sonraki ajan GUNLUK/DURUM ile dosyaların son hâlini karş
 | `Docs/URUN_STUDYOSU.md` | Stüdyonun kullanım kılavuzu ve dosya standardı. |
 | `Docs/Uretim/` | Mustafa'nın dış ajanlara vereceği **kısa, kopyala-yapıştır promptlar** (A1/A2 kutu, B1/B2 şişe, C1/C2 poşet, D araştırma, E kontrol) ve marka/ürün listesi. Stüdyo davranışı değişirse bu promptları da güncelle. |
 | `Uretim/` | Dış ajanların teslim klasörü: `Uretim/<ürün>/model/`, `Uretim/<ürün>/<yıl>/`. |
-| `Docs/Uretim/Sablonlar/` | Stüdyonun ürün verisiyle doldurduğu prompt şablonları (`{{YER_TUTUCU}}`). Yeni yer tutucu eklersen `StudioBackend.cpp` → `BuildPrompt` içine de ekle. |
+| `Docs/Uretim/Sablonlar/` | Stüdyonun ürün verisiyle doldurduğu prompt şablonları (`{{YER_TUTUCU}}`). Yeni yer tutucu eklersen `StudioPrompts.cpp` → `BuildPrompt` içine de ekle. |
 | `Config/ambalajlar.json` | Hazır ambalaj kütüphanesi (stüdyo 3B şekli kendisi üretir). Ölçü değişirse id de değişir. |
-| `Tools/katalog_olustur.py` | Katalogu ürün listesinden sıfırdan üretir (97 ürün). Stüdyoda yapılan değişiklikleri ve ambalaj atamalarını (`preset`, `colors`) SİLER; artık kullanma. |
+| `Tools/Arsiv/katalog_olustur.py` | Arşiv. Katalogu ürün listesinden sıfırdan üretirdi; stüdyodaki değişiklikleri ve ambalaj atamalarını SİLER. Kullanma. |
 
 ## 4. Komutlar (Windows, proje kökü)
 

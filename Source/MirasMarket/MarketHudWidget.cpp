@@ -67,8 +67,17 @@ void SMarketHud::Construct(const FArguments& InArgs)
         + SOverlay::Slot().HAlign(HAlign_Right).VAlign(VAlign_Top).Padding(24.f)
         [
             SNew(SVerticalBox)
-            + SVerticalBox::Slot().AutoHeight()[ DayCard() ]
-            + SVerticalBox::Slot().AutoHeight().Padding(0.f, 12.f, 0.f, 0.f)[ GoalCard() ]
+            + SVerticalBox::Slot().AutoHeight()[ ArrangeCard() ]
+            + SVerticalBox::Slot().AutoHeight()
+            [
+                // While arranging shelves the right side belongs to the arrange panel.
+                SNew(SBox).Visibility_Lambda([this] { const AMarketGameMode* G = Game.Get(); return G && G->bArrange ? EVisibility::Collapsed : EVisibility::HitTestInvisible; })
+                [
+                    SNew(SVerticalBox)
+                    + SVerticalBox::Slot().AutoHeight()[ DayCard() ]
+                    + SVerticalBox::Slot().AutoHeight().Padding(0.f, 12.f, 0.f, 0.f)[ GoalCard() ]
+                ]
+            ]
         ]
         + SOverlay::Slot().HAlign(HAlign_Center).VAlign(VAlign_Center)
         [
@@ -329,6 +338,7 @@ TSharedRef<SWidget> SMarketHud::OfficeCard()
                 [
                     SNew(SHorizontalBox)
                     + SHorizontalBox::Slot().AutoWidth()[ KeyRow(TEXT("H"), TEXT("Kasiyer")) ]
+                    + SHorizontalBox::Slot().AutoWidth()[ KeyRow(TEXT("J"), TEXT("G\u00f6revli")) ]
                     + SHorizontalBox::Slot().AutoWidth()[ KeyRow(TEXT("G"), TEXT("\u0130kinci \u015fube")) ]
                 ]
             ])
@@ -380,9 +390,10 @@ TSharedRef<SWidget> SMarketHud::GoalCard()
                 {
                     const AMarketGameMode* G = Game.Get();
                     if (!G) return FText::GetEmpty();
-                    return FText::FromString(FString::Printf(TEXT("Bug\u00fcn %s ciro \u00b7 %d sat\u0131\u015f \u00b7 %d kay\u0131p\nKasiyer %s \u00b7 rakip %s"),
-                        *Lira(G->State.Revenue), G->State.Served, G->State.Lost, G->State.bCashier ? TEXT("var") : TEXT("yok"),
-                        G->RivalDiscount() < 1.f ? TEXT("%15 indirimde") : TEXT("normal fiyatta")));
+                    const FString Staff = G->WorkerSummary();
+                    return FText::FromString(FString::Printf(TEXT("Bug\u00fcn %s ciro \u00b7 %d sat\u0131\u015f \u00b7 %d kay\u0131p\nKasiyer %s \u00b7 reyon g\u00f6revlisi %d \u00b7 rakip %s%s%s"),
+                        *Lira(G->State.Revenue), G->State.Served, G->State.Lost, G->State.bCashier ? TEXT("var") : TEXT("yok"), G->State.Stockers,
+                        G->RivalDiscount() < 1.f ? TEXT("%15 indirimde") : TEXT("normal fiyatta"), Staff.IsEmpty() ? TEXT("") : TEXT("\n"), *Staff));
                 })
             ])
     ];
@@ -413,6 +424,7 @@ TSharedRef<SWidget> SMarketHud::ControlsCard()
                 + SUniformGridPanel::Slot(1, 3)[ KeyRow(TEXT("F6"), TEXT("Yeni kampanya")) ]
                 + SUniformGridPanel::Slot(2, 3)[ KeyRow(TEXT("ESC"), TEXT("\u00c7\u0131k\u0131\u015f")) ]
                 + SUniformGridPanel::Slot(0, 4)[ KeyRow(TEXT("F11"), TEXT("Tam ekran")) ]
+                + SUniformGridPanel::Slot(1, 4)[ KeyRow(TEXT("R"), TEXT("Reyonu diz (kapal\u0131yken)")) ]
             ])
     ];
 }
@@ -497,5 +509,73 @@ TSharedRef<SWidget> SMarketHud::ReportCard()
             + SVerticalBox::Slot().AutoHeight().Padding(0.f, 10.f, 0.f, 0.f)
             [ Line([](const AMarketGameMode&) { return FString(TEXT("Raflar\u0131 doldur, fiyatlar\u0131 ayarla, O ile a\u00e7.")); }, Font("Regular", 9), Muted) ]
         , FMargin(24.f, 18.f))
+    ];
+}
+
+TSharedRef<SWidget> SMarketHud::ArrangeCard()
+{
+    // Everything about shelf arranging in one place: where the crosshair is, what is in hand, the block under
+    // the crosshair, what a click would do (green / red) and only the keys that work right now.
+    auto Str = [this](FString AMarketGameMode::* Field)
+    {
+        return [this, Field] { const AMarketGameMode* G = Game.Get(); return FText::FromString(G ? G->*Field : FString()); };
+    };
+    TSharedRef<SVerticalBox> Keys = SNew(SVerticalBox);
+    for (int32 I = 0; I < 14; ++I)
+    {
+        Keys->AddSlot().AutoHeight().Padding(0.f, 2.f)
+        [
+            SNew(SHorizontalBox)
+            .Visibility_Lambda([this, I] { const AMarketGameMode* G = Game.Get(); return G && G->ArrangeKeys.IsValidIndex(I) ? EVisibility::HitTestInvisible : EVisibility::Collapsed; })
+            + SHorizontalBox::Slot().AutoWidth().VAlign(VAlign_Center)
+            [
+                SNew(SBorder).BorderImage(&KeyBrush).Padding(FMargin(7.f, 2.f)).VAlign(VAlign_Center)
+                [
+                    SNew(STextBlock).Font(Font("Bold", 9)).ColorAndOpacity(FLinearColor(0.12f, 0.10f, 0.08f))
+                    .Text_Lambda([this, I] { const AMarketGameMode* G = Game.Get(); return FText::FromString(G && G->ArrangeKeys.IsValidIndex(I) ? G->ArrangeKeys[I].Key : FString()); })
+                ]
+            ]
+            + SHorizontalBox::Slot().FillWidth(1.f).VAlign(VAlign_Center).Padding(8.f, 0.f, 0.f, 0.f)
+            [
+                SNew(STextBlock).Font(Font("Regular", 10)).ColorAndOpacity(Cream).AutoWrapText(true)
+                .Text_Lambda([this, I] { const AMarketGameMode* G = Game.Get(); return FText::FromString(G && G->ArrangeKeys.IsValidIndex(I) ? G->ArrangeKeys[I].Value : FString()); })
+            ]
+        ];
+    }
+    return SNew(SBox).WidthOverride(400.f)
+        .Visibility_Lambda([this] { const AMarketGameMode* G = Game.Get(); return G && G->bArrange ? EVisibility::HitTestInvisible : EVisibility::Collapsed; })
+    [
+        Card(
+            SNew(SVerticalBox)
+            + SVerticalBox::Slot().AutoHeight()
+            [ SNew(STextBlock).Text(FText::FromString(TEXT("RAF D\u00dcZEN\u0130"))).Font(Font("Bold", 8, 180)).ColorAndOpacity(Muted) ]
+            + SVerticalBox::Slot().AutoHeight().Padding(0.f, 4.f, 0.f, 0.f)
+            [ SNew(STextBlock).Font(Font("Bold", 15)).ColorAndOpacity(Cream).AutoWrapText(true).Text_Lambda(Str(&AMarketGameMode::ArrangeTitle)) ]
+            + SVerticalBox::Slot().AutoHeight().Padding(0.f, 4.f, 0.f, 4.f)
+            [ SNew(STextBlock).Font(Font("Regular", 9)).ColorAndOpacity(Muted).AutoWrapText(true).Text_Lambda(Str(&AMarketGameMode::ArrangeRow)) ]
+            + SVerticalBox::Slot().AutoHeight()
+            [ Bar([this] { const AMarketGameMode* G = Game.Get(); return G ? G->ArrangeRowFill : 0.f; }, Teal) ]
+            + SVerticalBox::Slot().AutoHeight().Padding(0.f, 14.f, 0.f, 0.f)
+            [ SNew(STextBlock).Font(Font("Bold", 12)).ColorAndOpacity(Honey).AutoWrapText(true).Text_Lambda(Str(&AMarketGameMode::ArrangeHandTitle)) ]
+            + SVerticalBox::Slot().AutoHeight().Padding(0.f, 3.f, 0.f, 0.f)
+            [ SNew(STextBlock).Font(Font("Regular", 10)).ColorAndOpacity(Cream).AutoWrapText(true).Text_Lambda(Str(&AMarketGameMode::ArrangeHandText)) ]
+            + SVerticalBox::Slot().AutoHeight().Padding(0.f, 12.f, 0.f, 0.f)
+            [
+                SNew(SVerticalBox)
+                .Visibility_Lambda([this] { const AMarketGameMode* G = Game.Get(); return G && !G->ArrangeTargetTitle.IsEmpty() ? EVisibility::HitTestInvisible : EVisibility::Collapsed; })
+                + SVerticalBox::Slot().AutoHeight()
+                [ SNew(STextBlock).Font(Font("Bold", 12)).ColorAndOpacity(FLinearColor(1.f, 0.72f, 0.20f)).AutoWrapText(true).Text_Lambda(Str(&AMarketGameMode::ArrangeTargetTitle)) ]
+                + SVerticalBox::Slot().AutoHeight().Padding(0.f, 3.f, 0.f, 0.f)
+                [ SNew(STextBlock).Font(Font("Regular", 10)).ColorAndOpacity(Cream).AutoWrapText(true).Text_Lambda(Str(&AMarketGameMode::ArrangeTargetText)) ]
+            ]
+            + SVerticalBox::Slot().AutoHeight().Padding(0.f, 12.f, 0.f, 0.f)
+            [
+                SNew(STextBlock).Font(Font("Bold", 11)).AutoWrapText(true).Text_Lambda(Str(&AMarketGameMode::ArrangeStatus))
+                .ColorAndOpacity_Lambda([this] { const AMarketGameMode* G = Game.Get(); return FSlateColor(G && G->bArrangeStatusOk ? Leaf : Coral); })
+            ]
+            + SVerticalBox::Slot().AutoHeight().Padding(0.f, 12.f, 0.f, 0.f)
+            [ SNew(STextBlock).Text(FText::FromString(TEXT("TU\u015eLAR"))).Font(Font("Bold", 8, 180)).ColorAndOpacity(Muted) ]
+            + SVerticalBox::Slot().AutoHeight().Padding(0.f, 4.f, 0.f, 0.f)
+            [ Keys ])
     ];
 }

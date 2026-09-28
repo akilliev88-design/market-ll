@@ -9,7 +9,6 @@ struct MIRASMARKET_API FPlanogramFixture
     FString EquipmentId = TEXT("gondola_double_1200");
     FString Label;
     FString Category;
-    FString Strategy = TEXT("manual");
     FVector Location = FVector::ZeroVector;
     float Yaw = 0.f;
 };
@@ -22,16 +21,20 @@ struct MIRASMARKET_API FPlanogramPlacement
     int32 Level = 0;
     int32 Facings = 2;
     int32 Depth = 3;
+    // Block centre along the shelf, fixture-local X in cm (0 = middle of the shelf). Schema v3 stores it
+    // for every block; blocks sit exactly where they were put and never move by themselves.
+    float XCm = 0.f;
+    bool bHasX = false;
+    // Extra free space this block keeps to its neighbours (0 = side by side with a tiny tolerance).
+    float GapCm = 0.f;
+    // Legacy (schema v1/v2): left-to-right order + fine offset of the old automatic packing. Only used
+    // once by ResolvePositions to turn old files into XCm; not written any more.
     int32 Order = 0;
-    // Fine placement along the shelf, measured from the automatically packed position. The editor
-    // changes this in 5 cm steps and rejects shelf-edge or neighbouring-block overlaps.
     float OffsetCm = 0.f;
     // 0 = front facing, 1 = quarter-turn on the shelf, 2 = laid on its side (boxes/bags only).
     int32 Orientation = 0;
     // Units vertically stacked at every facing/depth slot. Limited by package type and shelf clearance.
     int32 Stack = 1;
-    // Runtime-only extra block created by FillToCapacity on an empty level (never saved).
-    bool bExtra = false;
 };
 
 // Physical data of one fixture model. Lengths in cm, fixture local space: front customer face is -Y.
@@ -39,7 +42,8 @@ struct MIRASMARKET_API FPlanogramEquipment
 {
     FString Id;
     FString MeshPath;
-    float UsableWidthCm = 110.f;
+    // Full shelf board (Blender: 1.16 m). The uprights stand in the spine, not in front of the products.
+    float UsableWidthCm = 116.f;
     int32 Levels = 4;
     float LevelTopZ[8] = { 19.5f, 53.5f, 87.5f, 121.5f, 0.f, 0.f, 0.f, 0.f };
     // Unreal's FBX import mirrors Blender's Y axis: a kit authored with its front at Blender -Y faces +Y
@@ -60,32 +64,28 @@ struct MIRASMARKET_API FPlanogramEquipment
 struct MIRASMARKET_API FMarketPlanogram
 {
     TArray<FPlanogramFixture> Fixtures;
+    // Only what the author placed: one entry per product block. The same product may have any number of
+    // blocks (several places, several shelves). A catalog product without a block is "not on a shelf":
+    // the game gives it no shelf space and customers do not ask for it. Nothing is placed automatically.
     TArray<FPlanogramPlacement> Placements;
-    // When true the game widens every block to use the free width of its level and makes it as deep
-    // as the shelf allows ("put as many as fit"). Author facings then act as minimums; depth is physical.
-    bool bAutoFill = true;
 
     const FPlanogramFixture* FindFixture(const FString& Id) const;
     FPlanogramFixture* FindFixture(const FString& Id);
-    // Primary (authored) placement of a product. Extra runtime blocks are listed after it.
+    // First block of a product, or null when it is not on a shelf.
     const FPlanogramPlacement* FindPlacement(const FString& ProductId) const;
     FPlanogramPlacement* FindPlacement(const FString& ProductId);
 };
 
 namespace MarketPlanogram
 {
-    constexpr int32 SchemaVersion = 2;
-    constexpr float UsableWidthCm = 110.f;
-    constexpr float ShelfFrontY = -42.f;
-    constexpr float ShelfBaseZ = 19.5f;
-    constexpr float ShelfLevelStepZ = 34.f;
-    constexpr int32 LevelCount = 4;       // gondola default; use Equipment(...).Levels per fixture
+    constexpr int32 SchemaVersion = 3;
     constexpr int32 MaxLevels = 8;
-    constexpr float UsableDepthCm = 37.f;  // per customer face (equipment.json shelfZones depthMm 370)
     constexpr int32 MaxFacings = 30;
     constexpr int32 MaxDepth = 12;
-    constexpr float ItemGapCm = 2.f;     // between facings of the same product
-    constexpr float ProductGapCm = 3.f;  // between neighbouring product blocks
+    constexpr float ItemGapCm = 0.5f;    // side by side between facings of the same product
+    constexpr float RowGapCm = 2.f;      // front-to-back between depth rows
+    constexpr float ProductGapCm = 0.3f; // tolerance between neighbouring blocks (plus each block's GapCm)
+    constexpr float MaxBlockGapCm = 20.f;
 
     MIRASMARKET_API FString DefaultPath();
     // Known fixture models: gondola_double_1200, wall_shelf_2400. Unknown ids use gondola sizes
@@ -96,8 +96,6 @@ namespace MarketPlanogram
     MIRASMARKET_API FString Serialize(const FMarketPlanogram& Planogram);
     MIRASMARKET_API bool LoadFile(const FString& Path, FMarketPlanogram& OutPlanogram, TArray<FString>& OutErrors);
     MIRASMARKET_API bool SaveFile(const FString& Path, const FMarketPlanogram& Planogram, FString& OutError);
-    // Keeps author choices and assigns any new active catalog product to a suitable fixture.
-    MIRASMARKET_API void Reconcile(FMarketPlanogram& Planogram, const TArray<FMarketProduct>& Products);
     MIRASMARKET_API float NominalWidthCm(const FMarketProduct& Product);
     MIRASMARKET_API float NominalDepthCm(const FMarketProduct& Product);
     MIRASMARKET_API float NominalHeightCm(const FMarketProduct& Product);
@@ -106,36 +104,42 @@ namespace MarketPlanogram
     MIRASMARKET_API float OrientedHeightCm(const FMarketProduct& Product, int32 Orientation);
     MIRASMARKET_API bool CanLayOnSide(const FMarketProduct& Product);
     MIRASMARKET_API int32 MaxStackFor(const FMarketProduct& Product, int32 Orientation, float ClearanceCm);
-    // Rows of this product that fit front-to-back on one shelf face.
-    MIRASMARKET_API int32 DepthThatFits(const FMarketProduct& Product, float UsableDepth = UsableDepthCm);
-    // Shelf units of one placement (facings x depth).
+    // Rows of the block's package (in its orientation) that fit front-to-back on its shelf.
+    MIRASMARKET_API int32 PhysicalDepth(const FMarketPlanogram& Planogram, const FMarketProduct& Product, const FPlanogramPlacement& Placement);
+    // Shelf units of one placement (facings x depth x stack).
     MIRASMARKET_API int32 Capacity(const FPlanogramPlacement& Placement);
-    // Shelf units of a product over all its blocks (primary + extra).
-    MIRASMARKET_API int32 ProductCapacity(const FMarketPlanogram& Planogram, const FString& ProductId);
-    // "Put as many as fit". With bUseEmptyLevels, every empty level/face of a fixture first gets an extra
-    // block of a product that belongs there (placed on that fixture or same category). Then every block
-    // becomes as deep as the shelf and the free width of each level is shared as facings (fewest first).
-    // Never creates an overflow. Returns facings added.
-    MIRASMARKET_API int32 FillToCapacity(FMarketPlanogram& Planogram, const TArray<FMarketProduct>& Products, bool bUseEmptyLevels = true);
+    // Shelf units of a product (facings x depth x stack), stack limited to what the package and level
+    // clearance allow (what the game draws). 0 = not on a shelf.
+    MIRASMARKET_API int32 ProductCapacity(const FMarketPlanogram& Planogram, const TArray<FMarketProduct>& Products, const FString& ProductId);
+    // Stack that physically fits for this block (package type + level clearance).
+    MIRASMARKET_API int32 EffectiveStack(const FMarketPlanogram& Planogram, const FMarketProduct& Product, const FPlanogramPlacement& Placement);
+    // Depth is physical: every block is as many rows deep as the shelf holds for its package/orientation.
+    MIRASMARKET_API void FitDepth(FMarketPlanogram& Planogram, const TArray<FMarketProduct>& Products);
+    // Block centre (fixture-local X, cm). XCm for v3 blocks; legacy packing (order + offset) otherwise.
     MIRASMARKET_API float PlacementCenterX(const FMarketPlanogram& Planogram, const TArray<FMarketProduct>& Products, const FPlanogramPlacement& Placement);
+    // Old files: gives every block without XCm the position the old packing showed. Call after loading.
+    MIRASMARKET_API void ResolvePositions(FMarketPlanogram& Planogram, const TArray<FMarketProduct>& Products);
+    // Blocks of one shelf row (fixture + face + level) as indices into Placements, left to right.
+    MIRASMARKET_API TArray<int32> RowBlocks(const FMarketPlanogram& Planogram, const TArray<FMarketProduct>& Products,
+        const FString& FixtureId, const FString& Face, int32 Level);
+    // Block under X on that row (within ToleranceCm of its edges), or INDEX_NONE.
+    MIRASMARKET_API int32 BlockAt(const FMarketPlanogram& Planogram, const TArray<FMarketProduct>& Products,
+        const FString& FixtureId, const FString& Face, int32 Level, float X, float ToleranceCm = 0.f);
+    // Nearest centre to DesiredX where a block WidthCm wide sits on the shelf without touching another block
+    // (IgnoreIndex = the block being moved). Snaps to shelf edges and neighbour edges. False = no gap wide enough.
+    MIRASMARKET_API bool FindFreeX(const FMarketPlanogram& Planogram, const TArray<FMarketProduct>& Products,
+        const FString& FixtureId, const FString& Face, int32 Level, float WidthCm, float DesiredX, int32 IgnoreIndex, float& OutX, float GapCm = 0.f);
+    // Widest free gap on a row (cm), for messages.
+    MIRASMARKET_API float WidestGapCm(const FMarketPlanogram& Planogram, const TArray<FMarketProduct>& Products,
+        const FString& FixtureId, const FString& Face, int32 Level, int32 IgnoreIndex = INDEX_NONE);
+    // Block Index is on an existing level/face, inside the shelf and clear of every other block.
+    MIRASMARKET_API bool BlockFits(const FMarketPlanogram& Planogram, const TArray<FMarketProduct>& Products, int32 Index, FString* OutReason = nullptr);
 
-    // Width rules. A level is one fixture + face + shelf level; its blocks must fit in the equipment width.
-    MIRASMARKET_API bool IsDoubleSided(const FPlanogramFixture& Fixture);
-    MIRASMARKET_API float BlockWidthCm(const FMarketProduct& Product, int32 Facings);
+    // Width of a block: facings x oriented package width + the small gap between facings.
     MIRASMARKET_API float BlockWidthCm(const FMarketProduct& Product, const FPlanogramPlacement& Placement);
-    // Used width of a level (blocks + gaps). IgnoreProductId leaves one product out (for "what if" checks).
+    // Used width of a level (blocks + tolerance between them).
     MIRASMARKET_API float LevelUsedWidthCm(const FMarketPlanogram& Planogram, const TArray<FMarketProduct>& Products,
-        const FString& FixtureId, const FString& Face, int32 Level, const FString& IgnoreProductId = FString());
-    // Would ProductId with Facings fit on this level (its own current block is ignored)?
-    MIRASMARKET_API bool FitsOnLevel(const FMarketPlanogram& Planogram, const TArray<FMarketProduct>& Products,
-        const FString& FixtureId, const FString& Face, int32 Level, const FString& ProductId, int32 Facings, float* OutWidthCm = nullptr);
-    // Finds a level/face on Fixture where the product fits; tries Facings first, then fewer facings down to 1.
-    // Returns false (and leaves Placement unchanged) when no level has room.
-    MIRASMARKET_API bool PlaceOnFixture(const FMarketPlanogram& Planogram, const TArray<FMarketProduct>& Products,
-        const FPlanogramFixture& Fixture, FPlanogramPlacement& Placement, int32 PreferredLevel = 0);
+        const FString& FixtureId, const FString& Face, int32 Level);
     // Human readable warning per overflowing level (ASCII). Empty = everything fits.
     MIRASMARKET_API void FindOverflows(const FMarketPlanogram& Planogram, const TArray<FMarketProduct>& Products, TArray<FString>& OutWarnings);
-    // Tests a fine-position edit against the shelf edges and other blocks on the same level.
-    MIRASMARKET_API bool CanSetOffset(const FMarketPlanogram& Planogram, const TArray<FMarketProduct>& Products,
-        const FPlanogramPlacement& Placement, float NewOffsetCm, FString* OutReason = nullptr);
 }

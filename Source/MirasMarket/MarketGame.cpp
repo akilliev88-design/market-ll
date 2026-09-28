@@ -23,22 +23,11 @@
 #include "Misc/Paths.h"
 #include "Misc/CommandLine.h"
 #include "Misc/Parse.h"
-#if WITH_EDITOR
-#include "ShaderCompiler.h"
-#endif
 
 namespace
 {
-    FString Money(int64 Value) { return FString::Printf(TEXT("%.2f TL"), Value / 100.0); }
-    // World-space text uses a distance-field font without Turkish glyphs: fold to ASCII there.
-    FString AsciiFold(const FString& In)
-    {
-        FString Out = In;
-        const TCHAR* From[] = { TEXT("\u00e7"), TEXT("\u00c7"), TEXT("\u011f"), TEXT("\u011e"), TEXT("\u0131"), TEXT("\u0130"), TEXT("\u00f6"), TEXT("\u00d6"), TEXT("\u015f"), TEXT("\u015e"), TEXT("\u00fc"), TEXT("\u00dc"), TEXT("\u00e2"), TEXT("\u00ee"), TEXT("\u00fb") };
-        const TCHAR* To[] = { TEXT("c"), TEXT("C"), TEXT("g"), TEXT("G"), TEXT("i"), TEXT("I"), TEXT("o"), TEXT("O"), TEXT("s"), TEXT("S"), TEXT("u"), TEXT("U"), TEXT("a"), TEXT("i"), TEXT("u") };
-        for (int32 I = 0; I < UE_ARRAY_COUNT(From); ++I) Out.ReplaceInline(From[I], To[I], ESearchCase::CaseSensitive);
-        return Out;
-    }
+    // Price tags and notices: "2.40 TL".
+    FString Money(int64 Value) { return MarketCatalog::Money(Value) + TEXT(" TL"); }
     AMarketGameMode* GetMarket(const AActor* Actor) { return Cast<AMarketGameMode>(UGameplayStatics::GetGameMode(Actor)); }
     const TCHAR* MarketSaveSlot()
     {
@@ -84,7 +73,15 @@ void AMarketCharacter::SetupPlayerInputComponent(UInputComponent* Input)
     Input->BindAction("Mood", IE_Pressed, this, &AMarketCharacter::NextMood);
     Input->BindAction("Fullscreen", IE_Pressed, this, &AMarketCharacter::ToggleFullscreen);
     Input->BindAction("Quit", IE_Pressed, this, &AMarketCharacter::Quit);
+    // Shelf arranging (R) and product browsing: every key forwards its action name to the game mode.
+    static const TCHAR* Forwarded[] = { TEXT("Arrange"), TEXT("ArrangePlace"), TEXT("ArrangeUp"), TEXT("ArrangeDown"), TEXT("ArrangeLeft"),
+        TEXT("ArrangeRight"), TEXT("ArrangeRemove"), TEXT("ArrangeTurn"), TEXT("ArrangeStack"), TEXT("ArrangeGrab"), TEXT("ArrangePick"),
+        TEXT("ArrangeNext"), TEXT("ArrangePrev"), TEXT("ArrangeGapDown"), TEXT("ArrangeGapUp"), TEXT("PrevProduct"),
+        TEXT("HireStocker"), TEXT("FireStocker") };
+    for (const TCHAR* Name : Forwarded)
+        Input->BindAction<FMarketCommandDelegate>(FName(Name), IE_Pressed, this, &AMarketCharacter::SendCommand, FName(Name));
 }
+void AMarketCharacter::SendCommand(FName Action) { if (auto* Game = GetMarket(this)) Game->Command(Action); }
 void AMarketCharacter::Forward(float Value) { AddMovementInput(GetActorForwardVector(), Value); }
 void AMarketCharacter::Right(float Value) { AddMovementInput(GetActorRightVector(), Value); }
 void AMarketCharacter::Turn(float Value) { AddControllerYawInput(Value); }
@@ -140,8 +137,8 @@ void AMarketGameMode::BeginPlay()
         if (People.Idle.IsValid()) PeopleAssets.Add(People.Idle.Get());
     }
     bTestMode = bTestModeAtStart && !FParse::Param(FCommandLine::Get(), TEXT("MirasSmoke"));
-    // The inherited shop opens with every shelf block stocked, in test mode and in normal play alike.
-    FillAllShelves();
+    // Opening inventory waits in the warehouse. Test mode keeps free stocking controls, but the player
+    // still starts by experiencing the empty shop and choosing what to place on the shelves.
     BuildStore();
     if (auto* PC = UGameplayStatics::GetPlayerController(this, 0))
     {
@@ -153,7 +150,7 @@ void AMarketGameMode::BeginPlay()
     Random.Initialize(2011);
     RefreshLabels();
     Notify(bTestMode
-        ? FString(TEXT("TEST MODU: raflar dolu. E rafi bedava doldurur, F3 hepsini doldurur, F2 kapatir. O ile ac."))
+        ? FString(TEXT("TEST MODU: raflar bos. E rafi bedava doldurur, F3 hepsini doldurur, F2 kapatir. O ile ac."))
         : FString(TEXT("2011, Luleburgaz. Ailenden kalan market senin. Raflara yaklas: E. Sonra O ile ac.")));
     UE_LOG(LogTemp, Display, TEXT("MirasMarket ready: %d products, %d fixtures, starting cash %lld kurus."), Products.Num(), Planogram.Fixtures.Num(), State.Cash);
 }
@@ -181,9 +178,10 @@ void AMarketGameMode::LoadPlanogram()
 {
     TArray<FString> Errors;
     MarketPlanogram::LoadFile(MarketPlanogram::DefaultPath(), Planogram, Errors);
-    MarketPlanogram::Reconcile(Planogram, Products);
-    // "As many as fit": every block uses its level's free width and the full shelf depth.
-    if (Planogram.bAutoFill) MarketPlanogram::FillToCapacity(Planogram, Products, true);
+    // The shelves show exactly the authored plan (Raf Plani editor or in-game R mode). Products that are
+    // not placed are not on sale; nothing is placed or widened automatically. Only depth is physical.
+    MarketPlanogram::ResolvePositions(Planogram, Products); // old files: keep what the old packing showed
+    MarketPlanogram::FitDepth(Planogram, Products);
     MarketPlanogram::FindOverflows(Planogram, Products, Errors);
     for (const FString& Error : Errors) UE_LOG(LogTemp, Warning, TEXT("MirasMarket planogram: %s"), *Error);
     float FurthestY = 320.f;
@@ -196,8 +194,8 @@ void AMarketGameMode::ApplyCapacities()
     TArray<int32> Capacities;
     for (const FMarketProduct& Product : Products)
     {
-        const int32 Capacity = MarketPlanogram::ProductCapacity(Planogram, Product.Id);
-        Capacities.Add(Capacity > 0 ? Capacity : FMarketState::DefaultShelfCapacity);
+        // 0 = not on a shelf: no shelf stock, customers do not ask for it (units wait in the warehouse).
+        Capacities.Add(MarketPlanogram::ProductCapacity(Planogram, Products, Product.Id));
     }
     const int32 Discarded = State.ApplyShelfCapacities(Capacities);
     if (Discarded > 0) UE_LOG(LogTemp, Warning, TEXT("MirasMarket: %d units did not fit shelf + storage after a planogram change."), Discarded);
@@ -362,9 +360,10 @@ void AMarketGameMode::BuildStore()
     }
     else Label(BulkLocation + FVector(0, -54, 157), FRotator(0, -90, 0), TEXT("KURUYEMIS  /  LOKUM"), 13, FColor(255, 225, 165));
     const TCHAR* CeilingPath = TEXT("/Game/Environment/StoreKit/CeilingBay_6000/SM_CeilingBay_6000.SM_CeilingBay_6000");
+    bool bCeilingKitLoaded = false;
     for (float X : { -300.f, 300.f })
         for (float Y : { 200.f, 800.f })
-            SpawnKit(CeilingPath, FVector(X, Y, 343), FRotator::ZeroRotator, false);
+            bCeilingKitLoaded |= SpawnKit(CeilingPath, FVector(X, Y, 343), FRotator::ZeroRotator, false) != nullptr;
 
     for (const FPlanogramFixture& Fixture : Planogram.Fixtures)
     {
@@ -378,7 +377,7 @@ void AMarketGameMode::BuildStore()
             SurfaceBox(P + FVector(-58, -7, 67), FVector(5, 76, 134), EMarketSurface::ShelfMetal);
             SurfaceBox(P + FVector(58, -7, 67), FVector(5, 76, 134), EMarketSurface::ShelfMetal);
             SurfaceBox(P + FVector(0, -7, 10), FVector(120, 78, 20), EMarketSurface::WoodLight);
-            for (int32 Level = 0; Level < MarketPlanogram::LevelCount; ++Level)
+            for (int32 Level = 0; Level < Spec.Levels; ++Level)
             {
                 const float Z = 18 + Level * 34;
                 SurfaceBox(P + FVector(0, -8, Z), FVector(120, 80, 3), EMarketSurface::ShelfMetal);
@@ -386,7 +385,7 @@ void AMarketGameMode::BuildStore()
             }
         }
         // Category sign: on top of a gondola (readable from both aisles) or on a wall shelf's header.
-        const FString SignText = AsciiFold(Fixture.Label).ToUpper();
+        const FString SignText = MarketCatalog::FoldTurkish(Fixture.Label).ToUpper();
         if (Spec.bSignOnTop)
         {
             auto* Sign = SurfaceBox(FixtureXf.TransformPosition(FVector(0, 0, Spec.SignZ)), FVector(Spec.SignWidthCm, 2.5f, 22), EMarketSurface::SignRed, false);
@@ -402,6 +401,58 @@ void AMarketGameMode::BuildStore()
             Label(FixtureXf.TransformPosition(FVector(0, Spec.SignY - 1.4f, Spec.SignZ)), FixtureRotation + FRotator(0, -90.f, 0), SignText, 10, FColor::White, true)->SetCullDistance(2000);
         }
     }
+    BuildShelfContents();
+    // Detailed Blender fixtures replace the old blockouts while keeping interaction coordinates stable.
+    if (!SpawnKit(TEXT("/Game/Environment/StoreKit/CheckoutLane_2500/SM_CheckoutLane_2500.SM_CheckoutLane_2500"), FVector(405, -45, 0), FRotator(0, 180, 0), true))
+    {
+        SurfaceBox(FVector(405, -45, 45), FVector(230, 90, 90), EMarketSurface::Wood);
+        SurfaceBox(FVector(405, -45, 91.5f), FVector(236, 96, 3), EMarketSurface::CounterTop);
+        SurfaceBox(FVector(445, -40, 98), FVector(36, 32, 10), EMarketSurface::DarkMetal);
+    }
+    Label(FVector(405, -105, 185), FRotator(0, -90, 0), TEXT("KASA  [E]"), 24);
+    if (!SpawnKit(TEXT("/Game/Environment/StoreKit/OfficeDesk_1800/SM_OfficeDesk_1800.SM_OfficeDesk_1800"), FVector(-430, -30, 0), FRotator(0, 180, 0), true))
+    {
+        SurfaceBox(FVector(-430, -30, 42), FVector(210, 90, 84), EMarketSurface::Wood);
+        SurfaceBox(FVector(-430, -30, 85.5f), FVector(214, 94, 3), EMarketSurface::CounterTop);
+    }
+    Label(FVector(-430, -85, 188), FRotator(0, -90, 0), TEXT("YONETIM MASASI"), 18);
+    // A working local market needs cold storage and a fresh-produce focal point, not only dry shelves.
+    if (SpawnKit(TEXT("/Game/Environment/StoreKit/RefrigeratedWall_3000/SM_RefrigeratedWall_3000.SM_RefrigeratedWall_3000"), FVector(0, Back - 43, 0), FRotator(0, 180, 0), true))
+        Label(FVector(0, Back - 88, 245), FRotator(0, -90, 0), TEXT("SOGUK URUNLER"), 16, FColor::White, true);
+    if (SpawnKit(TEXT("/Game/Environment/StoreKit/ProduceIsland_2400/SM_ProduceIsland_2400.SM_ProduceIsland_2400"), FVector(350, Back - 190, 0), FRotator(0, 180, 0), true))
+        Label(FVector(350, Back - 255, 152), FRotator(0, -90, 0), TEXT("MANAV"), 15, FColor(255, 238, 208), true);
+    // Depot: stacked cartons of different sizes, slightly turned.
+    for (int32 I = 0; I < 6; ++I)
+    {
+        if (I == 2 || I == 3) continue; // the rear refrigerator occupies the central depot wall
+        FRandomStream Stack(301 + I);
+        const FVector Base(-480 + I * 190, Back - 90, 0);
+        const int32 Height = Stack.RandRange(1, 3);
+        float Z = 0;
+        for (int32 K = 0; K < Height; ++K)
+        {
+            const FVector Size(Stack.FRandRange(50, 72), Stack.FRandRange(40, 60), Stack.FRandRange(28, 45));
+            auto* Carton = SurfaceBox(Base + FVector(Stack.FRandRange(-6, 6), Stack.FRandRange(-6, 6), Z + Size.Z * 0.5f), Size, EMarketSurface::Cardboard);
+            Carton->SetActorRotation(FRotator(0, Stack.FRandRange(-8, 8), 0));
+            Z += Size.Z;
+        }
+    }
+    Label(FVector(-430, Back - 30, 140), FRotator(0, -90, 0), TEXT("DEPO"), 20);
+    if (!bCeilingKitLoaded)
+        for (float Y = 40.f; Y < Back; Y += 320.f)
+        {
+            SurfaceBox(FVector(0.f, Y, 337.f), FVector(1250.f, 10.f, 12.f), EMarketSurface::CeilingSteel, false);
+            SurfaceBox(FVector(-300.f, Y, 329.f), FVector(290.f, 22.f, 3.f), EMarketSurface::Emissive, false);
+            SurfaceBox(FVector(300.f, Y, 329.f), FVector(290.f, 22.f, 3.f), EMarketSurface::Emissive, false);
+        }
+    Lighting = MarketVisuals::BuildStoreLighting(GetWorld(), Back);
+    MarketVisuals::ApplyMood(Lighting, Mood);
+}
+
+void AMarketGameMode::BuildShelfContents()
+{
+    // Everything that depends on the planogram (stock meshes, price cards) is tracked in
+    // ShelfContentActors so the in-game arrange mode can rebuild it after every change.
     for (int32 I = 0; I < Products.Num(); ++I)
     {
         BuildShelfItems(I);
@@ -422,68 +473,27 @@ void AMarketGameMode::BuildStore()
             const FVector TagLocal(CenterX, FaceSign * (Spec.RailFrontY[Level] + 0.25f), RailZ);
             auto* Tag = SurfaceBox(FixtureXf.TransformPosition(TagLocal), FVector(9.f, 0.5f, 5.f), EMarketSurface::TagWhite, false);
             Tag->SetActorRotation(FixtureRotation);
+            ShelfContentActors.Add(Tag);
             auto* Price = Label(FixtureXf.TransformPosition(TagLocal + FVector(0, FaceSign * 0.4f, 0)), FixtureRotation + FRotator(0, bBack ? 90.f : -90.f, 0),
                 Money(State.Stock[I].Price), 2.0f, FColor(25, 22, 20), true);
             Price->SetCullDistance(900);
+            ShelfContentActors.Add(Price->GetOwner());
             ShelfLabels.Add(Price);
             ShelfLabelProduct.Add(I);
         }
     }
-    // Checkout counter and office desk in walnut with dark tops; depot cartons.
-    // Real-world proportions (a till, a thin monitor on a stand, a keyboard) instead of one big dark box.
-    SurfaceBox(FVector(405, -45, 45), FVector(230, 90, 90), EMarketSurface::Wood);
-    SurfaceBox(FVector(405, -45, 91.5f), FVector(236, 96, 3), EMarketSurface::CounterTop);
-    SurfaceBox(FVector(405, -92, 8), FVector(232, 4, 16), EMarketSurface::DarkMetal, false);          // toe kick
-    SurfaceBox(FVector(445, -40, 98), FVector(36, 32, 10), EMarketSurface::DarkMetal);               // till drawer
-    SurfaceBox(FVector(445, -30, 106), FVector(6, 6, 12), EMarketSurface::DarkMetal, false);          // screen post
-    SurfaceBox(FVector(445, -30, 120), FVector(28, 2.5f, 20), EMarketSurface::DarkMetal, false);      // till screen
-    SurfaceBox(FVector(380, -60, 94), FVector(30, 30, 1), EMarketSurface::DarkMetal, false);          // scale plate
-    Label(FVector(405, -105, 185), FRotator(0, -90, 0), TEXT("KASA  [E]"), 24);
-    SurfaceBox(FVector(-430, -30, 42), FVector(210, 90, 84), EMarketSurface::Wood);
-    SurfaceBox(FVector(-430, -30, 85.5f), FVector(214, 94, 3), EMarketSurface::CounterTop);
-    SurfaceBox(FVector(-430, -8, 88), FVector(20, 14, 2), EMarketSurface::DarkMetal, false);          // monitor foot
-    SurfaceBox(FVector(-430, -6, 96), FVector(4, 3, 16), EMarketSurface::DarkMetal, false);           // monitor neck
-    SurfaceBox(FVector(-430, -8, 115), FVector(54, 2.5f, 32), EMarketSurface::DarkMetal, false);      // monitor
-    SurfaceBox(FVector(-430, -45, 87.5f), FVector(40, 13, 1.5f), EMarketSurface::DarkMetal, false);   // keyboard
-    SurfaceBox(FVector(-470, -50, 88), FVector(21, 29.7f, 1), EMarketSurface::TagWhite, false);      // papers
-    Label(FVector(-430, -85, 188), FRotator(0, -90, 0), TEXT("YONETIM MASASI"), 18);
-    // Depot: stacked cartons of different sizes, slightly turned.
-    for (int32 I = 0; I < 6; ++I)
-    {
-        FRandomStream Stack(301 + I);
-        const FVector Base(-480 + I * 190, Back - 90, 0);
-        const int32 Height = Stack.RandRange(1, 3);
-        float Z = 0;
-        for (int32 K = 0; K < Height; ++K)
-        {
-            const FVector Size(Stack.FRandRange(50, 72), Stack.FRandRange(40, 60), Stack.FRandRange(28, 45));
-            auto* Carton = SurfaceBox(Base + FVector(Stack.FRandRange(-6, 6), Stack.FRandRange(-6, 6), Z + Size.Z * 0.5f), Size, EMarketSurface::Cardboard);
-            Carton->SetActorRotation(FRotator(0, Stack.FRandRange(-8, 8), 0));
-            Z += Size.Z;
-        }
-    }
-    Label(FVector(0, Back - 30, 140), FRotator(0, -90, 0), TEXT("DEPO"), 20);
-    for (float Y = 40.f; Y < Back; Y += 320.f)
-    {
-        SurfaceBox(FVector(0.f, Y, 337.f), FVector(1250.f, 10.f, 12.f), EMarketSurface::CeilingSteel, false);
-        SurfaceBox(FVector(-300.f, Y, 329.f), FVector(290.f, 22.f, 3.f), EMarketSurface::Emissive, false);
-        SurfaceBox(FVector(300.f, Y, 329.f), FVector(290.f, 22.f, 3.f), EMarketSurface::Emissive, false);
-    }
-    Lighting = MarketVisuals::BuildStoreLighting(GetWorld(), Back);
-    MarketVisuals::ApplyMood(Lighting, Mood);
 }
 
-void AMarketGameMode::BuildShelfItems(int32 Index)
+FProductLook AMarketGameMode::LoadProductLook(int32 Index)
 {
-    // One visible unit per shelf slot (facings x depth = capacity). Studio products use their real
-    // package mesh + label material; others fall back to colored prototype boxes.
+    // Studio products use their real package mesh + label material; others fall back to colored prototype boxes.
     const FMarketProduct& Product = Products[Index];
-    UStaticMesh* Mesh = nullptr;
-    TArray<UMaterialInterface*> SlotMaterials;
+    FProductLook Look;
+    TArray<UMaterialInterface*>& SlotMaterials = Look.Materials;
     if (!Product.MeshPath.IsEmpty())
     {
-        Mesh = LoadObject<UStaticMesh>(nullptr, *Product.MeshPath);
-        if (!Mesh) UE_LOG(LogTemp, Warning, TEXT("MirasMarket: package mesh missing for %s: %s"), *Product.Id, *Product.MeshPath);
+        Look.Mesh = LoadObject<UStaticMesh>(nullptr, *Product.MeshPath);
+        if (!Look.Mesh) UE_LOG(LogTemp, Warning, TEXT("MirasMarket: package mesh missing for %s: %s"), *Product.Id, *Product.MeshPath);
         for (const FString& Path : Product.Materials)
         {
             UMaterialInterface* Slot = Path.IsEmpty() ? nullptr : LoadObject<UMaterialInterface>(nullptr, *Path);
@@ -491,16 +501,12 @@ void AMarketGameMode::BuildShelfItems(int32 Index)
             SlotMaterials.Add(Slot);
         }
     }
-    FVector ItemScale(1);
-    FRotator ModelRotation = FRotator::ZeroRotator;
-    FVector PlacementOffset = FVector::ZeroVector;
-    FBox SourceBounds(FVector(-50), FVector(50));
-    if (Mesh)
+    if (UStaticMesh* Mesh = Look.Mesh)
     {
-        SourceBounds = Mesh->GetBoundingBox();
-        ItemScale = FVector(FMath::Clamp(Product.VisualScale, 0.001f, 1000.f));
-        ModelRotation = Product.VisualRotation;
-        PlacementOffset = Product.VisualOffsetCm;
+        Look.SourceBounds = Mesh->GetBoundingBox();
+        Look.ItemScale = FVector(FMath::Clamp(Product.VisualScale, 0.001f, 1000.f));
+        Look.ModelRotation = Product.VisualRotation;
+        Look.PlacementOffset = Product.VisualOffsetCm;
         const int32 MaterialCount = FMath::Max(Mesh->GetStaticMaterials().Num(), SlotMaterials.Num());
         SlotMaterials.SetNum(MaterialCount);
         for (int32 MaterialSlot = 0; MaterialSlot < MaterialCount; ++MaterialSlot)
@@ -515,20 +521,91 @@ void AMarketGameMode::BuildShelfItems(int32 Index)
     }
     else
     {
-        Mesh = Cube;
-        ItemScale = FVector(.25f, .21f, .30f); // depth, width, height of the v0.1 placeholder boxes
+        Look.Mesh = Cube;
+        Look.ItemScale = FVector(.25f, .21f, .30f); // depth, width, height of the v0.1 placeholder boxes
         auto* Base = LoadObject<UMaterialInterface>(nullptr, TEXT("/Game/Materials/M_Market.M_Market"));
         if (!Base) Base = LoadObject<UMaterialInterface>(nullptr, TEXT("/Engine/BasicShapes/BasicShapeMaterial.BasicShapeMaterial"));
         auto* Colored = UMaterialInstanceDynamic::Create(Base, this);
         Colored->SetVectorParameterValue(TEXT("Color"), FLinearColor(Product.Color));
         SlotMaterials = { Colored };
     }
-    const float Gap = 2;
+    return Look;
+}
+
+void AMarketGameMode::BlockSlotTransforms(const FProductLook& Look, const FMarketProduct& Product, const FPlanogramPlacement& Placement,
+    float CenterX, int32 SeedBase, int32 SeqStart, bool bFrontRowOnly, TArray<FTransform>& OutTransforms, TArray<int32>* OutRows, FVector* OutApproach) const
+{
+    const FPlanogramFixture* Fixture = Planogram.FindFixture(Placement.FixtureId);
+    if (!Fixture) return;
+    const float Gap = MarketPlanogram::ItemGapCm;     // side by side
+    const float RowGap = MarketPlanogram::RowGapCm;  // front to back
+    const FPlanogramEquipment Spec = MarketPlanogram::Equipment(Fixture->EquipmentId);
+    const int32 Level = FMath::Clamp(Placement.Level, 0, Spec.Levels - 1);
+    const int32 Columns = FMath::Clamp(Placement.Facings, 1, MarketPlanogram::MaxFacings);
+    const FRotator DisplayRotation = Placement.Orientation == 1 ? FRotator(0.f, 90.f, 0.f)
+        : (Placement.Orientation == 2 ? FRotator(0.f, 0.f, 90.f) : FRotator::ZeroRotator);
+    const FQuat DisplayModelRotation = DisplayRotation.Quaternion() * Look.ModelRotation.Quaternion();
+    const FBox Bounds = Look.SourceBounds.TransformBy(FTransform(DisplayModelRotation, FVector::ZeroVector, Look.ItemScale));
+    const FVector Size = Bounds.GetSize();   // after authored orientation: X = depth, Y = width, Z = height
+    const FVector Center = Bounds.GetCenter();
+    const float Bottom = Bounds.Min.Z;
+    const FVector BoundsCenterOffset(Center.X, Center.Y, 0);
+    // Never draw rows past the shelf's usable depth, even if the mesh is deeper than the catalog says.
+    const int32 RowsByMesh = FMath::Max(1, FMath::FloorToInt((Spec.UsableDepthCm + RowGap) / FMath::Max(1.f, Size.X + RowGap)));
+    const int32 Rows = bFrontRowOnly ? 1 : FMath::Clamp(FMath::Min(Placement.Depth, RowsByMesh), 1, MarketPlanogram::MaxDepth);
+    const bool bBack = Placement.Face == TEXT("back");
+    const float FaceSign = bBack ? 1.f : -1.f;
+    const FTransform FixtureXf(FRotator(0, Fixture->Yaw, 0), Fixture->Location);
+    const FRotator Facing(0, bBack ? 90.f : -90.f, 0);
+    const float Front = bBack ? -Spec.FrontY : Spec.FrontY;
+    const FVector BoundsOffset = Facing.RotateVector(BoundsCenterOffset) + FVector(0, 0, Bottom);
+    const FVector CorrectedOffset = Facing.RotateVector(Look.PlacementOffset);
+    const FQuat FinalRotation = Facing.Quaternion() * DisplayModelRotation;
+    const int32 Stacks = MarketPlanogram::EffectiveStack(Planogram, Product, Placement); // same rule as capacity
+    // Facings sit one catalog width apart (the width the planogram reserves), or the mesh width if it is wider.
+    const float Pitch = FMath::Max(Size.Y, MarketPlanogram::OrientedWidthCm(Product, Placement.Orientation)) + Gap;
+    // Every facing column, centre out (a partly sold block still looks faced up). The old stepping lost the
+    // last column of even facing counts, so a 2-facing block showed one unit on twice the reserved width.
+    TArray<int32> ColumnOrder;
+    for (int32 Column = 0; Column < Columns; ++Column) ColumnOrder.Add(Column);
+    const float Middle = (Columns - 1) * 0.5f;
+    ColumnOrder.StableSort([Middle](int32 A, int32 B) { return FMath::Abs(A - Middle) < FMath::Abs(B - Middle); });
+    int32 Seq = SeqStart;
+    for (int32 Row = 0; Row < Rows; ++Row)
+        for (const int32 Col : ColumnOrder)
+            for (int32 StackIndex = 0; StackIndex < Stacks; ++StackIndex)
+            {
+                const FVector SlotLocal(CenterX + (Col - (Columns - 1) * 0.5f) * Pitch,
+                    Front - FaceSign * (Size.X * 0.5f + Row * (Size.X + RowGap)),
+                    Spec.LevelTopZ[Level] + StackIndex * (Size.Z + .6f));
+                // Hand-stocked look: each unit sits a little off the grid and turned a few degrees.
+                // Stacked units keep a smaller turn so the pile remains physically believable.
+                FRandomStream Hand(SeedBase + Seq * 131 + 17);
+                const float Nudge = FMath::Min(Gap * (StackIndex == 0 ? .45f : .20f), StackIndex == 0 ? .9f : .4f);
+                const FVector Jitter(Hand.FRandRange(-Nudge, Nudge), -FaceSign * Hand.FRandRange(0.f, Row == 0 ? 2.5f : 1.f), 0.f);
+                const float MaxTurn = StackIndex == 0 ? 4.f : 1.5f;
+                const FQuat Turn(FVector::UpVector, FMath::DegreesToRadians(Hand.FRandRange(-MaxTurn, MaxTurn)));
+                const FTransform Local(Turn * FinalRotation, SlotLocal + Jitter - BoundsOffset + CorrectedOffset, Look.ItemScale);
+                OutTransforms.Add(Local * FixtureXf);
+                if (OutRows) OutRows->Add(Row);
+                ++Seq;
+            }
+    if (OutApproach) *OutApproach = BlockApproachSpot(Placement, CenterX);
+}
+
+void AMarketGameMode::BuildShelfItems(int32 Index)
+{
+    // One visible unit per shelf slot (facings x depth x stack = capacity) over every block of the product.
+    const FMarketProduct& Product = Products[Index];
+    const FProductLook Look = LoadProductLook(Index);
+    UStaticMesh* Mesh = Look.Mesh;
+    const TArray<UMaterialInterface*>& SlotMaterials = Look.Materials;
     TArray<FTransform>& Slots = ShelfSlots.AddDefaulted_GetRef();
     TArray<FVector>& Approach = ShelfApproach.AddDefaulted_GetRef();
-    // All units of a product share one instanced mesh; slots are ordered primary block first,
-    // front row first, center-out, so a partly sold shelf still looks faced up.
+    // All units of a product share one instanced mesh; slots are ordered front row first, center-out,
+    // so a partly sold shelf still looks faced up.
     AActor* Holder = GetWorld()->SpawnActor<AActor>(FVector::ZeroVector, FRotator::ZeroRotator);
+    ShelfContentActors.Add(Holder);
     auto* Root = NewObject<USceneComponent>(Holder);
     Holder->SetRootComponent(Root);
     Root->RegisterComponent();
@@ -563,61 +640,14 @@ void AMarketGameMode::BuildShelfItems(int32 Index)
     TArray<FSlot> Ordered;
     for (const FPlanogramPlacement& Placement : Planogram.Placements)
     {
-        if (Placement.ProductId != Product.Id) continue;
-        const FPlanogramFixture* Fixture = Planogram.FindFixture(Placement.FixtureId);
-        if (!Fixture) continue;
-        const FPlanogramEquipment Spec = MarketPlanogram::Equipment(Fixture->EquipmentId);
-        const int32 Level = FMath::Clamp(Placement.Level, 0, Spec.Levels - 1);
-        const int32 Columns = FMath::Clamp(Placement.Facings, 1, MarketPlanogram::MaxFacings);
-        const FRotator DisplayRotation = Placement.Orientation == 1 ? FRotator(0.f, 90.f, 0.f)
-            : (Placement.Orientation == 2 ? FRotator(0.f, 0.f, 90.f) : FRotator::ZeroRotator);
-        const FQuat DisplayModelRotation = DisplayRotation.Quaternion() * ModelRotation.Quaternion();
-        const FBox Bounds = SourceBounds.TransformBy(FTransform(DisplayModelRotation, FVector::ZeroVector, ItemScale));
-        const FVector Size = Bounds.GetSize();   // after authored orientation: X = depth, Y = width, Z = height
-        const FVector Center = Bounds.GetCenter();
-        const float Bottom = Bounds.Min.Z;
-        const FVector BoundsCenterOffset(Center.X, Center.Y, 0);
-        // Never draw rows past the shelf's usable depth, even if the mesh is deeper than the catalog says.
-        const int32 RowsByMesh = FMath::Max(1, FMath::FloorToInt((Spec.UsableDepthCm + Gap) / FMath::Max(1.f, Size.X + Gap)));
-        const int32 Rows = FMath::Clamp(FMath::Min(Placement.Depth, RowsByMesh), 1, MarketPlanogram::MaxDepth);
-        const bool bBack = Placement.Face == TEXT("back");
-        const float FaceSign = bBack ? 1.f : -1.f;
-        const FRotator FixtureRotation(0, Fixture->Yaw, 0);
-        const FTransform FixtureXf(FixtureRotation, Fixture->Location);
-        const FRotator Facing(0, bBack ? 90.f : -90.f, 0);
-        const float GroupCenterX = MarketPlanogram::PlacementCenterX(Planogram, Products, Placement);
-        const float Front = bBack ? -Spec.FrontY : Spec.FrontY;
-        const FVector BoundsOffset = Facing.RotateVector(BoundsCenterOffset) + FVector(0, 0, Bottom);
-        const FVector CorrectedOffset = Facing.RotateVector(PlacementOffset);
-        const FQuat FinalRotation = Facing.Quaternion() * DisplayModelRotation;
-        const int32 Stacks = FMath::Clamp(Placement.Stack, 1,
-            MarketPlanogram::MaxStackFor(Product, Placement.Orientation, Spec.LevelClearanceCm[Level]));
-        TArray<int32> ColumnOrder;
-        for (int32 Step = 0; Step < Columns; ++Step)
-        {
-            const int32 Offset = Step == 0 ? 0 : (Step + 1) / 2 * (Step % 2 == 1 ? -1 : 1);
-            const int32 Column = FMath::Clamp((Columns - 1) / 2 + Offset, 0, Columns - 1);
-            if (!ColumnOrder.Contains(Column)) ColumnOrder.Add(Column);
-        }
-        for (int32 Row = 0; Row < Rows; ++Row)
-            for (const int32 Col : ColumnOrder)
-                for (int32 StackIndex = 0; StackIndex < Stacks; ++StackIndex)
-                {
-                    const FVector SlotLocal(GroupCenterX + (Col - (Columns - 1) * 0.5f) * (Size.Y + Gap),
-                        Front - FaceSign * (Size.X * 0.5f + Row * (Size.X + Gap)),
-                        Spec.LevelTopZ[Level] + StackIndex * (Size.Z + .6f));
-                    // Hand-stocked look: each unit sits a little off the grid and turned a few degrees.
-                    // Stacked units keep a smaller turn so the pile remains physically believable.
-                    FRandomStream Hand(Index * 7919 + Ordered.Num() * 131 + 17);
-                    const float Nudge = FMath::Min(Gap * (StackIndex == 0 ? .45f : .20f), StackIndex == 0 ? .9f : .4f);
-                    const FVector Jitter(Hand.FRandRange(-Nudge, Nudge), -FaceSign * Hand.FRandRange(0.f, Row == 0 ? 2.5f : 1.f), 0.f);
-                    const float MaxTurn = StackIndex == 0 ? 4.f : 1.5f;
-                    const FQuat Turn(FVector::UpVector, FMath::DegreesToRadians(Hand.FRandRange(-MaxTurn, MaxTurn)));
-                    const FTransform Local(Turn * FinalRotation, SlotLocal + Jitter - BoundsOffset + CorrectedOffset, ItemScale);
-                    Ordered.Add({ Row, Ordered.Num(), Local * FixtureXf });
-                }
-        // Shopper spot: 70 cm in front of the block, on the floor.
-        Approach.Add(FixtureXf.TransformPosition(FVector(GroupCenterX, Front + FaceSign * 70.f, 0)));
+        if (Placement.ProductId != Product.Id || !Planogram.FindFixture(Placement.FixtureId)) continue;
+        TArray<FTransform> Transforms;
+        TArray<int32> Rows;
+        FVector Spot = FVector::ZeroVector;
+        BlockSlotTransforms(Look, Product, Placement, MarketPlanogram::PlacementCenterX(Planogram, Products, Placement),
+            Index * 7919, Ordered.Num(), false, Transforms, &Rows, &Spot);
+        for (int32 K = 0; K < Transforms.Num(); ++K) Ordered.Add({ Rows[K], Ordered.Num(), Transforms[K] });
+        Approach.Add(Spot);
     }
     // Front rows of every block fill before any back row, so stock looks spread over the whole display.
     Ordered.Sort([](const FSlot& A, const FSlot& B) { return A.Row != B.Row ? A.Row < B.Row : A.Seq < B.Seq; });
@@ -648,7 +678,9 @@ void AMarketGameMode::RefreshShelfItems()
         const TArray<FTransform>& Slots = ShelfSlots[I];
         const int32 Shelf = State.Stock[I].Shelf;
         const int32 Capacity = FMath::Max(1, State.Stock[I].Capacity);
-        const int32 Visible = Slots.Num() >= Capacity ? FMath::Min(Shelf, Slots.Num()) : FMath::DivideAndRoundUp(Shelf * Slots.Num(), Capacity);
+        // While arranging (R) every block is drawn full, so reserved space is visible even without stock.
+        const int32 Visible = bArrange ? Slots.Num()
+            : (Slots.Num() >= Capacity ? FMath::Min(Shelf, Slots.Num()) : FMath::DivideAndRoundUp(Shelf * Slots.Num(), Capacity));
         if (!Instances)
         {
             if (ShelfSingles.IsValidIndex(I))
@@ -669,16 +701,11 @@ int32 AMarketGameMode::NearbyShelf() const
 {
     const auto* Pawn = UGameplayStatics::GetPlayerPawn(this, 0);
     if (!Pawn) return INDEX_NONE;
-    // Nearest block of any product (primary or extra), measured from the spot in front of it.
+    // Nearest product block, measured from the spot in front of it.
     int32 Result = INDEX_NONE; float Best = 120;
     for (int32 I = 0; I < Products.Num(); ++I)
     {
-        if (!ShelfApproach.IsValidIndex(I) || ShelfApproach[I].Num() == 0)
-        {
-            const float Distance = FVector::Dist2D(Pawn->GetActorLocation(), ProductFixtureLocation(I));
-            if (Distance < Best) { Best = Distance; Result = I; }
-            continue;
-        }
+        if (!ShelfApproach.IsValidIndex(I) || ShelfApproach[I].Num() == 0) continue; // not on a shelf
         for (const FVector& Spot : ShelfApproach[I])
         {
             const float Distance = FVector::Dist2D(Pawn->GetActorLocation(), Spot);
@@ -735,12 +762,19 @@ int32 FMarketQueueRules::FindFront(const TArray<FMarketCustomer>& Customers)
 FString AMarketGameMode::ContextHint() const
 {
     // "K: text" = key K does the action (the HUD draws K as a key cap). Proper Turkish: Slate font.
-    if (NearOffice()) return FString::Printf(TEXT("B: %d adet sipari\u015f ver   \u00b7   TAB \u00fcr\u00fcn   \u00b7   +/- fiyat   \u00b7   H kasiyer   \u00b7   G ikinci \u015fube"), Products[Selected].CaseUnits);
+    if (bArrange) return ArrangeHint();
+    if (NearOffice()) return FString::Printf(TEXT("B: %d adet sipari\u015f ver   \u00b7   TAB \u00fcr\u00fcn   \u00b7   +/- fiyat   \u00b7   H kasiyer   \u00b7   J reyon g\u00f6revlisi (K \u00e7\u0131kar)   \u00b7   G ikinci \u015fube"), Products[Selected].CaseUnits);
     if (NearCounter()) return FString::Printf(TEXT("E: S\u0131radaki m\u00fc\u015fterinin \u00f6demesini al   \u00b7   bekleyen %d"), QueueSize());
     const int32 I = NearbyShelf();
-    if (I != INDEX_NONE) return bTestMode
-        ? FString::Printf(TEXT("E: %s raf\u0131n\u0131 doldur (test: bedava)   \u00b7   raf %d / %d"), *ProductName(I), State.Stock[I].Shelf, State.Stock[I].Capacity)
-        : FString::Printf(TEXT("E: %s raf\u0131n\u0131 depodan doldur   \u00b7   raf %d / %d   \u00b7   depo %d"), *ProductName(I), State.Stock[I].Shelf, State.Stock[I].Capacity, State.Stock[I].Warehouse);
+    if (I != INDEX_NONE)
+    {
+        const FString Arrange = bOpen ? FString() : FString(TEXT("   \u00b7   R reyonu diz"));
+        return (bTestMode
+            ? FString::Printf(TEXT("E: %s raf\u0131n\u0131 doldur (test: bedava)   \u00b7   raf %d / %d"), *ProductName(I), State.Stock[I].Shelf, State.Stock[I].Capacity)
+            : FString::Printf(TEXT("E: %s raf\u0131n\u0131 depodan doldur   \u00b7   raf %d / %d   \u00b7   depo %d"), *ProductName(I), State.Stock[I].Shelf, State.Stock[I].Capacity, State.Stock[I].Warehouse))
+            + Arrange;
+    }
+    if (!bOpen && NearbyFixture() != INDEX_NONE) return TEXT("R: Bu reyonu diz (\u00fcr\u00fcn koy, s\u0131rala, kald\u0131r)");
     return TEXT("Raf, kasa veya y\u00f6netim masas\u0131na yakla\u015f.");
 }
 void AMarketGameMode::RefreshLabels()
@@ -753,6 +787,7 @@ void AMarketGameMode::RefreshLabels()
 
 void AMarketGameMode::Command(FName Action)
 {
+    if (ArrangeCommand(Action)) return; // R mode: aim + click/E, wheel/TAB/Q, +/-, Y, U, F, C, DEL, arrows (MarketArrange.cpp)
     if (Action == "ToggleShop")
     {
         if (bOpen) CloseShop();
@@ -766,7 +801,7 @@ void AMarketGameMode::Command(FName Action)
     else if (Action == "Interact")
     {
         if (NearCounter()) Checkout();
-        else if (NearOffice()) Notify(TEXT("TAB: urun sec / B: koli siparis / +/-: fiyat / H: kasiyer / G: ikinci sube"));
+        else if (NearOffice()) Notify(TEXT("TAB: \u00fcr\u00fcn se\u00e7 / B: koli sipari\u015f / +/-: fiyat / H: kasiyer / J: reyon g\u00f6revlisi (K: \u00e7\u0131kar) / G: ikinci \u015fube"));
         else if (const int32 I = NearbyShelf(); I != INDEX_NONE)
         {
             Selected = I;
@@ -839,15 +874,15 @@ void AMarketGameMode::Command(FName Action)
         }
         else
         {
-            State.Initialize(Products); ApplyCapacities();
-            FillAllShelves();
-            RefreshLabels(); ResetConfirmUntil = -1; Notify(TEXT("Yeni kampanya basladi. Raflari doldur ve O ile ac."));
+            State.Initialize(Products); ApplyCapacities(); ResetWorkerJobs();
+            RefreshLabels(); ResetConfirmUntil = -1; Notify(TEXT("Yeni kampanya basladi. Raflar bos; urunleri depodan sen yerlestir ve O ile ac."));
         }
     }
     else
     {
         if (!NearOffice()) { Notify(TEXT("Bu karar icin giristeki YONETIM MASASI'na yaklas.")); return; }
         if (Action == "NextProduct") Selected = (Selected + 1) % Products.Num();
+        else if (Action == "PrevProduct") Selected = (Selected + Products.Num() - 1) % Products.Num();
         else if (Action == "Order" && bTestMode)
         {
             const int32 Units = State.ReceiveFree(Selected, FMath::Clamp(Products[Selected].CaseUnits, 1, 48));
@@ -866,6 +901,30 @@ void AMarketGameMode::Command(FName Action)
             else if (State.Cash < 12000) Notify(TEXT("Ise alim icin 120 TL gerekiyor. Gunluk ucret: 20 TL."));
             else { State.Cash -= 12000; State.bCashier = true; Notify(TEXT("Kasiyer ise alindi. 4 saniyede bir odeme alir; gunluk ucret 20 TL.")); }
         }
+        else if (Action == "HireStocker")
+        {
+            if (State.Stockers >= FMarketState::MaxStockers) Notify(FString::Printf(TEXT("En fazla %d reyon g\u00f6revlisi \u00e7al\u0131\u015fabilir."), FMarketState::MaxStockers));
+            else if (State.Cash < FMarketState::StockerHireCost) Notify(TEXT("Reyon g\u00f6revlisi i\u00e7in 120 TL gerekiyor. G\u00fcnl\u00fck \u00fccret 20 TL."));
+            else
+            {
+                State.Cash -= FMarketState::StockerHireCost;
+                ++State.Stockers;
+                SyncWorkers();
+                Notify(FString::Printf(TEXT("Reyon g\u00f6revlisi %s i\u015fe ba\u015flad\u0131: raflar\u0131 depodan doldurur, rafta olmayan \u00fcr\u00fcnleri kendi reyonuna dizer, dar kalan bloklar\u0131 geni\u015fletir. G\u00fcnl\u00fck \u00fccret 20 TL."),
+                    *StaffPlanner::WorkerName(State.Stockers - 1)));
+            }
+        }
+        else if (Action == "FireStocker")
+        {
+            if (State.Stockers <= 0) Notify(TEXT("Reyon g\u00f6revlin yok. J ile i\u015fe al."));
+            else
+            {
+                const FString Leaving = StaffPlanner::WorkerName(State.Stockers - 1);
+                --State.Stockers;
+                SyncWorkers();
+                Notify(FString::Printf(TEXT("%s i\u015ften ayr\u0131ld\u0131. Kalan reyon g\u00f6revlisi: %d."), *Leaving, State.Stockers));
+            }
+        }
         else if (Action == "Expand")
         {
             if (State.bSecondStore) Notify(TEXT("Ikinci sube acik. Bu prototipte subenin gunluk net katkisi hesaplanir."));
@@ -879,7 +938,12 @@ void AMarketGameMode::Command(FName Action)
 void AMarketGameMode::SpawnCustomer()
 {
     if (Customers.Num() >= 9) { ++State.Lost; return; }
-    const int32 I = Random.RandRange(0, Products.Num() - 1);
+    // Shoppers only ask for products that are on the shelves.
+    TArray<int32> OnShelf;
+    for (int32 P = 0; P < Products.Num(); ++P)
+        if (State.Stock.IsValidIndex(P) && State.Stock[P].Capacity > 0) OnShelf.Add(P);
+    if (OnShelf.Num() == 0) { ++State.Lost; return; }
+    const int32 I = OnShelf[Random.RandRange(0, OnShelf.Num() - 1)];
     const int32 Quantity = Random.RandRange(1, 4);
     int32 Reserved = 0;
     for (const auto& Other : Customers) if (Other.Product == I) Reserved += Other.Quantity;
@@ -895,15 +959,21 @@ void AMarketGameMode::SpawnCustomer()
         Customers.Add(C);
         return;
     }
-    C.Actor = Box(FVector(0, -230, 65), FVector(42, 42, 130), FLinearColor::MakeFromHSV8(Random.RandRange(0, 255), 130, 210), false);
-    auto* Head = NewObject<UStaticMeshComponent>(C.Actor);
-    Head->SetupAttachment(C.Actor->GetRootComponent());
+    C.Actor = SimplePerson(FVector(0, -230, 0), FLinearColor::MakeFromHSV8(Random.RandRange(0, 255), 130, 210));
+    Customers.Add(C);
+}
+
+AActor* AMarketGameMode::SimplePerson(const FVector& Floor, const FLinearColor& Color)
+{
+    AActor* Body = Box(Floor + FVector(0, 0, 65), FVector(42, 42, 130), Color, false);
+    auto* Head = NewObject<UStaticMeshComponent>(Body);
+    Head->SetupAttachment(Body->GetRootComponent());
     Head->RegisterComponent(); Head->SetStaticMesh(Sphere);
     // Absolute scale avoids inheriting the body's non-uniform dimensions.
     Head->SetAbsolute(false, false, true);
     Head->SetWorldScale3D(FVector(.34f)); Head->SetRelativeLocation(FVector(0, 0, 64));
     Head->SetCollisionEnabled(ECollisionEnabled::NoCollision);
-    Customers.Add(C);
+    return Body;
 }
 
 void AMarketGameMode::Checkout()
@@ -921,97 +991,10 @@ void AMarketGameMode::Tick(float DeltaTime)
 {
     Super::Tick(DeltaTime);
     MessageTime = FMath::Max(0.f, MessageTime - DeltaTime);
+    TickArrange();
     ReportTime = FMath::Max(0.f, ReportTime - DeltaTime);
-    if (FParse::Param(FCommandLine::Get(), TEXT("MirasSmoke")))
-    {
-        const auto Require = [](bool Condition, const TCHAR* Step)
-        {
-            if (!Condition)
-            {
-                UE_LOG(LogTemp, Error, TEXT("MirasMarket smoke FAILED: %s"), Step);
-                FPlatformMisc::RequestExitWithStatus(false, 1);
-            }
-            return Condition;
-        };
-        if (SmokeStage == 0 && GetWorld()->GetTimeSeconds() > 1)
-        {
-            auto* Pawn = UGameplayStatics::GetPlayerPawn(this, 0);
-            if (!Require(Pawn != nullptr, TEXT("player spawned"))) return;
-            Pawn->SetActorLocation(ProductFixtureLocation(0) + FVector(0, 0, 90));
-            const FMarketStock Before = State.Stock[0];
-            const int32 ExpectedShelf = Before.Shelf + FMath::Max(0, FMath::Min(Before.Capacity - Before.Shelf, Before.Warehouse));
-            Command("Interact");
-            if (!Require(State.Stock[0].Shelf == ExpectedShelf && State.Stock[0].Shelf + State.Stock[0].Warehouse == Before.Shelf + Before.Warehouse,
-                TEXT("nearby shelf interaction"))) return;
-            Pawn->SetActorLocation(FVector(-430, -180, 90));
-            const int32 OrderedUnits = FMath::Clamp(Products[0].CaseUnits, 1, 48);
-            const int64 CashBeforeOrder = State.Cash;
-            Command("Order");
-            if (!Require(State.Stock[0].Incoming == OrderedUnits && State.Cash == CashBeforeOrder - Products[0].Cost * OrderedUnits, TEXT("office order"))) return;
-            const int64 CashBeforeHire = State.Cash;
-            Command("Hire");
-            if (!Require(State.bCashier && State.Cash == CashBeforeHire - 12000, TEXT("hire cashier"))) return;
-            Command("ToggleShop");
-            SmokeStage = 1;
-        }
-        if (SmokeStage == 1 && GetWorld()->GetTimeSeconds() > 25)
-        {
-            CloseShop();
-            if (!Require(State.Day == 2 && State.LastServed > 0 && State.Stock[0].Incoming == 0, TEXT("customer sale and next-day delivery"))) return;
-            const int64 SavedCash = State.Cash;
-            State.Cash = 0;
-            LoadCampaign();
-            if (!Require(State.Cash == SavedCash && State.bCashier, TEXT("disk save and load"))) return;
-            UE_LOG(LogTemp, Display, TEXT("MirasMarket smoke PASSED: player, restock, order, hiring, %d customer sales, day close, disk save/load."), State.LastServed);
-            SmokeStage = 2;
-            FPlatformMisc::RequestExitWithStatus(false, 0);
-        }
-    }
-    if (FParse::Param(FCommandLine::Get(), TEXT("MirasCapture")))
-    {
-        // Waits until shaders are compiled and the image has settled (exposure, Lumen), then saves
-        // a clean scene shot and a shot with the HUD for comparison with the reference photo.
-        const float Now = GetWorld()->GetTimeSeconds();
-        bool bShadersReady = true;
-#if WITH_EDITOR
-        if (GShaderCompilingManager) bShadersReady = GShaderCompilingManager->GetNumRemainingJobs() == 0;
-#endif
-        if (!bShadersReady) CaptureReadySince = -1;
-        else if (CaptureReadySince < 0) CaptureReadySince = Now;
-        const bool bSettled = CaptureReadySince >= 0 && Now - CaptureReadySince > 5;
-        // Views for review: entrance, left wall shelves, gondola aisle, bulk island close-up, right wall.
-        struct FView { FVector Location; FRotator Rotation; const TCHAR* File; };
-        static const FView Views[] =
-        {
-            { FVector(0, -180, 90), FRotator(-4, 90, 0), TEXT("MirasMarket.png") },
-            { FVector(-330, 300, 90), FRotator(-6, 165, 0), TEXT("MirasMarket_1_duvar_sol.png") },
-            { FVector(150, 330, 90), FRotator(-8, 120, 0), TEXT("MirasMarket_2_gondol.png") },
-            { FVector(110, 120, 90), FRotator(-12, 132, 0), TEXT("MirasMarket_3_dokme.png") },
-            { FVector(330, 300, 90), FRotator(-6, 15, 0), TEXT("MirasMarket_4_duvar_sag.png") },
-        };
-        constexpr int32 ViewCount = UE_ARRAY_COUNT(Views);
-        auto SetView = [this](const FView& View)
-        {
-            if (APawn* Pawn = UGameplayStatics::GetPlayerPawn(this, 0)) Pawn->SetActorLocation(View.Location, false, nullptr, ETeleportType::TeleportPhysics);
-            if (APlayerController* PC = UGameplayStatics::GetPlayerController(this, 0)) PC->SetControlRotation(View.Rotation);
-        };
-        const int32 ViewIndex = (CaptureStage - 1) / 2;
-        if (CaptureStage == 0 && Now > 8 && (bSettled || Now > 400))
-        {
-            SetView(Views[0]);
-            CaptureStage = 1; CaptureAt = Now;
-        }
-        else if (CaptureStage > 0 && CaptureStage % 2 == 1 && Now > CaptureAt + 2.5f)
-        {
-            FScreenshotRequest::RequestScreenshot(FPaths::ProjectSavedDir() / TEXT("Screenshots") / Views[ViewIndex].File, true, false);
-            CaptureStage++; CaptureAt = Now;
-        }
-        else if (CaptureStage > 0 && CaptureStage % 2 == 0 && Now > CaptureAt + 1.5f)
-        {
-            if (ViewIndex + 1 < ViewCount) { SetView(Views[ViewIndex + 1]); CaptureStage++; CaptureAt = Now; }
-            else FPlatformMisc::RequestExit(false);
-        }
-    }
+    if (!TickAutomation()) return; // -MirasSmoke / -MirasCapture runs (MarketAutomation.cpp)
+    TickWorkers(DeltaTime); // shelf staff work whether the shop is open or not (MarketWorkers.cpp)
     if (!bOpen) return;
     DayTime += DeltaTime;
     SpawnTimer -= DeltaTime;
@@ -1099,6 +1082,7 @@ void AMarketGameMode::LoadCampaign()
     TArray<FString> Added, Removed;
     State.ReconcileWith(Products, &Added, &Removed);
     ApplyCapacities();
+    ResetWorkerJobs(); // stock rows may have moved; workers pick new jobs
     RefreshLabels();
     if (Added.Num() + Removed.Num() > 0)
         Notify(FString::Printf(TEXT("Kampanya yuklendi. Katalog degismis: %d yeni urun (raf bos, siparis ver), %d kaldirilan urun."), Added.Num(), Removed.Num()));

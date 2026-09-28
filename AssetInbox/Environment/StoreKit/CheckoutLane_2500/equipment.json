@@ -1,0 +1,25 @@
+{
+  "schemaVersion": 1,
+  "id": "checkout_lane_2500",
+  "displayName": "Gercekci Market Kasasi 2500",
+  "family": "checkout",
+  "dimensionsMm": {
+    "width": 2500,
+    "depth": 928,
+    "height": 1400
+  },
+  "customerFaces": [
+    "front"
+  ],
+  "frontAxis": "-Y",
+  "shelfZones": [],
+  "materials": [
+    "Wood",
+    "Black",
+    "Rubber",
+    "PaintedMetal",
+    "Glass",
+    "Paper"
+  ],
+  "collision": "2 UCX boxes"
+}

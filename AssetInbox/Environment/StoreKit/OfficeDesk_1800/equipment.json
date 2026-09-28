@@ -1,0 +1,23 @@
+{
+  "schemaVersion": 1,
+  "id": "office_desk_1800",
+  "displayName": "Yonetim Masasi 1800",
+  "family": "office_desk",
+  "dimensionsMm": {
+    "width": 1800,
+    "depth": 800,
+    "height": 1300
+  },
+  "customerFaces": [
+    "front"
+  ],
+  "frontAxis": "-Y",
+  "shelfZones": [],
+  "materials": [
+    "Wood",
+    "Black",
+    "CounterTop",
+    "Paper"
+  ],
+  "collision": "3 UCX boxes"
+}

@@ -4,11 +4,11 @@ Son güncelleme: 28.09.2026 — Codex
 
 ## Kısaca
 
-v0.2 geliştirme. Raf sistemi veri güdümlü planogram v2'ye geçti. Ürün bloğu rafta 5 cm adımlarla taşınabilir, çeyrek tur döndürülebilir, uygun kutu/poşet yan yatırılabilir ve raf yüksekliği elverdiğinde üst üste dizilebilir. Editör gerçek ambalaj küçük görseli ile kat/seviye raf şeması gösterir. Blender gondol ve duvar reyonlarında fiyat etiketi profili, raf önündeki yüksek set yerine raf altına asılan ince raydır.
+v0.2 geliştirme. **Yeni oyun rafları boş açılır**; başlangıç stoğu depodadır ve oyuncu R modu/E ile yerleştirmeyi doğrudan deneyebilir. Raflar elle ve önizlemeyle dizilir; **reyon görevlileri** (G-049 geçti) boş rafları depodan doldurur, rafta olmayan ürünü kendi reyonuna dizer ve dar bloğu genişletir. Blender mağaza kiti yedi parçaya çıktı: gondol/duvar rafı, dökme ada, servisli açık tavan, ayrıntılı kasa, yönetim masası, cam kapılı soğutucu ve manav adası. Otomatik yerleştirme yok; yeni ürün "Rafta değil" durumunda başlar.
 
 ## Çalışan / var olan
 
-- Oynanabilir prototip; katalog `Config/products.json` şema v2 (aktif ürün sınırı yok, yuva bazlı `materials`). Raf kapasitesi = raf planında önde × derinlik; otomatik dolum açık. Test modu varsayılan açık (F2/F3).
+- Oynanabilir prototip; katalog `Config/products.json` şema v2 (aktif ürün sınırı yok, yuva bazlı `materials`). Raf kapasitesi = önde × derinlik × istif (istif raf yüksekliğine sığan kadar sayılır); rafta olmayan ürünün kapasitesi 0. Test modu varsayılan açık (F2/F3).
 - Ürün Stüdyosu: Tools > Ürün Stüdyosu veya `STUDYO.cmd`.
 - Dış üretim: `Docs/Uretim/00_BASLA_BURADAN.md` → promptlar A1, A2, B1, B2, C1, C2, D, E; `MARKA_VE_URUN_LISTESI.md`.
 
@@ -37,6 +37,13 @@ v0.2 geliştirme. Raf sistemi veri güdümlü planogram v2'ye geçti. Ürün blo
 | Opus sonrası birleşik sürüm (G-028…G-043) | **GEÇTİ** — `DERLE.cmd`, 14/14 otomasyon, smoke, PBR malzeme aktarımı ve beş açılı görsel kontrol — 28.09.2026 |
 | Nötr-sıcak market ışığı ayarı | **GEÇTİ** — beyaz raf/etiket dengesi ve ürün renkleri beş adet 1280x720 görüntüde incelendi — 28.09.2026 |
 | Planogram v2: serbest konum, yön, istif, raf önizlemesi ve ince fiyat rayı | **GEÇTİ** — derleme, 15/15 test, smoke, Blender/Unreal varlık doğrulaması ve beş açılı oyun görüntüsü — 28.09.2026 |
+| G-045: elle dizme (otomatik dolum/yerleştirme kaldırıldı, oyunda R modu, editör seviye/sıra düğmeleri) + inceleme hataları | GEÇTİ — derleme, 16/16 test, smoke (3 satış) — 28.09.2026 |
+| G-046: önizlemeli nişanla dizme, serbest konum (şema v3), aynı üründen çok blok, RAF DÜZENİ paneli, blok tabanlı editör | GEÇTİ — derleme (iki gölgeleme hatası düzeltildikten sonra), 16/16 test, smoke — 28.09.2026 |
+| G-047: dip dibe dizme (0,3 cm tolerans, önde arası 0,5 cm), blok aralığı ayarı (Z/X, `gap`), raftaki blokları gösteren gri şeritler, 3B etikette Türkçe harf düzeltmesi | GEÇTİ (Mustafa oyunda denedi) |
+| G-047 ek: raf genişliği tam tabla (gondol 116, duvar 235 cm), düzen modunda bloklar dolu çizilir, çift sayıda önde eksik sütun | GEÇTİ — derleme, 16/16 test; Mustafa oyunda denedi ("çok güzel oldu") — 28.09.2026 |
+| G-048: kod temizliği (eski raf planı kodu ve strateji düğmeleri silindi, ortak yardımcılar, `MarketAutomation.cpp`, Stüdyo arka ucu 5 dosyaya bölündü, `RebuildRight` parçalandı) | GEÇTİ — derleme, 16/16 test, smoke (2 satış) — 28.09.2026 |
+| G-049: reyon görevlisi (J/K, yürüyerek raf doldurma, rafta olmayan ürünü kategorisinin reyonuna dizme, dar bloğu genişletme, `Staff.Planner` testi) | **GEÇTİ** — derleme, 17/17 test ve smoke — 28.09.2026 |
+| G-050: Blender kasa/masa/soğutucu/manav/tavan ayrıntıları + boş raf başlangıcı | **GEÇTİ** — 7 varlıkta 0 hata/0 uyarı, derleme, 17/17 test, smoke ve 5 açılı görüntü — 28.09.2026 |
 | Stüdyoda elle deneme: kutu (açılım) → Oyuna ekle → OYNA | GEÇTİ: milk_1l oyunda; ön/yan/üst yüzler doğru, ayna yok, raf oturması doğru — 27.09.2026 |
 | Stüdyoda elle deneme: cam şişe modeli + malzeme.json | Bekliyor (henüz model yok) |
 
@@ -55,12 +62,13 @@ v0.2 geliştirme. Raf sistemi veri güdümlü planogram v2'ye geçti. Ürün blo
 
 ## Devam notu
 
-G-044 tamamlandı. `Config/planograms.json` şema v2 oldu; v1 dosyaları geriye uyumlu okunuyor. Raf Planı Editörü konum/yön/istif kontrolleri, gerçek ambalaj küçük görseli ve raf şeması kazandı. Oyunda yön ve istif gerçek ürün dönüşümüne/kapasitesine bağlandı. Blender gondol ve duvar rafı ince fiyat rayıyla yeniden üretildi ve Unreal'a aktarıldı. Derleme, 15/15 test, smoke ve beş açılı oyun kontrolü geçti; yarım kod yoktur.
+Yarım kod işi yok. Opus/Claude tarafından eklenen G-049 Codex tarafından derlenip test edildi. Kullanıcının ürün kataloğu ve ürün varlığı çalışma dosyaları korunuyor.
 
 ## Sıradaki adımlar
 
+0. Mustafa: oyunu açıp boş raflarda R yerleştirme deneyimini dene; yönetim masasında J ile görevli alıp depodan raf doldurmasını izle (F1 panelinde yaptığı iş görünür).
 00. Mustafa: `Docs/Environment/FAB_PAKET_LISTESI.md` paketlerini indir (G-042); Claude bağlayacak.
-1. Raf tekrarını azalt: her kategoriye daha fazla gerçek ürün/ambalaj ekle ve planogram editöründe aynı seviyede marka bloklarını karıştır. Editörü `RAF_PLANI.cmd` ile açıp yeni raf şemasının son piksel düzenini Mustafa ile birlikte kontrol et.
-2. G-021'i sürdür: kasa, soğutucu, manav, fırın ve servis reyonları için Blender modülleri üret.
+1. Raf tekrarını azalt: her kategoriye daha fazla gerçek ürün/ambalaj ekle ve planogram editöründe aynı seviyede marka bloklarını karıştır.
+2. G-021'i sürdür: fırın, kasap/şarküteri, pasta-lokum, restoran ve elektronik servis reyonları için Blender modülleri üret.
 3. `MH_Teyze`yi normal oyun kamerasında yakın planda kontrol et; ardından `MH_Amca`, `MH_Anne`, `MH_Genc` ve döneme uygun kıyafetleri ekle (G-042).
 4. Mustafa: PET/teneke/kavanoz/kase türlerinden birer ürün üretip Oyuna ekle; etiket yönü, kapak ve malzeme yuvalarını gözle doğrula (G-017).

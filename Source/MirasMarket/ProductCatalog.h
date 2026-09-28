@@ -20,6 +20,14 @@ namespace MarketCatalog
     // Parses "2,50" or "2.50" into kurus. Returns false for invalid / non-positive input.
     MIRASMARKET_API bool ParseMoney(const FString& Text, int64& OutKurus);
 
+    // Small helpers shared by the catalog, the planogram, the game and the studio.
+    MIRASMARKET_API const FMarketProduct* FindProduct(const TArray<FMarketProduct>& Products, const FString& Id);
+    MIRASMARKET_API int32 IndexOfProduct(const TArray<FMarketProduct>& Products, const FString& Id);
+    // JSON string literal with escapes (hand-written, diffable JSON files).
+    MIRASMARKET_API FString JsonQuote(const FString& Value);
+    // World-space text (TextRender) has no Turkish glyphs: folds c-cedilla -> c, dotless i -> i, s-cedilla -> s, ...
+    MIRASMARKET_API FString FoldTurkish(const FString& Text);
+
     // Invalid rows are skipped and reported in OutErrors. Returns false only if the JSON itself is unreadable.
     MIRASMARKET_API bool Parse(const FString& Json, TArray<FMarketProduct>& OutProducts, TArray<FString>& OutErrors, FString* OutNote = nullptr);
     // Deterministic, human-diffable JSON (UTF-8, two decimals for money).

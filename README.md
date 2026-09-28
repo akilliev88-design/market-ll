@@ -46,6 +46,7 @@ Claude ve Codex aynı klasörde sırayla çalışır. Kurallar [AGENTS.md](AGENT
 | B | Masada seçili üründen bir koli sipariş |
 | + / − | Masada fiyatı 0,25 TL değiştir |
 | H | Masada kasiyer al: 120 TL başlangıç + 20 TL/gün |
+| J / K | Masada reyon görevlisi al (en fazla 3; 120 TL + 20 TL/gün) / çıkar |
 | G | Masada ikinci şubeye yatırım |
 | F8 | Gerçek marka adları / kurgu adlar |
 | F5 / F9 | Kapalıyken kaydet / yükle |

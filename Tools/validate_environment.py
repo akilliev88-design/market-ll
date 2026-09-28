@@ -7,6 +7,10 @@ SPECS = [
     ("/Game/Environment/Shelves/Gondola_1200/SM_Gondola_1200.SM_Gondola_1200", (120.0, 90.0, 160.0), 5, 3),
     ("/Game/Environment/StoreKit/WallShelf_2400/SM_WallShelf_2400.SM_WallShelf_2400", (240.0, 51.8, 222.0), 4, 2),
     ("/Game/Environment/StoreKit/BulkIsland_1600/SM_BulkIsland_1600.SM_BulkIsland_1600", (162.0, 101.7, 173.0), 7, 2),
+    ("/Game/Environment/StoreKit/CheckoutLane_2500/SM_CheckoutLane_2500.SM_CheckoutLane_2500", (250.0, 92.8, 140.0), 6, 2),
+    ("/Game/Environment/StoreKit/OfficeDesk_1800/SM_OfficeDesk_1800.SM_OfficeDesk_1800", (180.0, 80.0, 130.0), 4, 3),
+    ("/Game/Environment/StoreKit/RefrigeratedWall_3000/SM_RefrigeratedWall_3000.SM_RefrigeratedWall_3000", (300.0, 92.0, 225.0), 7, 1),
+    ("/Game/Environment/StoreKit/ProduceIsland_2400/SM_ProduceIsland_2400.SM_ProduceIsland_2400", (240.0, 120.0, 140.0), 7, 2),
 ]
 
 

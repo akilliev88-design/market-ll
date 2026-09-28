@@ -5,29 +5,6 @@
 #include "Serialization/JsonSerializer.h"
 #include "Dom/JsonObject.h"
 
-namespace
-{
-    FString Quote(const FString& Value)
-    {
-        FString Out = TEXT("\"");
-        for (const TCHAR C : Value)
-        {
-            switch (C)
-            {
-            case TEXT('"'): Out += TEXT("\\\""); break;
-            case TEXT('\\'): Out += TEXT("\\\\"); break;
-            case TEXT('\n'): Out += TEXT("\\n"); break;
-            case TEXT('\r'): Out += TEXT("\\r"); break;
-            case TEXT('\t'): Out += TEXT("\\t"); break;
-            default:
-                if (C < 0x20) Out += FString::Printf(TEXT("\\u%04x"), static_cast<int32>(C));
-                else Out.AppendChar(C);
-            }
-        }
-        return Out + TEXT("\"");
-    }
-}
-
 int32 MarketCatalog::CountActive(const TArray<FMarketProduct>& Products)
 {
     int32 Count = 0;
@@ -216,42 +193,42 @@ FString MarketCatalog::Serialize(const TArray<FMarketProduct>& Products, const F
 {
     FString Out = TEXT("{\n");
     Out += FString::Printf(TEXT("  \"schemaVersion\": %d,\n"), SchemaVersion);
-    Out += TEXT("  \"note\": ") + Quote(Note) + TEXT(",\n");
+    Out += TEXT("  \"note\": ") + JsonQuote(Note) + TEXT(",\n");
     Out += TEXT("  \"products\": [\n");
     for (int32 I = 0; I < Products.Num(); ++I)
     {
         const FMarketProduct& P = Products[I];
         Out += TEXT("    {");
-        Out += TEXT("\"id\":") + Quote(P.Id);
-        Out += TEXT(",\"realName\":") + Quote(P.RealName);
-        Out += TEXT(",\"fictionalName\":") + Quote(P.FictionalName);
-        if (!P.Category.IsEmpty()) Out += TEXT(",\"category\":") + Quote(P.Category);
+        Out += TEXT("\"id\":") + JsonQuote(P.Id);
+        Out += TEXT(",\"realName\":") + JsonQuote(P.RealName);
+        Out += TEXT(",\"fictionalName\":") + JsonQuote(P.FictionalName);
+        if (!P.Category.IsEmpty()) Out += TEXT(",\"category\":") + JsonQuote(P.Category);
         Out += TEXT(",\"cost\":") + Money(P.Cost);
         Out += TEXT(",\"price\":") + Money(P.BasePrice);
         Out += FString::Printf(TEXT(",\"caseUnits\":%d"), P.CaseUnits);
-        Out += TEXT(",\"color\":") + Quote(ColorHex(P.Color));
+        Out += TEXT(",\"color\":") + JsonQuote(ColorHex(P.Color));
         if (!P.bActive) Out += TEXT(",\"active\":false");
-        if (!P.Brand.IsEmpty()) Out += TEXT(",\"brand\":") + Quote(P.Brand);
+        if (!P.Brand.IsEmpty()) Out += TEXT(",\"brand\":") + JsonQuote(P.Brand);
         if (!P.PackageType.IsEmpty())
         {
-            Out += TEXT(",\n     \"package\":{\"type\":") + Quote(P.PackageType);
+            Out += TEXT(",\n     \"package\":{\"type\":") + JsonQuote(P.PackageType);
             const auto Num = [&Out](const TCHAR* Key, int32 Value) { if (Value > 0) Out += FString::Printf(TEXT(",\"%s\":%d"), Key, Value); };
             Num(TEXT("widthMm"), P.WidthMm);
             Num(TEXT("depthMm"), P.DepthMm);
             Num(TEXT("heightMm"), P.HeightMm);
             Num(TEXT("diameterMm"), P.DiameterMm);
             Num(TEXT("labelHeightMm"), P.LabelHeightMm);
-            if (!P.Parts.IsEmpty()) Out += TEXT(",\"parts\":") + Quote(P.Parts);
-            if (!P.Notes.IsEmpty()) Out += TEXT(",\"notes\":") + Quote(P.Notes);
-            if (!P.Preset.IsEmpty()) Out += TEXT(",\"preset\":") + Quote(P.Preset);
-            if (!P.Colors.IsEmpty()) Out += TEXT(",\"colors\":") + Quote(P.Colors);
+            if (!P.Parts.IsEmpty()) Out += TEXT(",\"parts\":") + JsonQuote(P.Parts);
+            if (!P.Notes.IsEmpty()) Out += TEXT(",\"notes\":") + JsonQuote(P.Notes);
+            if (!P.Preset.IsEmpty()) Out += TEXT(",\"preset\":") + JsonQuote(P.Preset);
+            if (!P.Colors.IsEmpty()) Out += TEXT(",\"colors\":") + JsonQuote(P.Colors);
             if (P.bSizeEstimated) Out += TEXT(",\"estimated\":true");
             Out += TEXT("}");
         }
         if (!P.MeshPath.IsEmpty())
         {
-            Out += TEXT(",\n     \"visual\":{\"package\":") + Quote(P.MeshPath) + TEXT(",\"materials\":[");
-            for (int32 M = 0; M < P.Materials.Num(); ++M) Out += (M > 0 ? TEXT(",") : TEXT("")) + Quote(P.Materials[M]);
+            Out += TEXT(",\n     \"visual\":{\"package\":") + JsonQuote(P.MeshPath) + TEXT(",\"materials\":[");
+            for (int32 M = 0; M < P.Materials.Num(); ++M) Out += (M > 0 ? TEXT(",") : TEXT("")) + JsonQuote(P.Materials[M]);
             Out += TEXT("]");
             if (!FMath::IsNearlyEqual(P.VisualScale, 1.f) || !P.VisualRotation.IsNearlyZero() || !P.VisualOffsetCm.IsNearlyZero())
             {
@@ -366,4 +343,43 @@ const TCHAR* FBoxPackageLayout::FaceKey(int32 Face)
 {
     static const TCHAR* Keys[] = { TEXT("front"), TEXT("back"), TEXT("right"), TEXT("left"), TEXT("top"), TEXT("bottom") };
     return Keys[FMath::Clamp(Face, 0, FaceCount - 1)];
+}
+
+FString MarketCatalog::JsonQuote(const FString& Value)
+{
+    FString Out = TEXT("\"");
+    for (const TCHAR C : Value)
+    {
+        switch (C)
+        {
+        case TEXT('"'): Out += TEXT("\\\""); break;
+        case TEXT('\\'): Out += TEXT("\\\\"); break;
+        case TEXT('\n'): Out += TEXT("\\n"); break;
+        case TEXT('\r'): Out += TEXT("\\r"); break;
+        case TEXT('\t'): Out += TEXT("\\t"); break;
+        default:
+            if (C < 0x20) Out += FString::Printf(TEXT("\\u%04x"), static_cast<int32>(C));
+            else Out.AppendChar(C);
+        }
+    }
+    return Out + TEXT("\"");
+}
+
+const FMarketProduct* MarketCatalog::FindProduct(const TArray<FMarketProduct>& Products, const FString& Id)
+{
+    return Products.FindByPredicate([&](const FMarketProduct& Product) { return Product.Id == Id; });
+}
+
+int32 MarketCatalog::IndexOfProduct(const TArray<FMarketProduct>& Products, const FString& Id)
+{
+    return Products.IndexOfByPredicate([&](const FMarketProduct& Product) { return Product.Id == Id; });
+}
+
+FString MarketCatalog::FoldTurkish(const FString& Text)
+{
+    FString Out = Text;
+    static const TCHAR From[] = TEXT("\u00e7\u00c7\u011f\u011e\u0131\u0130\u00f6\u00d6\u015f\u015e\u00fc\u00dc\u00e2\u00ee\u00fb\u00b7");
+    static const TCHAR To[] = TEXT("cCgGiIoOsSuUaiu-");
+    for (int32 I = 0; From[I]; ++I) Out.ReplaceCharInline(From[I], To[I], ESearchCase::CaseSensitive);
+    return Out;
 }

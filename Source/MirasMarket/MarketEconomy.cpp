@@ -24,11 +24,11 @@ bool FMarketState::Order(int32 Index, const TArray<FMarketProduct>& Products)
     return true;
 }
 
-int32 FMarketState::Restock(int32 Index)
+int32 FMarketState::Restock(int32 Index, int32 MaxUnits)
 {
     if (!Stock.IsValidIndex(Index)) return 0;
     auto& Item = Stock[Index];
-    const int32 Amount = FMath::Clamp(FMath::Min(Item.Capacity - Item.Shelf, Item.Warehouse), 0, MAX_int32);
+    const int32 Amount = FMath::Clamp(FMath::Min3(Item.Capacity - Item.Shelf, Item.Warehouse, MaxUnits), 0, MAX_int32);
     Item.Shelf += Amount;
     Item.Warehouse -= Amount;
     return Amount;
@@ -50,7 +50,7 @@ bool FMarketState::Sell(int32 Index, int32 Quantity, int64 QuotedPrice, const TA
 
 void FMarketState::CloseDay()
 {
-    LastOperatingCost = 2200 + (bCashier ? 2000 : 0);
+    LastOperatingCost = 2200 + (bCashier ? 2000 : 0) + FMath::Clamp(Stockers, 0, MaxStockers) * StockerDailyWage;
     // The second branch is an explicit aggregate prototype: net daily contribution.
     LastBranchProfit = bSecondStore ? FMath::RoundToInt64(800 + MarketShare * 35) : 0;
     LastRevenue = Revenue;
@@ -81,7 +81,8 @@ int32 FMarketState::ApplyShelfCapacities(const TArray<int32>& Capacities)
     for (int32 I = 0; I < Stock.Num(); ++I)
     {
         auto& Item = Stock[I];
-        Item.Capacity = Capacities.IsValidIndex(I) ? FMath::Clamp(Capacities[I], 1, MaxShelfCapacity) : DefaultShelfCapacity;
+        // 0 = the product is not on any shelf (planogram): all its units wait in the warehouse.
+        Item.Capacity = Capacities.IsValidIndex(I) ? FMath::Clamp(Capacities[I], 0, MaxShelfCapacity) : DefaultShelfCapacity;
         if (Item.Shelf <= Item.Capacity) continue;
         const int32 Excess = Item.Shelf - Item.Capacity;
         Item.Shelf = Item.Capacity;
@@ -113,13 +114,13 @@ int32 FMarketState::ReceiveFree(int32 Index, int32 Units)
 
 bool FMarketState::IsStructurallyValid() const
 {
-    if (Version != 1 || Day < 1 || !FMath::IsFinite(MarketShare) || MarketShare < 5 || MarketShare > 65) return false;
+    if (Version != 1 || Day < 1 || !FMath::IsFinite(MarketShare) || MarketShare < 5 || MarketShare > 65 || Stockers < 0 || Stockers > MaxStockers) return false;
     TSet<FString> Seen;
     for (const auto& Item : Stock)
     {
         bool bDuplicate = false;
         Seen.Add(Item.Id, &bDuplicate);
-        if (bDuplicate || Item.Id.IsEmpty() || Item.Capacity < 1 || Item.Capacity > MaxShelfCapacity || Item.Shelf < 0 || Item.Shelf > Item.Capacity || Item.Warehouse < 0 || Item.Incoming < 0 ||
+        if (bDuplicate || Item.Id.IsEmpty() || Item.Capacity < 0 || Item.Capacity > MaxShelfCapacity || Item.Shelf < 0 || Item.Shelf > Item.Capacity || Item.Warehouse < 0 || Item.Incoming < 0 ||
             Item.Warehouse + Item.Incoming > StorageCapacity || Item.Price < 10) return false;
     }
     return true;

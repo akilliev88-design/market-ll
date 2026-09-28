@@ -1047,339 +1047,13 @@ void SProductStudio::RebuildRight()
     const FStudioStyle& S = FStudioStyle::Get();
     TSharedRef<SVerticalBox> Content = SNew(SVerticalBox);
     TSharedRef<SVerticalBox> Footer = SNew(SVerticalBox);
-    const auto Changed = [this]() { RebuildIssues(); RebuildPrompt(); };
 
     if (Mode == EMode::Products)
     {
-        const FString Heading = !Draft.bExisting ? TEXT("Yeni \u00fcr\u00fcn") : Draft.bActive ? TEXT("Oyundaki \u00fcr\u00fcn") : TEXT("Haz\u0131rl\u0131ktaki \u00fcr\u00fcn");
-        Content->AddSlot().AutoHeight()[ MakeText(Heading, 16, S.Text, TEXT("Light")) ];
-
-        // Product --------------------------------------------------------------------------
-        Content->AddSlot().AutoHeight()[ MakeSection(TEXT("\u00dcR\u00dcN")) ];
-        Content->AddSlot().AutoHeight()
-        [
-            MakeField(TEXT("\u00dcr\u00fcn ad\u0131 (ger\u00e7ek marka)"), Draft.RealName, [this, Changed](const FString& Value)
-            {
-                Draft.RealName = Value;
-                if (!Draft.bExisting && !bIdTouched && IdBox.IsValid())
-                {
-                    Draft.Id = MarketCatalog::MakeId(Value);
-                    IdBox->SetText(T(Draft.Id));
-                }
-                Changed();
-            }, TEXT("\u00f6rn. S\u00fcta\u015f S\u00fct 1 L"))
-        ];
-        Content->AddSlot().AutoHeight().Padding(0.f, 10.f, 0.f, 0.f)
-        [
-            SNew(SHorizontalBox)
-            + SHorizontalBox::Slot().FillWidth(1.f).Padding(0.f, 0.f, 8.f, 0.f)
-            [ MakeField(TEXT("Marka"), Draft.Brand, [this, Changed](const FString& Value) { Draft.Brand = Value; Changed(); }, TEXT("\u00f6rn. S\u00fcta\u015f")) ]
-            + SHorizontalBox::Slot().FillWidth(1.f)
-            [ MakeField(TEXT("Kategori"), Draft.Category, [this](const FString& Value) { Draft.Category = Value; }, TEXT("\u00f6rn. s\u00fct")) ]
-        ];
-        Content->AddSlot().AutoHeight().Padding(0.f, 10.f, 0.f, 0.f)
-        [
-            SNew(SHorizontalBox)
-            + SHorizontalBox::Slot().FillWidth(1.f).Padding(0.f, 0.f, 8.f, 0.f)
-            [
-                MakeField(TEXT("\u00dcr\u00fcn kimli\u011fi"), Draft.Id, [this, Changed](const FString& Value)
-                {
-                    if (IdBox.IsValid() && IdBox->HasKeyboardFocus()) bIdTouched = true;
-                    Draft.Id = Value;
-                    Changed();
-                }, TEXT("otomatik"), Draft.bExisting, &IdBox)
-            ]
-            + SHorizontalBox::Slot().FillWidth(1.f)
-            [ MakeField(TEXT("Kurgu ad\u0131 (F8)"), Draft.FictionalName, [this](const FString& Value) { Draft.FictionalName = Value; }, TEXT("bo\u015f = \u00fcr\u00fcn ad\u0131")) ]
-        ];
-
-        // Price ----------------------------------------------------------------------------
-        Content->AddSlot().AutoHeight()[ MakeSection(TEXT("F\u0130YAT")) ];
-        Content->AddSlot().AutoHeight()
-        [
-            SNew(SHorizontalBox)
-            + SHorizontalBox::Slot().FillWidth(1.f).Padding(0.f, 0.f, 8.f, 0.f)
-            [ MakeField(TEXT("Al\u0131\u015f (TL)"), Draft.Cost, [this](const FString& Value) { Draft.Cost = Value; RebuildIssues(); }, TEXT("1,70")) ]
-            + SHorizontalBox::Slot().FillWidth(1.f).Padding(0.f, 0.f, 8.f, 0.f)
-            [ MakeField(TEXT("Sat\u0131\u015f (TL)"), Draft.Price, [this](const FString& Value) { Draft.Price = Value; RebuildIssues(); }, TEXT("2,50")) ]
-            + SHorizontalBox::Slot().FillWidth(0.8f)
-            [ MakeField(TEXT("Koli adedi"), Draft.CaseUnits, [this](const FString& Value) { Draft.CaseUnits = Value; RebuildIssues(); }, TEXT("12")) ]
-        ];
-
-        // Package: a ready package from the library (Config/ambalajlar.json) ---------------------
-        Content->AddSlot().AutoHeight()[ MakeSection(TEXT("AMBALAJ")) ];
-        const FPackagePreset* CurrentPreset = FindPreset(Presets, Draft.Preset);
-        const FStudioPackage* CurrentPackage = DraftPackage();
-        {
-            const FString Summary = CurrentPreset ? CurrentPreset->Name + TEXT("  \u00b7  ") + PresetSize(*CurrentPreset)
-                : bCustomPackage ? FString(TEXT("\u00d6zel ambalaj (listede olmayan)"))
-                : CurrentPackage ? CurrentPackage->DisplayName
-                : FString(TEXT("Ambalaj se\u00e7ilmedi: a\u015fa\u011f\u0131dan birini se\u00e7."));
-            Content->AddSlot().AutoHeight()[ MakeText(Summary, 11, (CurrentPreset || CurrentPackage || bCustomPackage) ? S.Text : S.Warn, TEXT("Bold"), true) ];
-            Content->AddSlot().AutoHeight().Padding(0.f, 3.f, 0.f, 8.f)
-            [ MakeText(CurrentPackage ? TEXT("3B haz\u0131r: ") + CurrentPackage->DisplayName + TEXT("  \u00b7  par\u00e7alar: ") + (Draft.Parts.IsEmpty() ? FString(TEXT("Etiket")) : Draft.Parts)
-                                      : FString(TEXT("3B yok. Bir ambalaj se\u00e7ince st\u00fcdyo 3B \u015feklini kendisi yapar.")), 9, CurrentPackage ? S.Accent : S.Muted, TEXT("Regular"), true) ];
-        }
-        const TCHAR* Types[] = { TEXT("kutu"), TEXT("poset"), TEXT("pet_sise"), TEXT("cam_sise"), TEXT("teneke"), TEXT("kavanoz"), TEXT("kase") };
-        const TCHAR* TypeNames[] = { TEXT("Kutu"), TEXT("Po\u015fet / paket"), TEXT("PET / plastik \u015fi\u015fe"), TEXT("Cam \u015fi\u015fe"), TEXT("Teneke"), TEXT("Kavanoz"), TEXT("Kase / bardak") };
-        TSharedRef<SHorizontalBox> TypeRow1 = SNew(SHorizontalBox);
-        TSharedRef<SHorizontalBox> TypeRow2 = SNew(SHorizontalBox);
-        for (int32 I = 0; I < 7; ++I)
-        {
-            const FString Type = Types[I];
-            const bool bOn = PresetFilter == Type;
-            (I < 3 ? TypeRow1 : TypeRow2)->AddSlot().AutoWidth().Padding(0.f, 0.f, 6.f, 6.f)
-            [
-                MakeButton(TypeNames[I], bOn ? &S.ChipActive : &S.Chip, FOnClicked::CreateLambda([this, Type]()
-                {
-                    PresetFilter = Type;
-                    if (bCustomPackage)
-                    {
-                        Draft.PackageType = Type;
-                        Draft.Parts = Type == TEXT("cam_sise") || Type == TEXT("pet_sise") || Type == TEXT("kavanoz") ? TEXT("Etiket,Cam,Kapak")
-                                    : Type == TEXT("teneke") ? TEXT("Etiket,Kapak") : Type == TEXT("kase") ? TEXT("Etiket,Govde,Kapak") : TEXT("Etiket");
-                        SelectedPrompt = PromptsFor(Type)[0].Id;
-                        RebuildPrompt();
-                    }
-                    RebuildRight();
-                    return FReply::Handled();
-                }), bOn ? S.Accent : S.Muted, true, 9)
-            ];
-        }
-        Content->AddSlot().AutoHeight()[ TypeRow1 ];
-        Content->AddSlot().AutoHeight()[ TypeRow2 ];
-        const FString Suggested = CurrentPreset ? FString() : SuggestPreset(Presets, Draft);
-        int32 Shown = 0;
-        for (const FPackagePreset& Preset : Presets)
-        {
-            if (Preset.Type != PresetFilter) continue;
-            ++Shown;
-            const FString Id = Preset.Id;
-            const bool bOn = Id == Draft.Preset;
-            Content->AddSlot().AutoHeight().Padding(0.f, 0.f, 0.f, 4.f)
-            [
-                SNew(SButton)
-                .ButtonStyle(bOn ? &S.CardSelected : &S.Card)
-                .ContentPadding(FMargin(10.f, 7.f))
-                .ToolTipText(T(Preset.Notes.IsEmpty() ? Preset.Parts : Preset.Notes + TEXT(" \u00b7 ") + Preset.Parts))
-                .OnClicked_Lambda([this, Id]() { ChoosePreset(Id); return FReply::Handled(); })
-                [
-                    SNew(SHorizontalBox)
-                    + SHorizontalBox::Slot().FillWidth(1.f).VAlign(VAlign_Center)[ MakeText(Preset.Name, 10, S.Text, TEXT("Bold"), true) ]
-                    + SHorizontalBox::Slot().AutoWidth().VAlign(VAlign_Center).Padding(8.f, 0.f, 0.f, 0.f)[ MakeText(PresetSize(Preset), 9, S.Muted) ]
-                    + SHorizontalBox::Slot().AutoWidth().VAlign(VAlign_Center).Padding(8.f, 0.f, 0.f, 0.f)
-                    [ MakeText(bOn ? TEXT("se\u00e7ili") : Id == Suggested ? TEXT("\u00f6nerilen") : TEXT(""), 8, bOn ? S.Accent : S.Warn, TEXT("Bold")) ]
-                ]
-            ];
-        }
-        if (Shown == 0) Content->AddSlot().AutoHeight()[ MakeText(TEXT("Bu t\u00fcrde haz\u0131r ambalaj yok. Config/ambalajlar.json dosyas\u0131na eklenebilir."), 9, S.Muted, TEXT("Regular"), true) ];
-        Content->AddSlot().AutoHeight().Padding(0.f, 4.f, 0.f, 0.f)
-        [
-            MakeButton(bCustomPackage ? TEXT("\u00d6zel ambalaj\u0131 kapat") : TEXT("Listede yok: \u00f6zel ambalaj"), &S.Chip, FOnClicked::CreateLambda([this]()
-            {
-                bCustomPackage = !bCustomPackage;
-                if (bCustomPackage)
-                {
-                    Draft.Preset.Reset();
-                    Draft.PackageType = PresetFilter.IsEmpty() ? FString(TEXT("kutu")) : PresetFilter;
-                    SelectedPrompt = PromptsFor(Draft.PackageType)[0].Id;
-                }
-                RebuildRight();
-                RebuildPrompt();
-                return FReply::Handled();
-            }), S.Muted, true, 9)
-        ];
-        if (bCustomPackage)
-        {
-            const bool bRound = IsRoundPackage(Draft.PackageType);
-            const bool bBag = Draft.PackageType == TEXT("poset");
-            FString* First = bRound ? &Draft.DiameterMm : &Draft.WidthMm;
-            FString* Second = bRound ? &Draft.HeightMm : bBag ? &Draft.HeightMm : &Draft.DepthMm;
-            FString* Third = bRound ? &Draft.LabelHeightMm : bBag ? &Draft.DepthMm : &Draft.HeightMm;
-            const FString L1 = bRound ? TEXT("\u00c7ap mm") : TEXT("Geni\u015flik mm");
-            const FString L2 = bRound ? TEXT("Y\u00fckseklik mm") : bBag ? TEXT("Y\u00fckseklik mm") : TEXT("Derinlik mm");
-            const FString L3 = bRound ? TEXT("Etiket band\u0131 mm") : bBag ? TEXT("Dolu kal\u0131nl\u0131k mm") : TEXT("Y\u00fckseklik mm");
-            const auto Dim = [this, Changed](const FString& Label, FString* Target)
-            {
-                return MakeField(Label, *Target, [this, Target, Changed](const FString& Value) { *Target = Value; Changed(); });
-            };
-            Content->AddSlot().AutoHeight().Padding(0.f, 4.f, 0.f, 0.f)
-            [
-                SNew(SHorizontalBox)
-                + SHorizontalBox::Slot().FillWidth(1.f).Padding(0.f, 0.f, 8.f, 0.f)[ Dim(L1, First) ]
-                + SHorizontalBox::Slot().FillWidth(1.f).Padding(0.f, 0.f, 8.f, 0.f)[ Dim(L2, Second) ]
-                + SHorizontalBox::Slot().FillWidth(1.f)[ Dim(L3, Third) ]
-            ];
-            if (Draft.PackageType != TEXT("kutu") && Draft.PackageType != TEXT("poset"))
-            {
-                Content->AddSlot().AutoHeight().Padding(0.f, 10.f, 0.f, 0.f)
-                [ MakeField(TEXT("Par\u00e7alar (model yuvalar\u0131)"), Draft.Parts, [this, Changed](const FString& Value) { Draft.Parts = Value; Changed(); }, TEXT("Etiket,Cam,Kapak")) ];
-            }
-            Content->AddSlot().AutoHeight().Padding(0.f, 8.f, 0.f, 0.f)[ MakeBoxCreator() ];
-        }
-        if (Draft.PackageType == TEXT("kutu") || Draft.PackageType == TEXT("poset"))
-        {
-            const bool bCap = Draft.Parts.Contains(TEXT("Kapak"));
-            Content->AddSlot().AutoHeight().Padding(0.f, 8.f, 0.f, 0.f)
-            [
-                MakeButton(bCap ? TEXT("\u00dcstte kapak var (etiketin \u00fcst y\u00fcz\u00fcne \u00e7izilir)") : TEXT("Kapak yok (varsa t\u0131kla)"), bCap ? &S.ChipActive : &S.Chip,
-                    FOnClicked::CreateLambda([this]()
-                    {
-                        TArray<FString> Parts;
-                        (Draft.Parts.IsEmpty() ? FString(TEXT("Etiket")) : Draft.Parts).ParseIntoArray(Parts, TEXT(","));
-                        if (Parts.Contains(TEXT("Kapak"))) Parts.Remove(TEXT("Kapak")); else Parts.Add(TEXT("Kapak"));
-                        Draft.Parts = FString::Join(Parts, TEXT(","));
-                        RebuildRight();
-                        RebuildPrompt();
-                        return FReply::Handled();
-                    }), bCap ? S.Accent : S.Muted, true, 9)
-            ];
-        }
-
-        if (CurrentPackage && CurrentPackage->Id.StartsWith(TEXT("model_")))
-        {
-            Content->AddSlot().AutoHeight()[ MakeSection(TEXT("\u00d6ZEL MODEL D\u00dcZELTME")) ];
-            Content->AddSlot().AutoHeight().Padding(0.f, 0.f, 0.f, 6.f)
-            [ MakeText(TEXT("Yanl\u0131\u015f birim, \u00f6n y\u00f6n veya pivotla gelen FBX/OBJ/GLB modelini burada d\u00fczelt. \u00d6nizleme ve raftaki \u00fcr\u00fcn ayn\u0131 de\u011ferleri kullan\u0131r. Konum birimi cm'dir."), 9, S.Muted, TEXT("Regular"), true) ];
-            const auto TransformField = [this](const FString& Label, FString* Target)
-            {
-                return MakeField(Label, *Target, [this, Target](const FString& Value)
-                {
-                    *Target = Value;
-                    RebuildIssues();
-                    UpdatePreview();
-                });
-            };
-            Content->AddSlot().AutoHeight().Padding(0.f, 0.f, 0.f, 6.f)
-            [
-                SNew(SHorizontalBox)
-                + SHorizontalBox::Slot().FillWidth(1.f).Padding(0.f, 0.f, 6.f, 0.f)[ TransformField(TEXT("\u00d6l\u00e7ek (1 = ayn\u0131)"), &Draft.ModelScale) ]
-                + SHorizontalBox::Slot().FillWidth(1.f).Padding(0.f, 0.f, 6.f, 0.f)[ TransformField(TEXT("Pitch \u00b0"), &Draft.ModelPitch) ]
-                + SHorizontalBox::Slot().FillWidth(1.f).Padding(0.f, 0.f, 6.f, 0.f)[ TransformField(TEXT("Yaw \u00b0"), &Draft.ModelYaw) ]
-                + SHorizontalBox::Slot().FillWidth(1.f)[ TransformField(TEXT("Roll \u00b0"), &Draft.ModelRoll) ]
-            ];
-            Content->AddSlot().AutoHeight()
-            [
-                SNew(SHorizontalBox)
-                + SHorizontalBox::Slot().FillWidth(1.f).Padding(0.f, 0.f, 6.f, 0.f)[ TransformField(TEXT("Pivot/raf X cm"), &Draft.ModelOffsetX) ]
-                + SHorizontalBox::Slot().FillWidth(1.f).Padding(0.f, 0.f, 6.f, 0.f)[ TransformField(TEXT("Pivot/raf Y cm"), &Draft.ModelOffsetY) ]
-                + SHorizontalBox::Slot().FillWidth(1.f).Padding(0.f, 0.f, 6.f, 0.f)[ TransformField(TEXT("Pivot/raf Z cm"), &Draft.ModelOffsetZ) ]
-                + SHorizontalBox::Slot().FillWidth(0.8f).VAlign(VAlign_Bottom)
-                [ MakeButton(TEXT("S\u0131f\u0131rla"), &S.Ghost, FOnClicked::CreateLambda([this]()
-                    {
-                        Draft.ModelScale = TEXT("1");
-                        Draft.ModelPitch = Draft.ModelYaw = Draft.ModelRoll = TEXT("0");
-                        Draft.ModelOffsetX = Draft.ModelOffsetY = Draft.ModelOffsetZ = TEXT("0");
-                        RebuildRight(); UpdatePreview(); return FReply::Handled();
-                    }), S.Muted, true, 9) ]
-            ];
-        }
-
-        // Part colors for turned shapes / imported models (Cam, Govde, Kapak) ------------------
-        if (CurrentPackage && CurrentPackage->Kind == EPackageKind::Model)
-        {
-            bool bHeader = false;
-            for (const FString& SlotName : CurrentPackage->SlotNames)
-            {
-                const ESlotRole Role = SlotRole(SlotName);
-                if (Role != ESlotRole::Glass && Role != ESlotRole::Body && Role != ESlotRole::Cap) continue;
-                if (!bHeader)
-                {
-                    Content->AddSlot().AutoHeight()[ MakeSection(TEXT("PAR\u00c7A RENKLER\u0130")) ];
-                    Content->AddSlot().AutoHeight().Padding(0.f, 0.f, 0.f, 6.f)
-                    [ MakeText(TEXT("HEX renk (\u00f6rn. E30613). Cam i\u00e7in saydaml\u0131k: 0,1 = \u00e7ok saydam, 0,9 = i\u00e7i dolu/koyu. Kapak g\u00f6rseli y\u00fckl\u00fcyse kapak rengi yerine o kullan\u0131l\u0131r."), 9, S.Muted, TEXT("Regular"), true) ];
-                    bHeader = true;
-                }
-                const FString Slot = SlotName;
-                FString Hex = ColorText(Draft.Colors, Slot), Opacity;
-                if (Hex.Contains(TEXT("/"))) { FString H; Hex.Split(TEXT("/"), &H, &Opacity); Hex = H; }
-                const bool bGlass = Role == ESlotRole::Glass;
-                const auto Store = [this, Slot](const FString& NewHex, const FString& NewOpacity)
-                {
-                    FString Value = NewHex.TrimStartAndEnd();
-                    if (!Value.IsEmpty() && !NewOpacity.TrimStartAndEnd().IsEmpty()) Value += TEXT("/") + NewOpacity.TrimStartAndEnd().Replace(TEXT(","), TEXT("."));
-                    Draft.Colors = WithColor(Draft.Colors, Slot, Value);
-                    FLinearColor Unused; float UnusedOpacity;
-                    if (Value.IsEmpty() || FindColor(Draft.Colors, Slot, Unused, UnusedOpacity)) UpdatePreview();
-                };
-                TSharedRef<SHorizontalBox> Row = SNew(SHorizontalBox)
-                    + SHorizontalBox::Slot().AutoWidth().VAlign(VAlign_Bottom).Padding(0.f, 0.f, 8.f, 4.f)
-                    [
-                        SNew(SBox).WidthOverride(26.f).HeightOverride(26.f)
-                        [
-                            SNew(SBorder).BorderImage(&S.SwatchBrush)
-                            .BorderBackgroundColor_Lambda([this, Slot]()
-                            {
-                                FLinearColor Color; float Opacity;
-                                return FSlateColor(FindColor(Draft.Colors, Slot, Color, Opacity) ? Color : FLinearColor(0.2f, 0.2f, 0.2f));
-                            })
-                        ]
-                    ]
-                    + SHorizontalBox::Slot().FillWidth(1.f)
-                    [ MakeField(Slot + TEXT(" rengi"), Hex, [this, Slot, Store](const FString& Value)
-                        {
-                            FString OldOpacity, OldHex = ColorText(Draft.Colors, Slot);
-                            if (OldHex.Contains(TEXT("/"))) { FString H; OldHex.Split(TEXT("/"), &H, &OldOpacity); }
-                            Store(Value, OldOpacity);
-                        }, TEXT("varsay\u0131lan")) ];
-                if (bGlass)
-                {
-                    Row->AddSlot().FillWidth(0.6f).Padding(8.f, 0.f, 0.f, 0.f)
-                    [ MakeField(TEXT("Saydaml\u0131k"), Opacity.Replace(TEXT("."), TEXT(",")), [this, Slot, Store](const FString& Value)
-                        {
-                            FString OldHex = ColorText(Draft.Colors, Slot), H = OldHex, Unused;
-                            OldHex.Split(TEXT("/"), &H, &Unused);
-                            Store(H.IsEmpty() ? FString(TEXT("D9EEE6")) : H, Value);
-                        }, TEXT("0,3")) ];
-                }
-                Content->AddSlot().AutoHeight().Padding(0.f, 0.f, 0.f, 6.f)[ Row ];
-            }
-        }
-        Content->AddSlot().AutoHeight().Padding(0.f, 10.f, 0.f, 0.f)
-        [ MakeField(TEXT("Notlar (ajana gider: renk, malzeme)"), Draft.Notes, [this, Changed](const FString& Value) { Draft.Notes = Value; Changed(); }, TEXT("\u00f6rn. ye\u015fil cam, k\u0131rm\u0131z\u0131 metal kapak")) ];
-
-        // External production ------------------------------------------------------------------
-        Content->AddSlot().AutoHeight()[ MakeSection(TEXT("DI\u015e \u00dcRET\u0130M \u2014 AJANA G\u0130DECEK PROMPT")) ];
-        TSharedRef<SHorizontalBox> Eras = SNew(SHorizontalBox);
-        for (const TCHAR* Era : { TEXT("2011"), TEXT("2018"), TEXT("2025"), TEXT("2033") })
-        {
-            const FString Value = Era;
-            const bool bOn = SelectedEra == Value;
-            Eras->AddSlot().AutoWidth().Padding(0.f, 0.f, 6.f, 6.f)
-            [ MakeButton(Value, bOn ? &S.ChipActive : &S.Chip, FOnClicked::CreateLambda([this, Value]() { SelectedEra = Value; RebuildRight(); RebuildPrompt(); return FReply::Handled(); }), bOn ? S.Accent : S.Muted, true, 9) ];
-        }
-        Content->AddSlot().AutoHeight()[ Eras ];
-        TSharedRef<SVerticalBox> Choices = SNew(SVerticalBox);
-        for (const FPromptChoice& Choice : PromptsFor(Draft.PackageType))
-        {
-            const FString Id = Choice.Id;
-            const bool bOn = SelectedPrompt == Id;
-            Choices->AddSlot().AutoHeight().Padding(0.f, 0.f, 0.f, 4.f)
-            [ MakeButton(Id + TEXT("  \u00b7  ") + Choice.Label, bOn ? &S.ChipActive : &S.Chip, FOnClicked::CreateLambda([this, Id]() { SelectedPrompt = Id; RebuildRight(); RebuildPrompt(); return FReply::Handled(); }), bOn ? S.Accent : S.Muted, true, 9) ];
-        }
-        Content->AddSlot().AutoHeight()[ Choices ];
-        Content->AddSlot().AutoHeight().Padding(0.f, 6.f, 0.f, 0.f)
-        [
-            SNew(SHorizontalBox)
-            + SHorizontalBox::Slot().FillWidth(1.f).Padding(0.f, 0.f, 6.f, 0.f)
-            [ MakeButton(TEXT("\u015eablonlar\u0131 olu\u015ftur"), &S.Secondary, FOnClicked::CreateSP(this, &SProductStudio::OnExportReadyTemplates), S.Text, !Draft.Preset.IsEmpty(), 9) ]
-            + SHorizontalBox::Slot().FillWidth(1.f).Padding(0.f, 0.f, 6.f, 0.f)
-            [ MakeButton(TEXT("Promptu kopyala"), &S.Primary, FOnClicked::CreateSP(this, &SProductStudio::OnCopyPrompt), S.AccentText, true, 10) ]
-            + SHorizontalBox::Slot().FillWidth(1.f)
-            [ MakeButton(TEXT("Teslim klas\u00f6r\u00fcn\u00fc a\u00e7"), &S.Secondary, FOnClicked::CreateSP(this, &SProductStudio::OnOpenDelivery), S.Text, true, 10) ]
-        ];
-        if (!Draft.Preset.IsEmpty())
-            Content->AddSlot().AutoHeight().Padding(0.f, 5.f, 0.f, 0.f)
-            [ MakeText(TEXT("\u00d6nce \u015fablonlar\u0131 olu\u015ftur; PNG dosyalar\u0131n\u0131 promptla birlikte ajana y\u00fckle. Ajan ayn\u0131 tuval ve b\u00f6lge \u00f6l\u00e7\u00fclerinde temiz bask\u0131 dosyas\u0131 verir."), 8, S.Muted, TEXT("Regular"), true) ];
-        Content->AddSlot().AutoHeight().Padding(0.f, 8.f, 0.f, 0.f)[ SAssignNew(PromptSlot, SBox) ];
-
-        // Special shapes the library cannot make ------------------------------------------------
-        if (!bCustomPackage && IsRoundPackage(Draft.PackageType))
-        {
-            Content->AddSlot().AutoHeight().Padding(0.f, 14.f, 0.f, 0.f)
-            [ MakeButton(TEXT("\u00d6zel 3B model i\u00e7e al\u2026 (yaln\u0131z haz\u0131r \u015fekil yetmezse)"), &S.Ghost, FOnClicked::CreateSP(this, &SProductStudio::OnImportModel), S.Muted, true, 9) ];
-        }
-
+        AddProductFields(Content);
+        AddPackageChoice(Content);
+        AddModelSettings(Content);
+        AddProduction(Content);
         Footer->AddSlot().AutoHeight()[ SAssignNew(IssuesSlot, SBox) ];
         if (Draft.bExisting)
         {
@@ -1389,38 +1063,7 @@ void SProductStudio::RebuildRight()
     }
     else
     {
-        const FStudioPackage* Package = FindPackage(Packages, SelectedPackageId);
-        Content->AddSlot().AutoHeight()[ MakeText(TEXT("Ambalaj"), 16, S.Text, TEXT("Light")) ];
-        if (Package)
-        {
-            Content->AddSlot().AutoHeight()[ MakeSection(TEXT("B\u0130LG\u0130")) ];
-            Content->AddSlot().AutoHeight()[ MakeText(Package->DisplayName, 12, S.Text, TEXT("Bold")) ];
-            Content->AddSlot().AutoHeight().Padding(0.f, 4.f, 0.f, 0.f)
-            [ MakeText(Package->Kind == EPackageKind::Box ? TEXT("Kutu \u015fablonu: alt\u0131 y\u00fcz g\u00f6rseli otomatik atlasa dizilir.") : TEXT("\u0130\u00e7e al\u0131nm\u0131\u015f model: etiket modelin kendi UV a\u00e7\u0131l\u0131m\u0131na g\u00f6re haz\u0131rlan\u0131r."), 9, S.Muted, TEXT("Regular"), true) ];
-            Content->AddSlot().AutoHeight().Padding(0.f, 4.f, 0.f, 0.f)
-            [ MakeText(FString::Printf(TEXT("\u00d6l\u00e7\u00fc: %.1f \u00d7 %.1f \u00d7 %.1f cm (G \u00d7 D \u00d7 Y)"), Package->SizeCm.Y, Package->SizeCm.X, Package->SizeCm.Z), 9, S.Muted) ];
-            if (Package->SlotNames.Num() > 0)
-                Content->AddSlot().AutoHeight().Padding(0.f, 4.f, 0.f, 0.f)[ MakeText(TEXT("Yuvalar: ") + FString::Join(Package->SlotNames, TEXT(", ")), 9, S.Muted, TEXT("Regular"), true) ];
-            Content->AddSlot().AutoHeight().Padding(0.f, 4.f, 0.f, 0.f)[ MakeText(TEXT("Dosya: ") + Package->MeshPath, 8, S.Faint, TEXT("Regular"), true) ];
-            Content->AddSlot().AutoHeight()[ MakeSection(TEXT("KULLANAN \u00dcR\u00dcNLER")) ];
-            int32 Count = 0;
-            for (int32 I = 0; I < Catalog.Num(); ++I)
-            {
-                if (Catalog[I].MeshPath != Package->MeshPath) continue;
-                ++Count;
-                Content->AddSlot().AutoHeight().Padding(0.f, 0.f, 0.f, 4.f)[ MakeProductCard(I) ];
-            }
-            if (Count == 0) Content->AddSlot().AutoHeight()[ MakeText(TEXT("Bu ambalaj\u0131 hen\u00fcz kullanan \u00fcr\u00fcn yok."), 9, S.Muted) ];
-        }
-        Content->AddSlot().AutoHeight()[ MakeSection(TEXT("YEN\u0130 AMBALAJ")) ];
-        Content->AddSlot().AutoHeight()[ MakeBoxCreator() ];
-        Footer->AddSlot().AutoHeight()
-        [
-            SNew(SBox).HeightOverride(44.f)
-            [ MakeButton(TEXT("Bu ambalajla yeni \u00fcr\u00fcn"), &S.Primary, FOnClicked::CreateLambda([this]() { NewProduct(SelectedPackageId); return FReply::Handled(); }), S.AccentText, Package != nullptr, 11) ]
-        ];
-        IssuesSlot.Reset();
-        PromptSlot.Reset();
+        AddPackageInfo(Content, Footer);
     }
 
     RightSlot->SetContent(
@@ -1431,4 +1074,396 @@ void SProductStudio::RebuildRight()
             + SVerticalBox::Slot().AutoHeight().Padding(0.f, 12.f, 0.f, 0.f)[ Footer ]
         ]);
     RebuildIssues();
+}
+
+// Right panel, product mode: heading, name/brand/id, prices.
+void SProductStudio::AddProductFields(const TSharedRef<SVerticalBox>& Content)
+{
+    const FStudioStyle& S = FStudioStyle::Get();
+    const auto Changed = [this]() { RebuildIssues(); RebuildPrompt(); };
+    const FString Heading = !Draft.bExisting ? TEXT("Yeni \u00fcr\u00fcn") : Draft.bActive ? TEXT("Oyundaki \u00fcr\u00fcn") : TEXT("Haz\u0131rl\u0131ktaki \u00fcr\u00fcn");
+    Content->AddSlot().AutoHeight()[ MakeText(Heading, 16, S.Text, TEXT("Light")) ];
+
+    // Product --------------------------------------------------------------------------
+    Content->AddSlot().AutoHeight()[ MakeSection(TEXT("\u00dcR\u00dcN")) ];
+    Content->AddSlot().AutoHeight()
+    [
+        MakeField(TEXT("\u00dcr\u00fcn ad\u0131 (ger\u00e7ek marka)"), Draft.RealName, [this, Changed](const FString& Value)
+        {
+            Draft.RealName = Value;
+            if (!Draft.bExisting && !bIdTouched && IdBox.IsValid())
+            {
+                Draft.Id = MarketCatalog::MakeId(Value);
+                IdBox->SetText(T(Draft.Id));
+            }
+            Changed();
+        }, TEXT("\u00f6rn. S\u00fcta\u015f S\u00fct 1 L"))
+    ];
+    Content->AddSlot().AutoHeight().Padding(0.f, 10.f, 0.f, 0.f)
+    [
+        SNew(SHorizontalBox)
+        + SHorizontalBox::Slot().FillWidth(1.f).Padding(0.f, 0.f, 8.f, 0.f)
+        [ MakeField(TEXT("Marka"), Draft.Brand, [this, Changed](const FString& Value) { Draft.Brand = Value; Changed(); }, TEXT("\u00f6rn. S\u00fcta\u015f")) ]
+        + SHorizontalBox::Slot().FillWidth(1.f)
+        [ MakeField(TEXT("Kategori"), Draft.Category, [this](const FString& Value) { Draft.Category = Value; }, TEXT("\u00f6rn. s\u00fct")) ]
+    ];
+    Content->AddSlot().AutoHeight().Padding(0.f, 10.f, 0.f, 0.f)
+    [
+        SNew(SHorizontalBox)
+        + SHorizontalBox::Slot().FillWidth(1.f).Padding(0.f, 0.f, 8.f, 0.f)
+        [
+            MakeField(TEXT("\u00dcr\u00fcn kimli\u011fi"), Draft.Id, [this, Changed](const FString& Value)
+            {
+                if (IdBox.IsValid() && IdBox->HasKeyboardFocus()) bIdTouched = true;
+                Draft.Id = Value;
+                Changed();
+            }, TEXT("otomatik"), Draft.bExisting, &IdBox)
+        ]
+        + SHorizontalBox::Slot().FillWidth(1.f)
+        [ MakeField(TEXT("Kurgu ad\u0131 (F8)"), Draft.FictionalName, [this](const FString& Value) { Draft.FictionalName = Value; }, TEXT("bo\u015f = \u00fcr\u00fcn ad\u0131")) ]
+    ];
+
+    // Price ----------------------------------------------------------------------------
+    Content->AddSlot().AutoHeight()[ MakeSection(TEXT("F\u0130YAT")) ];
+    Content->AddSlot().AutoHeight()
+    [
+        SNew(SHorizontalBox)
+        + SHorizontalBox::Slot().FillWidth(1.f).Padding(0.f, 0.f, 8.f, 0.f)
+        [ MakeField(TEXT("Al\u0131\u015f (TL)"), Draft.Cost, [this](const FString& Value) { Draft.Cost = Value; RebuildIssues(); }, TEXT("1,70")) ]
+        + SHorizontalBox::Slot().FillWidth(1.f).Padding(0.f, 0.f, 8.f, 0.f)
+        [ MakeField(TEXT("Sat\u0131\u015f (TL)"), Draft.Price, [this](const FString& Value) { Draft.Price = Value; RebuildIssues(); }, TEXT("2,50")) ]
+        + SHorizontalBox::Slot().FillWidth(0.8f)
+        [ MakeField(TEXT("Koli adedi"), Draft.CaseUnits, [this](const FString& Value) { Draft.CaseUnits = Value; RebuildIssues(); }, TEXT("12")) ]
+    ];
+}
+
+// Right panel, product mode: package library, custom package sizes, cap toggle.
+void SProductStudio::AddPackageChoice(const TSharedRef<SVerticalBox>& Content)
+{
+    const FStudioStyle& S = FStudioStyle::Get();
+    const auto Changed = [this]() { RebuildIssues(); RebuildPrompt(); };
+    // Package: a ready package from the library (Config/ambalajlar.json) ---------------------
+    Content->AddSlot().AutoHeight()[ MakeSection(TEXT("AMBALAJ")) ];
+    const FPackagePreset* CurrentPreset = FindPreset(Presets, Draft.Preset);
+    const FStudioPackage* CurrentPackage = DraftPackage();
+    {
+        const FString Summary = CurrentPreset ? CurrentPreset->Name + TEXT("  \u00b7  ") + PresetSize(*CurrentPreset)
+            : bCustomPackage ? FString(TEXT("\u00d6zel ambalaj (listede olmayan)"))
+            : CurrentPackage ? CurrentPackage->DisplayName
+            : FString(TEXT("Ambalaj se\u00e7ilmedi: a\u015fa\u011f\u0131dan birini se\u00e7."));
+        Content->AddSlot().AutoHeight()[ MakeText(Summary, 11, (CurrentPreset || CurrentPackage || bCustomPackage) ? S.Text : S.Warn, TEXT("Bold"), true) ];
+        Content->AddSlot().AutoHeight().Padding(0.f, 3.f, 0.f, 8.f)
+        [ MakeText(CurrentPackage ? TEXT("3B haz\u0131r: ") + CurrentPackage->DisplayName + TEXT("  \u00b7  par\u00e7alar: ") + (Draft.Parts.IsEmpty() ? FString(TEXT("Etiket")) : Draft.Parts)
+                                  : FString(TEXT("3B yok. Bir ambalaj se\u00e7ince st\u00fcdyo 3B \u015feklini kendisi yapar.")), 9, CurrentPackage ? S.Accent : S.Muted, TEXT("Regular"), true) ];
+    }
+    const TCHAR* Types[] = { TEXT("kutu"), TEXT("poset"), TEXT("pet_sise"), TEXT("cam_sise"), TEXT("teneke"), TEXT("kavanoz"), TEXT("kase") };
+    const TCHAR* TypeNames[] = { TEXT("Kutu"), TEXT("Po\u015fet / paket"), TEXT("PET / plastik \u015fi\u015fe"), TEXT("Cam \u015fi\u015fe"), TEXT("Teneke"), TEXT("Kavanoz"), TEXT("Kase / bardak") };
+    TSharedRef<SHorizontalBox> TypeRow1 = SNew(SHorizontalBox);
+    TSharedRef<SHorizontalBox> TypeRow2 = SNew(SHorizontalBox);
+    for (int32 I = 0; I < 7; ++I)
+    {
+        const FString Type = Types[I];
+        const bool bOn = PresetFilter == Type;
+        (I < 3 ? TypeRow1 : TypeRow2)->AddSlot().AutoWidth().Padding(0.f, 0.f, 6.f, 6.f)
+        [
+            MakeButton(TypeNames[I], bOn ? &S.ChipActive : &S.Chip, FOnClicked::CreateLambda([this, Type]()
+            {
+                PresetFilter = Type;
+                if (bCustomPackage)
+                {
+                    Draft.PackageType = Type;
+                    Draft.Parts = Type == TEXT("cam_sise") || Type == TEXT("pet_sise") || Type == TEXT("kavanoz") ? TEXT("Etiket,Cam,Kapak")
+                                : Type == TEXT("teneke") ? TEXT("Etiket,Kapak") : Type == TEXT("kase") ? TEXT("Etiket,Govde,Kapak") : TEXT("Etiket");
+                    SelectedPrompt = PromptsFor(Type)[0].Id;
+                    RebuildPrompt();
+                }
+                RebuildRight();
+                return FReply::Handled();
+            }), bOn ? S.Accent : S.Muted, true, 9)
+        ];
+    }
+    Content->AddSlot().AutoHeight()[ TypeRow1 ];
+    Content->AddSlot().AutoHeight()[ TypeRow2 ];
+    const FString Suggested = CurrentPreset ? FString() : SuggestPreset(Presets, Draft);
+    int32 Shown = 0;
+    for (const FPackagePreset& Preset : Presets)
+    {
+        if (Preset.Type != PresetFilter) continue;
+        ++Shown;
+        const FString Id = Preset.Id;
+        const bool bOn = Id == Draft.Preset;
+        Content->AddSlot().AutoHeight().Padding(0.f, 0.f, 0.f, 4.f)
+        [
+            SNew(SButton)
+            .ButtonStyle(bOn ? &S.CardSelected : &S.Card)
+            .ContentPadding(FMargin(10.f, 7.f))
+            .ToolTipText(T(Preset.Notes.IsEmpty() ? Preset.Parts : Preset.Notes + TEXT(" \u00b7 ") + Preset.Parts))
+            .OnClicked_Lambda([this, Id]() { ChoosePreset(Id); return FReply::Handled(); })
+            [
+                SNew(SHorizontalBox)
+                + SHorizontalBox::Slot().FillWidth(1.f).VAlign(VAlign_Center)[ MakeText(Preset.Name, 10, S.Text, TEXT("Bold"), true) ]
+                + SHorizontalBox::Slot().AutoWidth().VAlign(VAlign_Center).Padding(8.f, 0.f, 0.f, 0.f)[ MakeText(PresetSize(Preset), 9, S.Muted) ]
+                + SHorizontalBox::Slot().AutoWidth().VAlign(VAlign_Center).Padding(8.f, 0.f, 0.f, 0.f)
+                [ MakeText(bOn ? TEXT("se\u00e7ili") : Id == Suggested ? TEXT("\u00f6nerilen") : TEXT(""), 8, bOn ? S.Accent : S.Warn, TEXT("Bold")) ]
+            ]
+        ];
+    }
+    if (Shown == 0) Content->AddSlot().AutoHeight()[ MakeText(TEXT("Bu t\u00fcrde haz\u0131r ambalaj yok. Config/ambalajlar.json dosyas\u0131na eklenebilir."), 9, S.Muted, TEXT("Regular"), true) ];
+    Content->AddSlot().AutoHeight().Padding(0.f, 4.f, 0.f, 0.f)
+    [
+        MakeButton(bCustomPackage ? TEXT("\u00d6zel ambalaj\u0131 kapat") : TEXT("Listede yok: \u00f6zel ambalaj"), &S.Chip, FOnClicked::CreateLambda([this]()
+        {
+            bCustomPackage = !bCustomPackage;
+            if (bCustomPackage)
+            {
+                Draft.Preset.Reset();
+                Draft.PackageType = PresetFilter.IsEmpty() ? FString(TEXT("kutu")) : PresetFilter;
+                SelectedPrompt = PromptsFor(Draft.PackageType)[0].Id;
+            }
+            RebuildRight();
+            RebuildPrompt();
+            return FReply::Handled();
+        }), S.Muted, true, 9)
+    ];
+    if (bCustomPackage)
+    {
+        const bool bRound = IsRoundPackage(Draft.PackageType);
+        const bool bBag = Draft.PackageType == TEXT("poset");
+        FString* First = bRound ? &Draft.DiameterMm : &Draft.WidthMm;
+        FString* Second = bRound ? &Draft.HeightMm : bBag ? &Draft.HeightMm : &Draft.DepthMm;
+        FString* Third = bRound ? &Draft.LabelHeightMm : bBag ? &Draft.DepthMm : &Draft.HeightMm;
+        const FString L1 = bRound ? TEXT("\u00c7ap mm") : TEXT("Geni\u015flik mm");
+        const FString L2 = bRound ? TEXT("Y\u00fckseklik mm") : bBag ? TEXT("Y\u00fckseklik mm") : TEXT("Derinlik mm");
+        const FString L3 = bRound ? TEXT("Etiket band\u0131 mm") : bBag ? TEXT("Dolu kal\u0131nl\u0131k mm") : TEXT("Y\u00fckseklik mm");
+        const auto Dim = [this, Changed](const FString& Label, FString* Target)
+        {
+            return MakeField(Label, *Target, [this, Target, Changed](const FString& Value) { *Target = Value; Changed(); });
+        };
+        Content->AddSlot().AutoHeight().Padding(0.f, 4.f, 0.f, 0.f)
+        [
+            SNew(SHorizontalBox)
+            + SHorizontalBox::Slot().FillWidth(1.f).Padding(0.f, 0.f, 8.f, 0.f)[ Dim(L1, First) ]
+            + SHorizontalBox::Slot().FillWidth(1.f).Padding(0.f, 0.f, 8.f, 0.f)[ Dim(L2, Second) ]
+            + SHorizontalBox::Slot().FillWidth(1.f)[ Dim(L3, Third) ]
+        ];
+        if (Draft.PackageType != TEXT("kutu") && Draft.PackageType != TEXT("poset"))
+        {
+            Content->AddSlot().AutoHeight().Padding(0.f, 10.f, 0.f, 0.f)
+            [ MakeField(TEXT("Par\u00e7alar (model yuvalar\u0131)"), Draft.Parts, [this, Changed](const FString& Value) { Draft.Parts = Value; Changed(); }, TEXT("Etiket,Cam,Kapak")) ];
+        }
+        Content->AddSlot().AutoHeight().Padding(0.f, 8.f, 0.f, 0.f)[ MakeBoxCreator() ];
+    }
+    if (Draft.PackageType == TEXT("kutu") || Draft.PackageType == TEXT("poset"))
+    {
+        const bool bCap = Draft.Parts.Contains(TEXT("Kapak"));
+        Content->AddSlot().AutoHeight().Padding(0.f, 8.f, 0.f, 0.f)
+        [
+            MakeButton(bCap ? TEXT("\u00dcstte kapak var (etiketin \u00fcst y\u00fcz\u00fcne \u00e7izilir)") : TEXT("Kapak yok (varsa t\u0131kla)"), bCap ? &S.ChipActive : &S.Chip,
+                FOnClicked::CreateLambda([this]()
+                {
+                    TArray<FString> Parts;
+                    (Draft.Parts.IsEmpty() ? FString(TEXT("Etiket")) : Draft.Parts).ParseIntoArray(Parts, TEXT(","));
+                    if (Parts.Contains(TEXT("Kapak"))) Parts.Remove(TEXT("Kapak")); else Parts.Add(TEXT("Kapak"));
+                    Draft.Parts = FString::Join(Parts, TEXT(","));
+                    RebuildRight();
+                    RebuildPrompt();
+                    return FReply::Handled();
+                }), bCap ? S.Accent : S.Muted, true, 9)
+        ];
+    }
+}
+
+// Right panel, product mode: imported-model transform fixes and part colours.
+void SProductStudio::AddModelSettings(const TSharedRef<SVerticalBox>& Content)
+{
+    const FStudioStyle& S = FStudioStyle::Get();
+    const FStudioPackage* CurrentPackage = DraftPackage();
+    if (CurrentPackage && CurrentPackage->Id.StartsWith(TEXT("model_")))
+    {
+        Content->AddSlot().AutoHeight()[ MakeSection(TEXT("\u00d6ZEL MODEL D\u00dcZELTME")) ];
+        Content->AddSlot().AutoHeight().Padding(0.f, 0.f, 0.f, 6.f)
+        [ MakeText(TEXT("Yanl\u0131\u015f birim, \u00f6n y\u00f6n veya pivotla gelen FBX/OBJ/GLB modelini burada d\u00fczelt. \u00d6nizleme ve raftaki \u00fcr\u00fcn ayn\u0131 de\u011ferleri kullan\u0131r. Konum birimi cm'dir."), 9, S.Muted, TEXT("Regular"), true) ];
+        const auto TransformField = [this](const FString& Label, FString* Target)
+        {
+            return MakeField(Label, *Target, [this, Target](const FString& Value)
+            {
+                *Target = Value;
+                RebuildIssues();
+                UpdatePreview();
+            });
+        };
+        Content->AddSlot().AutoHeight().Padding(0.f, 0.f, 0.f, 6.f)
+        [
+            SNew(SHorizontalBox)
+            + SHorizontalBox::Slot().FillWidth(1.f).Padding(0.f, 0.f, 6.f, 0.f)[ TransformField(TEXT("\u00d6l\u00e7ek (1 = ayn\u0131)"), &Draft.ModelScale) ]
+            + SHorizontalBox::Slot().FillWidth(1.f).Padding(0.f, 0.f, 6.f, 0.f)[ TransformField(TEXT("Pitch \u00b0"), &Draft.ModelPitch) ]
+            + SHorizontalBox::Slot().FillWidth(1.f).Padding(0.f, 0.f, 6.f, 0.f)[ TransformField(TEXT("Yaw \u00b0"), &Draft.ModelYaw) ]
+            + SHorizontalBox::Slot().FillWidth(1.f)[ TransformField(TEXT("Roll \u00b0"), &Draft.ModelRoll) ]
+        ];
+        Content->AddSlot().AutoHeight()
+        [
+            SNew(SHorizontalBox)
+            + SHorizontalBox::Slot().FillWidth(1.f).Padding(0.f, 0.f, 6.f, 0.f)[ TransformField(TEXT("Pivot/raf X cm"), &Draft.ModelOffsetX) ]
+            + SHorizontalBox::Slot().FillWidth(1.f).Padding(0.f, 0.f, 6.f, 0.f)[ TransformField(TEXT("Pivot/raf Y cm"), &Draft.ModelOffsetY) ]
+            + SHorizontalBox::Slot().FillWidth(1.f).Padding(0.f, 0.f, 6.f, 0.f)[ TransformField(TEXT("Pivot/raf Z cm"), &Draft.ModelOffsetZ) ]
+            + SHorizontalBox::Slot().FillWidth(0.8f).VAlign(VAlign_Bottom)
+            [ MakeButton(TEXT("S\u0131f\u0131rla"), &S.Ghost, FOnClicked::CreateLambda([this]()
+                {
+                    Draft.ModelScale = TEXT("1");
+                    Draft.ModelPitch = Draft.ModelYaw = Draft.ModelRoll = TEXT("0");
+                    Draft.ModelOffsetX = Draft.ModelOffsetY = Draft.ModelOffsetZ = TEXT("0");
+                    RebuildRight(); UpdatePreview(); return FReply::Handled();
+                }), S.Muted, true, 9) ]
+        ];
+    }
+
+    // Part colors for turned shapes / imported models (Cam, Govde, Kapak) ------------------
+    if (CurrentPackage && CurrentPackage->Kind == EPackageKind::Model)
+    {
+        bool bHeader = false;
+        for (const FString& SlotName : CurrentPackage->SlotNames)
+        {
+            const ESlotRole Role = SlotRole(SlotName);
+            if (Role != ESlotRole::Glass && Role != ESlotRole::Body && Role != ESlotRole::Cap) continue;
+            if (!bHeader)
+            {
+                Content->AddSlot().AutoHeight()[ MakeSection(TEXT("PAR\u00c7A RENKLER\u0130")) ];
+                Content->AddSlot().AutoHeight().Padding(0.f, 0.f, 0.f, 6.f)
+                [ MakeText(TEXT("HEX renk (\u00f6rn. E30613). Cam i\u00e7in saydaml\u0131k: 0,1 = \u00e7ok saydam, 0,9 = i\u00e7i dolu/koyu. Kapak g\u00f6rseli y\u00fckl\u00fcyse kapak rengi yerine o kullan\u0131l\u0131r."), 9, S.Muted, TEXT("Regular"), true) ];
+                bHeader = true;
+            }
+            const FString Slot = SlotName;
+            FString Hex = ColorText(Draft.Colors, Slot), Opacity;
+            if (Hex.Contains(TEXT("/"))) { FString H; Hex.Split(TEXT("/"), &H, &Opacity); Hex = H; }
+            const bool bGlass = Role == ESlotRole::Glass;
+            const auto Store = [this, Slot](const FString& NewHex, const FString& NewOpacity)
+            {
+                FString Value = NewHex.TrimStartAndEnd();
+                if (!Value.IsEmpty() && !NewOpacity.TrimStartAndEnd().IsEmpty()) Value += TEXT("/") + NewOpacity.TrimStartAndEnd().Replace(TEXT(","), TEXT("."));
+                Draft.Colors = WithColor(Draft.Colors, Slot, Value);
+                FLinearColor Unused; float UnusedOpacity;
+                if (Value.IsEmpty() || FindColor(Draft.Colors, Slot, Unused, UnusedOpacity)) UpdatePreview();
+            };
+            TSharedRef<SHorizontalBox> Row = SNew(SHorizontalBox)
+                + SHorizontalBox::Slot().AutoWidth().VAlign(VAlign_Bottom).Padding(0.f, 0.f, 8.f, 4.f)
+                [
+                    SNew(SBox).WidthOverride(26.f).HeightOverride(26.f)
+                    [
+                        SNew(SBorder).BorderImage(&S.SwatchBrush)
+                        .BorderBackgroundColor_Lambda([this, Slot]()
+                        {
+                            FLinearColor Color; float Opacity;
+                            return FSlateColor(FindColor(Draft.Colors, Slot, Color, Opacity) ? Color : FLinearColor(0.2f, 0.2f, 0.2f));
+                        })
+                    ]
+                ]
+                + SHorizontalBox::Slot().FillWidth(1.f)
+                [ MakeField(Slot + TEXT(" rengi"), Hex, [this, Slot, Store](const FString& Value)
+                    {
+                        FString OldOpacity, OldHex = ColorText(Draft.Colors, Slot);
+                        if (OldHex.Contains(TEXT("/"))) { FString H; OldHex.Split(TEXT("/"), &H, &OldOpacity); }
+                        Store(Value, OldOpacity);
+                    }, TEXT("varsay\u0131lan")) ];
+            if (bGlass)
+            {
+                Row->AddSlot().FillWidth(0.6f).Padding(8.f, 0.f, 0.f, 0.f)
+                [ MakeField(TEXT("Saydaml\u0131k"), Opacity.Replace(TEXT("."), TEXT(",")), [this, Slot, Store](const FString& Value)
+                    {
+                        FString OldHex = ColorText(Draft.Colors, Slot), H = OldHex, Unused;
+                        OldHex.Split(TEXT("/"), &H, &Unused);
+                        Store(H.IsEmpty() ? FString(TEXT("D9EEE6")) : H, Value);
+                    }, TEXT("0,3")) ];
+            }
+            Content->AddSlot().AutoHeight().Padding(0.f, 0.f, 0.f, 6.f)[ Row ];
+        }
+    }
+}
+
+// Right panel, product mode: notes, external production prompt, special shapes.
+void SProductStudio::AddProduction(const TSharedRef<SVerticalBox>& Content)
+{
+    const FStudioStyle& S = FStudioStyle::Get();
+    const auto Changed = [this]() { RebuildIssues(); RebuildPrompt(); };
+    Content->AddSlot().AutoHeight().Padding(0.f, 10.f, 0.f, 0.f)
+    [ MakeField(TEXT("Notlar (ajana gider: renk, malzeme)"), Draft.Notes, [this, Changed](const FString& Value) { Draft.Notes = Value; Changed(); }, TEXT("\u00f6rn. ye\u015fil cam, k\u0131rm\u0131z\u0131 metal kapak")) ];
+
+    // External production ------------------------------------------------------------------
+    Content->AddSlot().AutoHeight()[ MakeSection(TEXT("DI\u015e \u00dcRET\u0130M \u2014 AJANA G\u0130DECEK PROMPT")) ];
+    TSharedRef<SHorizontalBox> Eras = SNew(SHorizontalBox);
+    for (const TCHAR* Era : { TEXT("2011"), TEXT("2018"), TEXT("2025"), TEXT("2033") })
+    {
+        const FString Value = Era;
+        const bool bOn = SelectedEra == Value;
+        Eras->AddSlot().AutoWidth().Padding(0.f, 0.f, 6.f, 6.f)
+        [ MakeButton(Value, bOn ? &S.ChipActive : &S.Chip, FOnClicked::CreateLambda([this, Value]() { SelectedEra = Value; RebuildRight(); RebuildPrompt(); return FReply::Handled(); }), bOn ? S.Accent : S.Muted, true, 9) ];
+    }
+    Content->AddSlot().AutoHeight()[ Eras ];
+    TSharedRef<SVerticalBox> Choices = SNew(SVerticalBox);
+    for (const FPromptChoice& Choice : PromptsFor(Draft.PackageType))
+    {
+        const FString Id = Choice.Id;
+        const bool bOn = SelectedPrompt == Id;
+        Choices->AddSlot().AutoHeight().Padding(0.f, 0.f, 0.f, 4.f)
+        [ MakeButton(Id + TEXT("  \u00b7  ") + Choice.Label, bOn ? &S.ChipActive : &S.Chip, FOnClicked::CreateLambda([this, Id]() { SelectedPrompt = Id; RebuildRight(); RebuildPrompt(); return FReply::Handled(); }), bOn ? S.Accent : S.Muted, true, 9) ];
+    }
+    Content->AddSlot().AutoHeight()[ Choices ];
+    Content->AddSlot().AutoHeight().Padding(0.f, 6.f, 0.f, 0.f)
+    [
+        SNew(SHorizontalBox)
+        + SHorizontalBox::Slot().FillWidth(1.f).Padding(0.f, 0.f, 6.f, 0.f)
+        [ MakeButton(TEXT("\u015eablonlar\u0131 olu\u015ftur"), &S.Secondary, FOnClicked::CreateSP(this, &SProductStudio::OnExportReadyTemplates), S.Text, !Draft.Preset.IsEmpty(), 9) ]
+        + SHorizontalBox::Slot().FillWidth(1.f).Padding(0.f, 0.f, 6.f, 0.f)
+        [ MakeButton(TEXT("Promptu kopyala"), &S.Primary, FOnClicked::CreateSP(this, &SProductStudio::OnCopyPrompt), S.AccentText, true, 10) ]
+        + SHorizontalBox::Slot().FillWidth(1.f)
+        [ MakeButton(TEXT("Teslim klas\u00f6r\u00fcn\u00fc a\u00e7"), &S.Secondary, FOnClicked::CreateSP(this, &SProductStudio::OnOpenDelivery), S.Text, true, 10) ]
+    ];
+    if (!Draft.Preset.IsEmpty())
+        Content->AddSlot().AutoHeight().Padding(0.f, 5.f, 0.f, 0.f)
+        [ MakeText(TEXT("\u00d6nce \u015fablonlar\u0131 olu\u015ftur; PNG dosyalar\u0131n\u0131 promptla birlikte ajana y\u00fckle. Ajan ayn\u0131 tuval ve b\u00f6lge \u00f6l\u00e7\u00fclerinde temiz bask\u0131 dosyas\u0131 verir."), 8, S.Muted, TEXT("Regular"), true) ];
+    Content->AddSlot().AutoHeight().Padding(0.f, 8.f, 0.f, 0.f)[ SAssignNew(PromptSlot, SBox) ];
+
+    // Special shapes the library cannot make ------------------------------------------------
+    if (!bCustomPackage && IsRoundPackage(Draft.PackageType))
+    {
+        Content->AddSlot().AutoHeight().Padding(0.f, 14.f, 0.f, 0.f)
+        [ MakeButton(TEXT("\u00d6zel 3B model i\u00e7e al\u2026 (yaln\u0131z haz\u0131r \u015fekil yetmezse)"), &S.Ghost, FOnClicked::CreateSP(this, &SProductStudio::OnImportModel), S.Muted, true, 9) ];
+    }
+}
+
+// Right panel, package mode: package info, products using it, new package.
+void SProductStudio::AddPackageInfo(const TSharedRef<SVerticalBox>& Content, const TSharedRef<SVerticalBox>& Footer)
+{
+    const FStudioStyle& S = FStudioStyle::Get();
+    const FStudioPackage* Package = FindPackage(Packages, SelectedPackageId);
+    Content->AddSlot().AutoHeight()[ MakeText(TEXT("Ambalaj"), 16, S.Text, TEXT("Light")) ];
+    if (Package)
+    {
+        Content->AddSlot().AutoHeight()[ MakeSection(TEXT("B\u0130LG\u0130")) ];
+        Content->AddSlot().AutoHeight()[ MakeText(Package->DisplayName, 12, S.Text, TEXT("Bold")) ];
+        Content->AddSlot().AutoHeight().Padding(0.f, 4.f, 0.f, 0.f)
+        [ MakeText(Package->Kind == EPackageKind::Box ? TEXT("Kutu \u015fablonu: alt\u0131 y\u00fcz g\u00f6rseli otomatik atlasa dizilir.") : TEXT("\u0130\u00e7e al\u0131nm\u0131\u015f model: etiket modelin kendi UV a\u00e7\u0131l\u0131m\u0131na g\u00f6re haz\u0131rlan\u0131r."), 9, S.Muted, TEXT("Regular"), true) ];
+        Content->AddSlot().AutoHeight().Padding(0.f, 4.f, 0.f, 0.f)
+        [ MakeText(FString::Printf(TEXT("\u00d6l\u00e7\u00fc: %.1f \u00d7 %.1f \u00d7 %.1f cm (G \u00d7 D \u00d7 Y)"), Package->SizeCm.Y, Package->SizeCm.X, Package->SizeCm.Z), 9, S.Muted) ];
+        if (Package->SlotNames.Num() > 0)
+            Content->AddSlot().AutoHeight().Padding(0.f, 4.f, 0.f, 0.f)[ MakeText(TEXT("Yuvalar: ") + FString::Join(Package->SlotNames, TEXT(", ")), 9, S.Muted, TEXT("Regular"), true) ];
+        Content->AddSlot().AutoHeight().Padding(0.f, 4.f, 0.f, 0.f)[ MakeText(TEXT("Dosya: ") + Package->MeshPath, 8, S.Faint, TEXT("Regular"), true) ];
+        Content->AddSlot().AutoHeight()[ MakeSection(TEXT("KULLANAN \u00dcR\u00dcNLER")) ];
+        int32 Count = 0;
+        for (int32 I = 0; I < Catalog.Num(); ++I)
+        {
+            if (Catalog[I].MeshPath != Package->MeshPath) continue;
+            ++Count;
+            Content->AddSlot().AutoHeight().Padding(0.f, 0.f, 0.f, 4.f)[ MakeProductCard(I) ];
+        }
+        if (Count == 0) Content->AddSlot().AutoHeight()[ MakeText(TEXT("Bu ambalaj\u0131 hen\u00fcz kullanan \u00fcr\u00fcn yok."), 9, S.Muted) ];
+    }
+    Content->AddSlot().AutoHeight()[ MakeSection(TEXT("YEN\u0130 AMBALAJ")) ];
+    Content->AddSlot().AutoHeight()[ MakeBoxCreator() ];
+    Footer->AddSlot().AutoHeight()
+    [
+        SNew(SBox).HeightOverride(44.f)
+        [ MakeButton(TEXT("Bu ambalajla yeni \u00fcr\u00fcn"), &S.Primary, FOnClicked::CreateLambda([this]() { NewProduct(SelectedPackageId); return FReply::Handled(); }), S.AccentText, Package != nullptr, 11) ]
+    ];
+    IssuesSlot.Reset();
+    PromptSlot.Reset();
 }

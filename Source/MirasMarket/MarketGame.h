@@ -8,6 +8,8 @@
 #include "Planogram.h"
 #include "MarketVisuals.h"
 #include "MarketPeople.h"
+#include "PlanogramEdit.h"
+#include "StaffPlanner.h"
 #include "MarketGame.generated.h"
 
 class UTextRenderComponent;
@@ -16,6 +18,19 @@ class UStaticMeshComponent;
 class UMaterialInterface;
 class UInstancedStaticMeshComponent;
 class SWidget;
+DECLARE_DELEGATE_OneParam(FMarketCommandDelegate, FName);
+
+// How one product looks on a shelf: mesh, slot materials and the studio's model correction. Shared by the
+// shelf stock and the arrange-mode ghost preview (plain struct: the holder keeps the objects alive).
+struct FProductLook
+{
+    UStaticMesh* Mesh = nullptr;
+    TArray<UMaterialInterface*> Materials;
+    FVector ItemScale = FVector(1.f);
+    FRotator ModelRotation = FRotator::ZeroRotator;
+    FVector PlacementOffset = FVector::ZeroVector;
+    FBox SourceBounds = FBox(FVector(-50.f), FVector(50.f));
+};
 
 UCLASS()
 class UMarketSave : public USaveGame
@@ -54,6 +69,7 @@ public:
     void NextMood();
     void ToggleFullscreen();
     void Quit();
+    void SendCommand(FName Action);
 };
 
 USTRUCT()
@@ -73,6 +89,30 @@ struct FMarketCustomer
     // Aisle waypoints before the stage target (shoppers walk around fixtures, not through them).
     TArray<FVector> Route;
     int32 RouteStage = -1;
+};
+
+enum class EWorkerStage : uint8 { Idle, ToDepot, Loading, ToShelf, Working };
+
+// One shelf worker (reyon gorevlisi) walking in the store. Units stay in the depot until the worker puts
+// them on the shelf one by one, so nothing is lost if the trip is cut short.
+USTRUCT()
+struct FMarketWorker
+{
+    GENERATED_BODY()
+    UPROPERTY() TObjectPtr<AActor> Actor = nullptr;
+    UPROPERTY() TObjectPtr<AActor> Carton = nullptr;   // carried case (only while carrying)
+    UPROPERTY() TObjectPtr<UTextRenderComponent> Tag = nullptr; // name above the head
+    FString Name;
+    bool bHuman = false;
+    MarketPeople::FShopper Shopper;
+    EWorkerStage Stage = EWorkerStage::Idle;
+    StaffPlanner::FJob Job;
+    TArray<FVector> Route;          // floor waypoints; empty = standing at the goal
+    FVector Facing = FVector(0, 1, 0);
+    float Timer = 0.f;
+    int32 Carry = 0;                // units still to put on the shelf this trip
+    int32 Retries = 0;              // new spots tried after the planned one was taken
+    bool bResting = false;
 };
 
 struct FMarketQueueRules
@@ -136,6 +176,96 @@ public:
     float CaptureAt = 0;
     float CaptureReadySince = -1;
     int32 SmokeStage = 0;
+    // Shelf staff (J at the office). They refill shelves from the depot, put products that are not on a shelf
+    // onto their category's shelves and widen blocks that cannot hold one case. MarketWorkers.cpp, StaffPlanner.h.
+    UPROPERTY() TArray<FMarketWorker> Workers;
+    TSet<int32> Unplaceable;        // products with no room on their category's shelves (cleared when the plan changes)
+    TSet<int32> NoRoomTold;         // "no room" already reported to the player for these products
+    int32 WorkerPlanVersion = -1;
+    void SyncWorkers();
+    void ResetWorkerJobs();
+    void TickWorkers(float DeltaTime);
+    void WorkerThink(int32 WorkerIndex);
+    void WorkerLoaded(FMarketWorker& Worker);
+    void WorkerAtShelf(FMarketWorker& Worker);
+    void WorkerFinish(FMarketWorker& Worker);
+    bool WorkerWalk(FMarketWorker& Worker, float DeltaTime); // true = at the goal
+    void WorkerGoTo(FMarketWorker& Worker, const FVector& Goal);
+    FString WorkerSummary() const;
+    FVector DepotSpot() const;
+    FVector WorkerRestSpot(int32 Index) const;
+    // Shopper / worker standing spot in front of a block (floor level).
+    FVector BlockApproachSpot(const FPlanogramPlacement& Placement, float CenterX) const;
+    // Walk along the open lanes (x = +/-150), crossing at the front corridor or behind the last gondola.
+    TArray<FVector> AisleRoute(const FVector& From, const FVector& To) const;
+    float StoreBack() const { return 400.f + StoreRows * 320.f; }
+    // Saves the plan and rebuilds everything on the shelves (arrange mode and workers). False = not saved.
+    bool CommitPlan(FString& OutError);
+    // Simple box person (when no MetaHuman is assembled). Floor = feet position.
+    AActor* SimplePerson(const FVector& Floor, const FLinearColor& Color);
+    // Smoke test / screenshot runs (MarketAutomation.cpp). False = a smoke step failed: skip this tick.
+    bool TickAutomation();
+    // In-game shelf arranging (R while the shop is closed). See MarketArrange.cpp.
+    // The player aims at any shelf: a ghost of the product in hand shows where it would go (green = fits);
+    // click/E puts it there. The same product can be placed any number of times.
+    bool bArrange = false;
+    FPlanogramPlacement ArrangeHand;          // product + facings/orientation/stack to place next
+    int32 ArrangeMoving = INDEX_NONE;         // block picked up with F (moved by the next click)
+    bool bArrangeAim = false;                 // crosshair is on a shelf
+    int32 AimFixture = INDEX_NONE;
+    FString AimFace = TEXT("front");
+    int32 AimLevel = 0;
+    float AimX = 0.f;
+    int32 ArrangeHover = INDEX_NONE;          // block under the crosshair
+    MarketPlanogramEdit::FBlockPlan ArrangePlan; // what a click would do right now
+    // Panel text (MarketHudWidget reads these every frame).
+    FString ArrangeTitle;
+    FString ArrangeRow;
+    FString ArrangeHandTitle;
+    FString ArrangeHandText;
+    FString ArrangeTargetTitle;
+    FString ArrangeTargetText;
+    FString ArrangeStatus;
+    float ArrangeRowFill = 0.f;
+    bool bArrangeStatusOk = false;
+    TArray<TPair<FString, FString>> ArrangeKeys;
+    // Ghost preview: product meshes + a coloured strip on the shelf lip + a floating label.
+    UPROPERTY() TObjectPtr<AActor> GhostHolder = nullptr;
+    UPROPERTY() TObjectPtr<AActor> GhostStrip = nullptr;
+    UPROPERTY() TObjectPtr<AActor> HoverStrip = nullptr;
+    // Grey strips under every block of the aimed row, so reserved but empty blocks are visible too.
+    UPROPERTY() TArray<TObjectPtr<AActor>> RowMarks;
+    FString RowMarksKey;
+    int32 ArrangeVersion = 0; // bumps on every plan change (refreshes the row strips)
+    UPROPERTY() TObjectPtr<UTextRenderComponent> GhostLabel = nullptr;
+    UPROPERTY() TObjectPtr<UStaticMesh> GhostMesh = nullptr;
+    UPROPERTY() TArray<TObjectPtr<UMaterialInterface>> GhostMaterials;
+    FProductLook GhostLook;
+    FString GhostLookProduct;
+    FString GhostShapeKey;
+    FString GhostStripKey;
+    FString HoverStripKey;
+    TArray<TWeakObjectPtr<UStaticMeshComponent>> GhostItems;
+    // Every actor that shows shelf stock or price cards; rebuilt when the plan changes.
+    TArray<TWeakObjectPtr<AActor>> ShelfContentActors;
+    bool ArrangeCommand(FName Action);
+    void TickArrange();
+    void UpdateArrangeAim();
+    void UpdateArrangeView();
+    void UpdateGhost();
+    void ClearGhost();
+    void ArrangeApplied(bool bChanged, const FString& Text, const FString& ProductId);
+    FString ArrangeHint() const;
+    void ExitArrange(const FString& Text);
+    void RebuildShelfContents();
+    // Fixture the player stands in front of (and which aisle side), or INDEX_NONE.
+    int32 NearbyFixture(FString* OutFace = nullptr) const;
+    FProductLook LoadProductLook(int32 Index);
+    // World transforms of one block's units (front row first, centre out). SeedBase/SeqStart keep the
+    // hand-stocked jitter stable. bFrontRowOnly: the ghost preview shows only the visible front row.
+    void BlockSlotTransforms(const FProductLook& Look, const FMarketProduct& Product, const FPlanogramPlacement& Placement,
+        float CenterX, int32 SeedBase, int32 SeqStart, bool bFrontRowOnly, TArray<FTransform>& OutTransforms, TArray<int32>* OutRows, FVector* OutApproach) const;
+    void BuildShelfContents();
     void Command(FName Action);
     void Notify(const FString& Text);
     void RefreshLabels();

@@ -1,0 +1,26 @@
+{
+  "schemaVersion": 1,
+  "id": "refrigerated_wall_3000",
+  "displayName": "Uc Kapili Sogutucu 3000",
+  "family": "refrigerated_wall",
+  "dimensionsMm": {
+    "width": 3000,
+    "depth": 920,
+    "height": 2250
+  },
+  "customerFaces": [
+    "front"
+  ],
+  "frontAxis": "-Y",
+  "shelfZones": [],
+  "materials": [
+    "Black",
+    "PaintedMetal",
+    "Glass",
+    "Light",
+    "ProductWhite",
+    "ProductBlue",
+    "ProductRed"
+  ],
+  "collision": "1 UCX box"
+}

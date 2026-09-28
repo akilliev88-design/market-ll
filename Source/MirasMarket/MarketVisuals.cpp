@@ -211,6 +211,7 @@ bool SurfaceForSlot(const FString& SlotName, EMarketSurface& OutKind)
         { TEXT("clear"), EMarketSurface::Acrylic },
         { TEXT("glass"), EMarketSurface::Acrylic },
         { TEXT("ceiling_light"), EMarketSurface::Emissive },
+        { TEXT("fridge_light"), EMarketSurface::Emissive },
         { TEXT("blacksteel"), EMarketSurface::CeilingSteel },
         { TEXT("galvan"), EMarketSurface::Galvanized },
         { TEXT("bulkisland_wood"), EMarketSurface::Wood },   // feature island stays walnut

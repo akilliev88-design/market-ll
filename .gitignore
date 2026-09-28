@@ -12,3 +12,5 @@ Config/*.bak
 Build-backup-*
 /Build.json
 /Claude outputs/
+__pycache__/
+*.pyc

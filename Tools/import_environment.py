@@ -11,6 +11,10 @@ ASSETS = [
     (PROJECT_ROOT / "AssetInbox" / "Environment" / "StoreKit" / "WallShelf_2400" / "SM_WallShelf_2400.fbx", "/Game/Environment/StoreKit/WallShelf_2400", "SM_WallShelf_2400"),
     (PROJECT_ROOT / "AssetInbox" / "Environment" / "StoreKit" / "BulkIsland_1600" / "SM_BulkIsland_1600.fbx", "/Game/Environment/StoreKit/BulkIsland_1600", "SM_BulkIsland_1600"),
     (PROJECT_ROOT / "AssetInbox" / "Environment" / "StoreKit" / "CeilingBay_6000" / "SM_CeilingBay_6000.fbx", "/Game/Environment/StoreKit/CeilingBay_6000", "SM_CeilingBay_6000"),
+    (PROJECT_ROOT / "AssetInbox" / "Environment" / "StoreKit" / "CheckoutLane_2500" / "SM_CheckoutLane_2500.fbx", "/Game/Environment/StoreKit/CheckoutLane_2500", "SM_CheckoutLane_2500"),
+    (PROJECT_ROOT / "AssetInbox" / "Environment" / "StoreKit" / "OfficeDesk_1800" / "SM_OfficeDesk_1800.fbx", "/Game/Environment/StoreKit/OfficeDesk_1800", "SM_OfficeDesk_1800"),
+    (PROJECT_ROOT / "AssetInbox" / "Environment" / "StoreKit" / "RefrigeratedWall_3000" / "SM_RefrigeratedWall_3000.fbx", "/Game/Environment/StoreKit/RefrigeratedWall_3000", "SM_RefrigeratedWall_3000"),
+    (PROJECT_ROOT / "AssetInbox" / "Environment" / "StoreKit" / "ProduceIsland_2400" / "SM_ProduceIsland_2400.fbx", "/Game/Environment/StoreKit/ProduceIsland_2400", "SM_ProduceIsland_2400"),
 ]
 
 

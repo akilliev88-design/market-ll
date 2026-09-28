@@ -8,6 +8,7 @@
 class SBox;
 class SEditableTextBox;
 class SStudioViewport;
+class SVerticalBox;
 class UMaterialInstanceDynamic;
 class UTexture2D;
 struct FButtonStyle;
@@ -60,6 +61,12 @@ private:
     void RebuildHeader();
     void RebuildLeft();
     void RebuildRight();
+    // RebuildRight sections
+    void AddProductFields(const TSharedRef<SVerticalBox>& Content);
+    void AddPackageChoice(const TSharedRef<SVerticalBox>& Content);
+    void AddModelSettings(const TSharedRef<SVerticalBox>& Content);
+    void AddProduction(const TSharedRef<SVerticalBox>& Content);
+    void AddPackageInfo(const TSharedRef<SVerticalBox>& Content, const TSharedRef<SVerticalBox>& Footer);
     void RebuildFaces();
     void RebuildIssues();
     void RebuildTitle();
