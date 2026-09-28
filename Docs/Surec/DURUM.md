@@ -1,6 +1,6 @@
 # Güncel durum
 
-Son güncelleme: 28.09.2026 — Claude (G-060…G-065 arka plan sistemleri, DERLENMEDİ)
+Son güncelleme: 28.09.2026 — Claude (G-060…G-068 arka plan sistemleri, DERLENMEDİ)
 
 ## Kısaca
 
@@ -57,6 +57,7 @@ GitHub ana deposu: `https://github.com/m07tas/market-ll` (`main`). Unreal/Blende
 | G-054: babadan kalan borç (P), hafta raporu, günlük rakip haberleri (BİM/Migros/A101), reyona göre rakip fiyatı | **GEÇTİ** — derleme, 24/24 test ve smoke — 29.09.2026 |
 | G-059: tıklanabilir yönetim menüsü (M), kalıcı gün sonu/hafta raporu, açık/koyu tema, logo yuvası, günlük geçmiş | **GEÇTİ** — derleme, 24/24 test ve smoke — 29.09.2026 |
 | G-060: personel ve muhasebe (kişi olarak çalışanlar, aday havuzu, kasiyer hızı/kasa farkı, görevli hızı, moral/istifa, İK müdürü, mali müşavir, haftalık vergi, menü Personel sayfası) | **DERLENMEDİ** — saf mantık (`MarketEconomy` + `MarketStaff` + testler) Linux'ta g++ ve Unreal taklidiyle derlendi; `Staff.*` 3 test ve `Campaign`/`Rivals` testleri geçti. Slate menüsü ve dünya bağlantısı derlenmedi — 28.09.2026 |
+| G-061…G-068: takvim, müşteri segmentleri, enflasyon/toptancı, kampanyalar, rakip şirketler ve pay modeli, hikâye/olaylar, tazelik/veresiye/finans, şubeler ve yeni şubenin otomatik raf dizilimi | **DERLENMEDİ** — saf mantık g++ + Unreal taklidiyle derlendi, taklit ortamında 23 test geçti (yeni 18). `MarketGame.cpp`, `MarketMenuWidget.cpp` (Slate) ve dünya bağlantısı derlenmedi; ilk derleme hatası büyük ihtimalle menü sayfalarında çıkar. `Test.ps1` en az 41 test bekler — 28.09.2026 |
 | Stüdyoda elle deneme: kutu (açılım) → Oyuna ekle → OYNA | GEÇTİ: milk_1l oyunda; ön/yan/üst yüzler doğru, ayna yok, raf oturması doğru — 27.09.2026 |
 | Stüdyoda elle deneme: cam şişe modeli + malzeme.json | Bekliyor (henüz model yok) |
 

@@ -28,7 +28,7 @@ namespace MarketLayout
     // Shelf levels from best to worst for this product (eye level first for high margin, bottom first when heavy).
     TArray<int32> LevelPreference(const FPlanogramEquipment& Equipment, const FMarketProduct& Product);
 
-    // Fixtures of a branch format: "mahalle" (4 gondolas + 2 wall shelves, like the family shop), "kucuk"
+    // Fixtures of a branch format: "mahalle" (4 gondolas + 6 wall shelves, like the family shop), "kucuk"
     // (2 gondolas + 1 wall shelf), "buyuk" (8 gondolas + 3 wall shelves). Entrance at -Y.
     FMarketPlanogram Fixtures(const FString& Format);
     // Lays out Products on the plan's fixtures (existing placements are cleared). Demand = expected daily units per

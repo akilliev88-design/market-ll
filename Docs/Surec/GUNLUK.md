@@ -2,6 +2,19 @@
 
 En yeni giriş en üstte. Biçim: tarih — ajan — başlık, ardından **Yapılan**, **Doğrulama**, **Sıradaki**.
 
+## 28.09.2026 — Claude (Claude Code, bulut) — Hikâye, para ve şubeler G-066…G-068 — DERLENMEDİ
+
+**Yapılan**
+- G-066 `MarketEvents` + `MarketStory`: bekleyen karar ve süreli etki altyapısı; 9 mahalle olayı; 7 bölüm (1-3 hedefleri çalışır); Nermin teyze, Cem, Selim, Kadir Bey sahneleri; satış teklifi → son ya da dükkân kimliği (Bakkal / Kaliteli / İndirim); hatıralar; menüde karar ve bölüm kartı.
+- G-067 `MarketFreshness` + `MarketCredit` + `MarketFinance`: partili tazelik (FEFO, son gün %30 ya da bağış, fire); veresiye defteri; banka kredisi; nakit sıkıntısı merdiveni (oyun bitmez); ay sonu raporu; mevsimlik elektrik.
+- G-068 `MarketLayout` + `MarketBranches`: yeni şubenin otomatik raf planı (ana dükkân elle kalır, G-045); 7 semt, açılış süreci, uzak şube günlük simülasyonu, müdür, yamyamlık, kapatma; Şubeler sayfası ve G tuşu gerçek şube açar.
+
+**Varsayımlar**: semtler kurgu; mahalle şubesi semtine göre günde 3-43 TL net (90 günlük simülasyon); başlangıçtaki 32'şer süt satılmazsa 7 günde fire olur (denge riski).
+
+**Doğrulama**: Unreal yok, **derlenmedi**. Saf mantık taklit ortamında derlendi; toplam 23 test geçti. Slate ve dünya kodu derlenmedi.
+
+**Sıradaki**: Codex: DERLE/TEST (41)/Smoke. Claude: online satış ve ödeme (G-069), hareket zekâsı (G-070), stratejik ilerletme ve zorluk (G-071), şirket büyümesi (G-072).
+
 ## 28.09.2026 — Claude (Claude Code, bulut) — Arka plan sistemleri G-061…G-065 — DERLENMEDİ
 
 **Mustafa**: "3B model, mağaza modeli ve arayüz tasarımı dışında oyunun bütün kurgusu ve arka plan zekâsı sende; müşteri yürüyüşünden alışveriş davranışına, online satışın sonuçlarına kadar her şey." Kararlar dosyası istendi.
