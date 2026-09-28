@@ -1,0 +1,14 @@
+{
+	"labelMode": "box_net",
+	"schemaVersion": 1,
+	"productId": "barilla_spagetti_500g",
+	"package": "box_72x30x265",
+	"labels":
+	{
+		"net": "Labels/net.jpg"
+	},
+	"materials": [
+		"/Game/Products/Items/barilla_spagetti_500g/MI_barilla_spagetti_500g.MI_barilla_spagetti_500g"
+	],
+	"publishedAt": "2026-09-27T19:51:53.521Z"
+}

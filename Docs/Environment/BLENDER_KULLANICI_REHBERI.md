@@ -71,3 +71,13 @@ Blender arayüzünde Scripting çalışma alanını açıp `Tools/Blender/create
 
 Bu betik öğrenme örneğidir: yeni varlıkta ölçüleri ve parçaları değiştir, fakat eksen, origin, ad ve teslim kurallarını değiştirme.
 
+## Mağaza kitini yeniden üretme
+
+`BLENDER_MAGAZA_KITI.cmd` üç varlığı Blender'da baştan üretir, FBX'leri Unreal'a aktarır ve ölçü/materyal/çarpışma kalite kapısını çalıştırır:
+
+- `SM_WallShelf_2400`: altı seviyeli duvar reyonu.
+- `SM_BulkIsland_1600`: şeffaf hazneli kuru yemiş/lokum adası.
+- `SM_CeilingBay_6000`: açık tavan kirişi, galvaniz kanal ve altı lineer armatür.
+
+Kaynak betik `Tools/Blender/create_store_kit.py` dosyasıdır. Renk, ölçü ve parça biçimini burada değiştirip aynı komutu tekrar çalıştırabilirsin.
+

@@ -4,11 +4,11 @@ Son güncelleme: 28.09.2026 — Codex
 
 ## Kısaca
 
-v0.2 geliştirme. Raf sistemi veri güdümlü planograma geçti: bir gondolda birden çok marka, seviye, facing, arka derinlik ve ön/arka yüz kullanılabiliyor. `RAF_PLANI.cmd` ile açılan editör planı kod yazmadan düzenliyor. Blender 5.2 hattı için kullanıcı rehberi, metadata şablonu ve Claude/harici ajan sözleşmesi hazır.
+v0.2 geliştirme. Raf sistemi veri güdümlü planograma geçti. Referans mağazaya yaklaşan ilk Blender iç mekân kiti oyunda: iki yanda 240 cm duvar reyonları, giriş odağında şeffaf hazneli kuru gıda adası, tavanda siyah taşıyıcılar, galvaniz kanal ve lineer armatürler var. `BLENDER_MAGAZA_KITI.cmd` bu üç varlığı yeniden üretip Unreal'a aktarır.
 
 ## Çalışan / var olan
 
-- Oynanabilir prototip; katalog `Config/products.json` şema v2 (1–24 ürün, yuva bazlı `materials`).
+- Oynanabilir prototip; katalog `Config/products.json` şema v2 (aktif ürün sınırı yok, yuva bazlı `materials`). Raf kapasitesi = raf planında önde × derinlik; otomatik dolum açık. Test modu varsayılan açık (F2/F3).
 - Ürün Stüdyosu: Tools > Ürün Stüdyosu veya `STUDYO.cmd`.
 - Dış üretim: `Docs/Uretim/00_BASLA_BURADAN.md` → promptlar A1, A2, B1, B2, C1, C2, D, E; `MARKA_VE_URUN_LISTESI.md`.
 
@@ -30,6 +30,12 @@ v0.2 geliştirme. Raf sistemi veri güdümlü planograma geçti: bir gondolda bi
 | Canlılık geçişi v2 (referans market karşılaştırması) | GEÇTİ; derleme, 10/10 test, smoke ve 1280×720 görüntü kontrolü — 28.09.2026 |
 | Blender gondol v1 (`create` + Blender validate + Unreal import/validate + oyun) | GEÇTİ; 120×90×160 cm, 5 materyal, 3 UCX, 8 raf bölgesi; derleme, 10/10 test, smoke ve ekran görüntüsü — 28.09.2026 |
 | Planogram v1: çok marka + facing + derinlik + editör | GEÇTİ; derleme, 11/11 test, smoke (4 satış) ve 1280×720 sahne kontrolü — 28.09.2026 |
+| Blender mağaza kiti v1 | GEÇTİ; 3 kaynak `.blend`, FBX, metadata ve önizleme; Unreal ölçü/materyal/çarpışma doğrulaması ve 1280×720 oyun görüntüsü — 28.09.2026 |
+| Raf genişliği sınırı (G-028: otomatik yerleşim, editör kontrolleri, taşma uyarısı, WidthLimit testi) | GEÇTİ — güncel 14/14 test içinde — 28.09.2026 |
+| G-029…G-034 canlılık + sınırsız raf + test modu (HUD, Lumen, yüzey kütüphanesi, dokular, tabela/fiyat etiketi, `SON_KONTROL.cmd`) | GEÇTİ — derleme, 14/14 test, smoke ve görsel kontrol — 28.09.2026 |
+| `SON_KONTROL.cmd` (G-028 + G-029…G-034) | GEÇTİ — Mustafa çalıştırdı; derleme, malzemeler, 14 test, smoke ve ekran görüntüsü — 28.09.2026 |
+| Opus sonrası birleşik sürüm (G-028…G-043) | **GEÇTİ** — `DERLE.cmd`, 14/14 otomasyon, smoke, PBR malzeme aktarımı ve beş açılı görsel kontrol — 28.09.2026 |
+| Nötr-sıcak market ışığı ayarı | **GEÇTİ** — beyaz raf/etiket dengesi ve ürün renkleri beş adet 1280x720 görüntüde incelendi — 28.09.2026 |
 | Stüdyoda elle deneme: kutu (açılım) → Oyuna ekle → OYNA | GEÇTİ: milk_1l oyunda; ön/yan/üst yüzler doğru, ayna yok, raf oturması doğru — 27.09.2026 |
 | Stüdyoda elle deneme: cam şişe modeli + malzeme.json | Bekliyor (henüz model yok) |
 
@@ -41,13 +47,18 @@ v0.2 geliştirme. Raf sistemi veri güdümlü planograma geçti: bir gondolda bi
 - `M_ProductGlass` saydam materyali ilk kez oluşturulacak; UE 5.8'de `BlendMode` erişimi uyarı verebilir.
 - Oyun şimdilik tek etiket gösterir (dönem etiketleri G-011).
 - Prosedürel mağaza artık daha okunaklıdır; fotogerçekçi hedef için sonraki turda raf/zemin/duvar PBR doku setleri ve ayrıntılı prop modelleri gerekir (G-021).
+- Lumen + mesafe alanları açık (`DefaultEngine.ini`); ilk açılışta shader derlemesi uzun sürebilir.
+- `gorsel_malzemeler.py` Unreal Python malzeme grafiği kuruyor; pin adı uyuşmazsa `GORSEL_son.log` içinde `MIRAS_MATERIALS_ERROR` yazar ve oyun düz renklere düşer (çökmez).
+- MetaHuman smoke ve yükleme günlüğüyle doğrulandı; yüz, saç ve kıyafet kalitesi normal oyun kamerasında ayrı bir yakın plan turunda incelenmeli.
 
 ## Devam notu
 
-Yok.
+Opus ile eklenen G-028…G-043 işleri Codex tarafından yeniden okundu ve topluca doğrulandı. Varsayılan ışık, ilk beşli yakalamadaki turuncu renk baskısı giderilerek nötr-sıcak market tonuna ayarlandı. Derleme, 14/14 test, smoke, PBR malzeme hazırlama ve ikinci beşli yakalama geçti. Açık iş yeni içerik çeşitliliğidir; bu doğrulanmış temeli bozacak yarım kod yoktur.
 
 ## Sıradaki adımlar
 
-1. G-024: Aynı standardı kullanan 1200 mm tek yüz duvar rafı üret; yan duvarlardaki boşluğu kategori raflarıyla doldur.
-2. G-021: Terrazzo zemin ve raf için gerçek PBR doku setlerini ana materyallere bağla.
-3. Mustafa: PET/teneke/kavanoz/kase türlerinden birer ürün üretip Oyuna ekle; etiket yönü, kapak ve malzeme yuvalarını gözle doğrula (G-017).
+00. Mustafa: `Docs/Environment/FAB_PAKET_LISTESI.md` paketlerini indir (G-042); Claude bağlayacak.
+1. Raf tekrarını azalt: her kategoriye daha fazla gerçek ürün/ambalaj ekle ve planogram editöründe aynı seviyede marka bloklarını karıştır.
+2. G-021'i sürdür: kasa, soğutucu, manav, fırın ve servis reyonları için Blender modülleri üret.
+3. `MH_Teyze`yi normal oyun kamerasında yakın planda kontrol et; ardından `MH_Amca`, `MH_Anne`, `MH_Genc` ve döneme uygun kıyafetleri ekle (G-042).
+4. Mustafa: PET/teneke/kavanoz/kase türlerinden birer ürün üretip Oyuna ekle; etiket yönü, kapak ve malzeme yuvalarını gözle doğrula (G-017).

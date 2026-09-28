@@ -1,0 +1,14 @@
+{
+	"labelMode": "box_net",
+	"schemaVersion": 1,
+	"productId": "ulker_potibor",
+	"package": "box_65x45x185",
+	"labels":
+	{
+		"net": "Labels/net.jpg"
+	},
+	"materials": [
+		"/Game/Products/Items/ulker_potibor/MI_ulker_potibor.MI_ulker_potibor"
+	],
+	"publishedAt": "2026-09-27T19:50:38.500Z"
+}

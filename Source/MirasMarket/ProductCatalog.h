@@ -7,10 +7,9 @@
 namespace MarketCatalog
 {
     constexpr int32 SchemaVersion = 2;
-    constexpr int32 MaxProducts = 24;
 
     MIRASMARKET_API FString DefaultPath();
-    // MaxProducts limits ACTIVE (in-game) products; inactive ones are the studio's preparation list.
+    // Active products are stocked in the game (no upper limit); inactive ones are the studio's preparation list.
     MIRASMARKET_API int32 CountActive(const TArray<FMarketProduct>& Products);
     // Lowercase ASCII letters, digits and '_' ; 3-40 chars; starts with a letter.
     MIRASMARKET_API bool IsValidId(const FString& Id);

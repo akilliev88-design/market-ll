@@ -1,0 +1,11 @@
+{
+	"schemaVersion": 1,
+	"id": "shape_pet_sise_1l",
+	"type": "shape",
+	"preset": "pet_sise_1l",
+	"shape": "sise",
+	"diameterMm": 80,
+	"heightMm": 300,
+	"labelHeightMm": 70,
+	"mesh": "/Game/Products/Packages/shape_pet_sise_1l/SM_shape_pet_sise_1l.SM_shape_pet_sise_1l"
+}

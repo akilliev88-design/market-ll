@@ -1,0 +1,16 @@
+{
+	"labelMode": "model_uv",
+	"schemaVersion": 1,
+	"productId": "coca_cola_1l",
+	"package": "shape_pet_sise_1l",
+	"labels":
+	{
+		"label": "Labels/label.jpg"
+	},
+	"materials": [
+		"/Game/Products/Items/coca_cola_1l/MI_coca_cola_1l.MI_coca_cola_1l",
+		"/Game/Products/Items/coca_cola_1l/MI_coca_cola_1l_cam.MI_coca_cola_1l_cam",
+		"/Game/Products/Items/coca_cola_1l/MI_coca_cola_1l_kapak.MI_coca_cola_1l_kapak"
+	],
+	"publishedAt": "2026-09-27T19:39:58.770Z"
+}

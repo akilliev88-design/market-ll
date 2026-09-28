@@ -10,10 +10,10 @@ if not exist "%UE_EDITOR%" (
 
 echo Cevre varliklari Unreal'a aktariliyor...
 "%UE_EDITOR%" "%PROJECT%" -run=pythonscript -script="%~dp0Tools\import_environment.py" -unattended -nop4 -nosplash -nullrhi
-if errorlevel 1 exit /b 1
+if not "%ERRORLEVEL%"=="0" exit /b 1
 
 echo Cevre varliklari dogrulaniyor...
 "%UE_EDITOR%" "%PROJECT%" -run=pythonscript -script="%~dp0Tools\validate_environment.py" -unattended -nop4 -nosplash -nullrhi
-if errorlevel 1 exit /b 1
+if not "%ERRORLEVEL%"=="0" exit /b 1
 
 echo CEVRE AKTARIMI TAMAM.

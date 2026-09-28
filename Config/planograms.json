@@ -1,14 +1,21 @@
 {
   "schemaVersion": 1,
+  "autoFill": true,
   "fixtures": [
-    {"id":"gondola_icecek","equipment":"gondola_double_1200","label":"İçecekler","category":"içecek","strategy":"manual","x":-130.0,"y":320.0,"z":0.0,"yaw":0.0},
-    {"id":"gondola_sut","equipment":"gondola_double_1200","label":"Süt ve Kahvaltı","category":"süt","strategy":"brand_block","x":0.0,"y":320.0,"z":0.0,"yaw":0.0},
-    {"id":"gondola_kuru","equipment":"gondola_double_1200","label":"Kuru Gıda","category":"kuru gıda","strategy":"balanced","x":130.0,"y":320.0,"z":0.0,"yaw":0.0},
-    {"id":"gondola_temizlik","equipment":"gondola_double_1200","label":"Temizlik","category":"temizlik","strategy":"margin","x":0.0,"y":640.0,"z":0.0,"yaw":0.0}
+    {"id":"gondola_icecek","equipment":"gondola_double_1200","label":"İçecekler","category":"içecek","strategy":"manual","x":260.0,"y":550.0,"z":0.0,"yaw":0.0},
+    {"id":"gondola_sut","equipment":"gondola_double_1200","label":"Süt ve Kahvaltı","category":"süt","strategy":"brand_block","x":0.0,"y":550.0,"z":0.0,"yaw":0.0},
+    {"id":"gondola_kuru","equipment":"gondola_double_1200","label":"Kuru Gıda","category":"kuru gıda","strategy":"balanced","x":-260.0,"y":550.0,"z":0.0,"yaw":0.0},
+    {"id":"gondola_temizlik","equipment":"gondola_double_1200","label":"Temizlik","category":"temizlik","strategy":"margin","x":0.0,"y":860.0,"z":0.0,"yaw":0.0},
+    {"id":"duvar_sol_1","equipment":"wall_shelf_2400","label":"İçecekler","category":"içecek","strategy":"manual","x":-596.0,"y":180.0,"z":0.0,"yaw":90.0},
+    {"id":"duvar_sol_2","equipment":"wall_shelf_2400","label":"Süt Ürünleri","category":"süt","strategy":"manual","x":-596.0,"y":430.0,"z":0.0,"yaw":90.0},
+    {"id":"duvar_sol_3","equipment":"wall_shelf_2400","label":"Çay ve Kahve","category":"çay-kahve","strategy":"manual","x":-596.0,"y":680.0,"z":0.0,"yaw":90.0},
+    {"id":"duvar_sag_1","equipment":"wall_shelf_2400","label":"Temizlik","category":"temizlik","strategy":"manual","x":596.0,"y":180.0,"z":0.0,"yaw":-90.0},
+    {"id":"duvar_sag_2","equipment":"wall_shelf_2400","label":"Bisküvi ve Çikolata","category":"bisküvi-çikolata","strategy":"manual","x":596.0,"y":430.0,"z":0.0,"yaw":-90.0},
+    {"id":"duvar_sag_3","equipment":"wall_shelf_2400","label":"Makarna ve Bakliyat","category":"makarna-bakliyat","strategy":"manual","x":596.0,"y":680.0,"z":0.0,"yaw":-90.0}
   ],
   "placements": [
-    {"productId":"sutas_sut_1l","fixtureId":"gondola_sut","face":"front","level":1,"facings":3,"depth":3,"order":0},
-    {"productId":"pinar_sut_1l","fixtureId":"gondola_sut","face":"front","level":1,"facings":3,"depth":3,"order":1},
+    {"productId":"sutas_sut_1l","fixtureId":"gondola_sut","face":"front","level":1,"facings":1,"depth":3,"order":0},
+    {"productId":"pinar_sut_1l","fixtureId":"gondola_sut","face":"front","level":1,"facings":1,"depth":3,"order":1},
     {"productId":"coca_cola_1l","fixtureId":"gondola_icecek","face":"front","level":1,"facings":4,"depth":4,"order":0},
     {"productId":"caykur_rize_turist_500g","fixtureId":"gondola_kuru","face":"front","level":0,"facings":3,"depth":4,"order":0},
     {"productId":"ulker_potibor","fixtureId":"gondola_kuru","face":"front","level":1,"facings":4,"depth":4,"order":0},

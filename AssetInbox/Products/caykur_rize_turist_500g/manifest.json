@@ -1,0 +1,14 @@
+{
+	"labelMode": "box_net",
+	"schemaVersion": 1,
+	"productId": "caykur_rize_turist_500g",
+	"package": "box_115x65x190",
+	"labels":
+	{
+		"net": "Labels/net.jpg"
+	},
+	"materials": [
+		"/Game/Products/Items/caykur_rize_turist_500g/MI_caykur_rize_turist_500g.MI_caykur_rize_turist_500g"
+	],
+	"publishedAt": "2026-09-27T19:46:57.304Z"
+}

@@ -1,0 +1,20 @@
+{
+  "schemaVersion": 1,
+  "id": "ceiling_bay_6000",
+  "displayName": "Açık Tavan Modülü 6000",
+  "family": "ceiling",
+  "dimensionsMm": {
+    "width": 6000,
+    "depth": 6000,
+    "height": 600
+  },
+  "customerFaces": [],
+  "frontAxis": "-Y",
+  "shelfZones": [],
+  "materials": [
+    "BlackSteel",
+    "Galvanized",
+    "EmissiveLight"
+  ],
+  "collision": "none"
+}

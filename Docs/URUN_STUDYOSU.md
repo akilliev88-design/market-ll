@@ -117,7 +117,7 @@ v1.5 ile `package` içine isteğe bağlı `preset` (hazır ambalaj id) ve `color
            "transform":{"scale":1,"pitch":0,"yaw":0,"roll":0,"offsetX":0,"offsetY":0,"offsetZ":0}}}
 ```
 
-`visual.materials` malzeme yuvası sırasıyla ürüne özel materyallerdir; boş dize = ambalajın kendi materyali. `visual.transform` yalnız özel model düzeltmesi gerektiğinde yazılır; yoksa kimlik dönüşümü kullanılır. Eski `visual.material` (tek) alanı da okunur ve yuva 0 sayılır. `visual`, `category`, `caseUnits` isteğe bağlıdır; v1 dosyaları olduğu gibi okunur. En fazla 24 ürün.
+`visual.materials` malzeme yuvası sırasıyla ürüne özel materyallerdir; boş dize = ambalajın kendi materyali. `visual.transform` yalnız özel model düzeltmesi gerektiğinde yazılır; yoksa kimlik dönüşümü kullanılır. Eski `visual.material` (tek) alanı da okunur ve yuva 0 sayılır. `visual`, `category`, `caseUnits` isteğe bağlıdır; v1 dosyaları olduğu gibi okunur. Oyundaki (aktif) ürün sayısına üst sınır yoktur (28.09.2026).
 
 ## Sınırlar (v1.7)
 

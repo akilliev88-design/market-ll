@@ -39,6 +39,164 @@ bool FMarketPlanogramTest::RunTest(const FString& Parameters)
     return true;
 }
 
+IMPLEMENT_SIMPLE_AUTOMATION_TEST(FMarketPlanogramWidthTest, "MirasMarket.Planogram.WidthLimit", EAutomationTestFlags::EditorContext | EAutomationTestFlags::EngineFilter)
+bool FMarketPlanogramWidthTest::RunTest(const FString& Parameters)
+{
+    // 250 mm packages: two facings = 52 cm, two blocks + gap = 107 cm (fits 110), a third block does not.
+    auto Wide = [](const FString& Id, const FString& Category, int32 WidthMm)
+    {
+        FMarketProduct P; P.Id = Id; P.Category = Category; P.WidthMm = WidthMm; return P;
+    };
+    TestEqual(TEXT("Block width uses facings and item gap"), MarketPlanogram::BlockWidthCm(Wide(TEXT("x"), TEXT("c"), 250), 2), 52.f);
+
+    FMarketPlanogram Single;
+    FPlanogramFixture Wall; Wall.Id = TEXT("duvar"); Wall.EquipmentId = TEXT("wall_single_1200"); Wall.Category = TEXT("c");
+    Single.Fixtures.Add(Wall);
+    TArray<FMarketProduct> Catalog = { Wide(TEXT("a"), TEXT("c"), 250), Wide(TEXT("b"), TEXT("c"), 250), Wide(TEXT("d"), TEXT("c"), 250) };
+    MarketPlanogram::Reconcile(Single, Catalog);
+    const FPlanogramPlacement* A = Single.FindPlacement(TEXT("a"));
+    const FPlanogramPlacement* B = Single.FindPlacement(TEXT("b"));
+    const FPlanogramPlacement* D = Single.FindPlacement(TEXT("d"));
+    if (!TestNotNull(TEXT("a placed"), A) || !TestNotNull(TEXT("b placed"), B) || !TestNotNull(TEXT("d placed"), D)) return false;
+    TestEqual(TEXT("Two blocks share the first level"), B->Level, A->Level);
+    TestNotEqual(TEXT("Third block moves to another level"), D->Level, A->Level);
+    TestEqual(TEXT("Single sided fixture never uses the back face"), D->Face, FString(TEXT("front")));
+    TestTrue(TEXT("Level stays within usable width"), MarketPlanogram::LevelUsedWidthCm(Single, Catalog, Wall.Id, TEXT("front"), A->Level) <= MarketPlanogram::UsableWidthCm);
+    TArray<FString> Warnings;
+    MarketPlanogram::FindOverflows(Single, Catalog, Warnings);
+    TestEqual(TEXT("Automatic plan has no overflow"), Warnings.Num(), 0);
+    TestFalse(TEXT("Third block does not fit next to the others"),
+        MarketPlanogram::FitsOnLevel(Single, Catalog, Wall.Id, TEXT("front"), A->Level, TEXT("d"), 2));
+
+    Single.FindPlacement(TEXT("d"))->Level = A->Level;
+    Warnings.Reset();
+    MarketPlanogram::FindOverflows(Single, Catalog, Warnings);
+    TestEqual(TEXT("Hand-made overflow is reported once"), Warnings.Num(), 1);
+
+    // Double sided gondola: 4 levels x 2 blocks on the front, the ninth product goes to the back face.
+    FMarketPlanogram Double;
+    FPlanogramFixture Gondola; Gondola.Id = TEXT("gondol"); Gondola.Category = TEXT("c");
+    Double.Fixtures.Add(Gondola);
+    TArray<FMarketProduct> Many;
+    for (int32 I = 0; I < 9; ++I) Many.Add(Wide(FString::Printf(TEXT("p%d"), I), TEXT("c"), 250));
+    MarketPlanogram::Reconcile(Double, Many);
+    const FPlanogramPlacement* Ninth = Double.FindPlacement(TEXT("p8"));
+    if (!TestNotNull(TEXT("ninth placed"), Ninth)) return false;
+    TestEqual(TEXT("Ninth product uses the back face"), Ninth->Face, FString(TEXT("back")));
+    TestEqual(TEXT("Ninth product keeps two facings"), Ninth->Facings, 2);
+    Warnings.Reset();
+    MarketPlanogram::FindOverflows(Double, Many, Warnings);
+    TestEqual(TEXT("Full gondola has no overflow"), Warnings.Num(), 0);
+
+    // A package wider than the shelf cannot fit anywhere: it is still placed (1 facing) and reported.
+    FMarketPlanogram Tiny;
+    Tiny.Fixtures.Add(Wall);
+    TArray<FMarketProduct> Huge = { Wide(TEXT("dev"), TEXT("c"), 2000) };
+    MarketPlanogram::Reconcile(Tiny, Huge);
+    const FPlanogramPlacement* Dev = Tiny.FindPlacement(TEXT("dev"));
+    if (!TestNotNull(TEXT("oversized product still placed"), Dev)) return false;
+    TestEqual(TEXT("Oversized product falls back to one facing"), Dev->Facings, 1);
+    Warnings.Reset();
+    MarketPlanogram::FindOverflows(Tiny, Huge, Warnings);
+    TestEqual(TEXT("Oversized product is reported"), Warnings.Num(), 1);
+    return true;
+}
+
+IMPLEMENT_SIMPLE_AUTOMATION_TEST(FMarketPlanogramFillTest, "MirasMarket.Planogram.FillToCapacity", EAutomationTestFlags::EditorContext | EAutomationTestFlags::EngineFilter)
+bool FMarketPlanogramFillTest::RunTest(const FString& Parameters)
+{
+    // Two 95 mm cartons (64 mm deep) share a 110 cm level: widths 11.5 cm per facing.
+    FMarketProduct A; A.Id = TEXT("sut_a"); A.WidthMm = 95; A.DepthMm = 64;
+    FMarketProduct B; B.Id = TEXT("sut_b"); B.WidthMm = 95; B.DepthMm = 64;
+    TArray<FMarketProduct> Catalog = { A, B };
+    FMarketPlanogram P;
+    FPlanogramFixture Fixture; Fixture.Id = TEXT("gondol"); P.Fixtures.Add(Fixture);
+    FPlanogramPlacement PA; PA.ProductId = A.Id; PA.FixtureId = Fixture.Id; PA.Level = 1; PA.Facings = 1; PA.Depth = 1; PA.Order = 0;
+    FPlanogramPlacement PB = PA; PB.ProductId = B.Id; PB.Order = 1;
+    P.Placements = { PA, PB };
+    TestEqual(TEXT("Depth rows follow shelf depth (37 cm / 8.4 cm)"), MarketPlanogram::DepthThatFits(A), 4);
+    FMarketPlanogram Whole = P; // copy before filling: used for the empty-level test below
+    const int32 Added = MarketPlanogram::FillToCapacity(P, Catalog, false);
+    const FPlanogramPlacement* FA = P.FindPlacement(A.Id);
+    const FPlanogramPlacement* FB = P.FindPlacement(B.Id);
+    if (!TestNotNull(TEXT("a"), FA) || !TestNotNull(TEXT("b"), FB)) return false;
+    TestEqual(TEXT("Free width is shared as facings (9 in total)"), FA->Facings + FB->Facings, 9);
+    TestTrue(TEXT("Brands share evenly"), FMath::Abs(FA->Facings - FB->Facings) <= 1);
+    TestEqual(TEXT("Seven facings were added"), Added, 7);
+    TestEqual(TEXT("Depth filled"), FA->Depth, 4);
+    TestTrue(TEXT("Level still fits"), MarketPlanogram::LevelUsedWidthCm(P, Catalog, Fixture.Id, TEXT("front"), 1) <= MarketPlanogram::UsableWidthCm);
+    TestEqual(TEXT("Capacity = facings x depth"), MarketPlanogram::Capacity(*FA), FA->Facings * 4);
+    TestEqual(TEXT("Second fill adds nothing"), MarketPlanogram::FillToCapacity(P, Catalog, false), 0);
+
+    // Empty levels: the 7 other level/faces of the double gondola get extra blocks of the same two
+    // products, each filling its whole level. Primary placements stay first and unchanged in place.
+    MarketPlanogram::FillToCapacity(Whole, Catalog, true);
+    TestEqual(TEXT("Every level/face holds a block"), Whole.Placements.Num(), 9);
+    int32 Extras = 0;
+    for (const FPlanogramPlacement& Block : Whole.Placements) if (Block.bExtra) ++Extras;
+    TestEqual(TEXT("Seven extra blocks"), Extras, 7);
+    TestFalse(TEXT("FindPlacement returns the authored block"), Whole.FindPlacement(A.Id)->bExtra);
+    TestEqual(TEXT("Authored block keeps its level"), Whole.FindPlacement(A.Id)->Level, 1);
+    TArray<FString> FillWarnings;
+    MarketPlanogram::FindOverflows(Whole, Catalog, FillWarnings);
+    TestEqual(TEXT("Filled gondola has no overflow"), FillWarnings.Num(), 0);
+    TestTrue(TEXT("Product capacity sums all blocks"), MarketPlanogram::ProductCapacity(Whole, A.Id) > MarketPlanogram::Capacity(*Whole.FindPlacement(A.Id)));
+    FMarketPlanogram Reparsed; TArray<FString> ReparseErrors;
+    TestTrue(TEXT("Serialized filled plan parses"), MarketPlanogram::Parse(MarketPlanogram::Serialize(Whole), Reparsed, ReparseErrors));
+    TestEqual(TEXT("Extra blocks are never saved"), Reparsed.Placements.Num(), 2);
+
+    // Wall shelf: single sided, 5 levels, 230 cm; a same-category product fills it without being placed there.
+    FMarketPlanogram Wall;
+    FPlanogramFixture Shelf; Shelf.Id = TEXT("duvar"); Shelf.EquipmentId = TEXT("wall_shelf_2400"); Shelf.Category = TEXT("cay");
+    Wall.Fixtures.Add(Shelf);
+    FMarketProduct Tea; Tea.Id = TEXT("cay_a"); Tea.Category = TEXT("cay"); Tea.WidthMm = 115; Tea.DepthMm = 65;
+    TArray<FMarketProduct> TeaCatalog = { Tea };
+    MarketPlanogram::FillToCapacity(Wall, TeaCatalog, true);
+    TestEqual(TEXT("Wall shelf gets one block per level"), Wall.Placements.Num(), 5);
+    TestFalse(TEXT("Wall shelf is single sided"), MarketPlanogram::IsDoubleSided(Shelf));
+    for (const FPlanogramPlacement& Block : Wall.Placements)
+        TestTrue(TEXT("Wall block fits 230 cm"), MarketPlanogram::LevelUsedWidthCm(Wall, TeaCatalog, Shelf.Id, Block.Face, Block.Level) <= 230.f);
+    TestEqual(TEXT("Wall facings fill the width (13.5 cm each)"), Wall.Placements[0].Facings, 17);
+
+    FMarketPlanogram Parsed; TArray<FString> Errors;
+    TestTrue(TEXT("autoFill round trip parses"), MarketPlanogram::Parse(TEXT("{\"autoFill\":false,\"fixtures\":[]}"), Parsed, Errors));
+    TestFalse(TEXT("autoFill false is read"), Parsed.bAutoFill);
+    FMarketPlanogram Again; TArray<FString> Errors2;
+    TestTrue(TEXT("Serialized autoFill parses"), MarketPlanogram::Parse(MarketPlanogram::Serialize(Parsed), Again, Errors2));
+    TestFalse(TEXT("autoFill survives serialize"), Again.bAutoFill);
+    return true;
+}
+
+IMPLEMENT_SIMPLE_AUTOMATION_TEST(FMarketCapacityTest, "MirasMarket.Economy.ShelfCapacityAndTestMode", EAutomationTestFlags::EditorContext | EAutomationTestFlags::EngineFilter)
+bool FMarketCapacityTest::RunTest(const FString& Parameters)
+{
+    auto Catalog = TestCatalog(); FMarketState S; S.Initialize(Catalog);
+    TestEqual(TEXT("Default capacity for old saves"), S.Stock[0].Capacity, FMarketState::DefaultShelfCapacity);
+    // Bigger planogram block: restock uses the new capacity (no fixed 24 limit).
+    S.ApplyShelfCapacities({ 60 });
+    TestEqual(TEXT("Capacity applied"), S.Stock[0].Capacity, 60);
+    TestEqual(TEXT("Restock moves the whole warehouse"), S.Restock(0), 16);
+    TestEqual(TEXT("Shelf above 24"), S.Stock[0].Shelf, 32);
+    TestTrue(TEXT("Large shelf validates"), S.IsStructurallyValid());
+    // Smaller block: surplus returns to the warehouse, nothing is lost.
+    TestEqual(TEXT("No units discarded"), S.ApplyShelfCapacities({ 10 }), 0);
+    TestEqual(TEXT("Shelf clamped"), S.Stock[0].Shelf, 10);
+    TestEqual(TEXT("Surplus back in warehouse"), S.Stock[0].Warehouse, 22);
+    // Test mode: free fill and free delivery, cash untouched.
+    const int64 Cash = S.Cash;
+    S.Sell(0, 4, 250, Catalog);
+    const int64 CashAfterSale = S.Cash;
+    TestEqual(TEXT("Free fill tops the shelf up"), S.FillShelfFree(0), 4);
+    TestEqual(TEXT("Free fill leaves warehouse alone"), S.Stock[0].Warehouse, 22);
+    TestEqual(TEXT("Free delivery respects storage"), S.ReceiveFree(0, 500), FMarketState::StorageCapacity - 22);
+    TestEqual(TEXT("Test mode costs nothing"), S.Cash, CashAfterSale);
+    TestTrue(TEXT("Sale still paid"), CashAfterSale > Cash);
+    TestTrue(TEXT("State stays valid"), S.IsStructurallyValid());
+    S.Stock[0].Capacity = 0;
+    TestFalse(TEXT("Zero capacity rejected"), S.IsStructurallyValid());
+    return true;
+}
+
 IMPLEMENT_SIMPLE_AUTOMATION_TEST(FMarketInventoryTest, "MirasMarket.Economy.InventoryAndOrder", EAutomationTestFlags::EditorContext | EAutomationTestFlags::EngineFilter)
 bool FMarketInventoryTest::RunTest(const FString& Parameters)
 {

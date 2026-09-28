@@ -1,0 +1,10 @@
+{
+	"schemaVersion": 1,
+	"id": "box_72x30x265",
+	"type": "box",
+	"widthMm": 72,
+	"depthMm": 30,
+	"heightMm": 265,
+	"atlasSize": 2048,
+	"mesh": "/Game/Products/Packages/box_72x30x265/SM_box_72x30x265.SM_box_72x30x265"
+}

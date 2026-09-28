@@ -795,7 +795,7 @@ void SProductStudio::RebuildHeader()
         + SHorizontalBox::Slot().AutoWidth().VAlign(VAlign_Center).Padding(0.f, 0.f, 10.f, 0.f)
         [
             SNew(SBorder).BorderImage(&S.PillBrush).Padding(FMargin(14.f, 7.f))
-            [ MakeText(FString::Printf(TEXT("%d oyunda (en fazla %d)  \u00b7  %d haz\u0131rl\u0131k  \u00b7  %d 3B  \u00b7  %d ambalaj"), Active, MarketCatalog::MaxProducts, Catalog.Num() - Active, Visual, Packages.Num()), 9, S.Muted) ]
+            [ MakeText(FString::Printf(TEXT("%d oyunda  \u00b7  %d haz\u0131rl\u0131k  \u00b7  %d 3B  \u00b7  %d ambalaj"), Active, Catalog.Num() - Active, Visual, Packages.Num()), 9, S.Muted) ]
         ]
         + SHorizontalBox::Slot().AutoWidth().VAlign(VAlign_Center)
         [

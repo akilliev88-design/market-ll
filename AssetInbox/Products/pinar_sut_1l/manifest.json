@@ -1,0 +1,14 @@
+{
+	"labelMode": "box_net",
+	"schemaVersion": 1,
+	"productId": "pinar_sut_1l",
+	"package": "box_95x64x195",
+	"labels":
+	{
+		"net": "Labels/net.jpg"
+	},
+	"materials": [
+		"/Game/Products/Items/pinar_sut_1l/MI_pinar_sut_1l.MI_pinar_sut_1l"
+	],
+	"publishedAt": "2026-09-27T19:56:25.281Z"
+}

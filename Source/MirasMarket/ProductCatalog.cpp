@@ -206,11 +206,6 @@ bool MarketCatalog::Parse(const FString& Json, TArray<FMarketProduct>& OutProduc
                 ReadFinite(TEXT("offsetZ"), P.VisualOffsetCm.Z);
             }
         }
-        if (P.bActive && CountActive(OutProducts) >= MaxProducts)
-        {
-            OutErrors.Add(FString::Printf(TEXT("Oyunda en fazla %d urun olabilir; %s hazirlik listesine alindi."), MaxProducts, *P.Id));
-            P.bActive = false;
-        }
         Ids.Add(P.Id);
         OutProducts.Add(P);
     }

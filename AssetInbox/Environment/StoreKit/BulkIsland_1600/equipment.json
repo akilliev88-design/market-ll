@@ -1,0 +1,45 @@
+{
+  "schemaVersion": 1,
+  "id": "bulk_island_1600",
+  "displayName": "Şeffaf Hazneli Kuru Gıda Adası",
+  "family": "bulk_island",
+  "dimensionsMm": {
+    "width": 1620,
+    "depth": 1017,
+    "height": 1730
+  },
+  "customerFaces": [
+    "front"
+  ],
+  "frontAxis": "-Y",
+  "shelfZones": [
+    {
+      "face": "front",
+      "level": 0,
+      "widthMm": 1450,
+      "depthMm": 330,
+      "heightMm": 300
+    },
+    {
+      "face": "front",
+      "level": 1,
+      "widthMm": 1450,
+      "depthMm": 330,
+      "heightMm": 300
+    },
+    {
+      "face": "front",
+      "level": 2,
+      "widthMm": 1450,
+      "depthMm": 330,
+      "heightMm": 300
+    }
+  ],
+  "materials": [
+    "Wood",
+    "Black",
+    "Clear",
+    "BulkColors"
+  ],
+  "collision": "2 UCX boxes"
+}

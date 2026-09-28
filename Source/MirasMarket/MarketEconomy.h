@@ -50,6 +50,9 @@ struct FMarketStock
     UPROPERTY() int32 Warehouse = 16;
     UPROPERTY() int32 Incoming = 0;
     UPROPERTY() int64 Price = 0;
+    // Units that physically fit this product's shelf block (planogram facings x depth).
+    // Older saves have no value and load as the v0.1 default.
+    UPROPERTY() int32 Capacity = 24;
 };
 
 // Money uses integer kurus. Inventory is removed only when a checkout succeeds.
@@ -57,7 +60,10 @@ USTRUCT()
 struct FMarketState
 {
     GENERATED_BODY()
-    static constexpr int32 ShelfCapacity = 24;
+    // Default shelf block size when no planogram capacity is known (v0.1 value).
+    static constexpr int32 DefaultShelfCapacity = 24;
+    // Sanity bound for save validation only; real capacity comes from the planogram.
+    static constexpr int32 MaxShelfCapacity = 5000;
     static constexpr int32 StorageCapacity = 120;
 
     UPROPERTY() int32 Version = 1;
@@ -86,6 +92,13 @@ struct FMarketState
     int32 Restock(int32 Index);
     bool Sell(int32 Index, int32 Quantity, int64 QuotedPrice, const TArray<FMarketProduct>& Products);
     void CloseDay();
+    // Sets each row's shelf capacity (index = catalog order). Units above a smaller capacity go
+    // back to the warehouse while storage has room; returns units that did not fit anywhere.
+    int32 ApplyShelfCapacities(const TArray<int32>& Capacities);
+    // TEST MODE: fills the shelf to capacity without using warehouse stock or cash.
+    int32 FillShelfFree(int32 Index);
+    // TEST MODE: delivers Units straight to the warehouse (storage limit kept), no cash.
+    int32 ReceiveFree(int32 Index, int32 Units);
     // Save data is internally consistent (ranges, unique ids). Does not look at the catalog.
     bool IsStructurallyValid() const;
     // Structurally valid AND stock rows match the catalog one-to-one in the same order.

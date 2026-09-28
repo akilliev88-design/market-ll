@@ -1,0 +1,14 @@
+{
+	"labelMode": "box_net",
+	"schemaVersion": 1,
+	"productId": "ariel_toz_4kg",
+	"package": "box_280x110x330",
+	"labels":
+	{
+		"net": "Labels/net.jpg"
+	},
+	"materials": [
+		"/Game/Products/Items/ariel_toz_4kg/MI_ariel_toz_4kg.MI_ariel_toz_4kg"
+	],
+	"publishedAt": "2026-09-27T19:53:08.498Z"
+}

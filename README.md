@@ -56,7 +56,7 @@ Editor Play sırasında fareyi serbest bırakmak için Unreal'ın Shift+F1 kısa
 
 ## Şu anda bulunanlar
 
-Gezilebilir market ve depo alanı, katalogdaki ürün sayısına göre büyüyen raf düzeni (en fazla 24 ürün), Ürün Stüdyosu'ndan gelen gerçek kutu ve etiketler, satışla azalan raf görüntüsü, metin olarak gerçek marka isimleri, fiyat değiştirme, stok/raf/depo ayrımı, ertesi gün teslimat, nakit kısıtı, müşteri sepeti ve kasa kuyruğu, sabır süresi, rakip indirim takvimi, basitleştirilmiş yerel müşteri payı, kasiyer otomasyonu, günlük maliyet/kâr raporu ve tek yuvalı kayıt.
+Gezilebilir market ve depo alanı, katalogdaki ürün sayısına göre büyüyen raf düzeni (ürün sayısı sınırı yok), Ürün Stüdyosu'ndan gelen gerçek kutu ve etiketler, satışla azalan raf görüntüsü, metin olarak gerçek marka isimleri, fiyat değiştirme, stok/raf/depo ayrımı, ertesi gün teslimat, nakit kısıtı, müşteri sepeti ve kasa kuyruğu, sabır süresi, rakip indirim takvimi, basitleştirilmiş yerel müşteri payı, kasiyer otomasyonu, günlük maliyet/kâr raporu ve tek yuvalı kayıt.
 
 Kayıt: `Saved/SaveGames/MirasMarket_Campaign_v1.sav`. Gün sonunda otomatik kayıt yapılır. Açılışta kayıt kendiliğinden yüklenmez; **F9** kullan. Gün ortası kayıt yoktur. Kaydedilmemiş hazırlık değişiklikleri çıkışta kaybolur. F6 ile sıfırlama mevcut dosyayı hemen silmez; sonraki manuel veya otomatik kayıt aynı yuvanın üzerine yazar.
 
@@ -66,7 +66,9 @@ Tüm tutarlar TL/kuruş cinsinden **kurgu denge değerleridir**; gerçek 2011 fi
 
 - Temel geometriler ve basit HUD vardır; gerçek ambalajlar, animasyon, ses, hikâye sahnesi ve ayrıntılı Lüleburgaz çevresi yoktur.
 - Müşteriler geçici doğrusal rotalar kullanır, rafların içinden geçebilir. NavMesh ve gerçek sepet animasyonları sonraki aşamadadır.
-- Raftaki kutu sayısı stoğu izler; tek raf en fazla 24 birim gösterir. Büyük ürünlerde görüntü orantılıdır.
+- Raftaki kutu sayısı stoğu izler. Raf kapasitesi sabit değildir: raf planındaki önde adet × derinliktir ve oyun her seviyenin boş genişliğini ve raf derinliğini mevcut ürünlerle doldurur (`planograms.json` → `autoFill`).
+- Mağaza açılışta tüm raf blokları dolu başlar. Duvar reyonları da raf planı ekipmanıdır; boş seviyeler aynı reyonun/kategorinin ürünleriyle dolar.
+- Test modu (varsayılan açık, `DefaultGame.ini` → `bTestModeAtStart`): E rafı bedava doldurur, F3 tüm rafları doldurur, masada B bedava ve anında depoya getirir; F2 açar/kapatır. F1 paneller, F4 ışık havası (Sıcak / Aydınlık / Akşam). Motorun F1–F5/F9 hata ayıklama görünüm kısayolları kapatıldı.
 - Kasiyer işlevsel otomasyondur; fiziksel çalışan modeli yoktur.
 - Ürün koli teslimi depoya sayısal eklenir; elle koli taşıma henüz yoktur.
 - Müşteri almak istediği miktarı rezerve eder; stok kasada düşer. Sepete girişteki fiyat korunur. Kuyruktan ayrılınca rezervasyon kalkar.
@@ -75,7 +77,7 @@ Tüm tutarlar TL/kuruş cinsinden **kurgu denge değerleridir**; gerçek 2011 fi
 - Kasa bakiyesi sabit giderlerle negatife düşebilir; ayrıntılı kredi, iflas ve toparlanma sistemleri henüz yoktur.
 - İkinci şube günlük net katkı modelidir. İl/ulusal/uluslararası aşamalar yalnızca tasarım belgesindedir.
 - HUD prototip metinleri ASCII Türkçedir. Tuş atama, ayarlar ve fareyle yönetim ekranı sonraki aşamadadır.
-- Katalog 1–24 ürün kabul eder. Kayıt yüklenirken stok ürün kimliğiyle eşleştirilir: yeni ürün boş rafla gelir, kaldırılan ürünün stoğu düşer. Ürün kimliği değişirse o ürünün stoğu sıfırlanır.
+- Katalogdaki aktif ürün sayısının üst sınırı yoktur. Kayıt yüklenirken stok ürün kimliğiyle eşleştirilir: yeni ürün boş rafla gelir, kaldırılan ürünün stoğu düşer. Ürün kimliği değişirse o ürünün stoğu sıfırlanır.
 - Yerel testler performans sertifikasyonu veya tüm oyunun manuel oynanış testi sayılmaz.
 
 ## Tasarım ve geliştirme

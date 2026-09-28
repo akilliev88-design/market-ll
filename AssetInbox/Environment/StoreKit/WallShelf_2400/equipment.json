@@ -1,0 +1,66 @@
+{
+  "schemaVersion": 1,
+  "id": "wall_shelf_2400",
+  "displayName": "Duvar Reyonu 2400",
+  "family": "wall_shelf",
+  "dimensionsMm": {
+    "width": 2400,
+    "depth": 518,
+    "height": 2220
+  },
+  "customerFaces": [
+    "front"
+  ],
+  "frontAxis": "-Y",
+  "shelfZones": [
+    {
+      "face": "front",
+      "level": 0,
+      "widthMm": 2300,
+      "depthMm": 460,
+      "heightMm": 330
+    },
+    {
+      "face": "front",
+      "level": 1,
+      "widthMm": 2300,
+      "depthMm": 460,
+      "heightMm": 330
+    },
+    {
+      "face": "front",
+      "level": 2,
+      "widthMm": 2300,
+      "depthMm": 400,
+      "heightMm": 330
+    },
+    {
+      "face": "front",
+      "level": 3,
+      "widthMm": 2300,
+      "depthMm": 400,
+      "heightMm": 330
+    },
+    {
+      "face": "front",
+      "level": 4,
+      "widthMm": 2300,
+      "depthMm": 400,
+      "heightMm": 330
+    },
+    {
+      "face": "front",
+      "level": 5,
+      "widthMm": 2300,
+      "depthMm": 400,
+      "heightMm": 330
+    }
+  ],
+  "materials": [
+    "DarkMetal",
+    "WarmWood",
+    "PriceRail",
+    "Back"
+  ],
+  "collision": "2 UCX boxes"
+}

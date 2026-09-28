@@ -28,7 +28,7 @@ int32 FMarketState::Restock(int32 Index)
 {
     if (!Stock.IsValidIndex(Index)) return 0;
     auto& Item = Stock[Index];
-    const int32 Amount = FMath::Min(ShelfCapacity - Item.Shelf, Item.Warehouse);
+    const int32 Amount = FMath::Clamp(FMath::Min(Item.Capacity - Item.Shelf, Item.Warehouse), 0, MAX_int32);
     Item.Shelf += Amount;
     Item.Warehouse -= Amount;
     return Amount;
@@ -75,6 +75,42 @@ void FMarketState::CloseDay()
     Served = Lost = 0;
 }
 
+int32 FMarketState::ApplyShelfCapacities(const TArray<int32>& Capacities)
+{
+    int32 Discarded = 0;
+    for (int32 I = 0; I < Stock.Num(); ++I)
+    {
+        auto& Item = Stock[I];
+        Item.Capacity = Capacities.IsValidIndex(I) ? FMath::Clamp(Capacities[I], 1, MaxShelfCapacity) : DefaultShelfCapacity;
+        if (Item.Shelf <= Item.Capacity) continue;
+        const int32 Excess = Item.Shelf - Item.Capacity;
+        Item.Shelf = Item.Capacity;
+        const int32 Room = FMath::Max(0, StorageCapacity - Item.Warehouse - Item.Incoming);
+        const int32 Moved = FMath::Min(Excess, Room);
+        Item.Warehouse += Moved;
+        Discarded += Excess - Moved;
+    }
+    return Discarded;
+}
+
+int32 FMarketState::FillShelfFree(int32 Index)
+{
+    if (!Stock.IsValidIndex(Index)) return 0;
+    auto& Item = Stock[Index];
+    const int32 Added = FMath::Max(0, Item.Capacity - Item.Shelf);
+    Item.Shelf += Added;
+    return Added;
+}
+
+int32 FMarketState::ReceiveFree(int32 Index, int32 Units)
+{
+    if (!Stock.IsValidIndex(Index) || Units <= 0) return 0;
+    auto& Item = Stock[Index];
+    const int32 Added = FMath::Clamp(Units, 0, FMath::Max(0, StorageCapacity - Item.Warehouse - Item.Incoming));
+    Item.Warehouse += Added;
+    return Added;
+}
+
 bool FMarketState::IsStructurallyValid() const
 {
     if (Version != 1 || Day < 1 || !FMath::IsFinite(MarketShare) || MarketShare < 5 || MarketShare > 65) return false;
@@ -83,7 +119,7 @@ bool FMarketState::IsStructurallyValid() const
     {
         bool bDuplicate = false;
         Seen.Add(Item.Id, &bDuplicate);
-        if (bDuplicate || Item.Id.IsEmpty() || Item.Shelf < 0 || Item.Shelf > ShelfCapacity || Item.Warehouse < 0 || Item.Incoming < 0 ||
+        if (bDuplicate || Item.Id.IsEmpty() || Item.Capacity < 1 || Item.Capacity > MaxShelfCapacity || Item.Shelf < 0 || Item.Shelf > Item.Capacity || Item.Warehouse < 0 || Item.Incoming < 0 ||
             Item.Warehouse + Item.Incoming > StorageCapacity || Item.Price < 10) return false;
     }
     return true;

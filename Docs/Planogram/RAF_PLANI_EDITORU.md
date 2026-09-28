@@ -20,7 +20,13 @@
 5. Çift taraflı gondolda diğer koridora ürün koymak için **Yüzü çevir** kullan.
 6. Değişiklikler her düğmede `Config/planograms.json` dosyasına atomik kaydedilir; oyunu yeniden başlatınca görünür.
 
-Panel bir seviyedeki ürün blokları 110 cm kullanılabilir genişliği aşarsa yeni facing eklemez. Derinlik fiziksel stok kapasitesini değiştirmez; 24 birimlik oyun stoğunun raftaki görsel dağılımını belirler.
+Bir seviyedeki ürün blokları 110 cm kullanılabilir genişliği aşamaz: seviye, önde adet, yüz, taşıma ve stratejiler sığmayan değişikliği reddeder; editör her seviyenin doluluğunu (cm) ve taşmaları gösterir.
+
+**Raf kapasitesi = önde × derinlik.** Oyundaki raf stoğu bu sayı kadar ürün alır (sabit 24 sınırı yok).
+
+**Ekipmanlar:** `gondola_double_1200` (çift yüz, 4 seviye, 110 cm) ve `wall_shelf_2400` (duvar reyonu, tek yüz, 5 kullanılabilir seviye, 230 cm). Ölçüler `Planogram.cpp` → `MarketPlanogram::Equipment`.
+
+**Otomatik dolum** (`planograms.json` → `autoFill`, varsayılan açık): oyun açılırken önce her ekipmandaki boş seviye/yüzlere o ekipmana ait ürünlerden (orada yerleştirilmiş ürünler, sonra aynı kategorideki ürünler) ek blok koyar; sonra her bloğu raf derinliğince diziler ve seviyedeki boş genişliği markalara eşit paylaştırarak önde adedi artırır. Ek bloklar dosyaya yazılmaz. Böylece elde kaç ürün varsa raf o kadarıyla dolar; boş kalan seviyeler yalnızca o seviyeye ürün atanmadığı içindir. Editördeki önde adedi bu durumda en az değerdir; derinlik ürünün kataloğdaki derinliğinden hesaplanır. Düğmeyle kapatılırsa oyun editördeki sayıları aynen kullanır.
 
 ## Strateji düğmeleri
 

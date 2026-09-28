@@ -631,10 +631,21 @@ namespace
     {
         const FString Folder = TEXT("/Game/Products/Materials");
         if (UMaterialInterface* Existing = LoadObject<UMaterialInterface>(nullptr, *ObjectPath(Folder, Name), nullptr, LOAD_NoWarn | LOAD_Quiet))
+        {
+            // The game draws shelf stock with instanced meshes; masters made before 28.09.2026 lack the flag.
+            if (UMaterial* Base = Cast<UMaterial>(Existing); Base && !Base->GetUsageByFlag(MATUSAGE_InstancedStaticMeshes))
+            {
+                bool bNeedsRecompile = false;
+                Base->SetMaterialUsage(bNeedsRecompile, MATUSAGE_InstancedStaticMeshes);
+                Base->MarkPackageDirty();
+                SaveAll({ Base });
+            }
             return Existing;
+        }
         UPackage* Package = OpenPackage(Folder, Name);
         UMaterial* Material = NewObject<UMaterial>(Package, *Name, RF_Public | RF_Standalone | RF_Transactional);
         if (!Material || !Build(Material)) { OutError = Name + TEXT(" ana materyali olu\u015fturulamad\u0131."); return nullptr; }
+        Material->bUsedWithInstancedStaticMeshes = true;
         FAssetRegistryModule::AssetCreated(Material);
         UMaterialEditingLibrary::RecompileMaterial(Material);
         Package->MarkPackageDirty();
@@ -1573,8 +1584,7 @@ TArray<FStudioIssue> Validate(const FStudioDraft& Draft, const TArray<FMarketPro
     else if (!Draft.bExisting && Catalog.ContainsByPredicate([&](const FMarketProduct& P) { return P.Id == Draft.Id; }))
         Error(TEXT("Bu kimlik ba\u015fka bir \u00fcr\u00fcnde kullan\u0131l\u0131yor: ") + Draft.Id);
     const bool bAlreadyActive = Catalog.ContainsByPredicate([&](const FMarketProduct& P) { return P.Id == Draft.Id && P.bActive; });
-    if (bForGame && !bAlreadyActive && MarketCatalog::CountActive(Catalog) >= MarketCatalog::MaxProducts)
-        Error(FString::Printf(TEXT("Oyunda en fazla %d \u00fcr\u00fcn olabilir. \u00d6nce bir \u00fcr\u00fcn\u00fc oyundan \u00e7\u0131kar."), MarketCatalog::MaxProducts));
+    (void)bAlreadyActive; // no upper limit on active products since 28.09.2026
     int64 Cost = 0, Price = 0;
     const bool bCost = MarketCatalog::ParseMoney(Draft.Cost, Cost);
     const bool bPrice = MarketCatalog::ParseMoney(Draft.Price, Price);
@@ -1878,11 +1888,6 @@ bool SetActive(const FString& Id, bool bActive, TArray<FMarketProduct>& Catalog,
 {
     FMarketProduct* Product = Catalog.FindByPredicate([&](const FMarketProduct& P) { return P.Id == Id; });
     if (!Product) { OutMessage = TEXT("\u00dcr\u00fcn katalogda yok."); return false; }
-    if (bActive && !Product->bActive && MarketCatalog::CountActive(Catalog) >= MarketCatalog::MaxProducts)
-    {
-        OutMessage = FString::Printf(TEXT("Oyunda en fazla %d \u00fcr\u00fcn olabilir."), MarketCatalog::MaxProducts);
-        return false;
-    }
     if (!bActive && Product->bActive && MarketCatalog::CountActive(Catalog) <= 1)
     {
         OutMessage = TEXT("Oyunda en az bir \u00fcr\u00fcn kalmal\u0131.");
