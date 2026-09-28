@@ -159,7 +159,7 @@ Sonlar: **Sattın** (2. bölüm), **Mahallenin dükkânı** (tek dükkânda kal�
 | Adım | Modül | Durum |
 |---|---|---|
 | Personel ve muhasebe | `MarketStaff` | G-060, derlenmedi |
-| Takvim, mevsim, bayram, hava, maaş günü | `MarketCalendar` | G-061 |
+| Takvim, mevsim, bayram, hava, maaş günü | `MarketCalendar` | G-061, derlenmedi (trafik, sipariş öngörüsü, akşam raporu bağlı) |
 | Müşteri segmentleri | `MarketCustomers` | G-062 |
 | Tedarik, enflasyon, zam | `MarketSuppliers` | G-063 |
 | Oyuncu kampanyaları | `MarketPromotions` | G-064 |

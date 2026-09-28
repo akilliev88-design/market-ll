@@ -10,11 +10,11 @@ Sahiplik (M, 28.09.2026): 3B model üretimi, mağaza modeli ve arayüz tasarım�
 
 | No | Konu | Karar | Modül | Durum |
 |---|---|---|---|---|
-| A01 | Başlangıç tarihi | 7 Mart 2011 Pazartesi = gün 1. Hafta Pazartesi başlar (C; 2011 başlangıcı M) | `MarketCalendar` | Sırada |
+| A01 | Başlangıç tarihi | 7 Mart 2011 Pazartesi = gün 1. Hafta Pazartesi başlar (C; 2011 başlangıcı M) | `MarketCalendar` | Derlenmedi (G-061) |
 | A02 | Gün uzunluğu | Açık dükkânda 4 gerçek dakika. Menüde zaman durur (mevcut) | `MarketGame` | Uygulandı |
-| A03 | Bayram ve özel günler | 2011'in gerçek tarihleri; hicri bayramlar her yıl ~11 gün kayar (C) | `MarketCalendar` | Sırada |
-| A04 | Mevsim ve hava | Deterministik; kategori talebini ve yayayı etkiler (C) | `MarketCalendar` | Sırada |
-| A05 | Maaş günleri | Ayın 1'i, 15'i ve son iş günü trafik/sepet artar; ay sonu bütçe daralır (C) | `MarketCalendar` | Sırada |
+| A03 | Bayram ve özel günler | 2011'in gerçek tarihleri; hicri bayramlar her yıl ~11 gün kayar (C) | `MarketCalendar` | Derlenmedi (G-061) |
+| A04 | Mevsim ve hava | Deterministik; kategori talebini ve yayayı etkiler (C) | `MarketCalendar` | Derlenmedi (G-061) |
+| A05 | Maaş günleri | Ayın 1'i, 15'i ve son iş günü trafik/sepet artar; ay sonu bütçe daralır (C) | `MarketCalendar` | Derlenmedi (G-061) |
 | A06 | Enflasyon | Yıllık TÜFE yaklaşığı; 2025 sonrası kurgu senaryo (C) | `MarketSuppliers` | Sırada |
 | A07 | Asgari ücret | Tarihsel net yaklaşığı; ücret beklentisi bunu izler (C) | `MarketSuppliers`, `MarketStaff` | Sırada |
 | A08 | Yer | Lüleburgaz esinli kurgu semtler (İstasyon başlangıç). Sonra Trakya, Türkiye, Bulgaristan pilotu (C) | `MarketBranches` | Tasarım |

@@ -35,6 +35,9 @@ Limit aniden biterse sonraki ajan GUNLUK/DURUM ile dosyaların son hâlini karş
 | `Source/MirasMarket/MarketRivals.*` | BİM, Migros ve A101 için deterministik günlük haberler, reyon fiyatı ve müşteri trafiği etkileri. |
 | `Source/MirasMarket/MarketMenu*` | M ile açılan tıklanabilir yönetim menüsü; özet, sipariş, fiyat, rakip, personel, şube ve rapor sayfaları. |
 | `Source/MirasMarket/MarketWorkers.cpp` | Oyundaki reyon görevlileri: yürüme, koli taşıma, rafa tek tek dizme (`AMarketGameMode::TickWorkers`). |
+| `Source/MirasMarket/MarketDirector.*` | **Oyuna tek bağlantı noktası**: anlık çarpanlar (trafik, talep, sipariş öngörüsü) ve gün kapanışında bütün arka plan sistemlerini sırayla çağırır. Yeni sistem MarketGame.cpp'ye değil buraya bağlanır. Kurgu: `Docs/Kurgu/`. |
+| `Source/MirasMarket/MarketCalendar.*`, `MarketGoods.*` | Takvim (gün 1 = 7 Mart 2011 Pzt), mevsim, deterministik hava, gerçek bayram/tatiller, maaş günü; kategori → talep grubu sınıflandırması. |
+| `Docs/Kurgu/` | Claude'un kurgu kitabı (`00_KURGU_KITABI.md`) ve bütün konuların karar tablosu (`01_KARARLAR.md`). Yeni konu önce kararlar tablosuna yazılır. |
 | `Source/MirasMarket/MarketStaff.*` | Personel ve muhasebe (dünyadan bağımsız, test edilir): kişi olarak çalışanlar ve aday havuzu, kasiyer hızı ve kasa farkı, görevli hızı/taşıma/yorgunluk, moral ve istifa, İK müdürü, mali müşavir, haftalık vergi. Ayrıntı `Docs/PERSONEL_VE_MUHASEBE.md`. |
 | `Source/MirasMarket/MarketOrderAdvice.*` | Sipariş yardımı (dünyadan bağımsız, test edilir): önerilen koli sayısı, L ile listeyi öneriye yükseltme, 50 TL asgari sipariş. |
 | `Source/MirasMarket/MarketDelivery.cpp` | Çok ürünlü sipariş taslağı, arka kapıdaki fiziksel koliler ve oyuncunun mal kabul taşıması. |

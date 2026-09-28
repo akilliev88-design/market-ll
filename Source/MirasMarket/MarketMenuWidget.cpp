@@ -456,7 +456,7 @@ TSharedRef<SWidget> SMarketMenu::Header()
         ]
         + SHorizontalBox::Slot().AutoWidth().VAlign(VAlign_Center).Padding(0.f, 20.f, 8.f, 16.f)
         [
-            Pill([this] { const AMarketGameMode* G = Game.Get(); return G ? FString::Printf(TEXT("G\u00fcn %d  \u00b7  %s"), G->State.Day, G->bOpen ? TEXT("a\u00e7\u0131k") : TEXT("kapal\u0131")) : FString(); },
+            Pill([this] { const AMarketGameMode* G = Game.Get(); return G ? FString::Printf(TEXT("G\u00fcn %d  \u00b7  %s  \u00b7  %s"), G->State.Day, *MarketDirector::DateText(G->State), G->bOpen ? TEXT("a\u00e7\u0131k") : TEXT("kapal\u0131")) : FString(); },
                 [this] { const AMarketGameMode* G = Game.Get(); return G && G->bOpen ? ERole::Accent : ERole::Muted; })
         ]
         + SHorizontalBox::Slot().AutoWidth().VAlign(VAlign_Center).Padding(0.f, 20.f, 24.f, 16.f)
@@ -626,7 +626,8 @@ TSharedRef<SWidget> SMarketMenu::OrdersPage()
                     + SHorizontalBox::Slot().AutoWidth().VAlign(VAlign_Center)[ Cell([Item] { return Item() ? FString::FromInt(Item()->Yesterday.Sold) : FString(); }, 56.f) ]
                     + SHorizontalBox::Slot().AutoWidth().VAlign(VAlign_Center)[ Cell([Item] { return Item() ? FString::FromInt(Item()->Yesterday.Empty) : FString(); }, 56.f, ERole::Warn) ]
                     + SHorizontalBox::Slot().AutoWidth().VAlign(VAlign_Center)
-                    [ Cell([G, I] { return G() ? FString::FromInt(MarketOrderAdvice::SuggestCases(G()->State, G()->Products, I)) : FString(); }, 60.f, ERole::Accent, true) ]
+                    [ Cell([G, I] { if (!G() || !G()->Products.IsValidIndex(I)) return FString(); TArray<float> Scale; Scale.Init(1.f, G()->Products.Num()); Scale[I] = MarketDirector::OrderScale(G()->State, G()->Products[I]);
+                        return FString::FromInt(MarketOrderAdvice::SuggestCases(G()->State, G()->Products, I, &Scale)); }, 60.f, ERole::Accent, true) ]
                     + SHorizontalBox::Slot().AutoWidth().VAlign(VAlign_Center).Padding(18.f, 0.f, 0.f, 0.f)
                     [
                         SNew(SBox).WidthOverride(150.f).HAlign(HAlign_Right)

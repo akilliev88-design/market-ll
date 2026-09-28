@@ -137,7 +137,7 @@ TSharedRef<SWidget> SMarketHud::StatusCard()
             + SHorizontalBox::Slot().AutoWidth().VAlign(VAlign_Center)
             [
                 SNew(STextBlock).Font(Font("Bold", 22)).ColorAndOpacity(Cream)
-                .Text_Lambda([this] { const AMarketGameMode* G = Game.Get(); return FText::FromString(FString::Printf(TEXT("G\u00fcn %d"), G ? G->State.Day : 1)); })
+                .Text_Lambda([this] { const AMarketGameMode* G = Game.Get(); return FText::FromString(G ? FString::Printf(TEXT("G\u00fcn %d \u00b7 %s"), G->State.Day, *MarketDirector::DateText(G->State)) : FString(TEXT("G\u00fcn 1"))); })
             ]
             + SHorizontalBox::Slot().AutoWidth().VAlign(VAlign_Center).Padding(12.f, 0.f, 0.f, 0.f)
             [

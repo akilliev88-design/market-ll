@@ -710,9 +710,11 @@ float AMarketGameMode::RivalPriceFactor(int32 ProductIndex) const
 FString AMarketGameMode::RivalNewsText() const
 {
     TArray<FString> Lines;
+    Lines.Add(TEXT("\u2022 ") + MarketDirector::TomorrowText(State)); // calendar: weather, bayrams, paydays, what sells
     for (const MarketRivals::FEvent& Event : MarketRivals::NewsOn(State.Day, State.RivalSeed, RivalAisles))
         Lines.Add(TEXT("\u2022 ") + MarketRivals::Describe(Event));
-    return Lines.Num() > 0 ? FString::Join(Lines, TEXT("\n")) : FString(TEXT("Rakiplerden yeni bir haber yok."));
+    if (Lines.Num() == 1) Lines.Add(TEXT("\u2022 Rakiplerden yeni bir haber yok."));
+    return FString::Join(Lines, TEXT("\n"));
 }
 FString AMarketGameMode::WeekReportText() const
 {
@@ -729,11 +731,14 @@ FString AMarketGameMode::OrderAdvice(int32 Index) const
 {
     if (!State.Stock.IsValidIndex(Index) || !Products.IsValidIndex(Index)) return FString();
     const FMarketStock& Item = State.Stock[Index];
+    TArray<float> Scale; // tomorrow's calendar demand for this product only
+    Scale.Init(1.f, Products.Num());
+    Scale[Index] = MarketDirector::OrderScale(State, Products[Index]);
     if (Item.Capacity <= 0)
         return FString::Printf(TEXT("Rafta yeri yok  \u00b7  depo %d  \u00b7  \u00f6nce R ile reyona koy (d\u00fcn %d m\u00fc\u015fteri sordu)"), Item.Warehouse, Item.Yesterday.NotCarried);
     return FString::Printf(TEXT("Raf %d/%d  \u00b7  depo %d  \u00b7  kabul %d  \u00b7  yolda %d  \u00b7  d\u00fcn %d sat\u0131\u015f, %d bo\u015f raf  \u00b7  \u00f6neri %d koli"),
         Item.Shelf, Item.Capacity, Item.Warehouse, Item.Dock, Item.Incoming, Item.Yesterday.Sold, Item.Yesterday.Empty,
-        MarketOrderAdvice::SuggestCases(State, Products, Index));
+        MarketOrderAdvice::SuggestCases(State, Products, Index, &Scale));
 }
 FString AMarketGameMode::PriceSummary(int32 Index) const
 {
@@ -992,7 +997,8 @@ void AMarketGameMode::Command(FName Action)
         else if (Action == "SuggestOrder")
         {
             // L: raise every line of the draft to the suggestion (yesterday's demand + empty shelves); never lowers a line.
-            const int32 Changed = MarketOrderAdvice::FillSuggested(State, Products, OrderDraftCases);
+            const TArray<float> Scales = MarketDirector::OrderScales(State, Products); // tomorrow's calendar demand
+            const int32 Changed = MarketOrderAdvice::FillSuggested(State, Products, OrderDraftCases, &Scales);
             Notify(Changed > 0 ? FString::Printf(TEXT("\u00d6nerilen sipari\u015f listeye yaz\u0131ld\u0131 (%d \u00fcr\u00fcn). N ile onayla.\n"), Changed) + OrderDraftSummary()
                                : FString(TEXT("\u00d6neriye g\u00f6re ek koli gerekmiyor: raf, depo, arka kap\u0131 ve yoldaki mal yeterli.")));
         }
@@ -1199,7 +1205,7 @@ void AMarketGameMode::Tick(float DeltaTime)
     if (!bOpen) return;
     DayTime += DeltaTime;
     SpawnTimer -= DeltaTime;
-    if (SpawnTimer <= 0) { SpawnCustomer(); SpawnTimer = Random.FRandRange(3.5f, 5.5f) / MarketRivals::TrafficFactor(State.Day, State.RivalSeed, RivalAisles); }
+    if (SpawnTimer <= 0) { SpawnCustomer(); SpawnTimer = Random.FRandRange(3.5f, 5.5f) / MarketDirector::TrafficFactor(State, RivalAisles); }
     for (int32 I = 0; I < Customers.Num();)
     {
         auto& C = Customers[I];
@@ -1278,7 +1284,7 @@ void AMarketGameMode::CloseShop()
     }
     Customers.Empty();
     State.CloseDay();
-    MarketStaff::CloseDay(State); // till, fatigue, morale, notices, HR, accountant and the weekly tax
+    MarketDirector::CloseDay(State, Products); // every background system (staff, books, ...) in a fixed order
     SyncWorkers();                // days off and leavers change who walks tomorrow
     RefreshLabels(); RefreshDeliveryCrates();
     bWeekJustEnded = MarketCampaign::CloseDay(State); // weekly report every 7 days

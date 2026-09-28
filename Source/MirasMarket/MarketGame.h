@@ -16,6 +16,7 @@
 #include "MarketBasket.h"
 #include "MarketOrderAdvice.h"
 #include "MarketStaff.h"
+#include "MarketDirector.h"
 #include "MarketGame.generated.h"
 
 class UTextRenderComponent;

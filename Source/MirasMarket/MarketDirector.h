@@ -1,0 +1,29 @@
+#pragma once
+
+#include "CoreMinimal.h"
+#include "MarketEconomy.h"
+
+// The one place where the world-independent systems meet the game (Docs/Kurgu/00_KURGU_KITABI.md \u00a713).
+// The game mode asks the director for today's factors and calls CloseDay once per day close; the director calls
+// every system in a fixed order. A new system is added here, not in MarketGame.cpp.
+// The campaign seed for weather, news and people is State.RivalSeed (set once per new campaign).
+namespace MarketDirector
+{
+    // Shopper traffic today: calendar (weekday, weather, paydays, bayrams) x rival news.
+    float TrafficFactor(const FMarketState& State, const TArray<FString>& Aisles);
+    // How much a product is wanted today relative to an ordinary day (calendar season, weather, special days).
+    float DemandWeight(const FMarketState& State, const FMarketProduct& Product);
+    // For the order suggestion: expected demand on the day an order placed now is on the shelf (the next day),
+    // relative to yesterday. Indexed like Products.
+    TArray<float> OrderScales(const FMarketState& State, const TArray<FMarketProduct>& Products);
+    float OrderScale(const FMarketState& State, const FMarketProduct& Product);
+    // "7 Mart 2011 Pazartesi" for the running day.
+    FString DateText(const FMarketState& State);
+    // Day line for the HUD/menu: date, weather, special days.
+    FString TodayText(const FMarketState& State);
+    // Evening report: tomorrow's calendar forecast (State.Day is already tomorrow after a day close).
+    FString TomorrowText(const FMarketState& State);
+
+    // Call right after FMarketState::CloseDay (State.Day is already the next day), before MarketCampaign::CloseDay.
+    void CloseDay(FMarketState& State, const TArray<FMarketProduct>& Products);
+}

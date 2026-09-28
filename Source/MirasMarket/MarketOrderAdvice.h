@@ -15,8 +15,10 @@ namespace MarketOrderAdvice
     // Cases so that tomorrow the product can fill its shelf and cover yesterday's demand (sold + about two units
     // for every shopper who found the shelf empty), minus what is on the shelf, in the depot, at the rear door or
     // on the way. 0 for a product that is on no shelf. Limited by the 120-unit depot room and MaxCases.
-    int32 SuggestCases(const FMarketState& State, const TArray<FMarketProduct>& Products, int32 Index);
+    // DemandScale (optional, indexed like Products): how much more or less the product is expected to sell on the
+    // day the order arrives than yesterday (calendar, MarketDirector::OrderScales). Missing = 1.
+    int32 SuggestCases(const FMarketState& State, const TArray<FMarketProduct>& Products, int32 Index, const TArray<float>* DemandScale = nullptr);
     // Raises every line of the draft (indexed like Products) to its suggestion; never lowers a line.
     // Returns the number of lines changed.
-    int32 FillSuggested(const FMarketState& State, const TArray<FMarketProduct>& Products, TArray<int32>& Draft);
+    int32 FillSuggested(const FMarketState& State, const TArray<FMarketProduct>& Products, TArray<int32>& Draft, const TArray<float>* DemandScale = nullptr);
 }
