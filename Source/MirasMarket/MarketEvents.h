@@ -30,7 +30,7 @@ namespace MarketEvents
 
     void Offer(FMarketState& State, const FMarketDecision& Decision);
     const FMarketDecision* Pending(const FMarketState& State);
-    // Resolves the first waiting decision with Option. Story decisions are passed to MarketStory.
+    // Resolves the first waiting decision with Option. "story.*" go to MarketStory, "finance.*" to MarketFinance.
     bool Decide(FMarketState& State, const TArray<FMarketProduct>& Products, int32 Option, FString& OutMessage);
     bool Happened(const FMarketState& State, const FString& Id, int32 WithinDays);
     void Log(FMarketState& State, const FString& Id);

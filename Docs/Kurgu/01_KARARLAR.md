@@ -32,7 +32,7 @@ Sahiplik (M, 28.09.2026): 3B model üretimi, mağaza modeli ve arayüz tasarım�
 | B03 | Karakterler | Nermin teyze, Cem, Selim, Necati Bey, Kadir Bereketoğlu, Derya, banka müdürü (C; plan) | Derlenmedi (G-066) |
 | B04 | Sat ya da devam | Bölüm 2'de Bereket Market teklifi; satmak bir sondur, oyun kaydı kalır (C; plan) | Derlenmedi (G-066) |
 | B05 | Strateji kimliği | Mahallenin Bakkalı / Kaliteli Yerel / Hızlı İndirim Zinciri (C; plan) | Derlenmedi (G-066) |
-| B06 | Başarısızlık | Oyun bitmez; küçülme ve toparlanma yolu var. Sonlar "kaybettin" değildir (M: borç ödenmezse tek şubede kalır) | `MarketFinance`, `MarketStory` | Tasarım |
+| B06 | Başarısızlık | Oyun bitmez; küçülme ve toparlanma yolu var. Sonlar "kaybettin" değildir (M: borç ödenmezse tek şubede kalır) | Derlenmedi (G-067) |
 | B07 | Dönüm noktası hatıraları | İlk kârlı gün, borcun kapanması, ilk şube… kalıcı liste (C) | Derlenmedi (G-066) |
 
 ## C. Müşteri
@@ -43,7 +43,7 @@ Sahiplik (M, 28.09.2026): 3B model üretimi, mağaza modeli ve arayüz tasarım�
 | C02 | Segmentler | Emekli, ev, çalışan, öğrenci, esnaf, çocuk; semtle değişen pay (C) | Derlenmedi (G-062) |
 | C03 | Fiyat kararı | Rakip reyon fiyatı + sadakat (G-051/054); segment duyarlılığı eklenecek | Derlenmedi (G-062) |
 | C04 | Sadakat | 24 kişilik mahalle havuzu (G-053); veresiye ve sadakat kartı ile genişler | `MarketBasket`, `MarketCredit` | Kısmen |
-| C05 | Veresiye | Tanınan müşteriye limitli; maaş gününde tahsilat, az sayıda batık (C; plan) | `MarketCredit` | Sırada |
+| C05 | Veresiye | Tanınan müşteriye limitli; maaş gününde tahsilat, az sayıda batık (C; plan) | Derlenmedi (G-067) |
 | C06 | Bekleme ve kalabalık | 90 sn sabır, 9 kişi sınırı (mevcut); segmente göre sabır (C) | Derlenmedi (G-062) |
 | C07 | İade ve şikâyet | Bozuk/yanlış ürün iadesi; iade kabulü memnuniyet, reddi itibar kaybı (plan 01 §11) | Derlenmedi (G-066) |
 | C08 | Ödeme yöntemleri | Nakit, kredi kartı (POS komisyonu %1,5–2, ertesi gün hesaba), yemek kartı (2013 sonrası yaygın, komisyon yüksek). Kart kabulü bazı segmentlerin sepetini büyütür (C; plan 01 §11) | `MarketPayments` | Tasarım |
@@ -60,8 +60,8 @@ Sahiplik (M, 28.09.2026): 3B model üretimi, mağaza modeli ve arayüz tasarım�
 | D05 | Zam duyurusu | Ayın 1'i liste fiyatı güncellenir, oyuncuya zam listesi gelir (C) | Derlenmedi (G-063) |
 | D06 | Oyuncu kampanyaları | Reyon indirimi, 3 al 2 öde, broşür, gondol başı, tedarikçi destekli (C; plan) | Derlenmedi (G-064) |
 | D07 | Özel marka | Ulusal aşamada "Miras" markası; üretici sözleşmesi, kalite riski (plan) | `MarketCompany` | Tasarım |
-| D08 | Tazelik ve fire | Parti + son kullanma, FEFO, son gün indirimi, fire nedeni raporda (plan) | `MarketFreshness` | Sırada |
-| D09 | Atık ve bağış | Son günü geçmemiş ama satılamayan ürün bağışlanabilir: fire yazılır, itibar artar (plan 01 §11) | `MarketFreshness` | Tasarım |
+| D08 | Tazelik ve fire | Parti + son kullanma, FEFO, son gün indirimi, fire nedeni raporda (plan) | Derlenmedi (G-067) |
+| D09 | Atık ve bağış | Son günü geçmemiş ama satılamayan ürün bağışlanabilir: fire yazılır, itibar artar (plan 01 §11) | Derlenmedi (G-067) |
 | D10 | Depozito/iade ambalaj | Cam şişe depozitosu (ülke profiline bağlı, Türkiye 2011'de yaygın değil) (plan) | ülke profili | Tasarım |
 | D11 | **İnternet mağazacılığı** | Dönemle açılır. 2011–2013: telefonla sipariş ve mahalleye paket servis (bakkal geleneği, küçük sepet, sadakat artırır). 2014+: kendi web sitesi, toplama görevlisi, teslimat slotu. 2016+: pazar yeri/hızlı teslimat platformları (komisyonlu kanal, kurgu platform adı). 2020: salgın dönemi talep sıçraması (kurgu senaryo profili, gerçek olayın saygılı anılması). Online sipariş raftaki stoğu paylaşır (ayrılmış stok), toplama rotası, teslimat maliyeti, eksik ürün ikamesi, online müşteri memnuniyeti. Bölgesel aşamada karanlık mağaza (yalnızca sipariş toplayan depo) (C; plan 01 §11, 04 §2) | `MarketOnline` | Sırada |
 | D12 | Kasa önü ve dürtüsel ürün | Kasa önü rafı sepete küçük ek ürün getirir (plan 04) | `MarketCustomers` | Tasarım |
@@ -96,10 +96,10 @@ Sahiplik (M, 28.09.2026): 3B model üretimi, mağaza modeli ve arayüz tasarım�
 |---|---|---|---|---|
 | G01 | Kuruş | Para her yerde int64 kuruş (AGENTS) | tümü | Uygulandı |
 | G02 | Vergi | Haftalık KDV %8 + gelir vergisi %15 (oyun modeli); müşavir (G-060) | `MarketStaff` | Derlenmedi |
-| G03 | Kredi | Trakya Bankası (kurgu); faiz yıla göre; aylık taksit; tapu teminatı (C) | `MarketFinance` | Sırada |
-| G04 | Kira, elektrik, bakım, sigorta | Yeni şubelerde kira; dolap sayısı ve mevsime göre elektrik; arıza/bakım (plan 01 §9) | `MarketFinance` | Sırada |
-| G05 | Ödeme sıkıntısı | Uyarı → sevkiyat durur → yapılandırma → stok eritme → şube kapatma → ipotek (C; plan 06 §8) | `MarketFinance` | Sırada |
-| G06 | Ay sonu raporu | Kâr-zarar, nakit akışı, basit bilanço (plan 06 §7) | `MarketFinance` | Sırada |
+| G03 | Kredi | Trakya Bankası (kurgu); faiz yıla göre; aylık taksit; tapu teminatı (C) | Derlenmedi (G-067) |
+| G04 | Kira, elektrik, bakım, sigorta | Yeni şubelerde kira; dolap sayısı ve mevsime göre elektrik; arıza/bakım (plan 01 §9) | Derlenmedi (G-067) |
+| G05 | Ödeme sıkıntısı | Uyarı → sevkiyat durur → yapılandırma → stok eritme → şube kapatma → ipotek (C; plan 06 §8) | Derlenmedi (G-067) |
+| G06 | Ay sonu raporu | Kâr-zarar, nakit akışı, basit bilanço (plan 06 §7) | Derlenmedi (G-067) |
 | G07 | Yatırımcı ve halka arz | Ulusal aşamada; kontrol kaybı görünür (plan 06 §1) | `MarketCompany` | Tasarım |
 | G08 | Kur | Uluslararası aşamada ülke para birimi; grup raporu dönüşümü (plan 06 §13) | `MarketCompany` | Tasarım |
 

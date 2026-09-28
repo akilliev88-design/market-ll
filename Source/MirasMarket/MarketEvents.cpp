@@ -3,6 +3,7 @@
 #include "MarketPrices.h"
 #include "MarketStaff.h"
 #include "MarketStory.h"
+#include "MarketFinance.h"
 
 namespace MarketEvents
 {
@@ -200,7 +201,8 @@ bool MarketEvents::Decide(FMarketState& State, const TArray<FMarketProduct>& Pro
     const FMarketDecision D = State.Decisions[0];
     if (!D.Options.IsValidIndex(Option)) { OutMessage = TEXT("B\u00f6yle bir se\u00e7enek yok."); return false; }
     const bool bDone = D.Id.StartsWith(TEXT("story.")) ? MarketStory::Resolve(State, Products, D, Option, OutMessage)
-                                                      : ResolveEvent(State, Products, D, Option, OutMessage);
+        : D.Id.StartsWith(TEXT("finance.")) ? MarketFinance::Resolve(State, Products, D, Option, OutMessage)
+        : ResolveEvent(State, Products, D, Option, OutMessage);
     if (bDone && State.Decisions.Num() > 0 && State.Decisions[0].Id == D.Id) State.Decisions.RemoveAt(0);
     return bDone;
 }

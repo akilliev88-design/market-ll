@@ -276,6 +276,12 @@ FString MarketCalendar::DateText(int32 GameDay)
     return FString::Printf(TEXT("%d %s %d %s"), D.Day, MonthNames[D.Month - 1], D.Year, WeekdayNames[D.Weekday]);
 }
 
+FString MarketCalendar::MonthText(int32 GameDay)
+{
+    const FDate D = DateOf(GameDay);
+    return FString::Printf(TEXT("%s %d"), MonthNames[D.Month - 1], D.Year);
+}
+
 FString MarketCalendar::TagName(ETag Tag)
 {
     switch (Tag)

@@ -31,12 +31,15 @@ namespace MarketDirector
     // Today's costs and list prices (monthly price list, wholesaler discount) from the 2011 catalog values.
     // Call after loading/starting a campaign and after every day close.
     void ApplyPrices(const FMarketState& State, const TArray<FMarketProduct>& CatalogBase, TArray<FMarketProduct>& Products);
+    // After a basket was paid at the till: a known neighbour may write it in the credit book. Returns a note.
+    FString OnCheckout(FMarketState& State, int32 CustomerId, int64 Receipt, float Roll);
     // After a successful FMarketState::SubmitOrder: wholesaler volume and payment terms. Returns an extra line.
     FString OnOrder(FMarketState& State, int64 Bill);
     // Management decisions of the background systems that are not staff decisions. False + message when nothing
     // changed. Actions: Supplier (Arg = MarketSuppliers::ESupplier), PayBills, PassOnPriceRise,
     // Discount10 / Discount20 / MultiBuy / Endcap (Arg = product), Flyer, StopPromotion (Arg = index), AcceptOffer, DeclineOffer,
-    // Decide (Arg = option of the first waiting decision: story scenes and events).
+    // Decide (Arg = option of the first waiting decision: story scenes and events),
+    // FreshPolicy (Arg 0..2), CreditLimit (Arg step 0..3), CollectCredit, TakeLoan (Arg step 0..2), RepayLoan.
     bool Command(FMarketState& State, const TArray<FMarketProduct>& Products, FName Action, int32 Arg, FString& OutMessage);
     // Evening report of the background systems: wholesalers, staff, tax, ...
     FString ReportText(const FMarketState& State);

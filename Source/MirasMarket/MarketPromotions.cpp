@@ -2,6 +2,7 @@
 #include "MarketGoods.h"
 #include "MarketPrices.h"
 #include "MarketSuppliers.h"
+#include "MarketFreshness.h"
 
 namespace MarketPromotions
 {
@@ -87,7 +88,7 @@ int64 MarketPromotions::UnitPrice(const FMarketState& State, const TArray<FMarke
 {
     if (!State.Stock.IsValidIndex(Index)) return 0;
     const int64 Shelf = State.Stock[Index].Price;
-    double Factor = 1.0;
+    double Factor = MarketFreshness::PriceFactor(State, Index); // last-day markdown of an old batch
     for (const FMarketPromotion& P : State.Promotions)
     {
         if (!IsActive(P, State.Day) || !Covers(P, Products, Index)) continue;
@@ -145,6 +146,7 @@ float MarketPromotions::CostFactor(const FMarketState& State, int32 Index)
 
 FString MarketPromotions::Badge(const FMarketState& State, const TArray<FMarketProduct>& Products, int32 Index)
 {
+    if (MarketFreshness::PriceFactor(State, Index) < 1.f) return FString::Printf(TEXT("son g\u00fcn %%%d"), MarketFreshness::MarkdownPercent);
     for (const FMarketPromotion& P : State.Promotions)
     {
         if (!IsActive(P, State.Day) || !Covers(P, Products, Index)) continue;

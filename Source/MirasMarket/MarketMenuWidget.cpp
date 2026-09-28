@@ -7,6 +7,9 @@
 #include "MarketCompetitors.h"
 #include "MarketEvents.h"
 #include "MarketStory.h"
+#include "MarketFinance.h"
+#include "MarketCredit.h"
+#include "MarketFreshness.h"
 #include "Brushes/SlateColorBrush.h"
 #include "Engine/Texture2D.h"
 #include "ImageUtils.h"
@@ -580,6 +583,35 @@ TSharedRef<SWidget> SMarketMenu::StoryCard()
         }, 10, ERole::Muted, false, true) ]);
 }
 
+TSharedRef<SWidget> SMarketMenu::MoneyCard()
+{
+    // G-067: bank, credit book and the last-day policy of perishable goods.
+    auto G = [this] { return Game.Get(); };
+    return Card(SNew(SVerticalBox)
+        + SVerticalBox::Slot().AutoHeight()[ Fixed(TEXT("PARA \u00b7 VERES\u0130YE \u00b7 TAZEL\u0130K"), 9, ERole::Muted, true) ]
+        + SVerticalBox::Slot().AutoHeight().Padding(0.f, 6.f, 0.f, 8.f)
+        [ Label([G]
+        {
+            if (!G()) return FString();
+            const FMarketState& S = G()->State;
+            return MarketFinance::Summary(S) + FString::Printf(TEXT("\nVeresiye limiti %s \u00b7 son kullanma: %s \u00b7 d\u00fcnk\u00fc fire %d adet"),
+                S.CreditLimit > 0 ? *MarketMenuUi::Tl(S.CreditLimit) : TEXT("yok"), *MarketFreshness::PolicyName(static_cast<MarketFreshness::EPolicy>(S.FreshPolicy)), S.LastWasteUnits);
+        }, 11, ERole::Text, false, true) ]
+        + SVerticalBox::Slot().AutoHeight()
+        [
+            SNew(SWrapBox).UseAllottedSize(true).InnerSlotPadding(FVector2D(6.f, 6.f))
+            + SWrapBox::Slot()[ Button([] { return FString(TEXT("Kredi 500 TL")); }, [this] { Manage(TEXT("TakeLoan"), 0); }) ]
+            + SWrapBox::Slot()[ Button([] { return FString(TEXT("Kredi 1.000 TL")); }, [this] { Manage(TEXT("TakeLoan"), 1); }) ]
+            + SWrapBox::Slot()[ Button([] { return FString(TEXT("Krediyi kapat")); }, [this] { Manage(TEXT("RepayLoan"), 0); }, false, [G] { return G() && G()->State.Loans.Num() > 0; }) ]
+            + SWrapBox::Slot()[ Button([] { return FString(TEXT("Veresiye yok")); }, [this] { Manage(TEXT("CreditLimit"), 0); }) ]
+            + SWrapBox::Slot()[ Button([] { return FString(TEXT("Veresiye 20 TL")); }, [this] { Manage(TEXT("CreditLimit"), 1); }) ]
+            + SWrapBox::Slot()[ Button([] { return FString(TEXT("Veresiye 50 TL")); }, [this] { Manage(TEXT("CreditLimit"), 2); }) ]
+            + SWrapBox::Slot()[ Button([] { return FString(TEXT("Bor\u00e7lar\u0131 iste")); }, [this] { Manage(TEXT("CollectCredit"), 0); }, false, [G] { return G() && G()->State.Credit.Num() > 0; }) ]
+            + SWrapBox::Slot()[ Button([] { return FString(TEXT("Son g\u00fcn: indirim")); }, [this] { Manage(TEXT("FreshPolicy"), 1); }) ]
+            + SWrapBox::Slot()[ Button([] { return FString(TEXT("Son g\u00fcn: ba\u011f\u0131\u015f")); }, [this] { Manage(TEXT("FreshPolicy"), 2); }) ]
+        ]);
+}
+
 TSharedRef<SWidget> SMarketMenu::SummaryPage()
 {
     auto G = [this] { return Game.Get(); };
@@ -589,6 +621,7 @@ TSharedRef<SWidget> SMarketMenu::SummaryPage()
         SNew(SVerticalBox)
         + SVerticalBox::Slot().AutoHeight()[ DecisionCard() ]
         + SVerticalBox::Slot().AutoHeight().Padding(0.f, 0.f, 0.f, 12.f)[ StoryCard() ]
+        + SVerticalBox::Slot().AutoHeight().Padding(0.f, 0.f, 0.f, 12.f)[ MoneyCard() ]
         + SVerticalBox::Slot().AutoHeight()
         [
             SNew(SHorizontalBox)

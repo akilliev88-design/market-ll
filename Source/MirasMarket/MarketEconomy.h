@@ -231,6 +231,39 @@ struct FMarketStoryState
     UPROPERTY() TArray<FString> Memories;    // milestones, newest last ("12 Mart 2011: ilk k\u00e2rl\u0131 g\u00fcn")
 };
 
+// Units of one product that arrived together and spoil together (MarketFreshness.h).
+USTRUCT()
+struct FMarketBatch
+{
+    GENERATED_BODY()
+    UPROPERTY() FString ProductId;
+    UPROPERTY() int32 Units = 0;
+    UPROPERTY() int32 ExpiresDay = 0;    // last day it may be sold
+};
+
+// A neighbour's page in the credit book (MarketCredit.h).
+USTRUCT()
+struct FMarketCreditAccount
+{
+    GENERATED_BODY()
+    UPROPERTY() int32 CustomerId = 0;
+    UPROPERTY() int64 Balance = 0;
+    UPROPERTY() int32 SinceDay = 0;      // oldest unpaid day
+};
+
+// A bank loan (MarketFinance.h).
+USTRUCT()
+struct FMarketLoan
+{
+    GENERATED_BODY()
+    UPROPERTY() int64 Principal = 0;
+    UPROPERTY() int64 Remaining = 0;     // principal still owed
+    UPROPERTY() float MonthlyRate = 0.f;
+    UPROPERTY() int64 Installment = 0;
+    UPROPERTY() int32 NextDueDay = 0;
+    UPROPERTY() bool bMortgage = false;  // the family shop's deed stands behind it
+};
+
 // The accountant's books for the running tax period (one week) and the declared tax (MarketStaff.h).
 USTRUCT()
 struct FMarketBooks
@@ -350,6 +383,18 @@ struct FMarketState
     UPROPERTY() TArray<FMarketModifier> Modifiers;
     UPROPERTY() TArray<FString> EventLog;      // "id@day" of events that happened (cooldowns)
     UPROPERTY() int32 DeliveryDelayDay = 0;    // the delivery of this day's close waits one more day (snow, broken truck)
+    // Freshness (MarketFreshness.h): batches of perishable goods, the last-day policy, yesterday's waste.
+    UPROPERTY() TArray<FMarketBatch> Batches;
+    UPROPERTY() uint8 FreshPolicy = 1;         // 0 nothing, 1 last-day markdown, 2 donate the last day
+    UPROPERTY() int32 LastWasteUnits = 0;
+    UPROPERTY() int64 LastWasteCost = 0;
+    // Credit book (MarketCredit.h).
+    UPROPERTY() TArray<FMarketCreditAccount> Credit;
+    UPROPERTY() int64 CreditLimit = 0;          // per neighbour, kurus (0 = no credit)
+    // Bank and the money trouble ladder (MarketFinance.h).
+    UPROPERTY() TArray<FMarketLoan> Loans;
+    UPROPERTY() int32 NegativeCashDays = 0;
+    UPROPERTY() int32 TroubleStage = 0;
     // Local share at the start of the last day close (MarketCompetitors replaces the simple satisfaction update).
     UPROPERTY() float ShareBeforeClose = 25.f;
     // Evening report lines of the background systems (MarketDirector clears it at every day close).

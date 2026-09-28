@@ -74,6 +74,8 @@ namespace MarketCalendar
 
     // "7 Mart 2011 Pazartesi"
     FString DateText(int32 GameDay);
+    // "Mart 2011"
+    FString MonthText(int32 GameDay);
     // "7 Mart 2011 Pazartesi \u00b7 g\u00fcne\u015fli 11\u00b0C \u00b7 maa\u015f g\u00fcn\u00fc"
     FString Describe(int32 GameDay, int32 Seed);
     // Evening report: what tomorrow brings and what to stock ("" when nothing special).

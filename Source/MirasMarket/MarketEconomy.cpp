@@ -1,6 +1,7 @@
 #include "MarketEconomy.h"
 #include "MarketPrices.h"
 #include "MarketSuppliers.h"
+#include "MarketCalendar.h"
 
 void FMarketState::Initialize(const TArray<FMarketProduct>& Products)
 {
@@ -127,8 +128,11 @@ int64 FMarketState::DailyPayroll() const
 
 void FMarketState::CloseDay()
 {
-    // Rent-free family shop: electricity, water, bags and upkeep follow the monthly price list (MarketPrices).
-    LastOperatingCost = FMath::RoundToInt64(2200.0 * MarketPrices::ListLevel(Day)) + DailyPayroll() + Marketing + OtherCosts;
+    // Rent-free family shop: electricity, water, bags and upkeep follow the monthly price list (MarketPrices);
+    // fridges work harder in summer and the shop is heated in winter.
+    const MarketCalendar::ESeason Season = MarketCalendar::SeasonOf(MarketCalendar::DateOf(Day).Month);
+    const double Utilities = Season == MarketCalendar::ESeason::Summer ? 1.15 : Season == MarketCalendar::ESeason::Winter ? 1.10 : 1.0;
+    LastOperatingCost = FMath::RoundToInt64(2200.0 * MarketPrices::ListLevel(Day) * Utilities) + DailyPayroll() + Marketing + OtherCosts;
     Marketing = 0;
     OtherCosts = 0;
     // The second branch is an explicit aggregate prototype: net daily contribution.

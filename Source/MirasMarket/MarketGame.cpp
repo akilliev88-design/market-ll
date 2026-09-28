@@ -1222,7 +1222,11 @@ void AMarketGameMode::Checkout()
     int64 Receipt = 0;
     int32 Units = 0;
     if (State.SellBasket(Lines, Products, &Receipt, &Units))
-        Notify(FString::Printf(TEXT("Sepet satildi: %d farkli urun, %d adet  +%s%s"), Lines.Num(), Units, *Money(Receipt), C.bReturning ? TEXT("  \u00b7  sadik musteri") : TEXT("")));
+    {
+        const FString Credit = MarketDirector::OnCheckout(State, C.CustomerId, Receipt, Random.FRand()); // veresiye (G-067)
+        Notify(FString::Printf(TEXT("Sepet satildi: %d farkli urun, %d adet  +%s%s"), Lines.Num(), Units, *Money(Receipt), C.bReturning ? TEXT("  \u00b7  sadik musteri") : TEXT(""))
+            + (Credit.IsEmpty() ? FString() : TEXT("\n") + Credit));
+    }
     else { ++State.Lost; Notify(TEXT("Sepet karsilanamadi; musteri ayrildi.")); }
     MarketBasket::RecordVisit(State, C.CustomerId, C.ShoppingList.Num(), C.Fulfilled, false);
     C.Actor->Destroy(); Customers.RemoveAt(I); RefreshLabels();

@@ -8,6 +8,9 @@
 #include "MarketEvents.h"
 #include "MarketStory.h"
 #include "MarketGoods.h"
+#include "MarketFreshness.h"
+#include "MarketCredit.h"
+#include "MarketFinance.h"
 
 float MarketDirector::TrafficFactor(const FMarketState& State, const TArray<FString>& Aisles)
 {
@@ -67,6 +70,11 @@ void MarketDirector::ApplyPrices(const FMarketState& State, const TArray<FMarket
     MarketSuppliers::ApplyPrices(State, CatalogBase, Products);
 }
 
+FString MarketDirector::OnCheckout(FMarketState& State, int32 CustomerId, int64 Receipt, float Roll)
+{
+    return MarketCredit::OnCheckout(State, CustomerId, Receipt, Roll);
+}
+
 FString MarketDirector::OnOrder(FMarketState& State, int64 Bill)
 {
     return MarketSuppliers::OnOrder(State, Bill);
@@ -100,6 +108,11 @@ bool MarketDirector::Command(FMarketState& State, const TArray<FMarketProduct>& 
     if (Action == TEXT("StopPromotion")) return MarketPromotions::Stop(State, Arg, OutMessage);
     if (Action == TEXT("AcceptOffer")) return MarketPromotions::AcceptOffer(State, Products, OutMessage);
     if (Action == TEXT("Decide")) return MarketEvents::Decide(State, Products, Arg, OutMessage);
+    if (Action == TEXT("FreshPolicy")) return MarketFreshness::SetPolicy(State, static_cast<MarketFreshness::EPolicy>(FMath::Clamp(Arg, 0, 2)), OutMessage);
+    if (Action == TEXT("CreditLimit")) return MarketCredit::SetLimit(State, Arg, OutMessage);
+    if (Action == TEXT("CollectCredit")) return MarketCredit::CollectAll(State, OutMessage) > 0;
+    if (Action == TEXT("TakeLoan")) return MarketFinance::TakeLoan(State, Arg, OutMessage);
+    if (Action == TEXT("RepayLoan")) return MarketFinance::RepayAll(State, OutMessage);
     if (Action == TEXT("DeclineOffer")) { MarketPromotions::DeclineOffer(State); OutMessage = TEXT("Selim'in teklifi geri \u00e7evrildi."); return true; }
     OutMessage = FString::Printf(TEXT("Bilinmeyen karar: %s"), *Action.ToString());
     return false;
@@ -118,8 +131,11 @@ void MarketDirector::CloseDay(FMarketState& State, const TArray<FMarketProduct>&
     State.DayNews.Reset();
     MarketSuppliers::CloseDay(State); // price list, payment terms, bills due, wholesaler news (G-063)
     MarketPromotions::CloseDay(State, Products); // running promotions, results, funded offers (G-064)
+    MarketFreshness::CloseDay(State, Products);  // batches, waste, donations (G-067) - before the books
+    MarketCredit::CloseDay(State);               // paydays of the credit book (G-067)
     MarketCompetitors::CloseDay(State, Products, MarketRivals::Aisles(Products)); // shares, rivals' moves, poaching (G-065)
     MarketStaff::CloseDay(State);     // till, fatigue, morale, notices, HR, accountant and the weekly tax (G-060)
     MarketEvents::CloseDay(State, Products); // decisions past their day, modifiers, snow, a new neighbourhood event (G-066)
     MarketStory::CloseDay(State, Products);  // scenes, milestones, chapters (G-066)
+    MarketFinance::CloseDay(State, Products); // loans, the money trouble ladder, month-end report (G-067)
 }
