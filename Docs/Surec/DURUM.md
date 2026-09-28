@@ -6,6 +6,8 @@ Son güncelleme: 29.09.2026 — Codex (G-054 + G-059 doğrulandı)
 
 v0.2 geliştirme. **Yeni oyun rafları boş açılır**; başlangıç stoğu depodadır ve oyuncu R modu/E ile yerleştirmeyi doğrudan deneyebilir. Raflar elle ve önizlemeyle dizilir; **reyon görevlileri** (G-049 geçti) boş rafları depodan doldurur, rafta olmayan ürünü kendi reyonuna dizer ve dar bloğu genişletir. Blender mağaza kiti yedi parçaya çıktı: gondol/duvar rafı, dökme ada, servisli açık tavan, ayrıntılı kasa, yönetim masası, cam kapılı soğutucu ve manav adası. Otomatik yerleştirme yok; yeni ürün "Rafta değil" durumunda başlar.
 
+GitHub ana deposu: `https://github.com/m07tas/market-ll` (`main`). Unreal/Blender/görsel ikili varlıklar Git LFS ile tutulur.
+
 ## Çalışan / var olan
 
 - Oynanabilir prototip; katalog `Config/products.json` şema v2 (aktif ürün sınırı yok, yuva bazlı `materials`). Raf kapasitesi = önde × derinlik × istif (istif raf yüksekliğine sığan kadar sayılır); rafta olmayan ürünün kapasitesi 0. Test modu varsayılan açık (F2/F3).

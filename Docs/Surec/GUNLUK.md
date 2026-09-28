@@ -13,8 +13,9 @@ En yeni giriş en üstte. Biçim: tarih — ajan — başlık, ardından **Yapı
 - `DERLE.cmd /q`: geçti.
 - `TEST.cmd /q`: 24/24 geçti.
 - `SmokeTest.ps1`: geçti; ilk sepet 25,4 saniyede satıldı, gün kapanışı, mal kabul ve disk kayıt/yükleme tamamlandı.
+- Git LFS `fsck`: geçti. `main`, kaynaklar ve yaklaşık 2,55 GB LFS varlığı `https://github.com/m07tas/market-ll` deposuna gönderildi.
 
-**Sıradaki**: GitHub deposuna ana kaynakları, belgeleri, ürünleri ve Unreal varlıklarını Git LFS ile gönder. Ardından Mustafa G-055 oyun/denge testini yapacak; arka plan mantık geliştirmeleri Claude Code ile sürecek.
+**Sıradaki**: Mustafa G-055 oyun/denge testini yapacak; arka plan mantık geliştirmeleri Claude Code ile sürecek.
 
 ## 28.09.2026 — Claude — Smoke zaman aşımı düzeltmesi
 
