@@ -2,6 +2,64 @@
 
 En yeni giriş en üstte. Biçim: tarih — ajan — başlık, ardından **Yapılan**, **Doğrulama**, **Sıradaki**.
 
+## 29.09.2026 — Codex — G-054/G-059 doğrulaması ve GitHub hazırlığı
+
+**Yapılan**
+- Claude'un babadan kalan borç, hafta raporu ve deterministik rakip haberleri sistemi (G-054/G-008) derlendi ve doğrulandı.
+- Tıklanabilir yönetim menüsü, kalıcı gün/hafta raporu, tema ve günlük geçmiş sistemi (G-059) derlendi ve doğrulandı.
+- G-053 sonrası uzayan müşteri gezisini bekleyen smoke senaryosu geçti. Blender'ın otomatik `.blend1` yedekleri GitHub kapsamından çıkarıldı; kaynak `.blend` dosyaları korunuyor.
+
+**Doğrulama**
+- `DERLE.cmd /q`: geçti.
+- `TEST.cmd /q`: 24/24 geçti.
+- `SmokeTest.ps1`: geçti; ilk sepet 25,4 saniyede satıldı, gün kapanışı, mal kabul ve disk kayıt/yükleme tamamlandı.
+
+**Sıradaki**: GitHub deposuna ana kaynakları, belgeleri, ürünleri ve Unreal varlıklarını Git LFS ile gönder. Ardından Mustafa G-055 oyun/denge testini yapacak; arka plan mantık geliştirmeleri Claude Code ile sürecek.
+
+## 28.09.2026 — Claude — Smoke zaman aşımı düzeltmesi
+
+**Durum**: Mustafa `SON_KONTROL.cmd` çalıştırdı: G-054 + G-059 **derlendi**, testler geçti; smoke "customer sale and next-day rear-door delivery" adımında düştü. G-053 sonrası smoke zaten sınırdaydı (son geçişler 25 sn içinde 1 satış).
+
+**Yapılan**: `MarketAutomation.cpp` — smoke günü sabit 25 sn yerine ilk ödenen sepetten sonra (en az 25 sn, en çok 90 sn) kapatıyor; koşul üçe bölündü (gün kapama / satış / arka kapı) ve kapanışta satış, kayıp, KABUL, eksik/hasarlı değerleri loga yazılıyor.
+
+**Sıradaki**: `SON_KONTROL.cmd` yeniden. Yine düşerse `GameplaySmoke.log` içindeki "smoke day close" satırı nedeni gösterir.
+
+## 28.09.2026 — Claude — Tıklanabilir yönetim menüsü (G-059) — DERLENMEDİ
+
+**Mustafa**: menü tasarımını (claude.ai maketi, açık/koyu tema) onayladı. G-054 henüz derlenmemişken üstüne yazıldı; ikisi birlikte derlenecek.
+
+**Yapılan**
+- `MarketMenuWidget.h/.cpp` (Slate, `SMarketMenu`) + `MarketMenu.cpp` (oyun modu tarafı). **M** her yerden açar; dünya durur, fare imleci çıkar; M / TAB / Esc kapatır, 1–7 sayfa değiştirir.
+- Sayfalar: **Özet** (kasa, dün net, bugün, yerel pay, borç + "50 TL öde", ikinci şube hedefi, rakiplerde bugün, dünkü kayıplar, mağazayı aç/kapat), **Sipariş** (kategori filtresi; raf/depo/kabul/yolda/dün satış/boş raf/öneri; −/+ koli; öneriyi yaz, temizle, onayla; 50 TL asgari ve nakit uyarısı), **Ürünler ve fiyat** (akakçe gibi: kategori → ürün listesi bizim/rakip en ucuz/ucuz-pahalı etiketi → ürün ayrıntısı: fiyat −/+, alan müşteri %, marj, BİM/Migros/A101 fiyatları, "rafta yok", fark %), **Rakipler** (yerel pay çubuğu, rakip kartları ve bugünkü kampanyaları), **Personel** (kasiyer, reyon görevlileri işe al/çıkar), **Şubeler** (tek şube + ikinci şube koşulları), **Raporlar** (gün sonu ve hafta sekmesi).
+- **Gün sonu raporu** artık 30 saniyede kaybolmuyor: gün kapanınca menü Raporlar sayfasında açılır, "Yeni güne başla" ile kapanır. Kayıp nedenlerinin yanında çözüm düğmesi (Sipariş ver / Fiyata bak / Personel). Smoke ve ekran görüntüsü çalıştırmalarında eski kart kalır (menü açılmaz).
+- **Hafta raporu**: haftanın neti, müşteri, ödenen borç ve son 7 günün günlük net grafiği. Bunun için `FMarketDayRecord` + `FMarketState::History` (her kapanan gün; en çok 3650 gün) eklendi; istatistik merkezinin temeli.
+- Menü düğmeleri masadaki tuşlarla aynı `Command()` kurallarından geçer (`MenuCommand`, masa mesafesi aranmaz). Masadaki tuşlar da çalışmaya devam ediyor.
+- **Tema**: açık (Tesla tarzı, varsayılan) / koyu; kenar çubuğundaki düğme, seçim `GameUserSettings.ini` `[MirasMarket.Menu] LightTheme`.
+- **Logo yuvası**: `Content/Brands/<bim|migros|a101|miras>/logo.png` varsa gösterilir, yoksa renkli baş harf rozeti.
+- `MarketRivals::RivalFactor` (tek rakibin o reyondaki fiyatı, boş reyon), `RivalFormat`. Testlere geçmiş ve rakip-fiyat kontrolleri eklendi (test sayısı değişmedi, 24).
+- `DefaultInput.ini`: Menu = M. HUD kısayollarına M eklendi.
+
+**Doğrulama**: Claude derleyemez; parantez dengesi ve ASCII kontrol edildi. **Codex: `DERLE.cmd /q`, `TEST.cmd /q` (24), `SmokeTest.ps1`; sonra oyunda M ile menüyü aç, bir gün kapat ve raporu gör.**
+
+**Sonraki (menü)**: HUD'u sadeleştirmek (maketteki A1), ürün görselleri (Stüdyo önizlemesi), Rakipler'de ulusal/uluslararası sekmeleri ve il haritası (şube sistemiyle).
+
+## 28.09.2026 — Claude — Borç, hafta raporu ve rakip haberleri (G-054, G-008) — DERLENMEDİ
+
+**Mustafa'nın kararları**: borç babadan kalır; 7. günde oyun bitmez, borç kapanana ve dükkân kendini döndürene kadar devam eder (başarısız olursa tek şubede kalır). İlçede tek market değiliz; rakiplerin yaptıkları günlük rapor olarak gelir, önce onlara oyuncu cevap verir, büyüyünce bunu işe alınan kişi yönetir. Rakipler gerçek zincirler.
+
+**Yapılan**
+- `MarketCampaign.h/.cpp` (dünyadan bağımsız): başlangıç borcu 300 TL (`InheritedDebt`), masada **P** ile 50 TL taksit (kasadaki nakitten fazlası ödenemez), kapanınca `DebtClearedDay`. Borç açıkken ikinci şube (G) açılmaz; sonra eski koşullar (950 TL, 3 kârlı gün, %35 pay). 7 günde bir hafta toplamı `LastWeek*` alanlarına geçer.
+- `MarketRivals.h/.cpp`: sabit "5 günün 4'ünde %15 indirim" kaldırıldı (G-008). Rakipler BİM ve Migros; 15. günde ilçeye A101 açılır ve müşterinin %5'ini kalıcı çeker. İlk 2 gün sessiz, sonra günlerin ~%55'inde haber: bir reyonda %10–20 indirim, hafta sonu genel %10 indirim, reyonda %10 zam, reyonun boş kalması (rakip fiyatı ×1,25 = müşteri bize gelir), uzun çalışma saati (müşteri −%10). Her şey gün + kampanya tohumundan (`RivalSeed`) çıkar; kayıt yüklemek haberi değiştirmez.
+- Müşteri kararı (G-053 sepeti dahil) artık ürünün **reyonuna** göre rakip fiyatıyla karşılaştırıyor (`RivalPriceFactor`); ikame de aynı reyon fiyatını kullanıyor. Müşteri geliş aralığı `TrafficFactor` ile uzuyor.
+- HUD: hedef kartında "Babanın borcu" çubuğu; gün sonu raporunda "RAKİP HABERLERİ · YARIN" ve 7., 14., … günlerde "N. HAFTA RAPORU" (ciro, net, satış, kayıp, ödenen/kalan borç). Tuş listesine P. Başlangıç mesajı borcu anlatıyor.
+- Logo yuvası: `MarketRivals::RivalLogoKey` → `Content/Brands/<bim|migros|a101>/logo.png` (menü sistemi kullanacak; Claude logo çizmez, dosyayı Mustafa koyar).
+- Testler `MirasMarket.Campaign.DebtAndWeek`, `MirasMarket.Rivals.News` (`MarketCampaignTests.cpp`); `Test.ps1` en az 24. `DefaultInput.ini`: PayDebt = P.
+- Eski kayıtlar: yeni alanlar varsayılanla yüklenir (borç 300 TL, `RivalSeed` 0 — o kayıt da sabit bir haber dizisi alır).
+
+**Doğrulama**: Claude derleyemez. Kural hesabı Python'da taklit edildi (tohum 7: ilk reyon indirimi 6. gün, içecek %15; 58 günde 29 haber, 6 tür). **Codex: `DERLE.cmd /q`, `TEST.cmd /q` (24), `SmokeTest.ps1`.**
+
+**Sıradaki**: G-055 oyun testi (Mustafa). Denge adayları: borç tutarı, taksit, haber sıklığı, A101'in çektiği müşteri.
+
 ## 28.09.2026 — Codex — Müşteri sepeti, ikame ve sadakat (G-053)
 
 **Yapılan**

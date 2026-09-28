@@ -31,6 +31,9 @@ Limit aniden biterse sonraki ajan GUNLUK/DURUM ile dosyaların son hâlini karş
 | `Source/MirasMarket/StaffPlanner.*` | Reyon görevlisinin kararları (dünyadan bağımsız, test edilir): raf doldur, rafta olmayan ürünü kategorisinin reyonuna koy, bir koli almayan bloğu genişlet. |
 | `Source/MirasMarket/MarketDemand.*` | Müşteri kararları (dünyadan bağımsız, test edilir): hangi ürünü ister, rakip fiyatına göre alır mı, kayıp nedeni sayımı, gün raporunun en büyük 3 sorunu. |
 | `Source/MirasMarket/MarketBasket.*` | 1–4 ürünlü alışveriş listesi, kategori içi ikame ve kayıtlı tekrar müşteri memnuniyeti. |
+| `Source/MirasMarket/MarketCampaign.*` | Babadan kalan borç, taksit, ikinci şube kilidi ve yedi günlük hafta toplamları. |
+| `Source/MirasMarket/MarketRivals.*` | BİM, Migros ve A101 için deterministik günlük haberler, reyon fiyatı ve müşteri trafiği etkileri. |
+| `Source/MirasMarket/MarketMenu*` | M ile açılan tıklanabilir yönetim menüsü; özet, sipariş, fiyat, rakip, personel, şube ve rapor sayfaları. |
 | `Source/MirasMarket/MarketWorkers.cpp` | Oyundaki reyon görevlileri: yürüme, koli taşıma, rafa tek tek dizme (`AMarketGameMode::TickWorkers`). |
 | `Source/MirasMarket/MarketOrderAdvice.*` | Sipariş yardımı (dünyadan bağımsız, test edilir): önerilen koli sayısı, L ile listeyi öneriye yükseltme, 50 TL asgari sipariş. |
 | `Source/MirasMarket/MarketDelivery.cpp` | Çok ürünlü sipariş taslağı, arka kapıdaki fiziksel koliler ve oyuncunun mal kabul taşıması. |

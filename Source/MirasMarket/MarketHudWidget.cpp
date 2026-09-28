@@ -372,6 +372,8 @@ TSharedRef<SWidget> SMarketHud::OfficeCard()
                     SNew(SHorizontalBox)
                     + SHorizontalBox::Slot().AutoWidth()[ KeyRow(TEXT("H"), TEXT("Kasiyer")) ]
                     + SHorizontalBox::Slot().AutoWidth()[ KeyRow(TEXT("J"), TEXT("G\u00f6revli")) ]
+                    + SHorizontalBox::Slot().AutoWidth()[ KeyRow(TEXT("M"), TEXT("Y\u00f6netim men\u00fcs\u00fc")) ]
+                    + SHorizontalBox::Slot().AutoWidth()[ KeyRow(TEXT("P"), TEXT("Bor\u00e7 \u00f6de")) ]
                     + SHorizontalBox::Slot().AutoWidth()[ KeyRow(TEXT("G"), TEXT("\u0130kinci \u015fube")) ]
                 ]
             ])
@@ -397,7 +399,13 @@ TSharedRef<SWidget> SMarketHud::GoalCard()
         Card(
             SNew(SVerticalBox)
             + SVerticalBox::Slot().AutoHeight()
-            [ SNew(STextBlock).Text(FText::FromString(TEXT("HEDEF  \u00b7  \u0130K\u0130NC\u0130 \u015eUBE"))).Font(Font("Bold", 8, 180)).ColorAndOpacity(Muted) ]
+            [ SNew(STextBlock).Text(FText::FromString(TEXT("HEDEF  \u00b7  BOR\u00c7 VE \u0130K\u0130NC\u0130 \u015eUBE"))).Font(Font("Bold", 8, 180)).ColorAndOpacity(Muted) ]
+            + SVerticalBox::Slot().AutoHeight()
+            [
+                GoalRow(TEXT("Baban\u0131n borcu"),
+                    [this] { const AMarketGameMode* G = Game.Get(); return G ? (MarketCampaign::DebtOpen(G->State) ? FString::Printf(TEXT("%s kald\u0131"), *Lira(G->State.InheritedDebt)) : FString(TEXT("kapand\u0131"))) : FString(); },
+                    [this] { const AMarketGameMode* G = Game.Get(); return G ? MarketCampaign::DebtProgress(G->State) : 0.f; }, Honey)
+            ]
             + SVerticalBox::Slot().AutoHeight()
             [
                 GoalRow(TEXT("Nakit"),
@@ -426,7 +434,7 @@ TSharedRef<SWidget> SMarketHud::GoalCard()
                     const FString Staff = G->WorkerSummary();
                     return FText::FromString(FString::Printf(TEXT("Bug\u00fcn %s ciro \u00b7 %d sat\u0131\u015f \u00b7 %d kay\u0131p\nKasiyer %s \u00b7 reyon g\u00f6revlisi %d \u00b7 rakip %s%s%s"),
                         *Lira(G->State.Revenue), G->State.Served, G->State.Lost, G->State.bCashier ? TEXT("var") : TEXT("yok"), G->State.Stockers,
-                        G->RivalDiscount() < 1.f ? TEXT("%15 indirimde") : TEXT("normal fiyatta"), Staff.IsEmpty() ? TEXT("") : TEXT("\n"), *Staff));
+                        MarketRivals::ActiveOn(G->State.Day, G->State.RivalSeed, G->RivalAisles).Num() > 0 ? TEXT("kampanyada") : TEXT("sakin"), Staff.IsEmpty() ? TEXT("") : TEXT("\n"), *Staff));
                 })
             ])
     ];
@@ -458,6 +466,7 @@ TSharedRef<SWidget> SMarketHud::ControlsCard()
                 + SUniformGridPanel::Slot(2, 3)[ KeyRow(TEXT("ESC"), TEXT("\u00c7\u0131k\u0131\u015f")) ]
                 + SUniformGridPanel::Slot(0, 4)[ KeyRow(TEXT("F11"), TEXT("Tam ekran")) ]
                 + SUniformGridPanel::Slot(1, 4)[ KeyRow(TEXT("R"), TEXT("Reyonu diz (kapal\u0131yken)")) ]
+                + SUniformGridPanel::Slot(2, 4)[ KeyRow(TEXT("M"), TEXT("Y\u00f6netim men\u00fcs\u00fc")) ]
             ])
     ];
 }
@@ -508,7 +517,7 @@ TSharedRef<SWidget> SMarketHud::HintCard()
         [
             SNew(STextBlock).Font(Font("Regular", 8)).ColorAndOpacity(Muted)
             .Visibility_Lambda([this] { const AMarketGameMode* G = Game.Get(); return G && !G->bShowDetails ? EVisibility::HitTestInvisible : EVisibility::Collapsed; })
-            .Text(FText::FromString(TEXT("F1 paneller  \u00b7  F4 \u0131\u015f\u0131k")))
+            .Text(FText::FromString(TEXT("M men\u00fc  \u00b7  F1 paneller  \u00b7  F4 \u0131\u015f\u0131k")))
         ],
         FMargin(20.f, 10.f));
 }
@@ -548,6 +557,25 @@ TSharedRef<SWidget> SMarketHud::ReportCard()
                     SNew(STextBlock).Font(Font("Regular", 10)).ColorAndOpacity(Honey).AutoWrapText(true)
                     .Text_Lambda([this] { const AMarketGameMode* G = Game.Get(); return FText::FromString(G ? G->DayProblemsText() : FString()); })
                 ]
+            ]
+            + SVerticalBox::Slot().AutoHeight().Padding(0.f, 10.f, 0.f, 0.f)
+            [ Line([](const AMarketGameMode&) { return FString(TEXT("RAK\u0130P HABERLER\u0130  \u00b7  YARIN")); }, Font("Bold", 8, 180), Muted) ]
+            + SVerticalBox::Slot().AutoHeight().Padding(0.f, 4.f, 0.f, 0.f)
+            [
+                SNew(SBox).MaxDesiredWidth(560.f)
+                [
+                    SNew(STextBlock).Font(Font("Regular", 10)).ColorAndOpacity(Cream).AutoWrapText(true)
+                    .Text_Lambda([this] { const AMarketGameMode* G = Game.Get(); return FText::FromString(G ? G->RivalNewsText() : FString()); })
+                ]
+            ]
+            + SVerticalBox::Slot().AutoHeight().Padding(0.f, 10.f, 0.f, 0.f)
+            [
+                SNew(SVerticalBox)
+                .Visibility_Lambda([this] { const AMarketGameMode* G = Game.Get(); return G && G->bWeekJustEnded ? EVisibility::HitTestInvisible : EVisibility::Collapsed; })
+                + SVerticalBox::Slot().AutoHeight()
+                [ Line([](const AMarketGameMode& G) { return FString::Printf(TEXT("%d. HAFTA RAPORU"), G.State.LastWeekNumber); }, Font("Bold", 8, 180), Muted) ]
+                + SVerticalBox::Slot().AutoHeight().Padding(0.f, 4.f, 0.f, 0.f)
+                [ Line([](const AMarketGameMode& G) { return G.WeekReportText(); }, Font("Regular", 10), Honey) ]
             ]
             + SVerticalBox::Slot().AutoHeight().Padding(0.f, 10.f, 0.f, 0.f)
             [ Line([](const AMarketGameMode&) { return FString(TEXT("Raflar\u0131 doldur, fiyatlar\u0131 ayarla, O ile a\u00e7.")); }, Font("Regular", 9), Muted) ]

@@ -11,6 +11,8 @@
 #include "PlanogramEdit.h"
 #include "StaffPlanner.h"
 #include "MarketDemand.h"
+#include "MarketCampaign.h"
+#include "MarketRivals.h"
 #include "MarketBasket.h"
 #include "MarketOrderAdvice.h"
 #include "MarketGame.generated.h"
@@ -21,6 +23,7 @@ class UStaticMeshComponent;
 class UMaterialInterface;
 class UInstancedStaticMeshComponent;
 class SWidget;
+class SMarketMenu;
 DECLARE_DELEGATE_OneParam(FMarketCommandDelegate, FName);
 
 // How one product looks on a shelf: mesh, slot materials and the studio's model correction. Shared by the
@@ -318,13 +321,35 @@ public:
     void ResolveCustomerItem(FMarketCustomer& Customer);
     void AdvanceCustomerList(FMarketCustomer& Customer);
     FString LoyaltySummary() const;
+    // Rival shops (MarketRivals.h): the factor that applies to every product today (weekend sales) and the
+    // rival price factor for one product (its aisle). RivalAisles = the product categories rivals can target.
     float RivalDiscount() const;
+    float RivalPriceFactor(int32 ProductIndex) const;
+    TArray<FString> RivalAisles;
+    bool bWeekJustEnded = false;             // the last closed day finished a week: the report shows the week
+    FString RivalNewsText() const;           // tomorrow's rival news (evening report)
+    FString WeekReportText() const;          // last finished week (MarketCampaign)
     // Office line for one product: our price, the rival's price and the share of shoppers who accept it.
     FString PriceSummary(int32 Index) const;
     // Office line for one product: shelf, depot, rear door, yesterday's demand and the suggested cases (MarketOrderAdvice).
     FString OrderAdvice(int32 Index) const;
     // Day report: yesterday's biggest reasons for lost shoppers, one per line (MarketDemand::TopProblems).
     FString DayProblemsText() const;
+    // Clickable management menu (G-059, MarketMenu.cpp + MarketMenuWidget). M opens it anywhere; the world pauses.
+    bool bMenuOpen = false;
+    int32 MenuPage = 0;                  // SMarketMenu::EPage
+    bool bMenuDayReport = false;         // opened by the day close: shows "Yeni gune basla"
+    bool bLightTheme = true;             // GameUserSettings.ini [MirasMarket.Menu] LightTheme
+    bool bMenuSettingsLoaded = false;
+    bool bMenuAction = false;            // a menu button is running Command(): the office-desk distance is not needed
+    int32 MenuProduct = 0;               // product shown on the price page
+    void OpenMenu(int32 Page, bool bDayReport = false);
+    void CloseMenu();
+    void OpenDayReport();
+    void MenuCommand(FName Action, int32 Product = INDEX_NONE);
+    void ClearOrderDraft();
+    void ToggleMenuTheme();
+    void LoadMenuSettings();
     void LoadCatalog();
     void ApplyCapacities();
     int32 FillAllShelves();
@@ -354,6 +379,8 @@ public:
     // The HUD is a Slate overlay (MarketHudWidget); DrawHUD only creates it once the market is ready.
     virtual void DrawHUD() override;
     virtual void EndPlay(const EEndPlayReason::Type EndPlayReason) override;
+    TSharedPtr<SMarketMenu> MenuWidget() const { return Menu; }
 private:
     TSharedPtr<SWidget> Overlay;
+    TSharedPtr<SMarketMenu> Menu;           // G-059 management menu (collapsed until M)
 };

@@ -93,6 +93,20 @@ struct FMarketSaleLine
     int64 QuotedPrice = 0;
 };
 
+// One closed day for the statistics and the weekly chart (G-059). Older saves start with an empty history.
+USTRUCT()
+struct FMarketDayRecord
+{
+    GENERATED_BODY()
+    UPROPERTY() int32 Day = 0;
+    UPROPERTY() int64 Revenue = 0;
+    UPROPERTY() int64 Profit = 0;
+    UPROPERTY() int32 Served = 0;
+    UPROPERTY() int32 Lost = 0;
+    UPROPERTY() float MarketShare = 0.f;
+    UPROPERTY() int64 Cash = 0;
+};
+
 // Money uses integer kurus. Inventory is removed only when a checkout succeeds.
 USTRUCT()
 struct FMarketState
@@ -136,6 +150,26 @@ struct FMarketState
     // Last morning's simple supplier event. Damaged/missing units were paid for but never enter stock.
     UPROPERTY() int32 LastDeliveryMissing = 0;
     UPROPERTY() int32 LastDeliveryDamaged = 0;
+    // Inherited debt to the wholesaler (G-054, MarketCampaign.h). Paid at the office desk (P); the second branch
+    // waits until it is 0. There is no deadline: the story goes on until the shop stands on its own feet.
+    UPROPERTY() int64 InheritedDebt = 30000;
+    UPROPERTY() int32 DebtClearedDay = 0;   // day the debt was closed (0 = still open)
+    // Running week (days 1-7, 8-14, ...) and the last finished week, for the weekly report.
+    UPROPERTY() int64 WeekRevenue = 0;
+    UPROPERTY() int64 WeekProfit = 0;
+    UPROPERTY() int64 WeekDebtPaid = 0;
+    UPROPERTY() int32 WeekServed = 0;
+    UPROPERTY() int32 WeekLost = 0;
+    UPROPERTY() int32 LastWeekNumber = 0;   // 0 = no week finished yet
+    UPROPERTY() int64 LastWeekRevenue = 0;
+    UPROPERTY() int64 LastWeekProfit = 0;
+    UPROPERTY() int64 LastWeekDebtPaid = 0;
+    UPROPERTY() int32 LastWeekServed = 0;
+    UPROPERTY() int32 LastWeekLost = 0;
+    // Seed of the rival shops' news (MarketRivals.h); set for each new campaign, so a reload cannot reroll it.
+    UPROPERTY() int32 RivalSeed = 0;
+    // Every closed day, oldest first (MarketCampaign::CloseDay). Kept for ten game years at most.
+    UPROPERTY() TArray<FMarketDayRecord> History;
     UPROPERTY() TArray<FMarketLoyalty> Loyalty;
 
     void Initialize(const TArray<FMarketProduct>& Products);

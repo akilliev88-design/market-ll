@@ -14,3 +14,4 @@ Build-backup-*
 /Claude outputs/
 __pycache__/
 *.pyc
+*.blend1

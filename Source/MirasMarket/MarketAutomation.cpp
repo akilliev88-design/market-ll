@@ -55,11 +55,18 @@ bool AMarketGameMode::TickAutomation()
             Command("ToggleShop");
             SmokeStage = 1;
         }
-        if (SmokeStage == 1 && GetWorld()->GetTimeSeconds() > 25)
+        // G-053 baskets (1-4 shelves per shopper, walking MetaHumans) make the first sale take longer: close the
+        // day after the first paid basket (at least 25 s), or give up after 90 s. The frame rate varies per run.
+        if (SmokeStage == 1 && ((State.Served > 0 && GetWorld()->GetTimeSeconds() > 25) || GetWorld()->GetTimeSeconds() > 90))
         {
+            const int32 ServedToday = State.Served;
+            const float OpenFor = GetWorld()->GetTimeSeconds();
             CloseShop();
-            if (!Require(State.Day == 2 && State.LastServed > 0 && State.Stock[0].Incoming == 0 && State.Stock[0].Dock > 0,
-                TEXT("customer sale and next-day rear-door delivery"))) return false;
+            UE_LOG(LogTemp, Display, TEXT("MirasMarket smoke day close at %.1f s: served %d, lost %d, day %d, product0 incoming %d, dock %d, missing %d, damaged %d."),
+                OpenFor, ServedToday, State.LastLost, State.Day, State.Stock[0].Incoming, State.Stock[0].Dock, State.LastDeliveryMissing, State.LastDeliveryDamaged);
+            if (!Require(State.Day == 2, TEXT("day close"))) return false;
+            if (!Require(State.LastServed > 0, TEXT("customer sale (no shopper paid within 90 s)"))) return false;
+            if (!Require(State.Stock[0].Incoming == 0 && State.Stock[0].Dock > 0, TEXT("next-day rear-door delivery"))) return false;
             const int32 DockBefore = State.Stock[0].Dock;
             const int32 WarehouseBefore = State.Stock[0].Warehouse;
             const int32 Received = State.ReceiveDelivery(0, FMath::Clamp(Products[0].CaseUnits, 1, 48));

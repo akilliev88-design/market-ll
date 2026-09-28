@@ -1,6 +1,6 @@
 # Güncel durum
 
-Son güncelleme: 28.09.2026 — Codex (G-052, G-057)
+Son güncelleme: 29.09.2026 — Codex (G-054 + G-059 doğrulandı)
 
 ## Kısaca
 
@@ -50,6 +50,8 @@ v0.2 geliştirme. **Yeni oyun rafları boş açılır**; başlangıç stoğu dep
 | G-057: ölçülmüş yürüyüş klibi hızına göre ayak kayması düzeltmesi | **GEÇTİ** — 376,276 cm / 1,5 sn kök hareketi ölçüldü; 140 cm/sn oyun hızında oynatma 0,558 — 28.09.2026 |
 | G-058: sipariş önerisi + 50 TL toptancı asgarisi | **GEÇTİ** — derleme, 21/21 test ve smoke — 28.09.2026 |
 | G-053: 1–4 ürünlü müşteri listesi + kategori ikamesi + görünür boş sepet çıkışı + sadakat | **GEÇTİ** — derleme, 22/22 test ve smoke — 28.09.2026 |
+| G-054: babadan kalan borç (P), hafta raporu, günlük rakip haberleri (BİM/Migros/A101), reyona göre rakip fiyatı | **GEÇTİ** — derleme, 24/24 test ve smoke — 29.09.2026 |
+| G-059: tıklanabilir yönetim menüsü (M), kalıcı gün sonu/hafta raporu, açık/koyu tema, logo yuvası, günlük geçmiş | **GEÇTİ** — derleme, 24/24 test ve smoke — 29.09.2026 |
 | Stüdyoda elle deneme: kutu (açılım) → Oyuna ekle → OYNA | GEÇTİ: milk_1l oyunda; ön/yan/üst yüzler doğru, ayna yok, raf oturması doğru — 27.09.2026 |
 | Stüdyoda elle deneme: cam şişe modeli + malzeme.json | Bekliyor (henüz model yok) |
 
@@ -76,9 +78,13 @@ G-052 ve G-057 tamamlandı. Sipariş masasında B/V ile çok ürünlü liste haz
 
 G-058 doğrulandı. G-053 tamamlandı: müşteriler 1–4 farklı rafı gezer, aynı kategoride ikameye yönelir, boş sepetle kapıdan çıkar ve mahalle müşterilerinin memnuniyeti kayıtta korunur. Sepet kasada atomik olarak satılır.
 
+G-054 doğrulandı: 300 TL babadan kalan borç masada P ile ödenir; kapanmadan ikinci şube yok. Gün sonu raporunda yarının rakip haberi (BİM, Migros; 15. günden A101), her 7 günde hafta raporu. Rakip fiyatı artık ürünün reyonuna göre.
+
+G-059 doğrulandı: M ile tıklanabilir yönetim menüsü (oyun durur); sipariş, fiyat karşılaştırma, personel, rakipler, şubeler, raporlar. Gün sonu raporu menüde kalır ("Yeni güne başla"). Açık/koyu tema. Ayrıntı: `Docs/MENU.md`.
+
 ## Sıradaki adımlar
 
 0. Mustafa: oyunda MetaHuman ayak basışını yeniden dene; masada birkaç ürünü B ile listeye ekle, N ile onayla, günü kapat ve arka kapıdaki koliyi E ile depoya taşı.
-1. G-054 hafta hedefi (borç tutarı ve G-008 rakip kararı Mustafa'da) → G-055 oyun testi.
+1. Mustafa: M ile menüyü aç, günü kapat, raporu gör. Sonra G-055 oyun testi: borç, rakip haberleri ve hafta raporu dengesi.
 2. Paralel (Mustafa): İlk Hafta için 20–40 ürünü gerçek ambalajıyla hazırla; 97 ürünün hepsi gerekmiyor.
 3. Dondurulanlar (İlk Hafta bitince): G-021 servis reyonları, G-042 MetaHuman çeşitliliği, FAB paketleri, G-017 ambalaj yönü denemeleri.

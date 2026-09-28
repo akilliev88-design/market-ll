@@ -201,6 +201,7 @@ int32 FMarketState::DeliveryUnits() const
 
 bool FMarketState::IsStructurallyValid() const
 {
+    if (InheritedDebt < 0 || DebtClearedDay < 0 || WeekDebtPaid < 0 || LastWeekNumber < 0) return false;
     if (Version != 1 || Day < 1 || !FMath::IsFinite(MarketShare) || MarketShare < 5 || MarketShare > 65 || Stockers < 0 || Stockers > MaxStockers) return false;
     TSet<FString> Seen;
     for (const auto& Item : Stock)
