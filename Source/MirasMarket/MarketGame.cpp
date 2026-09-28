@@ -708,11 +708,11 @@ void AMarketGameMode::RefreshShelfItems()
 
 FString AMarketGameMode::ProductName(int32 Index) const { return State.bRealBrands ? Products[Index].RealName : Products[Index].FictionalName; }
 void AMarketGameMode::Notify(const FString& Text) { Message = Text; MessageTime = 9; }
-float AMarketGameMode::RivalDiscount() const { return MarketRivals::PriceFactor(State.Day, State.RivalSeed, RivalAisles, FString()); }
+float AMarketGameMode::RivalDiscount() const { return MarketDirector::RivalPriceFactor(State, RivalAisles, FString()); }
 float AMarketGameMode::RivalPriceFactor(int32 ProductIndex) const
 {
-    return Products.IsValidIndex(ProductIndex)
-        ? MarketRivals::PriceFactor(State.Day, State.RivalSeed, RivalAisles, Products[ProductIndex].Category) : 1.f;
+    // Share-weighted rival shelf price of the product's aisle: chains' levels, their news, Bereket's price wars.
+    return Products.IsValidIndex(ProductIndex) ? MarketDirector::RivalPriceFactor(State, RivalAisles, Products[ProductIndex].Category) : 1.f;
 }
 FString AMarketGameMode::RivalNewsText() const
 {

@@ -137,6 +137,7 @@ void FMarketState::CloseDay()
     LastProfit = Revenue - CostOfGoods - LastOperatingCost + LastBranchProfit;
     Cash += LastBranchProfit - LastOperatingCost;
     if (LastProfit > 0) ++ProfitableDays;
+    ShareBeforeClose = MarketShare;
     LastServed = Served;
     LastLost = Lost;
     LastLostWaiting = LostWaiting;

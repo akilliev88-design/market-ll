@@ -4,11 +4,17 @@
 #include "MarketStaff.h"
 #include "MarketSuppliers.h"
 #include "MarketPromotions.h"
+#include "MarketCompetitors.h"
 
 float MarketDirector::TrafficFactor(const FMarketState& State, const TArray<FString>& Aisles)
 {
     return MarketCalendar::TrafficFactor(State.Day, State.RivalSeed) * MarketRivals::TrafficFactor(State.Day, State.RivalSeed, Aisles)
-        * MarketPromotions::TrafficFactor(State);
+        * MarketPromotions::TrafficFactor(State) * MarketCompetitors::TrafficFactor(State);
+}
+
+float MarketDirector::RivalPriceFactor(const FMarketState& State, const TArray<FString>& Aisles, const FString& Category)
+{
+    return MarketCompetitors::RivalPriceFactor(State, Category, Aisles);
 }
 
 float MarketDirector::DemandWeight(const FMarketState& State, const FMarketProduct& Product)
@@ -102,5 +108,6 @@ void MarketDirector::CloseDay(FMarketState& State, const TArray<FMarketProduct>&
     State.DayNews.Reset();
     MarketSuppliers::CloseDay(State); // price list, payment terms, bills due, wholesaler news (G-063)
     MarketPromotions::CloseDay(State, Products); // running promotions, results, funded offers (G-064)
+    MarketCompetitors::CloseDay(State, Products, MarketRivals::Aisles(Products)); // shares, rivals' moves, poaching (G-065)
     MarketStaff::CloseDay(State);     // till, fatigue, morale, notices, HR, accountant and the weekly tax (G-060)
 }

@@ -11,6 +11,8 @@ namespace MarketDirector
 {
     // Shopper traffic today: calendar (weekday, weather, paydays, bayrams) x rival news.
     float TrafficFactor(const FMarketState& State, const TArray<FString>& Aisles);
+    // What shoppers think the rivals charge for an aisle today, relative to the list price (MarketCompetitors).
+    float RivalPriceFactor(const FMarketState& State, const TArray<FString>& Aisles, const FString& Category);
     // How much a product is wanted today relative to an ordinary day (calendar season, weather, special days).
     float DemandWeight(const FMarketState& State, const FMarketProduct& Product);
     // For the order suggestion: expected demand on the day an order placed now is on the shelf (the next day),

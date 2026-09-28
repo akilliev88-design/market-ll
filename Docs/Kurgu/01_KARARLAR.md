@@ -71,10 +71,10 @@ Sahiplik (M, 28.09.2026): 3B model üretimi, mağaza modeli ve arayüz tasarım�
 | No | Konu | Karar | Modül | Durum |
 |---|---|---|---|---|
 | E01 | Günlük rakip haberleri | BİM, Migros, 15. günden A101 (G-054) | `MarketRivals` | Uygulandı |
-| E02 | Rakip şirket ajanları | Bütçe, strateji, hafıza, gözlenebilen veriye tepki (C; plan 06 §9) | `MarketCompetitors` | Sırada |
-| E03 | Bereket Market | Kurgu yerel rakip, kinci, nakdi az; satın alma teklifi; sonra satın alınabilir (C) | `MarketCompetitors` | Sırada |
-| E04 | Pazar payı modeli | Semtteki alışveriş gücü çekiciliğe göre bölünür (C) | `MarketCompetitors` | Sırada |
-| E05 | Personel ayartma | Rakip iyi çalışana teklif verir; moral ve ücret belirler (C; plan 06 §5) | `MarketCompetitors`, `MarketStaff` | Tasarım |
+| E02 | Rakip şirket ajanları | Bütçe, strateji, hafıza, gözlenebilen veriye tepki (C; plan 06 §9) | Derlenmedi (G-065) |
+| E03 | Bereket Market | Kurgu yerel rakip, kinci, nakdi az; satın alma teklifi; sonra satın alınabilir (C) | Derlenmedi (G-065) |
+| E04 | Pazar payı modeli | Semtteki alışveriş gücü çekiciliğe göre bölünür (C) | Derlenmedi (G-065) |
+| E05 | Personel ayartma | Rakip iyi çalışana teklif verir; moral ve ücret belirler (C; plan 06 §5) | Derlenmedi (G-065) |
 | E06 | Satın alma / satılma | Tam oyuncu mülkiyetinde zorla alım yok (plan O06) | `MarketCompany` | Tasarım |
 
 ## F. İnsanlar

@@ -174,6 +174,24 @@ struct FMarketPromotion
     UPROPERTY() int64 MarginLost = 0;    // price given away, kurus
 };
 
+// A competing company in the district (MarketCompetitors.h). Older saves start without them (created on first use).
+USTRUCT()
+struct FMarketCompetitor
+{
+    GENERATED_BODY()
+    UPROPERTY() uint8 Company = 0;       // MarketCompetitors::ECompany
+    UPROPERTY() int64 Cash = 0;          // what the company can spend on a fight in this district
+    UPROPERTY() float BaseIndex = 1.f;   // its everyday prices / list price
+    UPROPERTY() float Service = 1.f;
+    UPROPERTY() int32 Stores = 1;        // its shops that serve our street
+    UPROPERTY() float Share = 0.f;       // 0..1 of the district's shopping
+    UPROPERTY() float Anger = 0.f;       // 0..100: how much it wants to hurt us (the local rival)
+    UPROPERTY() FString WarCategory;     // aisle of a running price war
+    UPROPERTY() int32 WarUntil = 0;
+    UPROPERTY() int32 WarCooldownUntil = 0;
+    UPROPERTY() int32 Told = 0;          // bit flags of one-time news already told
+};
+
 // The accountant's books for the running tax period (one week) and the declared tax (MarketStaff.h).
 USTRUCT()
 struct FMarketBooks
@@ -283,6 +301,10 @@ struct FMarketState
     UPROPERTY() TArray<FMarketPromotion> Promotions;
     UPROPERTY() FMarketPromotion Offer;
     UPROPERTY() int64 Marketing = 0;
+    // Competing companies of the district (MarketCompetitors.h).
+    UPROPERTY() TArray<FMarketCompetitor> Competitors;
+    // Local share at the start of the last day close (MarketCompetitors replaces the simple satisfaction update).
+    UPROPERTY() float ShareBeforeClose = 25.f;
     // Evening report lines of the background systems (MarketDirector clears it at every day close).
     UPROPERTY() TArray<FString> DayNews;
 

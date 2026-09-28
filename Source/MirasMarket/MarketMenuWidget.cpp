@@ -4,6 +4,7 @@
 #include "ProductCatalog.h"
 #include "MarketSuppliers.h"
 #include "MarketPromotions.h"
+#include "MarketCompetitors.h"
 #include "Brushes/SlateColorBrush.h"
 #include "Engine/Texture2D.h"
 #include "ImageUtils.h"
@@ -100,7 +101,8 @@ namespace MarketMenuUi
     bool RivalShelfPrice(const AMarketGameMode& G, int32 Product, int32 Rival, int64& OutPrice)
     {
         bool bEmpty = false;
-        const float Factor = MarketRivals::RivalFactor(G.State.Day, G.State.RivalSeed, G.RivalAisles, G.Products[Product].Category, Rival, &bEmpty);
+        const float Factor = MarketRivals::RivalFactor(G.State.Day, G.State.RivalSeed, G.RivalAisles, G.Products[Product].Category, Rival, &bEmpty)
+            * MarketCompetitors::NewsRivalIndex(G.State, Rival); // the chain's everyday price level (G-065)
         OutPrice = MarketDemand::RivalPrice(G.Products[Product], Factor);
         return !bEmpty;
     }
@@ -1003,6 +1005,15 @@ TSharedRef<SWidget> SMarketMenu::RivalsPage()
                     + SVerticalBox::Slot().AutoHeight()[ Bar([G] { return G() ? G()->State.MarketShare / 100.f : 0.f; }, ERole::Accent) ]
                     + SVerticalBox::Slot().AutoHeight().Padding(0.f, 8.f, 0.f, 0.f)
                     [ Fixed(TEXT("Pay her g\u00fcn sonunda m\u00fc\u015fteri memnuniyetiyle de\u011fi\u015fir: rafta bulma, fiyat ve bekleme."), 10, ERole::Muted) ]
+                    + SVerticalBox::Slot().AutoHeight().Padding(0.f, 8.f, 0.f, 0.f)
+                    [ Label([G]
+                    {
+                        if (!G()) return FString();
+                        TArray<FString> Lines;
+                        for (int32 C = 0; C < static_cast<int32>(MarketCompetitors::ECompany::Count); ++C)
+                            Lines.Add(TEXT("\u2022 ") + MarketCompetitors::Describe(G()->State, static_cast<MarketCompetitors::ECompany>(C)));
+                        return FString::Join(Lines, TEXT("\n"));
+                    }, 10, ERole::Text, false, true) ]
                 ])
         ]
         + SVerticalBox::Slot().AutoHeight().Padding(0.f, 12.f, 0.f, 0.f)[ Cards ]
