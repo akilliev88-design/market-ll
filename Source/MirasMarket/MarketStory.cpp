@@ -288,12 +288,30 @@ bool MarketStory::Resolve(FMarketState& State, const TArray<FMarketProduct>& Pro
             OfferIdentity(State);
             return true;
         }
+        // The ending is seen and remembered; then the player chooses: it was a dream (back to the shop, the
+        // money never came) or this is where the story ends (free play).
         State.Cash += D.Arg;
         State.Story.Ending = static_cast<uint8>(EEnding::Sold);
-        State.Story.Chapter = StoryOverChapter;
-        AddMemory(State, TEXT("d\u00fckk\u00e2n sat\u0131ld\u0131"));
-        OutMessage = FString::Printf(TEXT("Satt\u0131n. %s ile \u0130stanbul'a gittin; y\u0131llar sonra \u0130stasyon Caddesi'nden ge\u00e7erken tabelada ba\u015fka bir isim vard\u0131. (Son: Satt\u0131n. Oyun serbest devam eder.)"),
+        AddMemory(State, TEXT("d\u00fckk\u00e2n sat\u0131ld\u0131 (son: Satt\u0131n)"));
+        OutMessage = FString::Printf(TEXT("Satt\u0131n. %s ile \u0130stanbul'a gittin; y\u0131llar sonra \u0130stasyon Caddesi'nden ge\u00e7erken tabelada ba\u015fka bir isim vard\u0131. (Son: Satt\u0131n.)"),
             *StoryTl(D.Arg));
+        MarketEvents::Offer(State, StoryDecision(State, TEXT("story.dream"), TEXT("Son: Satt\u0131n"),
+            TEXT("Bu hikayenin sonlar\u0131ndan biriydi. Bir sabah d\u00fckk\u00e2n\u0131n kepengini a\u00e7ma sesiyle uyan\u0131rsan r\u00fcyaym\u0131\u015f; ya da burada bitsin ve serbest oyna."),
+            { FString(TEXT("R\u00fcyaym\u0131\u015f: d\u00fckk\u00e2na d\u00f6n")), FString(TEXT("Burada bitsin")) }, 0, 3, D.Arg));
+        return true;
+    }
+    if (D.Id == TEXT("story.dream"))
+    {
+        if (Option == 0)
+        {
+            State.Cash -= D.Arg;   // the money was never paid
+            OutMessage = TEXT("Kepengin sesiyle uyand\u0131n. Tezgah, defter, babam\u0131n \u00e7ay barda\u011f\u0131... Hepsi yerinde. R\u00fcyaym\u0131\u015f.");
+            AddMemory(State, TEXT("sat\u0131\u015f r\u00fcyaym\u0131\u015f; d\u00fckk\u00e2na d\u00f6n\u00fcld\u00fc"));
+            OfferIdentity(State);
+            return true;
+        }
+        State.Story.Chapter = StoryOverChapter;
+        OutMessage = TEXT("Hikaye burada bitti. Oyun serbest devam ediyor.");
         return true;
     }
     if (D.Id == TEXT("story.identity"))

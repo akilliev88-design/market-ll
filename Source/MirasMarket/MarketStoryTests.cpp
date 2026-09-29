@@ -162,8 +162,16 @@ bool FMarketStoryTest::RunTest(const FString& Parameters)
     MarketEvents::Decide(Sold, Products, 1, Message);
     TestTrue(TEXT("Sign"), MarketEvents::Decide(Sold, Products, 1, Message));
     TestEqual(TEXT("Ending"), Sold.Story.Ending, static_cast<uint8>(MarketStory::EEnding::Sold));
-    TestEqual(TEXT("Story over"), Sold.Story.Chapter, MarketStory::StoryOverChapter);
     TestTrue(TEXT("Paid"), Sold.Cash > Before);
+    TestTrue(TEXT("Dream or the end"), MarketEvents::Pending(Sold) && MarketEvents::Pending(Sold)->Id == TEXT("story.dream"));
+    // It was a dream: back in the shop, the money never came, the identity is asked.
+    FMarketState Dream = Sold;
+    TestTrue(TEXT("Dream"), MarketEvents::Decide(Dream, Products, 0, Message));
+    TestEqual(TEXT("No sale money"), Dream.Cash, Before);
+    TestTrue(TEXT("Story goes on"), Dream.Story.Chapter != MarketStory::StoryOverChapter);
+    TestTrue(TEXT("Identity asked after the dream"), MarketEvents::Pending(Dream) && MarketEvents::Pending(Dream)->Id == TEXT("story.identity"));
+    TestTrue(TEXT("The end"), MarketEvents::Decide(Sold, Products, 1, Message));
+    TestEqual(TEXT("Story over"), Sold.Story.Chapter, MarketStory::StoryOverChapter);
     TestEqual(TEXT("No goals in free play"), MarketStory::Objectives(Sold).Num(), 0);
     TestTrue(TEXT("Chapter titles"), MarketStory::ChapterTitle(3) == TEXT("\u0130kinci Tabela"));
     return true;

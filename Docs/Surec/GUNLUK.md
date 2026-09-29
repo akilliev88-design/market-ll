@@ -2,6 +2,27 @@
 
 En yeni giriş en üstte. Biçim: tarih — ajan — başlık, ardından **Yapılan**, **Doğrulama**, **Sıradaki**.
 
+## 29.09.2026 — Claude (Claude Code, bulut) — Mustafa'nın 4 kararı G-073 — DERLENMEDİ
+
+**Mustafa**: "Kararı sen ver, oyun oynanırken eğlenceli olsun. Gerçek hayatla birebir olması şart değil; birebir yaparsak tahmin edilebilirlik artar."
+
+**Yapılan**
+- **Sattın sonu** (`MarketStory`): satınca son gösterilir ve hatıraya yazılır. Ardından "Rüyaymış: dükkâna dön" seçeneği gelir: para gelmemiş olur, kimlik seçilir, hikâye sürer. 3 gün içinde seçim yapılmazsa varsayılan budur. Öbür seçenek "Burada bitsin": serbest oyun.
+- **Salgın dönemi** (`MarketOnline`): varsayılan açık kalır ama her kampanyada farklıdır.
+  - Başlangıç 1–21 Mart 2020 arasında, panik 8–14 gün sürer.
+  - İki dalga hafta sonu kısıtlaması vardır; hafta sonlarının ~2/3'ü kapalıdır, hangileri olduğu kampanyaya göre değişir.
+  - 2021 baharında 10–20 günlük tam kapanma, bitiş Mayıs–Temmuz 2021 arası. Online payı pencereleri de buna göre kayar.
+- **Enflasyon** (`MarketPrices`): tarih tablosu yerine oyunun eğrisi var (2018 %16, 2022 %30, 2023 %28, sonra %8'e iner). Kredi faizi enflasyonun birkaç puan üstündedir. Asgari ücret yarı yıl sonu fiyat düzeyine göre ayarlanır, yılda %1,5 reel artış alır.
+- **Toptancı** (`MarketSuppliers`): toptancı fiyatı katalog maliyetinin 1,10 katıdır (brüt marj ~%34 → ~%25). Aylık liste her kampanyada ve her ay ±%2 oynar; ilk ay tamdır.
+- Testler güncellendi: Suppliers (fiyat, ücret, faiz, aylık oynama), Online (değişken dönem, iki kampanya farklı), Story (rüya/son).
+- Kurgu kitabı §2, §5, §10 ve kararlar A06, A07, B04, D11, G10 güncellendi; "Açık sorular" yerine "Mustafa'nın kararları" bölümü geldi. AGENTS haritası güncellendi.
+
+**Denge (18 ürünlü taklit katalog, 3 kampanya × 150 gün)**: borç ~15. günde kapanıyor. 50. günde kasa 12–15 bin TL, 134. günde 17–26 bin TL; kampanyalar arasında belirgin fark var. Otomatik oynanış siparişi hep doğru verdiği için gerçek oyuncu biraz daha yavaş ilerler.
+
+**Doğrulama**: Unreal yok, **derlenmedi**. Taklit ortamında 26 test geçti.
+
+**Sıradaki**: Codex/Mustafa: DERLE + TEST (46) + Smoke. `Cost on day 1` artık 187 kuruş (170 × 1,10); smoke'ta fiyat/kâr beklentisi varsa gözden geçirilmeli.
+
 ## 29.09.2026 — Claude (Claude Code, bulut) — Şirket büyümesi G-072 — DERLENMEDİ
 
 **Yapılan**

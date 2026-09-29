@@ -21,10 +21,10 @@ Oyun, o dükkânın bir mahalle markası, sonra Trakya'nın, sonra Türkiye'nin 
 | Bayram ve özel günler | 2011 için gerçek tarihler: 23 Nisan, 1 Mayıs, 19 Mayıs, Anneler Günü (8 Mayıs), Babalar Günü (19 Haziran), Ramazan (1–29 Ağustos), Ramazan Bayramı (30 Ağu–1 Eyl), 30 Ağustos, okul açılışı (19 Eylül), 29 Ekim, Kurban Bayramı (6–9 Kasım), yılbaşı. Sonraki yıllarda hicri bayramlar her yıl ~11 gün öne kayar | `MarketCalendar` |
 | Maaş günleri | Ayın 1'i ve 15'i (memur/emekli), ayın son iş günü: trafik ve sepet büyür. Ay sonuna doğru bütçe daralır | `MarketCalendar` |
 | Hava | Mevsime göre deterministik: sıcak gün içecek/dondurma/ayran, soğuk ve yağmurlu gün çay/çorba/makarna ve daha az yaya | `MarketCalendar` |
-| Enflasyon | Yıllık TÜFE'nin yaklaşığı: 2011 %10,4 · 2012 %6,2 · 2013 %7,4 · 2014 %8,2 · 2015 %8,8 · 2016 %8,5 · 2017 %11,9 · 2018 %20,3 · 2019 %11,8 · 2020 %14,6 · 2021 %36,1 · 2022 %64,3 · 2023 %64,8 · 2024 %44,4 · 2025 sonrası kurgu senaryo (%30'dan yavaş düşüş). Günlük birikir; toptancı zamları ay başında duyurulur | `MarketSuppliers` |
-| Asgari ücret | Net aylık yaklaşık: 2011/1 659, 2011/2 702, 2012 740–774, 2013 804–847, 2014 846–891, 2015 949–1000, 2016 1300, 2017 1404, 2018 1603, 2019 2020, 2020 2324, 2021 2826, 2022 4253–5500, 2023 8507–11402, 2024 17002, 2025 22104. Çalışan ücret beklentisi bunu izler | `MarketSuppliers` (endeksler) |
+| Enflasyon | **Oyunun kendi eğrisi** (Mustafa 29.09.2026: eğlence, birebir tarih değil): 2011 %9 · 2012 %7 · 2013 %7,5 · 2014 %8 · 2015 %8,5 · 2016 %9 · 2017 %11 · 2018 %16 · 2019 %12 · 2020 %13 · 2021 %19 · 2022 %30 · 2023 %28 · 2024 %22 · sonra yavaş düşüş (%8'e). Tanıdık biçim (2018 sarsıntısı, 2021-23 zor dönem), yumuşak tepeler. Toptancının aylık listesi her kampanyada ve her ay ±%2 oynar (ilk ay hariç) | `MarketPrices`, `MarketSuppliers` |
+| Asgari ücret | 2011/1 net 659 TL; her Ocak ve Temmuz'da o yarı yılın sonundaki fiyat düzeyine göre ayarlanır, üstüne yılda %1,5 reel artış. Ücretler fiyatların biraz önünde gider, kopmaz | `MarketPrices` |
 
-Tarihsel değerler oyunun atmosferi içindir. Denge gerekirse zorluk ayarıyla yumuşatılır ama tarih gibi sunulan sayı uydurulmaz. 2025 sonrası açıkça **kurgu senaryo**dur.
+Takvim, bayramlar ve zincirlerin gelişi tarihe yakındır; ekonomi rakamları ise oyunun kendi eğrisidir, gerçek rakamı bilen oyuncu geleceği okuyamaz. Salgın dönemi (§10) de her kampanyada farklı yaşanır.
 
 Uzun oyun için **stratejik ilerletme** vardır: işler devredildiyse oyuncu bir günü, haftayı ya da ayı mağazada oynamadan simüle eder. Mağaza aynı kurallarla, fiziksel müşteri yerine özet talepten işler (bkz. §10).
 
@@ -73,7 +73,7 @@ Başarısızlık hikâyeyi bitirmez. Her bölümün **hedefleri** state'ten öl�
 | 6 | **Sınırın Ötesi** (Uluslararası) | Başka pazarda yeniden öğrenmek | Bulgaristan pilotu kârlı · 2. ülke | Ülke profilleri, kur |
 | 7 | **Miras** (Liderlik) | Büyükken dayanıklı kalmak | Birden çok ölçütte birkaç yıl liderlik | Serbest oyun, alternatif sonlar |
 
-**Sat ya da devam et (Bölüm 2):** 10. gün civarında (en geç borç kapanınca) Kadir Bereketoğlu dükkânı ister. Teklif, dükkânın o günkü değerine göre hesaplanır. Oyuncu satarsa kısa bir "başka hayat" sonu gelir ve kampanya kaydı korunur. Devam ederse **strateji kimliğini** seçer:
+**Sat ya da devam et (Bölüm 2):** 10. gün civarında (en geç borç kapanınca) Kadir Bereketoğlu dükkânı ister. Teklif, dükkânın o günkü değerine göre hesaplanır. Oyuncu satarsa "Sattın" sonu gösterilir ve hatıralara yazılır, sonra seçim gelir: **"Rüyaymış: dükkâna dön"** (satış parası gelmemiş olur, kimlik seçimiyle hikâye sürer; 3 gün içinde seçilmezse bu olur) ya da **"Burada bitsin"** (serbest oyun). Son görülür ama oyuncu kaybetmez. Devam ederse **strateji kimliğini** seçer:
 
 | Kimlik | Güçlü yan | Bedeli |
 |---|---|---|
@@ -174,7 +174,7 @@ Online sipariş dükkânın stoğunu paylaşır: kapanışta önce depodan, sonr
 
 İlçedeki market alışverişinin bir kısmı her yıl internete kayar: 2016'da ~%1,2, 2023'te ~%5. Bu müşteriler **her dükkânın** kapısından eksilir. Yalnızca online olan dükkân bir kısmını sipariş olarak geri kazanır. Online olmamanın bedeli yavaş yavaş azalan müşteridir; online olmanın bedeli kurye, komisyon ve toplama işidir. Kurye sabit maliyettir, bu yüzden hacim yoksa zarar ettirir (taklitli simülasyon: 2024'te 4 sipariş/gün için 2 kurye zarar ettirir).
 
-**2020–2021 profili (açık soru 2, varsayılan açık, `PandemicProfile` komutuyla kapatılır):**
+**2020–2021 profili (Mustafa 29.09.2026: varsayılan açık, her kampanyada farklı; `PandemicProfile` komutuyla kapatılır):** başlangıç 1–21 Mart 2020 arasında, panik 8–14 gün, iki dalga hafta sonu kısıtlamasında hafta sonlarının ~üçte ikisi kapalı (hangileri olduğu kampanyaya göre), 2021 baharında 10–20 günlük tam kapanma, bitiş 20 Mayıs – 9 Temmuz 2021 arası.
 
 - Mart 2020'de on günlük panik alışverişi: temel gıda, temizlik ve kâğıt talebi ×2.
 - 2020 baharında ve 2020-21 kışında hafta sonu kısıtlamaları: dükkân kısa saat açık, müşteri ×0,4.

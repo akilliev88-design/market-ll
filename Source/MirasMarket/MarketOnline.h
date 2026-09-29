@@ -18,8 +18,9 @@
 // Orders are picked at the day close from the depot first, then the shelf, so they share the shop's stock: an
 // empty item is substituted by the chosen rule (ask, same aisle, leave out). More own-delivered orders than the
 // couriers can carry arrive late or are cancelled. Picking tires the stocker on duty.
-// The 2020-2021 profile (optional, karar D11): panic buying in March 2020, weekend curfews with short opening
-// hours, full closure in spring 2021, and online orders jump; no illness content.
+// The 2020-2021 profile (optional, on by default, karar D11): panic buying in early 2020, two waves of weekend
+// curfews with short opening hours, a full closure in spring 2021, and online orders jump; no illness content.
+// Dates and lengths differ in every campaign, so the period is a challenge, not a timetable.
 namespace MarketOnline
 {
     enum class EChannel : uint8 { Phone = 0, Web, Platform, Count };
@@ -39,7 +40,9 @@ namespace MarketOnline
     bool IsOn(const FMarketState& State, EChannel Channel);
     // Part of the district's grocery trips made online on this day (0..1).
     float DistrictOnlineShare(const FMarketState& State, int32 GameDay);
-    // The 2020-2021 profile.
+    // The 2020-2021 profile: its first and last day differ per campaign (early March 2020, late spring 2021).
+    int32 PandemicStart(const FMarketState& State);
+    int32 PandemicEnd(const FMarketState& State);
     bool IsPandemic(const FMarketState& State, int32 GameDay);
     bool IsCurfew(const FMarketState& State, int32 GameDay);
     // x walk-in shoppers: trips gone online, the 2020-2021 curfews and panic days.

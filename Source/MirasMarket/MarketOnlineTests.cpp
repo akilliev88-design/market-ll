@@ -109,10 +109,20 @@ bool FMarketOnlineTest::RunTest(const FString& Parameters)
 
     // The 2020 profile: panic buying, curfews, online jump.
     FMarketState Pandemic = Late;
-    Pandemic.Day = MarketCalendar::GameDayOf(2020, 3, 16);
+    const int32 Start = MarketOnline::PandemicStart(Pandemic);
+    TestTrue(TEXT("Starts in early 2020"), Start >= MarketCalendar::GameDayOf(2020, 3, 1) && Start <= MarketCalendar::GameDayOf(2020, 3, 21));
+    Pandemic.Day = Start + 2;
     TestEqual(TEXT("Panic buying of staples"), MarketOnline::GroupFactor(Pandemic, MarketGoods::EGroup::Staples), 2.f);
-    Pandemic.Day = MarketCalendar::GameDayOf(2020, 4, 18); // Saturday
+    int32 Curfew = 0, Curfews = 0;
+    for (int32 D = Start; D < Start + 120; ++D)
+        if (MarketOnline::IsCurfew(Pandemic, D)) { ++Curfews; if (!Curfew) Curfew = D; }
+    TestTrue(TEXT("Some closed weekends, not all days"), Curfews >= 4 && Curfews < 40);
+    Pandemic.Day = Curfew;
     TestTrue(TEXT("Weekend curfew"), MarketOnline::IsCurfew(Pandemic, Pandemic.Day));
+    FMarketState OtherSeed = Pandemic; OtherSeed.RivalSeed = Pandemic.RivalSeed + 1;
+    bool bDiffers = MarketOnline::PandemicStart(OtherSeed) != Start;
+    for (int32 D = Start; D < Start + 120 && !bDiffers; ++D) bDiffers = MarketOnline::IsCurfew(OtherSeed, D) != MarketOnline::IsCurfew(Pandemic, D);
+    TestTrue(TEXT("Every campaign lives the period differently"), bDiffers);
     TestTrue(TEXT("Few walk-ins on a curfew day"), MarketOnline::StoreTrafficFactor(Pandemic) < 0.5f);
     TestTrue(TEXT("Online jumps"), MarketOnline::DistrictOnlineShare(Pandemic, Pandemic.Day) > 2.f * MarketOnline::DistrictOnlineShare(Late, Late.Day));
     int32 Web = 0;
@@ -121,7 +131,7 @@ bool FMarketOnlineTest::RunTest(const FString& Parameters)
     TestTrue(TEXT("Online revenue is in the day's revenue"), Pandemic.LastRevenue >= Pandemic.Online.LastRevenue);
     FMarketState Off = Pandemic;
     TestTrue(TEXT("The profile can be switched off"), MarketDirector::Command(Off, Products, TEXT("PandemicProfile"), 0, Message));
-    TestFalse(TEXT("No curfew without the profile"), MarketOnline::IsCurfew(Off, MarketCalendar::GameDayOf(2020, 4, 18)));
+    TestFalse(TEXT("No curfew without the profile"), MarketOnline::IsCurfew(Off, Curfew));
 
     // Empty shelves: substitution or missing lines.
     FMarketState Empty = Pandemic;

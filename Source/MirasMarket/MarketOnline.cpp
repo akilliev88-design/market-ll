@@ -29,9 +29,16 @@ namespace MarketOnline
         return GameDay >= DateDay(FromYear, FromMonth, FromDay) && GameDay < DateDay(ToYear, ToMonth, ToDay);
     }
 
+    // The 2020-2021 period is different in every campaign (karar D11, Mustafa 29.09.2026): when it starts, how
+    // long the panic lasts, which weekends are closed and how long the spring closure is come from the seed.
+    uint32 Roll(const FMarketState& State, uint32 Salt, int32 Extra = 0) { return OnlineMix(State.RivalSeed, Extra, Salt); }
+    int32 PanicEnd(const FMarketState& State) { return PandemicStart(State) + 1 + 8 + static_cast<int32>(Roll(State, 0x9A01u) % 7u); }
+    int32 ClosureStart(const FMarketState& State) { return DateDay(2021, 4, 15) + static_cast<int32>(Roll(State, 0x9A02u) % 21u); }
+    int32 ClosureEnd(const FMarketState& State) { return ClosureStart(State) + 10 + static_cast<int32>(Roll(State, 0x9A03u) % 11u); }
+
     bool IsPanic(const FMarketState& State, int32 GameDay)
     {
-        return State.Online.bPandemic && Between(GameDay, 2020, 3, 12, 2020, 3, 23);
+        return State.Online.bPandemic && GameDay > PandemicStart(State) && GameDay < PanicEnd(State);
     }
 
     float StoreFactorOn(const FMarketState& State, int32 GameDay)
@@ -154,11 +161,11 @@ namespace MarketOnline
             State.DayNews.Add(TEXT("H\u0131zl\u0131 teslimat platformu Getirsin il\u00e7eye geldi: %18 komisyonla sipari\u015fleri kendi kuryeleri ta\u015f\u0131yor. Yoksak, m\u00fc\u015fteri ba\u015fkas\u0131ndan s\u00f6yl\u00fcyor."));
         if (State.Online.bPandemic)
         {
-            if (GameDay == DateDay(2020, 3, 11))
+            if (GameDay == PandemicStart(State))
                 State.DayNews.Add(TEXT("Salg\u0131n d\u00f6nemi ba\u015flad\u0131: insanlar evde kal\u0131yor. Temel g\u0131da ve temizlik raflar\u0131 bo\u015fal\u0131yor, telefon ve internet sipari\u015fleri patl\u0131yor."));
             if (IsCurfew(State, GameDay + 1) && !IsCurfew(State, GameDay))
                 State.DayNews.Add(TEXT("Yar\u0131n soka\u011fa \u00e7\u0131kma k\u0131s\u0131tlamas\u0131 var: market k\u0131sa saatlerle a\u00e7\u0131k, d\u00fckkana az ki\u015fi gelir; sipari\u015fler artar."));
-            if (GameDay == DateDay(2021, 7, 1))
+            if (GameDay == PandemicEnd(State))
                 State.DayNews.Add(TEXT("K\u0131s\u0131tlamalar kalkt\u0131. \u0130nternetten al\u0131\u015fveri\u015fe al\u0131\u015fan bir k\u0131s\u0131m m\u00fc\u015fteri geri d\u00f6nmeyecek."));
         }
         const MarketCalendar::FDate Date = MarketCalendar::DateOf(GameDay);
@@ -210,23 +217,39 @@ float MarketOnline::DistrictOnlineShare(const FMarketState& State, int32 GameDay
     float Share = Year - 2014 <= Last ? Shares[Year - 2014] : FMath::Min(0.10f, Shares[Last] + 0.004f * (Year - 2014 - Last));
     if (State.Online.bPandemic)
     {
-        if (Between(GameDay, 2020, 3, 11, 2020, 7, 1)) Share *= 3.5f;
-        else if (Between(GameDay, 2020, 7, 1, 2021, 7, 1)) Share *= 2.5f;
-        else if (Between(GameDay, 2021, 7, 1, 2023, 1, 1)) Share *= 1.4f;
+        const int32 Start = PandemicStart(State), End = PandemicEnd(State);
+        if (GameDay >= Start && GameDay < Start + 110) Share *= 3.5f;
+        else if (GameDay >= Start && GameDay < End) Share *= 2.5f;
+        else if (GameDay >= End && GameDay < End + 550) Share *= 1.4f;   // some never come back
     }
     return FMath::Min(Share, 0.3f);
 }
 
+int32 MarketOnline::PandemicStart(const FMarketState& State)
+{
+    return DateDay(2020, 3, 1) + static_cast<int32>(Roll(State, 0x9A00u) % 21u);
+}
+
+int32 MarketOnline::PandemicEnd(const FMarketState& State)
+{
+    return DateDay(2021, 5, 20) + static_cast<int32>(Roll(State, 0x9A04u) % 50u);
+}
+
 bool MarketOnline::IsPandemic(const FMarketState& State, int32 GameDay)
 {
-    return State.Online.bPandemic && Between(GameDay, 2020, 3, 11, 2021, 7, 1);
+    return State.Online.bPandemic && GameDay >= PandemicStart(State) && GameDay < PandemicEnd(State);
 }
 
 bool MarketOnline::IsCurfew(const FMarketState& State, int32 GameDay)
 {
-    if (!State.Online.bPandemic) return false;
-    if (Between(GameDay, 2021, 4, 29, 2021, 5, 18)) return true;   // the full closure of spring 2021
-    return MarketCalendar::IsWeekend(GameDay) && (Between(GameDay, 2020, 4, 11, 2020, 6, 1) || Between(GameDay, 2020, 12, 5, 2021, 6, 1));
+    if (!IsPandemic(State, GameDay)) return false;
+    if (GameDay >= ClosureStart(State) && GameDay < ClosureEnd(State)) return true;   // the full closure in spring 2021
+    if (!MarketCalendar::IsWeekend(GameDay)) return false;
+    // Two waves of weekend curfews; about two weekends in three are closed, which ones differs per campaign.
+    const int32 Start = PandemicStart(State);
+    const bool bWave = (GameDay >= Start + 30 && GameDay < Start + 90) || (GameDay >= Start + 270 && GameDay < ClosureStart(State));
+    const int32 Saturday = GameDay - (MarketCalendar::DateOf(GameDay).Weekday - 5);
+    return bWave && Roll(State, 0x9A05u, Saturday) % 3u != 0u;
 }
 
 float MarketOnline::StoreTrafficFactor(const FMarketState& State)

@@ -4,27 +4,25 @@
 namespace MarketPrices
 {
     struct FYearRates { int32 Year; double Inflation; double LoanRate; };
-    // CPI (December to December, rounded) and a typical small-business loan rate. 2025+ is a fictional scenario.
+    // The game's economy curve (karar A06, Mustafa 29.09.2026: fun over a one-to-one copy of history). It keeps the
+    // shape a Turkish player recognises - calm early 2010s, a jolt in 2018, a hard stretch in 2021-2023, a slow
+    // cool-down - but softer than the published figures (2022 is 30 %, not 64 %), so a player who knows the real
+    // numbers cannot read the future off them. The loan rate stays a few points above inflation.
     const FYearRates Rates[] =
     {
-        { 2011, 0.104, 0.15 }, { 2012, 0.062, 0.15 }, { 2013, 0.074, 0.13 }, { 2014, 0.082, 0.14 }, { 2015, 0.088, 0.16 },
-        { 2016, 0.085, 0.15 }, { 2017, 0.119, 0.17 }, { 2018, 0.203, 0.28 }, { 2019, 0.118, 0.22 }, { 2020, 0.146, 0.16 },
-        { 2021, 0.361, 0.24 }, { 2022, 0.643, 0.30 }, { 2023, 0.648, 0.45 }, { 2024, 0.444, 0.55 },
-        { 2025, 0.310, 0.45 }, { 2026, 0.250, 0.38 }, { 2027, 0.200, 0.30 }, { 2028, 0.160, 0.25 }, { 2029, 0.130, 0.22 },
+        { 2011, 0.090, 0.15 }, { 2012, 0.070, 0.14 }, { 2013, 0.075, 0.13 }, { 2014, 0.080, 0.14 }, { 2015, 0.085, 0.15 },
+        { 2016, 0.090, 0.15 }, { 2017, 0.110, 0.17 }, { 2018, 0.160, 0.24 }, { 2019, 0.120, 0.19 }, { 2020, 0.130, 0.17 },
+        { 2021, 0.190, 0.24 }, { 2022, 0.300, 0.33 }, { 2023, 0.280, 0.32 }, { 2024, 0.220, 0.28 },
+        { 2025, 0.170, 0.24 }, { 2026, 0.140, 0.21 }, { 2027, 0.120, 0.18 }, { 2028, 0.100, 0.16 }, { 2029, 0.090, 0.15 },
     };
-    constexpr double LaterInflation = 0.10;
-    constexpr double LaterLoanRate = 0.18;
+    constexpr double LaterInflation = 0.08;
+    constexpr double LaterLoanRate = 0.14;
 
-    // Net monthly minimum wage by half year: (year * 10 + half), TL.
-    struct FWage { int32 Key; double Net; };
-    const FWage Wages[] =
-    {
-        { 20111, 658.95 }, { 20112, 701.93 }, { 20121, 739.79 }, { 20122, 773.01 }, { 20131, 803.68 }, { 20132, 846.00 },
-        { 20141, 846.00 }, { 20142, 891.03 }, { 20151, 949.07 }, { 20152, 1000.54 }, { 20161, 1300.99 }, { 20162, 1300.99 },
-        { 20171, 1404.06 }, { 20172, 1404.06 }, { 20181, 1603.12 }, { 20182, 1603.12 }, { 20191, 2020.90 }, { 20192, 2020.90 },
-        { 20201, 2324.71 }, { 20202, 2324.71 }, { 20211, 2825.90 }, { 20212, 2825.90 }, { 20221, 4253.40 }, { 20222, 5500.35 },
-        { 20231, 8506.80 }, { 20232, 11402.32 }, { 20241, 17002.12 }, { 20242, 17002.12 }, { 20251, 22104.67 }, { 20252, 22104.67 },
-    };
+    // Net monthly minimum wage of the first half of 2011 (TL). Afterwards it is raised every January and July to
+    // the price level expected at the end of that half year, plus 1.5 % real growth a year: wages never fall behind
+    // for long, and never run away from prices either.
+    constexpr double StartWage = 658.95;
+    constexpr double RealWageGrowth = 0.015;
 
     const FYearRates* FindYear(int32 Year)
     {
@@ -70,26 +68,17 @@ double MarketPrices::ListLevel(int32 GameDay)
 double MarketPrices::MinimumWage(int32 GameDay)
 {
     const MarketCalendar::FDate Date = MarketCalendar::DateOf(GameDay);
-    const int32 Key = Date.Year * 10 + (Date.Month <= 6 ? 1 : 2);
-    double Last = Wages[0].Net;
-    for (const FWage& W : Wages)
-    {
-        if (W.Key > Key) break;
-        Last = W.Net;
-    }
-    // After the table the wage follows inflation half year by half year.
-    const int32 LastKey = Wages[UE_ARRAY_COUNT(Wages) - 1].Key;
-    if (Key > LastKey)
-    {
-        const int32 Halves = (Key / 10 - LastKey / 10) * 2 + (Key % 10) - (LastKey % 10);
-        for (int32 H = 0; H < Halves; ++H) Last *= FMath::Sqrt(1.0 + LaterInflation);
-    }
-    return Last;
+    if (Date.Year == 2011 && Date.Month <= 6) return StartWage;
+    // End of the running half year: 1 July or 1 January of the next year.
+    const int32 HalfEnd = Date.Month <= 6 ? MarketCalendar::GameDayOf(Date.Year, 7, 1) : MarketCalendar::GameDayOf(Date.Year + 1, 1, 1);
+    const int32 HalfStart = Date.Month <= 6 ? MarketCalendar::GameDayOf(Date.Year, 1, 1) : MarketCalendar::GameDayOf(Date.Year, 7, 1);
+    const double Years = (HalfStart - 1) / 365.0;
+    return StartWage * PriceLevel(HalfEnd) * FMath::Pow(1.0 + RealWageGrowth, Years);
 }
 
 double MarketPrices::WageIndex(int32 GameDay)
 {
-    return MinimumWage(GameDay) / Wages[0].Net;
+    return MinimumWage(GameDay) / StartWage;
 }
 
 double MarketPrices::LoanRate(int32 GameDay)

@@ -44,6 +44,12 @@ namespace MarketSuppliers
 
     // What the shop pays for one unit today and the market's reference retail price (rivals price around it).
     // Index (catalog order) lets a wholesaler-funded promotion lower one product's cost (MarketPromotions).
+    // The wholesaler's price over the catalog cost (karar G10: a tighter margin than the catalog, ~25 % instead of
+    // ~34 %, so the early game is a climb; volume discounts and terms matter).
+    constexpr double WholesaleFactor = 1.10;
+    // This month's price list of the wholesaler against the country's level: -2 %..+2 %, different in every
+    // campaign and month (the first month is exact), so no month's rise can be read off a table.
+    double MonthSwing(const FMarketState& State);
     int64 UnitCost(const FMarketState& State, const FMarketProduct& Base, int32 Index = INDEX_NONE);
     int64 ListPrice(const FMarketState& State, const FMarketProduct& Base);
     // Writes today's costs and list prices of the catalog (Base, 2011 values) into the game's products.

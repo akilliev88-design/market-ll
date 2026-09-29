@@ -15,8 +15,8 @@ Sahiplik (M, 28.09.2026): 3B model üretimi, mağaza modeli ve arayüz tasarım�
 | A03 | Bayram ve özel günler | 2011'in gerçek tarihleri; hicri bayramlar her yıl ~11 gün kayar (C) | `MarketCalendar` | Derlenmedi (G-061) |
 | A04 | Mevsim ve hava | Deterministik; kategori talebini ve yayayı etkiler (C) | `MarketCalendar` | Derlenmedi (G-061) |
 | A05 | Maaş günleri | Ayın 1'i, 15'i ve son iş günü trafik/sepet artar; ay sonu bütçe daralır (C) | `MarketCalendar` | Derlenmedi (G-061) |
-| A06 | Enflasyon | Yıllık TÜFE yaklaşığı; 2025 sonrası kurgu senaryo (C) | Derlenmedi (G-063) |
-| A07 | Asgari ücret | Tarihsel net yaklaşığı; ücret beklentisi bunu izler (C) | Derlenmedi (G-063) |
+| A06 | Enflasyon | Oyunun kendi eğrisi: tanıdık biçim, yumuşak tepeler (2022 %30, 2023 %28); toptancı listesi her kampanya ve ayda ±%2 (M 29.09.2026: eğlence ve tahmin edilemezlik, birebir tarih değil) | `MarketPrices`, `MarketSuppliers` | Derlenmedi (G-073) |
+| A07 | Asgari ücret | Yarı yıl sonu fiyat düzeyi × yılda %1,5 reel artış; ücret beklentisi bunu izler (M 29.09.2026) | `MarketPrices` | Derlenmedi (G-073) |
 | A08 | Yer | Lüleburgaz esinli kurgu semtler (İstasyon başlangıç). Sonra Trakya, Türkiye, Bulgaristan pilotu (C) | Derlenmedi (G-068) |
 | A09 | Stratejik ilerletme | Dükkân kapalıyken 1 gün / 1 hafta ilerlet: yürüyen insan olmadan aynı kurallarla gün; aile rutini (zam, vergi, borç taksiti, raf, önerilen sipariş); karar bekleyince, kasa eksiye düşünce ya da hafta bitince durur (C; plan 01 §3). Görev devriyle ay ilerletme şirket büyümesinde | `MarketSimulation` | Derlenmedi (G-071) |
 | A10 | Zorluk | Rahat/Normal/Zor: müşteri sayısı (±%10/−%8) ve fiyat hoşgörüsü (+0,05/−0,04). Tarih (enflasyon, bayram, rakip açılışı) değişmez; rakip saldırganlığı ve olay yoğunluğu ayarı sonra (plan) | `MarketSimulation` | Derlenmedi (G-071) |
@@ -30,7 +30,7 @@ Sahiplik (M, 28.09.2026): 3B model üretimi, mağaza modeli ve arayüz tasarım�
 | B01 | Babanın borcu | 300 TL, süresiz, kapanmadan ikinci şube yok (M) | `MarketCampaign` | Uygulandı |
 | B02 | Bölümler | 7 bölüm: Defter → Karşı Dükkân → İkinci Tabela → Trakya → Türkiye → Sınır Ötesi → Miras (C) | Derlenmedi (G-066) |
 | B03 | Karakterler | Nermin teyze, Cem, Selim, Necati Bey, Kadir Bereketoğlu, Derya, banka müdürü (C; plan) | Derlenmedi (G-066) |
-| B04 | Sat ya da devam | Bölüm 2'de Bereket Market teklifi; satmak bir sondur, oyun kaydı kalır (C; plan) | Derlenmedi (G-066) |
+| B04 | Sat ya da devam | Satmak "Sattın" sonunu gösterir ve hatıraya yazar; sonra "Rüyaymış: dükkâna dön" (varsayılan) ya da "Burada bitsin" (serbest oyun) (M 29.09.2026) | `MarketStory` | Derlenmedi (G-073) |
 | B05 | Strateji kimliği | Mahallenin Bakkalı / Kaliteli Yerel / Hızlı İndirim Zinciri (C; plan) | Derlenmedi (G-066) |
 | B06 | Başarısızlık | Oyun bitmez; küçülme ve toparlanma yolu var. Sonlar "kaybettin" değildir (M: borç ödenmezse tek şubede kalır) | Derlenmedi (G-067) |
 | B07 | Dönüm noktası hatıraları | İlk kârlı gün, borcun kapanması, ilk şube… kalıcı liste (C) | Derlenmedi (G-066) |
@@ -64,7 +64,7 @@ Sahiplik (M, 28.09.2026): 3B model üretimi, mağaza modeli ve arayüz tasarım�
 | D08 | Tazelik ve fire | Parti + son kullanma, FEFO, son gün indirimi, fire nedeni raporda (plan) | Derlenmedi (G-067) |
 | D09 | Atık ve bağış | Son günü geçmemiş ama satılamayan ürün bağışlanabilir: fire yazılır, itibar artar (plan 01 §11) | Derlenmedi (G-067) |
 | D10 | Depozito/iade ambalaj | Cam şişe depozitosu (ülke profiline bağlı, Türkiye 2011'de yaygın değil) (plan) | ülke profili | Tasarım |
-| D11 | **İnternet mağazacılığı** | Dönemle açılır. 2011–2013: telefonla sipariş ve mahalleye paket servis (bakkal geleneği, küçük sepet, sadakat artırır). 2014+: kendi web sitesi, toplama görevlisi, teslimat slotu. 2016+: pazar yeri/hızlı teslimat platformları (komisyonlu kanal, kurgu platform adı). 2020: salgın dönemi talep sıçraması (kurgu senaryo profili, gerçek olayın saygılı anılması). Online sipariş raftaki stoğu paylaşır (ayrılmış stok), toplama rotası, teslimat maliyeti, eksik ürün ikamesi, online müşteri memnuniyeti. Bölgesel aşamada karanlık mağaza (yalnızca sipariş toplayan depo) (C; plan 01 §11, 04 §2) | `MarketOnline` | Derlenmedi (G-069): telefon/web/platform, ayrılmış stok yerine kapanışta depo→raf toplama, ikame kuralı, kurye kapasitesi, itibar/yıldız, ilçe online payı ve dükkândan müşteri kaybı, 2020-21 profili. Karanlık mağaza şirket büyümesine kaldı |
+| D11 | **İnternet mağazacılığı** | Dönemle açılır. 2011–2013: telefonla sipariş ve mahalleye paket servis (bakkal geleneği, küçük sepet, sadakat artırır). 2014+: kendi web sitesi, toplama görevlisi, teslimat slotu. 2016+: pazar yeri/hızlı teslimat platformları (komisyonlu kanal, kurgu platform adı). 2020: salgın dönemi talep sıçraması (kurgu senaryo profili, gerçek olayın saygılı anılması). Online sipariş raftaki stoğu paylaşır (ayrılmış stok), toplama rotası, teslimat maliyeti, eksik ürün ikamesi, online müşteri memnuniyeti. Bölgesel aşamada karanlık mağaza (yalnızca sipariş toplayan depo) (C; plan 01 §11, 04 §2) | `MarketOnline` | Derlenmedi (G-069): telefon/web/platform, ayrılmış stok yerine kapanışta depo→raf toplama, ikame kuralı, kurye kapasitesi, itibar/yıldız, ilçe online payı ve dükkândan müşteri kaybı, 2020-21 profili. Karanlık mağaza şirket büyümesine kaldı; 2020-21 profili her kampanyada farklı (G-073) |
 | D12 | Kasa önü ve dürtüsel ürün | Kasa önü rafı sepete küçük ek ürün getirir (plan 04) | `MarketCustomers` | Tasarım |
 
 ## E. Rekabet
@@ -104,6 +104,7 @@ Sahiplik (M, 28.09.2026): 3B model üretimi, mağaza modeli ve arayüz tasarım�
 | G07 | Yatırımcı ve halka arz | Ulusal aşamada; kontrol kaybı görünür (plan 06 §1) | `MarketCompany` | Tasarım |
 | G08 | Kur | Uluslararası aşamada ülke para birimi; grup raporu dönüşümü (plan 06 §13) | `MarketCompany` | Tasarım |
 | G09 | Ev harçlığı | Aile dükkândan geçinir: günde 30 TL × asgari ücret endeksi eve; kasa darsa yarısı, boşsa hiç. İşletme gideri değil, yalnız nakit; ay sonu raporunda "eve" (C) | `MarketFinance` | Derlenmedi (G-071) |
+| G10 | Katalog marjı | Toptancı fiyatı katalog maliyetinin 1,10 katı: brüt marj ~%34 yerine ~%25; hacim iskontosu ve vade değer kazanır (M 29.09.2026: gerçek bakkal marjı değil, oynanış için orta yol) | `MarketSuppliers` | Derlenmedi (G-073) |
 
 ## H. Mağaza ve şube
 
@@ -129,9 +130,13 @@ Sahiplik (M, 28.09.2026): 3B model üretimi, mağaza modeli ve arayüz tasarım�
 | I04 | Uluslararası | Pilot Kırcaali (Bulgaristan), sonra Filibe; ikinci ülke Romanya (Köstence); yeni ülkede 90 gün öğrenme (−%3 marj), gümrük %1. Kur sonraki aşama (C) | `MarketCompany` | Derlenmedi (G-072) |
 | I05 | Sonlar | Sattın (G-066); Miras: 7. bölümde bir yıl her ölçüde önde (pay %40, 60 mağaza, kâr, memnuniyet %60), oyun serbest sürer. Mahallenin dükkânı / Trakya / Türkiye / Sınır ötesi şimdilik bölüm hatıraları olarak kalır (C) | `MarketStory`, `MarketCompany` | Kısmen (G-072) |
 
-## Açık sorular (Mustafa)
+## Mustafa'nın kararları (29.09.2026)
 
-1. Sat ya da devam kararında "sattın" sonu gerçekten kampanyayı bitirsin mi, yoksa sadece bir sahne olup oyuncu yine devam edebilsin mi? Öneri: son sahnesi gösterilir, oyuncu isterse "aslında satmadım" diyerek geri döner.
-2. 2020 salgın dönemi oyunda anılsın mı? (G-069 öneriyi uyguladı, `bPandemic` varsayılan açık; Mustafa "hayır" derse varsayılan kapatılır.) Öneri: kurgu "salgın dönemi" senaryosu, kapanma günleri ve online sipariş patlaması, ölüm veya hastalık içeriği yok.
-3. Enflasyonun 2021–2023 sertliği aynen mi, yoksa zorluk ayarıyla mı? Öneri: varsayılan tarihsel, "rahat" zorlukta yarıya indirilmiş.
-4. Katalog marjı: `products.json` fiyatları maliyetin ortalama 1,52 katı (brüt marj ~%34); gerçek bakkal ~%15-20. Taklitli 150 günlük kampanyada ilk şube ~50. günde açılabiliyor. Fiyatlar aynen mi kalsın, yoksa oyun dengesi için maliyetler mi yükseltilsin? Öneri: maliyetleri ~%12 artırıp zorluk ayarıyla oynamak.
+Mustafa: "Kararı sen ver, oyun eğlenceli olsun; gerçek hayatla birebir olması şart değil, birebir yaparsak tahmin edilebilirlik artar."
+
+1. **Sattın sonu:** son gösterilir, sonra "Rüyaymış: dükkâna dön" ya da "Burada bitsin" (B04).
+2. **Salgın dönemi:** kalır (varsayılan açık, kapatılabilir), ama her kampanyada başlangıcı, süresi ve kapanan hafta sonları farklıdır (D11).
+3. **Enflasyon:** tarihsel rakamlar yerine oyunun kendi eğrisi, ay ay ±%2 kampanya farkı (A06, A07).
+4. **Marj:** toptancı fiyatı katalog maliyetinin 1,10 katı, brüt marj ~%25 (G10).
+
+Açık soru yok.

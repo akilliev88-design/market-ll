@@ -73,9 +73,20 @@ int32 MarketSuppliers::TermsDays(const FMarketState& State, ESupplier Supplier)
     return A->Trust >= LongTermsTrust ? 14 : A->Trust >= TermsTrust ? 7 : 0;
 }
 
+double MarketSuppliers::MonthSwing(const FMarketState& State)
+{
+    const MarketCalendar::FDate Date = MarketCalendar::DateOf(State.Day);
+    if (Date.Year == MarketCalendar::StartYear && Date.Month == MarketCalendar::StartMonth) return 1.0;
+    uint32 Hash = 2166136261u;
+    const uint32 Parts[2] = { static_cast<uint32>(State.RivalSeed), static_cast<uint32>(Date.Year * 12 + Date.Month) };
+    for (uint32 Part : Parts)
+        for (int32 Byte = 0; Byte < 4; ++Byte) { Hash ^= (Part >> (Byte * 8)) & 0xFFu; Hash *= 16777619u; }
+    return 1.0 + (static_cast<int32>(Hash % 41u) - 20) / 1000.0;
+}
+
 int64 MarketSuppliers::UnitCost(const FMarketState& State, const FMarketProduct& Base, int32 Index)
 {
-    const double Level = MarketPrices::ListLevel(State.Day);
+    const double Level = MarketPrices::ListLevel(State.Day) * WholesaleFactor * MonthSwing(State);
     const double Deal = Index != INDEX_NONE ? MarketPromotions::CostFactor(State, Index) : 1.0;
     const double Identity = MarketEvents::Factor(State, MarketEvents::EModifier::CostFactor, MarketGoods::Classify(Base.Category)); // quality/discount identity
     return FMath::Max<int64>(1, FMath::RoundToInt64(Base.Cost * Level * (1.0 - Discount(State, Current(State))) * Deal * Identity));

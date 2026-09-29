@@ -3,8 +3,8 @@
 #include "CoreMinimal.h"
 
 // Long-term economy of the country (Docs/Kurgu/00_KURGU_KITABI.md \u00a72): consumer price inflation, the minimum wage
-// and the loan interest rate by calendar year. 2011-2024 follow the published yearly figures approximately (T\u00dc\u0130K
-// CPI, net minimum wage, commercial loan rates); 2025 on is a declared fictional scenario. Independent of the world.
+// and the loan interest rate by calendar year. The curve is the game's own (karar A06): it has the
+// shape of 2011-2029 Turkey but softer peaks; the minimum wage follows prices with a little real growth. Independent of the world.
 namespace MarketPrices
 {
     // Yearly consumer price inflation of a calendar year, e.g. 0.104 for 2011.
