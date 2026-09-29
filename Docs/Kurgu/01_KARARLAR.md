@@ -18,11 +18,10 @@ Sahiplik (M, 28.09.2026): 3B model üretimi, mağaza modeli ve arayüz tasarım�
 | A06 | Enflasyon | Yıllık TÜFE yaklaşığı; 2025 sonrası kurgu senaryo (C) | Derlenmedi (G-063) |
 | A07 | Asgari ücret | Tarihsel net yaklaşığı; ücret beklentisi bunu izler (C) | Derlenmedi (G-063) |
 | A08 | Yer | Lüleburgaz esinli kurgu semtler (İstasyon başlangıç). Sonra Trakya, Türkiye, Bulgaristan pilotu (C) | Derlenmedi (G-068) |
-| A09 | Stratejik ilerletme | Görevler devredildiyse gün/hafta/ay oynamadan simüle edilir; aynı kurallar (C; plan 01 §3) | `MarketDirector` | Tasarım |
-| A10 | Zorluk | Ekonomi, rakip saldırganlığı, olay yoğunluğu ayrı ayar (plan) | `MarketDirector` | Tasarım |
+| A09 | Stratejik ilerletme | Dükkân kapalıyken 1 gün / 1 hafta ilerlet: yürüyen insan olmadan aynı kurallarla gün; aile rutini (zam, vergi, borç taksiti, raf, önerilen sipariş); karar bekleyince, kasa eksiye düşünce ya da hafta bitince durur (C; plan 01 §3). Görev devriyle ay ilerletme şirket büyümesinde | `MarketSimulation` | Derlenmedi (G-071) |
+| A10 | Zorluk | Rahat/Normal/Zor: müşteri sayısı (±%10/−%8) ve fiyat hoşgörüsü (+0,05/−0,04). Tarih (enflasyon, bayram, rakip açılışı) değişmez; rakip saldırganlığı ve olay yoğunluğu ayarı sonra (plan) | `MarketSimulation` | Derlenmedi (G-071) |
 | A11 | Gerçek marka adları | Ürünlerde gerçek marka görünür; F8 kurgu adlara çevirir (M) | `ProductCatalog` | Uygulandı |
 | A12 | Gerçek zincirler | Rakip olarak gerçek zincirler, yalnızca olağan ticari davranış; olumsuz kurgu olaylar kurgu şirketlerle (M + plan 06) | `MarketCompetitors` | Kısmen (G-054) |
-| A09 | Stratejik ilerletme ve zorluk | Dükkân kapalıyken 1 gün/1 hafta ilerlet: aynı kurallarla gün simülasyonu, aile rutini, karar/eksi kasa/hafta sonunda durur. Zorluk Rahat/Normal/Zor yalnız müşteri sayısı ve fiyat hoşgörüsünü değiştirir; tarih değişmez (C) | Derlenmedi (G-071) |
 
 ## B. Hikâye
 
@@ -46,7 +45,7 @@ Sahiplik (M, 28.09.2026): 3B model üretimi, mağaza modeli ve arayüz tasarım�
 | C04 | Sadakat | 24 kişilik mahalle havuzu (G-053); veresiye ve sadakat kartı ile genişler | `MarketBasket`, `MarketCredit` | Kısmen |
 | C05 | Veresiye | Tanınan müşteriye limitli; maaş gününde tahsilat, az sayıda batık (C; plan) | Derlenmedi (G-067) |
 | C06 | Bekleme ve kalabalık | 90 sn sabır, 9 kişi sınırı (mevcut); segmente göre sabır (C) | Derlenmedi (G-062) |
-| C10 | Yürüyüş ve hareket | Kişiye sabit yürüme tarzı (ağır adımlı, seri, oyalanan, telefona dalık, koşturan); kısa rota sırası (aile yazdığı sırayla, çocuk önce isteğine); raf önü süresi (tanıdık hızlı, boş raf arama, pahalıda karşılaştırma); kuyruğu görünce vazgeçme; kişisel alan, sağdan geçme, arkada yavaşlama; tanıdıklar sohbet eder (C) | Derlenmedi (G-070) |
+| C10 | Yürüyüş ve hareket | Kişiye sabit yürüme tarzı (ağır adımlı, seri, oyalanan, telefona dalık, koşturan); kısa rota sırası (aile yazdığı sırayla, çocuk önce isteğine); raf önü süresi (tanıdık hızlı, boş raf arama, pahalıda karşılaştırma); kuyruğu görünce vazgeçme; kişisel alan, sağdan geçme, arkada yavaşlama; tanıdıklar sohbet eder (C) | `MarketMotion` | Derlenmedi (G-070) |
 | C07 | İade ve şikâyet | Bozuk/yanlış ürün iadesi; iade kabulü memnuniyet, reddi itibar kaybı (plan 01 §11) | Derlenmedi (G-066) |
 | C08 | Ödeme yöntemleri | Nakit, kredi kartı (POS komisyonu %1,5–2, ertesi gün hesaba), yemek kartı (2013 sonrası yaygın, komisyon yüksek). Kart kabulü bazı segmentlerin sepetini büyütür (C; plan 01 §11) | `MarketPayments` | Derlenmedi (G-069) |
 | C09 | Sadakat kartı / uygulama | İlçe zinciri aşamasında; puan maliyeti karşılığında tekrar ziyaret (plan) | `MarketPromotions` | Tasarım |
@@ -91,7 +90,6 @@ Sahiplik (M, 28.09.2026): 3B model üretimi, mağaza modeli ve arayüz tasarım�
 | F06 | Vardiya | Sabah/akşam, hafta sonu; İK planlar (plan) | `MarketStaff` | Tasarım |
 | F07 | İş kazası | Sigorta ve çalışan güveni (plan 01 §11) | `MarketEvents` | Tasarım |
 | F08 | Suistimal | Küçük kasa farkı, şüphe kanıt değil (plan 06 §6, G-060) | `MarketStaff` | Derlenmedi |
-| F09 | Ev harçlığı | Aile dükkândan geçinir: günde 30 TL × asgari ücret endeksi eve; kasa darsa yarısı, boşsa hiç. İşletme gideri değil, yalnız nakit (C; denge: taklitli 150 günlük kampanyada nakit büyümesini ~%25 yavaşlatır) | Derlenmedi (G-071) |
 
 ## G. Para
 
@@ -105,6 +103,7 @@ Sahiplik (M, 28.09.2026): 3B model üretimi, mağaza modeli ve arayüz tasarım�
 | G06 | Ay sonu raporu | Kâr-zarar, nakit akışı, basit bilanço (plan 06 §7) | Derlenmedi (G-067) |
 | G07 | Yatırımcı ve halka arz | Ulusal aşamada; kontrol kaybı görünür (plan 06 §1) | `MarketCompany` | Tasarım |
 | G08 | Kur | Uluslararası aşamada ülke para birimi; grup raporu dönüşümü (plan 06 §13) | `MarketCompany` | Tasarım |
+| G09 | Ev harçlığı | Aile dükkândan geçinir: günde 30 TL × asgari ücret endeksi eve; kasa darsa yarısı, boşsa hiç. İşletme gideri değil, yalnız nakit; ay sonu raporunda "eve" (C) | `MarketFinance` | Derlenmedi (G-071) |
 
 ## H. Mağaza ve şube
 

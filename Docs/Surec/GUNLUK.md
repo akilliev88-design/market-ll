@@ -9,7 +9,7 @@ En yeni giriş en üstte. Biçim: tarih — ajan — başlık, ardından **Yapı
   - Aile rutini: zam %2'yi geçince rafa yansır, beyan edilen vergi ödenir, kasa yeterse 50 TL borç taksiti ödenir, raflar gün içinde depodan dolar, akşam önerilen sipariş verilir.
   - `Advance(N)` karar bekleyince, kasa eksiye düşünce ya da hafta bitince durur.
 - Zorluk: Rahat müşteri +%10 ve fiyat hoşgörüsü +0,05; Zor müşteri −%8 ve hoşgörü −0,04. Tarih değişmez; açık soru 3 (enflasyonu yumuşatma) açık kaldı.
-- Ev harçlığı (`MarketFinance`, karar F09): günde 30 TL × asgari ücret endeksi eve gider; kasa darsa yarısı, boşsa hiç. Kâr değişmez, nakit azalır. Ay sonu raporunda gösterilir.
+- Ev harçlığı (`MarketFinance`, karar G09): günde 30 TL × asgari ücret endeksi eve gider; kasa darsa yarısı, boşsa hiç. Kâr değişmez, nakit azalır. Ay sonu raporunda gösterilir.
 - Menü özetine ZAMAN · ZORLUK kartı eklendi: 1 gün / 1 hafta ilerlet (yalnız dükkân kapalıyken), Rahat/Normal/Zor.
 - `MarketMenu.cpp`'ye `Advance` komutu eklendi: ilerletir, kaydeder, gün raporunu açar.
 
