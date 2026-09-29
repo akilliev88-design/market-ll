@@ -14,18 +14,19 @@
 #include "MarketBranches.h"
 #include "MarketOnline.h"
 #include "MarketPayments.h"
+#include "MarketSimulation.h"
 
 float MarketDirector::TrafficFactor(const FMarketState& State, const TArray<FString>& Aisles)
 {
     return MarketCalendar::TrafficFactor(State.Day, State.RivalSeed) * MarketRivals::TrafficFactor(State.Day, State.RivalSeed, Aisles)
         * MarketPromotions::TrafficFactor(State) * MarketCompetitors::TrafficFactor(State)
         * MarketEvents::Factor(State, MarketEvents::EModifier::Traffic) * MarketBranches::MainShopFactor(State)
-        * MarketOnline::StoreTrafficFactor(State) * MarketPayments::TrafficFactor(State);
+        * MarketOnline::StoreTrafficFactor(State) * MarketPayments::TrafficFactor(State) * MarketSimulation::TrafficFactor(State);
 }
 
 double MarketDirector::ToleranceBonus(const FMarketState& State, const FMarketProduct& Product)
 {
-    return MarketEvents::Tolerance(State, MarketGoods::Classify(Product.Category));
+    return MarketEvents::Tolerance(State, MarketGoods::Classify(Product.Category)) + MarketSimulation::ToleranceBonus(State);
 }
 
 float MarketDirector::RivalPriceFactor(const FMarketState& State, const TArray<FString>& Aisles, const FString& Category)
@@ -158,6 +159,7 @@ bool MarketDirector::Command(FMarketState& State, const TArray<FMarketProduct>& 
     if (Action == TEXT("FreeDelivery")) return MarketOnline::SetFreeDelivery(State, Arg != 0, OutMessage);
     if (Action == TEXT("Card")) return MarketPayments::SetCard(State, Arg != 0, OutMessage);
     if (Action == TEXT("MealCard")) return MarketPayments::SetMealCard(State, Arg != 0, OutMessage);
+    if (Action == TEXT("Difficulty")) return MarketSimulation::SetDifficulty(State, Arg, OutMessage);
     if (Action == TEXT("PandemicProfile"))
     {
         if (State.Online.bPandemic == (Arg != 0)) { OutMessage = TEXT("Salg\u0131n d\u00f6nemi ayar\u0131 zaten b\u00f6yle."); return false; }

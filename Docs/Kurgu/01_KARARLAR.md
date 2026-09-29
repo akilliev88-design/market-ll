@@ -22,6 +22,7 @@ Sahiplik (M, 28.09.2026): 3B model üretimi, mağaza modeli ve arayüz tasarım�
 | A10 | Zorluk | Ekonomi, rakip saldırganlığı, olay yoğunluğu ayrı ayar (plan) | `MarketDirector` | Tasarım |
 | A11 | Gerçek marka adları | Ürünlerde gerçek marka görünür; F8 kurgu adlara çevirir (M) | `ProductCatalog` | Uygulandı |
 | A12 | Gerçek zincirler | Rakip olarak gerçek zincirler, yalnızca olağan ticari davranış; olumsuz kurgu olaylar kurgu şirketlerle (M + plan 06) | `MarketCompetitors` | Kısmen (G-054) |
+| A09 | Stratejik ilerletme ve zorluk | Dükkân kapalıyken 1 gün/1 hafta ilerlet: aynı kurallarla gün simülasyonu, aile rutini, karar/eksi kasa/hafta sonunda durur. Zorluk Rahat/Normal/Zor yalnız müşteri sayısı ve fiyat hoşgörüsünü değiştirir; tarih değişmez (C) | Derlenmedi (G-071) |
 
 ## B. Hikâye
 
@@ -90,6 +91,7 @@ Sahiplik (M, 28.09.2026): 3B model üretimi, mağaza modeli ve arayüz tasarım�
 | F06 | Vardiya | Sabah/akşam, hafta sonu; İK planlar (plan) | `MarketStaff` | Tasarım |
 | F07 | İş kazası | Sigorta ve çalışan güveni (plan 01 §11) | `MarketEvents` | Tasarım |
 | F08 | Suistimal | Küçük kasa farkı, şüphe kanıt değil (plan 06 §6, G-060) | `MarketStaff` | Derlenmedi |
+| F09 | Ev harçlığı | Aile dükkândan geçinir: günde 30 TL × asgari ücret endeksi eve; kasa darsa yarısı, boşsa hiç. İşletme gideri değil, yalnız nakit (C; denge: taklitli 150 günlük kampanyada nakit büyümesini ~%25 yavaşlatır) | Derlenmedi (G-071) |
 
 ## G. Para
 

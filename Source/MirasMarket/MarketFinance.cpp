@@ -159,6 +159,11 @@ void MarketFinance::CloseDay(FMarketState& State, const TArray<FMarketProduct>& 
     }
     State.Loans.RemoveAll([](const FMarketLoan& L) { return L.Remaining <= 0; });
 
+    // The family's living money (never pushes the till below zero).
+    const int64 Home = HouseholdToday(State);
+    State.Cash -= Home;
+    State.MonthHousehold += Home;
+
     // The trouble ladder.
     if (State.Cash < 0) ++State.NegativeCashDays;
     else
@@ -221,11 +226,20 @@ void MarketFinance::CloseDay(FMarketState& State, const TArray<FMarketProduct>& 
             const MarketCalendar::FDate D = MarketCalendar::DateOf(R.Day);
             if (D.Year == Month.Year && D.Month == Month.Month) { Revenue += R.Revenue; Profit += R.Profit; ++Days; }
         }
-        News.Add(FString::Printf(TEXT("Ay sonu raporu (%s): %d g\u00fcn, ciro %s, net %s. Kasa %s, veresiye alaca\u011f\u0131 %s, toptanc\u0131ya bor\u00e7 %s, banka borcu %s."),
+        News.Add(FString::Printf(TEXT("Ay sonu raporu (%s): %d g\u00fcn, ciro %s, net %s, eve %s. Kasa %s, veresiye alaca\u011f\u0131 %s, toptanc\u0131ya bor\u00e7 %s, banka borcu %s."),
             *MarketCalendar::MonthText(Closed),
-            Days, *FinanceTl(Revenue), *FinanceTl(Profit), *FinanceTl(State.Cash), *FinanceTl(MarketCredit::Outstanding(State)),
+            Days, *FinanceTl(Revenue), *FinanceTl(Profit), *FinanceTl(State.MonthHousehold), *FinanceTl(State.Cash), *FinanceTl(MarketCredit::Outstanding(State)),
             *FinanceTl(MarketSuppliers::OpenBills(State)), *FinanceTl(Debt(State))));
+        State.MonthHousehold = 0;
     }
+}
+
+int64 MarketFinance::HouseholdToday(const FMarketState& State)
+{
+    const int64 Full = FMath::RoundToInt64(HouseholdDraw * MarketPrices::WageIndex(FMath::Max(1, State.Day - 1)));
+    if (State.Cash >= 3 * Full) return Full;
+    if (State.Cash >= Full) return Full / 2;   // a tight month at home
+    return 0;
 }
 
 bool MarketFinance::Resolve(FMarketState& State, const TArray<FMarketProduct>& Products, const FMarketDecision& D, int32 Option, FString& OutMessage)

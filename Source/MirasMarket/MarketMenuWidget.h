@@ -97,6 +97,7 @@ private:
     TSharedRef<SWidget> StoryCard();      // G-066 chapter goals, identity, last memory
     TSharedRef<SWidget> MoneyCard();      // G-067 bank, credit book, freshness policy
     TSharedRef<SWidget> OnlineCard();     // G-069 phone/web/platform orders, couriers, cards
+    TSharedRef<SWidget> TimeCard();       // G-071 strategic advance and difficulty
 
 public:
     // Raporlar page: which tab is shown (the game opens the day tab when the shop closes).

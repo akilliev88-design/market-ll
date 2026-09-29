@@ -3,6 +3,7 @@
 #include "MarketGame.h"
 #include "MarketMenuWidget.h"
 #include "ProductCatalog.h"
+#include "MarketSimulation.h"
 #include "Framework/Application/SlateApplication.h"
 #include "GameFramework/PlayerController.h"
 #include "Misc/CommandLine.h"
@@ -130,6 +131,22 @@ void AMarketGameMode::StaffCommand(FName Action, int32 Id)
         State.bHrAutoReplace = !State.bHrAutoReplace;
         bChanged = true;
         Text = State.bHrAutoReplace ? TEXT("\u0130K ayr\u0131lan\u0131n yerine uygun aday\u0131 kendisi alacak.") : TEXT("\u0130K ayr\u0131lan\u0131n yerine kimseyi almayacak; adaylar\u0131 sen se\u00e7ersin.");
+    }
+    else if (Action == TEXT("Advance"))
+    {
+        // G-071: play days without walking people (the same rules), stop when the player is needed.
+        if (bOpen) Text = TEXT("D\u00fckk\u00e2n a\u00e7\u0131kken g\u00fcn ilerletilmez; \u00f6nce kapat.");
+        else
+        {
+            const int32 WeekBefore = State.LastWeekNumber;
+            MarketSimulation::Advance(State, CatalogBase, Products, Id, Text);
+            bWeekJustEnded = State.LastWeekNumber != WeekBefore;
+            ResetWorkerJobs();
+            RefreshDeliveryCrates();
+            SaveCampaign();
+            bChanged = true;
+            OpenDayReport();
+        }
     }
     else bChanged = MarketDirector::Command(State, Products, Action, Id, Text); // wholesaler, prices, ...
     if (bChanged) { SyncWorkers(); RefreshPrices(); RefreshLabels(); } // people, supplier discount, shelf prices

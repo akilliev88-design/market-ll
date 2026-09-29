@@ -10,6 +10,7 @@
 #include "MarketFinance.h"
 #include "MarketOnline.h"
 #include "MarketPayments.h"
+#include "MarketSimulation.h"
 #include "MarketCredit.h"
 #include "MarketFreshness.h"
 #include "MarketBranches.h"
@@ -615,6 +616,27 @@ TSharedRef<SWidget> SMarketMenu::MoneyCard()
         ]);
 }
 
+TSharedRef<SWidget> SMarketMenu::TimeCard()
+{
+    // G-071: play days without walking the shop (stops when a decision waits or the week ends), difficulty.
+    auto G = [this] { return Game.Get(); };
+    auto Closed = [G] { return G() && !G()->bOpen; };
+    return Card(SNew(SVerticalBox)
+        + SVerticalBox::Slot().AutoHeight()[ Fixed(TEXT("ZAMAN \u00b7 ZORLUK"), 9, ERole::Muted, true) ]
+        + SVerticalBox::Slot().AutoHeight().Padding(0.f, 6.f, 0.f, 8.f)
+        [ Label([G] { return G() ? FString::Printf(TEXT("Zorluk: %s \u00b7 ilerletilen g\u00fcn %d. \u0130lerletirken aile d\u00fckk\u00e2n\u0131 i\u015fletir: raflar\u0131 doldurur, \u00f6neri kadar sipari\u015f verir; karar gerekince durur."),
+            *MarketSimulation::DifficultyName(static_cast<MarketSimulation::EDifficulty>(G()->State.Difficulty)), G()->State.AdvancedDays) : FString(); }, 11, ERole::Text, false, true) ]
+        + SVerticalBox::Slot().AutoHeight()
+        [
+            SNew(SWrapBox).UseAllottedSize(true).InnerSlotPadding(FVector2D(6.f, 6.f))
+            + SWrapBox::Slot()[ Button([] { return FString(TEXT("1 g\u00fcn ilerlet")); }, [this] { Manage(TEXT("Advance"), 1); }, false, Closed) ]
+            + SWrapBox::Slot()[ Button([] { return FString(TEXT("1 hafta ilerlet")); }, [this] { Manage(TEXT("Advance"), 7); }, false, Closed) ]
+            + SWrapBox::Slot()[ Button([] { return FString(TEXT("Rahat")); }, [this] { Manage(TEXT("Difficulty"), 0); }) ]
+            + SWrapBox::Slot()[ Button([] { return FString(TEXT("Normal")); }, [this] { Manage(TEXT("Difficulty"), 1); }) ]
+            + SWrapBox::Slot()[ Button([] { return FString(TEXT("Zor")); }, [this] { Manage(TEXT("Difficulty"), 2); }) ]
+        ]);
+}
+
 TSharedRef<SWidget> SMarketMenu::OnlineCard()
 {
     // G-069: order channels of the era, couriers, the missing-item rule and payment methods.
@@ -657,6 +679,7 @@ TSharedRef<SWidget> SMarketMenu::SummaryPage()
         + SVerticalBox::Slot().AutoHeight().Padding(0.f, 0.f, 0.f, 12.f)[ StoryCard() ]
         + SVerticalBox::Slot().AutoHeight().Padding(0.f, 0.f, 0.f, 12.f)[ MoneyCard() ]
         + SVerticalBox::Slot().AutoHeight().Padding(0.f, 0.f, 0.f, 12.f)[ OnlineCard() ]
+        + SVerticalBox::Slot().AutoHeight().Padding(0.f, 0.f, 0.f, 12.f)[ TimeCard() ]
         + SVerticalBox::Slot().AutoHeight()
         [
             SNew(SHorizontalBox)

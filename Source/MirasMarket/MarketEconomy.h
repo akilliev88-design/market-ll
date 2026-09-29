@@ -486,12 +486,17 @@ struct FMarketState
     // Bank and the money trouble ladder (MarketFinance.h).
     UPROPERTY() TArray<FMarketLoan> Loans;
     UPROPERTY() int32 NegativeCashDays = 0;
+    // The family lives from the shop: money taken home this month (MarketFinance, not a business cost).
+    UPROPERTY() int64 MonthHousehold = 0;
     UPROPERTY() int32 TroubleStage = 0;
     // Branches (MarketBranches.h). bSecondStore stays true while at least one branch exists (older code and saves).
     UPROPERTY() TArray<FMarketBranch> Branches;
     // Online orders and payment methods (MarketOnline.h, MarketPayments.h).
     UPROPERTY() FMarketOnline Online;
     UPROPERTY() FMarketPayments Payments;
+    // Difficulty (MarketSimulation.h): 0 easy, 1 normal, 2 hard. Days played by the strategic advance.
+    UPROPERTY() uint8 Difficulty = 1;
+    UPROPERTY() int32 AdvancedDays = 0;
     // Local share at the start of the last day close (MarketCompetitors replaces the simple satisfaction update).
     UPROPERTY() float ShareBeforeClose = 25.f;
     // Evening report lines of the background systems (MarketDirector clears it at every day close).

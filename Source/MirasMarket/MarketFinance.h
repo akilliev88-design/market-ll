@@ -12,7 +12,10 @@
 //    told before it happens. 1 day: warning. 3 days: the wholesaler closes the payment terms. 7 days: a choice
 //    (an emergency loan at a high rate, or sell the depot at half price). 14 days: the depot is sold at half price.
 //    30 days: the bank offers a mortgage on the family shop's deed. Positive cash ends the trouble.
-//  - At every month end a short report: revenue, net result, cash, what customers owe, what the shop owes.
+//  - The family lives from the shop: every evening 30 TL (x the minimum wage index) goes home; half of it when
+//    the till is tight and nothing when it is empty. It is not a business cost (the day's net stays), only cash.
+//  - At every month end a short report: revenue, net result, money taken home, cash, what customers owe, what
+//    the shop owes.
 namespace MarketFinance
 {
     constexpr int32 LoanMonths = 12;
@@ -20,6 +23,7 @@ namespace MarketFinance
     constexpr float EarlyRepayFee = 0.01f;
     constexpr float LateFee = 0.03f;
     constexpr double EmergencyRateBonus = 0.12;   // yearly, on top of the year's rate
+    constexpr int64 HouseholdDraw = 3000;         // 2011 kurus a day taken home, follows the minimum wage
     const int64 LoanSteps[3] = { 50000, 100000, 250000 };   // 500 / 1.000 / 2.500 TL at 2011 prices
 
     int64 Installment(int64 Principal, double MonthlyRate, int32 Months);
@@ -31,6 +35,8 @@ namespace MarketFinance
 
     // Day close (after the other systems): installments, the trouble ladder, the month-end report.
     void CloseDay(FMarketState& State, const TArray<FMarketProduct>& Products);
+    // Money the family takes home tonight at this cash level.
+    int64 HouseholdToday(const FMarketState& State);
     // A "finance.*" decision (called by MarketEvents::Decide).
     bool Resolve(FMarketState& State, const TArray<FMarketProduct>& Products, const FMarketDecision& Decision, int32 Option, FString& OutMessage);
 }

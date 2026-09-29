@@ -2,6 +2,26 @@
 
 En yeni giriş en üstte. Biçim: tarih — ajan — başlık, ardından **Yapılan**, **Doğrulama**, **Sıradaki**.
 
+## 29.09.2026 — Claude (Claude Code, bulut) — Stratejik ilerletme, zorluk, ev harçlığı G-071 — DERLENMEDİ
+
+**Yapılan**
+- `MarketSimulation`: aile dükkânının günü yürüyen insan olmadan, oyunla aynı kurallarla oynanır (müşteri seçimi, liste, bütçe, `MarketDemand` raf kararı, ikame, ödeme yöntemi, veresiye, `SellBasket`, bütün sistemlerin gün kapanışı).
+  - Aile rutini: zam %2'yi geçince rafa yansır, beyan edilen vergi ödenir, kasa yeterse 50 TL borç taksiti ödenir, raflar gün içinde depodan dolar, akşam önerilen sipariş verilir.
+  - `Advance(N)` karar bekleyince, kasa eksiye düşünce ya da hafta bitince durur.
+- Zorluk: Rahat müşteri +%10 ve fiyat hoşgörüsü +0,05; Zor müşteri −%8 ve hoşgörü −0,04. Tarih değişmez; açık soru 3 (enflasyonu yumuşatma) açık kaldı.
+- Ev harçlığı (`MarketFinance`, karar F09): günde 30 TL × asgari ücret endeksi eve gider; kasa darsa yarısı, boşsa hiç. Kâr değişmez, nakit azalır. Ay sonu raporunda gösterilir.
+- Menü özetine ZAMAN · ZORLUK kartı eklendi: 1 gün / 1 hafta ilerlet (yalnız dükkân kapalıyken), Rahat/Normal/Zor.
+- `MarketMenu.cpp`'ye `Advance` komutu eklendi: ilerletir, kaydeder, gün raporunu açar.
+
+**Denge bulguları (18 ürünlü taklit katalogla 150 günlük otomatik kampanya)**
+- Rutinler eklenmeden önce: zam rafa yansımadığı için kâr aydan aya eriyordu, borç hiç ödenmediği için hikâye 2. bölümde takılıyordu. İkisi rutinle düzeldi. Borç ~20. günde kapanır, 3. bölüm başlar.
+- Nakit ev harçlığıyla günde ~150 TL artıyor; ilk şube ~50. günde açılabilir.
+- **Mustafa'ya not:** `products.json` fiyatları maliyetin ortalama 1,52 katı (brüt marj ~%34). Gerçek bakkal marjı ~%15-20. Oyun bu yüzden cömert. Katalog fiyatı veriye bağlı bir karar olduğu için değiştirmedim; istenirse zorluk ya da sabit giderle dengelenebilir.
+
+**Doğrulama**: Unreal yok, **derlenmedi**. Taklit ortamında 25 test geçti (yeni `Simulation.AdvanceAndDifficulty`).
+
+**Sıradaki**: G-072 şirket büyümesi (bölge deposu, özel marka, bölüm 4-7 hedefleri, karanlık mağaza).
+
 ## 28.09.2026 — Claude (Claude Code, bulut) — İnsan hareketi zekâsı G-070 — DERLENMEDİ
 
 **Yapılan**
@@ -16,7 +36,7 @@ En yeni giriş en üstte. Biçim: tarih — ajan — başlık, ardından **Yapı
 
 **Varsayımlar**: sağdan geçme (Türkiye trafiği); kuyruk hoşgörüsü iş çıkışı/çocuk 2, emekli 5, diğerleri 3 kişi, her sepet adedi +0,5 (en çok 8 adet).
 
-**Doğrulama**: Unreal yok, **derlenmedi**. Taklit ortamında 26 test geçti. Smoke'ta raf önü süresi ve kuyruktan vazgeçme satış sayısını biraz düşürebilir.
+**Doğrulama**: Unreal yok, **derlenmedi**. Taklit ortamında 24 test geçti. Smoke'ta raf önü süresi ve kuyruktan vazgeçme satış sayısını biraz düşürebilir.
 
 **Sıradaki**: G-071 stratejik ilerletme ve zorluk, G-072 şirket büyümesi.
 
@@ -49,7 +69,7 @@ En yeni giriş en üstte. Biçim: tarih — ajan — başlık, ardından **Yapı
 - Nisan 2020: günde ~13 sipariş, +276 TL.
 - 2024'te 2 kurye ve 4 sipariş: zarar. Kurye kararı önemli.
 
-**Doğrulama**: Unreal yok, **derlenmedi**. Saf mantık taklit ortamında derlendi; 25 test geçti, stok ve para korunumu her kapanışta kontrol edildi.
+**Doğrulama**: Unreal yok, **derlenmedi**. Saf mantık taklit ortamında derlendi; 23 test geçti, stok ve para korunumu her kapanışta kontrol edildi.
 
 **Sıradaki**: G-070 hareket zekâsı, G-071 stratejik ilerletme ve zorluk, G-072 şirket büyümesi.
 

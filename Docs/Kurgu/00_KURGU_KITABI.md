@@ -196,6 +196,7 @@ Online sipariş dükkânın stoğunu paylaşır: kapanışta önce depodan, sonr
 - **Kira** (yeni şubeler), **elektrik** (dolap sayısı ve mevsim), **bakım**.
 - **Banka kredisi:** limit, nakit akışı ve teminata (dükkân tapusu) bağlıdır. Faiz yılın faiz ortamını izler: 2011 %15 dolayı, 2018–19 %25+, 2021–23 dalgalı. Taksitler aylıktır.
 - **Tedarikçi vadesi:** ücretsiz kısa vadeli finansmandır.
+- **Ev harçlığı (G-071):** aile dükkândan geçinir; her akşam 30 TL × asgari ücret endeksi eve gider. Kasa darsa yarısı gider, boşsa hiç gitmez. İşletme gideri değildir, kârı değil nakdi azaltır. Ay sonu raporunda "eve" satırı vardır.
 - **Ödeme sıkıntısı:** otomatik iflas yoktur. Önce uyarı gelir, sonra toptancı sevkiyatı durdurur, sonra borç yapılandırma, stok eritme, şube kapatma, varlık satışı. En son aile dükkânı ipoteklenir. Oyuncu her aşamayı önceden görür.
 
 ## 12. Büyüme ve şirket
@@ -219,8 +220,10 @@ Sonlar: **Sattın** (2. bölüm), **Mahallenin dükkânı** (tek dükkânda kal�
 | Şubeler ve otomatik raf dizimi | `MarketBranches`, `MarketLayout` | G-068 |
 | İnternet mağazacılığı ve ödeme | `MarketOnline`, `MarketPayments` | G-069, derlenmedi |
 | İnsan hareketi zekâsı | `MarketMotion` (+ `MarketPeople` animasyon) | G-070, derlenmedi |
-| Stratejik ilerletme ve zorluk | `MarketDirector` | G-071 |
+| Stratejik ilerletme ve zorluk | `MarketSimulation` | G-071, derlenmedi |
 | Şirket büyümesi | `MarketCompany` | G-072 |
 | Oyuna bağlama noktası | `MarketDirector` | her adımda büyür |
+
+**Stratejik ilerletme (G-071):** dükkân kapalıyken "1 gün / 1 hafta ilerlet" ile gün, yürüyen insan olmadan aynı kurallarla oynanır. Aile rutin işleri yapar: zammı rafa yansıtır, vergiyi ve borç taksitini öder, rafı doldurur, önerilen siparişi verir. Karar bekleyince, kasa eksiye düşünce ya da hafta bitince durur. **Zorluk:** Rahat (müşteri +%10, fiyat hoşgörüsü +0,05), Normal, Zor (müşteri −%8, hoşgörü −0,04). Tarih (enflasyon, bayramlar, rakip açılışları) zorlukla değişmez.
 
 Her adım: modül + test + `MarketDirector` bağlantısı + bu kitapta ilgili bölümün "uygulandı" notu + GUNLUK girişi + commit.
