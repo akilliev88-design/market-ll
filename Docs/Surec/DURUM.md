@@ -1,6 +1,6 @@
 # Güncel durum
 
-Son güncelleme: 28.09.2026 — Claude (G-060…G-073 arka plan sistemleri, DERLENMEDİ)
+Son güncelleme: 29.09.2026 — Codex (GitHub eşitleme; G-060…G-073 DERLENDİ ve doğrulandı)
 
 ## Kısaca
 
@@ -56,13 +56,13 @@ GitHub ana deposu: `https://github.com/m07tas/market-ll` (`main`). Unreal/Blende
 | G-053: 1–4 ürünlü müşteri listesi + kategori ikamesi + görünür boş sepet çıkışı + sadakat | **GEÇTİ** — derleme, 22/22 test ve smoke — 28.09.2026 |
 | G-054: babadan kalan borç (P), hafta raporu, günlük rakip haberleri (BİM/Migros/A101), reyona göre rakip fiyatı | **GEÇTİ** — derleme, 24/24 test ve smoke — 29.09.2026 |
 | G-059: tıklanabilir yönetim menüsü (M), kalıcı gün sonu/hafta raporu, açık/koyu tema, logo yuvası, günlük geçmiş | **GEÇTİ** — derleme, 24/24 test ve smoke — 29.09.2026 |
-| G-060: personel ve muhasebe (kişi olarak çalışanlar, aday havuzu, kasiyer hızı/kasa farkı, görevli hızı, moral/istifa, İK müdürü, mali müşavir, haftalık vergi, menü Personel sayfası) | **DERLENMEDİ** — saf mantık (`MarketEconomy` + `MarketStaff` + testler) Linux'ta g++ ve Unreal taklidiyle derlendi; `Staff.*` 3 test ve `Campaign`/`Rivals` testleri geçti. Slate menüsü ve dünya bağlantısı derlenmedi — 28.09.2026 |
-| G-061…G-068: takvim, müşteri segmentleri, enflasyon/toptancı, kampanyalar, rakip şirketler ve pay modeli, hikâye/olaylar, tazelik/veresiye/finans, şubeler ve yeni şubenin otomatik raf dizilimi | **DERLENMEDİ** — saf mantık g++ + Unreal taklidiyle derlendi, taklit ortamında 23 test geçti (yeni 18). `MarketGame.cpp`, `MarketMenuWidget.cpp` (Slate) ve dünya bağlantısı derlenmedi; ilk derleme hatası büyük ihtimalle menü sayfalarında çıkar. `Test.ps1` en az 41 test bekler — 28.09.2026 |
-| G-069: internet mağazacılığı (telefon/web/platform, kurye, ikame, itibar, ilçe online payı, 2020-21 profili) ve ödeme (nakit/kart/yemek kartı, POS, kart parası ertesi gün) | **DERLENMEDİ** — taklit ortamında 23 test geçti; `MarketGame.cpp` `Checkout` ve menü kartı derlenmedi. `Test.ps1` en az 43 test bekler — 28.09.2026 |
-| G-070: insan hareketi zekâsı (yürüme tarzı, rota sırası, raf önü süresi, kuyruktan vazgeçme, kalabalıkta yol verme, sohbet) | **DERLENMEDİ** — taklit ortamında 24 test geçti; `MarketGame.cpp` Tick/SpawnCustomer bağlantısı derlenmedi. `Test.ps1` en az 44 test bekler — 28.09.2026 |
-| G-071: stratejik ilerletme, zorluk, ev harçlığı | **DERLENMEDİ** — taklit ortamında 25 test geçti; `MarketMenu.cpp` Advance komutu ve ZAMAN kartı derlenmedi. `Test.ps1` en az 45 test bekler — 29.09.2026 |
-| G-072: şirket büyümesi (şehir mağazaları, depo, kamyon, merkezi alım, Miras markası, karanlık mağaza, 4-7. bölüm, Miras sonu) | **DERLENMEDİ** — taklit ortamında 26 test uyarısız geçti; Şubeler sayfasındaki ŞİRKET kartı derlenmedi. `Test.ps1` en az 46 test bekler — 29.09.2026 |
-| G-073: Mustafa'nın 4 kararı (satış sonu, değişken salgın dönemi, oyun enflasyon eğrisi, %25 marj) | **DERLENMEDİ** — taklit ortamında 26 test geçti; Unreal test sayısı değişmedi (en az 46) — 29.09.2026 |
+| G-060: personel ve muhasebe | **GEÇTİ** — Unreal derlemesi, 46/46 otomasyon ve smoke — 29.09.2026 |
+| G-061…G-068: takvim, müşteriler, tedarik, kampanyalar, rakipler, hikâye, finans ve şubeler | **GEÇTİ** — Unreal derlemesi, ilgili otomasyonlar ve smoke — 29.09.2026 |
+| G-069: internet mağazacılığı ve ödeme | **GEÇTİ** — Unreal derlemesi, Online/Payments testleri ve smoke — 29.09.2026 |
+| G-070: insan hareketi zekâsı | **GEÇTİ** — Unreal derlemesi, Motion testi ve 39,5 saniyelik smoke satış döngüsü — 29.09.2026 |
+| G-071: stratejik ilerletme, zorluk ve ev harçlığı | **GEÇTİ** — Unreal derlemesi ve Simulation testi — 29.09.2026 |
+| G-072: şirket büyümesi | **GEÇTİ** — Unreal derlemesi ve Company testi — 29.09.2026 |
+| G-073: satış sonu, değişken salgın, oyun enflasyonu ve %25 marj kararları | **GEÇTİ** — Unreal derlemesi; Suppliers/Online/Story testleri — 29.09.2026 |
 | Stüdyoda elle deneme: kutu (açılım) → Oyuna ekle → OYNA | GEÇTİ: milk_1l oyunda; ön/yan/üst yüzler doğru, ayna yok, raf oturması doğru — 27.09.2026 |
 | Stüdyoda elle deneme: cam şişe modeli + malzeme.json | Bekliyor (henüz model yok) |
 
@@ -93,13 +93,11 @@ G-054 doğrulandı: 300 TL babadan kalan borç masada P ile ödenir; kapanmadan 
 
 G-059 doğrulandı: M ile tıklanabilir yönetim menüsü (oyun durur); sipariş, fiyat karşılaştırma, personel, rakipler, şubeler, raporlar. Gün sonu raporu menüde kalır ("Yeni güne başla"). Açık/koyu tema. Ayrıntı: `Docs/MENU.md`.
 
-**G-060 (Claude, derlenmedi):** personel artık kişi kişi (`MarketStaff.*`, `Docs/PERSONEL_VE_MUHASEBE.md`). Değişen dosyalar: `MarketEconomy.h/.cpp` (kadro, aday, defter alanları; `DailyPayroll`; siparişler `Purchases`'a yazılır), `MarketStaff.h/.cpp` (yeni), `MarketStaffTests.cpp` (yeni, 3 test), `MarketGame.h/.cpp` (H/J/K kişiyle, kasiyer hızı, gün sonunda `MarketStaff::CloseDay`, yüklemede `Migrate`), `MarketWorkers.cpp` (görevli hızı/taşıma/acemi yalnız doldurur, adıyla yürür), `MarketMenu.cpp` (`StaffCommand`), `MarketMenuWidget.cpp` (Personel sayfası yeniden, gün raporunda PERSONEL VE VERGİ), `Test.ps1` en az 27 test. Derleme hatası çıkarsa en olası yerler Slate sözdizimi (`StaffPage`) ve `MarketStaff.cpp` içindeki UE API kullanımları.
-
-**G-061…G-065 (Claude, derlenmedi):** takvim/hava/bayram (`MarketCalendar`), müşteri segmentleri (`MarketCustomers`), tedarik/enflasyon (`MarketPrices`, `MarketSuppliers`), oyuncu kampanyaları (`MarketPromotions`), rakip şirketler ve pay modeli (`MarketCompetitors`), tek bağlantı noktası (`MarketDirector`). Hepsi saf mantık + test; taklit ortamında (Linux g++) derlenip testleri geçti. Unreal derlemesi yapılmadı. Oyun kodunda değişen yerler: `MarketGame.cpp` (müşteri doğuşu, raf önü bakma, sabır, bütçe, kampanya fiyatı, fiyat yenileme, sipariş vadesi, etiket), `MarketGame.h`, `MarketMenu.cpp` (`StaffCommand` → `MarketDirector::Command`), `MarketMenuWidget.cpp` (Sipariş: toptancı kartı; Ürünler: kampanya düğmeleri; Rakipler: şirket satırları; Raporlar: işletme haberleri), `MarketHudWidget.cpp` (tarih). `Test.ps1` en az 34 test.
+**G-060…G-073 doğrulandı:** GitHub'daki `claude/eloquent-mayer-eztxir` dalından 19 commit yerel `main` dalına fast-forward alındı. İlk Unreal derlemesinde `MarketCompetitors.cpp` içindeki yerel `Target` adı önceki değişkeni gölgelediği için C4456 oluştu; çalışan hedefi `PoachingTarget` olarak adlandırıldı. Ardından `DERLE.cmd /q`, 46/46 otomasyon testi ve gerçek oyun smoke testi geçti. Smoke 39,5 saniyede 1 satış yaptı; gün kapama, çoklu sipariş, arka kapı mal kabulü, işe alma ve disk kayıt/yükleme tamamlandı.
 
 ## Sıradaki adımlar
 
-00. Codex/Mustafa: G-060…G-065'i derle ve test et (`DERLE.cmd /q`, `TEST.cmd /q` → 34, `SmokeTest.ps1`). Derleme hatası en çok Slate menü eklerinde ve UE API ayrıntılarında beklenir. Sonra oyunda: M → Personel (aday al, müşavir), Sipariş (toptancı kartı), Ürünler (kampanya), Rakipler (şirketler); akşam raporunda yarının hava/bayram tahmini.
+00. Mustafa: oyunda M menüsünden G-060…G-073 sistemlerini elle dene; özellikle Personel, toptancı, kampanya, rakipler, şubeler ve ZAMAN · ZORLUK kartını kontrol et.
 0. Mustafa: oyunda MetaHuman ayak basışını yeniden dene; masada birkaç ürünü B ile listeye ekle, N ile onayla, günü kapat ve arka kapıdaki koliyi E ile depoya taşı.
 1. Mustafa: M ile menüyü aç, günü kapat, raporu gör. Sonra G-055 oyun testi: borç, rakip haberleri ve hafta raporu dengesi.
 2. Paralel (Mustafa): İlk Hafta için 20–40 ürünü gerçek ambalajıyla hazırla; 97 ürünün hepsi gerekmiyor.

@@ -261,22 +261,22 @@ void MarketCompetitors::CloseDay(FMarketState& State, const TArray<FMarketProduc
     // 4. Poaching: now and then a chain offers one of our good people a job.
     if (RivalMix(State.RivalSeed, Closed, 0x9A7Eu) % 40u == 0u)
     {
-        FMarketEmployee* Target = nullptr;
+        FMarketEmployee* PoachingTarget = nullptr;
         for (FMarketEmployee& E : State.Staff)
         {
             const MarketStaff::ERole Role = MarketStaff::RoleOf(E);
-            if ((Role == MarketStaff::ERole::Cashier || Role == MarketStaff::ERole::Stocker) && E.Skill >= 65 && E.LeaveDay == 0 && (!Target || E.Skill > Target->Skill)) Target = &E;
+            if ((Role == MarketStaff::ERole::Cashier || Role == MarketStaff::ERole::Stocker) && E.Skill >= 65 && E.LeaveDay == 0 && (!PoachingTarget || E.Skill > PoachingTarget->Skill)) PoachingTarget = &E;
         }
-        if (Target)
+        if (PoachingTarget)
         {
             const TCHAR* Chain = RivalMix(State.RivalSeed, Closed, 0x9A7Fu) % 2u == 0u ? TEXT("A101") : TEXT("B\u0130M");
-            if (Target->Morale < 45.f) // below the level where MarketStaff lets a notice be withdrawn
+            if (PoachingTarget->Morale < 45.f) // below the level where MarketStaff lets a notice be withdrawn
             {
-                Target->LeaveDay = State.Day + 1;
+                PoachingTarget->LeaveDay = State.Day + 1;
                 News.Add(FString::Printf(TEXT("%s, %s'e daha iyi \u00fccret teklif etti. %s ayr\u0131lmak istiyor (%d. g\u00fcn\u00fcn sonunda). Zam yaparsan kalabilir."),
-                    Chain, *Target->Name, *Target->Name, Target->LeaveDay));
+                    Chain, *PoachingTarget->Name, *PoachingTarget->Name, PoachingTarget->LeaveDay));
             }
-            else News.Add(FString::Printf(TEXT("%s, %s'e i\u015f teklif etti; %s burada mutlu, reddetti."), Chain, *Target->Name, *Target->Name));
+            else News.Add(FString::Printf(TEXT("%s, %s'e i\u015f teklif etti; %s burada mutlu, reddetti."), Chain, *PoachingTarget->Name, *PoachingTarget->Name));
         }
     }
 }

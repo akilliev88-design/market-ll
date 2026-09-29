@@ -2,6 +2,19 @@
 
 En yeni giriş en üstte. Biçim: tarih — ajan — başlık, ardından **Yapılan**, **Doğrulama**, **Sıradaki**.
 
+## 29.09.2026 — Codex — GitHub eşitleme ve G-060…G-073 doğrulaması
+
+**Yapılan**
+- GitHub'daki `claude/eloquent-mayer-eztxir` dalında bulunan 19 yeni commit yerel `main` dalına fast-forward alındı; 77 dosyada 10.559 satır eklendi.
+- İlk Windows/Unreal derlemesindeki C4456 düzeltildi: `MarketCompetitors.cpp` içindeki çalışan hedefi değişkeni `Target` yerine `PoachingTarget` oldu.
+- G-060…G-073 görevleri ve güncel durum doğrulandı.
+
+**Doğrulama**
+- `DERLE.cmd /q`: geçti.
+- `TEST.cmd /q`: 46/46 geçti, 0 hata ve 0 uyarı.
+- `SmokeTest.ps1`: geçti; 39,5 saniyede 1 satış, gün kapama, çoklu sipariş, arka kapı mal kabulü, işe alma ve disk kayıt/yükleme tamamlandı.
+
+**Sıradaki**: Mustafa oyunda M menüsünden Personel, tedarikçi, kampanya, rakip, şube ve zaman/zorluk akışlarını elle deneyecek.
 ## 29.09.2026 — Claude (Claude Code, bulut) — Mustafa'nın 4 kararı G-073 — DERLENMEDİ
 
 **Mustafa**: "Kararı sen ver, oyun oynanırken eğlenceli olsun. Gerçek hayatla birebir olması şart değil; birebir yaparsak tahmin edilebilirlik artar."
