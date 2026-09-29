@@ -15,6 +15,7 @@
 #include "MarketOnline.h"
 #include "MarketPayments.h"
 #include "MarketSimulation.h"
+#include "MarketCompany.h"
 
 float MarketDirector::TrafficFactor(const FMarketState& State, const TArray<FString>& Aisles)
 {
@@ -159,6 +160,11 @@ bool MarketDirector::Command(FMarketState& State, const TArray<FMarketProduct>& 
     if (Action == TEXT("FreeDelivery")) return MarketOnline::SetFreeDelivery(State, Arg != 0, OutMessage);
     if (Action == TEXT("Card")) return MarketPayments::SetCard(State, Arg != 0, OutMessage);
     if (Action == TEXT("MealCard")) return MarketPayments::SetMealCard(State, Arg != 0, OutMessage);
+    if (Action == TEXT("OpenStore"))
+        return MarketCompany::OpenStore(State, static_cast<MarketCompany::ECity>(FMath::Clamp(Arg, 0, static_cast<int32>(MarketCompany::ECity::Count) - 1)), OutMessage);
+    if (Action == TEXT("CloseStore"))
+        return MarketCompany::CloseStore(State, static_cast<MarketCompany::ECity>(FMath::Clamp(Arg, 0, static_cast<int32>(MarketCompany::ECity::Count) - 1)), OutMessage);
+    if (Action == TEXT("Build")) return MarketCompany::Build(State, Arg, OutMessage);
     if (Action == TEXT("Difficulty")) return MarketSimulation::SetDifficulty(State, Arg, OutMessage);
     if (Action == TEXT("PandemicProfile"))
     {
@@ -189,6 +195,7 @@ void MarketDirector::CloseDay(FMarketState& State, const TArray<FMarketProduct>&
     MarketCredit::CloseDay(State);               // paydays of the credit book (G-067)
     MarketCompetitors::CloseDay(State, Products, MarketRivals::Aisles(Products)); // shares, rivals' moves, poaching (G-065)
     MarketBranches::CloseDay(State, Products);   // opening steps and the simulated day of every branch (G-068)
+    MarketCompany::CloseDay(State);              // stores in other cities, depot, trucks, leadership (G-072)
     MarketPayments::CloseDay(State);             // card money arrives, commissions and POS rent (G-069)
     MarketOnline::CloseDay(State, Products);     // phone, web and platform orders picked from our stock (G-069)
     MarketStaff::CloseDay(State);     // till, fatigue, morale, notices, HR, accountant and the weekly tax (G-060)

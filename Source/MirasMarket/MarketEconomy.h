@@ -304,6 +304,36 @@ struct FMarketBranch
     UPROPERTY() int64 WeekProfit = 0;
 };
 
+// Stores of the company outside L\u00fcleburgaz, one row per city (MarketCompany.h). Aggregate: no shelves, no people
+// walking; revenue, margin and costs per store follow the city, the logistics and the company's buying power.
+USTRUCT()
+struct FMarketCityStores
+{
+    GENERATED_BODY()
+    UPROPERTY() uint8 City = 0;             // MarketCompany::ECity
+    UPROPERTY() int32 Stores = 0;
+    UPROPERTY() int32 FirstDay = 0;         // day the first store opened
+    UPROPERTY() float Maturity = 0.f;       // 0..1: shoppers' habit (grows over 60 days, a new store dilutes it)
+    UPROPERTY() int64 LastProfit = 0;       // all stores of the city, last closed day
+    UPROPERTY() int64 Last30Profit = 0;     // running sum over the last 30 days (approximate)
+};
+
+// The company beyond the family shop and its L\u00fcleburgaz branches (MarketCompany.h). Older saves: nothing built.
+USTRUCT()
+struct FMarketCompany
+{
+    GENERATED_BODY()
+    UPROPERTY() TArray<FMarketCityStores> Cities;
+    UPROPERTY() bool bDepot = false;          // regional depot (Trakya)
+    UPROPERTY() int32 Trucks = 0;
+    UPROPERTY() bool bCentralBuying = false;  // buying for all stores at once
+    UPROPERTY() bool bPrivateLabel = false;   // "Miras" own brand
+    UPROPERTY() bool bDarkStore = false;      // a depot that only picks online orders
+    UPROPERTY() int32 LeadershipDays = 0;     // chapter 7: days leading on every measure in a row
+    UPROPERTY() int64 LastProfit = 0;         // all city stores + head office, last closed day
+    UPROPERTY() int64 WeekProfit = 0;
+};
+
 // Online orders (MarketOnline.h): channels by era, the delivery team and what the last closed day did.
 // Older saves load everything off.
 USTRUCT()
@@ -496,6 +526,8 @@ struct FMarketState
     UPROPERTY() FMarketPayments Payments;
     // Difficulty (MarketSimulation.h): 0 easy, 1 normal, 2 hard. Days played by the strategic advance.
     UPROPERTY() uint8 Difficulty = 1;
+    // Growth beyond L\u00fcleburgaz (MarketCompany.h).
+    UPROPERTY() FMarketCompany Company;
     UPROPERTY() int32 AdvancedDays = 0;
     // Local share at the start of the last day close (MarketCompetitors replaces the simple satisfaction update).
     UPROPERTY() float ShareBeforeClose = 25.f;

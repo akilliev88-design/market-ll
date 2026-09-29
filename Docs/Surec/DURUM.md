@@ -1,6 +1,6 @@
 # Güncel durum
 
-Son güncelleme: 28.09.2026 — Claude (G-060…G-071 arka plan sistemleri, DERLENMEDİ)
+Son güncelleme: 28.09.2026 — Claude (G-060…G-072 arka plan sistemleri, DERLENMEDİ)
 
 ## Kısaca
 
@@ -61,6 +61,7 @@ GitHub ana deposu: `https://github.com/m07tas/market-ll` (`main`). Unreal/Blende
 | G-069: internet mağazacılığı (telefon/web/platform, kurye, ikame, itibar, ilçe online payı, 2020-21 profili) ve ödeme (nakit/kart/yemek kartı, POS, kart parası ertesi gün) | **DERLENMEDİ** — taklit ortamında 23 test geçti; `MarketGame.cpp` `Checkout` ve menü kartı derlenmedi. `Test.ps1` en az 43 test bekler — 28.09.2026 |
 | G-070: insan hareketi zekâsı (yürüme tarzı, rota sırası, raf önü süresi, kuyruktan vazgeçme, kalabalıkta yol verme, sohbet) | **DERLENMEDİ** — taklit ortamında 24 test geçti; `MarketGame.cpp` Tick/SpawnCustomer bağlantısı derlenmedi. `Test.ps1` en az 44 test bekler — 28.09.2026 |
 | G-071: stratejik ilerletme, zorluk, ev harçlığı | **DERLENMEDİ** — taklit ortamında 25 test geçti; `MarketMenu.cpp` Advance komutu ve ZAMAN kartı derlenmedi. `Test.ps1` en az 45 test bekler — 29.09.2026 |
+| G-072: şirket büyümesi (şehir mağazaları, depo, kamyon, merkezi alım, Miras markası, karanlık mağaza, 4-7. bölüm, Miras sonu) | **DERLENMEDİ** — taklit ortamında 26 test uyarısız geçti; Şubeler sayfasındaki ŞİRKET kartı derlenmedi. `Test.ps1` en az 46 test bekler — 29.09.2026 |
 | Stüdyoda elle deneme: kutu (açılım) → Oyuna ekle → OYNA | GEÇTİ: milk_1l oyunda; ön/yan/üst yüzler doğru, ayna yok, raf oturması doğru — 27.09.2026 |
 | Stüdyoda elle deneme: cam şişe modeli + malzeme.json | Bekliyor (henüz model yok) |
 

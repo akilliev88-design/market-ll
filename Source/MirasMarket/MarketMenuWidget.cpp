@@ -14,6 +14,7 @@
 #include "MarketCredit.h"
 #include "MarketFreshness.h"
 #include "MarketBranches.h"
+#include "MarketCompany.h"
 #include "Brushes/SlateColorBrush.h"
 #include "Engine/Texture2D.h"
 #include "ImageUtils.h"
@@ -1366,6 +1367,25 @@ TSharedRef<SWidget> SMarketMenu::BranchesPage()
             [ Button([] { return FString(TEXT("Mahalle marketi a\u00e7")); }, [this, D] { Manage(TEXT("OpenBranch"), D * 10 + 1); }, true) ]
         ];
     }
+    // G-072: stores in other cities (aggregate) and what the company builds.
+    TSharedRef<SWrapBox> CityButtons = SNew(SWrapBox).UseAllottedSize(true).InnerSlotPadding(FVector2D(6.f, 6.f));
+    for (int32 City = 0; City < static_cast<int32>(MarketCompany::ECity::Count); ++City)
+    {
+        const MarketCompany::ECity Id = static_cast<MarketCompany::ECity>(City);
+        CityButtons->AddSlot()
+        [ Button([G, Id]
+            {
+                const FMarketCityStores* Row = G() ? MarketCompany::Find(G()->State, Id) : nullptr;
+                return FString::Printf(TEXT("%s +1 (%d)"), MarketCompany::CityInfo(Id).Name, Row ? Row->Stores : 0);
+            },
+            [this, City] { Manage(TEXT("OpenStore"), City); }, false,
+            [G, Id] { return G() && MarketCompany::ChapterOpen(G()->State, MarketCompany::CityInfo(Id).Chapter); }) ];
+    }
+    static const TCHAR* BuildNames[5] = { TEXT("B\u00f6lge deposu"), TEXT("Kamyon al"), TEXT("Merkezi sat\u0131n alma"), TEXT("\"Miras\" \u00f6zel markas\u0131"), TEXT("Karanl\u0131k ma\u011faza") };
+    TSharedRef<SWrapBox> BuildButtons = SNew(SWrapBox).UseAllottedSize(true).InnerSlotPadding(FVector2D(6.f, 6.f));
+    for (int32 What = 0; What < 5; ++What)
+        BuildButtons->AddSlot()[ Button([What] { return FString(BuildNames[What]); }, [this, What] { Manage(TEXT("Build"), What); }, false,
+            [G] { return G() && MarketCompany::ChapterOpen(G()->State, 4); }) ];
     return SNew(SScrollBox)
     + SScrollBox::Slot()
     [
@@ -1408,6 +1428,17 @@ TSharedRef<SWidget> SMarketMenu::BranchesPage()
                 + SVerticalBox::Slot().AutoHeight()[ Districts ]
                 + SVerticalBox::Slot().AutoHeight().Padding(0.f, 8.f, 0.f, 0.f)
                 [ Fixed(TEXT("A\u00e7\u0131l\u0131\u015f: depozito ve tadilat (5 g\u00fcn) \u2192 ruhsat (3 g\u00fcn; m\u00fc\u015favir yoksa 3 g\u00fcn daha) \u2192 i\u015fe al\u0131m \u2192 a\u00e7\u0131l\u0131\u015f sto\u011fu. Raflar otomatik planlan\u0131r; \u015fube her g\u00fcn ayn\u0131 kurallarla i\u015fler. \u00dc\u00e7\u00fcnc\u00fc \u015fube i\u00e7in \u0130K m\u00fcd\u00fcr\u00fc gerekir."), 10, ERole::Muted) ])
+        ]
+        + SVerticalBox::Slot().AutoHeight().Padding(0.f, 12.f, 0.f, 0.f)
+        [
+            Card(SNew(SVerticalBox)
+                + SVerticalBox::Slot().AutoHeight().Padding(0.f, 0.f, 0.f, 6.f)[ Fixed(TEXT("\u015e\u0130RKET \u00b7 TRAKYA, T\u00dcRK\u0130YE, SINIR \u00d6TES\u0130"), 9, ERole::Muted, true) ]
+                + SVerticalBox::Slot().AutoHeight().Padding(0.f, 0.f, 0.f, 8.f)
+                [ Label([G] { return G() ? MarketCompany::Summary(G()->State) : FString(); }, 10, ERole::Text, false, true) ]
+                + SVerticalBox::Slot().AutoHeight()[ CityButtons ]
+                + SVerticalBox::Slot().AutoHeight().Padding(0.f, 8.f, 0.f, 0.f)[ BuildButtons ]
+                + SVerticalBox::Slot().AutoHeight().Padding(0.f, 8.f, 0.f, 0.f)
+                [ Fixed(TEXT("\u015eehirler b\u00f6l\u00fcmle a\u00e7\u0131l\u0131r (Trakya 4, T\u00fcrkiye 5, s\u0131n\u0131r \u00f6tesi 6) ve \u0130K m\u00fcd\u00fcr\u00fc ile mali m\u00fc\u015favir ister. Uzak ma\u011fazalar depo ve kamyon olmadan marj kaybeder."), 10, ERole::Muted) ])
         ]
     ];
 }

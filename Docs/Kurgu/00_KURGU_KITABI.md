@@ -203,6 +203,41 @@ Online sipariş dükkânın stoğunu paylaşır: kapanışta önce depodan, sonr
 
 Aile dükkânı → ilçe zinciri → bölge (depo, kamyon) → ulusal (özel marka "Miras", bölge müdürlükleri, merkezi satın alma) → uluslararası (ülke profili: para birimi, ürün boyları, rakipler, kira). Her aşamanın açılma koşulu **birden çok ölçüttür** (nakit, hizmet, ekip, borç yapısı); tek başına para yetmez. Şirket adı ve tabela kimliği oyuncunun seçimidir. İlk dükkânın aile tabelası korunabilir.
 
+**Uygulandı (G-072, `MarketCompany`, derlenmedi).** Lüleburgaz dışındaki mağazalar şehir başına **toplu** işler. Her şehir için ayrı raf ya da yürüyen insan yoktur. Bir mağazanın günü şöyle hesaplanır:
+
+- Ciro: 2.500 TL × şehrin cüzdanı ÷ rekabet × alışkanlık (60 günde oluşur) × takvim × fiyat düzeyi.
+- Brüt marj: %20.
+- Lojistik kaybı: depo yoksa uzak mağazada %3; kamyon yetmezse (8 mağazaya bir kamyon) %1,5; yurt dışında %1.
+- Giderler: kira, 5 kişi ve işletme gideri.
+
+Yatırımların marja ve maliyete etkisi:
+
+| Yatırım | Etki |
+|---|---|
+| Bölge deposu (≥4 mağaza) | Marj +%1,5 |
+| Merkezi satın alma (depo + ≥8 mağaza) | Marj +%2 |
+| "Miras" özel markası (Türkiye bölümü + ≥20 mağaza) | Marj +%1,5, müşteri +%3 |
+| Karanlık mağaza (web + ≥20 mağaza) | Web kapasitesi ve siparişi artar |
+
+Merkez gideri: 8 mağazadan sonra her 10 mağazaya bir bölge müdürü; ayrıca depo, kamyon ve karanlık mağaza giderleri.
+
+**Şehirler bölümle açılır:**
+
+- **Trakya (4. bölüm):** Babaeski, Kırklareli, Çorlu, Tekirdağ, Edirne, Keşan.
+- **Türkiye (5. bölüm):** İstanbul Avrupa ve Anadolu, Bursa, İzmir, Ankara, Kocaeli.
+- **Sınır ötesi (6. bölüm):** Kırcaali, Filibe, Köstence.
+
+Başka şehirde mağaza açmak için İK müdürü ve mali müşavir gerekir. Yeni ülkede ilk 90 gün marj %3 düşüktür. Ulusal pay mağaza başına ~%0,04'tür.
+
+**Bölüm hedefleri state'ten ölçülür:**
+
+- **4. bölüm:** 2 ilde 8 mağaza, depo ve kamyon.
+- **5. bölüm:** 50 mağaza, Miras markası ve %2 ulusal pay.
+- **6. bölüm:** Kırcaali pilotu 30 günde kârlı; Romanya'da mağaza.
+- **7. bölüm:** bir yıl her ölçüde önde olmak: yerel pay %40, 60 mağaza, kârlı gün, sadık müşteri memnuniyeti %60. Bu **"Miras" sonunu** (`EEnding::Legacy`) verir; oyun serbest devam eder. Koşul bozulan günde sayaç 3 gün geri gider.
+
+Döviz kuru ve ülke profilleri (ürün boyları, yerel rakipler) sonraki aşamadır.
+
 Sonlar: **Sattın** (2. bölüm), **Mahallenin dükkânı** (tek dükkânda kalıp sağlam yaşamak da bir sondur), **Trakya'nın markası**, **Türkiye'nin markası**, **Sınır ötesi**, **Miras** (birden çok ölçütte liderlik). Hiçbiri "kaybettin" değildir.
 
 ## 13. Uygulama sırası ve durum
@@ -221,7 +256,7 @@ Sonlar: **Sattın** (2. bölüm), **Mahallenin dükkânı** (tek dükkânda kal�
 | İnternet mağazacılığı ve ödeme | `MarketOnline`, `MarketPayments` | G-069, derlenmedi |
 | İnsan hareketi zekâsı | `MarketMotion` (+ `MarketPeople` animasyon) | G-070, derlenmedi |
 | Stratejik ilerletme ve zorluk | `MarketSimulation` | G-071, derlenmedi |
-| Şirket büyümesi | `MarketCompany` | G-072 |
+| Şirket büyümesi | `MarketCompany` | G-072, derlenmedi |
 | Oyuna bağlama noktası | `MarketDirector` | her adımda büyür |
 
 **Stratejik ilerletme (G-071):** dükkân kapalıyken "1 gün / 1 hafta ilerlet" ile gün, yürüyen insan olmadan aynı kurallarla oynanır. Aile rutin işleri yapar: zammı rafa yansıtır, vergiyi ve borç taksitini öder, rafı doldurur, önerilen siparişi verir. Karar bekleyince, kasa eksiye düşünce ya da hafta bitince durur. **Zorluk:** Rahat (müşteri +%10, fiyat hoşgörüsü +0,05), Normal, Zor (müşteri −%8, hoşgörü −0,04). Tarih (enflasyon, bayramlar, rakip açılışları) zorlukla değişmez.

@@ -2,6 +2,29 @@
 
 En yeni giriş en üstte. Biçim: tarih — ajan — başlık, ardından **Yapılan**, **Doğrulama**, **Sıradaki**.
 
+## 29.09.2026 — Claude (Claude Code, bulut) — Şirket büyümesi G-072 — DERLENMEDİ
+
+**Yapılan**
+- `MarketCompany`: Lüleburgaz dışında 15 şehir, toplu mağaza modeli. Bir mağazanın günü: ciro × marj − lojistik − kira/personel/gider; alışkanlık 60 günde oluşur.
+  - Trakya: Babaeski, Kırklareli, Çorlu, Tekirdağ, Edirne, Keşan.
+  - Türkiye: İstanbul Avrupa ve Anadolu, Bursa, İzmir, Ankara, Kocaeli.
+  - Sınır ötesi: Kırcaali, Filibe, Köstence.
+- Yatırımlar: bölge deposu, kamyon (8 uzak mağazaya bir), merkezi satın alma, "Miras" özel markası, karanlık mağaza. Karanlık mağaza web kapasitesini ve siparişini artırır (`MarketOnline`). 10 mağazaya bir bölge müdürü gideri.
+- Ulusal pay mağaza başına ~%0,04. Yeni ülkede 90 gün öğrenme (−%3 marj) ve %1 gümrük.
+- `MarketStory` 4-7. bölüm hedefleri artık gerçek ölçülerle çalışıyor, yani bölümler ilerliyor. 7. bölümde bir yıllık liderlik "Miras" sonunu (`EEnding::Legacy`) verir; oyun serbest devam eder.
+- Director komutları: OpenStore, CloseStore, Build. Şubeler sayfasına ŞİRKET kartı eklendi (şehir düğmeleri ve yatırımlar).
+- Kurgu kitabı §12, kararlar I02-I05, AGENTS, GOREVLER güncellendi. `Test.ps1` en az 46 test bekler.
+
+**Varsayımlar**
+- Olgun bir zincir mağazası 2011'de günde 2.500 TL ciro yapar, marjı %20'dir.
+- 5 kişilik personelin kişi başı günlük işveren maliyeti 40 TL × asgari ücret endeksidir.
+- Olgun bir Kırklareli mağazası günde ~200 TL net getirir; depo yokken Çorlu ~80 TL.
+- Ülke seçimi: Kırcaali'de Türkçe konuşan çok aile var.
+
+**Doğrulama**: Unreal yok, **derlenmedi**. Taklit ortamında 26 test `-Wall -Wextra` uyarısız geçti.
+
+**Sıradaki**: kurgu kitabındaki bütün modüller yazıldı. Codex/Mustafa: DERLE + TEST (46) + Smoke. Açık sorular: satış sonu, salgın profili, enflasyon sertliği, katalog marjı.
+
 ## 29.09.2026 — Claude (Claude Code, bulut) — Stratejik ilerletme, zorluk, ev harçlığı G-071 — DERLENMEDİ
 
 **Yapılan**

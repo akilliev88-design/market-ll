@@ -4,6 +4,7 @@
 #include "MarketEvents.h"
 #include "MarketGoods.h"
 #include "MarketStaff.h"
+#include "MarketCompany.h"
 
 namespace MarketStory
 {
@@ -115,16 +116,32 @@ TArray<MarketStory::FObjective> MarketStory::Objectives(const FMarketState& Stat
         Add(TEXT("Defterleri mali m\u00fc\u015favire devret"), MarketStaff::HasAccountant(State));
         break;
     case 4:
-        Add(TEXT("\u0130ki ilde 8 \u015fube"), false, true); Add(TEXT("B\u00f6lge deposu"), false, true); Add(TEXT("\u0130lk kamyon"), false, true);
+    {
+        const int32 Stores = MarketCompany::TotalStores(State), Provinces = MarketCompany::Provinces(State);
+        Add(FString::Printf(TEXT("\u0130ki ilde 8 ma\u011faza (\u015fu an %d ma\u011faza, %d il)"), Stores, Provinces), Stores >= 8 && Provinces >= 2);
+        Add(TEXT("B\u00f6lge deposu"), State.Company.bDepot);
+        Add(TEXT("\u0130lk kamyon"), State.Company.Trucks > 0);
         break;
+    }
     case 5:
-        Add(TEXT("50 \u015fube"), false, true); Add(TEXT("\u00d6zel marka \"Miras\""), false, true); Add(TEXT("Ulusal pay %2"), false, true);
+    {
+        const int32 Stores = MarketCompany::TotalStores(State);
+        Add(FString::Printf(TEXT("50 ma\u011faza (\u015fu an %d)"), Stores), Stores >= 50);
+        Add(TEXT("\u00d6zel marka \"Miras\""), State.Company.bPrivateLabel);
+        Add(FString::Printf(TEXT("Ulusal pay %%2 (\u015fu an %%%.2f)"), MarketCompany::NationalShare(State)), MarketCompany::NationalShare(State) >= 2.f);
         break;
+    }
     case 6:
-        Add(TEXT("Bulgaristan pilot ma\u011fazas\u0131 k\u00e2rl\u0131"), false, true); Add(TEXT("\u0130kinci \u00fclke"), false, true);
+    {
+        const FMarketCityStores* Pilot = MarketCompany::Find(State, MarketCompany::ECity::Kircaali);
+        const bool bPilot = Pilot && Pilot->Stores > 0 && State.Day - Pilot->FirstDay >= 30 && Pilot->Last30Profit > 0;
+        Add(TEXT("K\u0131rcaali pilot ma\u011fazas\u0131 30 g\u00fcnde k\u00e2rl\u0131"), bPilot);
+        Add(TEXT("\u0130kinci \u00fclke (Romanya)"), MarketCompany::CountryStores(State, TEXT("Romanya")) > 0);
         break;
+    }
     case 7:
-        Add(TEXT("Birden \u00e7ok \u00f6l\u00e7\u00fctte liderlik"), false, true);
+        Add(FString::Printf(TEXT("Bir y\u0131l her \u00f6l\u00e7\u00fctte \u00f6nde: pay %%40, 60 ma\u011faza, k\u00e2r, memnun m\u00fc\u015fteri (%d / %d g\u00fcn)"),
+            State.Company.LeadershipDays, MarketCompany::LeadershipGoalDays), State.Company.LeadershipDays >= MarketCompany::LeadershipGoalDays);
         break;
     default: break;
     }

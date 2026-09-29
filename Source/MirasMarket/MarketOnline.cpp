@@ -88,7 +88,8 @@ namespace MarketOnline
     {
         if (!State.Online.bWeb) return 0.f;
         return DistrictTrips(State, GameDay) * DistrictOnlineShare(State, GameDay) / 1.6f * 0.12f * RepFactor(State)
-            * (State.Online.bFreeDelivery ? 1.25f : 1.f) * WebMaturity(State, GameDay);
+            * (State.Online.bFreeDelivery ? 1.25f : 1.f) * WebMaturity(State, GameDay)
+            * (State.Company.bDarkStore ? 1.5f : 1.f);   // faster delivery from the dark store
     }
 
     float PlatformOrders(const FMarketState& State, int32 GameDay)
@@ -249,12 +250,13 @@ float MarketOnline::Stars(const FMarketState& State)
 
 int32 MarketOnline::DeliveryCapacity(const FMarketState& State)
 {
-    return State.Online.Couriers > 0 ? State.Online.Couriers * OrdersPerCourier : OrdersWithoutCourier;
+    // A dark store (MarketCompany) has its own delivery team.
+    return (State.Online.Couriers > 0 ? State.Online.Couriers * OrdersPerCourier : OrdersWithoutCourier) + (State.Company.bDarkStore ? 60 : 0);
 }
 
 int32 MarketOnline::PickCapacity(const FMarketState& State)
 {
-    return 6 + FMath::Max(0, State.Stockers) * 18 + State.Online.Couriers * 4;
+    return 6 + FMath::Max(0, State.Stockers) * 18 + State.Online.Couriers * 4 + (State.Company.bDarkStore ? 80 : 0);
 }
 
 float MarketOnline::ExpectedOrders(const FMarketState& State, EChannel Channel)

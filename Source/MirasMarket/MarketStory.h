@@ -19,7 +19,7 @@
 namespace MarketStory
 {
     enum class EIdentity : uint8 { None = 0, Bakkal, Kaliteli, Indirim };
-    enum class EEnding : uint8 { None = 0, Sold };
+    enum class EEnding : uint8 { None = 0, Sold, Legacy };
     constexpr int32 StoryOverChapter = 99;   // the player chose an ending; free play
 
     struct FObjective

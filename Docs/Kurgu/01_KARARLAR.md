@@ -124,10 +124,10 @@ Sahiplik (M, 28.09.2026): 3B model üretimi, mağaza modeli ve arayüz tasarım�
 | No | Konu | Karar | Modül | Durum |
 |---|---|---|---|---|
 | I01 | İkinci şube | Borç kapalı + 950 TL + 3 kârlı gün + %35 pay (G-054); gerçek şube sistemiyle değişecek | Derlenmedi (G-068) |
-| I02 | Bölge deposu ve kamyon | Trakya aşaması; rota, soğuk zincir (plan 01 §8) | `MarketCompany` | Tasarım |
-| I03 | Ulusal aşama | Bölge müdürlükleri, merkezi satın alma, özel marka (plan) | `MarketCompany` | Tasarım |
-| I04 | Uluslararası | İlk pilot Bulgaristan (C; plan A04 açık bırakmıştı) | `MarketCompany` | Tasarım |
-| I05 | Sonlar | Sattın / Mahallenin dükkânı / Trakya / Türkiye / Sınır ötesi / Miras (C) | `MarketStory` | Tasarım |
+| I02 | Bölge deposu ve kamyon | Depo ≥4 mağaza (marj +%1,5, uzak mağaza lojistik kaybı %3 → 0), 8 uzak mağazaya bir kamyon (yetmezse %1,5); merkezi satın alma depo + ≥8 mağaza (+%2). Rota ve soğuk zincir sonraki aşama | `MarketCompany` | Derlenmedi (G-072) |
+| I03 | Ulusal aşama | İstanbul, Bursa, İzmir, Ankara, Kocaeli toplu mağaza modeli; "Miras" özel markası (≥20 mağaza, +%1,5 marj, +%3 müşteri); 10 mağazaya bir bölge müdürü; ulusal pay mağaza başı ~%0,04; karanlık mağaza. Yatırımcı/halka arz sonraki aşama | `MarketCompany` | Derlenmedi (G-072) |
+| I04 | Uluslararası | Pilot Kırcaali (Bulgaristan), sonra Filibe; ikinci ülke Romanya (Köstence); yeni ülkede 90 gün öğrenme (−%3 marj), gümrük %1. Kur sonraki aşama (C) | `MarketCompany` | Derlenmedi (G-072) |
+| I05 | Sonlar | Sattın (G-066); Miras: 7. bölümde bir yıl her ölçüde önde (pay %40, 60 mağaza, kâr, memnuniyet %60), oyun serbest sürer. Mahallenin dükkânı / Trakya / Türkiye / Sınır ötesi şimdilik bölüm hatıraları olarak kalır (C) | `MarketStory`, `MarketCompany` | Kısmen (G-072) |
 
 ## Açık sorular (Mustafa)
 

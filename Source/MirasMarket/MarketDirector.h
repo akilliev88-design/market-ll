@@ -51,7 +51,8 @@ namespace MarketDirector
     // Promote (Arg = employee id; runs the newest open branch),
     // OnlineChannel (Arg = channel * 10 + 1 on / 0 off; 0 phone, 1 web, 2 platform), HireCourier, FireCourier,
     // Substitute (Arg 0 ask / 1 same aisle / 2 leave out), FreeDelivery (Arg 1/0), Card (Arg 1/0), MealCard (Arg 1/0),
-    // PandemicProfile (Arg 1/0), Difficulty (Arg 0 easy / 1 normal / 2 hard).
+    // PandemicProfile (Arg 1/0), Difficulty (Arg 0 easy / 1 normal / 2 hard),
+    // OpenStore / CloseStore (Arg = MarketCompany::ECity), Build (Arg 0 depot, 1 truck, 2 central buying, 3 own brand, 4 dark store).
     bool Command(FMarketState& State, const TArray<FMarketProduct>& Products, FName Action, int32 Arg, FString& OutMessage);
     // Evening report of the background systems: wholesalers, staff, tax, ...
     FString ReportText(const FMarketState& State);
