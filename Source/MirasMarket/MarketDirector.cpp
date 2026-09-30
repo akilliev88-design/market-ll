@@ -246,6 +246,9 @@ FString MarketDirector::ReportText(const FMarketState& State)
 void MarketDirector::CloseDay(FMarketState& State, const TArray<FMarketProduct>& Products)
 {
     State.DayNews.Reset();
+    // ===== Ak\u0131\u015f B =====
+    MarketLedger::BeginClose(State, Products); // B2: the family shop's day from FMarketState::CloseDay's counters
+    // ===== Ak\u0131\u015f B son =====
     MarketPromotions::CloseDay(State, Products); // running promotions, results, funded offers (G-064)
     MarketFreshness::CloseDay(State, Products);  // batches, waste, donations (G-067) - before the books
     MarketCredit::CloseDay(State);               // paydays of the credit book (G-067)
@@ -264,5 +267,6 @@ void MarketDirector::CloseDay(FMarketState& State, const TArray<FMarketProduct>&
     MarketFinance::CloseDay(State, Products); // loans, the money trouble ladder, month-end report (G-067)
     // ===== Ak\u0131\u015f B =====
     MarketCompany::TrackNationalRevenue(State); // B1 (#45): national share by revenue, after every revenue is in
+    MarketLedger::EndClose(State);              // B2: the audit (till change = cash entries)
     // ===== Ak\u0131\u015f B son =====
 }

@@ -4,7 +4,7 @@ Sözleşme: `Docs/Kurgu/07_AKIL_ISBOLUMU.md` §4 Akış B. Dal: `claude/miras-ma
 
 ## Kaldığım yer
 
-B1 bitti ve commit edildi. Sıradaki: B2 (muhasebe defteri).
+B1, B2 bitti ve commit edildi. Sıradaki: B3 (ücret ve sigorta).
 
 ## Yapılanlar
 
@@ -25,12 +25,26 @@ Kontrol edilenler (düzeltme gerekirse C'ye):
 - **#31 "3 al 2 öde" 2 isteyeni 3'e çıkarıyor:** Tasarım gereği bırakıldı (G-078: tek ürün kapsamında bedava birime tamamlama; `Pantry` sonrası düşüşü veriyor). Verilen indirim sepet başına değil günlük satış/3 üzerinden tahmin ediliyor; sapma küçük. Artık rapor "brüt kâr"ı da gösteriyor.
 - **#39 ücret/kıdem:** B3'te ele alınıyor (kıdem tazminatı `MarketStaff::Fire` içinde zaten vardı).
 
+### B2 · Muhasebe defteri (#37, #42)
+
+Yeni `MarketLedger.h/.cpp` (`namespace MarketLedger`), durum `FMarketState::Ledger` (`FMarketLedger`).
+
+- **Kayıt:** gün, mağaza (aile dükkânı −1, merkez −2, şube indeksi 0..), hesap (35 hesap: satış, online satış, SMM, fire, eksik/kırık/kasa farkı, maaş, sigorta primi, tazminat, işe alım, kira, enerji, reklam ve diğer, banka/kart ücretleri, online giderleri, nakliye, merkez, faiz, ceza, vergi, batan veresiye, şube sonucu; bilanço hareketleri: mal alımı, vadeli alım, kredi girişi/anapara, yatırım, yatırım dönüşü, kart tahsilatı, veresiye, vergi ödemesi, eve giden para, babadan kalan borç, sermaye, açıklanamayan fark), tutar (+ giriş/gelir, − çıkış/gider), nakit mi (kasa oynadı mı).
+- **Kim yazar:** B dosyalarındaki her para hareketi yerinde `MarketLedger::Post` ile (Campaign, Credit, Finance, Online, Payments, Staff, Company, Freshness). `MarketEconomy.cpp`'nin hareketleri (kasa satışı, SMM, mal alımı, maaş, enerji, reklam/diğer, eski ikinci şube, teslimat eksik/kırık) gün kapanışının başında sayaçlardan okunur (`BeginClose`). Kapanış sırasında yazılan kayıtlar kapanan güne düşer.
+- **Denetim (`EndClose`):** kasa değişimi = nakit kayıtların toplamı. Fark "açıklanamayan fark" hesabına yazılır, `Ledger.LastGap` / `GapDays` / `TotalGap` tutulur; `AuditOk`, `AuditText` ("Defter kasayla tutuyor." ya da farkın tutarı).
+- **Raporlar:** `DayStatement`, `WeekStatement`, `Statement(Gün1, Gün2, Mağaza)` (son 120 günün kayıtlarından), `MonthStatement`, `YearStatement` (ay toplamları bütün kampanya boyunca saklanır): ciro, brüt kâr, giderler, net kâr, nakit değişimi, hesap hesap tutarlar. `Balance`: kasa, stok (maliyetle, yoldaki dahil), şube stoğu, kart alacağı, veresiye, depozitolar; toptancı borcu, banka, vergi, babadan kalan borç; özkaynak.
+- **Eski kayıt:** defter boş başlar; ilk gün kapanışı farksız açar.
+- Aynı gün/mağaza/hesap/tür kayıtları tek satırda toplanır (kart ödemeleri sepet sepet gelir); 200 günlük oyunda ~1.700 satır, saklama 120 gün.
+- Testler: `Ledger.PostAndStatements`, `Ledger.CashAudit` (aile dükkânı 90 gün PlayDay: kart, veresiye, telefon siparişi, kredi, müşavir, vergi — tek fark toptancı vadesi, o da birebir), `Ledger.BalanceSheet`, `Ledger.OlderSaves`.
+- Doğrulama denemesi: aşağıdaki "C'ye istekler 7" satırları yalnız derleme kopyasına uygulanınca, iki şube açıp birini kapatan, vadeli alım yapan 260 günlük oyunda **açıklanamayan fark 0** (tek fark denemenin kendisinin bilerek kasaya koyduğu para).
+
 ## Doğrulama
 
 Bu oturum Linux bulut kapsayıcısında; Unreal yok, `DERLE.cmd` / `TEST.cmd` çalıştırılamadı. **Derlenmedi (UE).** Yerine:
 
 - Saf modüller ve testleri, Unreal'in kullanılan kısmını taklit eden küçük bir katmanla (sahte `CoreMinimal.h`: FString, TArray, TMap, FMath, FRandomStream UE algoritmasıyla, JSON, otomasyon testi makroları) clang ile `-Wshadow-all -Werror=shadow` derlenip çalıştırıldı. Dünyaya bağlı dosyalar (MarketGame, menü, mağaza kiti) bu katmanda derlenmez.
 - 30.09.2026, B1 sonrası: **78/78 test geçti** (başlangıçta 70/70; +7 `Balance.*` + dosya sayımı). UE'deki toplam 84 testin dünyaya bağlı 14'ü bu sayıya dahil değil.
+- B2 sonrası: **82/82** (+4 `Ledger.*`).
 - Codex'in `DERLE.cmd /q` + `TEST.cmd /q` koşusu bekleniyor.
 
 ## Yeni açık işlevler
@@ -43,8 +57,15 @@ Bu oturum Linux bulut kapsayıcısında; Unreal yok, `DERLE.cmd` / `TEST.cmd` ç
 - `int64 MarketFinance::MortgageAmount(State)`.
 - `int64 MarketCompany::CountryMarketDay(State)`, `int64 MarketCompany::CountryRevenueToday(State)`, `void MarketCompany::TrackNationalRevenue(State)`.
 - `FMarketState::Ledger` (`MarketLedger.h`, `FMarketLedger`): B1 alanları `TaxLossCarry`, `CountryRevenueDay`, `PromoTallies`, `OnlineSold`, `LastBelowCostUnits/Loss`.
+- `MarketLedger::Post(State, EAccount, Amount, bCash = true, Store = FamilyShop)` — her para hareketi.
+- `MarketLedger::BeginClose(State, Products)` / `EndClose(State)` — Director B blokları.
+- `MarketLedger::Statement / DayStatement / WeekStatement / MonthStatement / YearStatement` → `FStatement` (Revenue, GrossProfit, Expenses, NetProfit, CashChange, `At(EAccount)`).
+- `MarketLedger::Balance(State, Products)` → `FBalance` (Assets, Liabilities, Equity).
+- `MarketLedger::AuditOk / AuditText / StatementText / AccountName / IsIncomeStatement`.
 
 ## C'ye istekler
+
+**Director bağlaması:** B blokları `MarketDirector::CloseDay`'in başında (`MarketLedger::BeginClose`, `State.DayNews.Reset()`'ten hemen sonra, bütün sistemlerden önce olmalı) ve sonunda (`MarketCompany::TrackNationalRevenue`, `MarketLedger::EndClose`, en son olmalı). Kalıcı yerleşimde bu sıra korunmalı.
 
 1. **Fiyat değişince uyarı (#27):** Menünün Fiyat sayfası ve `AMarketGameMode` PriceUp/PriceDown bildirimi, fiyat değiştikten sonra `MarketDemand::PriceWarning(State, Products, Index)` boş değilse onu ikinci satır olarak göstersin:
    ```cpp
@@ -63,6 +84,27 @@ Bu oturum Linux bulut kapsayıcısında; Unreal yok, `DERLE.cmd` / `TEST.cmd` ç
 5. **#25 kampanya ek alışveriş getirsin:** `MarketCustomers::BuildList` liste uzunluğunu kampanya ilgisiyle biraz uzatsın (öneri: listedeki kampanyalı ürün başına %35 olasılıkla +1 kalem, en çok +1), böylece indirim başka reyondan çalmak yerine sepeti büyütür.
 6. **Menü:** Rakipler/Şirket sayfasındaki "Ulusal pay" artık ciro payı; açıklama ipucu: "Ülkedeki cironuzun ülkenin gıda perakendesine oranı (son ~30 gün)." 5. bölüm hedefi metni kodda (`MarketStory::NationalShareGoal`).
 
+7. **Defter bağlama satırları (B2).** Her satır ilgili `State.Cash` değişikliğinin hemen ardına; `P` = `MarketLedger::Post(State, MarketLedger::EAccount::`. Bağlanınca `Ledger.CashAudit` testindeki "toptancı vadesi" istisnası kaldırılıp fark 0 beklenmeli.
+   - `MarketSuppliers.cpp` `OnOrder` (`State.Cash += Bill;`): `P SupplierCredit, Bill);` · `PayBills` ve `CloseDay` vadesi gelen ödeme (`State.Cash -= Bill.Amount;`): `P SupplierCredit, -Bill.Amount);` · gecikme farkı (`Bill.Amount += Fee;`): `P Penalties, -Fee, false);`
+   - `MarketBranches.cpp` `Open` (`State.Cash -= 2 * Branch.Rent;`): `P Investment, -2 * Branch.Rent, true, State.Branches.Num());` · `Close` depozito: `P Divestment, 2 * B.Rent, true, BranchIndex);` · yarı fiyata satılan mal (`State.PendingLoss += Value;`): `P Shrinkage, -Value, false, BranchIndex);` ve `State.Cash += SoldValue;` ardına `P Divestment, SoldValue, true, BranchIndex);` · `Migrate` iadesi: `P Divestment, Refund, true, MarketLedger::HeadOfficeStore);` · açılış stoğu ve müdür siparişi (`State.Cash -= Bill; State.Purchases += Bill;`): `P Purchases, -Bill, true, Index);` (defter kapanış sırasındaki alımları aile dükkânından düşer; çift sayılmaz) · şubenin günü (`State.Cash += Revenue - Skim - Logistics - Opex;` ardına):
+     ```cpp
+     const int64 RentDay = FMath::RoundToInt64(B.Rent * MarketPrices::ListLevel(State.Day) / MarketPrices::ListLevel(FMath::Max(1, B.OpenedDay)) / 30.0);
+     const int64 WagesDay = B.Workers * MarketStaff::FairWage(MarketStaff::ERole::Cashier, 50, State.Day) + B.ManagerWage;
+     P Sales, Revenue, true, Index);          P Shrinkage, -Skim, true, Index);
+     P Logistics, -Logistics, true, Index);   P Rent, -RentDay, true, Index);
+     P Wages, -WagesDay, true, Index);        P Utilities, -(Opex - RentDay - WagesDay), true, Index);
+     P CostOfGoods, -Cogs, false, Index);     P Waste, -WasteCost, false, Index);
+     P Shrinkage, -DepotLoss, false, Index);
+     ```
+     (B3 sonrası şube ücretleri de sigorta primiyle ödenmeli: `WagesDay` için `MarketStaff::EmployerCost` kullanılır, aşağıda.)
+   - `MarketManagers.cpp` `CloseDay` (`State.Cash -= Wages;`): `P Wages, -Wages, true, MarketLedger::HeadOfficeStore);`
+   - `MarketDepots.cpp` `Build` (`State.Cash -= Cost;`): `P Investment, -Cost, true, MarketLedger::HeadOfficeStore);`
+   - `MarketCompetitors.cpp` Bereket satın alma (`State.Cash -= Price;`): `P Investment, -Price, true, MarketLedger::HeadOfficeStore);`
+   - `MarketGame.cpp` (Codex) raf küçülünce toptancıya yarı fiyata iade (`State.Cash += Refund; State.PendingLoss += Refund;`): `P Divestment, Refund); P Shrinkage, -Refund, false);`
+   - Açılışta `MarketStart::Setup` bir şey yazmak zorunda değil: defter ilk kapanışta kasayı başlangıç kabul eder.
+   - Şube tadilatı ve işe alım bedeli `State.OtherCosts` yoluyla ödeniyor; defterde aile dükkânının "reklam ve diğer" satırında görünür. Şubeye yazılsın istenirse `OtherCosts`'a eklemek yerine doğrudan `State.Cash -=` + `P Investment, -X, true, Index);` yapılmalı (ikisi birden değil).
+8. **Menü (defter):** Finans sayfasına "Gelir tablosu" (dün / bu hafta / bu ay / bu yıl: `DayStatement`, `WeekStatement`, `MonthStatement`, `YearStatement`; kartta `StatementText`, ipucunda hesap hesap `ByAccount` + `AccountName`) ve "Bilanço" (`Balance`: varlıklar, borçlar, özkaynak) kartları; altta tek satır `AuditText`. Mağaza seçilince `Statement(State, Gün1, Gün2, ŞubeIndeksi)`.
+
 ## Kararlar ve varsayımlar
 
 - **#24 sayıları:** rakip fiyatında alma %90 (eski eğri %97,3); duyarlılık K = 3; kayıptan kaçınma ×1,4; `kvi` ×(1 + kvi); esneklik 0,5–6 aralığına kırpılır. Sonuç: süt (1,5; kvi 1) rakibin %10 üstünde ~%72, kola (4) %15 üstünde ~%40 alır. 400 günlük denemede aile dükkânının cirosu ~%9 düştü (rakip fiyatında %97 → %90). Otomatik oyuncu raporunda izlenmeli; gerekirse `ParityChance` 0,92–0,93'e çekilir.
@@ -70,6 +112,8 @@ Bu oturum Linux bulut kapsayıcısında; Unreal yok, `DERLE.cmd` / `TEST.cmd` ç
 - **#30:** Online siparişler kampanya raporunun "sırasında" adedine girmez (raporlar önce kapanıyor); "öncesi" de artık online saymıyor, böylece ikisi aynı ölçü.
 - **#43:** Zarar devrinin süre sınırı yok (gerçekte 5 yıl; oyunda sadelik). İpotek faiz primi +6 puan (acil kredi +12), masraf %2 (ekspertiz, tapu). İpoteğin ödenmemesi hâlâ sonuçsuz (dükkân bankaya geçmiyor) — ayrı iş.
 - **#45:** Kişi başı günlük gıda harcaması oyun ölçeğinde 0,65 TL (başlangıç fiyat düzeyi; `ulkeler.json` → `economy.groceryPerPersonDay` ile ülke başına verilebilir; yoksa 0,65 × `wageFactor`). Ayar: oyunun ucuzcu şubesi (~900 TL/gün) gerçekteki en büyük zincirin bir mağazası kadar pay tutsun (BİM ≈ 3.500 mağazayla %6,5). Böylece 50 ucuzcu ≈ %0,1. **5. bölüm hedefi %2'den %0,1'e indi** (%2 bu ölçüde ~1.000 mağaza demek). Mustafa'ya soru olarak aşağıda.
+
+- **B2:** Defter "olay anında" yazar; oyunun `LastProfit`'i bazı kalemleri bir gün sonra gösterir (teslimat eksiği, erken ödeme ücreti) — günlük net kârlar ±bir gün kayabilir, toplam aynı. Defterin net kârı işe alım bedeli, ihbar tazminatı ve vergiyi de gider sayar (oyunun `LastProfit`'i saymıyordu: #37'nin "görünmeyen kayıplar" kısmı). Vergi beyan edilince gider (nakitsiz), ödenince bilanço hareketi. Kart komisyonu satış anında gider yazılır. Şube stoğu bugünkü alış maliyetiyle değerlenir (şube satırı ortalama maliyet tutmuyor).
 
 ## Bilinen sorunlar
 

@@ -1,4 +1,5 @@
 #include "MarketOnline.h"
+#include "MarketLedger.h"
 #include "MarketPromotions.h"
 #include "MarketCountry.h"
 #include "MarketBasket.h"
@@ -521,6 +522,9 @@ void MarketOnline::CloseDay(FMarketState& State, const TArray<FMarketProduct>& P
     State.LastOperatingCost += Costs;
     State.LastProfit += O.LastProfit;
     State.Cash += Revenue - Costs;
+    MarketLedger::Post(State, MarketLedger::EAccount::OnlineSales, Revenue); // B2
+    MarketLedger::Post(State, MarketLedger::EAccount::CostOfGoods, -Cogs, false);
+    MarketLedger::Post(State, MarketLedger::EAccount::OnlineCosts, -Costs);
 
     if (O.LastOrders > 0 || O.LastCancelled > 0)
     {

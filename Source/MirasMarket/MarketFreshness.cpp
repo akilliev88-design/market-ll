@@ -1,4 +1,5 @@
 #include "MarketFreshness.h"
+#include "MarketLedger.h"
 #include "MarketCountry.h"
 #include "MarketGoods.h"
 
@@ -142,6 +143,7 @@ void MarketFreshness::CloseDay(FMarketState& State, const TArray<FMarketProduct>
     if (State.LastWasteCost > 0)
     {
         State.LastProfit -= State.LastWasteCost;
+        MarketLedger::Post(State, MarketLedger::EAccount::Waste, -State.LastWasteCost, false); // B2
         if (Spoiled.Num() > 0)
             State.DayNews.Add(FString::Printf(TEXT("Fire: %s tarihi ge\u00e7ti ve at\u0131ld\u0131 (%s zarar). Az sipari\u015f ver ya da son g\u00fcn indirimi yap."),
                 *FString::Join(Spoiled, TEXT(", ")), *FreshTl(State.LastWasteCost)));

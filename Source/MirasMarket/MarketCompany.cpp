@@ -1,4 +1,5 @@
 #include "MarketCompany.h"
+#include "MarketLedger.h"
 #include "MarketCountry.h"
 #include "MarketBranches.h"
 #include "MarketCalendar.h"
@@ -175,6 +176,7 @@ bool MarketCompany::Build(FMarketState& State, int32 What, FString& OutMessage)
         const int64 Cost = Scaled(State, Cost2011);
         if (State.Cash < Cost) { OutMessage = FString::Printf(TEXT("%s %s; kasada yok."), Name, *CompanyTl(Cost)); return false; }
         State.Cash -= Cost;
+        MarketLedger::Post(State, MarketLedger::EAccount::Investment, -Cost, true, MarketLedger::HeadOfficeStore); // B2
         OutMessage = FString::Printf(TEXT("%s tamam (%s)."), Name, *CompanyTl(Cost));
         return true;
     };
@@ -257,6 +259,7 @@ void MarketCompany::CloseDay(FMarketState& State)
     State.LastBranchProfit += Total;
     State.LastProfit += Total;
     State.Cash += Total;
+    MarketLedger::Post(State, MarketLedger::EAccount::HeadOffice, Total, true, MarketLedger::HeadOfficeStore); // B2: depots' rent, trucks, dark store
 
     // Chapter 7: a year of leading on every measure brings the one finale (karar J02; the measure becomes the
     // global retail league in G-082). After the finale the game goes on without new story content.

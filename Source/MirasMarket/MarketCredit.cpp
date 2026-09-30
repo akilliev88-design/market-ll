@@ -1,4 +1,5 @@
 #include "MarketCredit.h"
+#include "MarketLedger.h"
 #include "MarketCountry.h"
 #include "MarketCalendar.h"
 #include "MarketPrices.h"
@@ -59,6 +60,7 @@ FString MarketCredit::OnCheckout(FMarketState& State, int32 CustomerId, int64 Re
     }
     // The sale stays a sale; the money waits in the book.
     State.Cash -= Receipt;
+    MarketLedger::Post(State, MarketLedger::EAccount::CreditBook, -Receipt); // B2: the till gives the receipt to the book
     if (!A)
     {
         FMarketCreditAccount New;
@@ -94,6 +96,7 @@ int64 MarketCredit::CollectAll(FMarketState& State, FString& OutMessage)
         if (FMarketLoyalty* L = Customer(State, A.CustomerId)) L->Satisfaction = FMath::Max(0.f, L->Satisfaction - 6.f);
     }
     State.Cash += Paid;
+    MarketLedger::Post(State, MarketLedger::EAccount::CreditBook, Paid); // B2
     State.Credit.RemoveAll([](const FMarketCreditAccount& A) { return A.Balance <= 0; });
     OutMessage = FString::Printf(TEXT("Bor\u00e7lar istendi: %s tahsil edildi, kalan %s. Mahallede \"s\u0131k\u0131\u015ft\u0131r\u0131yor\" dediler."), *CreditTl(Paid), *CreditTl(Outstanding(State)));
     return Paid;
@@ -126,6 +129,8 @@ void MarketCredit::CloseDay(FMarketState& State)
     }
     State.Cash += Collected;
     State.LastProfit -= Lost;
+    MarketLedger::Post(State, MarketLedger::EAccount::CreditBook, Collected); // B2
+    MarketLedger::Post(State, MarketLedger::EAccount::BadDebt, -Lost, false);
     State.Credit.RemoveAll([](const FMarketCreditAccount& A) { return A.Balance <= 0; });
     if (Collected > 0) State.DayNews.Add(FString::Printf(TEXT("Maa\u015f g\u00fcn\u00fc: veresiye defterinden %s tahsil edildi (kalan %s)."), *CreditTl(Collected), *CreditTl(Outstanding(State))));
     if (Lost > 0) State.DayNews.Add(FString::Printf(TEXT("Veresiye defterinde %s batt\u0131: bor\u00e7lu mahalleden ta\u015f\u0131nd\u0131."), *CreditTl(Lost)));

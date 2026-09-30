@@ -1,4 +1,5 @@
 #include "MarketStaff.h"
+#include "MarketLedger.h"
 #include "MarketCountry.h"
 #include "StaffPlanner.h"
 #include "MarketPrices.h"
@@ -280,6 +281,7 @@ bool MarketStaff::Hire(FMarketState& State, int32 CandidateIndex, FString& OutMe
     // The HR manager negotiates the offer.
     if (HasHr(State)) Hired.DailyWage = Round50(Hired.DailyWage * 0.92);
     State.Cash -= Cost;
+    MarketLedger::Post(State, MarketLedger::EAccount::Hiring, -Cost); // B2
     Hired.HiredDay = State.Day;
     Hired.Morale = 70.f;
     Hired.Fatigue = 0.f;
@@ -329,6 +331,7 @@ bool MarketStaff::HireAccountant(FMarketState& State, FString& OutMessage)
     const int64 Engagement = E.DailyWage * 7;
     if (State.Cash < Engagement) { OutMessage = FString::Printf(TEXT("Necati Bey defterleri devralmak i\u00e7in bir haftal\u0131k \u00fccreti pe\u015fin ister: %s."), *Tl(Engagement)); return false; }
     State.Cash -= Engagement;
+    MarketLedger::Post(State, MarketLedger::EAccount::Hiring, -Engagement); // B2
     E.Morale = 75.f;
     E.HiredDay = State.Day;
     State.Staff.Add(E);
@@ -345,6 +348,7 @@ bool MarketStaff::Fire(FMarketState& State, int32 EmployeeId, FString& OutMessag
     const int64 Severance = RoleOf(Leaving) == ERole::Accountant ? 0 : Leaving.DailyWage * SeveranceDays;
     if (State.Cash < Severance) { OutMessage = FString::Printf(TEXT("\u0130hbar tazminat\u0131 i\u00e7in kasada %s gerekiyor."), *Tl(Severance)); return false; }
     State.Cash -= Severance;
+    MarketLedger::Post(State, MarketLedger::EAccount::Severance, -Severance); // B2
     State.Staff.RemoveAt(Index);
     // Colleagues notice.
     for (FMarketEmployee& E : State.Staff) if (IsShopRole(RoleOf(E))) E.Morale = FMath::Max(0.f, E.Morale - 3.f);
@@ -408,6 +412,7 @@ int64 MarketStaff::PayTax(FMarketState& State)
     const int64 Paid = FMath::Max<int64>(0, FMath::Min(State.Cash, Books.TaxDue));
     if (Paid <= 0) return 0;
     State.Cash -= Paid;
+    MarketLedger::Post(State, MarketLedger::EAccount::TaxPayment, -Paid); // B2
     Books.TaxDue -= Paid;
     Books.TotalTaxPaid += Paid;
     if (Books.TaxDue == 0) { Books.TaxDeclared = 0; Books.PenaltyThisTax = 0; Books.TaxDueDay = 0; }
@@ -472,6 +477,7 @@ void MarketStaff::CloseDay(FMarketState& State)
         if (bAccountant && Difference != 0) News.Add(FString::Printf(TEXT("Kasa say\u0131m\u0131: %s %s."), *E.Name, *Tl(Difference)));
     }
     State.Cash += State.LastTillDifference;
+    MarketLedger::Post(State, MarketLedger::EAccount::Shrinkage, State.LastTillDifference); // B2
     State.LastProfit += State.LastTillDifference;
     if (!bAccountant && State.LastTillDifference != 0)
         News.Add(FString::Printf(TEXT("Kasa fark\u0131: %s. Kimin kasas\u0131ndan geldi\u011fini mali m\u00fc\u015favir ay\u0131r\u0131r."), *Tl(State.LastTillDifference)));
@@ -620,6 +626,7 @@ void MarketStaff::CloseDay(FMarketState& State)
                 Books.TotalPenalties += Penalty;
                 State.LastPenalty += Penalty;
                 State.LastProfit -= Penalty;
+                MarketLedger::Post(State, MarketLedger::EAccount::Penalties, -Penalty, false); // B2: added to the tax due
                 News.Add(FString::Printf(TEXT("Vergi gecikti: %s gecikme cezas\u0131 eklendi. \u00d6denecek %s."), *Tl(Penalty), *Tl(Books.TaxDue)));
             }
         }
@@ -656,6 +663,7 @@ void MarketStaff::CloseDay(FMarketState& State)
             Books.TotalPenalties += Fine;
             State.LastPenalty += Fine;
             State.LastProfit -= Fine;
+            MarketLedger::Post(State, MarketLedger::EAccount::Penalties, -Fine, false); // B2: added to the tax due
             News.Add(FString::Printf(TEXT("Vergi incelemesi: defterler d\u00fczenli tutulmad\u0131\u011f\u0131 i\u00e7in %s ceza. Mali m\u00fc\u015favirle bu olmaz."), *Tl(Fine)));
         }
         if (Tax > 0 || Books.TaxDue > 0)
@@ -663,6 +671,7 @@ void MarketStaff::CloseDay(FMarketState& State)
             // Unpaid older tax keeps its penalty count and cap; only the new week's tax is added to the base.
             const bool bOlderDebt = Books.TaxDue > 0;
             Books.TaxDue += Tax;
+            MarketLedger::Post(State, MarketLedger::EAccount::Tax, -Tax, false); // B2: declared now, paid by TaxPayment
             Books.TaxDeclared = bOlderDebt ? Books.TaxDeclared + Tax : Books.TaxDue;
             if (!bOlderDebt) Books.PenaltyThisTax = 0;
             Books.TaxDueDay = Closed + TaxPayDays;

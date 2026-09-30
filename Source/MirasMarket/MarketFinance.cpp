@@ -1,4 +1,5 @@
 #include "MarketFinance.h"
+#include "MarketLedger.h"
 #include "MarketCountry.h"
 #include "MarketCalendar.h"
 #include "MarketCredit.h"
@@ -26,6 +27,7 @@ namespace MarketFinance
         Loan.bMortgage = bMortgage;
         State.Loans.Add(Loan);
         State.Cash += Principal;
+        MarketLedger::Post(State, MarketLedger::EAccount::LoanIn, Principal); // B2
     }
 
     int64 DepotValue(const FMarketState& State, const TArray<FMarketProduct>& Products)
@@ -43,9 +45,11 @@ namespace MarketFinance
             const int64 Book = static_cast<int64>(State.Stock[I].Warehouse) * State.UnitCost(I, Products);
             Got += Book / 2;
             State.PendingLoss += Book - Book / 2; // sold below cost (next report)
+            MarketLedger::Post(State, MarketLedger::EAccount::Shrinkage, -(Book - Book / 2), false); // B2
             State.Stock[I].Warehouse = 0;
         }
         State.Cash += Got;
+        MarketLedger::Post(State, MarketLedger::EAccount::Divestment, Got); // B2
         return Got;
     }
 
@@ -109,6 +113,8 @@ bool MarketFinance::RepayAll(FMarketState& State, FString& OutMessage)
     if (State.Cash < Owed + Fee) { OutMessage = FString::Printf(TEXT("Erken kapatmak i\u00e7in %s gerekiyor."), *FinanceTl(Owed + Fee)); return false; }
     State.Cash -= Owed + Fee;
     State.PendingLoss += Fee; // shows in the next day report and in the tax books
+    MarketLedger::Post(State, MarketLedger::EAccount::LoanRepayment, -Owed); // B2
+    MarketLedger::Post(State, MarketLedger::EAccount::BankFees, -Fee);
     State.Loans.Reset();
     OutMessage = FString::Printf(TEXT("Kredi erken kapand\u0131: %s (%s erken \u00f6deme \u00fccreti)."), *FinanceTl(Owed + Fee), *FinanceTl(Fee));
     return true;
@@ -144,6 +150,8 @@ void MarketFinance::CloseDay(FMarketState& State, const TArray<FMarketProduct>& 
         if (State.Cash >= Pay)
         {
             State.Cash -= Pay;
+            MarketLedger::Post(State, MarketLedger::EAccount::Interest, -FMath::Min(Interest, Pay)); // B2
+            MarketLedger::Post(State, MarketLedger::EAccount::LoanRepayment, -(Pay - FMath::Min(Interest, Pay)));
             L.Remaining = FMath::Max<int64>(0, L.Remaining - (Pay - Interest));
             State.LastProfit -= Interest;
             State.Books.PeriodProfit -= Interest; // the books closed before the bank: interest lowers taxable profit
@@ -155,6 +163,7 @@ void MarketFinance::CloseDay(FMarketState& State, const TArray<FMarketProduct>& 
             const int64 Fee = FMath::Max<int64>(100, FMath::RoundToInt64(Pay * static_cast<double>(LateFee)));
             L.Remaining += Fee;
             State.LastProfit -= Fee;
+            MarketLedger::Post(State, MarketLedger::EAccount::Penalties, -Fee, false); // B2: the loan grows
             State.Books.PeriodProfit -= Fee;
             L.NextDueDay = State.Day;
             News.Add(FString::Printf(TEXT("Banka taksiti \u00f6denemedi (%s): %s gecikme faizi eklendi."), *FinanceTl(Pay), *FinanceTl(Fee)));
@@ -165,6 +174,7 @@ void MarketFinance::CloseDay(FMarketState& State, const TArray<FMarketProduct>& 
     // The family's living money (never pushes the till below zero).
     const int64 Home = HouseholdToday(State);
     State.Cash -= Home;
+    MarketLedger::Post(State, MarketLedger::EAccount::OwnerDraw, -Home); // B2
     State.MonthHousehold += Home;
 
     // The trouble ladder.
@@ -275,6 +285,7 @@ bool MarketFinance::Resolve(FMarketState& State, const TArray<FMarketProduct>& P
             const int64 Fee = FMath::RoundToInt64(D.Arg * static_cast<double>(MortgageFee));
             State.Cash -= Fee;
             State.PendingLoss += Fee;
+            MarketLedger::Post(State, MarketLedger::EAccount::BankFees, -Fee); // B2
             OutMessage = FString::Printf(TEXT("Tapu ipotek edildi; masraflar d\u00fc\u015f\u00fcld\u00fckten sonra %s kasaya ge\u00e7ti. Aileden kalan d\u00fckk\u00e2n art\u0131k bankaya ba\u011fl\u0131."), *FinanceTl(D.Arg - Fee));
         }
         else OutMessage = TEXT("Tapuya dokunmad\u0131n.");

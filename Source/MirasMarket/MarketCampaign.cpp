@@ -1,4 +1,5 @@
 #include "MarketCampaign.h"
+#include "MarketLedger.h"
 #include "MarketPrices.h"
 
 int64 MarketCampaign::ExpandCashOn(int32 GameDay)
@@ -11,6 +12,7 @@ int64 MarketCampaign::PayDebt(FMarketState& State, int64 Amount)
     const int64 Paid = FMath::Max<int64>(0, FMath::Min3(Amount, State.InheritedDebt, State.Cash));
     if (Paid <= 0) return 0;
     State.Cash -= Paid;
+    MarketLedger::Post(State, MarketLedger::EAccount::InheritedDebt, -Paid); // B2
     State.InheritedDebt -= Paid;
     State.WeekDebtPaid += Paid;
     if (State.InheritedDebt == 0 && State.DebtClearedDay == 0) State.DebtClearedDay = State.Day;
