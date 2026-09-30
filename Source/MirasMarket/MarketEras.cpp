@@ -56,7 +56,7 @@ namespace MarketEras
     struct FActive
     {
         bool bSet = false;
-        TArray<FEra> Plan;
+        TArray<FEra> Timeline;
     };
     FActive& ActivePlan() { static FActive A; return A; }
 
@@ -66,10 +66,10 @@ namespace MarketEras
         return static_cast<ECharacter>(Pack ? static_cast<uint8>(Pack->Character) : static_cast<uint8>(MarketCountry::Active().Character));
     }
 
-    double BumpOf(const TArray<FEra>& Plan, int32 Year, bool bFirstWaveOnly)
+    double BumpOf(const TArray<FEra>& Timeline, int32 Year, bool bFirstWaveOnly)
     {
         double Sum = 0.0;
-        for (const FEra& E : Plan)
+        for (const FEra& E : Timeline)
         {
             if (bFirstWaveOnly && E.Wave != 1) continue;
             const int32 Offset = Year - E.StartYear;
@@ -187,14 +187,14 @@ void MarketEras::Setup(FMarketState& State)
 void MarketEras::Activate(const FMarketState& State)
 {
     FActive& A = ActivePlan();
-    A.Plan = PlanOf(State);
+    A.Timeline = PlanOf(State);
     A.bSet = true;
 }
 
 void MarketEras::ActivateNominal(ECharacter Character)
 {
     FActive& A = ActivePlan();
-    A.Plan = Plan(Character, 0, 0, 0);
+    A.Timeline = Plan(Character, 0, 0, 0);
     A.bSet = true;
 }
 
@@ -202,7 +202,7 @@ double MarketEras::InflationBump(int32 Year)
 {
     const FActive& A = ActivePlan();
     // Never activated (tests, tools): the unshifted high-inflation plan, i.e. the built-in curve.
-    return A.bSet ? BumpOf(A.Plan, Year, false) : BumpOf(Plan(ECharacter::HighInflation, 0, 0, 0), Year, false);
+    return A.bSet ? BumpOf(A.Timeline, Year, false) : BumpOf(Plan(ECharacter::HighInflation, 0, 0, 0), Year, false);
 }
 
 double MarketEras::BuiltInBump(int32 Year)

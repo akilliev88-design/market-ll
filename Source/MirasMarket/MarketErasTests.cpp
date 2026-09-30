@@ -63,12 +63,12 @@ bool FMarketErasPlanTest::RunTest(const FString& Parameters)
         Setup(S);
         Shifts.Add(S.Eras.ShiftYears);
         bInRange &= S.Eras.bPlanned && S.Eras.ShiftYears >= -2 && S.Eras.ShiftYears <= 2 && FMath::Abs(S.Eras.ShiftDays) <= 45;
-        const TArray<FEra> Plan = PlanOf(S);
-        for (int32 I = 0; I < Plan.Num(); ++I)
+        const TArray<FEra> Timeline = PlanOf(S);
+        for (int32 I = 0; I < Timeline.Num(); ++I)
         {
-            if (I < 5) bOrdered &= Plan[I].Kind == Order[I];
-            if (I > 0) bOrdered &= Plan[I].StartDay > Plan[I - 1].StartDay;
-            bOrdered &= Plan[I].EndDay >= Plan[I].StartDay;
+            if (I < 5) bOrdered &= Timeline[I].Kind == Order[I];
+            if (I > 0) bOrdered &= Timeline[I].StartDay > Timeline[I - 1].StartDay;
+            bOrdered &= Timeline[I].EndDay >= Timeline[I].StartDay;
         }
         FMarketState Again; Again.CountryId = TEXT("tr"); Again.RivalSeed = Seed * 7919;
         Setup(Again);
@@ -112,9 +112,9 @@ bool FMarketErasEffectsTest::RunTest(const FString& Parameters)
     using MarketGoods::EGroup;
     FMarketState S; S.CountryId = TEXT("tr"); S.RivalSeed = 12;
     S.Eras.bPlanned = true; S.Eras.ShiftYears = -1; S.Eras.ShiftDays = 10;
-    const TArray<FEra> Plan = PlanOf(S);
-    const FEra Shock = Plan[0];
-    const FEra Recession = Plan[1];
+    const TArray<FEra> Timeline = PlanOf(S);
+    const FEra Shock = Timeline[0];
+    const FEra Recession = Timeline[1];
     auto Close = [&S](int32 Day) { S.Day = Day; S.DayNews.Reset(); MarketEras::CloseDay(S); };
 
     Close(Shock.StartDay - 1);
