@@ -3,7 +3,6 @@
 // ===== Ak\u0131\u015f B =====
 #include "MarketLedger.h"
 #include "MarketEras.h"
-#include "MarketLeague.h"
 // ===== Ak\u0131\u015f B son =====
 #include "MarketEconomy.generated.h"
 
@@ -676,8 +675,6 @@ struct FMarketState
     UPROPERTY() FMarketLedger Ledger;
     // B4: eras of the economy (MarketEras.h). Older saves: the unshifted plan.
     UPROPERTY() FMarketEras Eras;
-    // B5: the world retail league (MarketLeague.h). Older saves join it at their next close.
-    UPROPERTY() FMarketLeague League;
     // ===== Ak\u0131\u015f B son =====
 
     // Wages of everyone on the payroll (paid days off included). Staff empty = the v0.1 flags (older saves, tests).

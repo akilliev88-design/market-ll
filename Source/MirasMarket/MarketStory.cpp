@@ -1,5 +1,4 @@
 #include "MarketStory.h"
-#include "MarketLeague.h"
 #include "MarketDepots.h"
 #include "MarketStart.h"
 #include "MarketCountry.h"
@@ -148,9 +147,6 @@ TArray<MarketStory::FObjective> MarketStory::Objectives(const FMarketState& Stat
         break;
     }
     case 7:
-        // B5 (karar J02): the world league; the older measure below stays until Mustafa decides (Ak\u0131\u015f B notu).
-        Add(FString::Printf(TEXT("D\u00fcnya liginde %d y\u0131l \u00fcst \u00fcste 1. (\u015fu an %d. s\u0131ra)"), MarketLeague::FinaleYears, MarketLeague::CurrentRank(State)),
-            State.League.FirstPlaceYears >= MarketLeague::FinaleYears);
         Add(FString::Printf(TEXT("Bir y\u0131l her \u00f6l\u00e7\u00fctte \u00f6nde: pay %%40, 60 ma\u011faza, k\u00e2r, memnun m\u00fc\u015fteri (%d / %d g\u00fcn)"),
             State.Company.LeadershipDays, MarketCompany::LeadershipGoalDays), State.Company.LeadershipDays >= MarketCompany::LeadershipGoalDays);
         break;

@@ -4,7 +4,7 @@ Sözleşme: `Docs/Kurgu/07_AKIL_ISBOLUMU.md` §4 Akış B. Dal: `claude/miras-ma
 
 ## Kaldığım yer
 
-B1–B4 bitti ve commit edildi. Sıradaki: B5 (dünya ve son).
+B1–B5 bitti ve commit edildi. İkinci tur: B6 (hedefler, kilometre taşları, kutlamalar) sürüyor.
 
 ## Yapılanlar
 
@@ -60,13 +60,22 @@ Yeni `MarketEras.h/.cpp` (`namespace MarketEras`), durum `FMarketState::Eras` (`
 - Eski kayıt ortasında bir dönemdeyse dönem yeniden oynatılmaz (etki ve haber yok).
 - Testler: `Eras.UnshiftedIsTheBuiltInCurve`, `Eras.OrderShiftAndCharacter`, `Eras.EffectsAndNews`.
 
+### B5 · Dünya ve son (kurgu kurlar; oyun sonu kancası B6'da)
+
+07 güncellendi: dünya ligi sıralaması (`MarketLeague`) artık **C'nin** (C ligi `MarketChains` içinde yazdı). B5'in ilk hâlindeki `MarketLeague.*` bu yüzden daldan kaldırıldı; B yalnız ortak birim çevirisini ve sonu bağlar.
+
+- **Kurgu kurlar (öneri L08):** para birimi adları gerçek, kurlar kurgu. `MarketCountry::FxRate(State, Ülke, Gün)` = bir "dünya birimi"nin yerel karşılığı: başlangıçta paketteki `fxPerWorld`; sonra ülke enflasyonu − dünya enflasyonu (%2,5/yıl; kampanyanın ülkesinde dönemli fiyat eğrisi, diğerlerinde paketin ortalaması), ekonomi karakterine göre tohumlu rastgele yürüyüş (istikrarlı 0,03 · oynak 0,08 · yüksek enflasyonlu 0,06 yıllık) ve kampanyanın ülkesinde kur şoku döneminde ~10 günde +%25 × şiddet. `MarketCountry::ToWorld(State, Ülke, İçTutar, Gün)` iç tutarı dünya birimi × 100'e çevirir (ekran ölçeği / kur).
+- **Oyun sonu (J02):** lig yılı bitince C'nin çağıracağı kanca B6 ile `MarketGoals` içinde (aşağıda): 7. bölümde, 2 lig yılı üst üste 1. + o yılın FAVÖK'ü artı + borç < 3 × FAVÖK → "Miras". Mevcut yerel liderlik yolu duruyor; 31.12.2040 sonu değişmedi.
+- Test: `Country.Currencies`.
+- Yeni ülkeler için `ulkeler.json` iskeleti yapılmadı (ülke seçim ekranı eksik paketleri de listeleyeceği için; ülke ekleme kararı Mustafa/C).
+
 ## Doğrulama
 
 Bu oturum Linux bulut kapsayıcısında; Unreal yok, `DERLE.cmd` / `TEST.cmd` çalıştırılamadı. **Derlenmedi (UE).** Yerine:
 
 - Saf modüller ve testleri, Unreal'in kullanılan kısmını taklit eden küçük bir katmanla (sahte `CoreMinimal.h`: FString, TArray, TMap, FMath, FRandomStream UE algoritmasıyla, JSON, otomasyon testi makroları) clang ile `-Wshadow-all -Werror=shadow` derlenip çalıştırıldı. Dünyaya bağlı dosyalar (MarketGame, menü, mağaza kiti) bu katmanda derlenmez.
 - 30.09.2026, B1 sonrası: **77/77 test geçti** (başlangıçta 70/70; +7 `Balance.*`). UE'deki toplam 84 testin dünyaya bağlı 14'ü bu sayıya dahil değil.
-- B2 sonrası: **81/81** (+4 `Ledger.*`). B3 sonrası: **82/82** (+1 `Staff.WagesAndSocialSecurity`). B4 sonrası: **85/85** (+3 `Eras.*`).
+- B2 sonrası: **81/81** (+4 `Ledger.*`). B3 sonrası: **82/82** (+1 `Staff.WagesAndSocialSecurity`). B4 sonrası: **85/85** (+3 `Eras.*`). B5 sonrası: **86/86** (+1 `Country.Currencies`).
 - Codex'in `DERLE.cmd /q` + `TEST.cmd /q` koşusu bekleniyor.
 
 ## Yeni açık işlevler
@@ -86,6 +95,7 @@ Bu oturum Linux bulut kapsayıcısında; Unreal yok, `DERLE.cmd` / `TEST.cmd` ç
 - `MarketLedger::AuditOk / AuditText / StatementText / AccountName / IsIncomeStatement`.
 - `MarketStaff::MinimumDailyWage(Gün)`, `EmployerSocialRate()`, `EmployerShare(Ücret)`, `EmployerCost(Ücret)`, `SeniorityPay(Ücret, İşeGirişGünü, Gün)`, `SeverancePay(State, Çalışan)`, `DailySocialSecurity(State)`.
 - `MarketCountry::FProfile::EmployerSocialRate`, `SeveranceDaysPerYear` (`ulkeler.json` → `economy.employerSocialRate`, `economy.severanceDaysPerYear`).
+- `MarketCountry::FxRate(State, Ülke, Gün)`, `MarketCountry::ToWorld(State, Ülke, İçTutar, Gün)` — ortak birim (C'nin dünya ligi bunu kullanmalı).
 - `MarketEras::Setup(State)`, `Activate(State)`, `ActivateNominal(Karakter)`, `PlanOf(State)` / `Plan(...)`, `Current(State, Gün, OutEra)`, `BudgetFactor(State)`, `Summary(State)`, `Name(EKind)`, `PandemicShiftDays(State)`, `InflationBump(Yıl)`, `CloseDay(State)` (Director B bloğu, kapanış başında).
 
 ## C'ye istekler

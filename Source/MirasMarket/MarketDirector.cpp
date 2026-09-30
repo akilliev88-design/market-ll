@@ -269,6 +269,5 @@ void MarketDirector::CloseDay(FMarketState& State, const TArray<FMarketProduct>&
     // ===== Ak\u0131\u015f B =====
     MarketCompany::TrackNationalRevenue(State); // B1 (#45): national share by revenue, after every revenue is in
     MarketLedger::EndClose(State);              // B2: the audit (till change = cash entries)
-    MarketLeague::CloseDay(State);              // B5: world league year, currencies, the J02 finale
     // ===== Ak\u0131\u015f B son =====
 }

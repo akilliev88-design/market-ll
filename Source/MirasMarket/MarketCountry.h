@@ -2,6 +2,8 @@
 
 #include "CoreMinimal.h"
 
+struct FMarketState;
+
 // Country packs (G-084, karar L02-L11, Config/ulkeler.json). Independent of the world, tested
 // (MirasMarket.Country.*). The game keeps one internal money unit (the catalog's scale); a country shows it in its
 // own currency (DisplayScale x the internal amount, its symbol and decimal mark) and brings its own economy
@@ -143,4 +145,14 @@ namespace MarketCountry
     FString Decorate(const FString& Number);
     // Chain name for an archetype in the active country ("" = keep the default).
     FString ChainName(const FString& Archetype);
+
+    // B5 (\u00f6neri L08): real currency names, fictional rates. Local money per "world unit" (d\u00fcnya birimi, the common
+    // unit of the world league, MarketChains) in a country on a game day: the pack's fxPerWorld at the start, then
+    // the country's inflation against the world's (2.5 % a year; the campaign's own country uses its price curve
+    // with the eras), a seeded random walk sized by the economy character (stable 0.03, volatile 0.08, high
+    // inflation 0.06 a year) and, in the campaign's own country, about +25 % x strength over ten days in a currency
+    // shock era (MarketEras).
+    double FxRate(const FMarketState& State, const FString& CountryId, int32 GameDay);
+    // An internal amount earned in a country -> world units x 100 (like kurus).
+    int64 ToWorld(const FMarketState& State, const FString& CountryId, int64 Internal, int32 GameDay);
 }

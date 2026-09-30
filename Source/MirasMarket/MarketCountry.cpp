@@ -1,4 +1,6 @@
 #include "MarketCountry.h"
+#include "MarketCalendar.h"
+#include "MarketEconomy.h"
 #include "MarketEras.h"
 #include "MarketPrices.h"
 #include "MarketMap.h"
@@ -343,4 +345,72 @@ FString MarketCountry::ChainName(const FString& Archetype)
 {
     const FString* Name = Active().Chains.Find(Archetype);
     return Name ? *Name : FString();
+}
+
+namespace MarketCountry
+{
+    // B5 (L08): the currencies' random walk and world inflation.
+    constexpr double WorldInflation = 0.025;
+
+    double FxWobble(int32 Seed, uint32 A, uint32 B)
+    {
+        uint32 Hash = 2166136261u;
+        const uint32 Parts[3] = { static_cast<uint32>(Seed), A, B };
+        for (uint32 Part : Parts)
+            for (int32 Byte = 0; Byte < 4; ++Byte) { Hash ^= (Part >> (Byte * 8)) & 0xFFu; Hash *= 16777619u; }
+        return ((Hash & 0xFFFFu) / 65535.0 + (Hash >> 16) / 65535.0) - 1.0;
+    }
+
+    uint32 FxCountryKey(const FString& Id)
+    {
+        uint32 Hash = 5381u;
+        for (const TCHAR C : Id) Hash = Hash * 33u + static_cast<uint32>(C);
+        return Hash;
+    }
+
+    double FxWalkSize(ECharacter Character)
+    {
+        switch (Character)
+        {
+        case ECharacter::Stable: return 0.03;
+        case ECharacter::Volatile: return 0.08;
+        default: return 0.06;
+        }
+    }
+}
+
+double MarketCountry::FxRate(const FMarketState& State, const FString& CountryId, int32 GameDay)
+{
+    const FString Id = CountryId.IsEmpty() ? State.CountryId : CountryId;
+    const FProfile* Pack = Find(Id);
+    const FProfile& P = Pack ? *Pack : Active();
+    const bool bOwn = Id == State.CountryId;
+    double Log = FMath::Loge(FMath::Max(0.0001, P.FxPerWorld));
+    const int32 Day = FMath::Max(1, GameDay);
+    const int32 FirstYear = MarketCalendar::DateOf(1).Year;
+    const int32 LastYearOfDay = MarketCalendar::DateOf(Day).Year;
+    for (int32 Year = FirstYear; Year <= LastYearOfDay; ++Year)
+    {
+        const int32 From = FMath::Max(1, MarketCalendar::GameDayOf(Year, 1, 1));
+        const int32 To = FMath::Min(Day, MarketCalendar::GameDayOf(Year + 1, 1, 1));
+        if (To <= From) continue;
+        const double Part = (To - From) / 365.0;
+        // Own country: the campaign's price curve (eras included); others: their pack's average.
+        const double Inflation = bOwn ? MarketPrices::YearlyInflation(Year) : P.InflationMean;
+        Log += (FMath::Loge(1.0 + Inflation) - FMath::Loge(1.0 + WorldInflation)) * Part;
+        Log += FxWalkSize(P.Character) * FxWobble(State.RivalSeed, FxCountryKey(Id), static_cast<uint32>(Year)) * Part;
+    }
+    if (bOwn)
+        for (const MarketEras::FEra& E : MarketEras::PlanOf(State))
+            if (E.Kind == MarketEras::EKind::CurrencyShock && Day > E.StartDay)
+                Log += 0.25 * E.Strength * FMath::Min(1.0, (Day - E.StartDay) / 10.0); // the jump takes about ten days
+    return FMath::Exp(Log);
+}
+
+int64 MarketCountry::ToWorld(const FMarketState& State, const FString& CountryId, int64 Internal, int32 GameDay)
+{
+    const FString Id = CountryId.IsEmpty() ? State.CountryId : CountryId;
+    const FProfile* Pack = Find(Id);
+    const double Scale = Pack ? Pack->DisplayScale : 1.0;
+    return FMath::RoundToInt64(static_cast<double>(Internal) * Scale / FMath::Max(0.0001, FxRate(State, Id, GameDay)));
 }
