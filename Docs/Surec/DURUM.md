@@ -1,6 +1,6 @@
 # Güncel durum
 
-Son güncelleme: 30.09.2026 — Codex (G-088 mağaza editörü ve 15 yeni Blender teşhiri; A/B görsel onay sınırı korunuyor)
+Son güncelleme: 30.09.2026 — Codex (G-088 editör: tek büyük görünüm, mağaza içinde seçim/taşıma ve yeni mağaza oluşturma)
 
 ## Kısaca
 
@@ -20,6 +20,7 @@ GitHub ana deposu: `https://github.com/m07tas/market-ll` (`main`). Unreal/Blende
 
 | Kontrol | Sonuç |
 |---|---|
+| G-088 editör kullanım revizyonu | DERLE GEÇTİ; TEST 70/70; Smoke GEÇTİ; gerçek editörde 3B tıkla/seç/taşı/ekle, yürüyüş çarpışması, yeni/kopya/taslak ve üç görünüm ekran kontrolü GEÇTİ — 30.09.2026 |
 | G-088 mağaza editörü + dolap kütüphanesi | DERLE GEÇTİ; TEST 69/69; Smoke ve dört mağaza gezi testi GEÇTİ; 15/15 Blender kaynak kontrolü; gerçek editör ekranları incelendi — 30.09.2026 |
 | `DERLE.cmd` (v1) | GEÇTİ — 27.09.2026 |
 | `DERLE.cmd` (v1.1) | GEÇTİ — 27.09.2026 |
@@ -85,6 +86,14 @@ GitHub ana deposu: `https://github.com/m07tas/market-ll` (`main`). Unreal/Blende
 Görsel ve raf dizme işleri yeterli seviyede; bir süre **donduruldu**. Öncelik **"İlk Hafta" oynanabilir dilimi**: bir oyuncu 7 günü baştan sona oynayabilmeli (sipariş → mal kabul → raf → fiyat → satış → gün raporu → hafta hedefi). Görevler G-051…G-055. Başarı ölçütü: yeni biri ilk 30 dakikada döngüyü anlıyor ve ilk kararının sonucunu görüyor.
 
 ## Devam notu
+
+**30.09.2026 — Codex: G-088 editör kullanım revizyonu.**
+
+- Tek büyük çalışma alanı: Kuşbakışı / 3B genel / Mağazada gez. Ekipman ve özellik panelleri ayrı gizlenir; F11 ikisini kapatır/açar. Plan tekerlekle yakınlaşır, orta tuşla kayar; Home tümünü, F seçimi gösterir. Üstte seçim/döndür/kopyala/kaldır araçları ve aktif görünüm rengi.
+- `SStoreEditorViewport.*`: 3B ray seçimi, doğrudan sürükleme/yerleştirme, sarı seçim ve yeşil/kırmızı önizleme; HISM parçası sürüklerken hareket eder, kamera yeniden kurulmaz. Mağaza içi WASD/sağ fare/Shift; 165 cm göz, duvar/ekipman çarpışması, tavan görünür. Görünüm ve düzenleme boyunca rastgele dolum korunur; ışık ikonları gizlenir.
+- Yeni mağaza penceresi: ad/tür ile boş bina veya mevcut düzenin ayrı kopyası. Benzersiz id, otomatik ilk taslak, sonraki oturumda listeye alma; katalog/diğer taslaklar üzerine yazılmaz. Yaslama/ızgara yeni eklerken de uygulanır; eklemeden R ile döndürülür. Bina/depo ölçüleri, bölüm ve zemin ayarları mevcut.
+- DERLE GEÇTİ; TEST 70/70 (bir testte UE bağlantı kontrolünün HTTP zaman aşımı uyarısı, başarısız test yok); Smoke GEÇTİ. `StoreEditorReview.ps1` gerçek viewport tıklama/sürükleme/ekleme, sabit kamera, yürüyüş çarpışması, boş/kopya/benzersiz id/taslak yükleme ve gizli panel kontrolleri GEÇTİ. Üç görünümün PNG'leri gözle incelendi; `Docs/Images/Stores/Cabinets/store_editor*.png` güncel. Kılavuz `Docs/Environment/MAGAZA_EDITORU.md`.
+- Hazır dört mağaza ve aile bakkalı değiştirilmedi. Kalan 16 hazır mağaza hâlâ A görsel onayından sonra; şube/oyun kaydı/menü bağlantıları Claude'da. Yeni taslaklarda tür zorunlulukları tamamlanmadan oyuna aktarım engellenir. Pencereyi kapatmadan Ctrl+S ile kaydet; mağaza değiştirirken taslak otomatik korunur.
 
 **30.09.2026 — Codex: G-088 mağaza editörü + BUZ referanslı dolap kütüphanesi.**
 - `MAGAZA_EDITORU.cmd` / Tools > Mağaza Editörü: ekipman seçip plana tıklayarak ekleme, sürükleme, duvara/komşuya yaslama, 10 cm ızgara, döndürme, yan yana kopyalama, silme, 50 adım geri al/yinele. Bina/depo eni-boyu, tavan ve kapı konumları; Kasap/Şarküteri/Manav/Teknoloji hazır bölümleri; zemin renkleri/özel RGB, seramik/beton/parlak seçenekleri ve 3B rastgele raf dolumu.

@@ -2,6 +2,14 @@
 
 En yeni giriş en üstte. Biçim: tarih — ajan — başlık, ardından **Yapılan**, **Doğrulama**, **Sıradaki**.
 
+## 30.09.2026 — Codex — G-088 editörde tek görünüm ve mağaza içi düzenleme
+
+**Yapılan:** Mustafa'nın kullanım geri bildirimi uygulandı. Zorunlu iki görüntü kaldırıldı; Kuşbakışı/3B genel/Mağazada gez arasında tek büyük görünüm. Ayrı gizlenebilir ekipman/özellik panelleri ve F11 geniş alan; plan yakınlaştırma/kaydırma, Home/F kadraj; görünür seçim/döndür/kopyala/kaldır araçları. 3B ekipman ray seçimi, sürüklerken HISM hareketi, doğrudan ekleme, yeşil/kırmızı önizleme, kamera konumunu koruma. İçeride WASD/sağ fare/Shift, sabit göz ve duvar/ekipman çarpışması; tavan gösterilir, ışık ikonları gizlenir. Rastgele dolum görünüm/düzenleme sırasında korunur. Yeni mağaza ad/tür penceresi, boş bina veya ayrı düzen kopyası; benzersiz id, ilk taslak ve sonraki açılışta liste. Yeni eklemede de isteğe bağlı ızgara/yaslama ve R döndürme çalışır. Kılavuz ve gerçek ekran PNG'leri güncellendi.
+
+**Doğrulama:** DERLE GEÇTİ; TEST 70/70, başarısız yok (bir testte Unreal bağlantı kontrolünün HTTP zaman aşımı uyarısı). Smoke GEÇTİ. StoreEditorReview GEÇTİ: gerçek 3B fare olaylarıyla seç/taşı/ekle, sabit kamera, yürüyüşte ekipman çarpışması ve boş zeminde hareket; yeni/kopya/benzersiz id/taslak yükleme, geri al/yinele, bölüm/boyut/zemin, görünüm/panel kontrolü. Son kuşbakışı, tam alan 3B ve dolu mağaza içi PNG'leri gözle incelendi. Testin oluşturduğu ayrı mağaza taslakları temizlendi; kullanıcı taslağı/katalog değişmedi.
+
+**Sıradaki:** Mustafa `MAGAZA_EDITORU.cmd` ile kullanabilir; 1/2/3 görünüm, F11 geniş alan, Ctrl+S taslak kaydı. Mevcut dört mağaza ve aile bakkalı korunuyor; A görsel onayından sonra kalan 16 hazır mağaza. Şube/oyun kaydı/menü bağlantısı Claude'da. Varsayım: yeni mağaza önce güvenli taslak olarak açılır; tam tür şartları oyuna aktarılırken aranır. Mağaza türüne uygun varsayılan tavan/ölçüler, mevcut metre alanlarından değiştirilir.
+
 ## 30.09.2026 — Codex — G-088 mağaza editörü ve 15 Blender teşhiri
 
 **Yapılan:** Mustafa'nın BUZ bağlantısındaki 11 dolap grubunun fotoğrafları incelendi. 12 soğutmalı teşhir tipi, kasap hazırlık tezgâhı ve iki teknoloji teşhiri üretildi: Blender metre kaynağı, doğru santimetre FBX, UCX, equipment.json, 1024² gerçek render ve UE varlıkları. Fotoğraflardan esinlenildi; ölçüler oyun için seçildi, marka/logo eklenmedi. Galeri `Docs/Images/Stores/Cabinets/`.

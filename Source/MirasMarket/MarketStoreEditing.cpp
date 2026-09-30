@@ -86,11 +86,39 @@ FVector MarketStoreEditing::Snap(const FStoreTemplate& S,const FPlanogramFixture
     }
     P.Z=0;return P;
 }
-bool MarketStoreEditing::Place(FStoreTemplate& S,const FString& E,const FString& C,FVector At,int32& Selected)
+bool MarketStoreEditing::Place(FStoreTemplate& S,const FString& E,const FString& C,FVector At,int32& Selected,bool Walls,bool Neighbours,float Grid,float Yaw)
 {
-    FPlanogramFixture F;F.EquipmentId=E;F.Category=C;F.Label=C;F.Location=At;F.Location.Z=0;
+    FPlanogramFixture F;F.EquipmentId=E;F.Category=C;F.Label=C;F.Location=At;F.Location.Z=0;F.Yaw=Yaw;
     int32 N=1;do {F.Id=FString::Printf(TEXT("editor_%04d"),N++);}while(S.Fixtures.ContainsByPredicate([&](const auto& O){return O.Id==F.Id;})||S.Obstacles.ContainsByPredicate([&](const auto& O){return O.Id==F.Id;}));
-    F.Location=Snap(S,F,true,true,10);if(!CanPlace(S,F))return false;Selected=S.Fixtures.Add(F);return true;
+    F.Location=Snap(S,F,Walls,Neighbours,Grid);if(!CanPlace(S,F))return false;Selected=S.Fixtures.Add(F);return true;
+}
+int32 MarketStoreEditing::Pick(const FStoreTemplate& S,FVector Origin,FVector Direction)
+{
+    double Best=1.e30;int32 Result=INDEX_NONE;
+    for(int32 I=0;I<S.Fixtures.Num();++I)
+    {
+        const auto& F=S.Fixtures[I];const auto D=MarketPlanogram::Equipment(F.EquipmentId).DimensionsCm;
+        const auto Rotation=FRotator(0,F.Yaw,0);const FVector O=Rotation.UnrotateVector(Origin-F.Location),V=Rotation.UnrotateVector(Direction);
+        const FVector Min(-D.X/2,-D.Y/2,0),Max(D.X/2,D.Y/2,D.Z);double Near=0,Far=1.e30;bool Hit=true;
+        for(int32 Axis=0;Axis<3;++Axis){if(FMath::Abs(V[Axis])<1.e-9){if(O[Axis]<Min[Axis]||O[Axis]>Max[Axis])Hit=false;}else{double A=(Min[Axis]-O[Axis])/V[Axis],B=(Max[Axis]-O[Axis])/V[Axis];if(A>B)Swap(A,B);Near=FMath::Max(Near,A);Far=FMath::Min(Far,B);}}
+        if(Hit&&Far>=Near&&Near<Best){Best=Near;Result=I;}
+    }
+    return Result;
+}
+bool MarketStoreEditing::Create(const FString& Format,const FString& Id,const FString& Name,FStoreTemplate& Out)
+{
+    double W=1400,D=1200,H=310,BD=220;
+    if(Format==TEXT("kucuk")){W=2200;D=1900;H=360;BD=260;}
+    else if(Format==TEXT("buyuk")){W=4000;D=3000;H=600;BD=400;}
+    else if(Format==TEXT("hiper")){W=8000;D=5000;H=800;BD=500;}
+    else if(Format!=TEXT("mahalle"))return false;
+    if(!Id.StartsWith(Format+TEXT("_"))||Name.TrimStartAndEnd().IsEmpty())return false;
+    FStoreTemplate S;S.Id=Id;S.Name=Name;S.Format=Format;S.Theme=TEXT("aydinlik");S.bEditableShell=true;S.FootprintCm=FVector2D(W,D);S.CeilingCm=H;
+    S.Shell=TEXT("/Game/Stores/Shells/SM_Shell_")+Format+TEXT("_01");S.Roof=TEXT("/Game/Stores/Shells/SM_Roof_")+Format+TEXT("_01");
+    S.Outline={FVector2D(-W/2,-D/2),FVector2D(W/2,-D/2),FVector2D(W/2,D/2),FVector2D(-W/2,D/2)};
+    S.Backroom=FBox(FVector(-W/2,D/2-BD,0),FVector(W/2,D/2,H));S.BackroomM2=W*BD/10000;S.SalesAreaM2=W*D/10000-S.BackroomM2;
+    S.Entrance.At=FVector(0,-D/2,0);S.Receiving.At=FVector(0,D/2,0);S.PlayerStart.At=FVector(0,-D/2+180,100);S.PlayerStart.Yaw=90;S.CustomerSpawn={FVector(0,-D/2-180,100)};
+    Out=MoveTemp(S);return true;
 }
 bool MarketStoreEditing::Duplicate(FStoreTemplate& S,int32 Index,float Gap,int32& New)
 {

@@ -19,6 +19,21 @@ bool FStoreEditPlacementTest::RunTest(const FString&)
     S.Fixtures[0].Yaw=90;int32 New;TestTrue(TEXT("Duplicate rotated module"),MarketStoreEditing::Duplicate(S,0,2,New));TestEqual(TEXT("Keep angle"),S.Fixtures[New].Yaw,90.f);TestTrue(TEXT("Duplicate fits"),MarketStoreEditing::CanPlace(S,S.Fixtures[New],New));TestNotEqual(TEXT("Unique fixture IDs"),S.Fixtures[0].Id,S.Fixtures[New].Id);
     return true;
 }
+IMPLEMENT_SIMPLE_AUTOMATION_TEST(FStoreEditNewAndPickTest,"MirasMarket.Stores.EditorCreateAndPick",EAutomationTestFlags::EditorContext|EAutomationTestFlags::EngineFilter)
+bool FStoreEditNewAndPickTest::RunTest(const FString&)
+{
+    FStoreTemplate S;TestTrue(TEXT("Create blank supermarket"),MarketStoreEditing::Create(TEXT("buyuk"),TEXT("buyuk_99"),TEXT("New store"),S));
+    TestTrue(TEXT("High supermarket ceiling"),S.CeilingCm>=600);TestEqual(TEXT("New store starts empty"),S.Fixtures.Num(),0);TestTrue(TEXT("Editable architecture"),S.bEditableShell);
+    const auto Before=S;TestFalse(TEXT("Unknown format refused"),MarketStoreEditing::Create(TEXT("unknown"),TEXT("unknown_01"),TEXT("Bad"),S));TestEqual(TEXT("Failure retains previous store"),S.Id,Before.Id);
+    int32 I;TestTrue(TEXT("Place without unwanted rounding"),MarketStoreEditing::Place(S,TEXT("gondola_double_1200"),TEXT(""),FVector(123,17,0),I,false,false,0,90));
+    TestEqual(TEXT("Disabled grid respected"),S.Fixtures[I].Location.X,123.);TestEqual(TEXT("Placement rotation preserved"),S.Fixtures[I].Yaw,90.f);
+    TestEqual(TEXT("Top-down ray selects rotated fixture"),MarketStoreEditing::Pick(S,FVector(123,17,500),FVector(0,0,-1)),I);
+    TestEqual(TEXT("Walking eye ray selects fixture"),MarketStoreEditing::Pick(S,FVector(123,-500,100),FVector(0,1,0)),I);
+    TestEqual(TEXT("Ray misses above equipment"),MarketStoreEditing::Pick(S,FVector(123,-500,1000),FVector(0,1,0)),INDEX_NONE);
+    TestEqual(TEXT("Ray misses empty floor"),MarketStoreEditing::Pick(S,FVector(900,900,500),FVector(0,0,-1)),INDEX_NONE);
+    FString Error;const auto Path=FPaths::ProjectSavedDir()/TEXT("Tests/EmptyStoreDraft.json");TestTrue(TEXT("Empty store draft saves"),MarketStoreEditing::Save(S,Path,Error));FStoreTemplate Reload;TestTrue(TEXT("User store draft reloads"),MarketStoreEditing::LoadDraft(Path,Reload,Error));TestEqual(TEXT("New store ID persists"),Reload.Id,S.Id);IFileManager::Get().Delete(*Path);
+    return true;
+}
 IMPLEMENT_SIMPLE_AUTOMATION_TEST(FStoreEditResizeTest,"MirasMarket.Stores.EditorArchitecture",EAutomationTestFlags::EditorContext|EAutomationTestFlags::EngineFilter)
 bool FStoreEditResizeTest::RunTest(const FString&)
 {

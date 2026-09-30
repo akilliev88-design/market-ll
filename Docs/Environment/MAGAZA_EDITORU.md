@@ -2,15 +2,39 @@
 
 `MAGAZA_EDITORU.cmd` dosyasını aç. Unreal Editor içinden **Tools > Mağaza Editörü** de aynı pencereyi açar.
 
+## Tek büyük çalışma alanı
+
+Üstte **Kuşbakışı [1]**, **3B genel [2]** ve **Mağazada gez [3]** arasında geçiş yap. Aynı anda tek görünüm açıktır. **Ekipmanlar** ve **Özellikler** düğmeleri ilgili yan paneli açıp kapatır; **F11 / Geniş alan** ikisini birlikte gizler veya açar.
+
+- Kuşbakışı: fare tekerleğiyle yakınlaş, orta fare tuşunu basılı tutarak planı kaydır. **Home** bütün mağazayı sığdırır; **F** seçili ekipmana yakınlaşır.
+- 3B genel: sağ fare tuşu ve WASD ile kamerayı hareket ettir. **Home** genel kadraja döner, **F** seçime gider. Çatı kaldırılır.
+- Mağazada gez: WASD ile yürü, sağ fare tuşunu basılı tutarak bak, Shift ile hızlan. Göz yüksekliği sabittir; duvar ve ekipman çarpışmaları yürüyüşü engeller. Çatı ve büyük marketlerin tesisatı görünür.
+- Her görünümde sol tıkla ekipman seç, basılı tutup sürükleyerek taşı. Seçili ekipman sarı çerçeveyle gösterilir. Taşıma sırasında kamera yerinde kalır; 3B ekipman da sürüklerken hareket eder.
+
+Rastgele raf doldurma 3B önizlemeyi giydirir; görünüm değiştirirken veya ekipman taşırken doluluk korunur. Aynı düğmeye yeniden basınca yeni bir rastgele dizilim hazırlanır. Katalogdaki ürün ve fiyatlar değişmez.
+
+![Tek görünümle düzenleme](../Images/Stores/Cabinets/store_editor.png)
+![Mağaza içinde gezinme](../Images/Stores/Cabinets/store_editor_walk.png)
+
+## Yeni mağaza
+
+**Yeni mağaza** düğmesine bas, adını ve türünü seç, **Boş mağaza oluştur** de. Mahalle ve ucuzcuda normal; büyük ve hiperde yüksek tavanla boş bina açılır. Sağdaki metre alanlarından bina ve depoyu boyutlandır; ekipmanları yerleştir. **Mevcut düzeni kopyala** mevcut mağazanın türü ve düzeniyle ayrı bir taslak açar.
+
+Kimlik otomatik ve benzersizdir; mevcut hazır mağazanın üzerine yazılmaz. Yeni mağaza hemen `Saved/StoreDrafts/` içinde saklanır ve sonraki açılışta mağaza listesinde görünür. Düzenlemeleri **Ctrl+S / Taslak kaydet** ile koru. Mağaza değiştirirken son taslak otomatik saklanır, listeden açarken varsa taslak tercih edilir.
+
 ## Yerleştirme
 
 1. Üstten mağazayı seç. Soldaki kütüphanede ekipman ara ve adına tıkla.
-2. Üstten planda boş yere tıkla. Aynı ekipmandan başka parçalar eklemek için tekrar tıkla.
+2. Aktif kuşbakışı veya 3B görünümde boş yere tıkla. Önizleme yeşilse sığar, kırmızıysa çakışır. Eklerken **R** ile parçayı döndür. Aynı ekipmandan başka parçalar eklemek için tekrar tıkla.
 3. **Esc / Seçim modu** ile eklemeyi bitir. Parçaya tıklayıp sürükleyerek taşı.
 4. **R / Döndür 90°**, **Yan yana kopyala / Ctrl+D** ve **Sil / Delete** seçili parçaya uygulanır.
 5. **Ctrl+Z** geri alır; **Ctrl+Y** yineler. Son 50 düzenleme tutulur.
 
+Yeni rafın hangi ürünleri taşıyacağını sağ paneldeki kategori listesinden seç. **Kategorisiz** raflar rastgele doldurulmaz; soğutucuda süt, dondurucuda dondurma gibi uygun kategoriler kullan. Seçili rafın kategorisi listeye yansır ve tabela hemen güncellenir.
+
 **Duvara yasla**, **Komşuya yasla / hizala** ve **10 cm ızgara** sürüklerken çalışır. Yakındaki duvar veya komşu ekipmana 2 cm payla oturur; milimetrik koordinat yazmak gerekmez. Sola, sağa, öne ve depoya yaslama düğmeleri de vardır. Çakışan veya mağaza dışına taşan hareket uygulanmaz. Kırmızı parçalar mevcut taslağın düzeltilmesi gereken yerleridir.
+
+Yaslama ve ızgara seçenekleri yeni parça eklerken de uygulanır; kapatırsan istemediğin yuvarlama yapılmaz. Seçim, döndürme, kopyalama ve kaldırma düğmeleri çalışma alanının üstünde her zaman görünür.
 
 ## Bina, depo ve bölümler
 
