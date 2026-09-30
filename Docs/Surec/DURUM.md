@@ -6,6 +6,8 @@ Son güncelleme: 30.09.2026 gece — Claude (M19–M23 menü denetimi, M24, şub
 
 **30.09.2026 gece — gidiş yolu (Mustafa):** Önce oyunun aklı (ana ekrandan tam yönetim, boğmayan tycoon), sonra dükkân içi simülasyon. Oyunu Codex otomatik oyuncuyla oynatır. Aynı anda tek derlenmemiş Claude işi. Tek yol haritası: `Docs/Kurgu/06_GIDIS_YOLU.md`.
 
+**Aşama 1 üç akışa bölündü** (`Docs/Kurgu/07_AKIL_ISBOLUMU.md`): A = Codex (Aşama 0 doğrulama `main`de, sonra `akis-a` worktree: otomatik oyuncu + zaman), B = Claude Code (`akis-b` worktree: denge hataları, muhasebe defteri, ücret/sigorta, dönem olayları), C = Claude Cowork (`main`: mağaza ağı, il pazarı, tedarik, markalar; sonda bağlama). Promptlar `Docs/Surec/promptlar/`. Aşama 0 commit'i gelmeden B ve C başlamaz.
+
 **28.09.2026 kararı (Mustafa):** 3B model üretimi, mağaza modeli ve arayüz tasarımı dışında oyunun bütün kurgusu ve arka plan zekâsı Claude'da. Kurgu kitabı ve karar tablosu: `Docs/Kurgu/00_KURGU_KITABI.md`, `Docs/Kurgu/01_KARARLAR.md`. Yeni sistemler `MarketDirector` üzerinden oyuna bağlanır.
 
 v0.2 geliştirme. **Yeni oyun rafları boş açılır**; başlangıç stoğu depodadır ve oyuncu R modu/E ile yerleştirmeyi doğrudan deneyebilir. Raflar elle ve önizlemeyle dizilir; **reyon görevlileri** (G-049 geçti) boş rafları depodan doldurur, rafta olmayan ürünü kendi reyonuna dizer ve dar bloğu genişletir. Blender mağaza kiti yedi parçaya çıktı: gondol/duvar rafı, dökme ada, servisli açık tavan, ayrıntılı kasa, yönetim masası, cam kapılı soğutucu ve manav adası. Otomatik yerleştirme yok; yeni ürün "Rafta değil" durumunda başlar.
