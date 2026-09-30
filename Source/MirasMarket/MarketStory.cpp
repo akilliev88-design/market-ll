@@ -1,10 +1,14 @@
 #include "MarketStory.h"
+#include "MarketDepots.h"
+#include "MarketStart.h"
+#include "MarketCountry.h"
 #include "MarketCalendar.h"
 #include "MarketCampaign.h"
 #include "MarketEvents.h"
 #include "MarketGoods.h"
 #include "MarketStaff.h"
 #include "MarketCompany.h"
+#include "MarketBranches.h"
 
 namespace MarketStory
 {
@@ -18,8 +22,7 @@ namespace MarketStory
 
     FString StoryTl(int64 Kurus)
     {
-        const int64 Abs = Kurus < 0 ? -Kurus : Kurus;
-        return FString::Printf(TEXT("%s%lld,%02lld TL"), Kurus < 0 ? TEXT("-") : TEXT(""), static_cast<long long>(Abs / 100), static_cast<long long>(Abs % 100));
+        return MarketCountry::Money(Kurus); // G-084: the active country\'s currency
     }
 
     bool Has(const FMarketState& State, int64 Beat) { return (State.Story.Beats & Beat) != 0; }
@@ -74,8 +77,8 @@ FString MarketStory::ChapterTitle(int32 Chapter)
     case 1: return TEXT("Defter");
     case 2: return TEXT("Kar\u015f\u0131 D\u00fckk\u00e2n");
     case 3: return TEXT("\u0130kinci Tabela");
-    case 4: return TEXT("Trakya");
-    case 5: return TEXT("Tabela T\u00fcrkiye'de");
+    case 4: return TEXT("\u0130ller");
+    case 5: return TEXT("\u00dclke \u00c7ap\u0131nda");
     case 6: return TEXT("S\u0131n\u0131r\u0131n \u00d6tesi");
     case 7: return TEXT("Miras");
     default: return TEXT("Serbest oyun");
@@ -97,6 +100,7 @@ TArray<MarketStory::FObjective> MarketStory::Objectives(const FMarketState& Stat
 {
     TArray<FObjective> List;
     auto Add = [&List](const FString& Text, bool bDone, bool bLater = false) { FObjective O; O.Text = Text; O.bDone = bDone; O.bLater = bLater; List.Add(O); };
+    if (StoryClosed(State)) return List;   // free play after the finale: no goals
     switch (State.Story.Chapter)
     {
     case 1:
@@ -105,7 +109,7 @@ TArray<MarketStory::FObjective> MarketStory::Objectives(const FMarketState& Stat
         Add(TEXT("\u0130lk haftay\u0131 bitir"), State.Day > 7);
         break;
     case 2:
-        Add(TEXT("Baban\u0131n borcunu kapat"), !MarketCampaign::DebtOpen(State));
+        Add(TEXT("\u0130\u015fletmenin borcunu kapat"), !MarketCampaign::DebtOpen(State));
         Add(TEXT("Yerel pay\u0131 %35'e \u00e7\u0131kar"), Has(State, BShare35));
         Add(FString::Printf(TEXT("15 m\u00fcdavim kazan (\u015fu an %d)"), Regulars(State)), Regulars(State) >= 15);
         Add(TEXT("Kadir Bey'in teklifine cevap ver"), Has(State, BSellAnswered));
@@ -119,7 +123,7 @@ TArray<MarketStory::FObjective> MarketStory::Objectives(const FMarketState& Stat
     {
         const int32 Stores = MarketCompany::TotalStores(State), Provinces = MarketCompany::Provinces(State);
         Add(FString::Printf(TEXT("\u0130ki ilde 8 ma\u011faza (\u015fu an %d ma\u011faza, %d il)"), Stores, Provinces), Stores >= 8 && Provinces >= 2);
-        Add(TEXT("B\u00f6lge deposu"), State.Company.bDepot);
+        Add(TEXT("\u0130lk depo"), MarketDepots::Count(State) > 0); // G-089: depots in provinces
         Add(TEXT("\u0130lk kamyon"), State.Company.Trucks > 0);
         break;
     }
@@ -133,10 +137,12 @@ TArray<MarketStory::FObjective> MarketStory::Objectives(const FMarketState& Stat
     }
     case 6:
     {
-        const FMarketCityStores* Pilot = MarketCompany::Find(State, MarketCompany::ECity::Kircaali);
-        const bool bPilot = Pilot && Pilot->Stores > 0 && State.Day - Pilot->FirstDay >= 30 && Pilot->Last30Profit > 0;
-        Add(TEXT("K\u0131rcaali pilot ma\u011fazas\u0131 30 g\u00fcnde k\u00e2rl\u0131"), bPilot);
-        Add(TEXT("\u0130kinci \u00fclke (Romanya)"), MarketCompany::CountryStores(State, TEXT("Romanya")) > 0);
+        // G-086: any country pack; the first foreign shop must earn within its first month.
+        bool bPilot = false;
+        for (const FMarketBranch& B : State.Branches)
+            if (B.Stage == static_cast<uint8>(MarketBranches::EStage::Open) && MarketBranches::CountryOf(State, B) != State.CountryId && State.Day - B.OpenedDay >= 30 && B.Last30Profit > 0) bPilot = true;
+        Add(TEXT("Yurt d\u0131\u015f\u0131ndaki ilk ma\u011faza 30 g\u00fcnde k\u00e2rl\u0131"), bPilot);
+        Add(FString::Printf(TEXT("\u0130kinci yabanc\u0131 \u00fclke (\u015fu an %d)"), MarketCompany::ForeignCountries(State)), MarketCompany::ForeignCountries(State) >= 2);
         break;
     }
     case 7:
@@ -169,10 +175,35 @@ int64 MarketStory::SaleOffer(const FMarketState& State, const TArray<FMarketProd
     return FMath::Max<int64>(20000, Offer / 500 * 500);
 }
 
+bool MarketStory::StoryClosed(const FMarketState& State)
+{
+    return State.Story.bEnded || State.Story.bCampaignOver;
+}
+
+bool MarketStory::ReachFinale(FMarketState& State, EEnding Ending)
+{
+    if (State.Story.bEnded) return false;
+    State.Story.bEnded = true;
+    State.Story.Ending = static_cast<uint8>(Ending);
+    const bool bLegacy = Ending == EEnding::Legacy;
+    AddMemory(State, bLegacy ? TEXT("Miras: aileden kalan d\u00fckk\u00e2n, herkesin bildi\u011fi bir tabela oldu") : TEXT("kampanyan\u0131n son g\u00fcn\u00fc"));
+    // The finale card (karar J02): a short summary, one choice, shown once.
+    const FString Summary = FString::Printf(TEXT("%d ma\u011faza \u00b7 %d il \u00b7 kasa %s \u00b7 %d hat\u0131ra."),
+        MarketCompany::TotalStores(State), MarketCompany::Provinces(State), *StoryTl(State.Cash), State.Story.Memories.Num());
+    const FString Text = bLegacy
+        ? FString::Printf(TEXT("Nermin teyze tabelaya bak\u0131p g\u00fcl\u00fcmsedi: \"%s g\u00f6rseydi...\" Aileden kalan d\u00fckk\u00e2n art\u0131k herkesin bildi\u011fi bir isim. "), *MarketStart::Relative(State, MarketStart::ECase::Plain, true)) + Summary
+        : TEXT("Y\u0131llar ge\u00e7ti; defterin son sayfas\u0131na geldin. ") + Summary;
+    MarketEvents::Offer(State, StoryDecision(State, TEXT("story.finale"), bLegacy ? TEXT("Son: Miras") : TEXT("Son: Defterin son sayfas\u0131"), Text,
+        { FString(TEXT("Oynamaya devam et")) }, 0, 7));
+    return true;
+}
+
 void MarketStory::CloseDay(FMarketState& State, const TArray<FMarketProduct>& Products)
 {
     const int32 Closed = State.Day - 1;
-    if (Closed < 1 || State.Story.Chapter == StoryOverChapter) return;
+    if (Closed < 1 || StoryClosed(State)) return;
+    // Karar J02: the campaign's last day brings the finale if the Legacy one has not come.
+    if (MarketCalendar::DateOf(Closed).Year > FinalYear) { ReachFinale(State, EEnding::TimeUp); return; }
     TArray<FString>& News = State.DayNews;
 
     // Scenes.
@@ -180,7 +211,7 @@ void MarketStory::CloseDay(FMarketState& State, const TArray<FMarketProduct>& Pr
     {
         Mark(State, BWelcome);
         Nermin(State);
-        News.Add(TEXT("Nermin teyze u\u011frad\u0131: \"Baban her sabah bana bir \u015fi\u015fe s\u00fct ay\u0131r\u0131rd\u0131, evlad\u0131m. Sen de ay\u0131r\u0131rs\u0131n, de\u011fil mi?\" S\u00fct raf\u0131n\u0131 bo\u015f b\u0131rakma; mahalle ona bak\u0131yor."));
+        News.Add(FString::Printf(TEXT("Nermin teyze u\u011frad\u0131: \"%s her sabah bana bir \u015fi\u015fe s\u00fct ay\u0131r\u0131rd\u0131, evlad\u0131m. Sen de ay\u0131r\u0131rs\u0131n, de\u011fil mi?\" S\u00fct raf\u0131n\u0131 bo\u015f b\u0131rakma; mahalle ona bak\u0131yor."), *MarketStart::Relative(State, MarketStart::ECase::Plain, true)));
     }
     if (Closed >= 1 && !Has(State, BCem))
     {
@@ -193,12 +224,12 @@ void MarketStory::CloseDay(FMarketState& State, const TArray<FMarketProduct>& Pr
         Cem.DailyWage = FMath::Max<int64>(1000, MarketStaff::FairWage(MarketStaff::ERole::Stocker, 62, State.Day) * 95 / 100 / 50 * 50);
         Cem.Morale = 80.f;
         State.Candidates.Insert(Cem, 0);
-        News.Add(TEXT("Cem kap\u0131ya geldi: \"Baban\u0131n yan\u0131nda dokuz y\u0131l \u00e7al\u0131\u015ft\u0131m abi. Depoyu, raf\u0131, m\u00fc\u015fteriyi bilirim.\" Aday listesinde; ilk hafta boyunca bekler."));
+        News.Add(FString::Printf(TEXT("Cem kap\u0131ya geldi: \"%s yan\u0131nda dokuz y\u0131l \u00e7al\u0131\u015ft\u0131m abi. Depoyu, raf\u0131, m\u00fc\u015fteriyi bilirim.\" Aday listesinde; ilk hafta boyunca bekler."), *MarketStart::Relative(State, MarketStart::ECase::Genitive, true)));
     }
     if (Closed >= 3 && !Has(State, BSelim))
     {
         Mark(State, BSelim);
-        News.Add(TEXT("Selim (Trakya G\u0131da) u\u011frad\u0131: \"Babanla yirmi y\u0131l \u00e7al\u0131\u015ft\u0131k. D\u00fczenli al, zaman\u0131nda \u00f6de; vadeyi de iskontoyu da a\u00e7ar\u0131m.\""));
+        News.Add(FString::Printf(TEXT("Selim (Trakya G\u0131da) u\u011frad\u0131: \"%s yirmi y\u0131l \u00e7al\u0131\u015ft\u0131k. D\u00fczenli al, zaman\u0131nda \u00f6de; vadeyi de iskontoyu da a\u00e7ar\u0131m.\""), *MarketStart::Relative(State, MarketStart::ECase::With, true)));
     }
     if (Closed >= 5 && !Has(State, BKadir))
     {
@@ -209,7 +240,7 @@ void MarketStory::CloseDay(FMarketState& State, const TArray<FMarketProduct>& Pr
         !State.Candidates.ContainsByPredicate([](const FMarketEmployee& E) { return E.Id == CemCandidateId; }))
     {
         Mark(State, BCemGone);
-        News.Add(TEXT("Cem Babaeski'de bir f\u0131r\u0131nda i\u015fe ba\u015flam\u0131\u015f. \"Baban olsa beni al\u0131rd\u0131\" demi\u015f."));
+        News.Add(FString::Printf(TEXT("Cem Babaeski'de bir f\u0131r\u0131nda i\u015fe ba\u015flam\u0131\u015f. \"%s olsa beni al\u0131rd\u0131\" demi\u015f."), *MarketStart::Relative(State, MarketStart::ECase::Plain, true)));
     }
     // Nermin teyze notices an empty milk shelf (at most every ten days).
     bool bNoMilk = false;
@@ -220,13 +251,13 @@ void MarketStory::CloseDay(FMarketState& State, const TArray<FMarketProduct>& Pr
         MarketEvents::Log(State, TEXT("story.nermin"));
         FMarketLoyalty& N = Nermin(State);
         N.Satisfaction = FMath::Max(0.f, N.Satisfaction - 8.f);
-        News.Add(TEXT("Nermin teyze eli bo\u015f d\u00f6nd\u00fc: \"Baban\u0131n zaman\u0131nda s\u00fct hi\u00e7 bitmezdi.\" Bunu yar\u0131n b\u00fct\u00fcn sokak duyar."));
+        News.Add(FString::Printf(TEXT("Nermin teyze eli bo\u015f d\u00f6nd\u00fc: \"%s zaman\u0131nda s\u00fct hi\u00e7 bitmezdi.\" Bunu yar\u0131n b\u00fct\u00fcn sokak duyar."), *MarketStart::Relative(State, MarketStart::ECase::Genitive, true)));
     }
 
     // Milestones.
     if (State.LastPurchases > 0 && !Has(State, BFirstOrder)) { Mark(State, BFirstOrder); AddMemory(State, TEXT("ilk sipari\u015f")); }
     if (State.LastProfit > 0 && !Has(State, BFirstProfit)) { Mark(State, BFirstProfit); AddMemory(State, TEXT("ilk k\u00e2rl\u0131 g\u00fcn")); }
-    if (!MarketCampaign::DebtOpen(State) && !Has(State, BDebt)) { Mark(State, BDebt); AddMemory(State, TEXT("baban\u0131n borcu kapand\u0131")); }
+    if (!MarketCampaign::DebtOpen(State) && !Has(State, BDebt)) { Mark(State, BDebt); AddMemory(State, TEXT("i\u015fletmenin borcu kapand\u0131")); }
     if (State.MarketShare >= 35.f && !Has(State, BShare35)) { Mark(State, BShare35); AddMemory(State, TEXT("mahallenin \u00fc\u00e7te biri art\u0131k bizden al\u0131\u015fveri\u015f yap\u0131yor")); }
     if (MarketStaff::Count(State, MarketStaff::ERole::Cashier) + MarketStaff::Count(State, MarketStaff::ERole::Stocker) > 0 && !Has(State, BFirstEmployee))
     {
@@ -242,8 +273,8 @@ void MarketStory::CloseDay(FMarketState& State, const TArray<FMarketProduct>& Pr
         Mark(State, BSellOffered);
         const int64 Offer = SaleOffer(State, Products);
         MarketEvents::Offer(State, StoryDecision(State, TEXT("story.sell"), TEXT("Kadir Bey'in teklifi"),
-            FString::Printf(TEXT("Kadir Bereketo\u011flu \u00e7ay\u0131n\u0131 kar\u0131\u015ft\u0131r\u0131yor: \"D\u00fckk\u00e2n\u0131 bana devret. %s veririm, baban\u0131n toptanc\u0131 borcunu da ben kapat\u0131r\u0131m. Bina senin kals\u0131n, kiras\u0131n\u0131 \u00f6derim.\""), *StoryTl(Offer)),
-            { FString(TEXT("Satm\u0131yorum. Bu d\u00fckk\u00e2n babam\u0131n.")), FString::Printf(TEXT("Sat (%s)"), *StoryTl(Offer)) }, 0, 3, static_cast<int32>(FMath::Min<int64>(Offer, MAX_int32))));
+            FString::Printf(TEXT("Kadir Bereketo\u011flu \u00e7ay\u0131n\u0131 kar\u0131\u015ft\u0131r\u0131yor: \"D\u00fckk\u00e2n\u0131 bana devret. %s veririm, d\u00fckk\u00e2n\u0131n toptanc\u0131 borcunu da ben kapat\u0131r\u0131m. Bina senin kals\u0131n, kiras\u0131n\u0131 \u00f6derim.\""), *StoryTl(Offer)),
+            { FString::Printf(TEXT("Satm\u0131yorum. Bu d\u00fckk\u00e2n %s."), *MarketStart::Relative(State, MarketStart::ECase::Mine)), FString::Printf(TEXT("Sat (%s)"), *StoryTl(Offer)) }, 0, 3, static_cast<int32>(FMath::Min<int64>(Offer, MAX_int32))));
     }
 
     // Next chapter when every goal of this one is reached.
@@ -264,7 +295,7 @@ bool MarketStory::Resolve(FMarketState& State, const TArray<FMarketProduct>& Pro
         Mark(State, BSellAnswered);
         if (Option == 0)
         {
-            OutMessage = TEXT("\"Bu d\u00fckk\u00e2n babam\u0131n.\" Kadir Bey bir \u015fey demeden kalkt\u0131. Sokakta r\u00fczg\u00e2r de\u011fi\u015fti.");
+            OutMessage = FString::Printf(TEXT("\"Bu d\u00fckk\u00e2n %s.\" Kadir Bey bir \u015fey demeden kalkt\u0131. Sokakta r\u00fczg\u00e2r de\u011fi\u015fti."), *MarketStart::Relative(State, MarketStart::ECase::Mine));
             AddMemory(State, TEXT("Kadir Bey'e hay\u0131r dendi"));
             OfferIdentity(State);
             // A proud neighbour does not forget a no.
@@ -290,13 +321,14 @@ bool MarketStory::Resolve(FMarketState& State, const TArray<FMarketProduct>& Pro
         }
         // The ending is seen and remembered; then the player chooses: it was a dream (back to the shop, the
         // money never came) or this is where the story ends (free play).
-        State.Cash += D.Arg;
+        // The sale money is not paid into the till yet (karar J03): it cannot be spent before the choice below,
+        // so "Ruyaymis" can undo the sale completely.
         State.Story.Ending = static_cast<uint8>(EEnding::Sold);
         AddMemory(State, TEXT("d\u00fckk\u00e2n sat\u0131ld\u0131 (son: Satt\u0131n)"));
         OutMessage = FString::Printf(TEXT("Satt\u0131n. %s ile \u0130stanbul'a gittin; y\u0131llar sonra \u0130stasyon Caddesi'nden ge\u00e7erken tabelada ba\u015fka bir isim vard\u0131. (Son: Satt\u0131n.)"),
             *StoryTl(D.Arg));
         MarketEvents::Offer(State, StoryDecision(State, TEXT("story.dream"), TEXT("Son: Satt\u0131n"),
-            TEXT("Bu hikayenin sonlar\u0131ndan biriydi. Bir sabah d\u00fckk\u00e2n\u0131n kepengini a\u00e7ma sesiyle uyan\u0131rsan r\u00fcyaym\u0131\u015f; ya da burada bitsin ve serbest oyna."),
+            TEXT("Bu hikayenin sonlar\u0131ndan biriydi. Bir sabah d\u00fckk\u00e2n\u0131n kepengini a\u00e7ma sesiyle uyan\u0131rsan r\u00fcyaym\u0131\u015f ve oyun kald\u0131\u011f\u0131 yerden s\u00fcrer; ya da burada bitsin: bu kampanya kapan\u0131r, yeni oyun a\u00e7\u0131l\u0131r."),
             { FString(TEXT("R\u00fcyaym\u0131\u015f: d\u00fckk\u00e2na d\u00f6n")), FString(TEXT("Burada bitsin")) }, 0, 3, D.Arg));
         return true;
     }
@@ -304,14 +336,20 @@ bool MarketStory::Resolve(FMarketState& State, const TArray<FMarketProduct>& Pro
     {
         if (Option == 0)
         {
-            State.Cash -= D.Arg;   // the money was never paid
-            OutMessage = TEXT("Kepengin sesiyle uyand\u0131n. Tezgah, defter, babam\u0131n \u00e7ay barda\u011f\u0131... Hepsi yerinde. R\u00fcyaym\u0131\u015f.");
+            // The sale money never reached the till, so there is nothing to take back (karar J03).
+            OutMessage = FString::Printf(TEXT("Kepengin sesiyle uyand\u0131n. Tezgah, defter, %s \u00e7ay barda\u011f\u0131... Hepsi yerinde. R\u00fcyaym\u0131\u015f."), *MarketStart::Relative(State, MarketStart::ECase::Mine));
             AddMemory(State, TEXT("sat\u0131\u015f r\u00fcyaym\u0131\u015f; d\u00fckk\u00e2na d\u00f6n\u00fcld\u00fc"));
             OfferIdentity(State);
             return true;
         }
-        State.Story.Chapter = StoryOverChapter;
-        OutMessage = TEXT("Hikaye burada bitti. Oyun serbest devam ediyor.");
+        State.Story.bCampaignOver = true;
+        State.Story.bEnded = true;
+        OutMessage = TEXT("Hikaye burada bitti. Bu kampanya kapand\u0131; yeni oyun i\u00e7in F6'ya iki kez bas.");
+        return true;
+    }
+    if (D.Id == TEXT("story.finale"))
+    {
+        OutMessage = TEXT("Oyun serbest devam ediyor. Yeni b\u00f6l\u00fcm ya da hikaye gelmeyecek; d\u00fckk\u00e2n, \u015firket ve rakipler i\u015flemeye devam eder.");
         return true;
     }
     if (D.Id == TEXT("story.identity"))

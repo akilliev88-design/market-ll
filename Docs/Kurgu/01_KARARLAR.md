@@ -11,7 +11,7 @@ Sahiplik (M, 28.09.2026): 3B model üretimi, mağaza modeli ve arayüz tasarım�
 | No | Konu | Karar | Modül | Durum |
 |---|---|---|---|---|
 | A01 | Başlangıç tarihi | 7 Mart 2011 Pazartesi = gün 1. Hafta Pazartesi başlar (C; 2011 başlangıcı M) | `MarketCalendar` | Derlenmedi (G-061) |
-| A02 | Gün uzunluğu | Açık dükkânda 4 gerçek dakika. Menüde zaman durur (mevcut) | `MarketGame` | Uygulandı |
+| A02 | Gün uzunluğu | Açık dükkânda 4 gerçek dakika. **Menü açıkken zamanın akması ya da durması oyuncunun ayarıdır** (M 29.09.2026; varsayılan: akar, G-075 davranışı). Ayar kayda değil kullanıcı ayarlarına yazılır | `MarketGame`, `MarketMenu` | Derlenmedi (G-076) |
 | A03 | Bayram ve özel günler | 2011'in gerçek tarihleri; hicri bayramlar her yıl ~11 gün kayar (C) | `MarketCalendar` | Derlenmedi (G-061) |
 | A04 | Mevsim ve hava | Deterministik; kategori talebini ve yayayı etkiler (C) | `MarketCalendar` | Derlenmedi (G-061) |
 | A05 | Maaş günleri | Ayın 1'i, 15'i ve son iş günü trafik/sepet artar; ay sonu bütçe daralır (C) | `MarketCalendar` | Derlenmedi (G-061) |
@@ -20,8 +20,8 @@ Sahiplik (M, 28.09.2026): 3B model üretimi, mağaza modeli ve arayüz tasarım�
 | A08 | Yer | Lüleburgaz esinli kurgu semtler (İstasyon başlangıç). Sonra Trakya, Türkiye, Bulgaristan pilotu (C) | Derlenmedi (G-068) |
 | A09 | Stratejik ilerletme | Dükkân kapalıyken 1 gün / 1 hafta ilerlet: yürüyen insan olmadan aynı kurallarla gün; aile rutini (zam, vergi, borç taksiti, raf, önerilen sipariş); karar bekleyince, kasa eksiye düşünce ya da hafta bitince durur (C; plan 01 §3). Görev devriyle ay ilerletme şirket büyümesinde | `MarketSimulation` | Derlenmedi (G-071) |
 | A10 | Zorluk | Rahat/Normal/Zor: müşteri sayısı (±%10/−%8) ve fiyat hoşgörüsü (+0,05/−0,04). Tarih (enflasyon, bayram, rakip açılışı) değişmez; rakip saldırganlığı ve olay yoğunluğu ayarı sonra (plan) | `MarketSimulation` | Derlenmedi (G-071) |
-| A11 | Gerçek marka adları | Ürünlerde gerçek marka görünür; F8 kurgu adlara çevirir (M) | `ProductCatalog` | Uygulandı |
-| A12 | Gerçek zincirler | Rakip olarak gerçek zincirler, yalnızca olağan ticari davranış; olumsuz kurgu olaylar kurgu şirketlerle (M + plan 06) | `MarketCompetitors` | Kısmen (G-054) |
+| A11 | Marka adları | L12 ile değişti: varsayılan kurgu ad (gerçeğe yakın); F8 geliştirme için gerçek adı gösterir (M 29.09.2026) | `ProductCatalog` | Derlenmedi |
+| A12 | Gerçek zincirler | **Gerçek zincir adları kalır ve bütün rekabet davranışında (fiyat savaşı, açılış yarışı, kapanma, satın alınma) kullanılır** (M 29.09.2026). Her gerçek zincirin karşılığı olan kurgu ad ve logo rengi `Config/zincirler.json`'da hazır tutulur; yayın kararı verilirse tek ayarla kurgu adlara geçilir (F8 marka anahtarı gibi) | `MarketCompetitors`, `MarketRetail`, `Config/zincirler.json` | Kısmen: dosya hazır (G-077), koda bağlama G-079 |
 
 ## B. Hikâye
 
@@ -128,7 +128,98 @@ Sahiplik (M, 28.09.2026): 3B model üretimi, mağaza modeli ve arayüz tasarım�
 | I02 | Bölge deposu ve kamyon | Depo ≥4 mağaza (marj +%1,5, uzak mağaza lojistik kaybı %3 → 0), 8 uzak mağazaya bir kamyon (yetmezse %1,5); merkezi satın alma depo + ≥8 mağaza (+%2). Rota ve soğuk zincir sonraki aşama | `MarketCompany` | Derlenmedi (G-072) |
 | I03 | Ulusal aşama | İstanbul, Bursa, İzmir, Ankara, Kocaeli toplu mağaza modeli; "Miras" özel markası (≥20 mağaza, +%1,5 marj, +%3 müşteri); 10 mağazaya bir bölge müdürü; ulusal pay mağaza başı ~%0,04; karanlık mağaza. Yatırımcı/halka arz sonraki aşama | `MarketCompany` | Derlenmedi (G-072) |
 | I04 | Uluslararası | Pilot Kırcaali (Bulgaristan), sonra Filibe; ikinci ülke Romanya (Köstence); yeni ülkede 90 gün öğrenme (−%3 marj), gümrük %1. Kur sonraki aşama (C) | `MarketCompany` | Derlenmedi (G-072) |
-| I05 | Sonlar | Sattın (G-066); Miras: 7. bölümde bir yıl her ölçüde önde (pay %40, 60 mağaza, kâr, memnuniyet %60), oyun serbest sürer. Mahallenin dükkânı / Trakya / Türkiye / Sınır ötesi şimdilik bölüm hatıraları olarak kalır (C) | `MarketStory`, `MarketCompany` | Kısmen (G-072) |
+| I05 | Sonlar (eski) | Sattın (G-066); Miras: 7. bölümde bir yıl her ölçüde önde (pay %40, 60 mağaza, kâr, memnuniyet %60), oyun serbest sürer. Mahallenin dükkânı / Trakya / Türkiye / Sınır ötesi şimdilik bölüm hatıraları olarak kalır (C) | `MarketStory`, `MarketCompany` | Kısmen (G-072) |
+
+## J. Dünya ve oyun sonu (derin inceleme sonrası, `02_DERIN_INCELEME.md`)
+
+| No | Konu | Karar | Modül | Durum |
+|---|---|---|---|---|
+| J01 | Yeniden tasarım | `Docs/Kurgu/02_DERIN_INCELEME.md` §3 ve §4 yol haritası uygulanacak (M 29.09.2026: "önerini uygula") | tümü | Devam ediyor (G-076…) |
+| J02 | **Oyun sonu (Game Dev Tycoon gibi)** | Tek büyük son vardır: "Miras" — Küresel Perakende Ligi'nde 2 mali yıl üst üste ciroda 1. olmak (pozitif faaliyet nakdi, borç/FAVÖK < 3) **ya da** kampanyanın son tarihi (31.12.2040) gelince, hangisi önce olursa. Son ekranı bir kez gösterilir (özet: ciro sırası, mağaza, ülke, hatıralar). Sonra **"Oynamaya devam et"**: simülasyon sürer ama yeni bölüm, hikâye sahnesi, dönem olayı, yeni ülke açılışı gelmez; son bir daha gösterilmez (M 29.09.2026; tarih ve ölçüt C). Bölüm numarası 99 hilesi kaldırılır; ayrı `bEnded` bayrağı | `MarketStory`, `MarketCompany` | Derlenmedi (G-076); lig ölçütü G-082 |
+| J03 | Sattın sonu | Satış sonu yine gösterilir, iki seçenek: **"Rüyaymış"** satışı tamamen geri alır (satış parası ayrı tutulur, kasaya karışmaz; harcanamaz) ve oyun kaldığı yerden sürer. **"Burada bitsin"** kampanyayı bitirir: kayıt "bitti" diye işaretlenir, oyuncu yeni oyun açar. Satılmış dükkânla serbest oyun yok; eski "bölüm 99" davranışı kalkar (C) | `MarketStory` | Derlenmedi (G-076) |
+| J04 | Dünya yapısı | Dünya → bölge → ülke → pazar hücresi; 25–35 ülke, modern perakende payı S eğrisi, giriş yolları (kendi mağaza, franchise, ortaklık, satın alma, toptan, online) (C) | yeni `MarketWorld` | Tasarım |
+| J05 | Küresel Perakende Ligi | Her yıl "Küresel 50" ciro tablosu; gerçek devler kendi eğrisiyle (A12'ye göre gerçek adlar), "dünya ölçeği" ayarı ×0,5–×1,0 (C) | yeni `MarketWorld`, `MarketRetail` | Tasarım |
+| J06 | Yerel rekabet ekosistemi | Bakkal, semt pazarı, fırın, aile marketi, indirim, süpermarket, hipermarket, online; logit müşteri seçimi; rakip bilançosu, kişilik, hafıza (C) | `MarketCompetitors` | Tasarım |
+| J07 | Kampanya kapsamı | Tek ürün / marka / alt kategori / kategori / raf / tüm mağaza / kart sahipleri; mekanik, teşhir, toptancı fonu (C) | `MarketPromotions` | Derlenmedi (G-078): kapsam + mekanik + yüzde + gün; toptancı fonu ve takvim şablonları sonra |
+
+## K. Tedarik ağı (Mustafa 29.09.2026 + Claude eklemeleri)
+
+| No | Konu | Karar | Modül | Durum |
+|---|---|---|---|---|
+| K01 | **Ölçekle ucuzlayan alım** | Rakip zincirler aynı malı bizden ucuza alır (indirim zincirleri ~%8–12, ulusal süpermarket ~%5 daha ucuz). Bizim alım gücümüz son 12 ayın alım hacmiyle artar: `maliyet × (1 − 0,03 × log2(hacim / başlangıç hacmi))`, tavan −%12; depo, merkezi alım ve üreticiden doğrudan alım ayrıca düşürür (M) | `MarketSuppliers`, `MarketCompetitors` | Tasarım (G-083) |
+| K02 | **Toptancı katmanları** | Yerel (ilçe toptancısı, bayi), bölgesel (Trakya distribütörü), ulusal distribütör, üreticiden doğrudan, uluslararası (ithalatçı, yurt dışı mağazalar için yerel tedarikçi). Üst katman ölçek ve kurum ister (depo, satınalma müdürü, kamyon) (M) | `MarketSuppliers` | Tasarım (G-083) |
+| K03 | **Her toptancı her malı taşımaz** | Uzman tedarikçiler: içecek bayisi (kola/su), süt ürünleri bayisi (soğuk zincir), kuru gıda toptancısı, temizlik-kozmetik toptancısı, fırın (ekmek), hal/manav (meyve-sebze), ileride tekel. Sipariş ekranı ürünü taşıyan toptancılara göre bölünür (M) | `MarketSuppliers`, `Config/toptancilar.json` | Tasarım (G-083) |
+| K04 | Teslim günleri | Her toptancı haftanın belli günleri gelir (ör. içecek Salı-Cuma, süt her gün, kuru gıda Pazartesi); teslim süresi ve asgari sipariş toptancıya göre. Sipariş bir planlama işi olur (C) | `MarketSuppliers`, `MarketDelivery` | Tasarım |
+| K05 | Fiyat listeleri ve karşılaştırma | Aynı ürün farklı toptancıda farklı fiyat, vade ve iskontoyla; sipariş ekranında karşılaştırma (C) | `MarketSuppliers`, menü | Tasarım |
+| K06 | Marka anlaşmaları | İçecek bayisi dolap verir, karşılığında raf/dolap payı ister (dolapta rakip marka yok); üretici raf giriş ücreti ve hedef primi öder (çeyreklik hedef tutarsa % iade); üretici destekli kampanyalar (C) | `MarketSuppliers`, `MarketPromotions` | Tasarım |
+| K07 | Toptancının stoğu ve kıtlık | Toptancı da mal bitirir; olaylar: ayçiçek yağı kıtlığı (2021 esinli), şeker/çay zammı öncesi stok yapma; zam duyurusundan önce stok yapan kazanır, depo ve nakit riskiyle (C) | `MarketSuppliers`, `MarketEvents` | Tasarım |
+| K08 | Ödeme biçimleri | Peşin iskonto (%2), vade, çek/senet (2011–2018 yaygın; karşılıksız çek riski), toptancıya göre kredi limiti (C) | `MarketSuppliers`, `MarketFinance` | Tasarım |
+| K09 | Toptancı ilişkisi | Toptancılar kişiliklidir (Selim gibi). Rakip zincirle anlaşan toptancı mal kısabilir, sadık müşteriye kıtlıkta öncelik verir; toptancı değiştirmek eski toptancının güvenini düşürür (C) | `MarketSuppliers` | Tasarım |
+| K10 | Satınalma müdürü | Mağaza sayısı büyüyünce personel rolü: pazarlık gücü ve iskonto artar, sipariş hatası azalır (C) | `MarketStaff` | Tasarım |
+| K11 | Kalite ve soğuk zincir | Zayıf soğuk zincirli bayiden gelen sütün raf ömrü kısalır; ucuz tedarikçide kalite olayı riski (C) | `MarketFreshness` | Tasarım |
+| K12 | Özel marka üreticisi | Fason üretici anlaşması: asgari parti, kalite denetimi, ihracat fırsatı (yurt dışı mağazalar) (C) | `MarketCompany` | Tasarım |
+| K13 | Uluslararası tedarik | İthal ürün kur riski taşır; yurt dışı mağaza yerel tedarikçi bulmak zorunda (ya da Türkiye'den ihracat, gümrük) (C) | `MarketWorld` | Tasarım |
+
+## L. Yayın için kapsayıcılık (Mustafa 29.09.2026, üçüncü tur)
+
+Mustafa'nın kararları **(M)**; Claude'un önerileri **(öneri)** — Mustafa onaylayınca (C/M) olur.
+
+| No | Konu | Karar | Durum |
+|---|---|---|---|
+| L01 | Dükkân dışı yok | Oyuncu dükkândan dışarı çıkmaz. Oyun = yönetim paneli + harita + gidilebilen dükkânlar. Dükkânlar kesit/maket (izometrik, "dollhouse") görünümüyle gösterilir; ışık gün saatine göre değişir (Mustafa'nın gönderdiği moodboard görseli) (M) | Tasarım |
+| L02 | Başlangıç yeri seçimi | ETS2 gibi: oyuncu dünya haritasından ülke ve o ülkedeki il/şehri seçer (M) | Tasarım |
+| L03 | Hikâye çerçevesi | Aileden kalan (babadan değil) küçük market; içinde 1 kasiyer, 2 reyon görevlisi; oyuncu müdür; işletmenin kendi borcu; raflar belli düzende ama tam dolu değil. Hedef: dev zincir (M) | Tasarım |
+| L04 | Kendi ekonomisi | Oyun ekonomisi gerçek hayattan farklı, kendine özgü (M) | Tasarım |
+| L05 | Para birimleri | Dolar, TL, euro, sterlin gibi para birimleri var; ülkeye göre (M) | Tasarım |
+| L06 | Belirsiz yıl | Gerçek takvim yılı yerine daha belirsiz zaman (M) | Tasarım |
+| L07 | Birinci şahıs kalır | Oyun birinci şahısla başlar (kendi dükkânında kasa, raf, mal kabul). Oyuncu istediği zaman kendi dükkânlarından birine girip dolaşır, raf dizer. Yönetim paneli, harita ve dükkân maketi (L01) birinci şahısla yan yana; büyüdükçe işler çalışanlara geçer ama birinci şahıs hiç kapanmaz (M 29.09.2026) | Tasarım |
+| L08 | Kurlar (öneri) | Gerçek para birimi adları, kurgu kurlar: her ülkenin "ekonomi karakteri" (istikrarlı / oynak / yüksek enflasyonlu), kur rastgele yürüyüş + ara sıra şok; oyuncu raporlama para birimini seçer; lig tablosu tek ortak birimde | Açık |
+| L09 | Zaman (öneri) | "1. yıl · İlkbahar" gibi göreli takvim; mevsimler ve o ülkenin kültürel günleri (Ramazan/Noel/Şükran günü…) ülke profilinden; dönemler (kartlı ödeme, internet satışı, hızlı teslimat) gerçek yıl yerine oyun içi ilerlemeyle açılır; olaylar adsız (ör. "kur şoku", "salgın") | Açık |
+| L10 | Ülke profilleri (öneri) | Veriyle tanımlı ülke paketi: para birimi, ekonomi karakteri, alışveriş alışkanlığı (günlük/haftalık), geleneksel rakipler (bakkal→corner shop, kiosk; pazar→Wochenmarkt, farmers market), çalışma saatleri ve pazar kapalı yasası, ödeme yöntemleri, isim havuzu, bayram takvimi, ürün/marka havuzu. İleride mod desteği (ETS2 gibi) | Açık |
+| L11 | Başlangıç zorluğu (öneri) | Haritada her şehir: rekabet, alım gücü, kira, büyüme potansiyeli, kur istikrarı yıldızları. Küçük kasaba kolay, başkent zor | Açık |
+| L12 | Kurgu ama gerçeğe yakın markalar | Game Dev Tycoon gibi (Sony → Vonny): ürün markaları ve zincirler gerçek firmaya yakın kurgu adla; her ülkenin kendi firmalarından. Pazar payları ve güçleri gerçek firmalardan esinli. Ayrıca satılacak **Marka Editörü** ile oyuncu istediği ad ve logoyu yükler (M 29.09.2026). İlk liste: `Config/markalar.json` (77 marka), `Config/zincirler.json` (`useFictional: true`), `products.json` `fictionalName`. Not (C): adlar gerçek markayla karıştırılmayacak kadar farklı tutuldu; yayın öncesi bir hukukçuya gösterilmesi önerilir | Kısmen: veriler hazır, oyun varsayılanı kurgu ad (G-084/G-085) |
+| L13 | Maket görünümünde oynanış (öneri) | Dükkâna tıkla: raf, kasa, depo, çalışan; baloncuklar sorunları gösterir ("süt rafı boş", "kuyruk uzun"); iç tasarım (zemin, duvar, ışık tonu: sıcak/aydınlık/loş) para ister ve müşteri gruplarını farklı çeker; gün saati kaydırıcısı ışığı ve müşteri yoğunluğunu gösterir | Açık |
+| L14 | Dil (öneri) | Türkçe + İngilizce arayüz baştan; metinler tek tablodan | Açık |
+| L15 | Başlangıç kasası (öneri) | Aileden kalan dükkânın kasasında 3 çalışanın 1 haftalık maaşı bulunur; ilk günler yalnız maaşla eksiye düşmesin. Akraba tohumla seçilir (teyze, dayı, hala, amca, büyükanne); şehir listesinde rekabet çarpanı (L11'in ilk adımı) | Kodda (G-084 2. parça), onay bekliyor |
+
+**Etkisi (Claude notu):** Türkiye'ye ve 2011'e bağlı kodlar (`MarketCalendar` gerçek tarihler, `MarketPrices` yıl eğrisi, `iller.json`, hikâye karakter adları, `products.json` markaları, `MarketRetail` gerçek veriler) ülke profiline taşınacak. Yeni görev G-084 bunu yapar; G-080…G-082 sırası buna göre güncellenir.
+
+## M. Mağaza ağı ve yönetim (Mustafa 29.09.2026, dördüncü tur; ayrıntı `03_MAGAZA_AGI.md`)
+
+| # | Konu | Karar | Durum |
+|---|---|---|---|
+| M01 | Yalnız il | Lüleburgaz ve semtler kalktı. Her ülkede tek yer düzeyi il (TR 81 il, DE 16 eyalet, GB 12 bölge, ABD 50 eyalet) (M) | Kodda (G-086a) |
+| M02 | Bütün ülke açık | Ev ilinin dışına ilk mağaza için İK müdürü + mali müşavir; yurt dışı 6. bölümde (M) | Kodda (G-086a) |
+| M03 | Varsayılan başlangıç ili yok | Oyuncu ülke ve ili kendisi seçer; seçmeden oyun başlamaz. Kırklareli yalnız eski kayıtlar ve otomatik koşular için (M) | Kodda (G-086a) |
+| M04 | Market türleri | Ucuzcu, mahalle, süpermarket, hipermarket (hiper: 5. bölüm, bölge deposu, 500 bin+ nüfus) (M) | Kodda (G-086a) |
+| M05 | Yönetim kademeleri | Mağaza müdürü → il müdürü (ilde 3+ mağaza, ildeki bütün mağazalar; yardımcı yok) → bölge müdürü (alt bölge) → bölge direktörü (ana bölge) → ülke müdürü (ikinci ülkeye girince her ülkede, Türkiye dahil) (M) | Tasarımda (G-086b) |
+| M06 | Kişi sınırı yalnız oyuncuda | Oyuncu en çok 5 kişiyle doğrudan ilgilenir; aşınca gözetim eksikliği. Müdürlerin sınırı yok; büyük il iyi il müdürü ister (gereken beceri 40 + mağaza/3, Claude önerisi) (M) | Yük göstergesi kodda, ceza G-086b |
+| M07 | Bölgeler iki kat | TR: 7 coğrafi bölge + 20 alt bölge (Trakya, Doğu Karadeniz…); DE 4; GB 2+6; ABD 4+9 (M) | Kodda (veri) |
+| M08 | Gezilebilir mağaza | Her ilde her türden 1, yurt dışında her ülkede her türden 1 (M) | G-087 |
+| M09 | Ana ekran harita | Harita ana ekrandır; açık ve koyu tema; tasarım Claude'da. İlk hâl (üç sütun, dönen kartlar) M12 ile değişti (M) | Kodda (G-086a → G-086c) |
+| M10 | Eski yurt dışı mağazaları | Kırcaali, Filibe, Köstence kapanır, depozito geri; Bulgaristan/Romanya dünya aşamasında (M) | Kodda (göç) |
+| M11 | Bölge deposu alt bölge başına | Tek depo yerine her alt bölgeye bir depo (Claude, 03 §6) | M23 ile kalktı (G-089) |
+| M12 | Sade ana ekran | Harita bütün ekran; il seçilince sağdan tek panel; sayılar üst haplarda, sayfalar alt dokta; tek asistan satırı; kararlar katmanda; az renk. Dönen kartlar ve yan sütunlar kalktı (Mustafa 30.09.2026, Claude tasarımı, 03 §12) | Kodda (G-086c) |
+| M13 | Bölge çipleri | "Trakya" düğmesi kalktı; ülkenin bütün ana bölgeleri çip, tıklayınca harita o bölgeye yakınlaşır (M, 30.09.2026) | Kodda (G-086c) |
+| M14 | Oyun içi görünüm = tuval | Menü ve dükkân içi HUD, tasarım tuvalindeki 4–5 numaralı çizimlerin birebir diliyle: IBM Plex Sans (metin), IBM Plex Mono (sayılar), Bricolage Grotesque (başlıklar), çizgi ikonlar, hap biçimli yüzeyler, açık temada yumuşak gölge, kâğıt zemin. Dokta tahtadaki altı sayfa + "Diğer" (Rakipler, Finans, Satış); ayarlar tarih hapının sonunda (M, 30.09.2026) | Kodda (G-086d) |
+| M15 | Ekran zıplamaz | Alt dok her zaman aynı: ilk öğe "Ana ekran" hep görünür ("Harita" adı kalktı). Üst haplar, dok, zil yerinden oynamaz; il paneli haritanın üstünde yüzen kart olarak sağdan kayarak gelir, harita yumuşakça yana kayar; "Diğer" kartı solarak yükselir. İçeriği değişen kartların yüksekliği sabit (ör. Sipariş'te "Öneriyi yaz" listeyi oynatmaz). Hareket olursa yumuşak olur (M, 30.09.2026) | Kodda (G-086e) |
+| M16 | Haritada il adı ve sipariş penceresi | Haritada yalnız seçili ilin adı yazar; ad ilin en geniş yerine oturur, sığmazsa küçülür (8 px'e kadar), yine sığmazsa kâğıt renkli hafif zemin alır; iğne de aynı noktada, ad iğnenin altında. Sipariş listesi pencere olarak açılır ("Listeyi aç", "Öneriyi yaz"): toptancı seçimi, satırlarda miktar, satır silme, "Değiştir" ile ürünü başka ürünle değiştirme (koliler taşınır), sağda ürün ekleme listesi. Sekmeler arası geçiş solarak ve hafif yükselerek (M, 30.09.2026) | Kodda (G-086f) |
+| M17 | Hazır mağaza görünümleri | Şube açınca türüne göre hazır bir mağaza görünümü atanır: 4 tür × 5 = 20 mağaza (sayı ileride artabilir). Bir ilde her türün tek gezilebilir mağazası olur; aynı ildeki aynı türden şubeler o görünümle gezilir; farklı illerde aynı görünüm tekrar edebilir. Mağazalar kabuk + yerleşim + tema ile kurulur, ürünler otomatik dizilir. Görünüm Codex'te, oyun hesabı ve atama Claude'da. Sözleşme `04_MAGAZA_KITI.md` (M, 30.09.2026) | Sırada (G-088) |
+| M18 | Raf kategorisi oyuncunun | Her mağazada (aile dükkânı dahil) oyuncu rafın üstündeki kategori tabelasına bakıp T ile rafın kategorisini değiştirebilir; gondolun iki yüzü ayrı. Görevliler yeni kategoriye göre dizer, raftaki eski ürünler silinmez, uyarı çıkar. Tabelalar ve 3B yazılar Türkçe harfli, Türkçe büyük harf kuralıyla (İÇECEK, KURU GIDA). `04_MAGAZA_KITI.md` §7 (M, 30.09.2026) | Sırada (G-088) |
+| M19 | Aile dükkânına müdür | Aile dükkânına müdür atama, ikinci şube açıldıktan sonra açılır (Claude yorumu: aile dükkânı dışında ilk şube açılınca; aile dükkânı + 1 şube = iki mağaza). Müdür atanınca dükkân onun kararlarıyla işler, oyuncu 5 kişi sayımına 1 kişi olarak girer (M, 30.09.2026) | Sırada (G-086b ek) |
+| M20 | Ülke müdürü ne zaman | Bir ülkede **5 ilde** mağazamız olunca o ülkenin ülke müdürü atanabilir (Türkiye dahil); öncesinde kademe ağacında görünmez. Şirket ikinci ülkeye girince her ülkede zorunlu kuralı sürer (M, 30.09.2026) | Sırada (G-086b ek) |
+| M21 | Deneyimle gelişen beceri, sınırlı | Müdürlerin becerisi deneyimle (iyi yönetilen haftalar, kıdem) artar ama her kişinin gizli bir **tavanı (potansiyel)** vardır; tavana yaklaştıkça artış yavaşlar; genel üst sınır 95. Yeni müdürün ilk haftası alışma (−20) kalır (M, 30.09.2026) | Sırada (G-086b ek) |
+| M22 | Rastgele, seçilebilir müdür adayları | Her atamada (mağaza, il, bölge, direktör, ülke, depo, aile dükkânı) rastgele üretilmiş 3 dış aday gösterilir; oyuncu birini seçer. Aday: ad, beceri (İK yoksa aralık), dürüstlük (İK varsa), tarz, potansiyel ipucu, ücret isteği. Aynı kampanyada ad tekrar etmez; adaylar haftada bir yenilenir (M, 30.09.2026) | Sırada (G-086b ek) |
+| M23 | Depolar ve depo müdürü | Büyük depo bir **ile** kurulur (oyuncu seçer; oyun şubelere göre en uygun ili önerir) ve çevresindeki birden çok ile hizmet verir. Her şube kendi ülkesindeki en yakın depoya bağlanır; uzaklık arttıkça lojistik maliyeti artar, çok uzakta depo hizmet vermez (şube toptancıdan alır). Her deponun bir **depo müdürü** olur: becerisi fireyi, eksik/kırık teslimatı ve raf bulunurluğunu etkiler; müdürsüz depo verimsiz çalışır. Eski alt bölge depoları o alt bölgedeki en uygun ile taşınır. M11'in yerini alır (M, 30.09.2026) | Kodda, oyun mantığı (G-089; menü sonra; derlenmedi) |
+| M24 | "2011" kavramı kalkar | Oyunun kendi ekonomisi var; oyuncu hiçbir yerde takvim yılı görmez ("N. yıl"). Koddaki 2011 adları (`Kurus2011`, `CatalogBase`, `StartYear`) yalnız "oyun başı fiyat düzeyi" ve takvimin iç çapasıdır. Oyuncuya görünen gerçek dünya metinleri (zincir tarihçeleri, kaynak satırı, "2014+", "2020-2021") kaldırıldı ya da "N. yıl" oldu. Belgelerde "2011 fiyatı" yerine "oyun başı fiyat düzeyi" (M, 30.09.2026) | Kodda (derlenmedi) |
+| M25 | Markalar reyonda yer ister | Markalar (kurgu adlı) reyonda yer için yarışır: daha çok yüz (facing), göz hizası, gondol başı için raf parası, ciro primi, ortak kampanya ve bedava mal teklif eder; karşılığında reyon payı ister. Her reyonda markaların pazar payı oyuncunun raf kararıyla değişir; yer verilmeyen marka şartlarını kötüleştirir ya da kampanyasını çeker. "Miras" özel markası da bu yarışa girer. Ayrıntı Claude tasarlayacak (M, 30.09.2026) | Sırada (06 A5) |
+
+## Mustafa'nın kararları (29.09.2026, ikinci tur)
+
+1. Derin incelemedeki önerinin tamamı uygulanacak (J01).
+2. Oyun sonu Game Dev Tycoon gibi: son bir kez gelir, sonra oynamaya devam edilir ama yeni içerik gelmez (J02).
+3. Menü açıkken zamanın akması ya da durması oyuncunun tercihi (A02).
+4. Gerçek zincir adları kalır; kurgu karşılıkları hazır tutulur, yayın kararında onlara geçilir (A12).
 
 ## Mustafa'nın kararları (29.09.2026)
 

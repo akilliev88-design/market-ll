@@ -18,7 +18,9 @@
 //  - A chain sometimes offers one of our good people a job; a content employee says no, an unhappy one (morale < 45) resigns.
 namespace MarketCompetitors
 {
-    enum class ECompany : uint8 { Bereket = 0, Bim, Migros, A101, Sok, Count };
+    // G-079: the neighbourhood's traditional trade joins the rivals: the corner grocers (several small shops, close,
+    // a little dearer, credit to regulars) and the weekly street market (Tuesdays, fresh goods only, cheap).
+    enum class ECompany : uint8 { Bereket = 0, Bim, Migros, A101, Sok, Bakkal, Pazar, Count };
 
     struct FProfile
     {
@@ -30,7 +32,22 @@ namespace MarketCompetitors
         int32 OpenDay = 1;
         int64 StartCash = 0;
         int32 NewsRival = INDEX_NONE;    // index in MarketRivals (its daily news), or none
+        int32 StartStores = 1;           // shops serving our street at the start
+        int32 Weekday = -1;              // open only on this weekday (0 = Monday), -1 = every day
+        bool bFreshOnly = false;         // sells only fresh goods (dairy now; produce later)
     };
+
+    // The name shown to the player: the real chain name, or its fictional stand-in when Config/zincirler.json says
+    // "useFictional": true (karar A12).
+    FString DisplayName(ECompany Company);
+    // Whether the company sells this aisle at all (the street market sells only fresh goods).
+    bool Sells(ECompany Company, const FString& Category);
+    // Open on a given game day (opening day, market day).
+    bool IsOpenOn(const FMarketState& State, ECompany Company, int32 GameDay);
+    // A "rival.*" decision (MarketEvents::Decide): buying Bereket Market when it is for sale.
+    bool Resolve(FMarketState& State, const TArray<FMarketProduct>& Products, const FMarketDecision& Decision, int32 Option, FString& OutMessage);
+    constexpr int32 SaleAfterRedDays = 30;
+    constexpr int64 BereketPrice2011 = 600000;   // 6.000 TL: goods, fittings, the name (x price level)
 
     constexpr float HomeAdvantage = 1.7f;    // the family shop is on the street where people live
     constexpr float PriceSensitivity = 0.12f;

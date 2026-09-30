@@ -33,7 +33,9 @@ Limit aniden biterse sonraki ajan GUNLUK/DURUM ile dosyaların son hâlini karş
 | `Source/MirasMarket/MarketBasket.*` | 1–4 ürünlü alışveriş listesi, kategori içi ikame ve kayıtlı tekrar müşteri memnuniyeti. |
 | `Source/MirasMarket/MarketCampaign.*` | Babadan kalan borç, taksit, ikinci şube kilidi ve yedi günlük hafta toplamları. |
 | `Source/MirasMarket/MarketRivals.*` | BİM, Migros ve A101 için deterministik günlük haberler, reyon fiyatı ve müşteri trafiği etkileri. |
-| `Source/MirasMarket/MarketMenu*` | M ile açılan tıklanabilir yönetim menüsü; özet, sipariş, fiyat, rakip, personel, şube ve rapor sayfaları. |
+| `Source/MirasMarket/MarketMenu*` | M ile açılan tıklanabilir yönetim menüsü (10 sayfa). `MarketMenuWidget.cpp` çerçeve, yapı taşları, Özet/Sipariş/Raporlar; `MarketMenuPages.cpp` Fiyat, Kampanyalar, Rakipler, Personel, Finans, Satış kanalları, Şubeler; `MarketMenuInternal.h` ortak yardımcılar; `MarketMenu.cpp` aç/kapat, komutlar ve `Todos()`. Ayrıntı `Docs/MENU.md`. |
+| `Source/MirasMarket/MarketHudWidget.*` | Sade oyun ekranı (A1): gün/saat, kasa, borç, en çok 3 bildirim (`Todos()`), ipucu. Geri kalan her şey menüde. |
+| `Source/MirasMarket/MarketMap.*`, `MarketRetail.*` | Şubeler sayfasının Türkiye il haritası (`Config/iller.json`) ve Rakipler sayfasının ulusal/uluslararası pazar verisi. |
 | `Source/MirasMarket/MarketWorkers.cpp` | Oyundaki reyon görevlileri: yürüme, koli taşıma, rafa tek tek dizme (`AMarketGameMode::TickWorkers`). |
 | `Source/MirasMarket/MarketDirector.*` | **Oyuna tek bağlantı noktası**: anlık çarpanlar (trafik, talep, sipariş öngörüsü) ve gün kapanışında bütün arka plan sistemlerini sırayla çağırır. Yeni sistem MarketGame.cpp'ye değil buraya bağlanır. Kurgu: `Docs/Kurgu/`. |
 | `Source/MirasMarket/MarketCalendar.*`, `MarketGoods.*` | Takvim (gün 1 = 7 Mart 2011 Pzt), mevsim, deterministik hava, gerçek bayram/tatiller, maaş günü; kategori → talep grubu sınıflandırması. |
@@ -50,6 +52,8 @@ Limit aniden biterse sonraki ajan GUNLUK/DURUM ile dosyaların son hâlini karş
 | `Source/MirasMarket/MarketSimulation.*` | Stratejik ilerletme ve zorluk: aile dükkânının gününü yürüyen insan olmadan aynı kurallarla oynatır (müşteri, raf kararı, ikame, ödeme, kasa, gün kapanışı); ailenin rutini (zammı rafa yansıt, vergi, borç taksiti, raf doldurma, önerilen sipariş); karar bekleyince/kasa eksiye düşünce/hafta bitince durur. Rahat/Normal/Zor. |
 | `Source/MirasMarket/MarketCompany.*` | Şirket büyümesi (dünyadan bağımsız, test edilir): Lüleburgaz dışı şehir mağazaları toplu modelle (Trakya, Türkiye, Kırcaali/Filibe/Köstence), bölge deposu, kamyon, merkezi satın alma, "Miras" özel markası, karanlık mağaza, ulusal pay, 4–7. bölüm hedefleri, liderlik yılı ve "Miras" sonu. |
 | `Docs/Kurgu/` | Claude'un kurgu kitabı (`00_KURGU_KITABI.md`) ve bütün konuların karar tablosu (`01_KARARLAR.md`). Yeni konu önce kararlar tablosuna yazılır. |
+| `Source/MirasMarket/MarketManagers.*` | G-086b yönetim kademeleri (dünyadan bağımsız, test edilir): mağaza müdürü tarzı/morali/kararları, il/bölge/direktör/ülke müdürleri, doğrudan bağlı sayımı ve 5 kişi sınırı, denetim etkileri, ücretler. Menüde Mağazalar › Yönetim. |
+| `Source/MirasMarket/MarketStoreAssign.*` | G-088 Claude tarafı: (ülke, il, tür) → gezilebilir mağaza seçimi, raf kategorisi yardımcıları, mağaza ölçülerinden oyun çarpanları (`FStoreMeasures`). Görünüm/kurulum Codex'in `MarketStoreKit`'inde. |
 | `Source/MirasMarket/MarketStaff.*` | Personel ve muhasebe (dünyadan bağımsız, test edilir): kişi olarak çalışanlar ve aday havuzu, kasiyer hızı ve kasa farkı, görevli hızı/taşıma/yorgunluk, moral ve istifa, İK müdürü, mali müşavir, haftalık vergi. Ayrıntı `Docs/PERSONEL_VE_MUHASEBE.md`. |
 | `Source/MirasMarket/MarketOrderAdvice.*` | Sipariş yardımı (dünyadan bağımsız, test edilir): önerilen koli sayısı, L ile listeyi öneriye yükseltme, 50 TL asgari sipariş. |
 | `Source/MirasMarket/MarketDelivery.cpp` | Çok ürünlü sipariş taslağı, arka kapıdaki fiziksel koliler ve oyuncunun mal kabul taşıması. |
@@ -101,6 +105,19 @@ Değişiklik ancak şunlardan sonra bitmiş sayılır: `DERLE.cmd` başarılı, 
 
 ## 7. Ajanlara özel notlar
 
+- **Gidiş yolu (Mustafa, 30.09.2026):** sıra `Docs/Kurgu/06_GIDIS_YOLU.md`'de. Önce oyunun aklı, sonra dükkân içi simülasyon. **Aynı anda en fazla bir derlenmemiş Claude işi**; Codex derleyip test ve otomatik oyuncu raporunu GUNLUK'e yazmadan Claude yenisine başlamaz.
+
 - **Codex:** Aynı klasörde yerel çalışır. Kabuk erişimin varsa derleme ve testleri sen çalıştır, sonuçları GUNLUK'e yaz.
-- **Claude (Cowork):** Klasöre köprü üzerinden erişir. Kabuk yoksa dosyaları hazırlar, derlemeyi Mustafa'dan (`DERLE.cmd`) ister, logu `Saved/Logs/DERLE_son.log` dosyasından okur. **Dosya yazdıktan sonra geri okuyup karşılaştır:** 27.09.2026'da bir aktarım iki dosyayı eski hâliyle yazdı ve derleme bu yüzden kırıldı.
+- **Claude (Cowork):** Klasöre köprü üzerinden erişir. Kabuk yoksa dosyaları hazırlar, derlemeyi Mustafa'dan (`DERLE.cmd`) ister, logu `Saved/Logs/DERLE_son.log` dosyasından okur. **Dosya yazdıktan sonra geri okuyup karşılaştır:** 27.09.2026'da bir aktarım iki dosyayı eski hâliyle yazdı ve derleme bu yüzden kırıldı. 29.09.2026'da da aynısı oldu: aynı çıktı yolundan ikinci kez yazılan dosya ilk hâliyle gitti. Bir dosyayı ikinci kez yazarken her seferinde **yeni bir çıktı yolu** kullan (ör. `outputs/r3/...`) ve geri okuyup karşılaştır.
 - Mustafa'ya teknik terimi az, sonucu net anlat. Bir karar onun tercihine bağlıysa sor. Varsayım yaptıysan GUNLUK'e yaz.
+
+## 8. İş bölümü ve dosya sahipliği (Mustafa, 30.09.2026)
+
+Aynı dosyaya iki ajan aynı anda dokunmaz. Sahibi olmayan dosyada değişiklik gerekiyorsa yapma; `GOREVLER.md` ilgili satırına ve `GUNLUK.md`'ye not yaz.
+
+| Alan | Sahip | Dosyalar |
+|---|---|---|
+| Oyunun aklı, kurgu, ekonomi, menü | Claude | `MarketEconomy.*`, `MarketBranches.*`, `MarketCompany.*`, `MarketCompetitors.*`, `MarketRivals.*`, `MarketStaff.*`, `MarketSuppliers.*`, `MarketPrices.*`, `MarketCountry.*`, `MarketStart.*`, `MarketStory.*`, `MarketEvents.*`, `MarketDirector.*`, `MarketSimulation.*`, `MarketLayout.*`, `MarketMenu*`, `MarketHudWidget.*`, `MarketMap.*`, `MarketTheme.*`, `Config/*.json` (magazalar.json hariç), `Docs/Kurgu/` |
+| Mağaza görünümleri, 3B, dünya | Codex | `MarketStoreKit.*`, `Planogram.*` (ekipman tanımları), `MarketGame.*`, `MarketWorkers.cpp`, `MarketVisuals.*`, `MarketArrange.cpp`, `MarketPeople.*`, `MarketAutomation.cpp`, `Source/MirasMarketStudio/`, `Tools/Blender/`, `Tools/*.py`, `Config/magazalar.json`, `AssetInbox/`, `Content/Stores/` |
+| Derleme, test, smoke | Codex (bilgisayarda kabuk var) | Claude'un derlenmemiş işini de derler, sonucu GUNLUK'e yazar |
+| Karar, oyun testi, ambalaj | Mustafa | — |

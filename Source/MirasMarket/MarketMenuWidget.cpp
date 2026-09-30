@@ -1,4 +1,9 @@
+// Management menu (G-059, G-074): frame, theme, building blocks and the Ozet / Siparis / Raporlar pages.
+// The other pages are in MarketMenuPages.cpp; helpers shared by both files are declared in MarketMenuInternal.h.
 #include "MarketMenuWidget.h"
+#include "MarketCountry.h"
+#include "MarketStart.h"
+#include "MarketMenuInternal.h"
 
 #include "MarketGame.h"
 #include "ProductCatalog.h"
@@ -15,10 +20,23 @@
 #include "MarketFreshness.h"
 #include "MarketBranches.h"
 #include "MarketCompany.h"
+#include "MarketCampaign.h"
+#include "MarketCalendar.h"
+#include "MarketStaff.h"
+#include "MarketRivals.h"
+#include "MarketDirector.h"
+#include "MarketDemand.h"
+#include "MarketOrderAdvice.h"
+#include "MarketPrices.h"
+#include "MarketRetail.h"
+#include "MarketMap.h"
+#include "MarketTheme.h"
+#include "Widgets/Layout/SScaleBox.h"
 #include "Brushes/SlateColorBrush.h"
 #include "Engine/Texture2D.h"
 #include "ImageUtils.h"
 #include "InputCoreTypes.h"
+#include "Framework/Application/SlateApplication.h"
 #include "Misc/Paths.h"
 #include "Styling/CoreStyle.h"
 #include "Widgets/Images/SImage.h"
@@ -29,6 +47,10 @@
 #include "Widgets/Layout/SSpacer.h"
 #include "Widgets/Layout/SWidgetSwitcher.h"
 #include "Widgets/Layout/SWrapBox.h"
+#include "Widgets/Layout/SUniformGridPanel.h"
+#include "Widgets/Layout/SBackgroundBlur.h"
+#include "Widgets/Layout/SDPIScaler.h"
+#include "Widgets/SToolTip.h"
 #include "Widgets/Notifications/SProgressBar.h"
 #include "Widgets/SBoxPanel.h"
 #include "Widgets/SOverlay.h"
@@ -39,20 +61,20 @@ namespace MarketMenuUi
 {
     FSlateFontInfo MenuFont(bool bBold, int32 Size)
     {
-        return FCoreStyle::GetDefaultFontStyle(bBold ? "Bold" : "Regular", Size);
+        // G-086d: IBM Plex Sans (semi bold for bold text), titles in Bricolage Grotesque. Size is in points; small
+        // print stays at 9 at least (the menu itself scales with the screen).
+        using MarketTheme::EFace;
+        if (bBold && Size >= 17) return MarketTheme::Font(EFace::DisplayBold, Size / 0.75f);
+        return MarketTheme::Font(bBold ? EFace::Semi : EFace::Regular, FMath::Max(Size, 9) / 0.75f);
     }
 
     // 1234.5 TL -> "1.234,50 TL"
     FString Tl(int64 Kurus)
     {
-        const bool bNegative = Kurus < 0;
-        const int64 Abs = FMath::Abs(Kurus);
-        FString Whole = FString::Printf(TEXT("%lld"), Abs / 100);
-        for (int32 I = Whole.Len() - 3; I > 0; I -= 3) Whole.InsertAt(I, TEXT('.'));
-        return FString::Printf(TEXT("%s%s,%02lld TL"), bNegative ? TEXT("-") : TEXT(""), *Whole, Abs % 100);
+        return MarketCountry::Money(Kurus); // G-084: the active country\'s currency
     }
 
-    FLinearColor Hex(const TCHAR* Code, float Alpha = 1.f)
+    FLinearColor Hex(const TCHAR* Code, float Alpha)
     {
         FLinearColor Result(FColor::FromHex(Code));
         Result.A = Alpha;
@@ -93,23 +115,11 @@ namespace MarketMenuUi
         }
     }
 
-    const TCHAR* PageTitle(int32 Page)
-    {
-        switch (Page)
-        {
-        case SMarketMenu::Summary: return TEXT("\u00d6zet");
-        case SMarketMenu::Orders: return TEXT("Sipari\u015f");
-        case SMarketMenu::Prices: return TEXT("\u00dcr\u00fcnler ve fiyat");
-        case SMarketMenu::Rivals: return TEXT("Rakipler");
-        case SMarketMenu::Staff: return TEXT("Personel");
-        case SMarketMenu::Branches: return TEXT("\u015eubeler");
-        default: return TEXT("Raporlar");
-        }
-    }
-
     // Price of one rival for one product today; false = the rival's shelf is empty.
     bool RivalShelfPrice(const AMarketGameMode& G, int32 Product, int32 Rival, int64& OutPrice)
     {
+        OutPrice = 0;
+        if (!G.Products.IsValidIndex(Product)) return false;
         bool bEmpty = false;
         const float Factor = MarketRivals::RivalFactor(G.State.Day, G.State.RivalSeed, G.RivalAisles, G.Products[Product].Category, Rival, &bEmpty)
             * MarketCompetitors::NewsRivalIndex(G.State, Rival); // the chain's everyday price level (G-065)
@@ -132,6 +142,7 @@ namespace MarketMenuUi
 
     double BuyChanceOf(const AMarketGameMode& G, int32 Product)
     {
+        if (!G.Products.IsValidIndex(Product) || !G.State.Stock.IsValidIndex(Product)) return 0.0;
         const int64 Theirs = MarketDemand::RivalPrice(G.Products[Product], G.RivalPriceFactor(Product));
         return MarketDemand::BuyChance(MarketDemand::PriceRatio(G.State.Stock[Product].Price, Theirs), G.State.MarketShare);
     }
@@ -149,7 +160,7 @@ namespace MarketMenuUi
         return FString();
     }
 
-    FString RivalsToday(const AMarketGameMode& G, int32 OnlyRival = INDEX_NONE)
+    FString RivalsToday(const AMarketGameMode& G, int32 OnlyRival)
     {
         TArray<FString> Lines;
         for (const MarketRivals::FEvent& Event : MarketRivals::ActiveOn(G.State.Day, G.State.RivalSeed, G.RivalAisles))
@@ -157,7 +168,6 @@ namespace MarketMenuUi
         return Lines.Num() > 0 ? FString::Join(Lines, TEXT("\n")) : FString(TEXT("Sakin: \u00f6zel bir kampanya yok."));
     }
 }
-
 // ---------------------------------------------------------------------------------------------------------------
 // Theme
 
@@ -171,23 +181,37 @@ FLinearColor SMarketMenu::Color(ERole Role) const
 {
     using MarketMenuUi::Hex;
     const bool bLight = IsLight();
+    // G-086d: the tokens of the design boards (light: paper F4F1EA; dark: 101316).
     switch (Role)
     {
-    case ERole::Page: return bLight ? Hex(TEXT("F4F5F7")) : Hex(TEXT("111315"));
+    case ERole::Page: return bLight ? Hex(TEXT("F4F1EA"), 0.98f) : Hex(TEXT("101316"), 0.98f);
     case ERole::Panel: return bLight ? Hex(TEXT("FFFFFF")) : Hex(TEXT("1B1E22"));
-    case ERole::Inset: return bLight ? Hex(TEXT("E9ECF0")) : Hex(TEXT("262A30"));
-    case ERole::Text: return bLight ? Hex(TEXT("171A1E")) : Hex(TEXT("F4F5F6"));
-    case ERole::Muted: return bLight ? Hex(TEXT("5F6670")) : Hex(TEXT("AAB1BA"));
-    case ERole::Accent: return bLight ? Hex(TEXT("16775F")) : Hex(TEXT("71C6AC"));
-    case ERole::Good: return bLight ? Hex(TEXT("16775F")) : Hex(TEXT("71C6AC"));
+    case ERole::Inset: return bLight ? Hex(TEXT("EDE9E1")) : Hex(TEXT("2C3137"));
+    case ERole::Text: return bLight ? Hex(TEXT("1B1E22")) : Hex(TEXT("F2F3F4"));
+    case ERole::Muted: return bLight ? Hex(TEXT("6B7178")) : Hex(TEXT("9AA3AC"));
+    case ERole::Accent: return bLight ? Hex(TEXT("2F8A70")) : Hex(TEXT("71C6AC"));
+    case ERole::Good: return bLight ? Hex(TEXT("2F8A70")) : Hex(TEXT("71C6AC"));
     case ERole::Bad: return bLight ? Hex(TEXT("C4453A")) : Hex(TEXT("F07F6E"));
-    case ERole::Warn: return bLight ? Hex(TEXT("B7791F")) : Hex(TEXT("F2B45A"));
-    case ERole::Line: return bLight ? Hex(TEXT("DDE1E6")) : Hex(TEXT("33383F"));
-    case ERole::Button: return bLight ? Hex(TEXT("E9ECEF")) : Hex(TEXT("2C3137"));
-    case ERole::ButtonText: return bLight ? Hex(TEXT("171A1E")) : Hex(TEXT("F4F5F6"));
-    case ERole::Primary: return bLight ? Hex(TEXT("171A1E")) : Hex(TEXT("71C6AC"));
-    case ERole::PrimaryText: return bLight ? Hex(TEXT("FFFFFF")) : Hex(TEXT("0F1A16"));
-    case ERole::Dim: return FLinearColor(0.f, 0.f, 0.f, bLight ? 0.35f : 0.55f);
+    case ERole::Warn: return bLight ? Hex(TEXT("D08A1E")) : Hex(TEXT("E8A94E"));
+    case ERole::Line: return bLight ? Hex(TEXT("E2DDD3")) : Hex(TEXT("343A41"));
+    case ERole::Button: return bLight ? Hex(TEXT("EDE9E1")) : Hex(TEXT("2C3137"));
+    case ERole::ButtonText: return bLight ? Hex(TEXT("1B1E22")) : Hex(TEXT("F2F3F4"));
+    case ERole::Primary: return bLight ? Hex(TEXT("1B1E22")) : Hex(TEXT("F2F3F4"));
+    case ERole::PrimaryText: return bLight ? Hex(TEXT("FFFFFF")) : Hex(TEXT("101316"));
+    case ERole::Dim: return FLinearColor(0.f, 0.f, 0.f, bLight ? 0.30f : 0.55f);
+    case ERole::Info: return bLight ? Hex(TEXT("2F5FA8")) : Hex(TEXT("7FA7E0"));
+    case ERole::Solid: return bLight ? Hex(TEXT("FFFFFF")) : Hex(TEXT("1B1E22"), 0.95f);
+    case ERole::Stage: return bLight ? Hex(TEXT("F4F1EA")) : Hex(TEXT("101316"));
+    case ERole::Land: return bLight ? Hex(TEXT("DEDAD1")) : Hex(TEXT("23282E"));
+    case ERole::Ours: return bLight ? Hex(TEXT("9ED0BE")) : Hex(TEXT("2E6E5D"));
+    case ERole::Home: return Hex(TEXT("3F9A80"));
+    case ERole::Hairline: return bLight ? Hex(TEXT("ECE8E0")) : Hex(TEXT("2A2F35"));
+    case ERole::OnAccent: return bLight ? Hex(TEXT("FFFFFF")) : Hex(TEXT("0F1A16"));
+    case ERole::Sheet: return bLight ? Hex(TEXT("FBFAF6")) : Hex(TEXT("16191C"));
+    case ERole::WarnSoft: return bLight ? Hex(TEXT("FFF4E2")) : Hex(TEXT("3A2E17"));
+    case ERole::AccentSoft: return bLight ? Hex(TEXT("E3F2EC")) : Hex(TEXT("1F3A33"));
+    case ERole::MapLabel: return bLight ? Hex(TEXT("4A5057")) : Hex(TEXT("C9D0D6"));
+    case ERole::DockText: return bLight ? Hex(TEXT("3A4046")) : Hex(TEXT("D6DBE0"));
     }
     return FLinearColor::White;
 }
@@ -338,53 +362,326 @@ void SMarketMenu::Go(int32 Page)
     if (AMarketGameMode* G = Game.Get()) G->MenuPage = FMath::Clamp(Page, 0, PageCount - 1);
 }
 
+
+// ---------------------------------------------------------------------------------------------------------------
+// Page names, confirmations, pictures
+
+
+const TCHAR* SMarketMenu::PageName(int32 Page)
+{
+    switch (Page)
+    {
+    case Summary: return TEXT("Ana ekran");
+    case Orders: return TEXT("Sipari\u015f");
+    case Prices: return TEXT("\u00dcr\u00fcnler ve fiyat");
+    case Promotions: return TEXT("Kampanyalar");
+    case Rivals: return TEXT("Rakipler");
+    case Staff: return TEXT("Personel");
+    case Finance: return TEXT("Finans");
+    case Channels: return TEXT("Sat\u0131\u015f kanallar\u0131");
+    case Branches: return TEXT("Ma\u011fazalar");
+    default: return TEXT("Raporlar");
+    }
+}
+
+void SMarketMenu::Ask(const FString& Question, TFunction<void()> OnYes)
+{
+    ConfirmText = Question;
+    ConfirmAction = MoveTemp(OnYes);
+}
+
+TSharedRef<SWidget> SMarketMenu::RiskyButton(TFunction<FString()> Text, TFunction<FString()> Question, TFunction<void()> OnClick, TFunction<bool()> Enabled)
+{
+    return Button(Text, [this, Question, OnClick] { Ask(Question ? Question() : FString(TEXT("Emin misin?")), OnClick); }, false, Enabled);
+}
+
+TSharedRef<SWidget> SMarketMenu::Choice(const FString& Text, TFunction<bool()> Selected, TFunction<void()> OnClick, TFunction<bool()> Enabled)
+{
+    return SNew(SButton).ButtonStyle(&PillStyle).IsFocusable(false).ContentPadding(FMargin(12.f, 5.f))
+        .ButtonColorAndOpacity_Lambda([this, Selected] { return FSlateColor(Color(Selected && Selected() ? ERole::Primary : ERole::Button)); })
+        .IsEnabled_Lambda([Enabled] { return !Enabled || Enabled(); })
+        .OnClicked_Lambda([OnClick] { if (OnClick) OnClick(); return FReply::Handled(); })
+    [
+        SNew(STextBlock).Font(MarketMenuUi::MenuFont(true, 10)).Text(FText::FromString(Text))
+        .ColorAndOpacity_Lambda([this, Selected] { return FSlateColor(Color(Selected && Selected() ? ERole::PrimaryText : ERole::ButtonText)); })
+    ];
+}
+
+TSharedRef<SWidget> SMarketMenu::Section(const FString& Title)
+{
+    return Fixed(Title, 9, ERole::Muted, true);
+}
+
+TSharedRef<SWidget> SMarketMenu::Why(TFunction<FString()> Reason)
+{
+    return SNew(SBox).Visibility_Lambda([Reason] { return Reason && !Reason().IsEmpty() ? EVisibility::Visible : EVisibility::Collapsed; })
+    [ Label(Reason, 9, ERole::Warn, false, true) ];
+}
+
+TSharedRef<SWidget> SMarketMenu::LayerFade(const TSharedRef<SWidget>& Inner)
+{
+    // M15: a layer inside a card (the appointment, the candidates, the depot builder) never pops in.
+    return SNew(SBorder).BorderImage(&NoBrush).Padding(0.f)
+        .ColorAndOpacity_Lambda([this] { const float T = LayerAnim; return FLinearColor(1.f, 1.f, 1.f, T * T * (3.f - 2.f * T)); })
+        .RenderTransform_Lambda([this] { const float T = LayerAnim; return TOptional<FSlateRenderTransform>(FSlateRenderTransform(FVector2f(0.f, 6.f * (1.f - T * T * (3.f - 2.f * T))))); })
+    [ Inner ];
+}
+
+const FSlateBrush* SMarketMenu::PictureBrush(int32 Product)
+{
+    const AMarketGameMode* G = Game.Get();
+    if (!G || !G->Products.IsValidIndex(Product)) return nullptr;
+    const FMarketProduct& P = G->Products[Product];
+    if (const TSharedPtr<FSlateBrush>* Found = Pictures.Find(P.Id)) return Found->Get();
+    TSharedPtr<FSlateBrush> Brush;
+    // The studio writes every label to /Game/Products/Items/<id>/T_<id>_Label (MirasMarketStudio).
+    const FString Path = FString::Printf(TEXT("/Game/Products/Items/%s/T_%s_Label.T_%s_Label"), *P.Id, *P.Id, *P.Id);
+    UTexture2D* Texture = P.MeshPath.IsEmpty() ? nullptr : LoadObject<UTexture2D>(nullptr, *Path, nullptr, LOAD_NoWarn | LOAD_Quiet);
+    if (Texture)
+    {
+        // Box packages: the front face of the atlas (FBoxPackageLayout, the same layout the studio used).
+        // Round packages: the middle of the label band, the part the shopper sees.
+        FBox2f Region(FVector2f(0.32f, 0.f), FVector2f(0.68f, 1.f));
+        FVector2D Size(72.0, 100.0);
+        // The box size comes from the catalog; older rows only have it in the package folder name (box_70x50x200).
+        int32 W = P.WidthMm, D = P.DepthMm, H = P.HeightMm;
+        if (W <= 0 || D <= 0 || H <= 0)
+        {
+            FString Folder;
+            const int32 PackagesAt = P.MeshPath.Find(TEXT("/Packages/"));
+            if (PackagesAt != INDEX_NONE)
+            {
+                Folder = P.MeshPath.Mid(PackagesAt + 10);
+                int32 Slash = INDEX_NONE;
+                if (Folder.FindChar(TEXT('/'), Slash)) Folder = Folder.Left(Slash);
+            }
+            if (!FBoxPackageLayout::ParsePackageId(Folder, W, D, H)) W = D = H = 0;
+        }
+        FBoxPackageLayout Layout;
+        const bool bBox = P.PackageType.IsEmpty() || P.PackageType == TEXT("kutu");
+        if (bBox && W > 0 && D > 0 && H > 0 && FBoxPackageLayout::Make(W, D, H, Layout))
+        {
+            const FIntRect Front = Layout.Rects[FBoxPackageLayout::Front];
+            const float Atlas = static_cast<float>(FMath::Max(1, Layout.AtlasSize));
+            Region = FBox2f(FVector2f(Front.Min.X / Atlas, Front.Min.Y / Atlas), FVector2f(Front.Max.X / Atlas, Front.Max.Y / Atlas));
+            Size = FVector2D(FMath::Max(1, Front.Width()), FMath::Max(1, Front.Height()));
+        }
+        PictureTextures.Emplace(Texture);
+        Brush = MakeShared<FSlateBrush>();
+        Brush->SetResourceObject(Texture);
+        Brush->DrawAs = ESlateBrushDrawType::Image;
+        Brush->ImageSize = Size;
+        Brush->SetUVRegion(Region);
+    }
+    Pictures.Add(P.Id, Brush);
+    return Brush.Get();
+}
+
+TSharedRef<SWidget> SMarketMenu::ProductPicture(int32 Product, float Size)
+{
+    const AMarketGameMode* G = Game.Get();
+    if (const FSlateBrush* Picture = PictureBrush(Product))
+    {
+        return SNew(SBox).WidthOverride(Size).HeightOverride(Size)
+        [
+            SNew(SBorder).BorderImage(&SmallBrush).BorderBackgroundColor(Col(ERole::Inset)).Padding(3.f).HAlign(HAlign_Center).VAlign(VAlign_Center)
+            [ SNew(SScaleBox).Stretch(EStretch::ScaleToFit)[ SNew(SImage).Image(Picture) ] ]
+        ];
+    }
+    const FString Name = G && G->Products.IsValidIndex(Product) ? G->ProductName(Product) : FString();
+    const FLinearColor Fill = G && G->Products.IsValidIndex(Product) ? FLinearColor(G->Products[Product].Color) : Color(ERole::Muted);
+    return Badge(FString(), MarketMenuUi::Initials(Name), Fill, Size);
+}
+
 // ---------------------------------------------------------------------------------------------------------------
 // Frame
 
 void SMarketMenu::Construct(const FArguments& InArgs)
 {
     Game = InArgs._Game;
+    // G-086d: pills and round buttons have half-height corners whatever their size.
+    for (FSlateBrush* Round : { static_cast<FSlateBrush*>(&PillBrush), static_cast<FSlateBrush*>(&PillHover), static_cast<FSlateBrush*>(&PillPress),
+        static_cast<FSlateBrush*>(&RoundBrush), static_cast<FSlateBrush*>(&CircleBrush) })
+        Round->OutlineSettings.RoundingType = ESlateBrushRoundingType::HalfHeightRadius;
     PillStyle = FButtonStyle().SetNormal(PillBrush).SetHovered(PillHover).SetPressed(PillPress).SetDisabled(PillBrush)
         .SetNormalPadding(FMargin(0.f)).SetPressedPadding(FMargin(0.f));
     RowStyle = FButtonStyle().SetNormal(SmallBrush).SetHovered(SmallHover).SetPressed(SmallPress).SetDisabled(SmallBrush)
         .SetNormalPadding(FMargin(0.f)).SetPressedPadding(FMargin(0.f));
+    CircleStyle = FButtonStyle().SetNormal(CircleBrush).SetHovered(CircleBrush).SetPressed(CircleBrush).SetDisabled(CircleBrush)
+        .SetNormalPadding(FMargin(0.f)).SetPressedPadding(FMargin(0.f));
+    RoundStyle = PillStyle;
+    ItemStyle = FButtonStyle().SetNormal(ItemBrush).SetHovered(ItemHover).SetPressed(ItemPress).SetDisabled(ItemBrush)
+        .SetNormalPadding(FMargin(0.f)).SetPressedPadding(FMargin(0.f));
     BarStyle = FProgressBarStyle().SetBackgroundImage(NoBrush).SetFillImage(TrackBrush).SetMarqueeImage(TrackBrush);
 
+    // G-075: full screen over the running shop. The 3D view behind is blurred and tinted (glass); the content is
+    // laid out for 1440 x 820 and scaled to fill the screen (UiScale).
+    // G-086 sade ana ekran: the map page fills the screen; the other pages sit between the top pills and the dock.
+    auto Framed = [this](const TSharedRef<SWidget>& Page) -> TSharedRef<SWidget>
+    {
+        return SNew(SBox).Padding(FMargin(24.f, 84.f, 24.f, 104.f))
+        [
+            SNew(SVerticalBox)
+            + SVerticalBox::Slot().AutoHeight()[ PageTitle() ]
+            + SVerticalBox::Slot().FillHeight(1.f)[ Page ]
+        ];
+    };
     ChildSlot
     [
         SNew(SOverlay)
         .Visibility_Lambda([this] { const AMarketGameMode* G = Game.Get(); return G && G->bMenuOpen ? EVisibility::Visible : EVisibility::Collapsed; })
+        + SOverlay::Slot()[ SNew(SBackgroundBlur).BlurStrength(18.f).Padding(0.f) ]
+        + SOverlay::Slot()[ SNew(SBorder).BorderImage(&FlatBrush).BorderBackgroundColor(Col(ERole::Page)) ]
         + SOverlay::Slot()
-        [ SNew(SBorder).BorderImage(&FlatBrush).BorderBackgroundColor(Col(ERole::Dim)) ]
-        + SOverlay::Slot().HAlign(HAlign_Center).VAlign(VAlign_Center).Padding(20.f)
         [
-            SNew(SBox).WidthOverride(1260.f).HeightOverride(740.f)
+            SNew(SDPIScaler).DPIScale_Lambda([this] { return UiScale(); })
             [
-                SNew(SBorder).BorderImage(&PanelBrush).BorderBackgroundColor(Col(ERole::Page)).Padding(0.f)
+                SNew(SOverlay)
+                + SOverlay::Slot()
                 [
-                    SNew(SHorizontalBox)
-                    + SHorizontalBox::Slot().AutoWidth()[ Sidebar() ]
-                    + SHorizontalBox::Slot().FillWidth(1.f)
+                    SNew(SBorder).BorderImage(&NoBrush).Padding(0.f)
+                    .ColorAndOpacity_Lambda([this] { const float T = PageAnim; return FLinearColor(1.f, 1.f, 1.f, T * T * (3.f - 2.f * T)); })
+                    .RenderTransform_Lambda([this] { const float T = PageAnim; return TOptional<FSlateRenderTransform>(FSlateRenderTransform(FVector2f(0.f, 10.f * (1.f - T * T * (3.f - 2.f * T))))); })
                     [
-                        SNew(SVerticalBox)
-                        + SVerticalBox::Slot().AutoHeight()[ Header() ]
-                        + SVerticalBox::Slot().FillHeight(1.f).Padding(24.f, 0.f, 24.f, 22.f)
-                        [
-                            SNew(SWidgetSwitcher)
-                            .WidgetIndex_Lambda([this] { const AMarketGameMode* G = Game.Get(); return G ? FMath::Clamp(G->MenuPage, 0, PageCount - 1) : 0; })
-                            + SWidgetSwitcher::Slot()[ SummaryPage() ]
-                            + SWidgetSwitcher::Slot()[ OrdersPage() ]
-                            + SWidgetSwitcher::Slot()[ PricesPage() ]
-                            + SWidgetSwitcher::Slot()[ RivalsPage() ]
-                            + SWidgetSwitcher::Slot()[ StaffPage() ]
-                            + SWidgetSwitcher::Slot()[ BranchesPage() ]
-                            + SWidgetSwitcher::Slot()[ ReportsPage() ]
-                        ]
+                    SNew(SWidgetSwitcher)
+                    .WidgetIndex_Lambda([this] { const AMarketGameMode* G = Game.Get(); return G ? FMath::Clamp(G->MenuPage, 0, PageCount - 1) : 0; })
+                    + SWidgetSwitcher::Slot()[ HomePage() ]
+                    + SWidgetSwitcher::Slot()[ Framed(OrdersPage()) ]
+                    + SWidgetSwitcher::Slot()[ Framed(PricesPage()) ]
+                    + SWidgetSwitcher::Slot()[ Framed(PromotionsPage()) ]
+                    + SWidgetSwitcher::Slot()[ Framed(RivalsPage()) ]
+                    + SWidgetSwitcher::Slot()[ Framed(StaffPage()) ]
+                    + SWidgetSwitcher::Slot()[ Framed(FinancePage()) ]
+                    + SWidgetSwitcher::Slot()[ Framed(ChannelsPage()) ]
+                    + SWidgetSwitcher::Slot()[ Framed(BranchesPage()) ]
+                    + SWidgetSwitcher::Slot()[ Framed(ReportsPage()) ]
                     ]
                 ]
+                + SOverlay::Slot().VAlign(VAlign_Top)[ TopBar() ]
+                + SOverlay::Slot().VAlign(VAlign_Bottom)[ BottomNav() ]
+                // The short message of the last action, under the chips (it fades by itself).
+                + SOverlay::Slot().HAlign(HAlign_Center).VAlign(VAlign_Top).Padding(0.f, 128.f, 0.f, 0.f)
+                [
+                    SNew(SBox).MaxDesiredWidth(460.f)
+                    .Visibility_Lambda([this] { const AMarketGameMode* G = Game.Get(); return G && G->MessageTime > 0.f && !G->Message.IsEmpty() ? EVisibility::HitTestInvisible : EVisibility::Collapsed; })
+                    [ Raised(SNew(SBorder).BorderImage(&TileBrush).BorderBackgroundColor(Col(ERole::Solid)).Padding(FMargin(14.f, 9.f))
+                        [ TextPx([this] { const AMarketGameMode* G = Game.Get(); return G ? G->Message : FString(); }, 13.f, [] { return ERole::Text; }, false, true) ]) ]
+                ]
+                + SOverlay::Slot()[ OrderListLayer() ]
+                + SOverlay::Slot()[ DecisionsLayer() ]
+                + SOverlay::Slot()[ SettingsLayer() ]
+                + SOverlay::Slot()[ NewGameLayer() ]
+                + SOverlay::Slot()[ ConfirmLayer() ]
             ]
         ]
     ];
+}
+
+void SMarketMenu::Tick(const FGeometry& AllottedGeometry, const double InCurrentTime, const float InDeltaTime)
+{
+    SCompoundWidget::Tick(AllottedGeometry, InCurrentTime, InDeltaTime);
+    LastSize = FVector2D(AllottedGeometry.GetLocalSize());
+    // G-086e: the panel and the "Di\u011fer" card glide (about a quarter of a second) instead of popping.
+    if (!MapProvinceId.IsEmpty()) PanelId = MapProvinceId;
+    const float Blend = 1.f - FMath::Exp(-14.f * FMath::Clamp(InDeltaTime, 0.f, 0.1f));
+    auto Glide = [Blend](float& Value, float Target) { Value += (Target - Value) * Blend; if (FMath::Abs(Target - Value) < 0.002f) Value = Target; };
+    Glide(PanelAnim, PanelOpen() ? 1.f : 0.f);
+    Glide(MoreAnim, bMoreOpen ? 1.f : 0.f);
+    Glide(OrderAnim, bOrderListOpen ? 1.f : 0.f);
+    // A new page fades and rises in (no hard cut between tabs).
+    if (const AMarketGameMode* G = Game.Get())
+        if (G->MenuPage != ShownPage) { ShownPage = G->MenuPage; PageAnim = 0.f; bMoreOpen = false; }
+    PageAnim += (1.f - PageAnim) * (1.f - FMath::Exp(-16.f * FMath::Clamp(InDeltaTime, 0.f, 0.1f)));
+    if (PageAnim > 0.998f) PageAnim = 1.f;
+    // G-086b ek / G-089: a layer inside a card (appointment, candidates, depot builder) fades in when it changes.
+    const int32 Layers = static_cast<int32>(HashCombine(HashCombine(GetTypeHash(AppointArea), GetTypeHash(PickBranch)),
+        HashCombine(GetTypeHash(DepotLayer * 1000 + DepotSel), GetTypeHash(PromoteBranch))));
+    if (Layers != LayerKey) { LayerKey = Layers; LayerAnim = 0.f; }
+    LayerAnim += (1.f - LayerAnim) * (1.f - FMath::Exp(-16.f * FMath::Clamp(InDeltaTime, 0.f, 0.1f)));
+    if (LayerAnim > 0.998f) LayerAnim = 1.f;
+}
+
+float SMarketMenu::UiScale() const
+{
+    const FVector2D Size = LastSize.X > 1.0 && LastSize.Y > 1.0 ? LastSize : FVector2D(1920.0, 1080.0);
+    const float Fit = FMath::Min(static_cast<float>(Size.X) / 1440.f, static_cast<float>(Size.Y) / 820.f);
+    const AMarketGameMode* G = Game.Get();
+    return FMath::Clamp(Fit * (G ? G->UiTextFactor() : 1.f), 0.5f, 4.f);
+}
+
+TSharedRef<SToolTip> SMarketMenu::Tip(TFunction<FString()> Text)
+{
+    // Tooltips open in their own window, outside the menu's scaler: the font and the width follow UiScale here.
+    return SNew(SToolTip)
+    [
+        SNew(SBox).MaxDesiredWidth_Lambda([this]() -> FOptionalSize { return 440.f * UiScale(); })
+        [
+            SNew(STextBlock).AutoWrapText(true)
+            .Font_Lambda([this] { return MarketMenuUi::MenuFont(false, FMath::RoundToInt32(12.f * UiScale())); })
+            .Text_Lambda([Text] { return FText::FromString(Text ? Text() : FString()); })
+        ]
+    ];
+}
+
+TSharedRef<SWidget> SMarketMenu::Info(TFunction<FString()> Text)
+{
+    return SNew(SBox).WidthOverride(18.f).HeightOverride(18.f).VAlign(VAlign_Center)
+        .ToolTip(Tip(Text))
+    [
+        SNew(SBorder).BorderImage(&BadgeBrush).BorderBackgroundColor(Col(ERole::Inset)).HAlign(HAlign_Center).VAlign(VAlign_Center).Padding(0.f)
+        [ Fixed(TEXT("i"), 10, ERole::Muted, true) ]
+    ];
+}
+
+TSharedRef<SWidget> SMarketMenu::More(TFunction<FString()> Text)
+{
+    return SNew(SBox).HAlign(HAlign_Left).ToolTip(Tip(Text))
+    [
+        SNew(SHorizontalBox)
+        + SHorizontalBox::Slot().AutoWidth().VAlign(VAlign_Center).Padding(0.f, 0.f, 6.f, 0.f)
+        [
+            SNew(SBox).WidthOverride(18.f).HeightOverride(18.f)
+            [
+                SNew(SBorder).BorderImage(&BadgeBrush).BorderBackgroundColor(Col(ERole::Inset)).HAlign(HAlign_Center).VAlign(VAlign_Center).Padding(0.f)
+                [ Fixed(TEXT("i"), 10, ERole::Info, true) ]
+            ]
+        ]
+        + SHorizontalBox::Slot().AutoWidth().VAlign(VAlign_Center)[ Fixed(TEXT("Nas\u0131l i\u015fler?"), 10, ERole::Info) ]
+    ];
+}
+
+TSharedRef<SWidget> SMarketMenu::Heading(const FString& Title, TFunction<FString()> Hint)
+{
+    return SNew(SHorizontalBox)
+        + SHorizontalBox::Slot().AutoWidth().VAlign(VAlign_Center)[ Section(Title) ]
+        + SHorizontalBox::Slot().AutoWidth().VAlign(VAlign_Center).Padding(8.f, 0.f, 0.f, 0.f)[ Info(Hint) ];
+}
+
+TSharedRef<SWidget> SMarketMenu::ConfirmLayer()
+{
+    return SNew(SOverlay)
+        .Visibility_Lambda([this] { return ConfirmAction ? EVisibility::Visible : EVisibility::Collapsed; })
+        + SOverlay::Slot()[ SNew(SBorder).BorderImage(&FlatBrush).BorderBackgroundColor(Col(ERole::Dim)) ]
+        + SOverlay::Slot().HAlign(HAlign_Center).VAlign(VAlign_Center)
+        [
+            SNew(SBox).WidthOverride(520.f)
+            [
+                SNew(SBorder).BorderImage(&CardBrush).BorderBackgroundColor(Col(ERole::Solid)).Padding(FMargin(28.f, 24.f))
+                [
+                    SNew(SVerticalBox)
+                    + SVerticalBox::Slot().AutoHeight()[ Fixed(TEXT("EM\u0130N M\u0130S\u0130N?"), 9, ERole::Muted, true) ]
+                    + SVerticalBox::Slot().AutoHeight().Padding(0.f, 10.f, 0.f, 20.f)[ Label([this] { return ConfirmText; }, 14, ERole::Text, false, true) ]
+                    + SVerticalBox::Slot().AutoHeight().HAlign(HAlign_Right)
+                    [
+                        SNew(SHorizontalBox)
+                        + SHorizontalBox::Slot().AutoWidth().Padding(0.f, 0.f, 8.f, 0.f)
+                        [ Button([] { return FString(TEXT("Vazge\u00e7  (Esc)")); }, [this] { ConfirmAction = nullptr; }) ]
+                        + SHorizontalBox::Slot().AutoWidth()
+                        [ Button([] { return FString(TEXT("Evet  (Enter)")); }, [this] { TFunction<void()> Run = MoveTemp(ConfirmAction); ConfirmAction = nullptr; if (Run) Run(); }, true) ]
+                    ]
+                ]
+            ]
+        ];
 }
 
 FReply SMarketMenu::OnKeyDown(const FGeometry& MyGeometry, const FKeyEvent& InKeyEvent)
@@ -392,97 +689,511 @@ FReply SMarketMenu::OnKeyDown(const FGeometry& MyGeometry, const FKeyEvent& InKe
     AMarketGameMode* G = Game.Get();
     if (!G || !G->bMenuOpen) return FReply::Unhandled();
     const FKey Key = InKeyEvent.GetKey();
-    if (Key == EKeys::Escape || Key == EKeys::M || Key == EKeys::Tab) { G->CloseMenu(); return FReply::Handled(); }
-    static const FKey Digits[PageCount] = { EKeys::One, EKeys::Two, EKeys::Three, EKeys::Four, EKeys::Five, EKeys::Six, EKeys::Seven };
+    if (ConfirmAction)
+    {
+        if (Key == EKeys::Escape) { ConfirmAction = nullptr; return FReply::Handled(); }
+        if (Key == EKeys::Enter) { TFunction<void()> Run = MoveTemp(ConfirmAction); ConfirmAction = nullptr; if (Run) Run(); return FReply::Handled(); }
+        return FReply::Handled();
+    }
+    if (G->bNeedStart) return FReply::Handled(); // G-086: the new-game screen waits for a province
+    if (Key == EKeys::Escape && (bSettingsOpen || bDecisionsOpen || bMoreOpen)) { bSettingsOpen = bDecisionsOpen = bMoreOpen = false; return FReply::Handled(); }
+    if (Key == EKeys::Escape && bOrderListOpen) { bOrderListOpen = false; OrderSwapFrom = INDEX_NONE; return FReply::Handled(); }
+    if (Key == EKeys::Escape && G->bNewGameAsk) { G->bNewGameAsk = false; return FReply::Handled(); }
+    // G-086b ek / G-089: Esc closes a picker inside a card first (candidates, appointment, depot builder).
+    if (Key == EKeys::Escape && G->MenuPage == Branches && (AppointArea != INDEX_NONE || PickBranch != INDEX_NONE || PromoteBranch != INDEX_NONE || DepotLayer != 0))
+    {
+        AppointArea = INDEX_NONE; PickBranch = INDEX_NONE; PromoteBranch = INDEX_NONE; DepotLayer = 0;
+        return FReply::Handled();
+    }
+    // G-086 main screen: Esc closes the province panel first, then leaves the zoomed region.
+    if (Key == EKeys::Escape && G->MenuPage == Summary && PanelOpen()) { MapProvinceId.Reset(); DepotSel = INDEX_NONE; return FReply::Handled(); }
+    if (Key == EKeys::Escape && G->MenuPage == Summary && !MapRegion.IsEmpty()) { MapRegion.Reset(); return FReply::Handled(); }
+    if (Key == EKeys::Escape || Key == EKeys::M) { G->CloseMenu(); return FReply::Handled(); }
+    // G-075 game speed: Space pauses, + / - change the speed (digits choose pages here).
+    if (Key == EKeys::SpaceBar) { G->SetTimePaused(!G->bTimePaused); return FReply::Handled(); }
+    if (Key == EKeys::Add || Key == EKeys::Equals) { G->SetGameSpeed(G->bTimePaused ? G->GameSpeed : G->GameSpeed + 1); return FReply::Handled(); }
+    if (Key == EKeys::Subtract || Key == EKeys::Hyphen) { if (G->GameSpeed <= 1) G->SetTimePaused(true); else G->SetGameSpeed(G->GameSpeed - 1); return FReply::Handled(); }
+    static const FKey Digits[PageCount] = { EKeys::One, EKeys::Two, EKeys::Three, EKeys::Four, EKeys::Five, EKeys::Six, EKeys::Seven, EKeys::Eight, EKeys::Nine, EKeys::Zero };
     for (int32 Page = 0; Page < PageCount; ++Page)
         if (Key == Digits[Page]) { Go(Page); return FReply::Handled(); }
     return FReply::Unhandled();
 }
 
+FReply SMarketMenu::OnMouseButtonDown(const FGeometry& MyGeometry, const FPointerEvent& MouseEvent)
+{
+    // A click on an empty part must not hand the keyboard to the 3D view.
+    return FReply::Handled().SetUserFocus(SharedThis(this), EFocusCause::Mouse);
+}
+
+// The dock: pages in the order of the design board, their icons and short names.
+namespace MarketMenuFrame
+{
+    // bMore: the page sits behind "Di\u011fer" (the dock keeps the six of the board).
+    struct FDockPage { int32 Page; const TCHAR* Icon; const TCHAR* Name; bool bMore; };
+    const TArray<FDockPage>& DockPages()
+    {
+        static const TArray<FDockPage> Pages = {
+            { SMarketMenu::Summary, TEXT("map"), TEXT("Ana ekran"), false },
+            { SMarketMenu::Branches, TEXT("store"), TEXT("Ma\u011fazalar"), false },
+            { SMarketMenu::Orders, TEXT("box"), TEXT("Sipari\u015f"), false },
+            { SMarketMenu::Prices, TEXT("tag"), TEXT("Fiyat"), false },
+            { SMarketMenu::Promotions, TEXT("percent"), TEXT("Kampanya"), false },
+            { SMarketMenu::Staff, TEXT("person"), TEXT("Personel"), false },
+            { SMarketMenu::Reports, TEXT("bars"), TEXT("Raporlar"), false },
+            { SMarketMenu::Rivals, TEXT("flag"), TEXT("Rakipler"), true },
+            { SMarketMenu::Finance, TEXT("wallet"), TEXT("Finans"), true },
+            { SMarketMenu::Channels, TEXT("bag"), TEXT("Sat\u0131\u015f"), true } };
+        return Pages;
+    }
+}
+
+bool SMarketMenu::PanelOpen() const
+{
+    const AMarketGameMode* G = Game.Get();
+    return G && G->MenuPage == Summary && !MapProvinceId.IsEmpty() && MarketCountry::FindCity(ShownCountry(), MapProvinceId) != nullptr;
+}
+
+FMargin SMarketMenu::EdgePadding(float Left, float Top, float Bottom) const
+{
+    // G-086e: the frame never moves; the province panel floats over the map.
+    return FMargin(Left, Top, 24.f, Bottom);
+}
+
+TSharedRef<SWidget> SMarketMenu::Raised(const TSharedRef<SWidget>& Surface)
+{
+    // G-086e: the image shadow showed as grey boxes behind the pills; surfaces carry a faint outline instead
+    // (their brushes), so this only keeps the call sites.
+    return Surface;
+}
+
+TSharedRef<SWidget> SMarketMenu::IconImage(const FString& Name, float Size, TFunction<ERole()> Role)
+{
+    const FSlateBrush* Brush = MarketTheme::Icon(Name);
+    return SNew(SBox).WidthOverride(Size).HeightOverride(Size)
+    [
+        SNew(SImage).Image(Brush ? Brush : &NoBrush)
+        .ColorAndOpacity_Lambda([this, Role] { return FSlateColor(Color(Role ? Role() : ERole::Text)); })
+    ];
+}
+
+TSharedRef<SWidget> SMarketMenu::Mono(TFunction<FString()> Make, float Pixels, TFunction<ERole()> Role)
+{
+    return SNew(STextBlock).Font(MarketTheme::Font(MarketTheme::EFace::Mono, Pixels)).ColorAndOpacity(ColBy(Role))
+        .Text_Lambda([Make] { return FText::FromString(Make ? Make() : FString()); });
+}
+
+TSharedRef<SWidget> SMarketMenu::Display(TFunction<FString()> Make, float Pixels, ERole Role)
+{
+    return SNew(STextBlock).Font(MarketTheme::Font(MarketTheme::EFace::DisplayBold, Pixels)).ColorAndOpacity(Col(Role))
+        .Text_Lambda([Make] { return FText::FromString(Make ? Make() : FString()); });
+}
+
+TSharedRef<SWidget> SMarketMenu::TextPx(TFunction<FString()> Make, float Pixels, TFunction<ERole()> Role, bool bSemi, bool bWrap)
+{
+    return SNew(STextBlock).Font(MarketTheme::Font(bSemi ? MarketTheme::EFace::Semi : MarketTheme::EFace::Regular, Pixels))
+        .ColorAndOpacity(ColBy(Role)).AutoWrapText(bWrap)
+        .Text_Lambda([Make] { return FText::FromString(Make ? Make() : FString()); });
+}
+
+TSharedRef<SWidget> SMarketMenu::IconButton(const FString& Icon, float Size, TFunction<bool()> Active, TFunction<void()> OnClick, const FString& Hint)
+{
+    // A round button with an icon (the speed buttons, the settings): accent when active, otherwise quiet.
+    return SNew(SBox).WidthOverride(Size).HeightOverride(Size).ToolTip(Tip([Hint] { return Hint; }))
+    [
+        SNew(SButton).ButtonStyle(&RoundStyle).IsFocusable(false).ContentPadding(FMargin(0.f)).HAlign(HAlign_Center).VAlign(VAlign_Center)
+        .ButtonColorAndOpacity_Lambda([this, Active] { return FSlateColor(Active && Active() ? Color(ERole::Accent) : FLinearColor::Transparent); })
+        .OnClicked_Lambda([OnClick] { if (OnClick) OnClick(); return FReply::Handled(); })
+        [ IconImage(Icon, Size * 0.4f, [Active] { return Active && Active() ? ERole::OnAccent : ERole::Muted; }) ]
+    ];
+}
+
 TSharedRef<SWidget> SMarketMenu::NavItem(int32 Page, const FString& Text, const FString& Key)
 {
+    // One page of the dock (72 x 58): its icon over its name; a red dot when something urgent waits there.
     auto IsCurrent = [this, Page] { const AMarketGameMode* G = Game.Get(); return G && G->MenuPage == Page; };
-    return SNew(SButton).ButtonStyle(&RowStyle).IsFocusable(false).ContentPadding(FMargin(12.f, 9.f))
-        .ButtonColorAndOpacity_Lambda([this, IsCurrent] { return FSlateColor(Color(IsCurrent() ? ERole::Inset : ERole::Panel)); })
-        .OnClicked_Lambda([this, Page] { Go(Page); return FReply::Handled(); })
+    FString Icon = TEXT("store");
+    for (const MarketMenuFrame::FDockPage& Item : MarketMenuFrame::DockPages()) if (Item.Page == Page) Icon = Item.Icon;
+    auto Tone = [IsCurrent] { return IsCurrent() ? ERole::Accent : ERole::DockText; };
+    return SNew(SBox).WidthOverride(68.f).HeightOverride(58.f)
+        .ToolTip(Tip([Page, Key] { return FString::Printf(TEXT("%s  (%s tu\u015fu)"), PageName(Page), *Key); }))
     [
-        SNew(SHorizontalBox)
-        + SHorizontalBox::Slot().AutoWidth().VAlign(VAlign_Center).Padding(0.f, 0.f, 10.f, 0.f)
-        [ Fixed(Key, 9, ERole::Muted, true) ]
-        + SHorizontalBox::Slot().FillWidth(1.f).VAlign(VAlign_Center)
-        [ LabelBy([Text] { return Text; }, 12, [IsCurrent] { return IsCurrent() ? ERole::Accent : ERole::Text; }, true) ]
+        SNew(SButton).ButtonStyle(&ItemStyle).IsFocusable(false).ContentPadding(FMargin(0.f)).HAlign(HAlign_Fill).VAlign(VAlign_Fill)
+        .ButtonColorAndOpacity_Lambda([this, IsCurrent] { return FSlateColor(IsCurrent() ? Color(ERole::Inset) : FLinearColor::Transparent); })
+        .OnClicked_Lambda([this, Page] { Go(Page); bMoreOpen = false; return FReply::Handled(); })
+        [
+            SNew(SOverlay)
+            + SOverlay::Slot().HAlign(HAlign_Center).VAlign(VAlign_Center)
+            [
+                SNew(SVerticalBox)
+                + SVerticalBox::Slot().AutoHeight().HAlign(HAlign_Center)[ IconImage(Icon, 22.f, Tone) ]
+                + SVerticalBox::Slot().AutoHeight().HAlign(HAlign_Center).Padding(0.f, 4.f, 0.f, 0.f)[ TextPx([Text] { return Text; }, 11.f, Tone) ]
+            ]
+            + SOverlay::Slot().HAlign(HAlign_Right).VAlign(VAlign_Top).Padding(0.f, 8.f, 14.f, 0.f)
+            [
+                SNew(SBox).WidthOverride(7.f).HeightOverride(7.f)
+                .Visibility_Lambda([this, Page]
+                {
+                    const AMarketGameMode* G = Game.Get();
+                    if (!G) return EVisibility::Collapsed;
+                    for (const FMarketTodo& Todo : G->Todos()) if (Todo.Page == Page && Todo.Severity >= 2) return EVisibility::Visible;
+                    return EVisibility::Collapsed;
+                })
+                [ SNew(SBorder).BorderImage(&CircleBrush).BorderBackgroundColor(Col(ERole::Bad)) ]
+            ]
+        ]
     ];
 }
 
-TSharedRef<SWidget> SMarketMenu::Sidebar()
+TSharedRef<SWidget> SMarketMenu::TopBar()
 {
-    TSharedRef<SVerticalBox> Nav = SNew(SVerticalBox);
-    for (int32 Page = 0; Page < PageCount; ++Page)
-        Nav->AddSlot().AutoHeight().Padding(0.f, 2.f)[ NavItem(Page, MarketMenuUi::PageTitle(Page), FString::FromInt(Page + 1)) ];
-
-    return SNew(SBox).WidthOverride(230.f)
-    [
-        SNew(SBorder).BorderImage(&PanelBrush).BorderBackgroundColor(Col(ERole::Panel)).Padding(FMargin(16.f, 22.f))
+    // G-086d (design boards 4 and 5): the date pill on the left; the till pill on the right, or next to the date
+    // while the province panel is open.
+    auto G = [this] { return Game.Get(); };
+    auto Column = [this](const FString& Heading, TFunction<FString()> Value, TFunction<ERole()> Role) -> TSharedRef<SWidget>
+    {
+        return SNew(SVerticalBox)
+            + SVerticalBox::Slot().AutoHeight().HAlign(HAlign_Right)[ TextPx([Heading] { return Heading; }, 11.f, [] { return ERole::Muted; }) ]
+            + SVerticalBox::Slot().AutoHeight().HAlign(HAlign_Right)[ Mono(Value, 16.f, Role) ];
+    };
+    auto Till = [this, G, Column]() -> TSharedRef<SWidget>
+    {
+        return Raised(SNew(SBox).HeightOverride(52.f)
         [
-            SNew(SVerticalBox)
-            + SVerticalBox::Slot().AutoHeight().Padding(8.f, 0.f, 0.f, 0.f)
+            SNew(SBorder).BorderImage(&RoundBrush).BorderBackgroundColor(Col(ERole::Solid)).Padding(FMargin(22.f, 0.f)).VAlign(VAlign_Center)
             [
                 SNew(SHorizontalBox)
-                + SHorizontalBox::Slot().AutoWidth().VAlign(VAlign_Center).Padding(0.f, 0.f, 10.f, 0.f)
-                [ Badge(TEXT("miras"), TEXT("MM"), Color(ERole::Accent), 34.f) ]
-                + SHorizontalBox::Slot().FillWidth(1.f).VAlign(VAlign_Center)
-                [
-                    SNew(SVerticalBox)
-                    + SVerticalBox::Slot().AutoHeight()[ Fixed(TEXT("M\u0130RAS MARKET"), 12, ERole::Text, true) ]
-                    + SVerticalBox::Slot().AutoHeight()[ Fixed(TEXT("L\u00fcleburgaz \u00b7 2011"), 9, ERole::Muted) ]
-                ]
+                + SHorizontalBox::Slot().AutoWidth().Padding(0.f, 0.f, 22.f, 0.f)
+                [ Column(TEXT("Kasa"), [G] { return G() ? MarketMenuUi::Tl(G()->State.Cash) : FString(); }, [G] { return G() && G()->State.Cash < 0 ? ERole::Bad : ERole::Text; }) ]
+                + SHorizontalBox::Slot().AutoWidth().Padding(0.f, 0.f, 22.f, 0.f)
+                [ Column(TEXT("D\u00fcn"), [G]
+                {
+                    if (!G() || G()->State.Day <= 1) return FString(TEXT("\u2014"));
+                    const int64 Net = G()->State.LastProfit;
+                    return (Net > 0 ? TEXT("+") : TEXT("")) + MarketMenuUi::Tl(Net);
+                }, [G] { return G() && G()->State.LastProfit < 0 ? ERole::Bad : ERole::Accent; }) ]
+                + SHorizontalBox::Slot().AutoWidth()
+                [ Column(TEXT("Ma\u011faza"), [G] { return G() ? FString::FromInt(MarketCompany::TotalStores(G()->State)) : FString(); }, [] { return ERole::Text; }) ]
             ]
-            + SVerticalBox::Slot().AutoHeight().Padding(0.f, 22.f, 0.f, 0.f)[ Nav ]
-            + SVerticalBox::Slot().FillHeight(1.f)[ SNew(SSpacer) ]
-            + SVerticalBox::Slot().AutoHeight().Padding(0.f, 0.f, 0.f, 8.f)
-            [
-                Button([this] { return IsLight() ? FString(TEXT("Koyu tema")) : FString(TEXT("A\u00e7\u0131k tema")); },
-                    [this] { if (AMarketGameMode* G = Game.Get()) G->ToggleMenuTheme(); })
-            ]
-            + SVerticalBox::Slot().AutoHeight()
-            [
-                Button([] { return FString(TEXT("Oyuna d\u00f6n  (M / Esc)")); }, [this] { if (AMarketGameMode* G = Game.Get()) G->CloseMenu(); }, true)
-            ]
-        ]
+        ]);
+    };
+    return SNew(SBox).Padding(FMargin(24.f, 20.f, 24.f, 0.f))
+    [
+        SNew(SHorizontalBox)
+        + SHorizontalBox::Slot().AutoWidth().VAlign(VAlign_Top)[ TimeControls() ]
+        + SHorizontalBox::Slot().FillWidth(1.f)[ SNew(SSpacer) ]
+        + SHorizontalBox::Slot().AutoWidth().VAlign(VAlign_Top)[ Till() ]
     ];
 }
 
-TSharedRef<SWidget> SMarketMenu::Header()
+TSharedRef<SWidget> SMarketMenu::BottomNav()
 {
-    auto Pill = [this](TFunction<FString()> Make, TFunction<ERole()> Role) -> TSharedRef<SWidget>
+    // G-086d: the dock at the bottom (every page; the map item only away from the map; digits 1-0 still work),
+    // the way into the family shop, and the bell of the waiting decisions (bottom right; bottom left while the
+    // province panel is open).
+    auto G = [this] { return Game.Get(); };
+    TSharedRef<SHorizontalBox> Row = SNew(SHorizontalBox);
+    TSharedRef<SVerticalBox> Extra = SNew(SVerticalBox);
+    for (const MarketMenuFrame::FDockPage& Item : MarketMenuFrame::DockPages())
     {
-        return SNew(SBorder).BorderImage(&PillBrush).BorderBackgroundColor(Col(ERole::Panel)).Padding(FMargin(14.f, 6.f))
-            [ LabelBy(Make, 11, Role, true) ];
+        const int32 Page = Item.Page;
+        if (Item.bMore)
+        {
+            Extra->AddSlot().AutoHeight().Padding(0.f, 2.f)[ NavItem(Page, Item.Name, FString::FromInt((Page + 1) % 10)) ];
+            continue;
+        }
+        Row->AddSlot().AutoWidth().VAlign(VAlign_Center).Padding(0.f, 0.f, 4.f, 0.f)
+        [
+            NavItem(Page, Item.Name, FString::FromInt((Page + 1) % 10))
+        ];
+    }
+    // "Di\u011fer": the three pages behind it open in a small card above the dock.
+    auto InMore = [G]
+    {
+        if (!G()) return false;
+        for (const MarketMenuFrame::FDockPage& Item : MarketMenuFrame::DockPages()) if (Item.bMore && Item.Page == G()->MenuPage) return true;
+        return false;
     };
-    return SNew(SHorizontalBox)
-        + SHorizontalBox::Slot().AutoWidth().VAlign(VAlign_Center).Padding(24.f, 20.f, 16.f, 16.f)
+    auto MoreTone = [this, InMore] { return bMoreOpen || InMore() ? ERole::Accent : ERole::DockText; };
+    Row->AddSlot().AutoWidth().VAlign(VAlign_Center).Padding(0.f, 0.f, 4.f, 0.f)
+    [
+        SNew(SBox).WidthOverride(68.f).HeightOverride(58.f).ToolTip(Tip([] { return FString(TEXT("Rakipler (5), Finans (7), Sat\u0131\u015f kanallar\u0131 (8)")); }))
         [
-            Label([this] { const AMarketGameMode* G = Game.Get(); return FString(MarketMenuUi::PageTitle(G ? G->MenuPage : 0)); }, 22, ERole::Text, true)
-        ]
-        + SHorizontalBox::Slot().FillWidth(1.f).VAlign(VAlign_Center).Padding(0.f, 20.f, 12.f, 16.f)
-        [
-            SNew(SBox).MaxDesiredWidth(560.f)
-            .Visibility_Lambda([this] { const AMarketGameMode* G = Game.Get(); return G && G->MessageTime > 0.f && !G->Message.IsEmpty() ? EVisibility::Visible : EVisibility::Collapsed; })
+            SNew(SButton).ButtonStyle(&ItemStyle).IsFocusable(false).ContentPadding(FMargin(0.f)).HAlign(HAlign_Center).VAlign(VAlign_Center)
+            .ButtonColorAndOpacity_Lambda([this, InMore] { return FSlateColor(bMoreOpen || InMore() ? Color(ERole::Inset) : FLinearColor::Transparent); })
+            .OnClicked_Lambda([this] { bMoreOpen = !bMoreOpen; return FReply::Handled(); })
             [
-                SNew(SBorder).BorderImage(&SmallBrush).BorderBackgroundColor(Col(ERole::Inset)).Padding(FMargin(12.f, 6.f))
-                [ Label([this] { const AMarketGameMode* G = Game.Get(); return G ? G->Message : FString(); }, 10, ERole::Text, false, true) ]
+                SNew(SVerticalBox)
+                + SVerticalBox::Slot().AutoHeight().HAlign(HAlign_Center)[ IconImage(TEXT("more"), 22.f, MoreTone) ]
+                + SVerticalBox::Slot().AutoHeight().HAlign(HAlign_Center).Padding(0.f, 4.f, 0.f, 0.f)[ TextPx([] { return FString(TEXT("Di\u011fer")); }, 11.f, MoreTone) ]
             ]
         ]
-        + SHorizontalBox::Slot().AutoWidth().VAlign(VAlign_Center).Padding(0.f, 20.f, 8.f, 16.f)
+    ];
+    Row->AddSlot().AutoWidth().VAlign(VAlign_Center).Padding(2.f, 0.f, 6.f, 0.f)
+    [ SNew(SBox).WidthOverride(1.f).HeightOverride(36.f)[ SNew(SBorder).BorderImage(&FlatBrush).BorderBackgroundColor(Col(ERole::Line)) ] ];
+    Row->AddSlot().AutoWidth().VAlign(VAlign_Center)
+    [
+        SNew(SBox).HeightOverride(58.f).ToolTip(Tip([] { return FString(TEXT("Aile d\u00fckk\u00e2n\u0131na d\u00f6n (M ya da Esc)")); }))
         [
-            Pill([this] { const AMarketGameMode* G = Game.Get(); return G ? FString::Printf(TEXT("G\u00fcn %d  \u00b7  %s  \u00b7  %s"), G->State.Day, *MarketDirector::DateText(G->State), G->bOpen ? TEXT("a\u00e7\u0131k") : TEXT("kapal\u0131")) : FString(); },
-                [this] { const AMarketGameMode* G = Game.Get(); return G && G->bOpen ? ERole::Accent : ERole::Muted; })
+            SNew(SButton).ButtonStyle(&ItemStyle).IsFocusable(false).ContentPadding(FMargin(18.f, 0.f)).VAlign(VAlign_Center)
+            .ButtonColorAndOpacity(Col(ERole::Accent))
+            .IsEnabled_Lambda([G] { return G() && !G()->bNeedStart; })
+            .OnClicked_Lambda([this] { if (AMarketGameMode* Mode = Game.Get()) Mode->CloseMenu(); return FReply::Handled(); })
+            [
+                SNew(SHorizontalBox)
+                + SHorizontalBox::Slot().AutoWidth().VAlign(VAlign_Center).Padding(0.f, 0.f, 8.f, 0.f)[ IconImage(TEXT("house"), 18.f, [] { return ERole::OnAccent; }) ]
+                + SHorizontalBox::Slot().AutoWidth().VAlign(VAlign_Center)[ TextPx([] { return FString(TEXT("D\u00fckk\u00e2na gir")); }, 14.f, [] { return ERole::OnAccent; }, true) ]
+            ]
         ]
-        + SHorizontalBox::Slot().AutoWidth().VAlign(VAlign_Center).Padding(0.f, 20.f, 24.f, 16.f)
+    ];
+    auto Waiting = [G]() -> int32
+    {
+        if (!G()) return 0;
+        int32 Count = G()->State.Decisions.Num();
+        for (const FMarketTodo& Todo : G()->Todos()) if (Todo.Severity >= 2) ++Count;
+        return Count;
+    };
+    auto MakeBell = [this, Waiting]() -> TSharedRef<SWidget>
+    {
+        return Raised(SNew(SBox).WidthOverride(64.f).HeightOverride(64.f).ToolTip(Tip([] { return FString(TEXT("Kararlar: bekleyen se\u00e7imler, yap\u0131lacaklar, b\u00f6l\u00fcm\u00fcn hedefleri, i\u015fletmenin borcu")); }))
+    [
+        SNew(SButton).ButtonStyle(&RoundStyle).IsFocusable(false).ContentPadding(FMargin(0.f))
+        .ButtonColorAndOpacity(Col(ERole::Solid))
+        .OnClicked_Lambda([this] { bDecisionsOpen = !bDecisionsOpen; bSettingsOpen = false; return FReply::Handled(); })
         [
-            Pill([this] { const AMarketGameMode* G = Game.Get(); return G ? TEXT("Kasa  ") + MarketMenuUi::Tl(G->State.Cash) : FString(); },
-                [] { return ERole::Text; })
+            SNew(SOverlay)
+            + SOverlay::Slot().HAlign(HAlign_Center).VAlign(VAlign_Center)[ IconImage(TEXT("bell"), 24.f, [] { return ERole::Text; }) ]
+            + SOverlay::Slot().HAlign(HAlign_Right).VAlign(VAlign_Top).Padding(0.f, 8.f, 8.f, 0.f)
+            [
+                SNew(SBox).MinDesiredWidth(20.f).HeightOverride(20.f)
+                .Visibility_Lambda([Waiting] { return Waiting() > 0 ? EVisibility::Visible : EVisibility::Collapsed; })
+                [
+                    SNew(SBorder).BorderImage(&CircleBrush).BorderBackgroundColor(Col(ERole::Warn)).HAlign(HAlign_Center).VAlign(VAlign_Center).Padding(FMargin(5.f, 0.f))
+                    [ SNew(STextBlock).Font(MarketTheme::Font(MarketTheme::EFace::Bold, 12.f)).ColorAndOpacity(Col(ERole::OnAccent))
+                        .Text_Lambda([Waiting] { return FText::AsNumber(Waiting()); }) ]
+                ]
+            ]
+        ]
+    ]);
+    };
+    return SNew(SOverlay)
+        + SOverlay::Slot().HAlign(HAlign_Fill).VAlign(VAlign_Bottom)
+        [
+            // The card fades and rises above the dock; it floats, so nothing else moves.
+            SNew(SBox).HAlign(HAlign_Center).Padding(FMargin(24.f, 0.f, 24.f, 112.f))
+            .Visibility_Lambda([this] { return MoreAnim > 0.01f ? EVisibility::Visible : EVisibility::Collapsed; })
+            .RenderTransform_Lambda([this] { return TOptional<FSlateRenderTransform>(FSlateRenderTransform(FVector2f(163.f, 12.f * (1.f - MoreAnim)))); })
+            [
+                SNew(SBorder).BorderImage(&DockBrush).BorderBackgroundColor(Col(ERole::Solid)).Padding(FMargin(8.f))
+                .ColorAndOpacity_Lambda([this] { return FLinearColor(1.f, 1.f, 1.f, MoreAnim); })
+                [ Extra ]
+            ]
+        ]
+        + SOverlay::Slot().HAlign(HAlign_Fill).VAlign(VAlign_Bottom)
+        [
+            SNew(SBox).HAlign(HAlign_Center).Padding(FMargin(24.f, 0.f, 24.f, 24.f))
+            [ Raised(SNew(SBorder).BorderImage(&DockBrush).BorderBackgroundColor(Col(ERole::Solid)).Padding(FMargin(8.f))[ Row ]) ]
+        ]
+        + SOverlay::Slot().HAlign(HAlign_Right).VAlign(VAlign_Bottom).Padding(0.f, 0.f, 24.f, 28.f)[ MakeBell() ];
+}
+
+TSharedRef<SWidget> SMarketMenu::PageTitle()
+{
+    // The main screen needs no title; the other pages keep theirs.
+    return SNew(SBox).Padding(FMargin(4.f, 4.f, 0.f, 12.f))
+        .Visibility_Lambda([this] { const AMarketGameMode* G = Game.Get(); return G && G->MenuPage != Summary ? EVisibility::Visible : EVisibility::Collapsed; })
+    [ Label([this] { const AMarketGameMode* G = Game.Get(); return FString(PageName(G ? G->MenuPage : 0)); }, 24, ERole::Text, true) ];
+}
+
+TSharedRef<SWidget> SMarketMenu::SettingsLayer()
+{
+    auto G = [this] { return Game.Get(); };
+    auto TextSize = [this, G](const FString& Text, int32 Value) -> TSharedRef<SWidget>
+    {
+        return Choice(Text, [G, Value] { return G() && G()->MenuTextSize == Value; }, [G, Value] { if (G()) G()->SetMenuTextSize(Value); });
+    };
+    auto Difficulty = [this, G](const FString& Text, int32 Value) -> TSharedRef<SWidget>
+    {
+        return Choice(Text, [G, Value] { return G() && G()->State.Difficulty == Value; }, [this, Value] { Manage(TEXT("Difficulty"), Value); },
+            [G] { return G() && !G()->bOpen && G()->State.Day <= 1; });
+    };
+    auto SlotChoice = [this, G](int32 Value) -> TSharedRef<SWidget>
+    {
+        return Choice(FString::FromInt(Value), [G, Value] { return G() && G()->ActiveSlot == Value; }, [G, Value] { if (G()) G()->SelectSlot(Value); },
+            [G] { return G() && !G()->bOpen; });
+    };
+    auto Row = [this](TSharedRef<SWidget> Heading, TSharedRef<SWidget> Body) -> TSharedRef<SWidget>
+    {
+        return SNew(SVerticalBox)
+            + SVerticalBox::Slot().AutoHeight().Padding(0.f, 14.f, 0.f, 6.f)[ Heading ]
+            + SVerticalBox::Slot().AutoHeight()[ Body ];
+    };
+    return SNew(SOverlay)
+        .Visibility_Lambda([this] { return bSettingsOpen ? EVisibility::Visible : EVisibility::Collapsed; })
+        + SOverlay::Slot()[ SNew(SBorder).BorderImage(&FlatBrush).BorderBackgroundColor(Col(ERole::Dim)) ]
+        + SOverlay::Slot().HAlign(HAlign_Center).VAlign(VAlign_Center)
+        [
+            SNew(SBox).WidthOverride(620.f)
+            [
+                SNew(SBorder).BorderImage(&CardBrush).BorderBackgroundColor(Col(ERole::Solid)).Padding(FMargin(28.f, 24.f))
+                [
+                    SNew(SVerticalBox)
+                    + SVerticalBox::Slot().AutoHeight()
+                    [
+                        SNew(SHorizontalBox)
+                        + SHorizontalBox::Slot().FillWidth(1.f).VAlign(VAlign_Center)[ Fixed(TEXT("Ayarlar"), 22, ERole::Text, true) ]
+                        + SHorizontalBox::Slot().AutoWidth()[ Button([] { return FString(TEXT("Kapat  (Esc)")); }, [this] { bSettingsOpen = false; }) ]
+                    ]
+                    + SVerticalBox::Slot().AutoHeight()
+                    [ Row(Section(TEXT("YAZI BOYUTU")),
+                        SNew(SHorizontalBox)
+                        + SHorizontalBox::Slot().AutoWidth().Padding(0.f, 0.f, 4.f, 0.f)[ TextSize(TEXT("K\u00fc\u00e7\u00fck"), 0) ]
+                        + SHorizontalBox::Slot().AutoWidth().Padding(0.f, 0.f, 4.f, 0.f)[ TextSize(TEXT("Orta"), 1) ]
+                        + SHorizontalBox::Slot().AutoWidth()[ TextSize(TEXT("B\u00fcy\u00fck"), 2) ]) ]
+                    + SVerticalBox::Slot().AutoHeight()
+                    [ Row(SNew(SHorizontalBox)
+                        + SHorizontalBox::Slot().AutoWidth()[ Section(TEXT("TEMA")) ],
+                        SNew(SHorizontalBox)
+                        + SHorizontalBox::Slot().AutoWidth().Padding(0.f, 0.f, 4.f, 0.f)
+                        [ Choice(TEXT("A\u00e7\u0131k"), [this] { return IsLight(); }, [this] { if (!IsLight()) if (AMarketGameMode* Mode = Game.Get()) Mode->ToggleMenuTheme(); }) ]
+                        + SHorizontalBox::Slot().AutoWidth()
+                        [ Choice(TEXT("Koyu"), [this] { return !IsLight(); }, [this] { if (IsLight()) if (AMarketGameMode* Mode = Game.Get()) Mode->ToggleMenuTheme(); }) ]) ]
+                    + SVerticalBox::Slot().AutoHeight()
+                    [ Row(Heading(TEXT("MEN\u00dc A\u00c7IKKEN ZAMAN"), [] { return FString(TEXT("Akar: men\u00fc a\u00e7\u0131kken d\u00fckk\u00e2n i\u015flemeye devam eder. Durur: men\u00fc a\u00e7\u0131kken zaman bekler (karar A02).")); }),
+                        SNew(SHorizontalBox)
+                        + SHorizontalBox::Slot().AutoWidth().Padding(0.f, 0.f, 4.f, 0.f)
+                        [ Choice(TEXT("Akar"), [G] { return G() && !G()->bPauseInMenu; }, [G] { if (G()) G()->SetPauseInMenu(false); }) ]
+                        + SHorizontalBox::Slot().AutoWidth()
+                        [ Choice(TEXT("Durur"), [G] { return G() && G()->bPauseInMenu; }, [G] { if (G()) G()->SetPauseInMenu(true); }) ]) ]
+                    + SVerticalBox::Slot().AutoHeight()
+                    [ Row(Heading(TEXT("ZORLUK"), [] { return FString(TEXT("Rahat: biraz daha \u00e7ok m\u00fc\u015fteri, fiyata daha ho\u015fg\u00f6r\u00fcl\u00fc. Zor: tersi. Yaln\u0131z kampanyan\u0131n ilk g\u00fcn\u00fcnde, d\u00fckk\u00e2n a\u00e7\u0131lmadan se\u00e7ilir.")); }),
+                        SNew(SHorizontalBox)
+                        + SHorizontalBox::Slot().AutoWidth().Padding(0.f, 0.f, 4.f, 0.f)[ Difficulty(TEXT("Rahat"), 0) ]
+                        + SHorizontalBox::Slot().AutoWidth().Padding(0.f, 0.f, 4.f, 0.f)[ Difficulty(TEXT("Normal"), 1) ]
+                        + SHorizontalBox::Slot().AutoWidth().Padding(0.f, 0.f, 12.f, 0.f)[ Difficulty(TEXT("Zor"), 2) ]
+                        + SHorizontalBox::Slot().AutoWidth()
+                        [ Button([G] { return FString(G() && G()->State.Online.bPandemic ? TEXT("Salg\u0131n d\u00f6nemi: var") : TEXT("Salg\u0131n d\u00f6nemi: yok")); },
+                            [this, G] { if (G()) Manage(TEXT("PandemicProfile"), G()->State.Online.bPandemic ? 0 : 1); }, false,
+                            [G] { return G() && MarketCalendar::DateOf(G()->State.Day).Year < 2020; }) ]) ]
+                    + SVerticalBox::Slot().AutoHeight()
+                    [ Row(Section(TEXT("KAYIT YUVASI")),
+                        SNew(SHorizontalBox)
+                        + SHorizontalBox::Slot().AutoWidth().Padding(0.f, 0.f, 4.f, 0.f)[ SlotChoice(1) ]
+                        + SHorizontalBox::Slot().AutoWidth().Padding(0.f, 0.f, 4.f, 0.f)[ SlotChoice(2) ]
+                        + SHorizontalBox::Slot().AutoWidth().Padding(0.f, 0.f, 12.f, 0.f)[ SlotChoice(3) ]
+                        + SHorizontalBox::Slot().FillWidth(1.f).VAlign(VAlign_Center)[ Label([G] { return G() ? G()->SlotSummary(G()->ActiveSlot) : FString(); }, 10, ERole::Muted, false, true) ]) ]
+                    + SVerticalBox::Slot().AutoHeight()
+                    [ Row(Section(TEXT("YEN\u0130 OYUN")),
+                        SNew(SHorizontalBox)
+                        + SHorizontalBox::Slot().AutoWidth()
+                        [ Button([] { return FString(TEXT("\u00dclke ve il se\u00e7erek yeni oyun")); }, [this, G] { bSettingsOpen = false; if (G()) G()->AskNewGame(); }, false,
+                            [G] { return G() && !G()->bOpen; }) ]
+                        + SHorizontalBox::Slot().FillWidth(1.f).VAlign(VAlign_Center).Padding(12.f, 0.f, 0.f, 0.f)
+                        [ Fixed(TEXT("Bu yuvadaki kampanya, yeni oyun ba\u015flay\u0131nca silinir."), 10, ERole::Muted) ]) ]
+                ]
+            ]
         ];
+}
+
+TSharedRef<SWidget> SMarketMenu::DecisionsLayer()
+{
+    auto G = [this] { return Game.Get(); };
+    TSharedRef<SWidget> Debt = Card(SNew(SVerticalBox)
+        + SVerticalBox::Slot().AutoHeight()[ Section(TEXT("\u0130\u015eLETMEN\u0130N BORCU")) ]
+        + SVerticalBox::Slot().AutoHeight().Padding(0.f, 6.f, 0.f, 8.f)
+        [ LabelBy([G] { return !G() ? FString() : MarketCampaign::DebtOpen(G()->State) ? MarketMenuUi::Tl(G()->State.InheritedDebt) + TEXT(" kald\u0131") : FString(TEXT("Kapand\u0131")); }, 19,
+            [G] { return G() && !MarketCampaign::DebtOpen(G()->State) ? ERole::Good : ERole::Warn; }, true) ]
+        + SVerticalBox::Slot().AutoHeight()[ Bar([G] { return G() ? MarketCampaign::DebtProgress(G()->State) : 0.f; }, ERole::Accent) ]
+        + SVerticalBox::Slot().AutoHeight().Padding(0.f, 6.f, 0.f, 10.f)
+        [ More([] { return FString::Printf(TEXT("Toptanc\u0131ya %s bor\u00e7 \u00b7 s\u00fcre yok \u00b7 kapanmadan \u015fube a\u00e7\u0131lmaz"), *MarketMenuUi::Tl(MarketCampaign::StartingDebt)); }) ]
+        + SVerticalBox::Slot().AutoHeight().HAlign(HAlign_Left)
+        [ Button([] { return FString::Printf(TEXT("%s \u00f6de"), *MarketMenuUi::Tl(MarketCampaign::Installment)); }, [this] { Do(TEXT("PayDebt")); }, true,
+            [G] { return G() && MarketCampaign::DebtOpen(G()->State) && G()->State.Cash > 0; }) ]);
+    TSharedRef<SWidget> FirstBranch = SNew(SBox)
+        .Visibility_Lambda([G] { return G() && MarketBranches::OpenCount(G()->State) == 0 ? EVisibility::Visible : EVisibility::Collapsed; })
+        .Padding(FMargin(0.f, 12.f, 0.f, 0.f))
+    [ Card(SNew(SVerticalBox)
+        + SVerticalBox::Slot().AutoHeight().Padding(0.f, 0.f, 0.f, 8.f)[ Section(TEXT("\u0130LK \u015eUBE \u0130\u00c7\u0130N")) ]
+        + SVerticalBox::Slot().AutoHeight()[ GoalList() ]) ];
+    return SNew(SOverlay)
+        .Visibility_Lambda([this] { return bDecisionsOpen ? EVisibility::Visible : EVisibility::Collapsed; })
+        + SOverlay::Slot()[ SNew(SBorder).BorderImage(&FlatBrush).BorderBackgroundColor(Col(ERole::Dim)) ]
+        + SOverlay::Slot().HAlign(HAlign_Right).VAlign(VAlign_Fill).Padding(0.f, 70.f, 24.f, 70.f)
+        [
+            SNew(SBox).WidthOverride(620.f)
+            [
+                SNew(SBorder).BorderImage(&CardBrush).BorderBackgroundColor(Col(ERole::Solid)).Padding(FMargin(22.f, 18.f))
+                [
+                    SNew(SVerticalBox)
+                    + SVerticalBox::Slot().AutoHeight().Padding(0.f, 0.f, 0.f, 12.f)
+                    [
+                        SNew(SHorizontalBox)
+                        + SHorizontalBox::Slot().FillWidth(1.f).VAlign(VAlign_Center)[ Fixed(TEXT("Kararlar ve yap\u0131lacaklar"), 20, ERole::Text, true) ]
+                        + SHorizontalBox::Slot().AutoWidth()[ Button([] { return FString(TEXT("Kapat  (Esc)")); }, [this] { bDecisionsOpen = false; }) ]
+                    ]
+                    + SVerticalBox::Slot().FillHeight(1.f)
+                    [
+                        SNew(SScrollBox)
+                        + SScrollBox::Slot()[ DecisionCard() ]
+                        + SScrollBox::Slot()[ TodoList() ]
+                        + SScrollBox::Slot().Padding(0.f, 12.f, 0.f, 0.f)[ StoryCard() ]
+                        + SScrollBox::Slot().Padding(0.f, 12.f, 0.f, 0.f)[ Debt ]
+                        + SScrollBox::Slot()[ FirstBranch ]
+                    ]
+                ]
+            ]
+        ];
+}
+
+TSharedRef<SWidget> SMarketMenu::TimeControls()
+{
+    // G-086d: the date pill (board 4): "12 Nisan \u00b7 Sal\u0131" over "3. y\u0131l \u00b7 08:40 \u00b7 K\u0131rklareli"; pause and the three
+    // speeds as round icon buttons; the settings behind a quiet button at the end.
+    auto G = [this] { return Game.Get(); };
+    auto Parts = [G](bool bMain) -> FString
+    {
+        if (!G()) return FString();
+        const FString Date = MarketCalendar::DateText(G()->State.Day); // "8 Mart, 1. y\u0131l Sal\u0131"
+        FString DayMonth, Rest, Year, Weekday;
+        if (!Date.Split(TEXT(", "), &DayMonth, &Rest)) { DayMonth = Date; }
+        if (!Rest.Split(TEXT(" "), &Year, &Weekday, ESearchCase::IgnoreCase, ESearchDir::FromEnd)) Year = Rest;
+        if (bMain) return Weekday.IsEmpty() ? DayMonth : DayMonth + TEXT(" \u00b7 ") + Weekday;
+        const int32 Minutes = 8 * 60 + (G()->bOpen ? static_cast<int32>(G()->DayTime * 3.f) : 0);
+        const FString Clock = FString::Printf(TEXT("%02d:%02d"), Minutes / 60, Minutes % 60);
+        const FString Now = G()->bTimePaused ? FString(TEXT("durdu")) : G()->bOpen ? FString(TEXT("a\u00e7\u0131k")) : FString(TEXT("kapal\u0131"));
+        TArray<FString> Bits;
+        if (!Year.IsEmpty()) Bits.Add(Year);
+        Bits.Add(Clock);
+        Bits.Add(Now);
+        Bits.Add(MarketStart::PlaceText(G()->State));
+        return FString::Join(Bits, TEXT(" \u00b7 "));
+    };
+    auto Speed = [G](int32 Value) { return [G, Value] { return G() && !G()->bTimePaused && G()->GameSpeed == Value; }; };
+    auto SetSpeed = [G](int32 Value) { return [G, Value] { if (G()) G()->SetGameSpeed(Value); }; };
+    return Raised(SNew(SBox).HeightOverride(52.f)
+    [
+        SNew(SBorder).BorderImage(&RoundBrush).BorderBackgroundColor(Col(ERole::Solid)).Padding(FMargin(18.f, 0.f, 8.f, 0.f)).VAlign(VAlign_Center)
+        [
+            SNew(SHorizontalBox)
+            + SHorizontalBox::Slot().AutoWidth().VAlign(VAlign_Center).Padding(0.f, 0.f, 14.f, 0.f)
+            [
+                SNew(SBox).MaxDesiredWidth(280.f)
+                [
+                    SNew(SVerticalBox)
+                    + SVerticalBox::Slot().AutoHeight()[ TextPx([Parts] { return Parts(true); }, 15.f, [] { return ERole::Text; }, true) ]
+                    + SVerticalBox::Slot().AutoHeight()[ TextPx([Parts] { return Parts(false); }, 11.f, [G] { return G() && G()->bTimePaused ? ERole::Warn : ERole::Muted; }) ]
+                ]
+            ]
+            + SHorizontalBox::Slot().AutoWidth().VAlign(VAlign_Center).Padding(0.f, 0.f, 2.f, 0.f)
+            [ IconButton(TEXT("pause"), 36.f, [G] { return G() && G()->bTimePaused; }, [G] { if (G()) G()->SetTimePaused(!G()->bTimePaused); }, TEXT("Zaman\u0131 durdur / devam (Space)")) ]
+            + SHorizontalBox::Slot().AutoWidth().VAlign(VAlign_Center).Padding(0.f, 0.f, 2.f, 0.f)[ IconButton(TEXT("play"), 36.f, Speed(1), SetSpeed(1), TEXT("Normal h\u0131z (1x)")) ]
+            + SHorizontalBox::Slot().AutoWidth().VAlign(VAlign_Center).Padding(0.f, 0.f, 2.f, 0.f)[ IconButton(TEXT("fast"), 36.f, Speed(2), SetSpeed(2), TEXT("H\u0131zl\u0131 (2x, men\u00fcde +)")) ]
+            + SHorizontalBox::Slot().AutoWidth().VAlign(VAlign_Center)[ IconButton(TEXT("faster"), 36.f, Speed(3), SetSpeed(3), TEXT("\u00c7ok h\u0131zl\u0131 (3x)")) ]
+            + SHorizontalBox::Slot().AutoWidth().VAlign(VAlign_Center).Padding(6.f, 0.f)
+            [ SNew(SBox).WidthOverride(1.f).HeightOverride(24.f)[ SNew(SBorder).BorderImage(&FlatBrush).BorderBackgroundColor(Col(ERole::Line)) ] ]
+            + SHorizontalBox::Slot().AutoWidth().VAlign(VAlign_Center)
+            [ IconButton(TEXT("sliders"), 36.f, [this] { return bSettingsOpen; }, [this] { bSettingsOpen = !bSettingsOpen; bDecisionsOpen = false; }, TEXT("Ayarlar: yaz\u0131 boyutu, tema, zorluk, kay\u0131t, yeni oyun")) ]
+        ]
+    ]);
 }
 
 // ---------------------------------------------------------------------------------------------------------------
@@ -499,10 +1210,10 @@ TSharedRef<SWidget> SMarketMenu::GoalList()
     auto G = [this] { return Game.Get(); };
     return SNew(SVerticalBox)
         + SVerticalBox::Slot().AutoHeight().Padding(0.f, 3.f)
-        [ Row([G] { return G() && !MarketCampaign::DebtOpen(G()->State); }, [] { return FString(TEXT("Baban\u0131n borcu kapans\u0131n")); }) ]
+        [ Row([G] { return G() && !MarketCampaign::DebtOpen(G()->State); }, [] { return FString(TEXT("\u0130\u015fletmenin borcu kapans\u0131n")); }) ]
         + SVerticalBox::Slot().AutoHeight().Padding(0.f, 3.f)
-        [ Row([G] { return G() && G()->State.Cash >= MarketCampaign::ExpandCash; },
-              [G] { return FString::Printf(TEXT("Kasada %s  (\u015fu an %s)"), *MarketMenuUi::Tl(MarketCampaign::ExpandCash), G() ? *MarketMenuUi::Tl(G()->State.Cash) : TEXT("")); }) ]
+        [ Row([G] { return G() && G()->State.Cash >= MarketCampaign::ExpandCashOn(G()->State.Day); },
+              [G] { return FString::Printf(TEXT("Kasada %s  (\u015fu an %s)"), *MarketMenuUi::Tl(G() ? MarketCampaign::ExpandCashOn(G()->State.Day) : MarketCampaign::ExpandCash), G() ? *MarketMenuUi::Tl(G()->State.Cash) : TEXT("")); }) ]
         + SVerticalBox::Slot().AutoHeight().Padding(0.f, 3.f)
         [ Row([G] { return G() && G()->State.ProfitableDays >= MarketCampaign::ExpandProfitableDays; },
               [G] { return FString::Printf(TEXT("%d k\u00e2rl\u0131 g\u00fcn  (%d / %d)"), MarketCampaign::ExpandProfitableDays, G() ? G()->State.ProfitableDays : 0, MarketCampaign::ExpandProfitableDays); }) ]
@@ -511,9 +1222,9 @@ TSharedRef<SWidget> SMarketMenu::GoalList()
               [G] { return FString::Printf(TEXT("Yerel pay en az %%%.0f  (\u015fu an %%%.0f)"), MarketCampaign::ExpandShare, G() ? G()->State.MarketShare : 0.f); }) ]
         + SVerticalBox::Slot().AutoHeight().Padding(0.f, 12.f, 0.f, 0.f).HAlign(HAlign_Left)
         [
-            Button([G] { return G() && G()->State.bSecondStore ? FString(TEXT("\u0130kinci \u015fube a\u00e7\u0131k")) : FString::Printf(TEXT("\u0130kinci \u015fubeyi a\u00e7  (%s)"), *MarketMenuUi::Tl(MarketCampaign::ExpandCash)); },
-                [this] { Do(TEXT("Expand")); }, true,
-                [G] { return G() && MarketCampaign::ExpandBlock(G()->State) == MarketCampaign::EExpandBlock::None; })
+            // G-074: every district and format is on the Subeler page (the old single "second shop" is a branch there).
+            Button([G] { return G() && MarketBranches::OpenCount(G()->State) > 0 ? FString(TEXT("\u015eubelere bak")) : FString(TEXT("\u015eube a\u00e7\u0131l\u0131\u015f\u0131na bak")); },
+                [this] { BranchTab = 0; bDecisionsOpen = false; Go(Branches); }, true)
         ];
 }
 
@@ -588,177 +1299,71 @@ TSharedRef<SWidget> SMarketMenu::StoryCard()
         }, 10, ERole::Muted, false, true) ]);
 }
 
-TSharedRef<SWidget> SMarketMenu::MoneyCard()
+TSharedRef<SWidget> SMarketMenu::TodoList()
 {
-    // G-067: bank, credit book and the last-day policy of perishable goods.
+    // G-074: what to do now (AMarketGameMode::Todos, most urgent first), each with a button to the page that solves it.
     auto G = [this] { return Game.Get(); };
-    return Card(SNew(SVerticalBox)
-        + SVerticalBox::Slot().AutoHeight()[ Fixed(TEXT("PARA \u00b7 VERES\u0130YE \u00b7 TAZEL\u0130K"), 9, ERole::Muted, true) ]
-        + SVerticalBox::Slot().AutoHeight().Padding(0.f, 6.f, 0.f, 8.f)
-        [ Label([G]
-        {
-            if (!G()) return FString();
-            const FMarketState& S = G()->State;
-            return MarketFinance::Summary(S) + FString::Printf(TEXT("\nVeresiye limiti %s \u00b7 son kullanma: %s \u00b7 d\u00fcnk\u00fc fire %d adet"),
-                S.CreditLimit > 0 ? *MarketMenuUi::Tl(S.CreditLimit) : TEXT("yok"), *MarketFreshness::PolicyName(static_cast<MarketFreshness::EPolicy>(S.FreshPolicy)), S.LastWasteUnits);
-        }, 11, ERole::Text, false, true) ]
-        + SVerticalBox::Slot().AutoHeight()
+    static constexpr int32 Shown = 6;
+    auto TodoAt = [G](int32 Slot, FMarketTodo& Out)
+    {
+        if (!G()) return false;
+        const TArray<FMarketTodo>& All = G()->Todos();
+        if (!All.IsValidIndex(Slot)) return false;
+        Out = All[Slot];
+        return true;
+    };
+    TSharedRef<SVerticalBox> Rows = SNew(SVerticalBox);
+    for (int32 Slot = 0; Slot < Shown; ++Slot)
+    {
+        Rows->AddSlot().AutoHeight().Padding(0.f, 3.f)
         [
-            SNew(SWrapBox).UseAllottedSize(true).InnerSlotPadding(FVector2D(6.f, 6.f))
-            + SWrapBox::Slot()[ Button([] { return FString(TEXT("Kredi 500 TL")); }, [this] { Manage(TEXT("TakeLoan"), 0); }) ]
-            + SWrapBox::Slot()[ Button([] { return FString(TEXT("Kredi 1.000 TL")); }, [this] { Manage(TEXT("TakeLoan"), 1); }) ]
-            + SWrapBox::Slot()[ Button([] { return FString(TEXT("Krediyi kapat")); }, [this] { Manage(TEXT("RepayLoan"), 0); }, false, [G] { return G() && G()->State.Loans.Num() > 0; }) ]
-            + SWrapBox::Slot()[ Button([] { return FString(TEXT("Veresiye yok")); }, [this] { Manage(TEXT("CreditLimit"), 0); }) ]
-            + SWrapBox::Slot()[ Button([] { return FString(TEXT("Veresiye 20 TL")); }, [this] { Manage(TEXT("CreditLimit"), 1); }) ]
-            + SWrapBox::Slot()[ Button([] { return FString(TEXT("Veresiye 50 TL")); }, [this] { Manage(TEXT("CreditLimit"), 2); }) ]
-            + SWrapBox::Slot()[ Button([] { return FString(TEXT("Bor\u00e7lar\u0131 iste")); }, [this] { Manage(TEXT("CollectCredit"), 0); }, false, [G] { return G() && G()->State.Credit.Num() > 0; }) ]
-            + SWrapBox::Slot()[ Button([] { return FString(TEXT("Son g\u00fcn: indirim")); }, [this] { Manage(TEXT("FreshPolicy"), 1); }) ]
-            + SWrapBox::Slot()[ Button([] { return FString(TEXT("Son g\u00fcn: ba\u011f\u0131\u015f")); }, [this] { Manage(TEXT("FreshPolicy"), 2); }) ]
-        ]);
-}
-
-TSharedRef<SWidget> SMarketMenu::TimeCard()
-{
-    // G-071: play days without walking the shop (stops when a decision waits or the week ends), difficulty.
-    auto G = [this] { return Game.Get(); };
-    auto Closed = [G] { return G() && !G()->bOpen; };
-    return Card(SNew(SVerticalBox)
-        + SVerticalBox::Slot().AutoHeight()[ Fixed(TEXT("ZAMAN \u00b7 ZORLUK"), 9, ERole::Muted, true) ]
-        + SVerticalBox::Slot().AutoHeight().Padding(0.f, 6.f, 0.f, 8.f)
-        [ Label([G] { return G() ? FString::Printf(TEXT("Zorluk: %s \u00b7 ilerletilen g\u00fcn %d. \u0130lerletirken aile d\u00fckk\u00e2n\u0131 i\u015fletir: raflar\u0131 doldurur, \u00f6neri kadar sipari\u015f verir; karar gerekince durur."),
-            *MarketSimulation::DifficultyName(static_cast<MarketSimulation::EDifficulty>(G()->State.Difficulty)), G()->State.AdvancedDays) : FString(); }, 11, ERole::Text, false, true) ]
-        + SVerticalBox::Slot().AutoHeight()
-        [
-            SNew(SWrapBox).UseAllottedSize(true).InnerSlotPadding(FVector2D(6.f, 6.f))
-            + SWrapBox::Slot()[ Button([] { return FString(TEXT("1 g\u00fcn ilerlet")); }, [this] { Manage(TEXT("Advance"), 1); }, false, Closed) ]
-            + SWrapBox::Slot()[ Button([] { return FString(TEXT("1 hafta ilerlet")); }, [this] { Manage(TEXT("Advance"), 7); }, false, Closed) ]
-            + SWrapBox::Slot()[ Button([] { return FString(TEXT("Rahat")); }, [this] { Manage(TEXT("Difficulty"), 0); }) ]
-            + SWrapBox::Slot()[ Button([] { return FString(TEXT("Normal")); }, [this] { Manage(TEXT("Difficulty"), 1); }) ]
-            + SWrapBox::Slot()[ Button([] { return FString(TEXT("Zor")); }, [this] { Manage(TEXT("Difficulty"), 2); }) ]
-        ]);
-}
-
-TSharedRef<SWidget> SMarketMenu::OnlineCard()
-{
-    // G-069: order channels of the era, couriers, the missing-item rule and payment methods.
-    auto G = [this] { return Game.Get(); };
-    auto Era = [G](MarketOnline::EChannel Channel) { return [G, Channel] { return G() && G()->State.Day >= MarketOnline::OpenDay(Channel); }; };
-    auto Toggle = [G](MarketOnline::EChannel Channel) { return [G, Channel] { return FString::Printf(TEXT("%s: %s"), *MarketOnline::ChannelName(Channel), G() && MarketOnline::IsOn(G()->State, Channel) ? TEXT("a\u00e7\u0131k") : TEXT("kapal\u0131")); }; };
-    auto Flip = [this, G](MarketOnline::EChannel Channel) { return [this, G, Channel] { Manage(TEXT("OnlineChannel"), static_cast<int32>(Channel) * 10 + (G() && MarketOnline::IsOn(G()->State, Channel) ? 0 : 1)); }; };
-    return Card(SNew(SVerticalBox)
-        + SVerticalBox::Slot().AutoHeight()[ Fixed(TEXT("S\u0130PAR\u0130\u015e \u00b7 KURYE \u00b7 \u00d6DEME"), 9, ERole::Muted, true) ]
-        + SVerticalBox::Slot().AutoHeight().Padding(0.f, 6.f, 0.f, 8.f)
-        [ Label([G] { return G() ? MarketOnline::Summary(G()->State) + TEXT("\n") + MarketPayments::Summary(G()->State) : FString(); }, 11, ERole::Text, false, true) ]
-        + SVerticalBox::Slot().AutoHeight()
-        [
-            SNew(SWrapBox).UseAllottedSize(true).InnerSlotPadding(FVector2D(6.f, 6.f))
-            + SWrapBox::Slot()[ Button(Toggle(MarketOnline::EChannel::Phone), Flip(MarketOnline::EChannel::Phone)) ]
-            + SWrapBox::Slot()[ Button(Toggle(MarketOnline::EChannel::Web), Flip(MarketOnline::EChannel::Web), false, Era(MarketOnline::EChannel::Web)) ]
-            + SWrapBox::Slot()[ Button(Toggle(MarketOnline::EChannel::Platform), Flip(MarketOnline::EChannel::Platform), false, Era(MarketOnline::EChannel::Platform)) ]
-            + SWrapBox::Slot()[ Button([] { return FString(TEXT("Kurye al")); }, [this] { Manage(TEXT("HireCourier"), 0); }) ]
-            + SWrapBox::Slot()[ Button([] { return FString(TEXT("Kurye b\u0131rak")); }, [this] { Manage(TEXT("FireCourier"), 0); }, false, [G] { return G() && G()->State.Online.Couriers > 0; }) ]
-            + SWrapBox::Slot()[ Button([G] { return FString(G() && G()->State.Online.bFreeDelivery ? TEXT("Teslimat: \u00fccretsiz") : TEXT("Teslimat: \u00fccretli")); },
-                                       [this, G] { Manage(TEXT("FreeDelivery"), G() && G()->State.Online.bFreeDelivery ? 0 : 1); }) ]
-            + SWrapBox::Slot()[ Button([G] { static const TCHAR* Rules[3] = { TEXT("Eksikte: sor"), TEXT("Eksikte: benzeri"), TEXT("Eksikte: \u00e7\u0131kar") };
-                                             return FString(Rules[G() ? FMath::Clamp<int32>(G()->State.Online.Substitute, 0, 2) : 1]); },
-                                       [this, G] { Manage(TEXT("Substitute"), G() ? (G()->State.Online.Substitute + 1) % 3 : 1); }) ]
-            + SWrapBox::Slot()[ Button([G] { return FString(G() && G()->State.Payments.bCard ? TEXT("POS: var") : TEXT("POS: yok")); },
-                                       [this, G] { Manage(TEXT("Card"), G() && G()->State.Payments.bCard ? 0 : 1); }) ]
-            + SWrapBox::Slot()[ Button([G] { return FString(G() && G()->State.Payments.bMealCard ? TEXT("Yemek kart\u0131: al\u0131n\u0131yor") : TEXT("Yemek kart\u0131: yok")); },
-                                       [this, G] { Manage(TEXT("MealCard"), G() && G()->State.Payments.bMealCard ? 0 : 1); }) ]
-        ]);
-}
-
-TSharedRef<SWidget> SMarketMenu::SummaryPage()
-{
-    auto G = [this] { return Game.Get(); };
-    return SNew(SScrollBox)
-    + SScrollBox::Slot()
-    [
-        SNew(SVerticalBox)
-        + SVerticalBox::Slot().AutoHeight()[ DecisionCard() ]
-        + SVerticalBox::Slot().AutoHeight().Padding(0.f, 0.f, 0.f, 12.f)[ StoryCard() ]
-        + SVerticalBox::Slot().AutoHeight().Padding(0.f, 0.f, 0.f, 12.f)[ MoneyCard() ]
-        + SVerticalBox::Slot().AutoHeight().Padding(0.f, 0.f, 0.f, 12.f)[ OnlineCard() ]
-        + SVerticalBox::Slot().AutoHeight().Padding(0.f, 0.f, 0.f, 12.f)[ TimeCard() ]
-        + SVerticalBox::Slot().AutoHeight()
-        [
-            SNew(SHorizontalBox)
-            + SHorizontalBox::Slot().FillWidth(1.f).Padding(0.f, 0.f, 12.f, 0.f)
-            [ Stat(TEXT("KASA"), [G] { return G() ? MarketMenuUi::Tl(G()->State.Cash) : FString(); },
-                   [G] { return G() && G()->bTestMode ? FString(TEXT("test modu a\u00e7\u0131k (F2)")) : FString(TEXT("nakit")); }) ]
-            + SHorizontalBox::Slot().FillWidth(1.f).Padding(0.f, 0.f, 12.f, 0.f)
-            [ Stat(TEXT("D\u00dcN NET"), [G] { return G() && G()->State.Day > 1 ? MarketMenuUi::Tl(G()->State.LastProfit) : FString(TEXT("\u2014")); },
-                   [G] { return G() && G()->State.Day > 1 ? FString::Printf(TEXT("ciro %s"), *MarketMenuUi::Tl(G()->State.LastRevenue)) : FString(TEXT("ilk g\u00fcn")); },
-                   [G] { return G() && G()->State.LastProfit < 0 ? ERole::Bad : ERole::Good; }) ]
-            + SHorizontalBox::Slot().FillWidth(1.f).Padding(0.f, 0.f, 12.f, 0.f)
-            [ Stat(TEXT("BUG\u00dcN"), [G] { return G() ? MarketMenuUi::Tl(G()->State.Revenue) : FString(); },
-                   [G] { return G() ? FString::Printf(TEXT("%d sat\u0131\u015f \u00b7 %d kay\u0131p m\u00fc\u015fteri"), G()->State.Served, G()->State.Lost) : FString(); }) ]
-            + SHorizontalBox::Slot().FillWidth(1.f)
-            [ Stat(TEXT("YEREL PAY"), [G] { return G() ? FString::Printf(TEXT("%%%.0f"), G()->State.MarketShare) : FString(); },
-                   [G] { return G() ? FString::Printf(TEXT("%d k\u00e2rl\u0131 g\u00fcn"), G()->State.ProfitableDays) : FString(); }) ]
-        ]
-        + SVerticalBox::Slot().AutoHeight().Padding(0.f, 12.f, 0.f, 0.f)
-        [
-            SNew(SHorizontalBox)
-            + SHorizontalBox::Slot().FillWidth(1.f).Padding(0.f, 0.f, 12.f, 0.f)
+            SNew(SBorder).BorderImage(&SmallBrush).BorderBackgroundColor(Col(ERole::Inset)).Padding(FMargin(12.f, 8.f))
+            .Visibility_Lambda([TodoAt, Slot] { FMarketTodo T; return TodoAt(Slot, T) ? EVisibility::Visible : EVisibility::Collapsed; })
             [
-                Card(SNew(SVerticalBox)
-                    + SVerticalBox::Slot().AutoHeight()[ Fixed(TEXT("BABANIN BORCU"), 9, ERole::Muted, true) ]
-                    + SVerticalBox::Slot().AutoHeight().Padding(0.f, 6.f, 0.f, 8.f)
-                    [ LabelBy([G] { return !G() ? FString() : MarketCampaign::DebtOpen(G()->State) ? MarketMenuUi::Tl(G()->State.InheritedDebt) + TEXT(" kald\u0131") : FString(TEXT("Kapand\u0131")); }, 20,
-                        [G] { return G() && !MarketCampaign::DebtOpen(G()->State) ? ERole::Good : ERole::Warn; }, true) ]
-                    + SVerticalBox::Slot().AutoHeight()[ Bar([G] { return G() ? MarketCampaign::DebtProgress(G()->State) : 0.f; }, ERole::Accent) ]
-                    + SVerticalBox::Slot().AutoHeight().Padding(0.f, 6.f, 0.f, 12.f)
-                    [ Label([G] { return G() ? FString::Printf(TEXT("Toptanc\u0131ya %s bor\u00e7 \u00b7 s\u00fcre yok \u00b7 kapanmadan ikinci \u015fube a\u00e7\u0131lmaz"), *MarketMenuUi::Tl(MarketCampaign::StartingDebt)) : FString(); }, 10, ERole::Muted, false, true) ]
-                    + SVerticalBox::Slot().AutoHeight().HAlign(HAlign_Left)
-                    [ Button([] { return FString::Printf(TEXT("%s \u00f6de"), *MarketMenuUi::Tl(MarketCampaign::Installment)); }, [this] { Do(TEXT("PayDebt")); }, true,
-                        [G] { return G() && MarketCampaign::DebtOpen(G()->State) && G()->State.Cash > 0; }) ])
-            ]
-            + SHorizontalBox::Slot().FillWidth(1.f).Padding(0.f, 0.f, 12.f, 0.f)
-            [
-                Card(SNew(SVerticalBox)
-                    + SVerticalBox::Slot().AutoHeight().Padding(0.f, 0.f, 0.f, 8.f)[ Fixed(TEXT("HEDEF \u00b7 \u0130K\u0130NC\u0130 \u015eUBE"), 9, ERole::Muted, true) ]
-                    + SVerticalBox::Slot().AutoHeight()[ GoalList() ])
-            ]
-            + SHorizontalBox::Slot().FillWidth(1.2f)
-            [
-                Card(SNew(SVerticalBox)
-                    + SVerticalBox::Slot().AutoHeight().Padding(0.f, 0.f, 0.f, 8.f)[ Fixed(TEXT("RAK\u0130PLERDE BUG\u00dcN"), 9, ERole::Muted, true) ]
-                    + SVerticalBox::Slot().AutoHeight()[ Label([G] { return G() ? MarketMenuUi::RivalsToday(*G()) : FString(); }, 11, ERole::Text, false, true) ]
-                    + SVerticalBox::Slot().AutoHeight().Padding(0.f, 12.f, 0.f, 0.f).HAlign(HAlign_Left)
-                    [ Button([] { return FString(TEXT("Fiyatlar\u0131 kar\u015f\u0131la\u015ft\u0131r")); }, [this] { Go(Prices); }) ])
-            ]
-        ]
-        + SVerticalBox::Slot().AutoHeight().Padding(0.f, 12.f, 0.f, 0.f)
-        [
-            SNew(SHorizontalBox)
-            + SHorizontalBox::Slot().FillWidth(1.4f).Padding(0.f, 0.f, 12.f, 0.f)
-            [
-                Card(SNew(SVerticalBox)
-                    + SVerticalBox::Slot().AutoHeight().Padding(0.f, 0.f, 0.f, 8.f)[ Fixed(TEXT("D\u00dcN NEREDE M\u00dc\u015eTER\u0130 KAYBETT\u0130N"), 9, ERole::Muted, true) ]
-                    + SVerticalBox::Slot().AutoHeight()[ Label([G] { return G() ? G()->DayProblemsText() : FString(); }, 11, ERole::Text, false, true) ]
-                    + SVerticalBox::Slot().AutoHeight().Padding(0.f, 12.f, 0.f, 0.f).HAlign(HAlign_Left)
+                SNew(SHorizontalBox)
+                + SHorizontalBox::Slot().AutoWidth().VAlign(VAlign_Center).Padding(0.f, 0.f, 10.f, 0.f)
+                [
+                    SNew(SBox).WidthOverride(10.f).HeightOverride(10.f)
                     [
-                        SNew(SHorizontalBox)
-                        + SHorizontalBox::Slot().AutoWidth().Padding(0.f, 0.f, 8.f, 0.f)[ Button([] { return FString(TEXT("Sipari\u015f ver")); }, [this] { Go(Orders); }) ]
-                        + SHorizontalBox::Slot().AutoWidth()[ Button([] { return FString(TEXT("G\u00fcn raporu")); }, [this] { bWeekTab = false; Go(Reports); }) ]
-                    ])
+                        SNew(SBorder).BorderImage(&BadgeBrush)
+                        .BorderBackgroundColor(ColBy([TodoAt, Slot] { FMarketTodo T; if (!TodoAt(Slot, T)) return ERole::Line; return T.Severity >= 2 ? ERole::Bad : T.Severity == 1 ? ERole::Warn : ERole::Info; }))
+                    ]
+                ]
+                + SHorizontalBox::Slot().FillWidth(1.f).VAlign(VAlign_Center)
+                [
+                    SNew(SVerticalBox)
+                    + SVerticalBox::Slot().AutoHeight()[ Label([TodoAt, Slot] { FMarketTodo T; return TodoAt(Slot, T) ? T.Title : FString(); }, 11, ERole::Text, true, true) ]
+                    + SVerticalBox::Slot().AutoHeight()[ Label([TodoAt, Slot] { FMarketTodo T; return TodoAt(Slot, T) ? T.Text : FString(); }, 10, ERole::Muted, false, true) ]
+                ]
+                + SHorizontalBox::Slot().AutoWidth().VAlign(VAlign_Center).Padding(10.f, 0.f, 0.f, 0.f)
+                [
+                    Button([TodoAt, Slot] { FMarketTodo T; return TodoAt(Slot, T) ? FString::Printf(TEXT("%s  \u203a"), PageName(T.Page)) : FString(); },
+                        [this, TodoAt, Slot]
+                        {
+                            FMarketTodo T;
+                            if (!TodoAt(Slot, T)) return;
+                            if (AMarketGameMode* Mode = Game.Get(); Mode && Mode->Products.IsValidIndex(T.Product)) Mode->MenuProduct = T.Product;
+                            if (T.Page != Summary) bDecisionsOpen = false; // G-086: the list lives in the decisions layer
+                            Go(T.Page);
+                        })
+                ]
             ]
-            + SHorizontalBox::Slot().FillWidth(1.f)
-            [
-                Card(SNew(SVerticalBox)
-                    + SVerticalBox::Slot().AutoHeight().Padding(0.f, 0.f, 0.f, 8.f)[ Fixed(TEXT("MA\u011eAZA"), 9, ERole::Muted, true) ]
-                    + SVerticalBox::Slot().AutoHeight()
-                    [ Label([G] { return !G() ? FString() : G()->bOpen ? FString::Printf(TEXT("A\u00e7\u0131k \u00b7 i\u00e7eride %d m\u00fc\u015fteri"), G()->Customers.Num()) : FString(TEXT("Kapal\u0131")); }, 14, ERole::Text, true) ]
-                    + SVerticalBox::Slot().AutoHeight().Padding(0.f, 4.f, 0.f, 0.f)
-                    [ Label([G] { return G() ? G()->LoyaltySummary() : FString(); }, 10, ERole::Muted, false, true) ]
-                    + SVerticalBox::Slot().AutoHeight().Padding(0.f, 12.f, 0.f, 0.f).HAlign(HAlign_Left)
-                    [ Button([G] { return G() && G()->bOpen ? FString(TEXT("G\u00fcn\u00fc kapat")) : FString(TEXT("Ma\u011fazay\u0131 a\u00e7")); },
-                        [this] { Do(TEXT("ToggleShop")); }, false) ])
-            ]
+        ];
+    }
+    return Card(SNew(SVerticalBox)
+        + SVerticalBox::Slot().AutoHeight().Padding(0.f, 0.f, 0.f, 6.f)
+        [
+            SNew(SHorizontalBox)
+            + SHorizontalBox::Slot().FillWidth(1.f)[ Section(TEXT("\u015e\u0130MD\u0130 NE YAPMALI")) ]
+            + SHorizontalBox::Slot().AutoWidth()
+            [ Label([G] { const int32 Count = G() ? G()->Todos().Num() : 0; return Count > Shown ? FString::Printf(TEXT("+%d daha"), Count - Shown) : FString(); }, 9, ERole::Muted) ]
         ]
-    ];
+        + SVerticalBox::Slot().AutoHeight()
+        [
+            SNew(SBox).Visibility_Lambda([G] { return G() && G()->Todos().Num() == 0 ? EVisibility::Visible : EVisibility::Collapsed; })
+            [ Fixed(TEXT("Acil bir i\u015f yok. Raflar dolu, kasa yolunda."), 11, ERole::Good) ]
+        ]
+        + SVerticalBox::Slot().AutoHeight()[ Rows ]);
 }
 
 TSharedRef<SWidget> SMarketMenu::OrdersPage()
@@ -781,19 +1386,19 @@ TSharedRef<SWidget> SMarketMenu::OrdersPage()
         Rows->AddSlot().Padding(0.f, 3.f)
         [
             SNew(SBox)
-            .Visibility_Lambda([this, G, I] { return G() && (OrderCategory.IsEmpty() || G()->Products[I].Category == OrderCategory) ? EVisibility::Visible : EVisibility::Collapsed; })
+            .Visibility_Lambda([this, G, I] { return G() && G()->Products.IsValidIndex(I) && (OrderCategory.IsEmpty() || G()->Products[I].Category == OrderCategory) ? EVisibility::Visible : EVisibility::Collapsed; })
             [
                 SNew(SBorder).BorderImage(&SmallBrush).BorderBackgroundColor(Col(ERole::Panel)).Padding(FMargin(12.f, 6.f))
                 [
                     SNew(SHorizontalBox)
                     + SHorizontalBox::Slot().AutoWidth().VAlign(VAlign_Center).Padding(0.f, 0.f, 10.f, 0.f)
-                    [ Badge(FString(), MarketMenuUi::Initials(G()->ProductName(I)), FLinearColor(G()->Products[I].Color), 26.f) ]
+                    [ ProductPicture(I, 32.f) ]
                     + SHorizontalBox::Slot().FillWidth(1.f).VAlign(VAlign_Center)
                     [
                         SNew(SVerticalBox)
-                        + SVerticalBox::Slot().AutoHeight()[ Label([G, I] { return G() ? G()->ProductName(I) : FString(); }, 11, ERole::Text, true) ]
+                        + SVerticalBox::Slot().AutoHeight()[ Label([G, I] { return G() && G()->Products.IsValidIndex(I) ? G()->ProductName(I) : FString(); }, 11, ERole::Text, true) ]
                         + SVerticalBox::Slot().AutoHeight()
-                        [ Label([G, I] { return G() ? FString::Printf(TEXT("%s \u00b7 koli %d adet \u00b7 %s/adet"), *MarketMenuUi::Title(G()->Products[I].Category), MarketOrderAdvice::CaseUnits(G()->Products[I]), *MarketMenuUi::Tl(G()->Products[I].Cost)) : FString(); }, 9, ERole::Muted) ]
+                        [ Label([G, I] { return G() && G()->Products.IsValidIndex(I) ? FString::Printf(TEXT("%s \u00b7 koli %d adet \u00b7 %s/adet"), *MarketMenuUi::Title(G()->Products[I].Category), MarketOrderAdvice::CaseUnits(G()->Products[I]), *MarketMenuUi::Tl(G()->Products[I].Cost)) : FString(); }, 9, ERole::Muted) ]
                     ]
                     + SHorizontalBox::Slot().AutoWidth().VAlign(VAlign_Center)[ Cell([Item] { return Item() ? FString::Printf(TEXT("%d/%d"), Item()->Shelf, Item()->Capacity) : FString(); }, 70.f) ]
                     + SHorizontalBox::Slot().AutoWidth().VAlign(VAlign_Center)[ Cell([Item] { return Item() ? FString::FromInt(Item()->Warehouse) : FString(); }, 56.f) ]
@@ -802,7 +1407,7 @@ TSharedRef<SWidget> SMarketMenu::OrdersPage()
                     + SHorizontalBox::Slot().AutoWidth().VAlign(VAlign_Center)[ Cell([Item] { return Item() ? FString::FromInt(Item()->Yesterday.Sold) : FString(); }, 56.f) ]
                     + SHorizontalBox::Slot().AutoWidth().VAlign(VAlign_Center)[ Cell([Item] { return Item() ? FString::FromInt(Item()->Yesterday.Empty) : FString(); }, 56.f, ERole::Warn) ]
                     + SHorizontalBox::Slot().AutoWidth().VAlign(VAlign_Center)
-                    [ Cell([G, I] { if (!G() || !G()->Products.IsValidIndex(I)) return FString(); TArray<float> Scale; Scale.Init(1.f, G()->Products.Num()); Scale[I] = MarketDirector::OrderScale(G()->State, G()->Products[I]);
+                    [ Cell([G, I] { if (!G() || !G()->Products.IsValidIndex(I) || !G()->State.Stock.IsValidIndex(I)) return FString(); TArray<float> Scale; Scale.Init(1.f, G()->Products.Num()); Scale[I] = MarketDirector::OrderScale(G()->State, G()->Products[I]);
                         return FString::FromInt(MarketOrderAdvice::SuggestCases(G()->State, G()->Products, I, &Scale)); }, 60.f, ERole::Accent, true) ]
                     + SHorizontalBox::Slot().AutoWidth().VAlign(VAlign_Center).Padding(18.f, 0.f, 0.f, 0.f)
                     [
@@ -825,8 +1430,12 @@ TSharedRef<SWidget> SMarketMenu::OrdersPage()
     // G-063 wholesaler: who we buy from, terms, open bills and passing the monthly price rise on to the shelves.
     auto Act = [this](FName Action, int32 Arg) { if (AMarketGameMode* Mode = Game.Get()) Mode->StaffCommand(Action, Arg); };
     return SNew(SVerticalBox)
+        // G-086e: the cards above and below the list have fixed heights, so a new message or a longer total never
+        // pushes the list around.
         + SVerticalBox::Slot().AutoHeight().Padding(0.f, 0.f, 0.f, 10.f)
         [
+            SNew(SBox).HeightOverride(64.f)
+            [
             Card(
                 SNew(SHorizontalBox)
                 + SHorizontalBox::Slot().FillWidth(1.f).VAlign(VAlign_Center)
@@ -840,6 +1449,7 @@ TSharedRef<SWidget> SMarketMenu::OrdersPage()
                 + SHorizontalBox::Slot().AutoWidth().VAlign(VAlign_Center).Padding(8.f, 0.f, 0.f, 0.f)
                 [ Button([] { return FString(TEXT("Zamm\u0131 yans\u0131t")); }, [Act] { Act(TEXT("PassOnPriceRise"), 0); }, false, [G] { return G() && MarketSuppliers::PriceGap(G()->State) >= 0.005; }) ],
                 ERole::Panel, FMargin(18.f, 10.f))
+            ]
         ]
         + SVerticalBox::Slot().AutoHeight()[ CategoryChips(&OrderCategory) ]
         + SVerticalBox::Slot().AutoHeight().Padding(12.f, 14.f, 12.f, 4.f)
@@ -858,6 +1468,8 @@ TSharedRef<SWidget> SMarketMenu::OrdersPage()
         + SVerticalBox::Slot().FillHeight(1.f)[ Rows ]
         + SVerticalBox::Slot().AutoHeight().Padding(0.f, 10.f, 0.f, 0.f)
         [
+            SNew(SBox).HeightOverride(76.f)
+            [
             Card(
                 SNew(SHorizontalBox)
                 + SHorizontalBox::Slot().FillWidth(1.f).VAlign(VAlign_Center)
@@ -871,576 +1483,26 @@ TSharedRef<SWidget> SMarketMenu::OrdersPage()
                         {
                             if (!G()) return FString();
                             if (G()->bTestMode) return FString(TEXT("TEST MODU: + bedava ve an\u0131nda depoya getirir."));
-                            if (G()->OrderDraftCaseCount() > 0 && G()->OrderDraftBill() < MarketOrderAdvice::MinimumOrder)
-                                return FString::Printf(TEXT("Toptanc\u0131 en az %s sipari\u015fle gelir."), *MarketMenuUi::Tl(MarketOrderAdvice::MinimumOrder));
+                            if (G()->OrderDraftCaseCount() > 0 && G()->OrderDraftBill() < MarketOrderAdvice::MinimumOrderOn(G()->State.Day))
+                                return FString::Printf(TEXT("Toptanc\u0131 en az %s sipari\u015fle gelir."), *MarketMenuUi::Tl(MarketOrderAdvice::MinimumOrderOn(G()->State.Day)));
                             if (G()->OrderDraftBill() > G()->State.Cash) return FString(TEXT("Kasadaki nakit bu listeye yetmiyor."));
                             return FString(TEXT("\u00d6deme onayda yap\u0131l\u0131r; koliler yar\u0131n sabah arka kap\u0131da."));
-                        }, 10, [G] { return G() && (G()->OrderDraftBill() > G()->State.Cash || (G()->OrderDraftCaseCount() > 0 && G()->OrderDraftBill() < MarketOrderAdvice::MinimumOrder)) ? ERole::Warn : ERole::Muted; })
+                        }, 10, [G] { return G() && (G()->OrderDraftBill() > G()->State.Cash || (G()->OrderDraftCaseCount() > 0 && G()->OrderDraftBill() < MarketOrderAdvice::MinimumOrderOn(G()->State.Day))) ? ERole::Warn : ERole::Muted; })
                     ]
                 ]
                 + SHorizontalBox::Slot().AutoWidth().VAlign(VAlign_Center).Padding(0.f, 0.f, 8.f, 0.f)
                 [ Button([] { return FString(TEXT("Temizle")); }, [this] { if (AMarketGameMode* M = Game.Get()) M->ClearOrderDraft(); }, false,
                     [G] { return G() && G()->OrderDraftCaseCount() > 0; }) ]
                 + SHorizontalBox::Slot().AutoWidth().VAlign(VAlign_Center).Padding(0.f, 0.f, 8.f, 0.f)
-                [ Button([] { return FString(TEXT("\u00d6neriyi yaz")); }, [this] { Do(TEXT("SuggestOrder")); }) ]
+                [ Button([] { return FString(TEXT("\u00d6neriyi yaz")); }, [this] { Do(TEXT("SuggestOrder")); bOrderListOpen = true; }) ]
+                + SHorizontalBox::Slot().AutoWidth().VAlign(VAlign_Center).Padding(0.f, 0.f, 8.f, 0.f)
+                [ Button([] { return FString(TEXT("Listeyi a\u00e7")); }, [this] { bOrderListOpen = true; }) ]
                 + SHorizontalBox::Slot().AutoWidth().VAlign(VAlign_Center)
                 [ Button([] { return FString(TEXT("Sipari\u015fi onayla")); }, [this] { Do(TEXT("ConfirmOrder")); }, true,
                     [G] { return G() && G()->OrderDraftCaseCount() > 0; }) ],
                 ERole::Panel, FMargin(18.f, 12.f))
-        ];
-}
-
-TSharedRef<SWidget> SMarketMenu::PricesPage()
-{
-    auto G = [this] { return Game.Get(); };
-    auto Current = [G] { return G() && G()->Products.IsValidIndex(G()->MenuProduct) ? G()->MenuProduct : 0; };
-
-    TSharedRef<SScrollBox> List = SNew(SScrollBox);
-    const int32 Count = G() ? G()->Products.Num() : 0;
-    for (int32 I = 0; I < Count; ++I)
-    {
-        List->AddSlot().Padding(0.f, 3.f)
-        [
-            SNew(SBox)
-            .Visibility_Lambda([this, G, I] { return G() && (PriceCategory.IsEmpty() || G()->Products[I].Category == PriceCategory) ? EVisibility::Visible : EVisibility::Collapsed; })
-            [
-                SNew(SButton).ButtonStyle(&RowStyle).IsFocusable(false).ContentPadding(FMargin(12.f, 8.f))
-                .ButtonColorAndOpacity_Lambda([this, Current, I] { return FSlateColor(Color(Current() == I ? ERole::Inset : ERole::Panel)); })
-                .OnClicked_Lambda([G, I] { if (AMarketGameMode* M = G()) M->MenuProduct = I; return FReply::Handled(); })
-                [
-                    SNew(SHorizontalBox)
-                    + SHorizontalBox::Slot().AutoWidth().VAlign(VAlign_Center).Padding(0.f, 0.f, 10.f, 0.f)
-                    [ Badge(FString(), MarketMenuUi::Initials(G()->ProductName(I)), FLinearColor(G()->Products[I].Color), 34.f) ]
-                    + SHorizontalBox::Slot().FillWidth(1.f).VAlign(VAlign_Center)
-                    [
-                        SNew(SVerticalBox)
-                        + SVerticalBox::Slot().AutoHeight()[ Label([G, I] { return G() ? G()->ProductName(I) : FString(); }, 11, ERole::Text, true) ]
-                        + SVerticalBox::Slot().AutoHeight()[ Label([G, I] { return G() ? MarketMenuUi::Title(G()->Products[I].Category) : FString(); }, 9, ERole::Muted) ]
-                    ]
-                    + SHorizontalBox::Slot().AutoWidth().VAlign(VAlign_Center).Padding(8.f, 0.f)
-                    [
-                        SNew(SVerticalBox)
-                        + SVerticalBox::Slot().AutoHeight().HAlign(HAlign_Right)[ Label([G, I] { return G() ? MarketMenuUi::Tl(G()->State.Stock[I].Price) : FString(); }, 12, ERole::Text, true) ]
-                        + SVerticalBox::Slot().AutoHeight().HAlign(HAlign_Right)
-                        [
-                            Label([G, I]
-                            {
-                                int64 Price = 0;
-                                return G() && MarketMenuUi::CheapestRival(*G(), I, Price) != INDEX_NONE ? FString::Printf(TEXT("rakip en ucuz %s"), *MarketMenuUi::Tl(Price)) : FString(TEXT("rakiplerde yok"));
-                            }, 9, ERole::Muted)
-                        ]
-                    ]
-                    + SHorizontalBox::Slot().AutoWidth().VAlign(VAlign_Center)
-                    [
-                        SNew(SBox).WidthOverride(64.f).HAlign(HAlign_Right)
-                        [
-                            LabelBy([G, I]
-                            {
-                                int64 Price = 0;
-                                if (!G() || MarketMenuUi::CheapestRival(*G(), I, Price) == INDEX_NONE) return FString(TEXT("tek biz"));
-                                const int64 Ours = G()->State.Stock[I].Price;
-                                return Ours < Price ? FString(TEXT("ucuz")) : Ours > Price ? FString(TEXT("pahal\u0131")) : FString(TEXT("ayn\u0131"));
-                            }, 10, [G, I]
-                            {
-                                int64 Price = 0;
-                                if (!G() || MarketMenuUi::CheapestRival(*G(), I, Price) == INDEX_NONE) return ERole::Good;
-                                const int64 Ours = G()->State.Stock[I].Price;
-                                return Ours < Price ? ERole::Good : Ours > Price ? ERole::Bad : ERole::Muted;
-                            }, true)
-                        ]
-                    ]
-                ]
             ]
         ];
-    }
-
-    TSharedRef<SVerticalBox> RivalRows = SNew(SVerticalBox);
-    for (int32 Rival = 0; Rival < 3; ++Rival)
-    {
-        RivalRows->AddSlot().AutoHeight().Padding(0.f, 3.f)
-        [
-            SNew(SBorder).BorderImage(&SmallBrush).BorderBackgroundColor(Col(ERole::Inset)).Padding(FMargin(12.f, 8.f))
-            .Visibility_Lambda([G, Rival] { return G() && Rival < MarketRivals::RivalCount(G()->State.Day) ? EVisibility::Visible : EVisibility::Collapsed; })
-            [
-                SNew(SHorizontalBox)
-                + SHorizontalBox::Slot().AutoWidth().VAlign(VAlign_Center).Padding(0.f, 0.f, 12.f, 0.f)
-                [ Badge(MarketRivals::RivalLogoKey(Rival), MarketMenuUi::Initials(MarketRivals::RivalName(Rival)), MarketMenuUi::RivalColor(Rival), 34.f) ]
-                + SHorizontalBox::Slot().FillWidth(1.f).VAlign(VAlign_Center)
-                [
-                    SNew(SVerticalBox)
-                    + SVerticalBox::Slot().AutoHeight()[ Fixed(MarketRivals::RivalName(Rival), 12, ERole::Text, true) ]
-                    + SVerticalBox::Slot().AutoHeight()
-                    [
-                        Label([G, Current, Rival]
-                        {
-                            if (!G()) return FString();
-                            bool bEmpty = false;
-                            const float Factor = MarketRivals::RivalFactor(G()->State.Day, G()->State.RivalSeed, G()->RivalAisles, G()->Products[Current()].Category, Rival, &bEmpty);
-                            const FString Kind = MarketRivals::RivalFormat(Rival);
-                            if (bEmpty) return Kind + TEXT(" \u00b7 bu reyon bo\u015f");
-                            if (Factor < 1.f) return Kind + FString::Printf(TEXT(" \u00b7 kampanyada %%%d"), FMath::RoundToInt32((1.f - Factor) * 100.f));
-                            if (Factor > 1.f) return Kind + FString::Printf(TEXT(" \u00b7 zam %%%d"), FMath::RoundToInt32((Factor - 1.f) * 100.f));
-                            return Kind;
-                        }, 9, ERole::Muted)
-                    ]
-                ]
-                + SHorizontalBox::Slot().AutoWidth().VAlign(VAlign_Center).Padding(8.f, 0.f)
-                [
-                    Label([G, Current, Rival]
-                    {
-                        int64 Price = 0;
-                        return G() && MarketMenuUi::RivalShelfPrice(*G(), Current(), Rival, Price) ? MarketMenuUi::Tl(Price) : FString(TEXT("Rafta yok"));
-                    }, 14, ERole::Text, true)
-                ]
-                + SHorizontalBox::Slot().AutoWidth().VAlign(VAlign_Center)
-                [
-                    SNew(SBox).WidthOverride(70.f).HAlign(HAlign_Right)
-                    [
-                        LabelBy([G, Current, Rival]
-                        {
-                            int64 Price = 0;
-                            if (!G() || !MarketMenuUi::RivalShelfPrice(*G(), Current(), Rival, Price) || Price <= 0) return FString();
-                            const int32 Diff = FMath::RoundToInt32((static_cast<double>(G()->State.Stock[Current()].Price) / Price - 1.0) * 100.0);
-                            return Diff == 0 ? FString(TEXT("ayn\u0131")) : FString::Printf(TEXT("biz %s%%%d"), Diff > 0 ? TEXT("+") : TEXT("-"), FMath::Abs(Diff));
-                        }, 10, [G, Current, Rival]
-                        {
-                            int64 Price = 0;
-                            if (!G() || !MarketMenuUi::RivalShelfPrice(*G(), Current(), Rival, Price)) return ERole::Muted;
-                            return G()->State.Stock[Current()].Price > Price ? ERole::Bad : ERole::Good;
-                        }, true)
-                    ]
-                ]
-            ]
-        ];
-    }
-
-    TSharedRef<SWidget> Detail = Card(
-        SNew(SVerticalBox)
-        + SVerticalBox::Slot().AutoHeight()
-        [
-            SNew(SHorizontalBox)
-            + SHorizontalBox::Slot().FillWidth(1.f)
-            [
-                SNew(SVerticalBox)
-                + SVerticalBox::Slot().AutoHeight()[ Label([G, Current] { return G() ? G()->ProductName(Current()) : FString(); }, 20, ERole::Text, true) ]
-                + SVerticalBox::Slot().AutoHeight()
-                [ Label([G, Current] { return G() ? FString::Printf(TEXT("%s \u00b7 %s"), *MarketMenuUi::Title(G()->Products[Current()].Category), *G()->Products[Current()].Brand) : FString(); }, 10, ERole::Muted) ]
-            ]
-        ]
-        + SVerticalBox::Slot().AutoHeight().Padding(0.f, 16.f, 0.f, 0.f)
-        [
-            SNew(SHorizontalBox)
-            + SHorizontalBox::Slot().AutoWidth().VAlign(VAlign_Center)
-            [
-                SNew(SVerticalBox)
-                + SVerticalBox::Slot().AutoHeight()[ Fixed(TEXT("B\u0130Z\u0130M F\u0130YAT"), 9, ERole::Muted, true) ]
-                + SVerticalBox::Slot().AutoHeight()[ Label([G, Current] { return G() ? MarketMenuUi::Tl(G()->State.Stock[Current()].Price) : FString(); }, 28, ERole::Text, true) ]
-            ]
-            + SHorizontalBox::Slot().AutoWidth().VAlign(VAlign_Center).Padding(18.f, 0.f, 6.f, 0.f)
-            [ Button([] { return FString(TEXT("-")); }, [this, Current] { Do(TEXT("PriceDown"), Current()); }) ]
-            + SHorizontalBox::Slot().AutoWidth().VAlign(VAlign_Center)
-            [ Button([] { return FString(TEXT("+")); }, [this, Current] { Do(TEXT("PriceUp"), Current()); }) ]
-            + SHorizontalBox::Slot().FillWidth(1.f).VAlign(VAlign_Center).HAlign(HAlign_Right)
-            [
-                SNew(SVerticalBox)
-                + SVerticalBox::Slot().AutoHeight().HAlign(HAlign_Right)[ Fixed(TEXT("ALAN M\u00dc\u015eTER\u0130"), 9, ERole::Muted, true) ]
-                + SVerticalBox::Slot().AutoHeight().HAlign(HAlign_Right)
-                [ LabelBy([G, Current] { return G() ? FString::Printf(TEXT("~%%%d"), FMath::RoundToInt32(MarketMenuUi::BuyChanceOf(*G(), Current()) * 100.0)) : FString(); }, 24,
-                    [G, Current] { const double Chance = G() ? MarketMenuUi::BuyChanceOf(*G(), Current()) : 1.0; return Chance >= 0.6 ? ERole::Good : Chance >= 0.35 ? ERole::Warn : ERole::Bad; }, true) ]
-            ]
-        ]
-        + SVerticalBox::Slot().AutoHeight().Padding(0.f, 8.f, 0.f, 0.f)
-        [
-            Label([G, Current]
-            {
-                if (!G()) return FString();
-                const FMarketProduct& P = G()->Products[Current()];
-                const int64 Ours = G()->State.Stock[Current()].Price;
-                const int32 Margin = Ours > 0 ? FMath::RoundToInt32(static_cast<double>(Ours - P.Cost) / Ours * 100.0) : 0;
-                return FString::Printf(TEXT("Al\u0131\u015f %s \u00b7 liste fiyat\u0131 %s \u00b7 k\u00e2r marj\u0131 %%%d"), *MarketMenuUi::Tl(P.Cost), *MarketMenuUi::Tl(P.BasePrice), Margin);
-            }, 10, ERole::Muted)
-        ]
-        + SVerticalBox::Slot().AutoHeight().Padding(0.f, 18.f, 0.f, 6.f)[ Fixed(TEXT("RAK\u0130P F\u0130YATLARI \u00b7 L\u00dcLEBURGAZ"), 9, ERole::Muted, true) ]
-        + SVerticalBox::Slot().AutoHeight()[ RivalRows ]
-        + SVerticalBox::Slot().AutoHeight().Padding(0.f, 10.f, 0.f, 0.f)
-        [
-            Label([G, Current]
-            {
-                if (!G()) return FString();
-                const int64 Theirs = MarketDemand::RivalPrice(G()->Products[Current()], G()->RivalPriceFactor(Current()));
-                return FString::Printf(TEXT("M\u00fc\u015fterinin akl\u0131ndaki rakip fiyat\u0131: %s. Pahal\u0131 bulan m\u00fc\u015fteri \u00fcr\u00fcn\u00fc almaz; sad\u0131k m\u00fc\u015fteri biraz daha ho\u015fg\u00f6r\u00fcl\u00fcd\u00fcr."), *MarketMenuUi::Tl(Theirs));
-            }, 10, ERole::Muted, false, true)
-        ]
-        + SVerticalBox::Slot().AutoHeight().Padding(0.f, 8.f, 0.f, 0.f)
-        [ Label([G, Current] { return G() ? G()->OrderAdvice(Current()) : FString(); }, 10, ERole::Muted, false, true) ]
-        // G-064 promotions for the selected product / its aisle; running ones and the wholesaler's offer.
-        + SVerticalBox::Slot().AutoHeight().Padding(0.f, 18.f, 0.f, 6.f)[ Fixed(TEXT("KAMPANYA"), 9, ERole::Muted, true) ]
-        + SVerticalBox::Slot().AutoHeight()
-        [
-            SNew(SWrapBox).UseAllottedSize(true).InnerSlotPadding(FVector2D(6.f, 6.f))
-            + SWrapBox::Slot()[ Button([] { return FString(TEXT("Reyonda %10")); }, [this, Current] { Manage(TEXT("Discount10"), Current()); }) ]
-            + SWrapBox::Slot()[ Button([] { return FString(TEXT("Reyonda %20")); }, [this, Current] { Manage(TEXT("Discount20"), Current()); }) ]
-            + SWrapBox::Slot()[ Button([] { return FString(TEXT("3 al 2 \u00f6de")); }, [this, Current] { Manage(TEXT("MultiBuy"), Current()); }) ]
-            + SWrapBox::Slot()[ Button([] { return FString(TEXT("Gondol ba\u015f\u0131na koy")); }, [this, Current] { Manage(TEXT("Endcap"), Current()); }) ]
-            + SWrapBox::Slot()[ Button([] { return FString(TEXT("Bro\u015f\u00fcr da\u011f\u0131t")); }, [this] { Manage(TEXT("Flyer"), INDEX_NONE); }) ]
-        ]
-        + SVerticalBox::Slot().AutoHeight().Padding(0.f, 8.f, 0.f, 0.f)
-        [
-            Label([G]
-            {
-                if (!G()) return FString();
-                TArray<FString> Lines;
-                for (const FMarketPromotion* P : MarketPromotions::Active(G()->State))
-                    Lines.Add(FString::Printf(TEXT("\u2022 %s \u00b7 %d. g\u00fcne kadar"), *MarketPromotions::Describe(*P, G()->Products), P->EndDay));
-                if (G()->State.Offer.Product != INDEX_NONE && G()->State.Offer.EndDay >= G()->State.Day)
-                    Lines.Add(TEXT("Toptanc\u0131 teklifi bekliyor: ") + MarketPromotions::Describe(G()->State.Offer, G()->Products));
-                return Lines.Num() > 0 ? FString::Join(Lines, TEXT("\n")) : FString(TEXT("Y\u00fcr\u00fcyen kampanya yok."));
-            }, 10, ERole::Text, false, true)
-        ]
-        + SVerticalBox::Slot().AutoHeight().Padding(0.f, 8.f, 0.f, 0.f)
-        [
-            SNew(SHorizontalBox)
-            + SHorizontalBox::Slot().AutoWidth().Padding(0.f, 0.f, 6.f, 0.f)
-            [ Button([] { return FString(TEXT("Teklifi kabul et")); }, [this] { Manage(TEXT("AcceptOffer"), INDEX_NONE); }, true,
-                [G] { return G() && G()->State.Offer.Product != INDEX_NONE && G()->State.Offer.EndDay >= G()->State.Day; }) ]
-            + SHorizontalBox::Slot().AutoWidth().Padding(0.f, 0.f, 6.f, 0.f)
-            [ Button([] { return FString(TEXT("Geri \u00e7evir")); }, [this] { Manage(TEXT("DeclineOffer"), INDEX_NONE); }, false,
-                [G] { return G() && G()->State.Offer.Product != INDEX_NONE && G()->State.Offer.EndDay >= G()->State.Day; }) ]
-            + SHorizontalBox::Slot().AutoWidth()
-            [ Button([] { return FString(TEXT("Son kampanyay\u0131 durdur")); }, [this, G]
-                {
-                    if (!G()) return;
-                    for (int32 I = G()->State.Promotions.Num() - 1; I >= 0; --I)
-                        if (MarketPromotions::IsActive(G()->State.Promotions[I], G()->State.Day)) { Manage(TEXT("StopPromotion"), I); return; }
-                }, false, [G] { return G() && MarketPromotions::Active(G()->State).Num() > 0; }) ]
-        ],
-        ERole::Panel, FMargin(22.f, 20.f));
-
-    return SNew(SHorizontalBox)
-        + SHorizontalBox::Slot().FillWidth(0.9f).Padding(0.f, 0.f, 16.f, 0.f)
-        [
-            SNew(SVerticalBox)
-            + SVerticalBox::Slot().AutoHeight().Padding(0.f, 0.f, 0.f, 10.f)[ CategoryChips(&PriceCategory) ]
-            + SVerticalBox::Slot().FillHeight(1.f)[ List ]
-        ]
-        + SHorizontalBox::Slot().FillWidth(1.f)
-        [ SNew(SScrollBox) + SScrollBox::Slot()[ Detail ] ];
-}
-
-TSharedRef<SWidget> SMarketMenu::RivalsPage()
-{
-    auto G = [this] { return Game.Get(); };
-    TSharedRef<SHorizontalBox> Cards = SNew(SHorizontalBox);
-    for (int32 Rival = 0; Rival < 3; ++Rival)
-    {
-        Cards->AddSlot().FillWidth(1.f).Padding(0.f, 0.f, Rival < 2 ? 12.f : 0.f, 0.f)
-        [
-            SNew(SBox)
-            .Visibility_Lambda([G, Rival] { return G() && Rival < MarketRivals::RivalCount(G()->State.Day) ? EVisibility::Visible : EVisibility::Hidden; })
-            [
-                Card(SNew(SVerticalBox)
-                    + SVerticalBox::Slot().AutoHeight()
-                    [
-                        SNew(SHorizontalBox)
-                        + SHorizontalBox::Slot().AutoWidth().VAlign(VAlign_Center).Padding(0.f, 0.f, 12.f, 0.f)
-                        [ Badge(MarketRivals::RivalLogoKey(Rival), MarketMenuUi::Initials(MarketRivals::RivalName(Rival)), MarketMenuUi::RivalColor(Rival), 44.f) ]
-                        + SHorizontalBox::Slot().FillWidth(1.f).VAlign(VAlign_Center)
-                        [
-                            SNew(SVerticalBox)
-                            + SVerticalBox::Slot().AutoHeight()[ Fixed(MarketRivals::RivalName(Rival), 16, ERole::Text, true) ]
-                            + SVerticalBox::Slot().AutoHeight()[ Fixed(MarketRivals::RivalFormat(Rival), 10, ERole::Muted) ]
-                        ]
-                    ]
-                    + SVerticalBox::Slot().AutoHeight().Padding(0.f, 16.f, 0.f, 6.f)[ Fixed(TEXT("BUG\u00dcN"), 9, ERole::Muted, true) ]
-                    + SVerticalBox::Slot().AutoHeight()[ Label([G, Rival] { return G() ? MarketMenuUi::RivalsToday(*G(), Rival) : FString(); }, 11, ERole::Text, false, true) ])
-            ]
-        ];
-    }
-    return SNew(SScrollBox)
-    + SScrollBox::Slot()
-    [
-        SNew(SVerticalBox)
-        + SVerticalBox::Slot().AutoHeight()
-        [
-            Card(SNew(SHorizontalBox)
-                + SHorizontalBox::Slot().FillWidth(1.f).VAlign(VAlign_Center)
-                [
-                    SNew(SVerticalBox)
-                    + SVerticalBox::Slot().AutoHeight()[ Fixed(TEXT("YEREL PAZAR \u00b7 L\u00dcLEBURGAZ"), 9, ERole::Muted, true) ]
-                    + SVerticalBox::Slot().AutoHeight().Padding(0.f, 6.f, 0.f, 8.f)
-                    [ Label([G] { return G() ? FString::Printf(TEXT("Mahalle m\u00fc\u015fterilerinin %%%.0f'i bizden al\u0131\u015fveri\u015f yap\u0131yor"), G()->State.MarketShare) : FString(); }, 16, ERole::Text, true) ]
-                    + SVerticalBox::Slot().AutoHeight()[ Bar([G] { return G() ? G()->State.MarketShare / 100.f : 0.f; }, ERole::Accent) ]
-                    + SVerticalBox::Slot().AutoHeight().Padding(0.f, 8.f, 0.f, 0.f)
-                    [ Fixed(TEXT("Pay her g\u00fcn sonunda m\u00fc\u015fteri memnuniyetiyle de\u011fi\u015fir: rafta bulma, fiyat ve bekleme."), 10, ERole::Muted) ]
-                    + SVerticalBox::Slot().AutoHeight().Padding(0.f, 8.f, 0.f, 0.f)
-                    [ Label([G]
-                    {
-                        if (!G()) return FString();
-                        TArray<FString> Lines;
-                        for (int32 C = 0; C < static_cast<int32>(MarketCompetitors::ECompany::Count); ++C)
-                            Lines.Add(TEXT("\u2022 ") + MarketCompetitors::Describe(G()->State, static_cast<MarketCompetitors::ECompany>(C)));
-                        return FString::Join(Lines, TEXT("\n"));
-                    }, 10, ERole::Text, false, true) ]
-                ])
-        ]
-        + SVerticalBox::Slot().AutoHeight().Padding(0.f, 12.f, 0.f, 0.f)[ Cards ]
-        + SVerticalBox::Slot().AutoHeight().Padding(4.f, 14.f, 0.f, 0.f)
-        [ Fixed(TEXT("Ulusal ve uluslararas\u0131 pazar paylar\u0131 \u015fube sistemiyle gelecek. Logo i\u00e7in: Content/Brands/<bim|migros|a101>/logo.png"), 10, ERole::Muted) ]
-    ];
-}
-
-TSharedRef<SWidget> SMarketMenu::StaffPage()
-{
-    // G-060: people are persons (MarketStaff). Rows are fixed slots shown while the roster/pool has that many
-    // entries; every button reads the person's id at click time, so a changed roster never hits the wrong person.
-    auto G = [this] { return Game.Get(); };
-    auto Act = [this](FName Action, int32 Id) { if (AMarketGameMode* Mode = Game.Get()) Mode->StaffCommand(Action, Id); };
-    auto PersonAt = [G](int32 Slot) -> const FMarketEmployee* { return G() && G()->State.Staff.IsValidIndex(Slot) ? &G()->State.Staff[Slot] : nullptr; };
-    auto CandidateAt = [G](int32 Slot) -> const FMarketEmployee* { return G() && G()->State.Candidates.IsValidIndex(Slot) ? &G()->State.Candidates[Slot] : nullptr; };
-    auto RoleAt = [PersonAt](int32 Slot) { const FMarketEmployee* E = PersonAt(Slot); return E ? MarketStaff::RoleOf(*E) : MarketStaff::ERole::Accountant; };
-
-    TSharedRef<SVerticalBox> People = SNew(SVerticalBox);
-    for (int32 Slot = 0; Slot < 8; ++Slot)
-    {
-        People->AddSlot().AutoHeight().Padding(0.f, 3.f)
-        [
-            SNew(SBox).Visibility_Lambda([PersonAt, Slot] { return PersonAt(Slot) ? EVisibility::Visible : EVisibility::Collapsed; })
-            [
-                SNew(SHorizontalBox)
-                + SHorizontalBox::Slot().FillWidth(1.f).VAlign(VAlign_Center).Padding(0.f, 0.f, 8.f, 0.f)
-                [ Label([G, PersonAt, Slot] { const FMarketEmployee* E = PersonAt(Slot); return E ? MarketStaff::DescribeEmployee(G()->State, *E) : FString(); }, 11, ERole::Text, false, true) ]
-                + SHorizontalBox::Slot().AutoWidth().Padding(4.f, 0.f)
-                [ Button([] { return FString(TEXT("Zam %10")); }, [Act, PersonAt, Slot] { if (const FMarketEmployee* E = PersonAt(Slot)) Act(TEXT("Raise"), E->Id); }, false,
-                    [RoleAt, PersonAt, Slot] { return PersonAt(Slot) && RoleAt(Slot) != MarketStaff::ERole::Accountant; }) ]
-                + SHorizontalBox::Slot().AutoWidth().Padding(4.f, 0.f)
-                [ Button([] { return FString(TEXT("\u0130zin ver")); }, [Act, PersonAt, Slot] { if (const FMarketEmployee* E = PersonAt(Slot)) Act(TEXT("DayOff"), E->Id); }, false,
-                    [RoleAt, PersonAt, Slot] { return PersonAt(Slot) && RoleAt(Slot) != MarketStaff::ERole::Accountant; }) ]
-                + SHorizontalBox::Slot().AutoWidth().Padding(4.f, 0.f)
-                [ Button([] { return FString(TEXT("Uyar")); }, [Act, PersonAt, Slot] { if (const FMarketEmployee* E = PersonAt(Slot)) Act(TEXT("Warn"), E->Id); }, false,
-                    [RoleAt, PersonAt, Slot] { return PersonAt(Slot) && RoleAt(Slot) == MarketStaff::ERole::Cashier; }) ]
-                + SHorizontalBox::Slot().AutoWidth().Padding(4.f, 0.f)
-                [ Button([RoleAt, Slot] { return FString(RoleAt(Slot) == MarketStaff::ERole::Accountant ? TEXT("S\u00f6zle\u015fmeyi bitir") : TEXT("\u00c7\u0131kar")); },
-                    [Act, PersonAt, Slot] { if (const FMarketEmployee* E = PersonAt(Slot)) Act(TEXT("Fire"), E->Id); }, false, [PersonAt, Slot] { return PersonAt(Slot) != nullptr; }) ]
-            ]
-        ];
-    }
-
-    TSharedRef<SVerticalBox> Pool = SNew(SVerticalBox);
-    for (int32 Slot = 0; Slot < MarketStaff::HrPoolSize; ++Slot)
-    {
-        Pool->AddSlot().AutoHeight().Padding(0.f, 3.f)
-        [
-            SNew(SBox).Visibility_Lambda([CandidateAt, Slot] { return CandidateAt(Slot) ? EVisibility::Visible : EVisibility::Collapsed; })
-            [
-                SNew(SHorizontalBox)
-                + SHorizontalBox::Slot().FillWidth(1.f).VAlign(VAlign_Center).Padding(0.f, 0.f, 8.f, 0.f)
-                [ Label([G, CandidateAt, Slot] { const FMarketEmployee* C = CandidateAt(Slot); return C ? MarketStaff::DescribeCandidate(G()->State, *C) : FString(); }, 11, ERole::Text, false, true) ]
-                + SHorizontalBox::Slot().AutoWidth().Padding(4.f, 0.f)
-                [ Button([] { return FString(TEXT("\u0130\u015fe al")); }, [Act, CandidateAt, Slot] { if (const FMarketEmployee* C = CandidateAt(Slot)) Act(TEXT("HireCandidate"), C->Id); }, true,
-                    [CandidateAt, Slot] { return CandidateAt(Slot) != nullptr; }) ]
-            ]
-        ];
-    }
-
-    return SNew(SScrollBox)
-    + SScrollBox::Slot()
-    [
-        SNew(SVerticalBox)
-        + SVerticalBox::Slot().AutoHeight()
-        [
-            SNew(SHorizontalBox)
-            + SHorizontalBox::Slot().FillWidth(1.f).Padding(0.f, 0.f, 12.f, 0.f)
-            [
-                Card(SNew(SVerticalBox)
-                    + SVerticalBox::Slot().AutoHeight()[ Fixed(TEXT("EK\u0130P"), 9, ERole::Muted, true) ]
-                    + SVerticalBox::Slot().AutoHeight().Padding(0.f, 6.f, 0.f, 4.f)
-                    [ Label([G] { return G() ? FString::Printf(TEXT("%d ki\u015fi \u00b7 g\u00fcnl\u00fck %s"), G()->State.Staff.Num(), *MarketMenuUi::Tl(G()->State.DailyPayroll())) : FString(); }, 18, ERole::Text, true) ]
-                    + SVerticalBox::Slot().AutoHeight()
-                    [ Label([G] { return G() ? FString::Printf(TEXT("Bug\u00fcn kasada: %s \u00b7 reyonda %d g\u00f6revli"),
-                        G()->State.bCashier ? TEXT("kasiyer") : TEXT("sen (E)"), G()->State.Stockers) : FString(); }, 10, ERole::Muted, false, true) ]
-                    + SVerticalBox::Slot().AutoHeight().Padding(0.f, 4.f, 0.f, 0.f)
-                    [ Label([G] { return G() ? G()->WorkerSummary() : FString(); }, 10, ERole::Muted, false, true) ])
-            ]
-            + SHorizontalBox::Slot().FillWidth(1.f).Padding(0.f, 0.f, 12.f, 0.f)
-            [
-                Card(SNew(SVerticalBox)
-                    + SVerticalBox::Slot().AutoHeight()[ Fixed(TEXT("MAL\u0130 M\u00dc\u015eAV\u0130R \u00b7 VERG\u0130"), 9, ERole::Muted, true) ]
-                    + SVerticalBox::Slot().AutoHeight().Padding(0.f, 6.f, 0.f, 4.f)
-                    [ LabelBy([G] { return G() && G()->State.Books.TaxDue > 0 ? FString::Printf(TEXT("%s \u00b7 son g\u00fcn %d"), *MarketMenuUi::Tl(G()->State.Books.TaxDue), G()->State.Books.TaxDueDay)
-                        : FString(TEXT("\u00d6denecek vergi yok")); }, 18, [G] { return G() && G()->State.Books.TaxDue > 0 ? ERole::Warn : ERole::Good; }, true) ]
-                    + SVerticalBox::Slot().AutoHeight()
-                    [ Label([G] { return G() && MarketStaff::HasAccountant(G()->State)
-                        ? FString(TEXT("Necati Bey defterleri tutuyor: haftal\u0131k vergiyi zaman\u0131nda \u00f6der, kasa farklar\u0131n\u0131 izler."))
-                        : FString(TEXT("Vergi her 7. g\u00fcn\u00fcn sonunda \u00e7\u0131kar; 3 g\u00fcn i\u00e7inde \u00f6denmezse ceza i\u015fler. Defter tutulmazsa inceleme gelebilir.")); }, 10, ERole::Muted, false, true) ]
-                    + SVerticalBox::Slot().AutoHeight().Padding(0.f, 12.f, 0.f, 0.f).HAlign(HAlign_Left)
-                    [
-                        SNew(SHorizontalBox)
-                        + SHorizontalBox::Slot().AutoWidth().Padding(0.f, 0.f, 8.f, 0.f)
-                        [ Button([] { return FString(TEXT("Vergiyi \u00f6de")); }, [Act] { Act(TEXT("PayTax"), INDEX_NONE); }, true, [G] { return G() && G()->State.Books.TaxDue > 0; }) ]
-                        + SHorizontalBox::Slot().AutoWidth()
-                        [ Button([] { return FString::Printf(TEXT("M\u00fc\u015favirle anla\u015f (%s/g\u00fcn)"), *MarketMenuUi::Tl(MarketStaff::AccountantDailyFee)); },
-                            [Act] { Act(TEXT("HireAccountant"), INDEX_NONE); }, false, [G] { return G() && !MarketStaff::HasAccountant(G()->State); }) ]
-                    ])
-            ]
-            + SHorizontalBox::Slot().FillWidth(1.f)
-            [
-                Card(SNew(SVerticalBox)
-                    + SVerticalBox::Slot().AutoHeight()[ Fixed(TEXT("\u0130NSAN KAYNAKLARI"), 9, ERole::Muted, true) ]
-                    + SVerticalBox::Slot().AutoHeight().Padding(0.f, 6.f, 0.f, 4.f)
-                    [ Label([G]
-                    {
-                        if (!G()) return FString();
-                        if (MarketStaff::HasHr(G()->State)) return FString(TEXT("\u0130K m\u00fcd\u00fcr\u00fc \u00e7al\u0131\u015f\u0131yor"));
-                        return MarketStaff::HrUnlocked(G()->State) ? FString(TEXT("Aday listesinde \u0130K m\u00fcd\u00fcr\u00fc var")) : FString::Printf(TEXT("%d \u00e7al\u0131\u015fandan sonra"), MarketStaff::HrUnlockStaff);
-                    }, 18, ERole::Text, true) ]
-                    + SVerticalBox::Slot().AutoHeight()
-                    [ Fixed(TEXT("Her g\u00fcn en mutsuz ki\u015fiyle konu\u015fur, yorgunlara izin ayarlar, ayr\u0131lan\u0131n yerine aday bulur, \u00fccret pazarl\u0131\u011f\u0131 yapar ve adaylar\u0131n ger\u00e7ek de\u011ferlerini g\u00f6sterir."), 10, ERole::Muted) ]
-                    + SVerticalBox::Slot().AutoHeight().Padding(0.f, 12.f, 0.f, 0.f).HAlign(HAlign_Left)
-                    [ Button([G] { return FString(G() && G()->State.bHrAutoReplace ? TEXT("Ayr\u0131lan\u0131n yerine al: a\u00e7\u0131k") : TEXT("Ayr\u0131lan\u0131n yerine al: kapal\u0131")); },
-                        [Act] { Act(TEXT("HrAutoReplace"), INDEX_NONE); }, false, [G] { return G() && MarketStaff::HasHr(G()->State); }) ])
-            ]
-        ]
-        + SVerticalBox::Slot().AutoHeight().Padding(0.f, 12.f, 0.f, 0.f)
-        [
-            Card(SNew(SVerticalBox)
-                + SVerticalBox::Slot().AutoHeight().Padding(0.f, 0.f, 0.f, 6.f)[ Fixed(TEXT("\u00c7ALI\u015eANLAR"), 9, ERole::Muted, true) ]
-                + SVerticalBox::Slot().AutoHeight()
-                [
-                    SNew(SBox).Visibility_Lambda([G] { return G() && G()->State.Staff.Num() == 0 ? EVisibility::Visible : EVisibility::Collapsed; })
-                    [ Fixed(TEXT("Kimse yok. Kasay\u0131 ve raflar\u0131 sen yap\u0131yorsun."), 11, ERole::Muted) ]
-                ]
-                + SVerticalBox::Slot().AutoHeight()[ People ])
-        ]
-        + SVerticalBox::Slot().AutoHeight().Padding(0.f, 12.f, 0.f, 0.f)
-        [
-            Card(SNew(SVerticalBox)
-                + SVerticalBox::Slot().AutoHeight().Padding(0.f, 0.f, 0.f, 6.f)[ Fixed(TEXT("\u0130\u015e BA\u015eVURULARI"), 9, ERole::Muted, true) ]
-                + SVerticalBox::Slot().AutoHeight()
-                [ Label([G] { return G() ? FString::Printf(TEXT("\u0130\u015fe alma %s (\u0130K m\u00fcd\u00fcr\u00fc %s). Liste %s yenilenir; son yenileme %d. g\u00fcn."),
-                    *MarketMenuUi::Tl(MarketStaff::HireCost), *MarketMenuUi::Tl(MarketStaff::HrHireCost),
-                    MarketStaff::HasHr(G()->State) ? TEXT("3 g\u00fcnde bir") : TEXT("haftada bir"), G()->State.CandidatesDay) : FString(); }, 10, ERole::Muted, false, true) ]
-                + SVerticalBox::Slot().AutoHeight().Padding(0.f, 6.f, 0.f, 0.f)[ Pool ])
-        ]
-        + SVerticalBox::Slot().AutoHeight().Padding(4.f, 14.f, 0.f, 0.f)
-        [ Fixed(TEXT("Moral \u00fccrete, yorgunlu\u011fa ve ilgiye g\u00f6re de\u011fi\u015fir. \u00dc\u00e7 g\u00fcn \u00e7ok mutsuz olan istifa dilek\u00e7esi verir ve iki g\u00fcn sonra ayr\u0131l\u0131r; zam veya izin fikrini de\u011fi\u015ftirebilir."), 10, ERole::Muted) ]
-    ];
-}
-
-TSharedRef<SWidget> SMarketMenu::BranchesPage()
-{
-    // G-068: the family shop, the branches (simulated) and the districts where a new one can open.
-    auto G = [this] { return Game.Get(); };
-    TSharedRef<SVerticalBox> Shops = SNew(SVerticalBox);
-    for (int32 Slot = 0; Slot < 8; ++Slot)
-    {
-        Shops->AddSlot().AutoHeight().Padding(0.f, 4.f)
-        [
-            SNew(SBorder).BorderImage(&SmallBrush).BorderBackgroundColor(Col(ERole::Inset)).Padding(FMargin(12.f, 8.f))
-            .Visibility_Lambda([G, Slot] { return G() && G()->State.Branches.IsValidIndex(Slot) ? EVisibility::Visible : EVisibility::Collapsed; })
-            [
-                SNew(SHorizontalBox)
-                + SHorizontalBox::Slot().FillWidth(1.f).VAlign(VAlign_Center)
-                [ Label([G, Slot] { return G() ? MarketBranches::Summary(G()->State, Slot, G()->Products) : FString(); }, 10, ERole::Text, false, true) ]
-                + SHorizontalBox::Slot().AutoWidth().VAlign(VAlign_Center).Padding(8.f, 0.f, 0.f, 0.f)
-                [ Button([] { return FString(TEXT("Kapat")); }, [this, Slot] { Manage(TEXT("CloseBranch"), Slot); }, false,
-                    [G, Slot] { return G() && G()->State.Branches.IsValidIndex(Slot) && G()->State.Branches[Slot].Stage != static_cast<uint8>(MarketBranches::EStage::Closed); }) ]
-            ]
-        ];
-    }
-    TSharedRef<SVerticalBox> Districts = SNew(SVerticalBox);
-    for (int32 D = 1; D < static_cast<int32>(MarketBranches::EDistrict::Count); ++D)
-    {
-        const MarketBranches::EDistrict District = static_cast<MarketBranches::EDistrict>(D);
-        Districts->AddSlot().AutoHeight().Padding(0.f, 3.f)
-        [
-            SNew(SHorizontalBox)
-            + SHorizontalBox::Slot().FillWidth(1.f).VAlign(VAlign_Center)
-            [ Label([G, District]
-            {
-                const MarketBranches::FDistrict& Info = MarketBranches::DistrictInfo(District);
-                return FString::Printf(TEXT("%s \u00b7 %s \u00b7 kira %s/ay \u00b7 a\u00e7\u0131l\u0131\u015f %s"), Info.Name, Info.Note, *MarketMenuUi::Tl(Info.Rent),
-                    G() ? *MarketMenuUi::Tl(MarketBranches::OpeningCost(G()->State, G()->Products, District, TEXT("mahalle"))) : TEXT(""));
-            }, 10, ERole::Text, false, true) ]
-            + SHorizontalBox::Slot().AutoWidth().VAlign(VAlign_Center).Padding(8.f, 0.f, 4.f, 0.f)
-            [ Button([] { return FString(TEXT("K\u00fc\u00e7\u00fck a\u00e7")); }, [this, D] { Manage(TEXT("OpenBranch"), D * 10 + 0); }) ]
-            + SHorizontalBox::Slot().AutoWidth().VAlign(VAlign_Center)
-            [ Button([] { return FString(TEXT("Mahalle marketi a\u00e7")); }, [this, D] { Manage(TEXT("OpenBranch"), D * 10 + 1); }, true) ]
-        ];
-    }
-    // G-072: stores in other cities (aggregate) and what the company builds.
-    TSharedRef<SWrapBox> CityButtons = SNew(SWrapBox).UseAllottedSize(true).InnerSlotPadding(FVector2D(6.f, 6.f));
-    for (int32 City = 0; City < static_cast<int32>(MarketCompany::ECity::Count); ++City)
-    {
-        const MarketCompany::ECity Id = static_cast<MarketCompany::ECity>(City);
-        CityButtons->AddSlot()
-        [ Button([G, Id]
-            {
-                const FMarketCityStores* Row = G() ? MarketCompany::Find(G()->State, Id) : nullptr;
-                return FString::Printf(TEXT("%s +1 (%d)"), MarketCompany::CityInfo(Id).Name, Row ? Row->Stores : 0);
-            },
-            [this, City] { Manage(TEXT("OpenStore"), City); }, false,
-            [G, Id] { return G() && MarketCompany::ChapterOpen(G()->State, MarketCompany::CityInfo(Id).Chapter); }) ];
-    }
-    static const TCHAR* BuildNames[5] = { TEXT("B\u00f6lge deposu"), TEXT("Kamyon al"), TEXT("Merkezi sat\u0131n alma"), TEXT("\"Miras\" \u00f6zel markas\u0131"), TEXT("Karanl\u0131k ma\u011faza") };
-    TSharedRef<SWrapBox> BuildButtons = SNew(SWrapBox).UseAllottedSize(true).InnerSlotPadding(FVector2D(6.f, 6.f));
-    for (int32 What = 0; What < 5; ++What)
-        BuildButtons->AddSlot()[ Button([What] { return FString(BuildNames[What]); }, [this, What] { Manage(TEXT("Build"), What); }, false,
-            [G] { return G() && MarketCompany::ChapterOpen(G()->State, 4); }) ];
-    return SNew(SScrollBox)
-    + SScrollBox::Slot()
-    [
-        SNew(SVerticalBox)
-        + SVerticalBox::Slot().AutoHeight()
-        [
-            SNew(SHorizontalBox)
-            + SHorizontalBox::Slot().FillWidth(1.4f).Padding(0.f, 0.f, 12.f, 0.f)
-            [
-                Card(SNew(SVerticalBox)
-                    + SVerticalBox::Slot().AutoHeight()[ Fixed(TEXT("\u015eUBELER\u0130N"), 9, ERole::Muted, true) ]
-                    + SVerticalBox::Slot().AutoHeight().Padding(0.f, 10.f, 0.f, 0.f)
-                    [
-                        SNew(SBorder).BorderImage(&SmallBrush).BorderBackgroundColor(Col(ERole::Inset)).Padding(FMargin(12.f, 10.f))
-                        [
-                            SNew(SVerticalBox)
-                            + SVerticalBox::Slot().AutoHeight()[ Fixed(TEXT("L\u00fcleburgaz \u00b7 \u0130stasyon"), 13, ERole::Text, true) ]
-                            + SVerticalBox::Slot().AutoHeight()[ Fixed(TEXT("Babadan kalan mahalle marketi \u00b7 buradas\u0131n"), 10, ERole::Muted) ]
-                        ]
-                    ]
-                    + SVerticalBox::Slot().AutoHeight()[ Shops ]
-                    + SVerticalBox::Slot().AutoHeight().Padding(0.f, 8.f, 0.f, 0.f)
-                    [ Label([G] { return G() && G()->State.Branches.Num() > 0 ? FString::Printf(TEXT("\u015eubelerin d\u00fcnk\u00fc toplam katk\u0131s\u0131 %s."), *MarketMenuUi::Tl(G()->State.LastBranchProfit)) : FString(TEXT("Hen\u00fcz \u015fube yok.")); }, 10, ERole::Muted) ]
-                    + SVerticalBox::Slot().AutoHeight().Padding(0.f, 8.f, 0.f, 0.f).HAlign(HAlign_Left)
-                    [ Button([] { return FString(TEXT("Cem'i \u015fube m\u00fcd\u00fcr\u00fc yap")); },
-                        [this] { Manage(TEXT("Promote"), 900001); }, false,
-                        [G] { return G() && MarketBranches::OpenCount(G()->State) > 0 && G()->State.Staff.ContainsByPredicate([](const FMarketEmployee& E) { return E.Id == 900001; }); }) ])
-            ]
-            + SHorizontalBox::Slot().FillWidth(1.f)
-            [
-                Card(SNew(SVerticalBox)
-                    + SVerticalBox::Slot().AutoHeight().Padding(0.f, 0.f, 0.f, 8.f)[ Fixed(TEXT("\u0130LK \u015eUBE \u0130\u00c7\u0130N"), 9, ERole::Muted, true) ]
-                    + SVerticalBox::Slot().AutoHeight()[ GoalList() ])
-            ]
-        ]
-        + SVerticalBox::Slot().AutoHeight().Padding(0.f, 12.f, 0.f, 0.f)
-        [
-            Card(SNew(SVerticalBox)
-                + SVerticalBox::Slot().AutoHeight().Padding(0.f, 0.f, 0.f, 6.f)[ Fixed(TEXT("L\u00dcLEBURGAZ SEMTLER\u0130 \u00b7 YEN\u0130 \u015eUBE"), 9, ERole::Muted, true) ]
-                + SVerticalBox::Slot().AutoHeight()[ Districts ]
-                + SVerticalBox::Slot().AutoHeight().Padding(0.f, 8.f, 0.f, 0.f)
-                [ Fixed(TEXT("A\u00e7\u0131l\u0131\u015f: depozito ve tadilat (5 g\u00fcn) \u2192 ruhsat (3 g\u00fcn; m\u00fc\u015favir yoksa 3 g\u00fcn daha) \u2192 i\u015fe al\u0131m \u2192 a\u00e7\u0131l\u0131\u015f sto\u011fu. Raflar otomatik planlan\u0131r; \u015fube her g\u00fcn ayn\u0131 kurallarla i\u015fler. \u00dc\u00e7\u00fcnc\u00fc \u015fube i\u00e7in \u0130K m\u00fcd\u00fcr\u00fc gerekir."), 10, ERole::Muted) ])
-        ]
-        + SVerticalBox::Slot().AutoHeight().Padding(0.f, 12.f, 0.f, 0.f)
-        [
-            Card(SNew(SVerticalBox)
-                + SVerticalBox::Slot().AutoHeight().Padding(0.f, 0.f, 0.f, 6.f)[ Fixed(TEXT("\u015e\u0130RKET \u00b7 TRAKYA, T\u00dcRK\u0130YE, SINIR \u00d6TES\u0130"), 9, ERole::Muted, true) ]
-                + SVerticalBox::Slot().AutoHeight().Padding(0.f, 0.f, 0.f, 8.f)
-                [ Label([G] { return G() ? MarketCompany::Summary(G()->State) : FString(); }, 10, ERole::Text, false, true) ]
-                + SVerticalBox::Slot().AutoHeight()[ CityButtons ]
-                + SVerticalBox::Slot().AutoHeight().Padding(0.f, 8.f, 0.f, 0.f)[ BuildButtons ]
-                + SVerticalBox::Slot().AutoHeight().Padding(0.f, 8.f, 0.f, 0.f)
-                [ Fixed(TEXT("\u015eehirler b\u00f6l\u00fcmle a\u00e7\u0131l\u0131r (Trakya 4, T\u00fcrkiye 5, s\u0131n\u0131r \u00f6tesi 6) ve \u0130K m\u00fcd\u00fcr\u00fc ile mali m\u00fc\u015favir ister. Uzak ma\u011fazalar depo ve kamyon olmadan marj kaybeder."), 10, ERole::Muted) ])
-        ]
-    ];
 }
 
 TSharedRef<SWidget> SMarketMenu::DayReport()
@@ -1513,7 +1575,7 @@ TSharedRef<SWidget> SMarketMenu::DayReport()
             [ Stat(TEXT("MAL MAL\u0130YET\u0130"), [G] { return G() ? MarketMenuUi::Tl(G()->State.LastCostOfGoods) : FString(); }, [] { return FString(TEXT("sat\u0131lan \u00fcr\u00fcnlerin al\u0131\u015f\u0131")); }) ]
             + SHorizontalBox::Slot().FillWidth(1.f)
             [ Stat(TEXT("G\u0130DER"), [G] { return G() ? MarketMenuUi::Tl(G()->State.LastOperatingCost) : FString(); },
-                   [G] { return G() && G()->State.bSecondStore ? FString::Printf(TEXT("ikinci \u015fube %s"), *MarketMenuUi::Tl(G()->State.LastBranchProfit)) : FString(TEXT("kira, elektrik, maa\u015f")); }) ]
+                   [G] { return G() && (G()->State.bSecondStore || MarketBranches::OpenCount(G()->State) > 0) ? FString::Printf(TEXT("\u015fubeler %s"), *MarketMenuUi::Tl(G()->State.LastBranchProfit)) : FString(TEXT("kira, elektrik, maa\u015f")); }) ]
         ]
         + SVerticalBox::Slot().AutoHeight().Padding(0.f, 12.f, 0.f, 0.f)
         [
@@ -1676,4 +1738,248 @@ TSharedRef<SWidget> SMarketMenu::ReportsPage()
 void SMarketMenu::ShowWeek(bool bWeek)
 {
     bWeekTab = bWeek;
+}
+
+// ---------------------------------------------------------------------------------------------------------------
+// G-086f: the order list as a window. What is on the list, the wholesaler, each line's product and cases; a
+// product can be swapped for another (its cases move over) or added from the picker on the right.
+
+TSharedRef<SWidget> SMarketMenu::OrderListLayer()
+{
+    auto G = [this] { return Game.Get(); };
+    auto Muted = [] { return ERole::Muted; };
+    auto Plain = [] { return ERole::Text; };
+    auto Cases = [G](int32 I) { return G() && G()->OrderDraftCases.IsValidIndex(I) ? G()->OrderDraftCases[I] : 0; };
+    auto CaseUnits = [G](int32 I) { return G() && G()->Products.IsValidIndex(I) ? FMath::Clamp(G()->Products[I].CaseUnits, 1, 48) : 1; };
+    auto Ease = [this] { const float T = OrderAnim; return T * T * (3.f - 2.f * T); };
+    auto Small = [this](TFunction<FString()> Text, TFunction<void()> OnClick, TFunction<bool()> Enabled, TFunction<bool()> On) -> TSharedRef<SWidget>
+    {
+        return SNew(SBox).HeightOverride(28.f)
+        [
+            SNew(SButton).ButtonStyle(&RoundStyle).IsFocusable(false).ContentPadding(FMargin(12.f, 0.f)).VAlign(VAlign_Center)
+            .ButtonColorAndOpacity_Lambda([this, On] { return FSlateColor(Color(On && On() ? ERole::Primary : ERole::Button)); })
+            .IsEnabled_Lambda([Enabled] { return !Enabled || Enabled(); })
+            .OnClicked_Lambda([OnClick] { OnClick(); return FReply::Handled(); })
+            [
+                SNew(STextBlock).Font(MarketTheme::Font(MarketTheme::EFace::Semi, 12.f))
+                .Text_Lambda([Text] { return FText::FromString(Text()); })
+                .ColorAndOpacity_Lambda([this, On] { return FSlateColor(Color(On && On() ? ERole::PrimaryText : ERole::ButtonText)); })
+            ]
+        ];
+    };
+
+    // The wholesaler.
+    TSharedRef<SHorizontalBox> Suppliers = SNew(SHorizontalBox);
+    for (int32 S = 0; S < static_cast<int32>(MarketSuppliers::ESupplier::Count); ++S)
+    {
+        const MarketSuppliers::ESupplier Which = static_cast<MarketSuppliers::ESupplier>(S);
+        const MarketSuppliers::FInfo& About = MarketSuppliers::Info(Which);
+        const FString Name = About.Name;
+        const FString Cheaper = About.BaseDiscount > 0.f ? FString::Printf(TEXT("%%%.0f ucuz \u00b7 "), About.BaseDiscount * 100.f) : FString();
+        const FString Note = Cheaper + (About.bOffersTerms ? TEXT("vadeli yazar, mal sa\u011flam") : TEXT("vade yok, mal eksik gelebilir"));
+        Suppliers->AddSlot().AutoWidth().Padding(0.f, 0.f, 8.f, 0.f)
+        [
+            SNew(SBox).ToolTip(Tip([Note] { return Note; }))
+            [ Small([Name] { return Name; }, [this, S] { Manage(TEXT("Supplier"), S); },
+                [G, Which] { return G() && MarketSuppliers::Available(G()->State, Which); },
+                [G, S] { return G() && G()->State.Supplier == S; }) ]
+        ];
+    }
+
+    // The lines of the list (every product has a row; the empty ones hide).
+    TSharedRef<SVerticalBox> Lines = SNew(SVerticalBox);
+    const int32 Count = G() ? G()->Products.Num() : 0;
+    for (int32 I = 0; I < Count; ++I)
+    {
+        auto Swapping = [this, I] { return OrderSwapFrom == I; };
+        Lines->AddSlot().AutoHeight()
+        [
+            SNew(SBox).Visibility_Lambda([Cases, I] { return Cases(I) > 0 ? EVisibility::Visible : EVisibility::Collapsed; })
+            [
+                SNew(SBorder).BorderImage(&TileBrush).Padding(FMargin(10.f, 8.f))
+                .BorderBackgroundColor_Lambda([this, Swapping] { return FSlateColor(Swapping() ? Color(ERole::AccentSoft) : FLinearColor::Transparent); })
+                [
+                    SNew(SHorizontalBox)
+                    + SHorizontalBox::Slot().AutoWidth().VAlign(VAlign_Center).Padding(0.f, 0.f, 10.f, 0.f)[ ProductPicture(I, 34.f) ]
+                    + SHorizontalBox::Slot().FillWidth(1.f).VAlign(VAlign_Center)
+                    [
+                        SNew(SVerticalBox)
+                        + SVerticalBox::Slot().AutoHeight()[ TextPx([G, I] { return G() ? G()->ProductName(I) : FString(); }, 13.f, Plain, true) ]
+                        + SVerticalBox::Slot().AutoHeight()
+                        [ TextPx([G, I, CaseUnits] { return G() && G()->Products.IsValidIndex(I) ? FString::Printf(TEXT("koli %d adet \u00b7 %s/adet"), CaseUnits(I), *MarketMenuUi::Tl(G()->Products[I].Cost)) : FString(); }, 11.f, Muted) ]
+                    ]
+                    + SHorizontalBox::Slot().AutoWidth().VAlign(VAlign_Center).Padding(8.f, 0.f)
+                    [ Small([Swapping] { return FString(Swapping() ? TEXT("Se\u00e7iliyor\u2026") : TEXT("De\u011fi\u015ftir")); },
+                        [this, I] { OrderSwapFrom = OrderSwapFrom == I ? INDEX_NONE : I; if (OrderSwapFrom != INDEX_NONE) { if (const AMarketGameMode* Mode = Game.Get()) OrderPickCategory = Mode->Products[I].Category; } },
+                        nullptr, Swapping) ]
+                    + SHorizontalBox::Slot().AutoWidth().VAlign(VAlign_Center)
+                    [
+                        SNew(SHorizontalBox)
+                        + SHorizontalBox::Slot().AutoWidth().VAlign(VAlign_Center)[ Small([] { return FString(TEXT("\u2212")); }, [this, I] { Do(TEXT("RemoveOrder"), I); }, nullptr, nullptr) ]
+                        + SHorizontalBox::Slot().AutoWidth().VAlign(VAlign_Center)
+                        [ SNew(SBox).WidthOverride(58.f).HAlign(HAlign_Center)[ Mono([Cases, I] { return FString::Printf(TEXT("%d koli"), Cases(I)); }, 13.f, Plain) ] ]
+                        + SHorizontalBox::Slot().AutoWidth().VAlign(VAlign_Center)[ Small([] { return FString(TEXT("+")); }, [this, I] { Do(TEXT("Order"), I); }, nullptr, nullptr) ]
+                    ]
+                    + SHorizontalBox::Slot().AutoWidth().VAlign(VAlign_Center)
+                    [
+                        SNew(SBox).WidthOverride(110.f).HAlign(HAlign_Right)
+                        [ Mono([G, I, Cases, CaseUnits] { return G() && G()->Products.IsValidIndex(I) ? MarketMenuUi::Tl(static_cast<int64>(Cases(I)) * CaseUnits(I) * G()->Products[I].Cost) : FString(); }, 13.f, Plain) ]
+                    ]
+                    + SHorizontalBox::Slot().AutoWidth().VAlign(VAlign_Center).Padding(8.f, 0.f, 0.f, 0.f)
+                    [
+                        SNew(SBox).WidthOverride(28.f).HeightOverride(28.f).ToolTip(Tip([] { return FString(TEXT("Sat\u0131r\u0131 sil")); }))
+                        [
+                            SNew(SButton).ButtonStyle(&RoundStyle).IsFocusable(false).ContentPadding(FMargin(0.f)).HAlign(HAlign_Center).VAlign(VAlign_Center)
+                            .ButtonColorAndOpacity(Col(ERole::Button))
+                            .OnClicked_Lambda([this, I] { if (AMarketGameMode* Mode = Game.Get()) Mode->ClearOrderLine(I); if (OrderSwapFrom == I) OrderSwapFrom = INDEX_NONE; return FReply::Handled(); })
+                            [ IconImage(TEXT("close"), 12.f, Muted) ]
+                        ]
+                    ]
+                ]
+            ]
+        ];
+    }
+    Lines->AddSlot().AutoHeight().Padding(10.f, 16.f)
+    [
+        SNew(SBox).Visibility_Lambda([G] { return G() && G()->OrderDraftCaseCount() == 0 ? EVisibility::Visible : EVisibility::Collapsed; })
+        [ TextPx([] { return FString(TEXT("Liste bo\u015f. Sa\u011fdan \u00fcr\u00fcn ekle ya da \"\u00d6neriyi yaz\".")); }, 13.f, Muted) ]
+    ];
+
+    // The picker: add a product, or (after "De\u011fi\u015ftir") the product to move a line's cases to.
+    TSharedRef<SVerticalBox> Pick = SNew(SVerticalBox);
+    for (int32 I = 0; I < Count; ++I)
+    {
+        Pick->AddSlot().AutoHeight().Padding(0.f, 2.f)
+        [
+            SNew(SBox).Visibility_Lambda([this, G, I]
+            {
+                if (!G() || !G()->Products.IsValidIndex(I) || I == OrderSwapFrom) return EVisibility::Collapsed;
+                return OrderPickCategory.IsEmpty() || G()->Products[I].Category == OrderPickCategory ? EVisibility::Visible : EVisibility::Collapsed;
+            })
+            [
+                SNew(SButton).ButtonStyle(&RowStyle).IsFocusable(false).ContentPadding(FMargin(8.f, 6.f))
+                .ButtonColorAndOpacity(Col(ERole::Panel))
+                .OnClicked_Lambda([this, I]
+                {
+                    AMarketGameMode* Mode = Game.Get();
+                    if (!Mode) return FReply::Handled();
+                    if (OrderSwapFrom != INDEX_NONE) { Mode->MoveOrderDraft(OrderSwapFrom, I); OrderSwapFrom = INDEX_NONE; }
+                    else Do(TEXT("Order"), I);
+                    return FReply::Handled();
+                })
+                [
+                    SNew(SHorizontalBox)
+                    + SHorizontalBox::Slot().AutoWidth().VAlign(VAlign_Center).Padding(0.f, 0.f, 8.f, 0.f)[ ProductPicture(I, 26.f) ]
+                    + SHorizontalBox::Slot().FillWidth(1.f).VAlign(VAlign_Center)[ TextPx([G, I] { return G() ? G()->ProductName(I) : FString(); }, 12.f, Plain) ]
+                    + SHorizontalBox::Slot().AutoWidth().VAlign(VAlign_Center)
+                    [ Mono([G, I] { return G() && G()->State.Stock.IsValidIndex(I) ? FString::Printf(TEXT("raf %d"), G()->State.Stock[I].Shelf) : FString(); }, 11.f, Muted) ]
+                ]
+            ]
+        ];
+    }
+
+    auto Warning = [G]() -> FString
+    {
+        if (!G()) return FString();
+        if (G()->bTestMode) return FString(TEXT("TEST MODU: + bedava ve an\u0131nda depoya getirir."));
+        if (G()->OrderDraftCaseCount() > 0 && G()->OrderDraftBill() < MarketOrderAdvice::MinimumOrderOn(G()->State.Day))
+            return FString::Printf(TEXT("Toptanc\u0131 en az %s sipari\u015fle gelir."), *MarketMenuUi::Tl(MarketOrderAdvice::MinimumOrderOn(G()->State.Day)));
+        if (G()->OrderDraftBill() > G()->State.Cash) return FString(TEXT("Kasadaki nakit bu listeye yetmiyor."));
+        return FString(TEXT("\u00d6deme onayda yap\u0131l\u0131r; koliler yar\u0131n sabah arka kap\u0131da."));
+    };
+    auto Close = [this] { bOrderListOpen = false; OrderSwapFrom = INDEX_NONE; };
+
+    TSharedRef<SWidget> Window = SNew(SBorder).BorderImage(&CardBrush).BorderBackgroundColor(Col(ERole::Sheet)).Padding(FMargin(26.f, 22.f))
+    [
+        SNew(SVerticalBox)
+        + SVerticalBox::Slot().AutoHeight()
+        [
+            SNew(SHorizontalBox)
+            + SHorizontalBox::Slot().FillWidth(1.f)
+            [
+                SNew(SVerticalBox)
+                + SVerticalBox::Slot().AutoHeight()[ Display([] { return FString(TEXT("Sipari\u015f listesi")); }, 26.f) ]
+                + SVerticalBox::Slot().AutoHeight()
+                [ TextPx([G] { return G() ? FString::Printf(TEXT("%d koli \u00b7 %s \u00b7 kasada %s"), G()->OrderDraftCaseCount(), *MarketMenuUi::Tl(G()->OrderDraftBill()), *MarketMenuUi::Tl(G()->State.Cash)) : FString(); }, 13.f, Muted) ]
+            ]
+            + SHorizontalBox::Slot().AutoWidth().VAlign(VAlign_Top)
+            [
+                SNew(SBox).WidthOverride(36.f).HeightOverride(36.f).ToolTip(Tip([] { return FString(TEXT("Kapat (Esc)")); }))
+                [
+                    SNew(SButton).ButtonStyle(&RoundStyle).IsFocusable(false).ContentPadding(FMargin(0.f)).HAlign(HAlign_Center).VAlign(VAlign_Center)
+                    .ButtonColorAndOpacity(Col(ERole::Inset))
+                    .OnClicked_Lambda([Close] { Close(); return FReply::Handled(); })
+                    [ IconImage(TEXT("close"), 16.f, Plain) ]
+                ]
+            ]
+        ]
+        + SVerticalBox::Slot().AutoHeight().Padding(0.f, 16.f, 0.f, 12.f)
+        [
+            SNew(SHorizontalBox)
+            + SHorizontalBox::Slot().AutoWidth().VAlign(VAlign_Center).Padding(0.f, 0.f, 12.f, 0.f)[ TextPx([] { return FString(TEXT("Toptanc\u0131")); }, 13.f, Muted, true) ]
+            + SHorizontalBox::Slot().AutoWidth().VAlign(VAlign_Center)[ Suppliers ]
+            + SHorizontalBox::Slot().FillWidth(1.f).VAlign(VAlign_Center).Padding(8.f, 0.f, 0.f, 0.f)
+            [ TextPx([G] { return G() ? MarketSuppliers::Summary(G()->State) : FString(); }, 11.f, Muted) ]
+        ]
+        + SVerticalBox::Slot().FillHeight(1.f)
+        [
+            SNew(SHorizontalBox)
+            + SHorizontalBox::Slot().FillWidth(1.f).Padding(0.f, 0.f, 16.f, 0.f)
+            [ SNew(SScrollBox) + SScrollBox::Slot()[ Lines ] ]
+            + SHorizontalBox::Slot().AutoWidth()
+            [
+                SNew(SBox).WidthOverride(320.f)
+                [
+                    SNew(SBorder).BorderImage(&TileBrush).BorderBackgroundColor(Col(ERole::Inset)).Padding(FMargin(12.f))
+                    [
+                        SNew(SVerticalBox)
+                        + SVerticalBox::Slot().AutoHeight().Padding(0.f, 0.f, 0.f, 8.f)
+                        [
+                            SNew(SHorizontalBox)
+                            + SHorizontalBox::Slot().FillWidth(1.f).VAlign(VAlign_Center)
+                            [ TextPx([this, G] { return OrderSwapFrom != INDEX_NONE && G() ? TEXT("Yerine: ") + G()->ProductName(OrderSwapFrom) : FString(TEXT("\u00dcr\u00fcn ekle")); }, 13.f, Plain, true) ]
+                            + SHorizontalBox::Slot().AutoWidth()
+                            [ SNew(SBox).Visibility_Lambda([this] { return OrderSwapFrom != INDEX_NONE ? EVisibility::Visible : EVisibility::Collapsed; })
+                                [ Small([] { return FString(TEXT("Vazge\u00e7")); }, [this] { OrderSwapFrom = INDEX_NONE; }, nullptr, nullptr) ] ]
+                        ]
+                        + SVerticalBox::Slot().AutoHeight().Padding(0.f, 0.f, 0.f, 8.f)[ CategoryChips(&OrderPickCategory) ]
+                        + SVerticalBox::Slot().FillHeight(1.f)[ SNew(SScrollBox) + SScrollBox::Slot()[ Pick ] ]
+                    ]
+                ]
+            ]
+        ]
+        + SVerticalBox::Slot().AutoHeight().Padding(0.f, 16.f, 0.f, 0.f)
+        [
+            SNew(SHorizontalBox)
+            + SHorizontalBox::Slot().FillWidth(1.f).VAlign(VAlign_Center)
+            [ TextPx(Warning, 12.f, [G] { return G() && (G()->OrderDraftBill() > G()->State.Cash || (G()->OrderDraftCaseCount() > 0 && G()->OrderDraftBill() < MarketOrderAdvice::MinimumOrderOn(G()->State.Day))) ? ERole::Warn : ERole::Muted; }) ]
+            + SHorizontalBox::Slot().AutoWidth().VAlign(VAlign_Center).Padding(0.f, 0.f, 8.f, 0.f)
+            [ Button([] { return FString(TEXT("Temizle")); }, [this] { if (AMarketGameMode* M = Game.Get()) M->ClearOrderDraft(); OrderSwapFrom = INDEX_NONE; }, false, [G] { return G() && G()->OrderDraftCaseCount() > 0; }) ]
+            + SHorizontalBox::Slot().AutoWidth().VAlign(VAlign_Center).Padding(0.f, 0.f, 8.f, 0.f)
+            [ Button([] { return FString(TEXT("\u00d6neriyi yaz")); }, [this] { Do(TEXT("SuggestOrder")); }) ]
+            + SHorizontalBox::Slot().AutoWidth().VAlign(VAlign_Center)
+            [ Button([] { return FString(TEXT("Sipari\u015fi onayla")); }, [this, G, Close] { Do(TEXT("ConfirmOrder")); if (G() && G()->OrderDraftCaseCount() == 0) Close(); }, true,
+                [G] { return G() && G()->OrderDraftCaseCount() > 0; }) ]
+        ]
+    ];
+
+    return SNew(SOverlay)
+        .Visibility_Lambda([this] { return OrderAnim > 0.01f ? (bOrderListOpen ? EVisibility::Visible : EVisibility::HitTestInvisible) : EVisibility::Collapsed; })
+        + SOverlay::Slot()
+        [
+            SNew(SBorder).BorderImage(&FlatBrush)
+            .BorderBackgroundColor_Lambda([this, Ease] { FLinearColor Shade = Color(ERole::Dim); Shade.A *= Ease(); return FSlateColor(Shade); })
+            .OnMouseButtonDown_Lambda([Close](const FGeometry&, const FPointerEvent&) { Close(); return FReply::Handled(); })
+        ]
+        + SOverlay::Slot().HAlign(HAlign_Center).VAlign(VAlign_Center)
+        [
+            SNew(SBox).WidthOverride(980.f).HeightOverride(620.f)
+            .RenderTransformPivot(FVector2D(0.5f, 0.5f))
+            .RenderTransform_Lambda([Ease] { const float S = 0.96f + 0.04f * Ease(); return TOptional<FSlateRenderTransform>(FSlateRenderTransform(S, FVector2f(0.f, 12.f * (1.f - Ease())))); })
+            [
+                SNew(SBorder).BorderImage(&NoBrush).Padding(0.f)
+                .ColorAndOpacity_Lambda([Ease] { return FLinearColor(1.f, 1.f, 1.f, Ease()); })
+                [ Window ]
+            ]
+        ];
 }

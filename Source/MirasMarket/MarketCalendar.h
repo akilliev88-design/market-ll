@@ -48,6 +48,11 @@ namespace MarketCalendar
         EWeather Weather = EWeather::Sunny;
         int32 TemperatureC = 10;
         TArray<ETag> Tags;
+        // G-084: outside Turkey the holidays come from the country pack; their name ("Weihnachten") is shown
+        // instead of "bayram". Empty in Turkey.
+        FString HolidayName;
+        // Shops must stay closed today (e.g. Germany: Sundays and public holidays).
+        bool bClosedByLaw = false;
         bool Has(ETag Tag) const { return Tags.Contains(Tag); }
     };
 
@@ -61,6 +66,12 @@ namespace MarketCalendar
     // estimates after that.
     FDate RamazanBayrami(int32 Year);
     FDate KurbanBayrami(int32 Year);
+    // Easter Sunday (Gregorian computus).
+    FDate EasterSunday(int32 Year);
+    // Day of month of the N-th weekday (0 = Monday) of a month; N = 5 means the last one.
+    int32 NthWeekdayOf(int32 Year, int32 Month, int32 Weekday, int32 N);
+    // The active country's law keeps shops closed on this day (MarketCountry: sundayClosed).
+    bool ClosedByLaw(int32 GameDay);
 
     FDayInfo Info(int32 GameDay, int32 Seed);
 
@@ -72,11 +83,11 @@ namespace MarketCalendar
     // 0.8..1.2 x basket size.
     float BudgetFactor(int32 GameDay);
 
-    // "7 Mart 2011 Pazartesi"
+    // "7 Mart, 1. y\u0131l Pazartesi"
     FString DateText(int32 GameDay);
-    // "Mart 2011"
+    // "Mart, 1. y\u0131l"
     FString MonthText(int32 GameDay);
-    // "7 Mart 2011 Pazartesi \u00b7 g\u00fcne\u015fli 11\u00b0C \u00b7 maa\u015f g\u00fcn\u00fc"
+    // "7 Mart, 1. y\u0131l Pazartesi \u00b7 g\u00fcne\u015fli 11\u00b0C \u00b7 maa\u015f g\u00fcn\u00fc"
     FString Describe(int32 GameDay, int32 Seed);
     // Evening report: what tomorrow brings and what to stock ("" when nothing special).
     FString Forecast(int32 GameDay, int32 Seed);

@@ -8,8 +8,11 @@
 
 class AMarketGameMode;
 
-// In-game HUD: soft rounded cards over the scene (status, time of day, stock, goals, hints).
-// Reads the game mode every frame through attribute lambdas; it never changes game state.
+// In-game HUD (G-074, menu design A1): a plain game screen. Top left: day and clock, cash, the father's debt and
+// whether the shop is open. Top right: at most three notices (AMarketGameMode::Todos) that name the menu page
+// solving them. Bottom: the queue and today's sales, the context hint with its key, "M Yonetim". Everything else
+// lives in the management menu (M); F1 adds the stock list and the key list. The HUD hides while the menu is open
+// and follows the menu's light / dark theme. It only reads the game mode.
 class SMarketHud : public SCompoundWidget
 {
 public:
@@ -18,33 +21,50 @@ public:
     SLATE_END_ARGS()
 
     void Construct(const FArguments& InArgs);
+    virtual void Tick(const FGeometry& AllottedGeometry, const double InCurrentTime, const float InDeltaTime) override;
 
 private:
+    enum class ETone : uint8 { Card, Text, Muted, Accent, Good, Bad, Warn, Info, KeyFill, KeyText, PrimaryFill, PrimaryText, Track, OpenFill, WarnSoft, BadSoft, InfoSoft };
+
     TWeakObjectPtr<AMarketGameMode> Game;
 
-    FSlateRoundedBoxBrush CardBrush = FSlateRoundedBoxBrush(FLinearColor(0.045f, 0.038f, 0.034f, 0.80f), 16.f, FLinearColor(1.f, 0.92f, 0.80f, 0.09f), 1.f);
-    FSlateRoundedBoxBrush PillBrush = FSlateRoundedBoxBrush(FLinearColor::White, 11.f, FLinearColor(0.f, 0.f, 0.f, 0.f), 0.f);
-    FSlateRoundedBoxBrush KeyBrush = FSlateRoundedBoxBrush(FLinearColor(1.f, 0.97f, 0.90f, 0.95f), 6.f, FLinearColor(0.f, 0.f, 0.f, 0.35f), 1.f);
-    FSlateRoundedBoxBrush TrackBrush = FSlateRoundedBoxBrush(FLinearColor(1.f, 1.f, 1.f, 0.12f), 3.f, FLinearColor(0.f, 0.f, 0.f, 0.f), 0.f);
-    FSlateRoundedBoxBrush FillBrush = FSlateRoundedBoxBrush(FLinearColor::White, 3.f, FLinearColor(0.f, 0.f, 0.f, 0.f), 0.f);
-    FSlateRoundedBoxBrush DotBrush = FSlateRoundedBoxBrush(FLinearColor(1.f, 1.f, 1.f, 0.85f), 3.f, FLinearColor(0.f, 0.f, 0.f, 0.4f), 1.f);
+    FSlateRoundedBoxBrush CardBrush = FSlateRoundedBoxBrush(FLinearColor::White, 16.f, FLinearColor(0.f, 0.f, 0.f, 0.08f), 1.f);
+    FSlateRoundedBoxBrush PillBrush = FSlateRoundedBoxBrush(FLinearColor::White, 13.f, FLinearColor(0.f, 0.f, 0.f, 0.08f), 1.f);
+    FSlateRoundedBoxBrush KeyBrush = FSlateRoundedBoxBrush(FLinearColor::White, 6.f, FLinearColor(0.f, 0.f, 0.f, 0.f), 0.f);
+    FSlateRoundedBoxBrush TrackBrush = FSlateRoundedBoxBrush(FLinearColor::White, 2.f, FLinearColor(0.f, 0.f, 0.f, 0.f), 0.f);
+    FSlateRoundedBoxBrush DotBrush = FSlateRoundedBoxBrush(FLinearColor::White, 4.f, FLinearColor(0.f, 0.f, 0.f, 0.f), 0.f);
+    FSlateRoundedBoxBrush CrossBrush = FSlateRoundedBoxBrush(FLinearColor(1.f, 1.f, 1.f, 0.85f), 3.f, FLinearColor(0.f, 0.f, 0.f, 0.4f), 1.f);
     FProgressBarStyle BarStyle;
 
-    TSharedRef<SWidget> Card(const TSharedRef<SWidget>& Content, const FMargin& Padding = FMargin(18.f, 14.f));
-    TSharedRef<SWidget> Bar(TFunction<float()> Value, const FLinearColor& Color, float Width = 0.f);
-    TSharedRef<SWidget> KeyCap(const FString& Key);
+    FVector2D LastSize = FVector2D::ZeroVector;  // the viewport: the HUD scales with it (G-075)
+    float UiScale() const;
+    bool IsLight() const;
+    FLinearColor Color(ETone Tone) const;
+    TAttribute<FSlateColor> Col(ETone Tone) const;
+    TSharedRef<SWidget> Text(TFunction<FString()> Make, int32 Size, ETone Tone, bool bBold = false, bool bWrap = false);
+    TSharedRef<SWidget> Fixed(const FString& Value, int32 Size, ETone Tone, bool bBold = false);
+    TSharedRef<SWidget> Card(const TSharedRef<SWidget>& Content, const FMargin& Padding = FMargin(16.f, 12.f));
+    TSharedRef<SWidget> Bar(TFunction<float()> Value, ETone Tone, float Width = 0.f);
+    TSharedRef<SWidget> KeyCap(TFunction<FString()> Key);
     TSharedRef<SWidget> KeyRow(const FString& Key, const FString& Label);
-    TSharedRef<SWidget> StatusCard();
-    TSharedRef<SWidget> DayCard();
-    TSharedRef<SWidget> StockCard();
-    TSharedRef<SWidget> OfficeCard();
-    TSharedRef<SWidget> GoalCard();
-    TSharedRef<SWidget> ControlsCard();
+    TSharedRef<SWidget> Divider();
+    // G-086d design language (the menu's main screen): a soft shadow in the light theme, pills, numbers in mono.
+    TSharedRef<SWidget> Raised(const TSharedRef<SWidget>& Surface);
+    TSharedRef<SWidget> Pill(const TSharedRef<SWidget>& Content, float Height, TFunction<ETone()> Fill = nullptr);
+    TSharedRef<SWidget> Mono(TFunction<FString()> Make, float Pixels, TFunction<ETone()> Tone);
+
+    TSharedRef<SWidget> StatusBar();
+    TSharedRef<SWidget> SpeedPill();     // G-075 pause / speed
+    TSharedRef<SWidget> PausedBanner();
+    TSharedRef<SWidget> Notices();
+    TSharedRef<SWidget> TodayCards();
     TSharedRef<SWidget> HintCard();
-    TSharedRef<SWidget> ReportCard();
+    TSharedRef<SWidget> MenuButtons();
+    TSharedRef<SWidget> StockCard();
+    TSharedRef<SWidget> ControlsCard();
+    TSharedRef<SWidget> ReportCard();   // smoke / capture runs only (the menu shows the report otherwise)
     TSharedRef<SWidget> ArrangeCard();
 
-    bool ShowStock() const;
     FString HintKey() const;
     FString HintText() const;
 };

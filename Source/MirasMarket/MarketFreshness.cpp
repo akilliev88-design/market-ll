@@ -1,12 +1,12 @@
 #include "MarketFreshness.h"
+#include "MarketCountry.h"
 #include "MarketGoods.h"
 
 namespace MarketFreshness
 {
     FString FreshTl(int64 Kurus)
     {
-        const int64 Abs = Kurus < 0 ? -Kurus : Kurus;
-        return FString::Printf(TEXT("%s%lld,%02lld TL"), Kurus < 0 ? TEXT("-") : TEXT(""), static_cast<long long>(Abs / 100), static_cast<long long>(Abs % 100));
+        return MarketCountry::Money(Kurus); // G-084: the active country\'s currency
     }
 
     int32 Held(const FMarketStock& Item) { return Item.Shelf + Item.Warehouse + Item.Dock; }
@@ -71,23 +71,21 @@ void MarketFreshness::CloseDay(FMarketState& State, const TArray<FMarketProduct>
     for (int32 I = 0; I < State.Stock.Num() && I < Products.Num(); ++I)
     {
         FMarketStock& Item = State.Stock[I];
-        const int32 Life = MarketGoods::ShelfLifeDays(MarketGoods::Classify(Products[I].Category));
-        if (Life <= 0) continue;
-        // Match the batches with what the shop holds.
+        const int32 Life = MarketGoods::ShelfLifeDays(Products[I]);
+        if (Life <= 0) { Item.Received = 0; continue; }
+        // Units that arrived since the last close form a new batch; what left the shop (sold, broken, thrown away)
+        // left from the oldest batches. Counting arrivals separately matters: a shop that sells 12 and receives 12
+        // every day holds the same number, but its milk is new every day.
         int32 InBatches = 0;
         for (const FMarketBatch& B : State.Batches) if (B.ProductId == Item.Id) InBatches += B.Units;
         const int32 Now = Held(Item);
-        if (Now > InBatches)
+        const int32 Arrived = FMath::Max(0, Item.Received);
+        Item.Received = 0;
+        const int32 Left = InBatches + Arrived - Now;
+        const int32 Fresh = Arrived + FMath::Max(0, -Left); // units nobody recorded (older saves) count as new too
+        if (Left > 0)
         {
-            FMarketBatch New;
-            New.ProductId = Item.Id;
-            New.Units = Now - InBatches;
-            New.ExpiresDay = State.Day + Life - 1; // arrived at this close: sellable for Life days from tomorrow
-            State.Batches.Add(New);
-        }
-        else if (Now < InBatches)
-        {
-            int32 Gone = InBatches - Now;
+            int32 Gone = FMath::Min(Left, InBatches);
             // Oldest first.
             State.Batches.Sort([](const FMarketBatch& A, const FMarketBatch& B) { return A.ExpiresDay < B.ExpiresDay; });
             for (FMarketBatch& B : State.Batches)
@@ -97,6 +95,14 @@ void MarketFreshness::CloseDay(FMarketState& State, const TArray<FMarketProduct>
                 B.Units -= Take;
                 Gone -= Take;
             }
+        }
+        if (Fresh > 0)
+        {
+            FMarketBatch New;
+            New.ProductId = Item.Id;
+            New.Units = FMath::Min(Fresh, Now);
+            New.ExpiresDay = State.Day + Life - 1; // arrived at this close: sellable for Life days from tomorrow
+            if (New.Units > 0) State.Batches.Add(New);
         }
         // Expired batches become waste; last-day batches are given away under the donation policy.
         for (FMarketBatch& B : State.Batches)
@@ -109,12 +115,18 @@ void MarketFreshness::CloseDay(FMarketState& State, const TArray<FMarketProduct>
             B.Units = 0;
             if (Removed <= 0) continue;
             State.LastWasteUnits += Removed;
-            State.LastWasteCost += Products[I].Cost * Removed;
+            State.LastWasteCost += State.UnitCost(I, Products) * Removed;
             if (bDonate) Donated += Removed;
             else Spoiled.Add(FString::Printf(TEXT("%d %s"), Removed, *Shown(Products[I])));
         }
     }
-    State.Batches.RemoveAll([](const FMarketBatch& B) { return B.Units <= 0; });
+    // Batches of products that left the catalog or stopped spoiling are dropped.
+    State.Batches.RemoveAll([&State, &Products](const FMarketBatch& B)
+    {
+        if (B.Units <= 0) return true;
+        const int32 Row = State.Stock.IndexOfByPredicate([&B](const FMarketStock& S) { return S.Id == B.ProductId; });
+        return !Products.IsValidIndex(Row) || MarketGoods::ShelfLifeDays(Products[Row]) <= 0;
+    });
     if (State.LastWasteCost > 0)
     {
         State.LastProfit -= State.LastWasteCost;

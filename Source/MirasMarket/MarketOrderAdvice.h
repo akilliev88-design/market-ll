@@ -10,6 +10,8 @@ namespace MarketOrderAdvice
     constexpr int32 MaxCases = 9;          // same line limit as FMarketState::SubmitOrder
     constexpr int64 MinimumOrder = 5000;   // 50 TL: the wholesaler does not come for less
     constexpr float SafetyFactor = 1.25f;  // yesterday's demand + 25 %
+    // G-077 (#36): the 50 TL minimum at today's list prices.
+    int64 MinimumOrderOn(int32 GameDay);
 
     int32 CaseUnits(const FMarketProduct& Product);
     // Cases so that tomorrow the product can fill its shelf and cover yesterday's demand (sold + about two units

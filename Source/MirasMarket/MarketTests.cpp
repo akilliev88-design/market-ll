@@ -385,6 +385,17 @@ bool FMarketSaleTest::RunTest(const FString& Parameters)
     TestEqual(TEXT("Cash includes exact receipt"), S.Cash, int64(36000));
     TestEqual(TEXT("Sold inventory removed"), S.Stock[0].Shelf, 20);
     TestEqual(TEXT("Cost of goods recorded"), S.CostOfGoods, int64(680));
+    {
+        // G-078 (#26): goods bought before a price rise keep their purchase cost in the books.
+        auto Priced = TestCatalog(); FMarketState C; C.Initialize(Priced);
+        TArray<int32> Cases; Cases.Init(0, Priced.Num()); Cases[0] = 1;
+        TestTrue(TEXT("Bought at the old cost"), C.SubmitOrder(Cases, Priced));
+        const int64 Paid = C.Stock[0].AvgCost;
+        Priced[0].Cost = Priced[0].Cost * 2;
+        C.Restock(0);
+        TestTrue(TEXT("Sold after the rise"), C.Sell(0, 1, 250, Priced));
+        TestEqual(TEXT("Cost of goods at the purchase cost"), C.CostOfGoods, Paid);
+    }
     S.CloseDay();
     TestEqual(TEXT("Profit is revenue minus cost and daily expenses"), S.LastProfit, int64(-1880));
     TestEqual(TEXT("Day cost removed from cash"), S.Cash, int64(33800));
@@ -415,7 +426,7 @@ bool FMarketSaveTest::RunTest(const FString& Parameters)
     Save->State.Initialize(Catalog);
     Save->State.Order(0, Catalog);
     Save->State.Stock[0].Dock = 3;
-    Save->State.bRealBrands = false;
+    Save->State.bRealBrands = true;
     Save->State.bCashier = true;
     TArray<uint8> Bytes;
     TestTrue(TEXT("Serialize save into memory"), UGameplayStatics::SaveGameToMemory(Save, Bytes));
@@ -424,7 +435,7 @@ bool FMarketSaveTest::RunTest(const FString& Parameters)
     TestEqual(TEXT("Cash survives round trip"), Restored->State.Cash, Save->State.Cash);
     TestEqual(TEXT("Pending shipment survives round trip"), Restored->State.Stock[0].Incoming, 12);
     TestEqual(TEXT("Rear-door stock survives round trip"), Restored->State.Stock[0].Dock, 3);
-    TestFalse(TEXT("Brand presentation survives round trip"), Restored->State.bRealBrands);
+    TestTrue(TEXT("Brand presentation survives round trip"), Restored->State.bRealBrands);
     TestTrue(TEXT("Employee survives round trip"), Restored->State.bCashier);
     TestTrue(TEXT("Current catalog validates"), Restored->State.IsValidFor(Catalog));
     Restored->State.Stock[0].Shelf = -1;
@@ -497,6 +508,17 @@ bool FMarketCatalogTest::RunTest(const FString& Parameters)
     TestEqual(TEXT("Round trip keeps rows"), Again.Num(), 3);
     TestEqual(TEXT("Round trip has no errors"), Errors2.Num(), 0);
     TestEqual(TEXT("Round trip keeps note"), Note2, Note);
+    {
+        // G-078: optional retail data survives a studio save.
+        TArray<FMarketProduct> Retail = Products;
+        Retail[0].Subcategory = TEXT("sut"); Retail[0].Kvi = 1.f; Retail[0].VatRate = 0.08f; Retail[0].ShelfLifeDays = 120;
+        Retail[0].Elasticity = 1.5f; Retail[0].Stockpile = 0.3f; Retail[0].TrafficPull = 0.4f;
+        TArray<FMarketProduct> Back; TArray<FString> RetailErrors;
+        TestTrue(TEXT("Retail data parses"), MarketCatalog::Parse(MarketCatalog::Serialize(Retail, Note), Back, RetailErrors));
+        TestTrue(TEXT("Retail data kept"), Back.Num() == 3 && Back[0].Subcategory == TEXT("sut") && Back[0].ShelfLifeDays == 120
+            && FMath::IsNearlyEqual(Back[0].Kvi, 1.f) && FMath::IsNearlyEqual(Back[0].VatRate, 0.08f, 0.001f) && FMath::IsNearlyEqual(Back[0].Stockpile, 0.3f, 0.001f));
+        TestTrue(TEXT("Unset retail data stays default"), Back.Num() == 3 && Back[1].VatRate < 0.f && Back[1].ShelfLifeDays == 0);
+    }
     if (Again.Num() == 3)
     {
         TestEqual(TEXT("Round trip escapes quotes"), Again[1].RealName, Products[1].RealName);

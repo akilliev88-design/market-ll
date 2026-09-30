@@ -143,7 +143,7 @@ bool FMarketFinanceTest::RunTest(const FString& Parameters)
     for (int32 Day = 1; Day <= 25; ++Day) { FMarketDayRecord R; R.Day = Day; R.Revenue = 10000; R.Profit = 1000; M.History.Add(R); }
     M.Day = MarketCalendar::GameDayOf(2011, 3, 31);
     M.DayNews.Reset(); M.CloseDay(); MarketFinance::CloseDay(M, Products);
-    TestTrue(TEXT("Month report"), NewsStarts(M, TEXT("Ay sonu raporu (Mart 2011)")));
+    TestTrue(TEXT("Month report"), NewsStarts(M, TEXT("Ay sonu raporu (Mart, 1. y\u0131l)")));
     return true;
 }
 

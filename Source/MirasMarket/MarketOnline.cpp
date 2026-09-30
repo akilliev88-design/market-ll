@@ -1,4 +1,5 @@
 #include "MarketOnline.h"
+#include "MarketCountry.h"
 #include "MarketBasket.h"
 #include "MarketCalendar.h"
 #include "MarketCustomers.h"
@@ -18,8 +19,7 @@ namespace MarketOnline
 
     FString OnlineTl(int64 Kurus)
     {
-        const int64 Abs = Kurus < 0 ? -Kurus : Kurus;
-        return FString::Printf(TEXT("%s%lld,%02lld TL"), Kurus < 0 ? TEXT("-") : TEXT(""), static_cast<long long>(Abs / 100), static_cast<long long>(Abs % 100));
+        return MarketCountry::Money(Kurus); // G-084: the active country\'s currency
     }
 
     int32 DateDay(int32 Year, int32 Month, int32 Day) { return MarketCalendar::GameDayOf(Year, Month, Day); }
@@ -58,8 +58,10 @@ namespace MarketOnline
     float DistrictTrips(const FMarketState& State, int32 GameDay)
     {
         const float Visitors = static_cast<float>(FMath::Max(40, State.LastServed + State.LastLost));
-        const float Share = FMath::Clamp(State.ShareBeforeClose / 100.f, 0.05f, 0.9f);
-        return Visitors / Share / FMath::Max(0.2f, StoreFactorOn(State, GameDay));
+        // G-077 (#16): walk-ins grow with the square root of the share (MarketCompetitors::TrafficFactor), so the
+        // district is walk-ins / sqrt(share / 25 %) / 25 %: its size no longer shrinks as our share grows.
+        const float Reach = FMath::Clamp(FMath::Sqrt(FMath::Max(1.f, State.ShareBeforeClose) / 25.f), 0.6f, 1.5f);
+        return Visitors / Reach / 0.25f / FMath::Max(0.2f, StoreFactorOn(State, GameDay));
     }
 
     float WebMaturity(const FMarketState& State, int32 GameDay)
@@ -299,8 +301,8 @@ bool MarketOnline::SetChannel(FMarketState& State, EChannel Channel, bool bOn, F
     if (IsOn(State, Channel) == bOn) { OutMessage = ChannelName(Channel) + (bOn ? TEXT(" zaten a\u00e7\u0131k.") : TEXT(" zaten kapal\u0131.")); return false; }
     if (bOn && State.Day < OpenDay(Channel))
     {
-        OutMessage = ChannelName(Channel) + (Channel == EChannel::Web ? TEXT(" i\u00e7in erken: mahallede internetten market al\u0131\u015fveri\u015fi hen\u00fcz yok (2014).")
-                                                                   : TEXT(" hen\u00fcz il\u00e7ede yok (2016)."));
+        OutMessage = ChannelName(Channel) + (Channel == EChannel::Web ? TEXT(" i\u00e7in erken: mahallede internetten market al\u0131\u015fveri\u015fi hen\u00fcz yok (4. y\u0131l).")
+                                                                   : TEXT(" hen\u00fcz il\u00e7ede yok (6. y\u0131l)."));
         return false;
     }
     if (!bOn)
@@ -474,7 +476,7 @@ void MarketOnline::CloseDay(FMarketState& State, const TArray<FMarketProduct>& P
             Row.Yesterday.Sold += Wanted;
             ++Row.Yesterday.Buyers;
             Value += Row.Price * Wanted;
-            Cogs += Products[Index].Cost * Wanted;
+            Cogs += State.UnitCost(Index, Products) * Wanted;
             Units += Wanted;
             ++Delivered;
         }

@@ -119,6 +119,24 @@ v1.5 ile `package` içine isteğe bağlı `preset` (hazır ambalaj id) ve `color
 
 `visual.materials` malzeme yuvası sırasıyla ürüne özel materyallerdir; boş dize = ambalajın kendi materyali. `visual.transform` yalnız özel model düzeltmesi gerektiğinde yazılır; yoksa kimlik dönüşümü kullanılır. Eski `visual.material` (tek) alanı da okunur ve yuva 0 sayılır. `visual`, `category`, `caseUnits` isteğe bağlıdır; v1 dosyaları olduğu gibi okunur. Oyundaki (aktif) ürün sayısına üst sınır yoktur (28.09.2026).
 
+### Perakende verisi (`retail`, G-078, isteğe bağlı)
+
+```json
+"retail":{"subcategory":"süt","kvi":1.00,"vat":0.08,"shelfLifeDays":120,"elasticity":1.50,"stockpile":0.30,"trafficPull":0.40}
+```
+
+| Alan | Anlamı | Yoksa |
+|---|---|---|
+| `subcategory` | Alt grup (gazlı, su, çay, çamaşır deterjanı…): kampanya kapsamı ve ikame | kategori |
+| `kvi` | 0–1, müşterinin fiyatını ne kadar bildiği (süt, çay, yağ = 1) | 0 |
+| `vat` | KDV oranı (2011: gıda 0,08; temizlik, bakım, kâğıt 0,18) | oyun modeli |
+| `shelfLifeDays` | Partinin satılabileceği gün (UHT süt 120, ayran 21) | talep grubunun süresi |
+| `elasticity` | Fiyat ve kampanyaya duyarlılık (temel gıda 1,5 … cips/kola 4) | 2,5 |
+| `stockpile` | Kampanyada evde stok yapma (süt 0,2 … deterjan 1,5) | 0,6 |
+| `trafficPull` | 0–1, indirimi dükkâna müşteri çeker mi | 0 |
+
+Stüdyo bu alanları korur; yalnız dolu olanları yazar. 29.09.2026'da 97 ürüne kategori kurallarıyla ilk değerler verildi; ürün ürün düzeltilebilir.
+
 ## Sınırlar (v1.7)
 
 - Hazır şekiller kutu/poşet, şişe, teneke, kavanoz ve kase ailelerini kapsar; özel siluet gerektiğinde model içe alma yolu kullanılır.

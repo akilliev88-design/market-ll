@@ -1,4 +1,5 @@
 #include "MarketPayments.h"
+#include "MarketCountry.h"
 #include "MarketCalendar.h"
 #include "MarketPrices.h"
 
@@ -6,8 +7,7 @@ namespace MarketPayments
 {
     FString PayTl(int64 Kurus)
     {
-        const int64 Abs = Kurus < 0 ? -Kurus : Kurus;
-        return FString::Printf(TEXT("%s%lld,%02lld TL"), Kurus < 0 ? TEXT("-") : TEXT(""), static_cast<long long>(Abs / 100), static_cast<long long>(Abs % 100));
+        return MarketCountry::Money(Kurus); // G-084: the active country\'s currency
     }
 
     int64 DailyFee(const FMarketState& State, int64 Monthly)
@@ -22,6 +22,9 @@ float MarketPayments::CardShare(int32 GameDay)
     static const float Shares[] = { 0.25f, 0.28f, 0.32f, 0.36f, 0.40f, 0.45f, 0.50f, 0.55f, 0.60f, 0.72f, 0.75f, 0.78f };
     const int32 Year = MarketCalendar::DateOf(GameDay).Year;
     const int32 Index = FMath::Clamp(Year - 2011, 0, static_cast<int32>(UE_ARRAY_COUNT(Shares)) - 1);
+    // G-084: another country starts from its own card habit (pack cardShare) and follows the same trend.
+    const MarketCountry::FProfile& Country = MarketCountry::Active();
+    if (Country.Id != TEXT("tr")) return FMath::Clamp(Country.CardShare + (Shares[Index] - Shares[0]) * 0.6f, 0.05f, 0.95f);
     return Shares[Index];
 }
 

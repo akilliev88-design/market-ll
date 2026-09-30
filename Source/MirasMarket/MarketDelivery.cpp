@@ -1,4 +1,5 @@
 #include "MarketGame.h"
+#include "MarketCountry.h"
 #include "ProductCatalog.h"
 
 #include "Components/TextRenderComponent.h"
@@ -50,6 +51,13 @@ bool AMarketGameMode::StartPlayerDelivery(int32 ProductIndex)
     CarriedDeliveryCrate = SurfaceBox(FVector::ZeroVector, FVector(44.f, 34.f, 34.f), EMarketSurface::Cardboard, false);
     TickPlayerDelivery();
     return true;
+}
+
+void AMarketGameMode::DropCarriedDelivery()
+{
+    if (CarriedDeliveryCrate) CarriedDeliveryCrate->Destroy();
+    CarriedDeliveryCrate = nullptr;
+    CarriedDeliveryProduct = INDEX_NONE;
 }
 
 bool AMarketGameMode::FinishPlayerDelivery()
@@ -106,6 +114,6 @@ FString AMarketGameMode::OrderDraftSummary() const
         if (Shown++ < 3) Lines += (Lines.IsEmpty() ? FString() : TEXT("  /  ")) + ProductName(I) + FString::Printf(TEXT(" x%d koli"), OrderDraftCases[I]);
     }
     if (Shown > 3) Lines += FString::Printf(TEXT("  /  +%d urun"), Shown - 3);
-    const FString Bill = MarketCatalog::Money(OrderDraftBill()) + TEXT(" TL");
+    const FString Bill = MarketCountry::Money(OrderDraftBill());
     return FString::Printf(TEXT("%d koli  |  %s\n%s"), Cases, *Bill, *Lines);
 }

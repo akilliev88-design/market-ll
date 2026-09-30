@@ -3,61 +3,99 @@
 #include "CoreMinimal.h"
 #include "MarketEconomy.h"
 
-// Branches (G-068, Docs/Kurgu/00_KURGU_KITABI.md \u00a73, \u00a710). Independent of the world, tested (MirasMarket.Branches.*).
-// A branch opens in a district of L\u00fcleburgaz (fictional neighbourhoods): lease and fit-out -> permits -> hiring ->
-// opening stock -> open. Its shelves are planned automatically (MarketLayout) and its day is simulated from the same
-// rules as the family shop, without walking customers: the district's shoppers split between us and the rivals by
-// attractiveness (price, full shelves, service, habit); what shoppers want follows the district's people and the
-// calendar; what is not on the shelf is a lost sale. A manager orders for tomorrow (a skilled one closer to the
-// real demand), keeps prices near the rivals, and a dishonest one skims a little. A new branch builds its habit
-// over 30 days; two of our shops in the same or neighbouring districts take customers from each other.
+// Branches (G-068, rebuilt on provinces in G-086; Docs/Kurgu/03_MAGAZA_AGI.md). Independent of the world, tested
+// (MirasMarket.Branches.*). The only place level of the game is the province (il / Land / state): a branch opens
+// in a province of any country pack, as one of four market types, and goes lease and fit-out -> permits ->
+// hiring -> opening stock -> open. Its shelves are planned automatically (MarketLayout) and its day is simulated
+// from the same rules as the family shop, without walking customers: the province's shoppers split between us
+// and the rivals by attractiveness (price, full shelves, service, habit); what they want follows the calendar;
+// what is not on the shelf is a lost sale. A manager orders for tomorrow (a skilled one closer to the real
+// demand), keeps prices near the market type's target, and a dishonest one skims a little. A new branch builds
+// its habit over 30 days; our own shops in the same province take customers from each other once the province
+// is full (about one shop per 80 000 people). Logistics, depots and the company's buying power come from
+// MarketCompany.
 namespace MarketBranches
 {
-    enum class EDistrict : uint8 { Istasyon = 0, Carsi, Kocasinan, YeniMahalle, Universite, Sanayi, Evrensekiz, Count };
     enum class EStage : uint8 { Renovation = 0, Permits, Hiring, Open, Closed };
 
-    struct FDistrict
-    {
-        const TCHAR* Name = TEXT("");
-        const TCHAR* Note = TEXT("");
-        int32 Shoppers = 200;            // shopping trips a day in the district (all shops)
-        float Income = 1.f;              // wallet size
-        int64 Rent = 50000;              // per month, 2011 kurus
-        int32 Mix[6] = { 20, 30, 25, 10, 5, 10 }; // MarketCustomers segments
-        float RivalAttraction = 3.f;     // sum of the rivals' pull in the district
-        uint32 Neighbours = 0;           // bit mask of adjacent districts
-    };
-
+    // A market type (karar: ucuzcu, mahalle, supermarket, hipermarket). Ids are kept from the prototype so older
+    // saves load: "kucuk" is the discounter.
     struct FFormat
     {
         const TCHAR* Id = TEXT("mahalle");
         const TCHAR* Name = TEXT("mahalle marketi");
-        int64 FitOut = 400000;           // 2011 kurus
+        const TCHAR* Short = TEXT("Mahalle");
+        int64 FitOut = 400000;           // start-level kurus
         int32 Workers = 3;
         float Service = 1.f;
+        float PriceTarget = 1.f;         // shelf prices against the rivals' (a skilled manager keeps them there)
+        int32 Trips = 240;               // shopping trips a day in its catchment, a province of the reference size
+        int64 Rent = 60000;              // per month, start-level kurus, x the province's rent
+        float Weight = 1.f;              // how much of the province's room it takes (cannibalization)
+        float Running = 1.f;             // electricity, cleaning, small costs
+        int32 MinPopulationK = 0;        // hypermarket: only in big provinces
+        bool bNeedsDepot = false;        // hypermarket: a depot of the country within 600 km (G-089)
+        int32 Chapter = 0;               // hypermarket: from "Ulke Capinda" (5)
+    };
+
+    // Where a branch is. Country: the pack id (empty = the campaign's country).
+    struct FSite
+    {
+        FString Country;
+        FString Province;
+        FString Name;                    // "Tekirdag" with Turkish letters
+        FString SubRegion;
+        int32 PopulationK = 0;
+        float Income = 1.f;
+        float Rent = 1.f;
+        float Competition = 1.f;
+        bool bValid = false;
+        bool bHome = false;              // the family shop's province
+        bool bAbroad = false;
     };
 
     constexpr int32 RenovationDays = 5;
     constexpr int32 PermitDays = 3;
     constexpr int32 MaturityDays = 30;
     constexpr float UnitsPerShopper = 2.2f;
+    constexpr int32 PeoplePerStoreK = 40;    // room for one of our shops per 40 000 people (at least 2)
+    constexpr int32 PeoplePerSlotK = 80;     // above one shop per 80 000 people ours start to share customers
 
-    const FDistrict& DistrictInfo(EDistrict District);
+    const TArray<FString>& FormatIds();      // kucuk, mahalle, buyuk, hiper
     const FFormat& FormatInfo(const FString& Id);
-    FString DistrictName(EDistrict District);
+
+    FSite SiteOf(const FMarketState& State, const FString& Country, const FString& Province);
+    FSite SiteOf(const FMarketState& State, const FMarketBranch& Branch);
+    // Most shops of ours a province takes (the family shop counts in the home province).
+    int32 Room(const FSite& Site);
+    // Our shops in a province that are not closed (+1 for the family shop in the home province).
+    int32 ShopsIn(const FMarketState& State, const FString& Country, const FString& Province);
+    // Provinces of a country with a shop of ours (home first). Country empty = the campaign's.
+    TArray<FString> ProvincesWithShops(const FMarketState& State, const FString& Country = FString());
+    // The branch's country id (older saves: the campaign's).
+    FString CountryOf(const FMarketState& State, const FMarketBranch& Branch);
+
+    // Menu command argument for a place and a type: (country index x 1000 + province index) x 10 + type index,
+    // indexes into MarketCountry::All(), its Cities and FormatIds(). INDEX_NONE when unknown.
+    int32 EncodeSite(const FString& Country, const FString& Province, const FString& Format);
+    bool DecodeSite(int32 Arg, FString& OutCountry, FString& OutProvince, FString& OutFormat);
+
     // Money needed now to open: deposit (2 months' rent), fit-out and the opening stock at cost.
-    int64 OpeningCost(const FMarketState& State, const TArray<FMarketProduct>& Products, EDistrict District, const FString& Format);
-    bool CanOpen(const FMarketState& State, const TArray<FMarketProduct>& Products, EDistrict District, const FString& Format, FString& OutReason);
-    bool Open(FMarketState& State, const TArray<FMarketProduct>& Products, EDistrict District, const FString& Format, FString& OutMessage);
-    bool Close(FMarketState& State, int32 BranchIndex, FString& OutMessage);
+    int64 OpeningCost(const FMarketState& State, const TArray<FMarketProduct>& Products, const FString& Country, const FString& Province, const FString& Format);
+    bool CanOpen(const FMarketState& State, const TArray<FMarketProduct>& Products, const FString& Country, const FString& Province, const FString& Format, FString& OutReason);
+    bool Open(FMarketState& State, const TArray<FMarketProduct>& Products, const FString& Country, const FString& Province, const FString& Format, FString& OutMessage);
+    bool Close(FMarketState& State, const TArray<FMarketProduct>& Products, int32 BranchIndex, FString& OutMessage);
     // Moves a person from the family shop to run a branch (Cem's road in the story).
     bool Promote(FMarketState& State, int32 EmployeeId, int32 BranchIndex, FString& OutMessage);
-    // Old saves with the aggregate second shop become a mature branch in \u00c7ar\u015f\u0131.
+    // Older saves: the aggregate second shop becomes a mature branch; branches without a province get the home
+    // province; the G-072 city stores become branches in their provinces (abroad ones close, deposit back).
     void Migrate(FMarketState& State, const TArray<FMarketProduct>& Products);
     int32 OpenCount(const FMarketState& State);
-    // x shoppers of the family shop: our branches next door take some of its customers.
+    // x shoppers of the family shop: our branches in the home province take some of its customers.
     float MainShopFactor(const FMarketState& State);
     FString Summary(const FMarketState& State, int32 BranchIndex, const TArray<FMarketProduct>& Products);
+    // Weekly mark of a branch (A best .. D worst; "-" while it is not open for a week).
+    FString Grade(const FMarketState& State, int32 BranchIndex);
 
     // Day close: stages, the simulated day of every open branch, the managers' orders, weekly lines.
     void CloseDay(FMarketState& State, const TArray<FMarketProduct>& Products);

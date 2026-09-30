@@ -39,6 +39,14 @@ struct FMarketProduct
     UPROPERTY() bool bSizeEstimated = false;
     UPROPERTY() FString Preset;          // ready package from Config/ambalajlar.json (studio), e.g. "pet_sise_1l"
     UPROPERTY() FString Colors;          // per-part colors, e.g. "Cam=2B1A12/0.85;Kapak=E30613" (hex, optional /opacity)
+    // G-078: retail data (products.json "retail", all optional; 0 / -1 = use the category's default).
+    UPROPERTY() FString Subcategory;     // e.g. "gazl\u0131", "su", "\u00e7ay": substitution and campaign scope
+    UPROPERTY() float Kvi = 0.f;         // 0..1: how well shoppers know its price (bread, milk, tea = 1)
+    UPROPERTY() float VatRate = -1.f;    // e.g. 0.08 food, 0.18 cleaning (2011)
+    UPROPERTY() int32 ShelfLifeDays = 0; // days a batch can be sold; 0 = group default (MarketGoods)
+    UPROPERTY() float Elasticity = 0.f;  // price/promotion sensitivity (1.5 staples .. 4 snacks); 0 = group default
+    UPROPERTY() float Stockpile = -1.f;  // how much shoppers stock up on a deal (0.2 milk .. 1.5 detergent)
+    UPROPERTY() float TrafficPull = 0.f; // 0..1: a deal on it brings people into the shop (loss leader)
 };
 
 // One product's shoppers in one day (MarketDemand.h). Older saves load zeros.
@@ -72,6 +80,18 @@ struct FMarketStock
     // Shoppers of the running day and of the last closed day (the day report reads Yesterday).
     UPROPERTY() FMarketDemandStats Today;
     UPROPERTY() FMarketDemandStats Yesterday;
+    // New units that came into the shop since the last freshness check (deliveries, test fills, a closed
+    // branch's goods). MarketFreshness turns them into a new batch; everything else that left came from old batches.
+    UPROPERTY() int32 Received = 0;
+    // G-078 (#26): weighted average purchase cost of the units held (shelf, depot, dock, on the way), in kurus.
+    // The cost of goods sold and the waste use it, so a price rise or a cheaper deal changes only new purchases.
+    // 0 = unknown (older saves, the inherited stock): today's catalog cost is used until the first purchase.
+    UPROPERTY() int64 AvgCost = 0;
+    // G-078 shopper memory (MarketPromotions): how often it has been on a deal lately (decaying day count; many
+    // deals teach shoppers to wait for the next one) and what they stocked up at home on the last deal (the
+    // after-promotion dip).
+    UPROPERTY() float PromoHeat = 0.f;
+    UPROPERTY() float Pantry = 0.f;
 };
 
 // A small, stable neighbourhood pool makes repeat shoppers meaningful without saving world actors.
@@ -155,6 +175,8 @@ struct FMarketPayable
     UPROPERTY() uint8 Supplier = 0;
     UPROPERTY() int64 Amount = 0;
     UPROPERTY() int32 DueDay = 0;
+    // Day the bill first went unpaid (0 = not late). The due day itself never moves, so the bill stays overdue.
+    UPROPERTY() int32 LateSince = 0;
 };
 
 // A promotion the player runs (MarketPromotions.h). Also used for the wholesaler's pending offer.
@@ -172,6 +194,10 @@ struct FMarketPromotion
     UPROPERTY() int32 Sold = 0;          // units of the promoted products sold while it ran
     UPROPERTY() int32 Baseline = 0;      // units the same days sold before (the report compares)
     UPROPERTY() int64 MarginLost = 0;    // price given away, kurus
+    // G-078 (karar J07): scoped campaigns (Kind = MarketPromotions::EKind::Scoped). Older saves load 0.
+    UPROPERTY() uint8 Scope = 0;         // MarketPromotions::EScope
+    UPROPERTY() FString ScopeKey;        // brand / subcategory / category name the campaign covers
+    UPROPERTY() uint8 Mechanic = 0;      // MarketPromotions::EMechanic
 };
 
 // A competing company in the district (MarketCompetitors.h). Older saves start without them (created on first use).
@@ -190,6 +216,10 @@ struct FMarketCompetitor
     UPROPERTY() int32 WarUntil = 0;
     UPROPERTY() int32 WarCooldownUntil = 0;
     UPROPERTY() int32 Told = 0;          // bit flags of one-time news already told
+    // G-079: days in a row with no money left (the local rival sells out after a month) and a slow average of our
+    // local share the chains watch (they answer a rising shop).
+    UPROPERTY() int32 RedDays = 0;
+    UPROPERTY() float WatchShare = 0.f;
 };
 
 // A choice waiting for the player (MarketEvents.h): story scenes and neighbourhood events.
@@ -228,7 +258,12 @@ struct FMarketStoryState
     UPROPERTY() int64 Beats = 0;             // bit flags of scenes already played
     UPROPERTY() uint8 Identity = 0;          // MarketStory::EIdentity (0 = not chosen)
     UPROPERTY() uint8 Ending = 0;            // MarketStory::EEnding reached last (0 = none)
-    UPROPERTY() TArray<FString> Memories;    // milestones, newest last ("12 Mart 2011: ilk k\u00e2rl\u0131 g\u00fcn")
+    // Karar J02 (Game Dev Tycoon style): the finale is shown once; afterwards the simulation goes on but no new
+    // chapter, scene or story content arrives. Replaces the old chapter 99 trick.
+    UPROPERTY() bool bEnded = false;
+    // Karar J03: the player sold the shop and chose "Burada bitsin": the campaign is over (new game only).
+    UPROPERTY() bool bCampaignOver = false;
+    UPROPERTY() TArray<FString> Memories;    // milestones, newest last ("12 Mart, 1. y\u0131l: ilk k\u00e2rl\u0131 g\u00fcn")
 };
 
 // Units of one product that arrived together and spoil together (MarketFreshness.h).
@@ -283,8 +318,11 @@ struct FMarketBranch
 {
     GENERATED_BODY()
     UPROPERTY() FString Name;
-    UPROPERTY() uint8 District = 0;      // MarketBranches::EDistrict
-    UPROPERTY() FString Format;          // kucuk, mahalle, buyuk (MarketLayout::Fixtures)
+    UPROPERTY() uint8 District = 0;      // G-068 prototype district (unused since G-086; older saves)
+    // G-086: the province the branch is in (MarketCountry) and its country. Older saves: empty = the home province.
+    UPROPERTY() FString Province;
+    UPROPERTY() FString Country;
+    UPROPERTY() FString Format;          // kucuk (ucuzcu), mahalle, buyuk (supermarket), hiper (MarketLayout::Fixtures)
     UPROPERTY() uint8 Stage = 0;         // MarketBranches::EStage
     UPROPERTY() int32 StageUntil = 0;
     UPROPERTY() int32 OpenedDay = 0;
@@ -302,29 +340,66 @@ struct FMarketBranch
     UPROPERTY() int64 LastProfit = 0;
     UPROPERTY() int32 LastShoppers = 0;
     UPROPERTY() int64 WeekProfit = 0;
+    UPROPERTY() int64 Last30Profit = 0;  // running sum over about 30 days
+    // G-086b (Docs/Kurgu/03_MAGAZA_AGI.md \u00a74.1, MarketManagers.h): the manager's hidden style (MarketManagers::EStyle;
+    // 0 = an older save, seeded once), morale (-1 = an older save), warnings, the day they took over (0 = long ago:
+    // no settling-in week), weekly marks in a row, the last bonus and warning, the day the till was found short.
+    UPROPERTY() uint8 ManagerStyle = 0;
+    UPROPERTY() float ManagerMorale = -1.f;
+    UPROPERTY() int32 ManagerWarnings = 0;
+    UPROPERTY() int32 ManagerSince = 0;
+    UPROPERTY() int32 ManagerBadWeeks = 0;
+    UPROPERTY() int32 ManagerGoodWeeks = 0;
+    UPROPERTY() int32 ManagerBonusDay = 0;
+    UPROPERTY() int32 ManagerWarnedDay = 0;
+    UPROPERTY() int32 ManagerCaughtDay = 0;
+    // G-086b ek (M21): the manager's hidden ceiling of skill (55..95). 0 = an older save: MarketManagers::Migrate
+    // derives it once from the skill (+5..20, at most 95).
+    UPROPERTY() int32 ManagerPotential = 0;
 };
 
-// Stores of the company outside L\u00fcleburgaz, one row per city (MarketCompany.h). Aggregate: no shelves, no people
-// walking; revenue, margin and costs per store follow the city, the logistics and the company's buying power.
+// G-072 aggregate city stores (older saves only). G-086 turns every row into real branches in its province
+// (MarketBranches::Migrate) and empties the list.
 USTRUCT()
 struct FMarketCityStores
 {
     GENERATED_BODY()
-    UPROPERTY() uint8 City = 0;             // MarketCompany::ECity
+    UPROPERTY() uint8 City = 0;             // G-072 city index (MarketBranches::Migrate maps it to a province)
     UPROPERTY() int32 Stores = 0;
     UPROPERTY() int32 FirstDay = 0;         // day the first store opened
     UPROPERTY() float Maturity = 0.f;       // 0..1: shoppers' habit (grows over 60 days, a new store dilutes it)
     UPROPERTY() int64 LastProfit = 0;       // all stores of the city, last closed day
     UPROPERTY() int64 Last30Profit = 0;     // running sum over the last 30 days (approximate)
+    // G-077 (#38): deposits actually paid for the open stores (older saves: 0, then the day's value is used once).
+    UPROPERTY() int64 DepositsPaid = 0;
 };
 
-// The company beyond the family shop and its L\u00fcleburgaz branches (MarketCompany.h). Older saves: nothing built.
+// G-089 (karar M23): a big depot in a province (MarketDepots.h). It serves our branches of its country within
+// 600 km; its manager is an FMarketManager of level MarketManagers::ELevel::Depot with the same country and
+// province. Older saves: none (their sub-region depots move here once, MarketDepots::Migrate).
+USTRUCT()
+struct FMarketDepot
+{
+    GENERATED_BODY()
+    UPROPERTY() FString Country;            // pack id
+    UPROPERTY() FString Province;           // MarketCountry::FCity id
+    UPROPERTY() int32 OpenedDay = 0;
+    UPROPERTY() int64 Rent = 0;             // per month, start-level kurus (x the province's rent; paid with the list level)
+    UPROPERTY() int32 Capacity = 60;        // branches it serves well; beyond that it works slower
+    UPROPERTY() int64 WeekLoss = 0;         // goods short or broken on the way this week (at cost)
+    UPROPERTY() int64 WeekSkim = 0;         // goods a dishonest depot manager took this week (at cost)
+    UPROPERTY() FString CaughtName;         // the depot manager caught taking goods (until he is replaced)
+};
+
+// The company beyond the family shop (MarketCompany.h). Older saves: nothing built.
 USTRUCT()
 struct FMarketCompany
 {
     GENERATED_BODY()
     UPROPERTY() TArray<FMarketCityStores> Cities;
-    UPROPERTY() bool bDepot = false;          // regional depot (Trakya)
+    UPROPERTY() bool bDepot = false;          // G-072 single depot (older saves; G-086 moves it to Depots)
+    UPROPERTY() TArray<FString> Depots;       // G-086: sub-regions with a regional depot (older saves; G-089 moves them to DepotSites)
+    UPROPERTY() TArray<FMarketDepot> DepotSites; // G-089: depots in provinces (MarketDepots.h)
     UPROPERTY() int32 Trucks = 0;
     UPROPERTY() bool bCentralBuying = false;  // buying for all stores at once
     UPROPERTY() bool bPrivateLabel = false;   // "Miras" own brand
@@ -332,6 +407,46 @@ struct FMarketCompany
     UPROPERTY() int32 LeadershipDays = 0;     // chapter 7: days leading on every measure in a row
     UPROPERTY() int64 LastProfit = 0;         // all city stores + head office, last closed day
     UPROPERTY() int64 WeekProfit = 0;
+};
+
+// G-086b: a manager above the shops (province / sub-region / main region / country) or the family shop's manager
+// (MarketManagers.h, Docs/Kurgu/03_MAGAZA_AGI.md \u00a74). Store managers of branches live in FMarketBranch.
+USTRUCT()
+struct FMarketManager
+{
+    GENERATED_BODY()
+    UPROPERTY() uint8 Level = 1;            // MarketManagers::ELevel
+    UPROPERTY() FString Country;            // pack id
+    UPROPERTY() FString Area;               // province / sub-region / main region id; the country id; family shop: home province
+    UPROPERTY() FString Name;
+    UPROPERTY() int32 Skill = 50;
+    UPROPERTY() int32 Honesty = 70;
+    UPROPERTY() int64 BaseWage = 0;         // per day, start-level kurus (paid as MarketPrices::WageScaled)
+    UPROPERTY() float Morale = 70.f;
+    UPROPERTY() int32 Warnings = 0;
+    UPROPERTY() int32 AppointedDay = 0;
+    UPROPERTY() int32 BonusDay = 0;
+    UPROPERTY() int32 WarnedDay = 0;
+    UPROPERTY() bool bPromoted = false;     // came up from a store manager
+    // G-086b ek (M19, M21): hidden style (MarketManagers::EStyle; the family shop's manager runs the shop by it;
+    // 0 = an older save, seeded once) and hidden ceiling of skill (55..95; 0 = an older save, derived once).
+    UPROPERTY() uint8 Style = 0;
+    UPROPERTY() int32 Potential = 0;
+};
+
+// G-086b: the management hierarchy (MarketManagers.h). Older saves: nobody appointed.
+USTRUCT()
+struct FMarketManagement
+{
+    GENERATED_BODY()
+    UPROPERTY() TArray<FMarketManager> Managers;
+    UPROPERTY() int32 Hires = 0;            // outside candidates taken so far (seeds the next one)
+    UPROPERTY() int64 LastWages = 0;        // managers' wages of the last closed day
+    UPROPERTY() int64 WeekWages = 0;
+    UPROPERTY() int32 MissingCountryDays = 0; // days a required country manager was missing in a row
+    // G-086b ek (M22): names of managers hired or candidates turned down in this campaign; a candidate never
+    // comes back with one of them.
+    UPROPERTY() TArray<FString> UsedNames;
 };
 
 // Online orders (MarketOnline.h): channels by era, the delivery team and what the last closed day did.
@@ -419,7 +534,9 @@ struct FMarketState
     static constexpr int64 StockerHireCost = 12000;
     static constexpr int64 StockerDailyWage = 2000;
 
-    UPROPERTY() int32 Version = 1;
+    // Save format version. 2 (G-076): story finale flags, test-mode mark. Older saves load and are migrated.
+    static constexpr int32 CurrentVersion = 2;
+    UPROPERTY() int32 Version = CurrentVersion;
     UPROPERTY() int32 Day = 1;
     UPROPERTY() int64 Cash = 35000;
     UPROPERTY() TArray<FMarketStock> Stock;
@@ -427,7 +544,17 @@ struct FMarketState
     // Shelf staff count (older saves load 0).
     UPROPERTY() int32 Stockers = 0;
     UPROPERTY() bool bSecondStore = false;
-    UPROPERTY() bool bRealBrands = true;
+    UPROPERTY() bool bRealBrands = false;   // karar L12: fictional brands close to the real ones; F8 shows real names (development)
+    // G-076: true once free test controls (F2/F3, free orders) were used in this campaign; shown in the menu.
+    UPROPERTY() bool bUsedTestMode = false;
+    // G-078 (#5): the campaign's own shelf plan (planograms.json text), written at every save. Empty in older saves:
+    // they keep Config/planograms.json.
+    UPROPERTY() FString PlanogramJson;
+    // G-084: the country pack (Config/ulkeler.json) and start city of the campaign. Older saves: Turkey.
+    UPROPERTY() FString CountryId = TEXT("tr");
+    UPROPERTY() FString CityId;
+    // G-084: who left the shop (MarketStart.h: teyze, dayi, hala, amca, buyukanne). Empty in older saves = the father.
+    UPROPERTY() FString RelativeKey;
     UPROPERTY() int32 ProfitableDays = 0;
     UPROPERTY() float MarketShare = 25.f;
     UPROPERTY() int64 Revenue = 0;
@@ -497,6 +624,9 @@ struct FMarketState
     UPROPERTY() int64 Marketing = 0;
     // Other costs of today (repairs, fines, a rented generator): paid at the day close with the operating costs.
     UPROPERTY() int64 OtherCosts = 0;
+    // Book losses of today with no cash cost at the close (stock sold below cost, an early-repayment fee paid at
+    // once): taken into the next close's profit so reports and the tax books see them.
+    UPROPERTY() int64 PendingLoss = 0;
     // Competing companies of the district (MarketCompetitors.h).
     UPROPERTY() TArray<FMarketCompetitor> Competitors;
     // Story, choices waiting for the player, lasting effects and the history of events (MarketStory, MarketEvents).
@@ -526,8 +656,10 @@ struct FMarketState
     UPROPERTY() FMarketPayments Payments;
     // Difficulty (MarketSimulation.h): 0 easy, 1 normal, 2 hard. Days played by the strategic advance.
     UPROPERTY() uint8 Difficulty = 1;
-    // Growth beyond L\u00fcleburgaz (MarketCompany.h).
+    // Growth beyond the family shop (MarketCompany.h).
     UPROPERTY() FMarketCompany Company;
+    // G-086b: province, regional and country managers (MarketManagers.h).
+    UPROPERTY() FMarketManagement Management;
     UPROPERTY() int32 AdvancedDays = 0;
     // Local share at the start of the last day close (MarketCompetitors replaces the simple satisfaction update).
     UPROPERTY() float ShareBeforeClose = 25.f;
@@ -541,7 +673,9 @@ struct FMarketState
     bool Order(int32 Index, const TArray<FMarketProduct>& Products);
     // Atomically submits a multi-product order. Cases is indexed like Products; no money or stock is
     // changed when any line is invalid. Returns the paid bill and ordered units when requested.
-    bool SubmitOrder(const TArray<int32>& Cases, const TArray<FMarketProduct>& Products, int64* OutBill = nullptr, int32* OutUnits = nullptr);
+    // CreditAllowance (G-077, #33): what the wholesaler lets us buy on terms beyond the cash in the till
+    // (MarketSuppliers::OrderAllowance). The till may go below zero here; MarketSuppliers::OnOrder gives it back.
+    bool SubmitOrder(const TArray<int32>& Cases, const TArray<FMarketProduct>& Products, int64* OutBill = nullptr, int32* OutUnits = nullptr, int64 CreditAllowance = 0);
     // Rear door -> warehouse. The caller supplies a case-sized limit for visible carrying.
     int32 ReceiveDelivery(int32 Index, int32 MaxUnits = MAX_int32);
     // Warehouse -> shelf, at most MaxUnits (the player moves all that fits, a worker one unit at a time).
@@ -555,6 +689,8 @@ struct FMarketState
     int32 ApplyShelfCapacities(const TArray<int32>& Capacities);
     // TEST MODE: fills the shelf to capacity without using warehouse stock or cash.
     int32 FillShelfFree(int32 Index);
+    // G-078: book cost of one unit of a product (weighted average purchase cost, or today's cost if unknown).
+    int64 UnitCost(int32 Index, const TArray<FMarketProduct>& Products) const;
     // TEST MODE: delivers Units straight to the warehouse (storage limit kept), no cash.
     int32 ReceiveFree(int32 Index, int32 Units);
     int32 DeliveryUnits() const;

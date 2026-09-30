@@ -1,5 +1,6 @@
 #include "MarketBranches.h"
 #include "MarketLayout.h"
+#include "MarketManagers.h"
 #include "MarketStaff.h"
 #include "MarketGoods.h"
 #include "Misc/AutomationTest.h"
@@ -95,23 +96,39 @@ bool FMarketLayoutTest::RunTest(const FString& Parameters)
 IMPLEMENT_SIMPLE_AUTOMATION_TEST(FMarketBranchesTest, "MirasMarket.Branches.OpenAndRun", EAutomationTestFlags::EditorContext | EAutomationTestFlags::EngineFilter)
 bool FMarketBranchesTest::RunTest(const FString& Parameters)
 {
+    // G-086: branches in provinces (no districts), four market types.
     using namespace MarketBranches;
     using namespace MarketBranchesTest;
     const TArray<FMarketProduct> Products = Catalog();
     FMarketState S; S.Initialize(Products); S.RivalSeed = 12; S.Cash = 5000000;
     S.InheritedDebt = 0; S.ProfitableDays = 5; S.MarketShare = 40.f;
+    S.CountryId = TEXT("tr"); S.CityId = TEXT("kirklareli");
     FString Message;
 
-    TestFalse(TEXT("Not in the family shop's district"), CanOpen(S, Products, EDistrict::Istasyon, TEXT("mahalle"), Message));
+    TestEqual(TEXT("Four market types"), FormatIds().Num(), 4);
+    TestEqual(TEXT("kucuk is the discounter"), FString(FormatInfo(TEXT("kucuk")).Short), FString(TEXT("Ucuzcu")));
+    const FSite Home = SiteOf(S, TEXT("tr"), TEXT("kirklareli"));
+    TestTrue(TEXT("Home province"), Home.bValid && Home.bHome && !Home.bAbroad);
+    TestTrue(TEXT("Room from the population"), Room(Home) == FMath::Max(2, Home.PopulationK / PeoplePerStoreK));
     FMarketState Poor = S; Poor.InheritedDebt = 100;
-    TestFalse(TEXT("The debt first"), CanOpen(Poor, Products, EDistrict::Carsi, TEXT("mahalle"), Message));
-    const int64 Cost = OpeningCost(S, Products, EDistrict::Carsi, TEXT("mahalle"));
-    TestTrue(TEXT("Opening costs deposit + fit-out + stock"), Cost > 2 * 90000 + 400000);
-    TestTrue(TEXT("Open in \u00c7ar\u015f\u0131"), Open(S, Products, EDistrict::Carsi, TEXT("mahalle"), Message));
+    TestFalse(TEXT("The debt first"), CanOpen(Poor, Products, TEXT("tr"), TEXT("kirklareli"), TEXT("mahalle"), Message));
+    TestFalse(TEXT("Beyond the home province: HR and an accountant"), CanOpen(S, Products, TEXT("tr"), TEXT("tekirdag"), TEXT("mahalle"), Message));
+    TestFalse(TEXT("Hypermarket waits for its chapter"), CanOpen(S, Products, TEXT("tr"), TEXT("kirklareli"), TEXT("hiper"), Message));
+    TestFalse(TEXT("Unknown province"), CanOpen(S, Products, TEXT("tr"), TEXT("atlantis"), TEXT("mahalle"), Message));
+    const int64 Cost = OpeningCost(S, Products, TEXT("tr"), TEXT("kirklareli"), TEXT("mahalle"));
+    TestTrue(TEXT("Opening costs deposit + fit-out + stock"), Cost > 2 * 60000 + 400000);
+    TestTrue(TEXT("Open in the home province"), Open(S, Products, TEXT("tr"), TEXT("kirklareli"), TEXT("mahalle"), Message));
     TestTrue(TEXT("A branch exists"), S.Branches.Num() == 1 && S.bSecondStore && S.Branches[0].Stage == static_cast<uint8>(EStage::Renovation));
-    TestFalse(TEXT("One shop per district"), CanOpen(S, Products, EDistrict::Carsi, TEXT("mahalle"), Message));
+    TestEqual(TEXT("In its province"), S.Branches[0].Province, FString(TEXT("kirklareli")));
+    TestTrue(TEXT("Named after the province and type"), S.Branches[0].Name.Contains(TEXT("Mahalle 1")));
+    TestEqual(TEXT("Family shop + branch"), ShopsIn(S, TEXT("tr"), TEXT("kirklareli")), 2);
     TestTrue(TEXT("Shelves planned"), S.Branches[0].Items.ContainsByPredicate([](const FMarketBranchItem& I) { return I.Capacity > 0; }));
-    TestTrue(TEXT("Neighbour branch takes a little from the family shop"), MainShopFactor(S) >= 1.f); // not open yet
+    TestTrue(TEXT("Not open yet: no effect on the family shop"), MainShopFactor(S) >= 1.f);
+    {
+        FString Country, Province, Format;
+        const int32 Arg = EncodeSite(TEXT("tr"), TEXT("van"), TEXT("buyuk"));
+        TestTrue(TEXT("Site round trip"), DecodeSite(Arg, Country, Province, Format) && Country == TEXT("tr") && Province == TEXT("van") && Format == TEXT("buyuk"));
+    }
 
     // Renovation (5) -> permits (3 + 3 without an accountant) -> hiring -> open.
     for (int32 D = 0; D < 20 && S.Branches[0].Stage != static_cast<uint8>(EStage::Open); ++D) Close(S, Products);
@@ -120,11 +137,10 @@ bool FMarketBranchesTest::RunTest(const FString& Parameters)
     TestTrue(TEXT("Stocked"), S.Branches[0].Items.ContainsByPredicate([](const FMarketBranchItem& I) { return I.Units > 0; }));
     TestTrue(TEXT("Now it takes a little from the family shop"), MainShopFactor(S) < 1.f);
     FMarketState Second = S;
-    TestFalse(TEXT("Third shop needs HR"), [&] { Open(Second, Products, EDistrict::Kocasinan, TEXT("kucuk"), Message); return CanOpen(Second, Products, EDistrict::Sanayi, TEXT("kucuk"), Message); }());
+    TestFalse(TEXT("Third shop needs HR"), [&] { Open(Second, Products, TEXT("tr"), TEXT("kirklareli"), TEXT("kucuk"), Message); return CanOpen(Second, Products, TEXT("tr"), TEXT("kirklareli"), TEXT("kucuk"), Message); }());
 
     // A month of business.
-    int64 MonthProfit = 0;
-    for (int32 D = 0; D < 35; ++D) { Close(S, Products); MonthProfit += S.Branches[0].LastProfit; }
+    for (int32 D = 0; D < 35; ++D) Close(S, Products);
     const FMarketBranch& Branch = S.Branches[0];
     TestTrue(TEXT("Shoppers come"), Branch.LastShoppers > 20);
     TestTrue(TEXT("Revenue"), Branch.LastRevenue > 0);
@@ -132,6 +148,32 @@ bool FMarketBranchesTest::RunTest(const FString& Parameters)
     TestTrue(TEXT("The manager keeps it stocked"), Branch.Items.ContainsByPredicate([](const FMarketBranchItem& I) { return I.Capacity > 0 && I.Units > 0; }));
     TestTrue(TEXT("Branch result reaches the day's net"), S.LastBranchProfit == Branch.LastProfit);
     TestFalse(TEXT("Summary"), Summary(S, 0, Products).IsEmpty());
+    TestTrue(TEXT("A weekly mark"), Grade(S, 0) != TEXT("-"));
+
+    // G-086b: the manager's style decides the waste. The same day with a careful and a generous manager: the
+    // generous one throws more away, and what is thrown away (already paid) comes off the branch's result exactly.
+    {
+        FMarketState CarefulDay = S;
+        FMarketState GenerousDay = S;
+        CarefulDay.Branches[0].ManagerStyle = static_cast<uint8>(MarketManagers::EStyle::Careful);
+        GenerousDay.Branches[0].ManagerStyle = static_cast<uint8>(MarketManagers::EStyle::Generous);
+        MarketBranches::CloseDay(CarefulDay, Products);
+        MarketBranches::CloseDay(GenerousDay, Products);
+        const TArray<FMarketBranchItem>& KeptItems = CarefulDay.Branches[0].Items;
+        const TArray<FMarketBranchItem>& WastedItems = GenerousDay.Branches[0].Items;
+        int32 MoreThrown = 0;
+        int64 ThrownCost = 0;
+        for (int32 K = 0; K < KeptItems.Num() && K < WastedItems.Num(); ++K)
+        {
+            const FString& ItemId = KeptItems[K].ProductId;
+            const FMarketProduct* Goods = Products.FindByPredicate([&ItemId](const FMarketProduct& X) { return X.Id == ItemId; });
+            const int32 Diff = KeptItems[K].Units - WastedItems[K].Units;
+            MoreThrown += Diff;
+            if (Goods) ThrownCost += Goods->Cost * Diff;
+        }
+        TestTrue(TEXT("A generous manager throws more away"), MoreThrown >= 0);
+        TestEqual(TEXT("Waste costs the goods thrown away"), CarefulDay.Branches[0].LastProfit - GenerousDay.Branches[0].LastProfit, ThrownCost);
+    }
 
     // Promote a worker, then close the branch.
     FMarketEmployee Worker; Worker.Id = 77; Worker.Name = TEXT("Selin Kaya"); Worker.Role = static_cast<uint8>(MarketStaff::ERole::Cashier); Worker.Skill = 70; Worker.DailyWage = 2200; Worker.HiredDay = 1;
@@ -139,13 +181,32 @@ bool FMarketBranchesTest::RunTest(const FString& Parameters)
     TestTrue(TEXT("Promote"), Promote(S, 77, 0, Message));
     TestTrue(TEXT("Now the manager"), S.Branches[0].ManagerName == TEXT("Selin Kaya") && !MarketStaff::FindEmployee(S, 77));
     const int64 CashBefore = S.Cash;
-    TestTrue(TEXT("Close"), Close(S, 0, Message));
+    TestTrue(TEXT("Close"), MarketBranches::Close(S, Products, 0, Message));
     TestTrue(TEXT("Deposit back"), S.Cash > CashBefore && !S.bSecondStore);
 
-    // Old saves with the aggregate second shop become a mature branch.
+    // Older saves: the aggregate second shop becomes a mature branch in the home province.
     FMarketState Old; Old.Initialize(Products); Old.bSecondStore = true; Old.Cash = 1000000;
     Close(Old, Products);
     TestTrue(TEXT("Migrated"), Old.Branches.Num() == 1 && Old.Branches[0].Stage == static_cast<uint8>(EStage::Open) && Old.Branches[0].Maturity >= 1.f);
+    TestEqual(TEXT("Older saves live in Kirklareli"), Old.Branches[0].Province, FString(TEXT("kirklareli")));
+
+    // G-072 city stores: Corlu -> Tekirdag branches, Kircaali closes with its deposit back, the depot moves.
+    FMarketState Cities; Cities.Initialize(Products); Cities.Cash = 1000000; Cities.Day = 40;
+    FMarketCityStores Corlu; Corlu.City = 2; Corlu.Stores = 2; Corlu.FirstDay = 5; Corlu.Maturity = 0.8f; Cities.Company.Cities.Add(Corlu);
+    FMarketCityStores Kircaali; Kircaali.City = 12; Kircaali.Stores = 1; Kircaali.DepositsPaid = 300000; Cities.Company.Cities.Add(Kircaali);
+    Cities.Company.bDepot = true;
+    const int64 CitiesCash = Cities.Cash;
+    Migrate(Cities, Products);
+    TestEqual(TEXT("Two Tekirdag branches"), Cities.Branches.FilterByPredicate([](const FMarketBranch& B) { return B.Province == TEXT("tekirdag"); }).Num(), 2);
+    // G-086b ek (M22): every migrated branch gets its own manager from the candidates, never the same name twice.
+    const TArray<FMarketBranch> TekirdagRows = Cities.Branches.FilterByPredicate([](const FMarketBranch& B) { return B.Province == TEXT("tekirdag"); });
+    TestTrue(TEXT("Different managers"), TekirdagRows.Num() == 2 && !TekirdagRows[0].ManagerName.IsEmpty() && TekirdagRows[0].ManagerName != TekirdagRows[1].ManagerName
+        && TekirdagRows[0].ManagerSince == 0 && Cities.Management.UsedNames.Contains(TekirdagRows[1].ManagerName));
+    TestEqual(TEXT("City rows gone"), Cities.Company.Cities.Num(), 0);
+    TestEqual(TEXT("Abroad deposit back"), Cities.Cash - CitiesCash, static_cast<int64>(300000));
+    // G-089: the Trakya depot moved to the province of Trakya with most of our shops (Tekirdag: two branches).
+    TestTrue(TEXT("The depot is in Trakya"), Cities.Company.DepotSites.Num() == 1 && Cities.Company.DepotSites[0].Province == TEXT("tekirdag")
+        && Cities.Company.Depots.Num() == 0 && !Cities.Company.bDepot);
     return true;
 }
 

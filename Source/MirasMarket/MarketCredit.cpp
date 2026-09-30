@@ -1,4 +1,5 @@
 #include "MarketCredit.h"
+#include "MarketCountry.h"
 #include "MarketCalendar.h"
 #include "MarketPrices.h"
 #include "MarketStory.h"
@@ -16,8 +17,7 @@ namespace MarketCredit
 
     FString CreditTl(int64 Kurus)
     {
-        const int64 Abs = Kurus < 0 ? -Kurus : Kurus;
-        return FString::Printf(TEXT("%s%lld,%02lld TL"), Kurus < 0 ? TEXT("-") : TEXT(""), static_cast<long long>(Abs / 100), static_cast<long long>(Abs % 100));
+        return MarketCountry::Money(Kurus); // G-084: the active country\'s currency
     }
 
     FMarketLoyalty* Customer(FMarketState& State, int32 CustomerId)
@@ -86,12 +86,11 @@ bool MarketCredit::SetLimit(FMarketState& State, int32 Step, FString& OutMessage
 int64 MarketCredit::CollectAll(FMarketState& State, FString& OutMessage)
 {
     int64 Paid = 0;
-    int32 Index = 0;
     for (FMarketCreditAccount& A : State.Credit)
     {
         if (A.Balance <= 0) continue;
-        // Half of them can pay at once.
-        if (CreditMix(State.RivalSeed, State.Day, 0xC011u + static_cast<uint32>(Index++)) % 2u == 0u) { Paid += A.Balance; A.Balance = 0; }
+        // Half of them can pay at once. The roll belongs to the neighbour and the day: asking twice does not help.
+        if (CreditMix(State.RivalSeed, State.Day, 0xC011u + static_cast<uint32>(A.CustomerId)) % 2u == 0u) { Paid += A.Balance; A.Balance = 0; }
         if (FMarketLoyalty* L = Customer(State, A.CustomerId)) L->Satisfaction = FMath::Max(0.f, L->Satisfaction - 6.f);
     }
     State.Cash += Paid;

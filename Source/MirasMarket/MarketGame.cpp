@@ -1,5 +1,8 @@
 #include "MarketGame.h"
 #include "MarketWorldText.h"
+#include "MarketCountry.h"
+#include "MarketStart.h"
+#include "MarketCalendar.h"
 #include "MarketVisuals.h"
 #include "ProductCatalog.h"
 #include "Camera/CameraComponent.h"
@@ -21,6 +24,7 @@
 #include "Kismet/KismetSystemLibrary.h"
 #include "Materials/Material.h"
 #include "Materials/MaterialInstanceDynamic.h"
+#include "Misc/ConfigCacheIni.h"
 #include "Misc/FileHelper.h"
 #include "Misc/Paths.h"
 #include "Misc/CommandLine.h"
@@ -29,12 +33,8 @@
 namespace
 {
     // Price tags and notices: "2.40 TL".
-    FString Money(int64 Value) { return MarketCatalog::Money(Value) + TEXT(" TL"); }
+    FString Money(int64 Value) { return MarketCountry::Money(Value); } // G-084
     AMarketGameMode* GetMarket(const AActor* Actor) { return Cast<AMarketGameMode>(UGameplayStatics::GetGameMode(Actor)); }
-    const TCHAR* MarketSaveSlot()
-    {
-        return FParse::Param(FCommandLine::Get(), TEXT("MirasSmoke")) ? TEXT("MirasMarket_TestOnly") : TEXT("MirasMarket_Campaign_v1");
-    }
 }
 
 AMarketCharacter::AMarketCharacter()
@@ -87,7 +87,14 @@ void AMarketCharacter::SetupPlayerInputComponent(UInputComponent* Input)
         TEXT("ArrangeNext"), TEXT("ArrangePrev"), TEXT("ArrangeGapDown"), TEXT("ArrangeGapUp"), TEXT("PrevProduct"),
         TEXT("HireStocker"), TEXT("FireStocker"), TEXT("PayDebt"), TEXT("ConfirmOrder"), TEXT("RemoveOrder"), TEXT("SuggestOrder"), TEXT("Menu") };
     for (const TCHAR* Name : Forwarded)
-        Input->BindAction<FMarketCommandDelegate>(FName(Name), IE_Pressed, this, &AMarketCharacter::SendCommand, FName(Name));
+    {
+        FInputActionBinding& Binding = Input->BindAction<FMarketCommandDelegate>(FName(Name), IE_Pressed, this, &AMarketCharacter::SendCommand, FName(Name));
+        Binding.bExecuteWhenPaused = FCString::Strcmp(Name, TEXT("Menu")) == 0; // the menu opens while time stands still
+    }
+    // G-075 game speed: Space pauses, 1/2/3 set the speed. They work while the world is paused.
+    static const TCHAR* TimeKeys[] = { TEXT("TimePause"), TEXT("Speed1"), TEXT("Speed2"), TEXT("Speed3") };
+    for (const TCHAR* Name : TimeKeys)
+        Input->BindAction<FMarketCommandDelegate>(FName(Name), IE_Pressed, this, &AMarketCharacter::SendCommand, FName(Name)).bExecuteWhenPaused = true;
 }
 void AMarketCharacter::SendCommand(FName Action) { if (auto* Game = GetMarket(this)) Game->Command(Action); }
 void AMarketCharacter::Forward(float Value) { AddMovementInput(GetActorForwardVector(), Value); }
@@ -140,6 +147,7 @@ void AMarketGameMode::BeginPlay()
     LoadPlanogram();
     State.Initialize(Products);
     State.RivalSeed = FMath::Rand();
+    MarketCountry::SetActive(State.CountryId, State.RivalSeed); // G-084: currency and economy of the country pack
     RefreshPrices();
     RivalAisles = MarketRivals::Aisles(Products);
     OrderDraftCases.Init(0, Products.Num());
@@ -182,9 +190,23 @@ void AMarketGameMode::BeginPlay()
     }
     Random.Initialize(2011);
     RefreshLabels();
-    Notify(bTestMode
-        ? FString(TEXT("TEST MODU: raflar bos. E rafi bedava doldurur, F3 hepsini doldurur, F2 kapatir. O ile ac."))
-        : FString(TEXT("2011, L\u00fcleburgaz. Babandan kalan market art\u0131k senin; defterinde toptanc\u0131ya 300 TL bor\u00e7 yaz\u0131yor. Raflara yakla\u015f: E. Sonra O ile a\u00e7.")));
+    // G-076: the last used slot comes back by itself, so a forgotten F9 never overwrites a long campaign.
+    const bool bAutomation = FParse::Param(FCommandLine::Get(), TEXT("MirasSmoke")) || FParse::Param(FCommandLine::Get(), TEXT("MirasCapture"));
+    int32 LastSlot = 1;
+    if (!bAutomation && GConfig && GConfig->GetInt(TEXT("MirasMarket.Menu"), TEXT("LastSlot"), LastSlot, GGameUserSettingsIni)) ActiveSlot = FMath::Clamp(LastSlot, 1, SlotCount);
+    RefreshSlotSummaries();
+    const int32 DayBefore = State.Day;
+    if (!bAutomation && SlotExists(ActiveSlot)) LoadCampaign(true);
+    if (bTestMode) State.bUsedTestMode = true;
+    if (State.Day != DayBefore) { UE_LOG(LogTemp, Display, TEXT("MirasMarket: slot %d loaded (day %d)."), ActiveSlot, State.Day); return; }
+    if (bAutomation)
+    {
+        // Smoke / capture runs keep the prototype's empty shop and never wait for a choice.
+        StartShop();
+        SyncWorkers();
+        Notify(FString(TEXT("Aileden kalan market art\u0131k senin. Raflara yakla\u015f: E. Sonra O ile a\u00e7.")));
+    }
+    else bNeedStart = true; // G-086: no save yet; the new-game screen (country and province) opens in Tick
     UE_LOG(LogTemp, Display, TEXT("MirasMarket ready: %d products, %d fixtures, starting cash %lld kurus."), Products.Num(), Planogram.Fixtures.Num(), State.Cash);
 }
 
@@ -236,8 +258,22 @@ void AMarketGameMode::ApplyCapacities()
         // 0 = not on a shelf: no shelf stock, customers do not ask for it (units wait in the warehouse).
         Capacities.Add(MarketPlanogram::ProductCapacity(Planogram, Products, Product.Id));
     }
+    TArray<int32> HeldBefore;
+    for (const FMarketStock& Item : State.Stock) HeldBefore.Add(Item.Shelf + Item.Warehouse);
     const int32 Discarded = State.ApplyShelfCapacities(Capacities);
-    if (Discarded > 0) UE_LOG(LogTemp, Warning, TEXT("MirasMarket: %d units did not fit shelf + storage after a planogram change."), Discarded);
+    if (Discarded <= 0) return;
+    // Paid-for units that fit neither the smaller shelf nor the full depot go back to the wholesaler at half price:
+    // the other half is a loss the next day report shows.
+    int64 Refund = 0;
+    for (int32 I = 0; I < State.Stock.Num() && I < HeldBefore.Num() && I < Products.Num(); ++I)
+    {
+        const int32 Gone = HeldBefore[I] - (State.Stock[I].Shelf + State.Stock[I].Warehouse);
+        if (Gone > 0) Refund += static_cast<int64>(Gone) * State.UnitCost(I, Products) / 2;
+    }
+    State.Cash += Refund;
+    State.PendingLoss += Refund;
+    UE_LOG(LogTemp, Warning, TEXT("MirasMarket: %d units did not fit shelf + storage after a planogram change."), Discarded);
+    Notify(FString::Printf(TEXT("Rafa ve depoya s\u0131\u011fmayan %d \u00fcr\u00fcn toptanc\u0131ya yar\u0131 fiyat\u0131na geri verildi (%s)."), Discarded, *Money(Refund)));
 }
 
 int32 AMarketGameMode::FillAllShelves()
@@ -344,7 +380,7 @@ void AMarketGameMode::BuildStore()
     Label(FVector(0, -1635, 270), FRotator(0, 90, 0), TEXT("BEREKET MARKET\nRakibin buyumeye hazirlaniyor"), 40, FColor(250, 185, 64));
     // Store name on a terracotta band above the depot.
     SurfaceBox(FVector(0, Back - 12, 300), FVector(560, 3, 46), EMarketSurface::SignRed, false);
-    Label(FVector(0, Back - 13.8f, 300), FRotator(0, -90, 0), TEXT("MIRAS MARKET  /  LULEBURGAZ 2011"), 24, FColor::White, true);
+    Label(FVector(0, Back - 13.8f, 300), FRotator(0, -90, 0), TEXT("MIRAS MARKET"), 24, FColor::White, true);
     // The textured floor carries its own tile joints; the plain fallback gets thin grout strips.
     if (!bTextured)
     {
@@ -804,7 +840,7 @@ FString AMarketGameMode::DayProblemsText() const
             Lines.Add(FString::Printf(TEXT("\u2022 %s rafta bitti: %d m\u00fc\u015fteri eli bo\u015f d\u00f6nd\u00fc. Depodan doldur veya sipari\u015f ver."), *Shown, Problem.Count));
             break;
         case MarketDemand::EProblem::Expensive:
-            Lines.Add(FString::Printf(TEXT("\u2022 %d m\u00fc\u015fteri %s fiyat\u0131n\u0131 pahal\u0131 buldu. Masada rakip fiyat\u0131na bak."), Problem.Count, *Shown));
+            Lines.Add(FString::Printf(TEXT("\u2022 %d m\u00fc\u015fteri %s fiyat\u0131n\u0131 pahal\u0131 buldu. Men\u00fcde \u00dcr\u00fcnler ve fiyat sayfas\u0131nda rakip fiyat\u0131na bak."), Problem.Count, *Shown));
             break;
         }
     }
@@ -886,7 +922,7 @@ FString AMarketGameMode::ContextHint() const
     }
     if (const int32 Delivery = NearbyDelivery(); Delivery != INDEX_NONE)
         return FString::Printf(TEXT("E: %s kolisini al  \u00b7  depoya gotur"), *ProductName(Delivery));
-    if (NearOffice()) return FString::Printf(TEXT("B: %d adetlik koliyi listeye ekle   \u00b7   V azalt   \u00b7   L \u00f6neri   \u00b7   N sipari\u015fi onayla   \u00b7   TAB \u00fcr\u00fcn   \u00b7   +/- fiyat"), Products[Selected].CaseUnits);
+    if (NearOffice()) return TEXT("E: Y\u00f6netim men\u00fcs\u00fcn\u00fc a\u00e7 (sipari\u015f, fiyat, personel, finans)");
     if (NearCounter()) return FString::Printf(TEXT("E: S\u0131radaki m\u00fc\u015fterinin \u00f6demesini al   \u00b7   bekleyen %d"), QueueSize());
     const int32 I = NearbyShelf();
     if (I != INDEX_NONE)
@@ -898,7 +934,7 @@ FString AMarketGameMode::ContextHint() const
             + Arrange;
     }
     if (!bOpen && NearbyFixture() != INDEX_NONE) return TEXT("R: Bu reyonu diz (\u00fcr\u00fcn koy, s\u0131rala, kald\u0131r)");
-    return TEXT("Raf, kasa veya y\u00f6netim masas\u0131na yakla\u015f.");
+    return TEXT("M: Y\u00f6netim men\u00fcs\u00fc   \u00b7   raf, kasa veya arka kap\u0131ya yakla\u015f");
 }
 void AMarketGameMode::RefreshLabels()
 {
@@ -919,10 +955,19 @@ void AMarketGameMode::Command(FName Action)
     if (CategoryCommand(Action)) return;
     if (StoreTourCommand(Action)) return;
     if (Action == "Menu") { OpenMenu(MenuPage); return; } // G-059: clickable management menu (MarketMenu.cpp)
+    if (Action == "TimePause") { SetTimePaused(!bTimePaused); return; } // G-075 game speed (MarketMenu.cpp)
+    if (Action == "Speed1" || Action == "Speed2" || Action == "Speed3") { SetGameSpeed(Action == "Speed1" ? 1 : Action == "Speed2" ? 2 : 3); return; }
     if (ArrangeCommand(Action)) return; // R mode: aim + click/E, wheel/TAB/Q, +/-, Y, U, F, C, DEL, arrows (MarketArrange.cpp)
     if (Action == "ToggleShop")
     {
         if (bOpen) CloseShop();
+        else if (State.Story.bCampaignOver) Notify(TEXT("Bu kampanya bitti (Satt\u0131n). Yeni oyun i\u00e7in F6'ya iki kez bas ya da men\u00fcden ba\u015fka bir kay\u0131t yuvas\u0131 se\u00e7."));
+        else if (MarketCalendar::ClosedByLaw(State.Day))
+        {
+            // G-084: the country's law keeps shops shut today; the day passes closed (wages and rent still run).
+            CloseShop();
+            Notify(TEXT("Bug\u00fcn yasal tatil: d\u00fckk\u00e2nlar kapal\u0131, g\u00fcn m\u00fc\u015fterisiz ge\u00e7ti. Yar\u0131n a\u00e7abilirsin."));
+        }
         else
         {
             bOpen = true; DayTime = 0; SpawnTimer = 1; AutoCheckoutTimer = 0; NextQueueTicket = 0;
@@ -938,7 +983,7 @@ void AMarketGameMode::Command(FName Action)
             if (StartPlayerDelivery(Delivery)) Notify(FString::Printf(TEXT("%s kolisini aldin. Arka depodaki kabul noktasina gotur ve E'ye bas."), *ProductName(Delivery)));
         }
         else if (NearCounter()) Checkout();
-        else if (NearOffice()) Notify(TEXT("TAB/Q: urun sec / B: listeye koli ekle / V: azalt / L: onerilen siparis / N: siparisi onayla (en az 50 TL) / +/-: fiyat / H: kasiyer / J: reyon gorevlisi / P: borc ode (50 TL) / M: menu (personel, vergi)"));
+        else if (NearOffice()) OpenMenu(0); // the desk is where the management menu lives (Ozet)
         else if (const int32 I = NearbyShelf(); I != INDEX_NONE)
         {
             Selected = I;
@@ -951,7 +996,7 @@ void AMarketGameMode::Command(FName Action)
             else
             {
                 const int32 Count = State.Restock(I);
-                Notify(Count > 0 ? FString::Printf(TEXT("%d adet rafa yerlestirildi."), Count) : FString(TEXT("Raf dolu veya depo bos. Yonetim masasindan siparis ver.")));
+                Notify(Count > 0 ? FString::Printf(TEXT("%d adet rafa yerlestirildi."), Count) : FString(TEXT("Raf dolu ya da depo bo\u015f. M ile men\u00fcy\u00fc a\u00e7, Sipari\u015f sayfas\u0131ndan sipari\u015f ver.")));
             }
             RefreshLabels();
         }
@@ -979,6 +1024,7 @@ void AMarketGameMode::Command(FName Action)
     {
         if (FParse::Param(FCommandLine::Get(), TEXT("MirasSmoke"))) return;
         bTestMode = !bTestMode;
+        if (bTestMode) State.bUsedTestMode = true;
         const int32 Added = bTestMode ? FillAllShelves() : 0;
         RefreshLabels();
         Notify(bTestMode ? FString::Printf(TEXT("TEST MODU acik: tum raflar dolduruldu (+%d). E bedava doldurur, B bedava ve aninda depoya getirir."), Added)
@@ -1011,13 +1057,13 @@ void AMarketGameMode::Command(FName Action)
         }
         else
         {
-            State.Initialize(CatalogBase); State.RivalSeed = FMath::Rand(); RefreshPrices(); bWeekJustEnded = false; ApplyCapacities(); SyncWorkers(); ResetWorkerJobs(); OrderDraftCases.Init(0, Products.Num()); RefreshDeliveryCrates();
-            RefreshLabels(); ResetConfirmUntil = -1; Notify(TEXT("Yeni kampanya basladi. Raflar bos; urunleri depodan sen yerlestir ve O ile ac."));
+            ResetConfirmUntil = -1;
+            AskNewGame(); // G-086: country and province first
         }
     }
     else
     {
-        if (!NearOffice() && !bMenuAction) { Notify(TEXT("Bu karar icin giristeki YONETIM MASASI'na yaklas ya da M ile menuyu ac.")); return; }
+        if (!NearOffice() && !bMenuAction) { Notify(TEXT("Bu karar i\u00e7in M ile y\u00f6netim men\u00fcs\u00fcn\u00fc a\u00e7.")); return; }
         if (Action == "NextProduct") Selected = (Selected + 1) % Products.Num();
         else if (Action == "PrevProduct") Selected = (Selected + Products.Num() - 1) % Products.Num();
         else if (Action == "Order" && bTestMode)
@@ -1047,16 +1093,16 @@ void AMarketGameMode::Command(FName Action)
             Notify(Changed > 0 ? FString::Printf(TEXT("\u00d6nerilen sipari\u015f listeye yaz\u0131ld\u0131 (%d \u00fcr\u00fcn). N ile onayla.\n"), Changed) + OrderDraftSummary()
                                : FString(TEXT("\u00d6neriye g\u00f6re ek koli gerekmiyor: raf, depo, arka kap\u0131 ve yoldaki mal yeterli.")));
         }
-        else if (Action == "ConfirmOrder" && OrderDraftCaseCount() > 0 && OrderDraftBill() < MarketOrderAdvice::MinimumOrder)
+        else if (Action == "ConfirmOrder" && OrderDraftCaseCount() > 0 && OrderDraftBill() < MarketOrderAdvice::MinimumOrderOn(State.Day))
         {
             Notify(FString::Printf(TEXT("Toptanc\u0131 en az %s sipari\u015fle gelir; liste \u015fu an %s. Koli ekle (B) veya \u00f6neriyi yaz (L)."),
-                *Money(MarketOrderAdvice::MinimumOrder), *Money(OrderDraftBill())));
+                *Money(MarketOrderAdvice::MinimumOrderOn(State.Day)), *Money(OrderDraftBill())));
         }
         else if (Action == "ConfirmOrder")
         {
             int64 Bill = 0;
             int32 Units = 0;
-            if (State.SubmitOrder(OrderDraftCases, Products, &Bill, &Units))
+            if (State.SubmitOrder(OrderDraftCases, Products, &Bill, &Units, MarketDirector::OrderAllowance(State))) // G-077: terms count
             {
                 OrderDraftCases.Init(0, Products.Num());
                 const FString Terms = MarketDirector::OnOrder(State, Bill); // wholesaler volume and payment terms
@@ -1085,7 +1131,7 @@ void AMarketGameMode::Command(FName Action)
         }
         else if (Action == "PayDebt")
         {
-            if (!MarketCampaign::DebtOpen(State)) Notify(TEXT("Baban\u0131n borcu kapand\u0131; defterde \u00f6denecek bir \u015fey kalmad\u0131."));
+            if (!MarketCampaign::DebtOpen(State)) Notify(TEXT("\u0130\u015fletmenin borcu kapand\u0131; defterde \u00f6denecek bir \u015fey kalmad\u0131."));
             else if (const int64 Paid = MarketCampaign::PayDebt(State); Paid > 0)
                 Notify(MarketCampaign::DebtOpen(State)
                     ? FString::Printf(TEXT("Toptanc\u0131ya %s \u00f6dendi. Kalan bor\u00e7 %s."), *Money(Paid), *Money(State.InheritedDebt))
@@ -1094,11 +1140,11 @@ void AMarketGameMode::Command(FName Action)
         }
         else if (Action == "Expand")
         {
-            // G-068: G opens a real branch in \u00c7ar\u015f\u0131; the menu's \u015eubeler page has every district and format.
+            // G-086: G opens a neighbourhood market in the home province; the map has every province and type.
             FString Text;
             if (MarketCampaign::DebtOpen(State))
-                Text = FString::Printf(TEXT("\u00d6nce baban\u0131n borcunu kapat (kalan %s, masada P). Bor\u00e7lu d\u00fckk\u00e2n b\u00fcy\u00fcyemez."), *Money(State.InheritedDebt));
-            else MarketDirector::Command(State, Products, TEXT("OpenBranch"), static_cast<int32>(MarketBranches::EDistrict::Carsi) * 10 + 1, Text);
+                Text = FString::Printf(TEXT("\u00d6nce i\u015fletmenin borcunu kapat (kalan %s; men\u00fcde \u00d6zet \u203a \u00f6de). Bor\u00e7lu d\u00fckk\u00e2n b\u00fcy\u00fcyemez."), *Money(State.InheritedDebt));
+            else MarketDirector::Command(State, Products, TEXT("OpenBranch"), MarketBranches::EncodeSite(State.CountryId, MarketStart::HomeProvince(State), TEXT("mahalle")), Text);
             Notify(Text);
         }
     }
@@ -1200,8 +1246,15 @@ void AMarketGameMode::ResolveCustomerItem(FMarketCustomer& Customer)
         // The wallet: take fewer when the money runs out; nothing at all counts as "too expensive" for this shopper.
         PaidUnit = MarketPromotions::UnitPrice(State, Products, Visit.Product, Visit.Quantity);
         Visit.Quantity = MarketCustomers::Affordable(Customer.BudgetLeft, PaidUnit, Visit.Quantity);
+        // A smaller quantity can lose the "3 al 2 ode" price: settle on a quantity whose own price fits the wallet.
+        while (Visit.Quantity > 0)
+        {
+            PaidUnit = MarketPromotions::UnitPrice(State, Products, Visit.Product, Visit.Quantity);
+            if (PaidUnit * Visit.Quantity <= Customer.BudgetLeft) break;
+            --Visit.Quantity;
+        }
         if (Visit.Quantity <= 0) Visit.Result = MarketDemand::EVisit::Expensive;
-        else { PaidUnit = MarketPromotions::UnitPrice(State, Products, Visit.Product, Visit.Quantity); Customer.BudgetLeft -= PaidUnit * Visit.Quantity; }
+        else Customer.BudgetLeft -= PaidUnit * Visit.Quantity;
     }
     if (Visit.Result == MarketDemand::EVisit::Buy)
     {
@@ -1288,10 +1341,13 @@ void AMarketGameMode::Tick(float DeltaTime)
 {
     Super::Tick(DeltaTime);
     if (bStoreTour) { TickStoreTour(); return; }
-    MessageTime = FMath::Max(0.f, MessageTime - DeltaTime);
+    if (bNeedStart && !bMenuOpen) OpenMenu(0); // G-086: the new-game screen waits for a province
+    // Notices fade in real seconds, whatever the game speed (G-075).
+    const float RealDelta = DeltaTime / FMath::Max(0.01f, UGameplayStatics::GetGlobalTimeDilation(this));
+    MessageTime = FMath::Max(0.f, MessageTime - RealDelta);
     TickArrange();
     TickPlayerDelivery();
-    ReportTime = FMath::Max(0.f, ReportTime - DeltaTime);
+    ReportTime = FMath::Max(0.f, ReportTime - RealDelta);
     if (!TickAutomation()) return; // -MirasSmoke / -MirasCapture runs (MarketAutomation.cpp)
     TickWorkers(DeltaTime); // shelf staff work whether the shop is open or not (MarketWorkers.cpp)
     if (!bOpen) return;
@@ -1439,8 +1495,10 @@ void AMarketGameMode::CloseShop()
     // No reserved goods have left inventory. Unfinished baskets are lost sales.
     for (const auto& C : Customers)
     {
-        MarketDemand::RecordWaitingLoss(State);
-        MarketBasket::RecordVisit(State, C.CustomerId, C.ShoppingList.Num(), 0, true);
+        // Those already walking out empty-handed (stage 3) did not give up waiting: their items were missing.
+        if (C.Stage == 3) ++State.Lost;
+        else MarketDemand::RecordWaitingLoss(State);
+        MarketBasket::RecordVisit(State, C.CustomerId, C.ShoppingList.Num(), 0, C.Stage != 3);
         C.Actor->Destroy();
     }
     Customers.Empty();
@@ -1462,17 +1520,42 @@ bool AMarketGameMode::SaveCampaign()
 {
     auto* Save = Cast<UMarketSave>(UGameplayStatics::CreateSaveGameObject(UMarketSave::StaticClass()));
     Save->State = State;
-    return UGameplayStatics::SaveGameToSlot(Save, MarketSaveSlot(), 0);
+    Save->State.Version = FMarketState::CurrentVersion;
+    Save->State.PlanogramJson = MarketPlanogram::Serialize(Planogram); // G-078 (#5): the layout belongs to the campaign
+    const bool bSaved = UGameplayStatics::SaveGameToSlot(Save, SlotName(ActiveSlot), 0);
+    if (bSaved) RefreshSlotSummaries();
+    return bSaved;
 }
-void AMarketGameMode::LoadCampaign()
+void AMarketGameMode::LoadCampaign(bool bQuiet)
 {
-    auto* Save = Cast<UMarketSave>(UGameplayStatics::LoadGameFromSlot(MarketSaveSlot(), 0));
-    if (!Save || !Save->State.IsStructurallyValid()) { Notify(TEXT("Uyumlu kayit bulunamadi. Mevcut kampanya korunuyor.")); return; }
+    auto* Save = Cast<UMarketSave>(UGameplayStatics::LoadGameFromSlot(SlotName(ActiveSlot), 0));
+    if (!Save || !Save->State.IsStructurallyValid()) { if (!bQuiet) Notify(TEXT("Uyumlu kayit bulunamadi. Mevcut kampanya korunuyor.")); return; }
+    if (bArrange) ExitArrange(FString());
+    DropCarriedDelivery();
     State = Save->State; Selected = 0; bWeekJustEnded = false; OrderDraftCases.Init(0, Products.Num());
+    State.Version = FMarketState::CurrentVersion; // older formats load with the new fields at their defaults
+    MarketCountry::SetActive(State.CountryId, State.RivalSeed); // G-084
+    if (bTestMode) State.bUsedTestMode = true;
     MarketStaff::Migrate(State); // older saves: the cashier/stocker flags become people
     TArray<FString> Added, Removed;
     RefreshPrices(); // today's list before the price range check of ReconcileWith
     State.ReconcileWith(Products, &Added, &Removed);
+    MarketBranches::Migrate(State, Products); // older saves: the aggregate second store becomes a real branch now, not at the next close
+    if (!State.PlanogramJson.IsEmpty())
+    {
+        // G-078 (#5): this campaign's shelf plan. Only the blocks change; the fixtures of the shop stay.
+        FMarketPlanogram Loaded;
+        TArray<FString> PlanErrors;
+        if (MarketPlanogram::Parse(State.PlanogramJson, Loaded, PlanErrors) && Loaded.Fixtures.Num() == Planogram.Fixtures.Num())
+        {
+            Planogram = Loaded;
+            MarketPlanogram::ResolvePositions(Planogram, Products);
+            MarketPlanogram::FitDepth(Planogram, Products);
+            ++ArrangeVersion;
+            RebuildShelfContents();
+        }
+        else UE_LOG(LogTemp, Warning, TEXT("MirasMarket: the saved shelf plan does not fit this shop; Config/planograms.json is kept."));
+    }
     ApplyCapacities();
     SyncWorkers();     // the walking workers follow the loaded roster
     ResetWorkerJobs(); // stock rows may have moved; workers pick new jobs

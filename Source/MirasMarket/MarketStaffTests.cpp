@@ -146,14 +146,16 @@ bool FMarketStaffTaxTest::RunTest(const FString& Parameters)
 {
     using namespace MarketStaffTest;
     const auto Round = [](double Value) { return static_cast<int64>(FMath::RoundToDouble(Value)); };
-    const int64 Vat = Round(7 * (50000 - 20000) * static_cast<double>(MarketStaff::VatRate));
+    // G-077 (#34): the VAT inside a VAT-inclusive margin, and income tax on the profit without it.
+    const double VatShare = static_cast<double>(MarketStaff::VatRate) / (1.0 + static_cast<double>(MarketStaff::VatRate));
+    const int64 Vat = Round(7 * (50000 - 20000) * VatShare);
 
     // Without an accountant: the player pays; late means a penalty.
     FMarketState S; S.Initialize(Catalog()); S.RivalSeed = 42; S.Cash = 500000;
     for (int32 Day = 1; Day <= 6; ++Day) PlayDay(S, 50000, 20, 30000, 20000);
     TestEqual(TEXT("No tax before the week ends"), S.Books.TaxDue, int64(0));
     PlayDay(S, 50000, 20, 30000, 20000);
-    const int64 Income = Round(7 * (50000 - 30000 - 2200) * static_cast<double>(MarketStaff::IncomeTaxRate));
+    const int64 Income = Round((7 * (50000 - 30000 - 2200) - Vat) * static_cast<double>(MarketStaff::IncomeTaxRate));
     const int64 Tax = Vat + Income;
     const int64 Audit = S.Books.Audits > 0 ? FMath::Max<int64>(MarketStaff::AuditPenaltyMin, static_cast<int64>(Tax * MarketStaff::AuditPenaltyRate)) : 0;
     TestEqual(TEXT("Week declared: VAT + income tax (+ audit fine)"), S.Books.TaxDue, Tax + Audit);
@@ -177,7 +179,7 @@ bool FMarketStaffTaxTest::RunTest(const FString& Parameters)
     TestTrue(TEXT("Accountant hired"), MarketStaff::HireAccountant(A, Message));
     TestFalse(TEXT("Only one accountant"), MarketStaff::HireAccountant(A, Message));
     for (int32 Day = 1; Day <= 7; ++Day) PlayDay(A, 50000, 20, 30000, 20000);
-    const int64 IncomeA = Round(7 * (50000 - 30000 - 2200 - MarketStaff::AccountantDailyFee) * static_cast<double>(MarketStaff::IncomeTaxRate));
+    const int64 IncomeA = Round((7 * (50000 - 30000 - 2200 - MarketStaff::AccountantDailyFee) - Vat) * static_cast<double>(MarketStaff::IncomeTaxRate));
     const int64 TaxA = Round((Vat + IncomeA) * static_cast<double>(MarketStaff::AccountantDeduction));
     TestEqual(TEXT("Accountant's declaration"), A.Books.TaxDue, TaxA);
     PlayDay(A, 50000, 20); PlayDay(A, 50000, 20);

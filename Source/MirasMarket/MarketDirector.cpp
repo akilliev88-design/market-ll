@@ -1,4 +1,5 @@
 #include "MarketDirector.h"
+#include "MarketCountry.h"
 #include "MarketCalendar.h"
 #include "MarketRivals.h"
 #include "MarketStaff.h"
@@ -16,6 +17,8 @@
 #include "MarketPayments.h"
 #include "MarketSimulation.h"
 #include "MarketCompany.h"
+#include "MarketManagers.h"
+#include "MarketDepots.h"
 
 float MarketDirector::TrafficFactor(const FMarketState& State, const TArray<FString>& Aisles)
 {
@@ -27,7 +30,9 @@ float MarketDirector::TrafficFactor(const FMarketState& State, const TArray<FStr
 
 double MarketDirector::ToleranceBonus(const FMarketState& State, const FMarketProduct& Product)
 {
-    return MarketEvents::Tolerance(State, MarketGoods::Classify(Product.Category)) + MarketSimulation::ToleranceBonus(State);
+    // G-084: the city's purchasing power (Istanbul 1.25 -> +5 points, Van 0.75 -> -5 points; Lueleburgaz 0).
+    const double Income = 0.2 * (MarketCountry::CityIncome(State.CountryId, State.CityId) - 1.0);
+    return MarketEvents::Tolerance(State, MarketGoods::Classify(Product.Category)) + MarketSimulation::ToleranceBonus(State) + Income;
 }
 
 float MarketDirector::RivalPriceFactor(const FMarketState& State, const TArray<FString>& Aisles, const FString& Category)
@@ -101,6 +106,11 @@ FString MarketDirector::OnCheckout(FMarketState& State, int32 CustomerId, int64 
     return Credit.IsEmpty() ? Paid : Paid.IsEmpty() ? Credit : Credit + TEXT(" ") + Paid;
 }
 
+int64 MarketDirector::OrderAllowance(const FMarketState& State)
+{
+    return MarketSuppliers::OrderAllowance(State);
+}
+
 FString MarketDirector::OnOrder(FMarketState& State, int64 Bill)
 {
     return MarketSuppliers::OnOrder(State, Bill);
@@ -113,7 +123,7 @@ bool MarketDirector::Command(FMarketState& State, const TArray<FMarketProduct>& 
     if (Action == TEXT("PayBills"))
     {
         const int64 Paid = MarketSuppliers::PayBills(State);
-        OutMessage = Paid > 0 ? FString::Printf(TEXT("Toptanc\u0131 faturalar\u0131 \u00f6dendi: %s TL."), *FString::Printf(TEXT("%lld,%02lld"), static_cast<long long>(Paid / 100), static_cast<long long>(Paid % 100)))
+        OutMessage = Paid > 0 ? FString::Printf(TEXT("Toptanc\u0131 faturalar\u0131 \u00f6dendi: %s."), *MarketCountry::Money(Paid))
             : MarketSuppliers::OpenBills(State) > 0 ? FString(TEXT("Faturalar i\u00e7in kasada yeterli para yok.")) : FString(TEXT("A\u00e7\u0131k fatura yok."));
         return Paid > 0;
     }
@@ -131,6 +141,7 @@ bool MarketDirector::Command(FMarketState& State, const TArray<FMarketProduct>& 
     if (Action == TEXT("MultiBuy")) return MarketPromotions::Start(State, Products, EKind::MultiBuy, Arg, 0, OutMessage);
     if (Action == TEXT("Endcap")) return MarketPromotions::Start(State, Products, EKind::Endcap, Arg, 0, OutMessage);
     if (Action == TEXT("Flyer")) return MarketPromotions::Start(State, Products, EKind::Flyer, INDEX_NONE, 0, OutMessage);
+    if (Action == TEXT("PromoScoped")) return MarketPromotions::StartScoped(State, Products, Arg, OutMessage); // G-078 (J07)
     if (Action == TEXT("StopPromotion")) return MarketPromotions::Stop(State, Arg, OutMessage);
     if (Action == TEXT("AcceptOffer")) return MarketPromotions::AcceptOffer(State, Products, OutMessage);
     if (Action == TEXT("Decide")) return MarketEvents::Decide(State, Products, Arg, OutMessage);
@@ -141,17 +152,52 @@ bool MarketDirector::Command(FMarketState& State, const TArray<FMarketProduct>& 
     if (Action == TEXT("RepayLoan")) return MarketFinance::RepayAll(State, OutMessage);
     if (Action == TEXT("OpenBranch"))
     {
-        static const TCHAR* Formats[3] = { TEXT("kucuk"), TEXT("mahalle"), TEXT("buyuk") };
-        return MarketBranches::Open(State, Products, static_cast<MarketBranches::EDistrict>(FMath::Clamp(Arg / 10, 0, static_cast<int32>(MarketBranches::EDistrict::Count) - 1)),
-            Formats[FMath::Clamp(Arg % 10, 0, 2)], OutMessage);
+        FString Country, Province, Format;
+        if (!MarketBranches::DecodeSite(Arg, Country, Province, Format)) { OutMessage = TEXT("Bilinmeyen il ya da ma\u011faza t\u00fcr\u00fc."); return false; }
+        return MarketBranches::Open(State, Products, Country, Province, Format, OutMessage);
     }
-    if (Action == TEXT("CloseBranch")) return MarketBranches::Close(State, Arg, OutMessage);
+    if (Action == TEXT("CloseBranch")) return MarketBranches::Close(State, Products, Arg, OutMessage);
     if (Action == TEXT("Promote"))
     {
         int32 Newest = INDEX_NONE;
         for (int32 I = 0; I < State.Branches.Num(); ++I) if (State.Branches[I].Stage != static_cast<uint8>(MarketBranches::EStage::Closed)) Newest = I;
         return MarketBranches::Promote(State, Arg, Newest, OutMessage);
     }
+    if (Action == TEXT("PromoteTo")) // G-074 menu: Arg = branch index * 1000000 + employee id
+        return Arg >= 0 && MarketBranches::Promote(State, Arg % 1000000, Arg / 1000000, OutMessage);
+    // G-086b: the management hierarchy (MarketManagers.h).
+    if (Action == TEXT("ManagerBonus")) return MarketManagers::Bonus(State, Arg, OutMessage);
+    if (Action == TEXT("ManagerWarn")) return MarketManagers::Warn(State, Arg, OutMessage);
+    if (Action == TEXT("ManagerReplace")) return MarketManagers::Replace(State, Arg, OutMessage);
+    if (Action == TEXT("PromoteToProvince")) return MarketManagers::PromoteToProvince(State, Arg, OutMessage);
+    if (Action == TEXT("AppointOutside"))
+    {
+        MarketManagers::ELevel Level = MarketManagers::ELevel::Province;
+        FString Country, Area;
+        if (!MarketManagers::DecodeArea(Arg, Level, Country, Area)) { OutMessage = TEXT("B\u00f6yle bir kademe ya da b\u00f6lge yok."); return false; }
+        return MarketManagers::Appoint(State, Level, Country, Area, INDEX_NONE, OutMessage);
+    }
+    if (Action == TEXT("AppointPromote")) // Arg = branch index * 10 + level (the branch's own area)
+    {
+        const int32 Branch = Arg / 10;
+        const MarketManagers::ELevel Level = static_cast<MarketManagers::ELevel>(FMath::Clamp(Arg % 10, 0, static_cast<int32>(MarketManagers::ELevel::Depot)));
+        if (Arg < 0 || !State.Branches.IsValidIndex(Branch)) { OutMessage = TEXT("B\u00f6yle bir \u015fube yok."); return false; }
+        return MarketManagers::Appoint(State, Level, MarketBranches::CountryOf(State, State.Branches[Branch]), MarketManagers::AreaOfBranch(State, Branch, Level), Branch, OutMessage);
+    }
+    if (Action == TEXT("AppointCandidate")) // G-086b ek (M22): Arg = MarketManagers::EncodeArea x 10 + candidate (0..2)
+    {
+        MarketManagers::ELevel Level = MarketManagers::ELevel::Province;
+        FString Country, Area;
+        if (Arg < 0 || !MarketManagers::DecodeArea(Arg / 10, Level, Country, Area)) { OutMessage = TEXT("B\u00f6yle bir kademe ya da b\u00f6lge yok."); return false; }
+        return MarketManagers::AppointCandidate(State, Level, Country, Area, Arg % 10, OutMessage);
+    }
+    if (Action == TEXT("ManagerReplaceWith")) // Arg = branch index x 10 + candidate (0..2)
+        return Arg >= 0 && MarketManagers::ReplaceWithCandidate(State, Arg / 10, Arg % 10, OutMessage);
+    if (Action == TEXT("ManagerHireFor")) // Arg = branch index x 10 + candidate (0..2): a branch without a manager
+        return Arg >= 0 && MarketManagers::HireCandidateForBranch(State, Arg / 10, Arg % 10, OutMessage);
+    if (Action == TEXT("DismissManager")) return MarketManagers::Dismiss(State, Arg, OutMessage);
+    if (Action == TEXT("BonusManager")) return MarketManagers::BonusManager(State, Arg, OutMessage);
+    if (Action == TEXT("WarnManager")) return MarketManagers::WarnManager(State, Arg, OutMessage);
     if (Action == TEXT("OnlineChannel"))
         return MarketOnline::SetChannel(State, static_cast<MarketOnline::EChannel>(FMath::Clamp(Arg / 10, 0, 2)), Arg % 10 != 0, OutMessage);
     if (Action == TEXT("HireCourier")) return MarketOnline::HireCourier(State, OutMessage);
@@ -160,17 +206,28 @@ bool MarketDirector::Command(FMarketState& State, const TArray<FMarketProduct>& 
     if (Action == TEXT("FreeDelivery")) return MarketOnline::SetFreeDelivery(State, Arg != 0, OutMessage);
     if (Action == TEXT("Card")) return MarketPayments::SetCard(State, Arg != 0, OutMessage);
     if (Action == TEXT("MealCard")) return MarketPayments::SetMealCard(State, Arg != 0, OutMessage);
-    if (Action == TEXT("OpenStore"))
-        return MarketCompany::OpenStore(State, static_cast<MarketCompany::ECity>(FMath::Clamp(Arg, 0, static_cast<int32>(MarketCompany::ECity::Count) - 1)), OutMessage);
-    if (Action == TEXT("CloseStore"))
-        return MarketCompany::CloseStore(State, static_cast<MarketCompany::ECity>(FMath::Clamp(Arg, 0, static_cast<int32>(MarketCompany::ECity::Count) - 1)), OutMessage);
     if (Action == TEXT("Build")) return MarketCompany::Build(State, Arg, OutMessage);
+    if (Action == TEXT("BuildDepot"))
+    {
+        // G-086: Arg = country index * 100 + sub-region index (MarketCountry::All(), FProfile::SubRegions).
+        const TArray<MarketCountry::FProfile>& All = MarketCountry::All();
+        const int32 C = Arg / 100, R = Arg % 100;
+        if (Arg < 0 || !All.IsValidIndex(C) || !All[C].SubRegions.IsValidIndex(R)) { OutMessage = TEXT("B\u00f6yle bir b\u00f6lge yok."); return false; }
+        return MarketCompany::BuildDepot(State, All[C].Id, All[C].SubRegions[R].Id, OutMessage);
+    }
+    if (Action == TEXT("BuildDepotIn")) // G-089: Arg = MarketManagers::EncodeArea(ELevel::Depot, country, province)
+    {
+        MarketManagers::ELevel Level = MarketManagers::ELevel::Depot;
+        FString Country, Province;
+        if (!MarketManagers::DecodeArea(Arg, Level, Country, Province) || Level != MarketManagers::ELevel::Depot) { OutMessage = TEXT("B\u00f6yle bir il yok."); return false; }
+        return MarketDepots::Build(State, Country, Province, OutMessage);
+    }
     if (Action == TEXT("Difficulty")) return MarketSimulation::SetDifficulty(State, Arg, OutMessage);
     if (Action == TEXT("PandemicProfile"))
     {
         if (State.Online.bPandemic == (Arg != 0)) { OutMessage = TEXT("Salg\u0131n d\u00f6nemi ayar\u0131 zaten b\u00f6yle."); return false; }
         State.Online.bPandemic = Arg != 0;
-        OutMessage = State.Online.bPandemic ? TEXT("2020-2021 salg\u0131n d\u00f6nemi oyunda olacak.") : TEXT("2020-2021 salg\u0131n d\u00f6nemi oyunda olmayacak.");
+        OutMessage = State.Online.bPandemic ? TEXT("Salg\u0131n d\u00f6nemi (10. ve 11. y\u0131l) oyunda olacak.") : TEXT("Salg\u0131n d\u00f6nemi (10. ve 11. y\u0131l) oyunda olmayacak.");
         return true;
     }
     if (Action == TEXT("DeclineOffer")) { MarketPromotions::DeclineOffer(State); OutMessage = TEXT("Selim'in teklifi geri \u00e7evrildi."); return true; }
@@ -189,15 +246,18 @@ FString MarketDirector::ReportText(const FMarketState& State)
 void MarketDirector::CloseDay(FMarketState& State, const TArray<FMarketProduct>& Products)
 {
     State.DayNews.Reset();
-    MarketSuppliers::CloseDay(State); // price list, payment terms, bills due, wholesaler news (G-063)
     MarketPromotions::CloseDay(State, Products); // running promotions, results, funded offers (G-064)
     MarketFreshness::CloseDay(State, Products);  // batches, waste, donations (G-067) - before the books
     MarketCredit::CloseDay(State);               // paydays of the credit book (G-067)
     MarketCompetitors::CloseDay(State, Products, MarketRivals::Aisles(Products)); // shares, rivals' moves, poaching (G-065)
     MarketBranches::CloseDay(State, Products);   // opening steps and the simulated day of every branch (G-068)
+    MarketManagers::CloseDay(State);             // managers' wages, morale, weekly marks, the player's span (G-086b)
+    MarketDepots::CloseDay(State);               // depots: a caught depot manager, missing managers, losses (G-089)
     MarketCompany::CloseDay(State);              // stores in other cities, depot, trucks, leadership (G-072)
     MarketPayments::CloseDay(State);             // card money arrives, commissions and POS rent (G-069)
     MarketOnline::CloseDay(State, Products);     // phone, web and platform orders picked from our stock (G-069)
+    // Bills are paid after the day's money is in (card payout, branches, cities, online), before the books.
+    MarketSuppliers::CloseDay(State); // price list, payment terms, bills due, wholesaler news (G-063)
     MarketStaff::CloseDay(State);     // till, fatigue, morale, notices, HR, accountant and the weekly tax (G-060)
     MarketEvents::CloseDay(State, Products); // decisions past their day, modifiers, snow, a new neighbourhood event (G-066)
     MarketStory::CloseDay(State, Products);  // scenes, milestones, chapters (G-066)

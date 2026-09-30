@@ -1,4 +1,6 @@
 #include "MarketSuppliers.h"
+#include "MarketStart.h"
+#include "MarketCountry.h"
 #include "MarketCalendar.h"
 #include "MarketPrices.h"
 #include "MarketPromotions.h"
@@ -9,8 +11,7 @@ namespace MarketSuppliers
 {
     FString SupplierTl(int64 Kurus)
     {
-        const int64 Abs = Kurus < 0 ? -Kurus : Kurus;
-        return FString::Printf(TEXT("%s%lld,%02lld TL"), Kurus < 0 ? TEXT("-") : TEXT(""), static_cast<long long>(Abs / 100), static_cast<long long>(Abs % 100));
+        return MarketCountry::Money(Kurus); // G-084: the active country\'s currency
     }
 }
 
@@ -111,6 +112,24 @@ void MarketSuppliers::ApplyPrices(const FMarketState& State, const TArray<FMarke
     }
 }
 
+namespace
+{
+    // G-077 (#40): only a real bill (100 TL at today's prices or more) builds trust; splitting orders does not.
+    bool BuildsTrust(const FMarketState& State, int64 Amount)
+    {
+        return Amount >= FMath::RoundToInt64(10000.0 * MarketPrices::ListLevel(State.Day));
+    }
+}
+
+int64 MarketSuppliers::OrderAllowance(const FMarketState& State)
+{
+    const ESupplier Supplier = Current(State);
+    if (TermsDays(State, Supplier) <= 0) return 0;
+    const FMarketSupplierAccount* A = FindAccount(State, Supplier);
+    const int64 Limit = FMath::RoundToInt64(50000.0 * MarketPrices::ListLevel(State.Day)) + (A ? A->Volume30 / 2 : 0);
+    return FMath::Max<int64>(0, Limit - OpenBills(State));
+}
+
 FString MarketSuppliers::OnOrder(FMarketState& State, int64 Bill)
 {
     if (Bill <= 0) return FString();
@@ -153,7 +172,7 @@ int64 MarketSuppliers::PayBills(FMarketState& State)
         State.Cash -= Bill.Amount;
         Paid += Bill.Amount;
         FMarketSupplierAccount& A = Account(State, static_cast<ESupplier>(Bill.Supplier));
-        if (Bill.DueDay >= State.Day - 1) { ++A.OnTime; A.Trust = FMath::Min(100, A.Trust + 5); }
+        if (Bill.LateSince == 0) { ++A.OnTime; if (BuildsTrust(State, Bill.Amount)) A.Trust = FMath::Min(100, A.Trust + 5); }
         State.Payables.RemoveAt(I);
     }
     return Paid;
@@ -226,17 +245,16 @@ void MarketSuppliers::CloseDay(FMarketState& State)
         if (State.Cash >= Bill.Amount)
         {
             State.Cash -= Bill.Amount;
-            ++A.OnTime;
-            A.Trust = FMath::Min(100, A.Trust + 5);
+            if (Bill.LateSince == 0) { ++A.OnTime; if (BuildsTrust(State, Bill.Amount)) A.Trust = FMath::Min(100, A.Trust + 5); }
             News.Add(FString::Printf(TEXT("%s: vadeli fatura \u00f6dendi (%s)."), Who.Name, *SupplierTl(Bill.Amount)));
             State.Payables.RemoveAt(I);
             continue;
         }
         const int64 Fee = FMath::Max<int64>(100, FMath::RoundToInt64(Bill.Amount * LateFee));
-        const bool bFirstDay = Bill.DueDay == Closed;
+        // The late fee grows every unpaid day; the lost trust and the late mark come once per bill.
+        const bool bFirstDay = Bill.LateSince == 0;
         Bill.Amount += Fee;
-        Bill.DueDay = State.Day;
-        if (bFirstDay) { ++A.Late; A.Trust = FMath::Max(0, A.Trust - 25); }
+        if (bFirstDay) { Bill.LateSince = Closed; ++A.Late; A.Trust = FMath::Max(0, A.Trust - 25); }
         State.LastProfit -= Fee;
         News.Add(FString::Printf(TEXT("%s: fatura \u00f6denemedi, %s gecikme fark\u0131 eklendi (bor\u00e7 %s). %s"), Who.Name, *SupplierTl(Fee), *SupplierTl(Bill.Amount),
             bFirstDay ? TEXT("Vade kapand\u0131; g\u00fcven d\u00fc\u015ft\u00fc.") : TEXT("")));
@@ -269,5 +287,5 @@ void MarketSuppliers::CloseDay(FMarketState& State)
     // Terms open up.
     const FMarketSupplierAccount& Main = Account(State, ESupplier::TrakyaGida);
     if (Supplier == ESupplier::TrakyaGida && Main.Trust >= TermsTrust && Main.Trust - 1 < TermsTrust && State.LastPurchases > 0)
-        News.Add(TEXT("Selim: \"Baban gibi d\u00fczenli \u00e7al\u0131\u015f\u0131yorsun. Bundan sonra 7 g\u00fcn vadeli yazar\u0131m.\""));
+        News.Add(FString::Printf(TEXT("Selim: \"%s gibi d\u00fczenli \u00e7al\u0131\u015f\u0131yorsun. Bundan sonra 7 g\u00fcn vadeli yazar\u0131m.\""), *MarketStart::Relative(State, MarketStart::ECase::Plain, true)));
 }

@@ -21,7 +21,7 @@ namespace MarketPayments
     constexpr double CardCommission = 0.018;
     constexpr double MealCommission = 0.06;
     constexpr float NoCardLeaveChance = 0.35f;
-    constexpr int64 PosMonthlyRent = 2500;     // 2011 kurus, follows the price list
+    constexpr int64 PosMonthlyRent = 2500;     // start-level kurus, follows the price list
     constexpr int64 MealMonthlyFee = 1500;
 
     // Share of baskets whose owner would rather pay by card in this game day's year (0..1).

@@ -1,4 +1,10 @@
 #include "MarketCampaign.h"
+#include "MarketPrices.h"
+
+int64 MarketCampaign::ExpandCashOn(int32 GameDay)
+{
+    return MarketPrices::Scaled(ExpandCash, GameDay);
+}
 
 int64 MarketCampaign::PayDebt(FMarketState& State, int64 Amount)
 {
@@ -25,7 +31,7 @@ MarketCampaign::EExpandBlock MarketCampaign::ExpandBlock(const FMarketState& Sta
 {
     if (State.bSecondStore) return EExpandBlock::AlreadyOpen;
     if (DebtOpen(State)) return EExpandBlock::Debt;
-    if (State.Cash < ExpandCash) return EExpandBlock::Cash;
+    if (State.Cash < ExpandCashOn(State.Day)) return EExpandBlock::Cash;
     if (State.ProfitableDays < ExpandProfitableDays) return EExpandBlock::ProfitableDays;
     if (State.MarketShare < ExpandShare) return EExpandBlock::Share;
     return EExpandBlock::None;

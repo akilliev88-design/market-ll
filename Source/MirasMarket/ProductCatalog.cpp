@@ -146,6 +146,23 @@ bool MarketCatalog::Parse(const FString& Json, TArray<FMarketProduct>& OutProduc
         bool bActive = true;
         if (Obj->TryGetBoolField(TEXT("active"), bActive)) P.bActive = bActive;
         Obj->TryGetStringField(TEXT("brand"), P.Brand);
+        const TSharedPtr<FJsonObject>* Retail = nullptr;
+        if (Obj->TryGetObjectField(TEXT("retail"), Retail) && Retail && Retail->IsValid())
+        {
+            const auto ReadFloat = [&](const TCHAR* Key, float& Target, float Min, float Max)
+            {
+                double Number = 0;
+                if ((*Retail)->TryGetNumberField(Key, Number) && FMath::IsFinite(Number)) Target = FMath::Clamp(static_cast<float>(Number), Min, Max);
+            };
+            (*Retail)->TryGetStringField(TEXT("subcategory"), P.Subcategory);
+            ReadFloat(TEXT("kvi"), P.Kvi, 0.f, 1.f);
+            ReadFloat(TEXT("vat"), P.VatRate, 0.f, 0.5f);
+            ReadFloat(TEXT("elasticity"), P.Elasticity, 0.f, 10.f);
+            ReadFloat(TEXT("stockpile"), P.Stockpile, 0.f, 3.f);
+            ReadFloat(TEXT("trafficPull"), P.TrafficPull, 0.f, 1.f);
+            int32 Life = 0;
+            if ((*Retail)->TryGetNumberField(TEXT("shelfLifeDays"), Life)) P.ShelfLifeDays = FMath::Clamp(Life, 0, 3650);
+        }
         const TSharedPtr<FJsonObject>* Pack = nullptr;
         if (Obj->TryGetObjectField(TEXT("package"), Pack) && Pack && Pack->IsValid())
         {
@@ -226,6 +243,20 @@ FString MarketCatalog::Serialize(const TArray<FMarketProduct>& Products, const F
         Out += TEXT(",\"color\":") + JsonQuote(ColorHex(P.Color));
         if (!P.bActive) Out += TEXT(",\"active\":false");
         if (!P.Brand.IsEmpty()) Out += TEXT(",\"brand\":") + JsonQuote(P.Brand);
+        if (!P.Subcategory.IsEmpty() || P.Kvi > 0.f || P.VatRate >= 0.f || P.ShelfLifeDays > 0 || P.Elasticity > 0.f || P.Stockpile >= 0.f || P.TrafficPull > 0.f)
+        {
+            // G-078: retail data, only what is set.
+            TArray<FString> Parts;
+            const auto Number = [](float Value) { return FString::Printf(TEXT("%.2f"), Value); };
+            if (!P.Subcategory.IsEmpty()) Parts.Add(TEXT("\"subcategory\":") + JsonQuote(P.Subcategory));
+            if (P.Kvi > 0.f) Parts.Add(TEXT("\"kvi\":") + Number(P.Kvi));
+            if (P.VatRate >= 0.f) Parts.Add(TEXT("\"vat\":") + Number(P.VatRate));
+            if (P.ShelfLifeDays > 0) Parts.Add(FString::Printf(TEXT("\"shelfLifeDays\":%d"), P.ShelfLifeDays));
+            if (P.Elasticity > 0.f) Parts.Add(TEXT("\"elasticity\":") + Number(P.Elasticity));
+            if (P.Stockpile >= 0.f) Parts.Add(TEXT("\"stockpile\":") + Number(P.Stockpile));
+            if (P.TrafficPull > 0.f) Parts.Add(TEXT("\"trafficPull\":") + Number(P.TrafficPull));
+            Out += TEXT(",\n     \"retail\":{") + FString::Join(Parts, TEXT(",")) + TEXT("}");
+        }
         if (!P.PackageType.IsEmpty())
         {
             Out += TEXT(",\n     \"package\":{\"type\":") + JsonQuote(P.PackageType);

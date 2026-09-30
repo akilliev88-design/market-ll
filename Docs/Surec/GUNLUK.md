@@ -2,6 +2,29 @@
 
 En yeni giriş en üstte. Biçim: tarih — ajan — başlık, ardından **Yapılan**, **Doğrulama**, **Sıradaki**.
 
+
+## 30.09.2026 gece — Claude (Cowork) — Gidiş yolu: önce akıl, sonra simülasyon
+
+**Yapılan:** Mustafa ile yön belirlendi: oyun ana ekrandan yönetilen, ayrıntılı ama boğmayan bir tycoon; önce arkadaki akıl bitirilir, dükkân içi simülasyon sonra. Mustafa uzun oynamayacak; oyunu Codex bir otomatik oyuncuyla (bot) oynatıp rapor ve ekran görüntüsü getirecek. Yeni tek yol haritası `Docs/Kurgu/06_GIDIS_YOLU.md` (Aşama 0 doğrulama, Aşama 1 A1–A8, Aşama 2 simülasyon; tycoon arayüz ilkeleri). `05_YOL_HARITASI.md` başına yönlendirme notu, GOREVLER'e G-090, AGENTS §7'ye "tek derlenmemiş Claude işi" kuralı.
+
+**Doğrulama:** Yalnız belge.
+
+**Sıradaki:** Codex: Aşama 0 (DERLE/TEST/Smoke, commit). Claude: A1 otomatik oyuncu (G-090), Aşama 0 sonucundan sonra.
+
+## 30.09.2026 gece — Claude (Cowork) — M19–M23 menü denetimi, M24 ("2011" kavramı kalkar), şube özetinde gizli beceri — DERLENMEDİ
+
+**Yapılan:** Önceki Claude oturumunda yarım kalan menü denetimi bitirildi (hata bulunmadı). M24: oyuncuya görünen takvim yılları ve gerçek dünya metinleri kaldırıldı ya da "N. yıl" oldu (Rakipler, Satış kanalları, online kanal uyarısı, salgın ayarı); `MarketRetail::Source()` ve kaynak satırları silindi; yorumlarda "2011 fiyatı" yerine başlangıç fiyat düzeyi; `01_KARARLAR.md` M24, `03_MAGAZA_AGI.md`, `MENU.md` güncellendi. `MarketBranches::Summary` beceriyi yalnız görünürken yazar. `MENU.md`'ye Mağazalar/Yönetim/Depolar bölümü.
+
+**Doğrulama:** Derlenmedi (Cowork'te Unreal yok). Betikle başlık/argüman sayısı, komut eşleşmesi, `ERole`, gölgeleme, unity ad çakışması ve ASCII kontrolü; menü kodu elle okundu. Klasöre yazılan 22 kaynak + 3 belge geri okunup karşılaştırıldı.
+
+**Varsayım:** M24'ün kapsamı DURUM notundaki gibi alındı: iç takvim (7 Mart 2011 = 1. yıl), enflasyon eğrisi ve `Kurus2011` gibi adlar değişmedi; yalnız oyuncuya görünen yıl/gerçek tarihçe ve belgeler. Zincir adları (BİM, Migros…) L12/`zincirler.json` işi, dokunulmadı.
+
+**Sıradaki:** Codex: DERLE + TEST + Smoke. Claude: G-088 Aşama C (atama/kayıt/`stats` → ekonomi); "Mağazayı gez" için Codex'ten test modu açmayan bir gezi girişi.
+
+## 30.09.2026 — Claude (Cowork, ajanlarla) — M19–M23: müdür ekleri, depolar ve depo müdürü — DERLENMEDİ
+
+Ayrıntı ve kaldığım yer: DURUM.md devam notunun en üstü. Menü denetimi yazma anında bitmemişti. Sıradaki: M24 (2011 kavramı kalkar), G-088 C bağlantısı.
+
 ## 30.09.2026 — Codex — G-088 depo kapısı, kolon, duvar ve gezi kaydı
 
 **Yapılan:** Mustafa'nın beş eksik maddesi için depo iç kapısı (mor) koy/taşı/sil; kolon ekle/seç/taşı/köşeden boyut ve dikdörtgen/yuvarlak görünüm; aralıklı paralel raflarda iki eksen hizası ve mavi çizgiler; bina/depo duvarlarını çizgiden/tutamaktan sürükleme. Ortak dış duvar birlikte uzar; raf/kolon/dekor/tabela konumları sabit. Sayısal Resize da artık rafları taşımaz. Geometri çakışması/kesişme geçersiz hareketi atomik reddeder. Kaydetmenin tür bantlarına takılmasını gezi kaydıyla çözdüm: Saved/StoreTours, son mağaza işaretçisi, Kaydet ve gez, F10 özel mağazalar; hazır katalog sözleşmesi korunur. Kayıt hatası görünür açıklama penceresi açar, taslak korunur. İsteğe bağlı depo kapısı/kolon şekli JSON alanları; yeni MarketStoreGeometry/test ve gerçek gezi kontrol betiği. Kılavuz/ekranlar güncel.
@@ -56,6 +79,23 @@ En yeni giriş en üstte. Biçim: tarih — ajan — başlık, ardından **Yapı
 
 **Sıradaki:** Mustafa `MAGAZA_EDITORU.cmd` ile tasarlasın; kılavuz `Docs/Environment/MAGAZA_EDITORU.md`. Kalan 16 hazır mağaza A görsel onayından sonra. Şube atama/oyun kaydı/menü bağlantıları Claude'da. Taslaklar eksik tür bantlarıyla saklanabilir; oyuna aktarımda sözleşme zorunlu. Depo arkada, kapı düzenleme sağ/sol konumuyla sınırlı; mevcut girintili dış hat boyutla ölçeklenir.
 
+## 30.09.2026 — Claude (Cowork, bulut, ajanlarla) — G-086b müdür kademeleri, G-088 C mantığı, yol haritası — DERLENMEDİ
+
+**Mustafa**: Claude da ajanlara bölünüp kendi işlerini halletsin.
+
+**Yapılan** (6 ajan: mantık, menü, mağaza atama, yol haritası + iki "derleyici gözüyle" denetim)
+- G-086b: `MarketManagers.*` (tarz, moral, prim/uyar/değiştir/terfi, il/bölge/direktör/ülke müdürü, 5 kişi sınırı cezası, denetim etkileri, ücretler, eski kayıt göçü), `MarketEconomy.h` yeni alanlar, `MarketBranches.cpp` şube simülasyonuna tarz/fire/etkin beceri, `MarketCompany.cpp` eski isimsiz bölge yöneticisi gideri kaldırıldı, `MarketDirector.*` komutlar. Menü: Mağazalar satırında müdür ve düğmeler, Yönetim sekmesi, il paneli il müdürü şeridi, Todos'a 4 uyarı.
+- G-088 C mantığı: `MarketStoreAssign.*` (atama, kategori yardımcıları, ölçü çarpanları); bağlanmadı. Codex'in `MarketStoreKit.h` global `FStoreStats` tanımladığı için Claude'daki yapı `FStoreMeasures` adını aldı.
+- `Docs/Kurgu/05_YOL_HARITASI.md`.
+- Denetimde düzeltilenler: aynı gün prim+tazminat kasada olmayan parayı harcayabiliyordu (`OtherCosts` hesaba katıldı); bir testin tohuma bağlı beklentisi sabitlendi; `FitOutFactor`/`FreshFactor` nominalde tam 1,0; test adları nitelendi.
+- Klasöre yazmadan önce cihazdaki mtime'lar karşılaştırıldı: Codex'in bu arada değiştirdiği dosyaların hiçbirine yazılmadı.
+
+**Doğrulama**: derlenmedi. UE taklit başlıklarla g++ sözdizimi/gölgeleme denetimi temiz; escape_unicode --check temiz. Yeni testler: MirasMarket.Managers.{DirectReports, SpanLimit, CountryManager, Decisions, OlderSaves}, MirasMarket.StoreAssign.* (7), Branches.OpenAndRun'a tarz/fire eki.
+
+**Mustafa'ya açık sorular**: aile dükkânına müdür atama menüde şimdi görünsün mü (etkisi G-087 ile gelir); ülke müdürü satırı zorunlu olana kadar gizlensin mi; her yeni şube müdürüne 1 hafta alışma cezası kalsın mı; ülke müdürü eksik cezası (beceri −10, günde memnuniyet −0,2) uygun mu; `05_YOL_HARITASI.md` §5'teki 14 karar.
+
+**Sıradaki**: Codex derleme + test + smoke. Claude: G-088 C bağlantısı (`MarketStoreAssign` + `MarketStoreKit` → kayıt, menüden gezme, çarpanlar), `MarketBranches::Summary` gizli beceriyi yazmasın, `Docs/MENU.md` Yönetim sekmesi, AGENTS haritası.
+
 ## 30.09.2026 — Codex — G-088 A görsel revizyonu ve yürüyerek test gezisi
 
 **Yapılan**
@@ -98,6 +138,296 @@ En yeni giriş en üstte. Biçim: tarih — ajan — başlık, ardından **Yapı
 - Oturum başındaki Claude değişiklikleri korundu; yalnız G-088 dosyaları ve ortak dosyaların G-088 satırları commit'e alındı. Derleme/test mevcut ortak çalışma ağacında doğrulandı.
 
 **Sıradaki**: Mustafa bu dört mağazayı görsel olarak onaylar. Aşama B'deki kalan 16 mağazaya onaydan önce başlanmadı.
+
+## 30.09.2026 — Claude (Cowork, bulut) — M18: raf kategorisi seçimi ve Türkçe tabela (G-088'e eklendi)
+
+**Mustafa**: Mağazalarda rafın üstündeki kategoriye bakınca onu değiştirebilelim; tabelada Türkçe karakter desteği lazım.
+
+**Yapılan**
+- İnceleme: tabela `MarketGame.cpp` ~436'da `FoldTurkish(Fixture.Label).ToUpper()` ile ASCII çiziliyor (3B yazının varsayılan yazı tipinde Türkçe harf yok); görevliler `Fixture.Category` okuyor, planogram kayıtta.
+- `04_MAGAZA_KITI.md` §7: T ile kategori seçimi, gondolda yüz başına, eski ürünler silinmez + uyarı, "Kategorisiz", kayıt (aile dükkânı planogramda, şube mağazası `FMarketState`'te — Claude), Türkçe harfli önbellekli yazı tipi, `UpperTurkish`. §4'teki örnek kategoriler Türkçe harflerle düzeltildi.
+- Codex görev metni, M18, G-088 notu güncellendi.
+
+**Doğrulama**: yalnız belge.
+
+**Sıradaki**: Codex G-088 Aşama A (önce Türkçe tabela + kategori seçimi).
+
+## 30.09.2026 — Claude (Cowork, bulut) — İş bölümü ve G-088 mağaza kiti sözleşmesi
+
+**Mustafa**: Claude oyunun aklını yazarken Codex oyundaki mağaza görünümlerini yapsın: her market türüne 5 hazır mağaza (20), şube açınca türüne göre biri atansın. Bir ilde her türün tek gezilebilir mağazası; aynı ilde aynı görünüm tekrarı sorun değil, farklı illerde de aynı görünüm çıkabilir.
+
+**Yapılan**
+- `Docs/Kurgu/04_MAGAZA_KITI.md`: amaç, kabuk/yerleşim/tema, tür bantları, `Config/magazalar.json` şeması, kod sınırı (Codex: `MarketStoreKit`, ekipman, Blender, önizleme; Claude: atama, kayıt, menü, stats → oyun hesabı), performans, teslim sırası.
+- `Docs/Environment/CODEX_MAGAZA_KITI_PROMPT.md`: Codex'e yapıştırılacak görev metni.
+- Karar M17, görev G-088 (Codex, Sırada), AGENTS.md §8 dosya sahipliği, DURUM devam notu.
+
+**Doğrulama**: yalnız belge; kod değişmedi.
+
+**Sıradaki**: Codex G-088 Aşama A. Claude: G-086f derleme sonucu, sonra G-086b.
+
+## 30.09.2026 — Claude (Cowork, bulut) — G-086f: il adı yerleşimi, sipariş penceresi, sekme geçişi — DERLENMEDİ
+
+**Mustafa** (G-086e oyunda, "çok güzel olmuş"): il adları kendi kutusuna güzel otursun (mağaza varken de); sonra: yalnız seçili ilin adı görünsün. Öneriyle yazılan sipariş listesi pencere gibi açılsın; toptancı, ürün, miktar değiştirilebilsin. Sekmeler arası geçiş yumuşak olsun.
+
+**Yapılan**
+- Harita: `ProvinceDistance`, `ProvincePole` (ızgara + üç inceltme; yana genişliği biraz ödüllendirir), `ProvinceSpan`; `FProvince::LabelAt`. İğne ve ad bu noktada; ad satırındaki iç genişliğe göre kayar, küçülür (en az 8 px), sığmazsa hafif kâğıt zemin. Yalnız seçili ilin adı; üzerine gelince ya da yakınlaşınca ad yok.
+- Sipariş penceresi (980×620, solarak ve büyüyerek açılır): toptancı seçimi (`Supplier`), satırlar (resim, ad, koli içi ve birim fiyat, Değiştir, −/+, tutar, sil), sağda reyon çipli ürün listesi (ekle ya da seçili satırın yerine koy), altta uyarı, Temizle, Öneriyi yaz, Siparişi onayla. Esc ve dış tıklama kapatır.
+- Oyun: `MoveOrderDraft` (satır sınırı 9 koli ve depo sınırıyla), `ClearOrderLine`.
+- Menü: sayfa değişince içerik solarak ve 10 px yükselerek gelir (`PageAnim`).
+- Belgeler: M16.
+
+**Doğrulama**: derlenmedi; parantez dengesi betikle kontrol edildi; kaynaklar ASCII; ad yerleşimi Python'da aynı yöntemle çizilip 81 ilde denendi.
+
+**Sıradaki**: derleme + test; pencereyi oyunda denemek.
+
+## 30.09.2026 — Claude (Cowork, bulut) — G-086e: zıplamayan ekran — DERLENMEDİ
+
+**Mustafa** (G-086d oyunda): ana ekrandan başka sayfaya geçince dokta "Harita" beliriyor, dok genişleyip kayıyor; "Harita" değil "Ana ekran" yazsın ve hep dursun. Sonradan açılan şeyler ekranı kaydırmasın (ör. Sipariş'te "Öneriyi yaz"); kayacaksa yumuşak kaysın. Ekran görüntüsünde ayrıca: haplar ve dokun arkasında gri kutular, panel açıkken zil dokun üstüne biniyor.
+
+**Yapılan**
+- Dok: dokuz sabit öğe (Ana ekran ilk), 68 px; "Diğer" kartı dokun üstünde yüzer, solarak ve yükselerek gelir (`MoreAnim`).
+- Üst haplar ve zil hiç yer değiştirmez (`EdgePadding` sabit); il paneli haritanın üstünde yüzen kart (sağ 24, üst 128, alt 112, 400 px), `PanelAnim` ile sağdan kayar; kapanırken son ilin içeriğini gösterir (`PanelId`); harita `RightInset` ile aynı anda sola kayar. Katman ve bölge çipleri, asistan kartı panelle birlikte kaybolmaz.
+- Gölge görseli (`Raised`) kaldırıldı; menü ve HUD yüzeylerinde ince kenar çizgisi.
+- Sipariş: toptancı kartı 64 px, liste toplamı kartı 76 px sabit.
+- Sayfa adı "Harita" → "Ana ekran". Esc "Diğer" kartını da kapatır.
+
+**Doğrulama**: derlenmedi; parantez dengesi betikle kontrol edildi; kaynaklar ASCII.
+
+**Sıradaki**: derleme + test; öteki sayfalarda da içerik değişince boyu değişen kartları sabitlemek (görülen oldukça).
+
+## 30.09.2026 — Claude (Cowork, bulut) — G-086d: tuvalin görsel dili oyunda, dükkân içi HUD — DERLENMEDİ
+
+**Mustafa**: G-086c derlendi, oyunda açıldı; ama tuvaldeki hâli daha tatlıydı. Yazı tipi dahil her şeyin aynısı uygulansın; mağaza içindeki menüler de o tasarım diliyle değişsin.
+
+**Yapılan**
+- `MarketTheme.h/.cpp`: `Font(EFace, piksel)` (Plex Sans 400/500/600/700, Plex Mono 500/600, Bricolage 600/700; dosya yoksa motor yazı tipi), `Icon(ad)` (SVG, `FSlateVectorImageBrush`), `Shadow()` (9 dilim PNG).
+- Varlıklar: `Content/Slate/Fonts/*.ttf` (fontsource paketlerinden latin + latin-ext birleştirildi; Türkçe harfler, ₺, ·, × var), OFL lisansları; `Content/Slate/Icons/*.svg` (dok, zil, hız, ayar, kapat, ev); `Content/Slate/Shadow.png`; `Config/DefaultGame.ini` NonUFS `Slate`.
+- Menü: renk rolleri tuvalin belirteçleri (+ `Ours`, `Home`, `Hairline`, `OnAccent`, `Sheet`, `WarnSoft`, `AccentSoft`, `MapLabel`, `DockText`); `MenuFont` Plex (büyük kalın başlıklar Bricolage); haplar yarım yükseklik köşeli; `Raised` (gölge), `IconImage`, `Mono`, `Display`, `TextPx`, `IconButton`. Üst: tarih hapı (tarih · gün, yıl · saat · durum · yer; durdur/1x/2x/3x yuvarlak ikonlar; ayarlar), kasa hapı (Kasa, Dün, Mağaza mono; panel açıkken tarih hapının yanında). Alt: dok 72×58 ikonlu öğeler, "Diğer" kartı, "Dükkâna gir" vurgu; zil 64 px sağ altta (panel açıkken sol altta). Ana ekran: katman çipleri (Mağazalarımız, Rakipler, Fırsatlar), bölge çipleri, asistan kartı (40 px işaret, Bak), il paneli tuvaldeki ölçülerle.
+- Harita: çizgiler kâğıt renginde 1,2 birim, uyarı 2,4, seçili 2,6; iğne yarıçapı 10 birim (ölçekli), sayı mono; bizim illerin adı iğnenin altında; ev ili koyu iğne.
+- HUD: aynı belirteçler ve yazı tipleri; tarih hapı + kasa hapı, yuvarlak işaretli uyarı kartları, haplar, gölge, "Yönetim M" vurgu hapı.
+- Belgeler: M14, 03 §12 görsel dil.
+
+**Doğrulama**: derlenmedi; parantez dengesi betikle kontrol edildi; kaynaklar ASCII; yazı tipleri Türkçe harflerle örnek görüntüde denendi.
+
+**Sıradaki**: derleme + test (51) + açık/koyu temada ana ekran ve dükkân içi ekran görüntüsü; farkları tuvalle karşılaştırıp ince ayar.
+
+## 30.09.2026 — Claude (Cowork, bulut) — G-086c: sade ana ekran, bölge çipleri — DERLENMEDİ
+
+**Mustafa**: İlk ana ekran tasarımı karışık ("her şey iç içe"). Sade hâli çok güzel, uygulayalım. Haritadaki "Trakya" seçimi kalksın; yerine ülkedeki bütün bölgeler olsun, seçince yaklaşsın.
+
+**Yapılan**
+- G-086a derlemesi ve testleri GEÇTİ (51/51, `Saved/Logs/DERLE_son.log`, `Saved/TestReports/index.json`).
+- `SMarketMap`: `Thrace` yerine `InView` (çerçevelenecek iller); görünüm hedefe yumuşak kayar; üzerine gelinen ve seçili ilin adı, yakınlaşınca bölgedeki bütün illerin adları çizilir. `ThraceBounds` kalktı.
+- Menü çerçevesi: sayfa değiştirici bütün ekranı kaplar; üst haplar (`TimeControls` tarih-saat-yer-hız, kasa-dün-mağaza, Kararlar sayısıyla, Ayarlar) ve alt dok (`NavItem` 10 sayfa + "Dükkâna gir") üstte yüzer; il paneli açıkken ikisi de ona yer açar (`PanelOpen`, `EdgePadding`). Öteki sayfalar hapların ve dokun arasında başlıklarıyla.
+- Ana ekran: `HomePage` (kâğıt zemin, harita, `RegionChips`, `Assistant`, katman seçici), `HomeMap` (bölge dışı iller soluk, ev ili koyu pin, D karneli il turuncu), `ProvinceCard` sağ panel (dört kutu, mağazalarımız, il müdürü uyarısı, dört tür kartı ve öneri). `RotatingCard`, `bMapThrace`, `bCardHover` kalktı. Esc: önce panel, sonra bölge, sonra menü.
+- Renk rolleri `Stage` (kâğıt) ve `Land` (il zemini) eklendi.
+- Belgeler: 03 §12 sade hâl, kararlar M12–M13.
+
+**Doğrulama**: derlenmedi; parantez dengesi betikle kontrol edildi; kaynaklar ASCII.
+
+**Sıradaki**: derleme + test (51) + oyunda ana ekranı açık ve koyu temada görmek; sonra G-086b.
+
+## 29.09.2026 — Claude (Cowork, bulut) — G-086a: il bazlı mağaza ağı, harita ana ekranı, yeni oyun ekranı — DERLENMEDİ
+
+**Mustafa**: Lüleburgaz kalksın, her ülkede yalnız il. Bütün ülke baştan açık. İlk şubeden sonra şubeleri müdürler yönetir; büyüyünce il ve bölge müdürleri (Trakya bölge müdürü gibi); il müdür yardımcısı yok; kişi sınırı yalnız oyuncuda (5). Türkiye'nin de ülke müdürü olsun. Varsayılan başlangıç ili yok. Hipermarket türü olsun. Harita ana ekran olsun; tasarımı tam haliyle Claude yapsın, açık tema da. Tasarım belgesi: `Docs/Kurgu/03_MAGAZA_AGI.md` (taslak 3), tasarım tuvali "Miras Market Ana Ekran".
+
+**Yapılan**
+- Veri: `ulkeler.json` il/bölge (TR 7+20, DE 4, GB 2+6, ABD 4+9); `MarketCountry` `FRegion`, `Resolve`, `SubRegionOf`, `RegionOf`, `PopulationK`; `MarketStart::LegacyProvince/HomeProvince` (varsayılan il yok).
+- `MarketBranches` (il + tür, `FSite`, `Room`, `ShopsIn`, `EncodeSite/DecodeSite`, `Grade`, göç), `MarketLayout` hipermarket rafları, `MarketCompany` (depolar, `CostFactor`, `TrafficBonus`, `ForeignCountries`, `BuildDepot`), `MarketDirector` komutları (`OpenBranch` il kodu, `BuildDepot`), hikâye bölümleri.
+- Oyun akışı: `bNeedStart`/`bNewGameAsk`, `AskNewGame`, `StartNewCampaign` menüyü kapatıp birinci şahısla başlatır; F6 ve boş yuva yeni oyun ekranını açar; smoke/capture eski boş dükkânla sürer.
+- Menü: `TopBar`, `BottomNav`, `SettingsLayer`, `DecisionsLayer`, `HomePage` (+ `HomeMap`, `ProvinceCard`, `RotatingCard`), `BranchesPage` (Mağazalar + Şirket), `NewGameLayer`; `SMarketMap` pin sayısı, uyarı çizgisi, tema renkleri. Eski Özet sayfası ve kenar çubuğu kalktı (içerikleri Kararlar ve Ayarlar katmanlarında).
+- Testler: `Branches.OpenAndRun`, `Company.GrowthAndLeadership` yeniden; `Start.InheritedShop` il/bölge kontrolleri.
+
+**Varsayımlar**: yönetim yükü şimdilik "şube sayısı / 5" (ceza ve kademeler G-086b). "İçeri gir" düğmesi G-087'ye kadar kapalı. Aile dükkânının il altı yeri yok; tabela "MIRAS MARKET".
+
+**Doğrulama**: derlenmedi; parantez dengesi betikle kontrol edildi; kaynaklar ASCII; il/bölge verisi Python'la doğrulandı (81 il, her il tek alt bölgede; türetilen değerler: Kırklareli 1,0; İstanbul gelir 1,39 kira 1,9 rekabet 1,47; Van 0,75/0,76/0,8).
+
+**Sıradaki**: derleme + test (51) + oyunda yeni oyun ekranı ve harita; sonra G-086b (müdür kademeleri ve 5 kişi sınırı).
+
+## 29.09.2026 — Claude (Cowork, bulut) — G-084 3. parça: ülke takvimi, pazar yasası, kart payı, şehir alım gücü — DERLENMEDİ
+
+**Önce**: G-084 2. parça derlendi; TEST 50/50. Mustafa oyunu açtı (1. yuva, 2. gün yüklendi).
+
+**Yapılan**
+- `MarketCountry::FHoliday`: `Rule` (Fixed, Easter, Nth, Lunar), `Kind` (National, Feast), `Days`, `Offset`, `Weekday`, `Nth`; `ulkeler.json` tatilleri kurallı (Almanya: Karfreitag, Ostern, Tag der Arbeit, Einheit, Weihnachten; İngiltere: Good Friday, Easter, bank holiday'ler, Christmas; ABD: Memorial Day, Independence Day, Labor Day, Thanksgiving, Christmas).
+- `MarketCalendar`: Türkiye dışında resmi tatil/bayram/Ramazan/okul etiketleri ülke paketinden; feast = arifesi `BayramEve` (kalabalık), kendisi `Bayram` (sakin); `FDayInfo::HolidayName`, `bClosedByLaw`; `EasterSunday`, `NthWeekdayOf`, `ClosedByLaw`; `Describe` yabancı adı ve "yasal tatil, dükkânlar kapalı" yazar. Türkiye yolu değişmedi.
+- Pazar yasası: `ToggleShop` kapalı günde dükkânı açmaz, günü müşterisiz kapatır; `MarketSimulation::PlayDay` o gün müşteri üretmez.
+- `MarketPayments::CardShare`: yabancı ülke kendi kart alışkanlığından başlar, aynı eğilimle artar.
+- `MarketCountry::CityIncome` → `MarketDirector::ToleranceBonus` (+0,2 × (gelir − 1)).
+
+**Varsayımlar**: ücret/kira çarpanları açılmadı (müşteri harcaması ölçeklenmeden açılırsa yabancı ülke oynanamaz). Rakiplerin pazar günü kapanması sonraki iş.
+
+**Doğrulama**: derlenmedi; Paskalya algoritması 2011/2024/2025 için Python'da doğrulandı; kaynaklar ASCII. Yeni test `MirasMarket.Country.HolidaysAndLaw`.
+
+**Sıradaki**: derleme + test (51). Sonra G-079 kalanı (segmentli mağaza seçimi, fırın, yerel toptancılar) ya da G-083 tedarik ağı.
+
+## 29.09.2026 — Claude (Cowork, bulut) — G-084 2. parça: aileden kalan market, yeni oyun seçimi — DERLENMEDİ
+
+**Önce**: G-084 1. parça derlendi; TEST 49/49.
+
+**Yapılan**
+- `MarketStart.h/.cpp`: `Setup` (ülke, şehir, tohum, akraba, başlangıç personeli, kasaya 1 haftalık maaş), `StockShelvesPartly` (raflar %40–75), `Relative` (Türkçe hâl ekleriyle: teyzen/teyzenin/teyzenden/teyzenle/teyzemin), `PlaceText`, `IntroText`, `DefaultCity`.
+- `FMarketState::RelativeKey` (boş = eski kayıt, baba). `MarketStaff::AddStartingStaff`; yabancı ülkede aday adları ülke isim havuzundan (Türkiye yerleşik listeyi korur).
+- Metinler: hikâye (Nermin, Cem, Selim, Kadir Bey, rüya), şube, finans (ipotek), müşavir, menü ve borç kartı artık akraba ya da "işletmenin borcu" der.
+- Oyun: `StartShop` (yeni kampanya ve kayıtsız ilk açılış; smoke/capture hariç, test modunda raflar boş kalır), `StartNewCampaign`; F6 ve boş yuva seçimi de aynı başlangıcı kullanır.
+- Menü Özet › ZAMAN kartında YENİ OYUN: ülke çipleri, seçili ülkenin şehirleri, onaylı "Yeni oyun başlat".
+- `ulkeler.json`: Türkiye `cities` = 8 başlangıç şehri (Lüleburgaz, İstanbul, Ankara, İzmir, Bursa, Edirne, Van, Kars), `map` = `iller.json`. `MarketCountry::FindCity/CityCompetition`; `MarketCompetitors` pay modelinde rakip çekimi × şehir rekabeti.
+
+**Varsayımlar**: kasadaki 1 haftalık maaş Claude'un denge önerisi (3 kişilik maaş ~60 TL/gün, başlangıç kasası 350 TL). Şube ilçeleri ve şehir mağazaları hâlâ Lüleburgaz/Trakya'ya göre; başka şehir seçmek şimdilik giriş metnini ve rekabet çarpanını değiştirir.
+
+**Doğrulama**: derlenmedi; kaynaklar ASCII; dosyalar geri okunup karşılaştırıldı. Yeni test `MirasMarket.Start.InheritedShop`.
+
+**Sıradaki**: derleme + test (50); oyunda yeni kampanyanın ilk haftası. Sonra G-084 3. parça (ülke özel günleri, ücret/kira çarpanları) ya da G-079 kalanı.
+
+## 29.09.2026 — Claude (Cowork, bulut) — G-084 1. parça: ülke paketi, para birimi, kendi ekonomisi — DERLENMEDİ
+
+**Önce**: G-078 #5, G-079 1. parça ve kurgu marka varsayılanı derlendi; TEST 48/48.
+
+**Yapılan**
+- `Config/ulkeler.json`: Türkiye, Almanya, Birleşik Krallık, ABD. Para birimi (simge, önde/arkada, ondalık işareti), gösterim ölçeği, dünya birimi kuru, ekonomi karakteri (istikrarlı / oynak / yüksek enflasyon), alışveriş alışkanlığı, geleneksel rakip adları ve pazar günü, kurgu zincir adları (Alda, Nordpreis, Penni, Edaka; Tesko, Iseland; Dollar Genius, 7-Nine, Krueger), özel günler, isim havuzları, akrabalar, şehirler.
+- `MarketCountry`: paket okuma, aktif ülke, `Money` (binlik ayraç, simge, ondalık), `ChainName`. 18 dosyanın kendi "TL" biçimleyicisi kaldırıldı.
+- `MarketPrices`: ülkenin kendi enflasyon eğrisi (ortalama + tohumlu dalgalanma + oynak ekonomide şok yılı), kredi faizi = enflasyon + makas; Türkiye mevcut eğriyi korur.
+- Tarih: "7 Mart, 1. yıl Pazartesi" (karar L06).
+- Rakip adları ve pazar günü aktif ülkeden.
+
+**Varsayımlar**: iç para tek ölçek (katalog), ülke yalnız gösterimi ve enflasyonu değiştirir; ücret/kira çarpanları dosyada ama henüz kullanılmıyor.
+
+**Doğrulama**: derlenmedi; dosyalar geri okunup karşılaştırıldı; kaynaklar ASCII. Yeni test `MirasMarket.Country.PacksCurrencyEconomy`.
+
+**Sıradaki**: derleme; sonra G-084 2. parça (başlangıç ekranı ve aileden kalan market başlangıcı).
+
+## 29.09.2026 — Claude (Cowork, bulut) — Yön kararları (L), kurgu markalar — KOD: 1 satır, DERLENMEDİ
+
+**Mustafa**: yayında kapsayıcılık: dükkân dışı yok, maket görünümü + yönetim + harita; ülke ve şehir seçerek başlama (ETS2); aileden kalan market (1 kasiyer, 2 görevli, işletme borcu, yarı dolu raflar); kendi ekonomisi; dolar/TL/euro/sterlin; belirsiz yıl. Birinci şahıs kalır, oyun birinci şahısla başlar. Markalar kurgu ama gerçeğe yakın (Game Dev Tycoon: Sony → Vonny), gerçek firmalardan ve paylarından esinli; Marka Editörü ayrıca satılacak.
+
+**Yapılan**
+- `01_KARARLAR.md` L bölümü (L01–L14; L07 ve L12 Mustafa'nın cevabıyla kesinleşti), A11 güncellendi. GOREVLER'e G-084 (ülke profili, belirsiz zaman) ve G-085 (Marka Editörü).
+- `products.json` 97 ürüne kurgu ad (Sütaş → Sütkaş, Coca-Cola → Coca-Loca, Ülker → Ülkar …); yeni `Config/markalar.json` (77 marka: gerçek, kurgu, kategori, güç, ülke); `zincirler.json` kurgu adlar (BİM → BİN, A101 → A110, Şok → ŞAK, Migros → Migron …) ve `useFictional: true`.
+- `MarketEconomy.h`: `bRealBrands` varsayılanı false (kurgu ad); `MarketTests.cpp` marka kayıt testi buna göre.
+
+**Doğrulama**: derlenmedi (önceki G-078 #5 + G-079 değişiklikleriyle birlikte derlenecek).
+
+**Sıradaki**: Mustafa `DERLE.cmd` + `TEST.cmd`; sonra G-084 (ülke profili) — Türkiye/2011 bağımlılığını çözmeden yeni sistem eklenmeyecek.
+
+## 29.09.2026 — Claude (Cowork, bulut) — Tedarik notu, raf düzeni kayda, mahalle rakipleri — DERLENMEDİ
+
+**Mustafa**: G-078 1. parça derlendi, testler geçti. Rakip marketlerin alım maliyeti bizden düşük; büyüdükçe biz de ucuza alırız. Toptancılar yerel/ulusal/uluslararası olsun, her toptancıda her ürün olmasın (yerelde içecek toptancısı ayrı). Not et, düşünmediklerini ekle, sonra devam et.
+
+**Yapılan**
+- `01_KARARLAR.md` K bölümü (K01–K13): ölçekle ucuzlayan alım, rakiplerin düşük maliyeti, toptancı katmanları, uzman toptancılar, teslim günleri, fiyat karşılaştırma, marka anlaşmaları (dolap, raf giriş ücreti, hedef primi), kıtlık, ödeme biçimleri (çek/senet), toptancı kişiliği, satınalma müdürü, soğuk zincir, fason özel marka, uluslararası tedarik. GOREVLER'e G-083.
+- #5: raf düzeni kampanyanın kaydında.
+- G-079 1. parça: mahalle bakkalları, Salı pazarı, Bereket'in satılığa çıkması ve satın alınması (E03), zincirlerin yükselen payımıza cevabı, yıllarla yeni zincir mağazası, ayartma düzeltmesi (#22), gün kayması (#9), zincir adları `zincirler.json`'dan (`useFictional`).
+
+**Kapanan hatalar**: #5, #9, #18 kısmen (zincirler artık tepki veriyor), #20 (Bereket kapanır/satılır, toparlanır), #22 — derleme sonrası kesinleşir.
+
+**Varsayımlar**: bakkallar fiyat ×1,10, yakınlık 1,25, 4 dükkân; pazar Salı, süt ürünlerinde ×0,82; Bereket'in fiyatı 6.000 TL × liste düzeyi; zincir fiyat kırma eşiği pay farkı 3 puan (Rahat 5, Zor 2), adım %1; zincirler 4 yılda bir mağaza ekler (en çok 3).
+
+**Doğrulama**: derlenmedi; dosyalar geri okunup karşılaştırıldı; kaynaklar ASCII.
+
+**Sıradaki**: Mustafa `DERLE.cmd` + `TEST.cmd`; sonra G-079 2. parça (müşteri segmentleriyle mağaza seçimi, fırın) ve G-083'ün yerel uzman toptancıları.
+
+## 29.09.2026 — Claude (Cowork, bulut) — G-078 1. parça: maliyet, katalog, kapsamlı kampanya — DERLENMEDİ
+
+**Önce**: G-076 + G-077 Mustafa'nın bilgisayarında derlendi, TEST 46/46 geçti (bir test düzeltmesinden sonra).
+
+**Yapılan**
+- #26: ürün başına ağırlıklı ortalama alış maliyeti (`AvgCost`); zam ve destekli kampanya eski stoğun maliyetini artık değiştirmez.
+- #37: eksik/kırık gelen mal ertesi gün raporunda kayıp.
+- Katalog perakende alanları; 97 ürüne kategori kurallarıyla ilk değerler (UHT süt 120 gün, ayran 21, yoğurt 21, labne 30; KDV gıda %8, temizlik/bakım/kâğıt %18; esneklik, stok yapma, müşteri çekme). Stüdyo `products.json`'u bu oturumda değiştirmişti (yeni aktif ürünler); ekleme onun son hâline yapıldı.
+- J07: kampanya tek ürüne, markaya, alt gruba, reyona ya da tüm mağazaya; % indirim, 3 al 2 öde, 2 al 1 öde, 2. ürün %50; %5–30; 3–14 gün. Etki ürünün esnekliğine göre; tüm mağaza indirimi müşteri getirir ama ürün başı az artırır. Sık kampanya yapılan ürün heyecan yaratmaz; kampanyadan sonra evde stok yüzünden satış bir süre düşer.
+
+**Kapanan hatalar**: #26, #37, #28 kısmen (kampanya etkisi kapsam/derinliğe bağlı), #29 (kampanya hafızası, basit biçim), #32 kısmen (raf ömrü, KDV, alt kategori verisi) — derleme sonrası kesinleşir.
+
+**Varsayımlar**: katalog değerleri kategori kurallarıyla verildi (tek tek düzeltilebilir); marj bandı değişmedi (G10 kararı).
+
+**Doğrulama**: derlenmedi. Yazılan dosyalar geri okunup karşılaştırıldı; kaynaklar ASCII.
+
+**Sıradaki**: Mustafa `DERLE.cmd` + `TEST.cmd`; sonra G-078 kalanı (raf düzeni kayda, muhasebe defteri) ya da G-079 mahalle rekabeti.
+
+## 29.09.2026 — Claude (Cowork, bulut) — G-077 Aşama 0b kodu — DERLENMEDİ
+
+**Yapılan**: rekabet payı (reyon savaşları paya işler, paylar toplamı %100), online ilçe büyüklüğü, A101 çift sayımı; vadeli alım (kasadan fazlasını vadeyle sipariş), toptancı güveni şişirme; KDV oranı/(1+oran) ve KDV'siz gelir vergisi; müşavir devir bedeli ve hafta boyu şartı; enflasyona bağlı tutarlar; depozito açılış değeriyle; `Config/zincirler.json` (A12 kurgu karşılıkları). Ayrıntı DURUM devam notunda.
+
+**Kapanan hatalar** (`02_DERIN_INCELEME.md` §2): #14, #15, #16, #17, #33, #34, #35, #36, #38, #40 — derleme sonrası kesinleşir. Aşama 0'da bilinçli bırakılanlar: #37 ve #26 (muhasebe defteri ile G-078'de), #19-#20 (Bereket kişiliği G-079).
+
+**Varsayımlar**: vadeli alım limiti 500 TL × liste düzeyi + son 30 gün alımının yarısı; müşavir devir bedeli 7 günlük ücret; kurgu zincir adları Claude seçti (Tasarruf, Köşe 7, Anlık Market, Çarşım, Kavşak, Kıyı Hiper, Trakya Çarşı, Grossa, Stateline, KlubDepo, Heartland Foods, Nordpreis, Sparlinie, Croisée, Brightmart).
+
+**Doğrulama**: Mustafa'nın ilk derlemesinde tek hata: `MarketCompanyTests.cpp(95)` C4456 (`Before` adı gölgeleniyordu) → `LateCashBefore` yapıldı. Diğer 47 birim hatasız derlendi. İkinci derleme ve `TEST.cmd` bekleniyor.
+
+**Sıradaki**: Mustafa `DERLE.cmd` + `TEST.cmd`; sonra G-078.
+
+## 29.09.2026 — Claude (Cowork, bulut) — G-076 Aşama 0a kodu — DERLENMEDİ
+
+**Yapılan**
+- Test modu varsayılan kapalı (`DefaultGame.ini`, `MarketGame.h`); kullanıldıysa kayıtta `bUsedTestMode` işareti, yuva özetinde "test".
+- 3 kayıt yuvası (1. yuva eski `MirasMarket_Campaign_v1` dosyası), son yuva `GameUserSettings.ini` `[MirasMarket.Menu] LastSlot`'ta; oyun açılınca kendiliğinden yüklenir. Kayıt sürümü 2, eski kayıtlar yüklenip yükseltilir.
+- Oyun sonu (J02): `MarketStory::ReachFinale` — Miras (7. bölüm liderlik yılı) ya da 31.12.2040 sonrası "Defterin son sayfası"; bir kez `story.finale` kartı, "Oynamaya devam et"; sonra hikâye/bölüm/hedef gelmez (`StoryClosed`). Bölüm 99 kaldırıldı.
+- Sattın (J03): imzada para kasaya girmez; "Rüyaymış" hiçbir şey geri almak zorunda kalmaz; "Burada bitsin" → `bCampaignOver`, dükkân açılmaz, F6 ya da başka yuva.
+- Menüde zaman (A02): kenar çubuğunda "Menüde zaman: akar/durur" (`PauseInMenu`, bilgisayarda saklanır).
+- Zorluk yalnız kampanyanın 1. gününde değişir.
+
+**Kapanan hatalar** (`02_DERIN_INCELEME.md` §2): #1, #2, #3, #4, #6 (sürüm), #11 — derleme sonrası kesinleşir.
+
+**Doğrulama**: derlenmedi; bu oturumda bilgisayar kontrolü açılamadı. Mustafa `DERLE.cmd` ve `TEST.cmd` çalıştırmalı.
+
+**Sıradaki**: G-077 (rekabet ve para acil düzeltmeleri).
+
+## 29.09.2026 — Claude (Cowork, bulut) — Derin inceleme + yeniden tasarım kararları — KOD DEĞİŞMEDİ
+
+**Mustafa**: projeyi ajanlara bölüp incele; mantık hataları, oyunu zevksiz kılanlar, şube sayıları vb. Örnekler: yalnız Türkiye haritası var ama hedef dünya birinciliği; yerel rakip (market, pazar) yok; kampanya yalnız rafa uygulanıyor. Dünya birinciliği her yerde şube açmayı gerektirmesin, gelişen pazarlar yakalanabilsin.
+
+**Yapılan**
+- 5 inceleme ajanı (dünya/şube, rekabet, fiyat/kampanya, ekonomi/personel, döngü/hikâye). Sonuç `Docs/Kurgu/02_DERIN_INCELEME.md`. Kritik bulgulardan 6'sı kodda ayrıca doğrulandı (✔).
+- Mustafa'nın ikinci tur kararları `01_KARARLAR.md`'ye yazıldı: A02 (menüde zaman oyuncu ayarı), A12 (gerçek zincir adları + kurgu yedek), J01–J07 (oyun sonu Game Dev Tycoon gibi, dünya, lig, yerel rekabet, kampanya kapsamı).
+- GOREVLER'e G-076…G-082 (Aşama 0a–5) eklendi.
+
+**Varsayımlar (C)**: oyun sonu = Küresel Ligde 2 yıl üst üste ciro 1.'liği ya da 31.12.2040, hangisi önceyse; menüde zaman ayarının varsayılanı "akar"; "Burada bitsin" kampanyayı bitirir (satılmış dükkânla serbest oyun yok).
+
+**Doğrulama**: kod değişmedi.
+
+**Kapanan hatalar**: yok.
+
+**Sıradaki**: G-076 (test modu, otomatik yükleme + yuvalar, bölüm 99 / oyun sonu, Rüyaymış, menü zaman ayarı).
+
+## 29.09.2026 — Claude (Cowork, bulut) — G-075 tam ekran menü, oyun hızı, harita çökmesi — DERLENDİ, 46/46 TEST
+
+**Mustafa**: menü ve yazılar çok küçük; yönetim paneli açılır pencere değil tam ekran olmalı; şimdiki tarz kalsın; menü açıkken oyun sürsün, zaman durdurma/hızlandırma menüde de olsun; akıcı, sıkmayan ama ayrıntıya ulaşılabilen bir menü. Oyunda Şubeler > Harita açılınca çöktü.
+
+**Yapılan**
+- Çökme: `MarketMap.cpp` il sınırını kapatırken diziye kendi elemanını ekliyordu (`Points.Add(Points[0])`, Unreal assert). Kopyayla eklenir.
+- Menü tam ekran: arkada bulanık ve renk tülü çekilmiş dükkân (`SBackgroundBlur`, yarı saydam paneller), içerik 1440×820 tasarlanıp ekrana göre ölçeklenir (`SDPIScaler`). Kenar çubuğunda yazı boyutu Küçük/Orta/Büyük (`GameUserSettings.ini` `TextSize`). En küçük yazı 11 punto. HUD de aynı ölçekle (1600×900 tasarım) büyür.
+- Menü artık oyunu durdurmaz. Oyun hızı (`AMarketGameMode::GameSpeed`, `bTimePaused`, global zaman genişletme): dükkânda Space durdur/devam, 1/2/3 hız. Menüde Space, + / - ve başlıkta saat + II/1x/2x/3x düğmeleri. HUD'da hız hapı ve "ZAMAN DURDU" şeridi. Space eskiden kullanılmayan zıplamadaydı (`DefaultInput.ini`).
+- Uzun kural açıklamaları kartlardan kalktı; "(i) Nasıl işler?" üzerine gelince açılır (menüyle aynı ölçekte ipucu). Kenar çubuğunda acil işi olan sayfanın yanında kırmızı nokta.
+
+**Varsayımlar**: menüde rakamlar sayfa seçmeye devam ettiği için hız + / - ile değişir; 3x üstü hız yok (yürüyüş ve çarpışma bozulmasın).
+
+**Doğrulama**: Claude, Mustafa'nın bilgisayarında `DERLE.cmd` (geçti) ve `TEST.cmd` (46/46) çalıştırdı. Görsel sonuç henüz görülmedi.
+
+**Sıradaki**: Mustafa oyunda menüyü açıp boyutu, cam görünümü, hız düğmelerini ve haritayı dener; beğenmezse ölçek (1440×820) ve saydamlık `MarketMenuWidget.cpp` → `UiScale`, `Color` içinden ayarlanır.
+
+## 29.09.2026 — Claude (Cowork, bulut) — G-074 menü entegrasyonu — DERLENDİ, 46/46 TEST
+
+**Yapılan** (`Docs/Devam_G074_Menu/BENI_OKU.md`'deki kalan işler)
+- `MarketMenuWidget.cpp` parçalardan birleştirildi: tema ve yapı taşları, 10 sayfalık çerçeve, onay katmanı ("Emin misin?"), ürün resmi (Stüdyo etiketi; kutuda katalog ölçüsüyle ön yüz), Özet (A2: sol istatistik, kısayol daireleri, aç/kapa, zaman; sağ karar, **Şimdi ne yapmalı** listesi, rakipler, borç, hedef, hikâye), Sipariş (indeks korumalı), Raporlar.
+- Yeni `MarketMenuPages.cpp`:
+  - Fiyat (resimli, kampanyasız).
+  - Kampanyalar: seçili ürüne indirim / 3 al 2 öde / gondol başı, broşür, teklif, her kampanyaya Durdur.
+  - Rakipler: yerel / ulusal / uluslararası sekmeleri.
+  - Personel: Kov sorar; vergi Finans'a taşındı.
+  - Finans: kredi 500/1.000/2.500 sorulu, veresiye 4 kademe, tahsilat, vergi/müşavir, taze ürün 0/1/2, nakit sıkıntısı, ev harçlığı.
+  - Satış kanalları.
+  - Şubeler: harita katmanları, Lüleburgaz (müdür seçici, kapat sorar, 3 format, açılamama nedeni), şirket (+1/-1, yatırımlar).
+- `MarketDirector`: `PromoteTo` (Arg = şube × 1.000.000 + çalışan id). Öteki eylemler (CloseStore, PandemicProfile, FreshPolicy 0, CreditLimit 3, TakeLoan 2, OpenBranch format 2) zaten vardı; artık menüden erişilebiliyor.
+- Hazır duran `MarketMenu.cpp`, `MarketHudWidget.*`, `MarketMap.*`, `MarketRetail.*` Source'a kondu. `MarketRetail.cpp`, `MarketHudWidget.cpp` ve menü dosyaları ASCII'ye çevrildi.
+- Belgeler: `Docs/MENU.md` baştan yazıldı, AGENTS haritası, GOREVLER (G-074), DURUM.
+
+**Varsayımlar**
+- Riskli kararlar: kovma/sözleşme bitirme, şube ve şehir mağazası açma/kapama, kredi ve erken kapatma, indirim ve 3 al 2 öde, broşür, web/platform açma/kapama, veresiye tahsilatı, müdür atama. Gondol başı, sipariş, fiyat ve personel izin/zam sormaz.
+- Özet'teki "İlk şube" düğmesi eski "ikinci şubeyi aç" yerine Şubeler > Lüleburgaz sekmesine götürür.
+
+**Doğrulama**: Claude, Mustafa'nın bilgisayarında Dosya Gezgini'nden `DERLE.cmd` ve `TEST.cmd`'yi çalıştırdı. İlk derlemede tek hata `MarketBranchesTests.cpp` (önceki oturumun `MarketBranches::Close` imza değişikliği) → düzeltildi; ikinci derleme **geçti**, `TEST.cmd` **46/46 geçti**. Smoke çalıştırılmadı. Ayrıca: bildirilen her `SMarketMenu` üyesinin tek tanımı olduğu, parantez dengesi, bütün yeni dosyaların ASCII olduğu, kullanılan oyun alanı/fonksiyon adlarının başlıklarda bulunduğu betikle kontrol edildi.
+
+**Sıradaki**: `SmokeTest.ps1`; Mustafa oyunda M ile 10 sayfayı ve Şubeler > Harita'yı dener (harita çizimi ilk kez ekranda görülecek).
 
 ## 29.09.2026 — Codex — GitHub eşitleme ve G-060…G-073 doğrulaması
 

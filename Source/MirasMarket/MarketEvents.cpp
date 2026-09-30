@@ -1,9 +1,11 @@
 #include "MarketEvents.h"
+#include "MarketCountry.h"
 #include "MarketCalendar.h"
 #include "MarketPrices.h"
 #include "MarketStaff.h"
 #include "MarketStory.h"
 #include "MarketFinance.h"
+#include "MarketCompetitors.h"
 
 namespace MarketEvents
 {
@@ -20,11 +22,10 @@ namespace MarketEvents
 
     FString EventTl(int64 Kurus)
     {
-        const int64 Abs = Kurus < 0 ? -Kurus : Kurus;
-        return FString::Printf(TEXT("%s%lld,%02lld TL"), Kurus < 0 ? TEXT("-") : TEXT(""), static_cast<long long>(Abs / 100), static_cast<long long>(Abs % 100));
+        return MarketCountry::Money(Kurus); // G-084: the active country\'s currency
     }
 
-    // Today's price of a 2011 amount.
+    // Today's price of an amount at the start price level (M24).
     int64 Priced(const FMarketState& State, int64 Kurus2011)
     {
         return FMath::RoundToInt64(Kurus2011 * MarketPrices::ListLevel(State.Day) / 50.0) * 50;
@@ -117,7 +118,7 @@ namespace MarketEvents
             State.Stock[P].Warehouse -= Units;
             State.Cash += Bill;
             State.Revenue += Bill;
-            State.CostOfGoods += Products[P].Cost * Units;
+            State.CostOfGoods += State.UnitCost(P, Products) * Units;
             ChangeSatisfaction(State, 2.f);
             Out = FString::Printf(TEXT("D\u00fc\u011f\u00fcn sipari\u015fi teslim edildi: %d adet, %s. D\u00fc\u011f\u00fcn evi herkese seni anlatt\u0131."), Units, *EventTl(Bill));
             return true;
@@ -202,6 +203,7 @@ bool MarketEvents::Decide(FMarketState& State, const TArray<FMarketProduct>& Pro
     if (!D.Options.IsValidIndex(Option)) { OutMessage = TEXT("B\u00f6yle bir se\u00e7enek yok."); return false; }
     const bool bDone = D.Id.StartsWith(TEXT("story.")) ? MarketStory::Resolve(State, Products, D, Option, OutMessage)
         : D.Id.StartsWith(TEXT("finance.")) ? MarketFinance::Resolve(State, Products, D, Option, OutMessage)
+        : D.Id.StartsWith(TEXT("rival.")) ? MarketCompetitors::Resolve(State, Products, D, Option, OutMessage)
         : ResolveEvent(State, Products, D, Option, OutMessage);
     if (bDone && State.Decisions.Num() > 0 && State.Decisions[0].Id == D.Id) State.Decisions.RemoveAt(0);
     return bDone;

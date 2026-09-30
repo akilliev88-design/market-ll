@@ -49,6 +49,8 @@ namespace MarketStaff
     // Wage the market pays for this role and skill on a game day (follows the minimum wage, MarketPrices).
     // Morale compares the actual wage with it, so a wage that is never raised slowly becomes a low wage.
     int64 FairWage(ERole Role, int32 Skill, int32 GameDay = 1);
+    // G-077 (#36): hiring cost at today's wage level (HireCost / HrHireCost are start-level values (M24)).
+    int64 HireCostOn(ERole Role, int32 GameDay);
     // True when the employee works today (hired, not on the day off). Off = rests, still paid.
     bool OnDuty(const FMarketState& State, const FMarketEmployee& Employee);
     int32 Count(const FMarketState& State, ERole Role);
@@ -61,6 +63,9 @@ namespace MarketStaff
 
     // Older saves: turns bCashier/Stockers into people. Does nothing when the roster exists.
     void Migrate(FMarketState& State);
+    // G-084 (karar L03): the people who come with an inherited shop. Ordinary candidates (random skill, fair wage),
+    // hired on the current day without a hiring cost.
+    void AddStartingStaff(FMarketState& State, int32 Cashiers, int32 Stockers);
     // bCashier = a cashier works today, Stockers = stockers working today (the world spawns them).
     void SyncCounts(FMarketState& State);
     // Fills the hiring pool when it is empty (always at least one cashier and one stocker candidate).

@@ -21,14 +21,14 @@ namespace MarketDirector
     // relative to yesterday. Indexed like Products.
     TArray<float> OrderScales(const FMarketState& State, const TArray<FMarketProduct>& Products);
     float OrderScale(const FMarketState& State, const FMarketProduct& Product);
-    // "7 Mart 2011 Pazartesi" for the running day.
+    // "7 Mart, 1. y\u0131l Pazartesi" for the running day.
     FString DateText(const FMarketState& State);
     // Day line for the HUD/menu: date, weather, special days.
     FString TodayText(const FMarketState& State);
     // Evening report: tomorrow's calendar forecast (State.Day is already tomorrow after a day close).
     FString TomorrowText(const FMarketState& State);
 
-    // Today's costs and list prices (monthly price list, wholesaler discount) from the 2011 catalog values.
+    // Today's costs and list prices (monthly price list, wholesaler discount) from the start-level catalog values.
     // Call after loading/starting a campaign and after every day close.
     void ApplyPrices(const FMarketState& State, const TArray<FMarketProduct>& CatalogBase, TArray<FMarketProduct>& Products);
     // How this shopper wants to pay (MarketPayments::EMethod as uint8), before the basket is sold. Roll 0..1.
@@ -42,17 +42,29 @@ namespace MarketDirector
     FString OnCheckout(FMarketState& State, int32 CustomerId, int64 Receipt, float Roll, uint8 Method = 0);
     // After a successful FMarketState::SubmitOrder: wholesaler volume and payment terms. Returns an extra line.
     FString OnOrder(FMarketState& State, int64 Bill);
+    // Trade credit beyond the till for SubmitOrder (MarketSuppliers::OrderAllowance).
+    int64 OrderAllowance(const FMarketState& State);
     // Management decisions of the background systems that are not staff decisions. False + message when nothing
     // changed. Actions: Supplier (Arg = MarketSuppliers::ESupplier), PayBills, PassOnPriceRise,
     // Discount10 / Discount20 / MultiBuy / Endcap (Arg = product), Flyer, StopPromotion (Arg = index), AcceptOffer, DeclineOffer,
     // Decide (Arg = option of the first waiting decision: story scenes and events),
     // FreshPolicy (Arg 0..2), CreditLimit (Arg step 0..3), CollectCredit, TakeLoan (Arg step 0..2), RepayLoan,
-    // OpenBranch (Arg = district * 10 + format 0 k\u00fc\u00e7\u00fck / 1 mahalle / 2 b\u00fcy\u00fck), CloseBranch (Arg = index),
-    // Promote (Arg = employee id; runs the newest open branch),
+    // OpenBranch (Arg = MarketBranches::EncodeSite: country, province, market type), CloseBranch (Arg = index),
+    // Promote (Arg = employee id; runs the newest open branch), PromoteTo (Arg = branch index * 1000000 + employee id),
     // OnlineChannel (Arg = channel * 10 + 1 on / 0 off; 0 phone, 1 web, 2 platform), HireCourier, FireCourier,
     // Substitute (Arg 0 ask / 1 same aisle / 2 leave out), FreeDelivery (Arg 1/0), Card (Arg 1/0), MealCard (Arg 1/0),
     // PandemicProfile (Arg 1/0), Difficulty (Arg 0 easy / 1 normal / 2 hard),
-    // OpenStore / CloseStore (Arg = MarketCompany::ECity), Build (Arg 0 depot, 1 truck, 2 central buying, 3 own brand, 4 dark store).
+    // Build (Arg 0 depot in the home sub-region, 1 truck, 2 central buying, 3 own brand, 4 dark store),
+    // BuildDepot (Arg = country index * 100 + sub-region index),
+    // G-086b managers: ManagerBonus / ManagerWarn / ManagerReplace / PromoteToProvince (Arg = branch index),
+    // AppointOutside (Arg = MarketManagers::EncodeArea), AppointPromote (Arg = branch index * 10 + MarketManagers::ELevel;
+    // the branch's own area), DismissManager / BonusManager / WarnManager (Arg = State.Management.Managers index),
+    // G-086b ek (M22, 3 candidates): AppointCandidate (Arg = MarketManagers::EncodeArea x 10 + candidate 0..2),
+    // ManagerReplaceWith / ManagerHireFor (Arg = branch index x 10 + candidate 0..2). AppointOutside and
+    // ManagerReplace take candidate 0.
+    // G-089 depots: BuildDepotIn (Arg = MarketManagers::EncodeArea(ELevel::Depot, country, province)); the depot's
+    // manager is appointed with AppointCandidate (EncodeArea(ELevel::Depot, country, province) x 10 + candidate).
+    // BuildDepot (sub-region index) builds in the sub-region's suggested province.
     bool Command(FMarketState& State, const TArray<FMarketProduct>& Products, FName Action, int32 Arg, FString& OutMessage);
     // Evening report of the background systems: wholesalers, staff, tax, ...
     FString ReportText(const FMarketState& State);

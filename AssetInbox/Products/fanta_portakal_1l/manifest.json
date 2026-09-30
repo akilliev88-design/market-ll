@@ -1,0 +1,16 @@
+{
+	"labelMode": "model_uv",
+	"schemaVersion": 1,
+	"productId": "fanta_portakal_1l",
+	"package": "shape_pet_sise_1l",
+	"labels":
+	{
+		"label": "Labels/label.jpg"
+	},
+	"materials": [
+		"/Game/Products/Items/fanta_portakal_1l/MI_fanta_portakal_1l.MI_fanta_portakal_1l",
+		"/Game/Products/Items/fanta_portakal_1l/MI_fanta_portakal_1l_cam.MI_fanta_portakal_1l_cam",
+		"/Game/Products/Items/fanta_portakal_1l/MI_fanta_portakal_1l_kapak.MI_fanta_portakal_1l_kapak"
+	],
+	"publishedAt": "2026-09-29T12:49:06.555Z"
+}

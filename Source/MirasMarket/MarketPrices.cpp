@@ -24,6 +24,27 @@ namespace MarketPrices
     constexpr double StartWage = 658.95;
     constexpr double RealWageGrowth = 0.015;
 
+    struct FEconomy { bool bOn = false; double Mean = 0.0; double Vol = 0.0; double Spread = 0.0; bool bShocks = false; uint32 Seed = 0; };
+    FEconomy& Economy() { static FEconomy E; return E; }
+
+    // -1..1, stable per seed and year.
+    double Wobble(uint32 Seed, int32 Year, uint32 Salt)
+    {
+        uint32 Hash = 2166136261u ^ Salt;
+        const uint32 Parts[2] = { Seed, static_cast<uint32>(Year) };
+        for (uint32 Part : Parts) for (int32 Byte = 0; Byte < 4; ++Byte) { Hash ^= (Part >> (Byte * 8)) & 0xFFu; Hash *= 16777619u; }
+        return (Hash % 20001u) / 10000.0 - 1.0;
+    }
+
+    double CustomInflation(int32 Year)
+    {
+        const FEconomy& E = Economy();
+        // Half of last year's wobble carries over, so good and bad years come in runs.
+        double Rate = E.Mean + E.Vol * (0.6 * Wobble(E.Seed, Year, 1u) + 0.4 * Wobble(E.Seed, Year - 1, 1u));
+        if (E.bShocks && (Wobble(E.Seed, Year, 7u) > 0.8)) Rate += E.Vol * 2.5;   // a shock year
+        return FMath::Clamp(Rate, -0.01, 0.6);
+    }
+
     const FYearRates* FindYear(int32 Year)
     {
         for (const FYearRates& R : Rates) if (R.Year == Year) return &R;
@@ -31,8 +52,19 @@ namespace MarketPrices
     }
 }
 
+void MarketPrices::SetEconomy(double InflationMean, double InflationVol, double LoanSpread, bool bShocks, int32 Seed)
+{
+    FEconomy& E = Economy();
+    E.bOn = true; E.Mean = InflationMean; E.Vol = FMath::Max(0.0, InflationVol); E.Spread = LoanSpread; E.bShocks = bShocks; E.Seed = static_cast<uint32>(Seed);
+}
+
+void MarketPrices::ClearEconomy() { Economy() = FEconomy(); }
+
+bool MarketPrices::HasCustomEconomy() { return Economy().bOn; }
+
 double MarketPrices::YearlyInflation(int32 Year)
 {
+    if (Economy().bOn && Year >= 2011) return CustomInflation(Year);
     if (const FYearRates* R = FindYear(Year)) return R->Inflation;
     return Year < 2011 ? 0.08 : LaterInflation;
 }
@@ -84,6 +116,17 @@ double MarketPrices::WageIndex(int32 GameDay)
 double MarketPrices::LoanRate(int32 GameDay)
 {
     const int32 Year = MarketCalendar::DateOf(GameDay).Year;
+    if (Economy().bOn) return FMath::Max(0.02, CustomInflation(Year) + Economy().Spread);
     if (const FYearRates* R = FindYear(Year)) return R->LoanRate;
     return LaterLoanRate;
+}
+
+int64 MarketPrices::Scaled(int64 Kurus2011, int32 GameDay)
+{
+    return FMath::RoundToInt64(static_cast<double>(Kurus2011) * ListLevel(GameDay));
+}
+
+int64 MarketPrices::WageScaled(int64 Kurus2011, int32 GameDay)
+{
+    return FMath::RoundToInt64(static_cast<double>(Kurus2011) * WageIndex(GameDay));
 }

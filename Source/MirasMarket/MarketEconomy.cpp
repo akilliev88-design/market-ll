@@ -24,7 +24,7 @@ bool FMarketState::Order(int32 Index, const TArray<FMarketProduct>& Products)
     return SubmitOrder(Cases, Products);
 }
 
-bool FMarketState::SubmitOrder(const TArray<int32>& Cases, const TArray<FMarketProduct>& Products, int64* OutBill, int32* OutUnits)
+bool FMarketState::SubmitOrder(const TArray<int32>& Cases, const TArray<FMarketProduct>& Products, int64* OutBill, int32* OutUnits, int64 CreditAllowance)
 {
     if (Products.Num() != Stock.Num() || Cases.Num() != Products.Num()) return false;
     int64 Bill = 0;
@@ -41,11 +41,20 @@ bool FMarketState::SubmitOrder(const TArray<int32>& Cases, const TArray<FMarketP
         Bill += LineBill;
         TotalUnits += Units;
     }
-    if (TotalUnits <= 0 || Cash < Bill) return false;
+    if (TotalUnits <= 0 || Cash + FMath::Max<int64>(0, CreditAllowance) < Bill) return false;
     Cash -= Bill;
     Purchases += Bill;
     for (int32 I = 0; I < Products.Num(); ++I)
-        Stock[I].Incoming += Cases[I] * FMath::Clamp(Products[I].CaseUnits, 1, 48);
+    {
+        FMarketStock& Item = Stock[I];
+        const int32 Units = Cases[I] * FMath::Clamp(Products[I].CaseUnits, 1, 48);
+        if (Units <= 0) continue;
+        // G-078 (#26): the new units join the held units at their purchase price.
+        const int64 Held = FMath::Max(0, Item.Shelf + Item.Warehouse + Item.Dock + Item.Incoming);
+        const int64 Old = Item.AvgCost > 0 ? Item.AvgCost : Products[I].Cost;
+        Item.AvgCost = FMath::Max<int64>(1, (Old * Held + Products[I].Cost * Units + (Held + Units) / 2) / (Held + Units));
+        Item.Incoming += Units;
+    }
     if (OutBill) *OutBill = Bill;
     if (OutUnits) *OutUnits = TotalUnits;
     return true;
@@ -107,7 +116,7 @@ bool FMarketState::SellBasket(const TArray<FMarketSaleLine>& Lines, const TArray
         FMarketStock& Item = Stock[Line.Product];
         Item.Shelf -= Line.Quantity;
         Item.Today.Sold += Line.Quantity;
-        CostOfGoods += Products[Line.Product].Cost * Line.Quantity;
+        CostOfGoods += UnitCost(Line.Product, Products) * Line.Quantity;
     }
     for (int32 I = 0; I < HasLine.Num(); ++I) if (HasLine[I]) ++Stock[I].Today.Buyers;
     Cash += Receipt;
@@ -140,7 +149,8 @@ void FMarketState::CloseDay()
     LastBranchProfit = bSecondStore && Branches.Num() == 0 ? FMath::RoundToInt64(800 + MarketShare * 35) : 0;
     LastRevenue = Revenue;
     LastCostOfGoods = CostOfGoods;
-    LastProfit = Revenue - CostOfGoods - LastOperatingCost + LastBranchProfit;
+    LastProfit = Revenue - CostOfGoods - LastOperatingCost + LastBranchProfit - PendingLoss;
+    PendingLoss = 0;
     Cash += LastBranchProfit - LastOperatingCost;
     if (LastProfit > 0) ++ProfitableDays;
     ShareBeforeClose = MarketShare;
@@ -170,7 +180,10 @@ void FMarketState::CloseDay()
         {
             LastDeliveryMissing += Missing;
             LastDeliveryDamaged += Damaged;
+            // G-078 (#37): paid-for units that never arrived whole are a loss in the next day's report.
+            PendingLoss += static_cast<int64>(Missing + Damaged) * FMath::Max<int64>(0, Item.AvgCost);
             Item.Dock += Item.Incoming - Missing - Damaged;
+            Item.Received += Item.Incoming - Missing - Damaged;
             Item.Incoming = 0;
         }
         Item.Yesterday = Item.Today;
@@ -208,7 +221,14 @@ int32 FMarketState::FillShelfFree(int32 Index)
     auto& Item = Stock[Index];
     const int32 Added = FMath::Max(0, Item.Capacity - Item.Shelf);
     Item.Shelf += Added;
+    Item.Received += Added;
     return Added;
+}
+
+int64 FMarketState::UnitCost(int32 Index, const TArray<FMarketProduct>& Products) const
+{
+    if (Stock.IsValidIndex(Index) && Stock[Index].AvgCost > 0) return Stock[Index].AvgCost;
+    return Products.IsValidIndex(Index) ? Products[Index].Cost : 0;
 }
 
 int32 FMarketState::ReceiveFree(int32 Index, int32 Units)
@@ -217,6 +237,7 @@ int32 FMarketState::ReceiveFree(int32 Index, int32 Units)
     auto& Item = Stock[Index];
     const int32 Added = FMath::Clamp(Units, 0, FMath::Max(0, StorageCapacity - Item.Warehouse - Item.Dock - Item.Incoming));
     Item.Warehouse += Added;
+    Item.Received += Added;
     return Added;
 }
 
@@ -230,7 +251,7 @@ int32 FMarketState::DeliveryUnits() const
 bool FMarketState::IsStructurallyValid() const
 {
     if (InheritedDebt < 0 || DebtClearedDay < 0 || WeekDebtPaid < 0 || LastWeekNumber < 0) return false;
-    if (Version != 1 || Day < 1 || !FMath::IsFinite(MarketShare) || MarketShare < 5 || MarketShare > 65 || Stockers < 0 || Stockers > MaxStockers) return false;
+    if (Version < 1 || Version > CurrentVersion || Day < 1 || !FMath::IsFinite(MarketShare) || MarketShare < 5 || MarketShare > 65 || Stockers < 0 || Stockers > MaxStockers) return false;
     TSet<FString> Seen;
     for (const auto& Item : Stock)
     {
@@ -276,7 +297,8 @@ bool FMarketState::IsValidFor(const TArray<FMarketProduct>& Products) const
 int32 FMarketState::ReconcileWith(const TArray<FMarketProduct>& Products, TArray<FString>* OutAdded, TArray<FString>* OutRemoved)
 {
     TMap<FString, FMarketStock> Previous;
-    for (const auto& Item : Stock) Previous.Add(Item.Id, Item);
+    TMap<FString, int32> OldIndex;
+    for (int32 I = 0; I < Stock.Num(); ++I) { Previous.Add(Stock[I].Id, Stock[I]); OldIndex.Add(Stock[I].Id, I); }
     TArray<FMarketStock> Aligned;
     int32 Changes = 0;
     for (const auto& Product : Products)
@@ -305,6 +327,15 @@ int32 FMarketState::ReconcileWith(const TArray<FMarketProduct>& Products, TArray
         ++Changes;
         if (OutRemoved) OutRemoved->Add(Pair.Key);
     }
+    // Promotions and the wholesaler's offer point at stock rows: follow the products to their new rows.
+    TArray<int32> NewIndexOfOld;
+    NewIndexOfOld.Init(INDEX_NONE, Stock.Num());
+    for (int32 I = 0; I < Aligned.Num(); ++I)
+        if (const int32* Old = OldIndex.Find(Aligned[I].Id)) NewIndexOfOld[*Old] = I;
+    const auto Remap = [&NewIndexOfOld](int32 Row) { return NewIndexOfOld.IsValidIndex(Row) ? NewIndexOfOld[Row] : INDEX_NONE; };
+    for (FMarketPromotion& Promotion : Promotions)
+        if (Promotion.Product != INDEX_NONE) Promotion.Product = Remap(Promotion.Product);
+    if (Offer.Product != INDEX_NONE) Offer.Product = Remap(Offer.Product);
     Stock = MoveTemp(Aligned);
     return Changes;
 }

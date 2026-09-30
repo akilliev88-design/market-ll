@@ -54,7 +54,9 @@ TArray<MarketRivals::FEvent> MarketRivals::NewsOn(int32 Day, int32 Seed, const T
     if (Day == ChainOpensDay)
     {
         FEvent Chain;
-        Chain.Kind = EKind::NewRival; Chain.Rival = 2; Chain.Traffic = 0.95f; Chain.FirstDay = Day; Chain.Days = 1000000;
+        // G-077 (#17): the new chain's pull is in the share model (MarketCompetitors); the news no longer cuts our
+        // traffic a second time.
+        Chain.Kind = EKind::NewRival; Chain.Rival = 2; Chain.Traffic = 1.f; Chain.FirstDay = Day; Chain.Days = 1000000;
         News.Add(Chain);
     }
     if (Day <= QuietDays) return News;

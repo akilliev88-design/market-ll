@@ -158,6 +158,17 @@ struct FMarketWorker
     bool bResting = false;
 };
 
+// A thing the player should look at now (G-074): the HUD shows the first three as notices, the menu's Ozet lists
+// them with a button to the page that solves it. Built once a frame by AMarketGameMode::Todos (MarketMenu.cpp).
+struct FMarketTodo
+{
+    int32 Severity = 0;          // 0 information, 1 warning, 2 urgent
+    FString Title;
+    FString Text;
+    int32 Page = 0;              // SMarketMenu::EPage that solves it
+    int32 Product = INDEX_NONE;  // product to select on that page
+};
+
 struct FMarketQueueRules
 {
     static int32 Rank(const TArray<FMarketCustomer>& Customers, int32 CustomerIndex);
@@ -194,7 +205,7 @@ public:
     UPROPERTY() TMap<int32, TObjectPtr<UMaterialInterface>> SurfaceCache;
     // Test phase: shelves can be filled without warehouse stock or cash (F2 toggles, F3 fills all).
     // Default comes from DefaultGame.ini [/Script/MirasMarket.MarketGameMode] bTestModeAtStart.
-    UPROPERTY(Config) bool bTestModeAtStart = true;
+    UPROPERTY(Config) bool bTestModeAtStart = false;   // G-076: off for players; developers turn it on in the ini
     // Shoppers: MetaHumans when assembled (DefaultGame.ini can turn them off or fix their facing).
     UPROPERTY(Config) bool bUseMetaHumans = true;
     UPROPERTY(Config) float MetaHumanYawOffset = 0.f;
@@ -260,6 +271,8 @@ public:
     void RefreshDeliveryCrates();
     bool StartPlayerDelivery(int32 ProductIndex);
     bool FinishPlayerDelivery();
+    // New campaign / load: the crate in the player's hands is put back (its units never left the rear door).
+    void DropCarriedDelivery();
     void TickPlayerDelivery();
     int32 OrderDraftCaseCount() const;
     int64 OrderDraftBill() const;
@@ -280,7 +293,13 @@ public:
     double StoreFrameSeconds = 0;
     int32 StoreFrameCount = 0;
     FString ActiveStoreKitId;
-    if (bStoreTour) { TickStoreTour(); return; }
+    bool bStoreTour = false;
+    int32 StoreTourSeed = 1;
+    TSharedPtr<SWidget> StoreTourOverlay;
+    FString StoreTourNotice;
+    bool StartStoreTour(const FString& Id, bool bRandom = false);
+    bool StoreTourCommand(FName Action);
+    void TickStoreTour();
     TMap<FString, FString> StoreCategoryOverrides;
     TFunction<void(const TMap<FString, FString>&)> OnStoreCategoriesChanged;
     // In-game shelf arranging (R while the shop is closed). See MarketArrange.cpp.
@@ -381,6 +400,29 @@ public:
     bool bMenuSettingsLoaded = false;
     bool bMenuAction = false;            // a menu button is running Command(): the office-desk distance is not needed
     int32 MenuProduct = 0;               // product shown on the price page
+    int32 MapProvince = INDEX_NONE;      // province selected on the Subeler map (MarketMapData index)
+    // G-086: there is no default start province. A fresh game (or an empty save slot) waits on the new-game
+    // screen until the player picks a country and a province; the menu cannot be closed meanwhile.
+    bool bNeedStart = false;
+    bool bNewGameAsk = false;            // the player opened the new-game screen (can go back)
+    void AskNewGame();
+    // Game speed (G-075): Space pauses, 1/2/3 run the world at 1x/2x/3x (global time dilation). The menu has the
+    // same controls and the world keeps running behind it. Automation runs never touch it.
+    int32 GameSpeed = 1;
+    bool bTimePaused = false;
+    bool bPauseInMenu = false;           // GameUserSettings.ini [MirasMarket.Menu] PauseInMenu (karar A02: player's choice)
+    void SetPauseInMenu(bool bPause);
+    int32 MenuTextSize = 1;              // GameUserSettings.ini [MirasMarket.Menu] TextSize: 0 small, 1 normal, 2 large
+    void SetGameSpeed(int32 Speed);
+    void SetTimePaused(bool bPaused);
+    void ApplyGameSpeed();
+    void SetMenuTextSize(int32 Size);
+    // x size of the menu and the HUD (MenuTextSize).
+    float UiTextFactor() const;
+    // Notices for the HUD and the menu's to-do list, most urgent first (cached for the current frame).
+    const TArray<FMarketTodo>& Todos() const;
+    mutable TArray<FMarketTodo> TodoCache;
+    mutable uint64 TodoFrame = MAX_uint64;
     void OpenMenu(int32 Page, bool bDayReport = false);
     void CloseMenu();
     void OpenDayReport();
@@ -389,6 +431,10 @@ public:
     // (Id = employee/candidate id), HireAccountant, PayTax, HrAutoReplace. From the menu; no desk distance needed.
     void StaffCommand(FName Action, int32 Id = INDEX_NONE);
     void ClearOrderDraft();
+    // G-086f order list window: move a line's cases to another product (as many as its limits allow; returns
+    // the cases moved) and drop one line.
+    int32 MoveOrderDraft(int32 From, int32 To);
+    void ClearOrderLine(int32 Product);
     void ToggleMenuTheme();
     void LoadMenuSettings();
     void LoadCatalog();
@@ -409,7 +455,23 @@ public:
     void Checkout();
     void CloseShop();
     bool SaveCampaign();
-    void LoadCampaign();
+    // bQuiet: the automatic load at start does not announce a missing save.
+    void LoadCampaign(bool bQuiet = false);
+    // G-076: three save slots. The last used slot is remembered in GameUserSettings.ini and loaded at start.
+    static constexpr int32 SlotCount = 3;
+    int32 ActiveSlot = 1;
+    static FString SlotName(int32 Slot);     // save-game slot name (slot 1 keeps the old v1 file)
+    bool SlotExists(int32 Slot) const;
+    FString SlotSummary(int32 Slot) const;   // cached: "Gun 42, 12 Nisan 2011" or "bos"
+    TArray<FString> SlotSummaries;
+    void RefreshSlotSummaries();
+    void SelectSlot(int32 Slot);              // switch campaign: load it, or start a new one there
+    void ResetCampaign();                     // fresh campaign in the active slot
+    // G-084 (karar L02-L03): the inherited shop (relative, 1 cashier + 2 stockers, shelves 40-75 % full). Smoke and
+    // capture runs keep the prototype's empty shop.
+    void StartShop();
+    // Menu "Yeni oyun": a fresh campaign in the active slot, in the chosen country and city.
+    void StartNewCampaign(const FString& Country, const FString& City);
     AActor* Box(FVector Location, FVector Size, FLinearColor Color, bool bCollision = true);
     // bCenter: text is vertically centered on Location (signs, tags); otherwise it hangs from it.
     UTextRenderComponent* Label(FVector Location, FRotator Rotation, const FString& Text, float Size = 20, FColor Color = FColor::White, bool bCenter = false);

@@ -1,0 +1,17 @@
+{
+	"labelMode": "model_uv",
+	"schemaVersion": 1,
+	"productId": "sprite_1l",
+	"package": "shape_pet_sise_1l",
+	"labels":
+	{
+		"label": "Labels/label.jpg",
+		"cap": "Labels/cap.jpg"
+	},
+	"materials": [
+		"/Game/Products/Items/sprite_1l/MI_sprite_1l.MI_sprite_1l",
+		"/Game/Products/Items/sprite_1l/MI_sprite_1l_cam.MI_sprite_1l_cam",
+		"/Game/Products/Items/sprite_1l/MI_sprite_1l_kapak.MI_sprite_1l_kapak"
+	],
+	"publishedAt": "2026-09-29T12:51:07.806Z"
+}

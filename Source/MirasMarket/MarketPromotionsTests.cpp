@@ -71,4 +71,53 @@ bool FMarketPromotionsTest::RunTest(const FString& Parameters)
     return true;
 }
 
+IMPLEMENT_SIMPLE_AUTOMATION_TEST(FMarketPromotionsScopedTest, "MirasMarket.Promotions.Scoped", EAutomationTestFlags::EditorContext | EAutomationTestFlags::EngineFilter)
+bool FMarketPromotionsScopedTest::RunTest(const FString& Parameters)
+{
+    // G-078 (karar J07): one campaign on a single product, a brand, a subcategory, an aisle or the whole store.
+    using namespace MarketPromotions;
+    FMarketProduct MilkA; MilkA.Id = TEXT("milk_a"); MilkA.Category = TEXT("sut"); MilkA.Subcategory = TEXT("sut"); MilkA.Brand = TEXT("Pinar"); MilkA.Cost = 170; MilkA.BasePrice = 250; MilkA.Elasticity = 1.5f;
+    FMarketProduct Labne; Labne.Id = TEXT("labne"); Labne.Category = TEXT("sut"); Labne.Subcategory = TEXT("peynir"); Labne.Brand = TEXT("Pinar"); Labne.Cost = 210; Labne.BasePrice = 310;
+    FMarketProduct MilkB; MilkB.Id = TEXT("milk_b"); MilkB.Category = TEXT("sut"); MilkB.Subcategory = TEXT("sut"); MilkB.Brand = TEXT("Sutas"); MilkB.Cost = 160; MilkB.BasePrice = 240;
+    FMarketProduct Cola; Cola.Id = TEXT("cola"); Cola.Category = TEXT("icecek"); Cola.Subcategory = TEXT("gazli"); Cola.Brand = TEXT("Coca-Cola"); Cola.Cost = 180; Cola.BasePrice = 275; Cola.Elasticity = 4.f;
+    const TArray<FMarketProduct> Products = { MilkA, Labne, MilkB, Cola };
+    FMarketState S; S.Initialize(Products); S.Cash = 100000;
+    S.ApplyShelfCapacities({ 12, 12, 12, 12 });
+    FString Message;
+
+    TestEqual(TEXT("Single product reaches one"), ScopeSize(Products, 0, EScope::Product), 1);
+    TestEqual(TEXT("Brand reaches both Pinar"), ScopeSize(Products, 0, EScope::Brand), 2);
+    TestEqual(TEXT("Subcategory reaches both milks"), ScopeSize(Products, 0, EScope::Subcategory), 2);
+    TestEqual(TEXT("Aisle reaches three"), ScopeSize(Products, 0, EScope::Category), 3);
+    TestEqual(TEXT("Store reaches all"), ScopeSize(Products, 0, EScope::Store), 4);
+
+    // 15 % on one product only.
+    TestTrue(TEXT("Single product 15 %"), StartScoped(S, Products, PackArg(0, EScope::Product, EMechanic::Percent, 15, 7), Message));
+    TestEqual(TEXT("Only that product is cheaper"), UnitPrice(S, Products, 0, 1), int64(213));
+    TestEqual(TEXT("Same brand, other product unchanged"), UnitPrice(S, Products, 1, 1), int64(310));
+    TestEqual(TEXT("Seven days"), S.Promotions.Last().EndDay, S.Day + 6);
+    TestFalse(TEXT("Not twice on the same product"), StartScoped(S, Products, PackArg(0, EScope::Product, EMechanic::Percent, 10, 3), Message));
+
+    // 2 al 1 \u00f6de on the cola: one becomes two, two for the price of one.
+    TestTrue(TEXT("2 for 1 on cola"), StartScoped(S, Products, PackArg(3, EScope::Product, EMechanic::TwoForOne, 0, 3), Message));
+    TestEqual(TEXT("One becomes two"), AdjustQuantity(S, 3, 1), 2);
+    TestEqual(TEXT("Half price each"), UnitPrice(S, Products, 3, 2), int64(138));
+    TestTrue(TEXT("A price-sensitive product reacts more"), Interest(S, Products, 3) > Interest(S, Products, 0));
+
+    // A brand-wide second-half deal.
+    TestTrue(TEXT("Brand: second unit half"), StartScoped(S, Products, PackArg(1, EScope::Brand, EMechanic::SecondHalf, 0, 7), Message));
+    TestEqual(TEXT("Labne pair: 25 % off each"), UnitPrice(S, Products, 1, 2), int64(233));
+    TestEqual(TEXT("Other brand unchanged"), UnitPrice(S, Products, 2, 2), int64(240));
+    TestFalse(TEXT("Three running at most"), StartScoped(S, Products, PackArg(2, EScope::Store, EMechanic::Percent, 10, 3), Message));
+    TestTrue(TEXT("Describe"), Describe(S.Promotions.Last(), Products).Contains(TEXT("Pinar")));
+    // Shopper memory: a product on a deal all month excites less; a pantry full after a deal keeps shoppers away.
+    const float Fresh = Interest(S, Products, 3);
+    S.Stock[3].PromoHeat = 25.f;
+    TestTrue(TEXT("Deal fatigue"), Interest(S, Products, 3) < Fresh);
+    S.Stock[3].PromoHeat = 0.f;
+    S.Stock[3].Pantry = 10.f;
+    TestTrue(TEXT("After-deal dip"), Interest(S, Products, 3) < Fresh);
+    return true;
+}
+
 #endif

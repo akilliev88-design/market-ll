@@ -1,4 +1,5 @@
 #include "MarketFinance.h"
+#include "MarketCountry.h"
 #include "MarketCalendar.h"
 #include "MarketCredit.h"
 #include "MarketEvents.h"
@@ -9,8 +10,7 @@ namespace MarketFinance
 {
     FString FinanceTl(int64 Kurus)
     {
-        const int64 Abs = Kurus < 0 ? -Kurus : Kurus;
-        return FString::Printf(TEXT("%s%lld,%02lld TL"), Kurus < 0 ? TEXT("-") : TEXT(""), static_cast<long long>(Abs / 100), static_cast<long long>(Abs % 100));
+        return MarketCountry::Money(Kurus); // G-084: the active country\'s currency
     }
 
     double Level(const FMarketState& State) { return MarketPrices::ListLevel(State.Day); }
@@ -31,7 +31,7 @@ namespace MarketFinance
     int64 DepotValue(const FMarketState& State, const TArray<FMarketProduct>& Products)
     {
         int64 Value = 0;
-        for (int32 I = 0; I < State.Stock.Num() && I < Products.Num(); ++I) Value += static_cast<int64>(State.Stock[I].Warehouse) * Products[I].Cost;
+        for (int32 I = 0; I < State.Stock.Num() && I < Products.Num(); ++I) Value += static_cast<int64>(State.Stock[I].Warehouse) * State.UnitCost(I, Products);
         return Value;
     }
 
@@ -40,8 +40,9 @@ namespace MarketFinance
         int64 Got = 0;
         for (int32 I = 0; I < State.Stock.Num() && I < Products.Num(); ++I)
         {
-            Got += static_cast<int64>(State.Stock[I].Warehouse) * Products[I].Cost / 2;
-            State.LastProfit -= static_cast<int64>(State.Stock[I].Warehouse) * Products[I].Cost / 2; // sold below cost
+            const int64 Book = static_cast<int64>(State.Stock[I].Warehouse) * State.UnitCost(I, Products);
+            Got += Book / 2;
+            State.PendingLoss += Book - Book / 2; // sold below cost (next report)
             State.Stock[I].Warehouse = 0;
         }
         State.Cash += Got;
@@ -107,7 +108,7 @@ bool MarketFinance::RepayAll(FMarketState& State, FString& OutMessage)
     const int64 Fee = FMath::RoundToInt64(Owed * static_cast<double>(EarlyRepayFee));
     if (State.Cash < Owed + Fee) { OutMessage = FString::Printf(TEXT("Erken kapatmak i\u00e7in %s gerekiyor."), *FinanceTl(Owed + Fee)); return false; }
     State.Cash -= Owed + Fee;
-    State.LastProfit -= Fee;
+    State.PendingLoss += Fee; // shows in the next day report and in the tax books
     State.Loans.Reset();
     OutMessage = FString::Printf(TEXT("Kredi erken kapand\u0131: %s (%s erken \u00f6deme \u00fccreti)."), *FinanceTl(Owed + Fee), *FinanceTl(Fee));
     return true;
@@ -145,6 +146,7 @@ void MarketFinance::CloseDay(FMarketState& State, const TArray<FMarketProduct>& 
             State.Cash -= Pay;
             L.Remaining = FMath::Max<int64>(0, L.Remaining - (Pay - Interest));
             State.LastProfit -= Interest;
+            State.Books.PeriodProfit -= Interest; // the books closed before the bank: interest lowers taxable profit
             L.NextDueDay += MonthDays;
             News.Add(FString::Printf(TEXT("Trakya Bankas\u0131 taksiti \u00f6dendi: %s (faiz %s, kalan %s)."), *FinanceTl(Pay), *FinanceTl(Interest), *FinanceTl(L.Remaining)));
         }
@@ -153,6 +155,7 @@ void MarketFinance::CloseDay(FMarketState& State, const TArray<FMarketProduct>& 
             const int64 Fee = FMath::Max<int64>(100, FMath::RoundToInt64(Pay * static_cast<double>(LateFee)));
             L.Remaining += Fee;
             State.LastProfit -= Fee;
+            State.Books.PeriodProfit -= Fee;
             L.NextDueDay = State.Day;
             News.Add(FString::Printf(TEXT("Banka taksiti \u00f6denemedi (%s): %s gecikme faizi eklendi."), *FinanceTl(Pay), *FinanceTl(Fee)));
         }
@@ -207,7 +210,7 @@ void MarketFinance::CloseDay(FMarketState& State, const TArray<FMarketProduct>& 
         {
             const int64 Mortgage = FMath::RoundToInt64(300000 * Level(State) / 100.0) * 100;
             MarketEvents::Offer(State, FinanceDecision(State, TEXT("finance.mortgage"), TEXT("Tapu"),
-                FString::Printf(TEXT("Bir ayd\u0131r kasa eksi. Trakya Bankas\u0131 baban\u0131n d\u00fckk\u00e2n\u0131n\u0131n tapusu kar\u015f\u0131l\u0131\u011f\u0131nda %s kredi \u00f6neriyor (24 ay). \u00d6denmezse d\u00fckk\u00e2n bankan\u0131n olur."), *FinanceTl(Mortgage)),
+                FString::Printf(TEXT("Bir ayd\u0131r kasa eksi. Trakya Bankas\u0131 d\u00fckk\u00e2n\u0131n tapusu kar\u015f\u0131l\u0131\u011f\u0131nda %s kredi \u00f6neriyor (24 ay). \u00d6denmezse d\u00fckk\u00e2n bankan\u0131n olur."), *FinanceTl(Mortgage)),
                 { FString(TEXT("Tapuyu ipotek ver")), FString(TEXT("Hay\u0131r, ba\u015fka yol bulurum")) }, 1, 5));
             State.Decisions.Last().Arg = static_cast<int32>(FMath::Min<int64>(Mortgage, MAX_int32));
             break;
@@ -260,7 +263,7 @@ bool MarketFinance::Resolve(FMarketState& State, const TArray<FMarketProduct>& P
         if (Option == 0)
         {
             AddLoan(State, D.Arg, MarketPrices::LoanRate(State.Day), true, 24);
-            OutMessage = FString::Printf(TEXT("Tapu ipotek edildi; %s kasaya ge\u00e7ti. Baban\u0131n d\u00fckk\u00e2n\u0131 art\u0131k bankaya ba\u011fl\u0131."), *FinanceTl(D.Arg));
+            OutMessage = FString::Printf(TEXT("Tapu ipotek edildi; %s kasaya ge\u00e7ti. Aileden kalan d\u00fckk\u00e2n art\u0131k bankaya ba\u011fl\u0131."), *FinanceTl(D.Arg));
         }
         else OutMessage = TEXT("Tapuya dokunmad\u0131n.");
         return true;

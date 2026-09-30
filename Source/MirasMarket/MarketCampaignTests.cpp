@@ -106,7 +106,8 @@ bool FMarketRivalsTest::RunTest(const FString& Parameters)
     bool bChain = false;
     for (const MarketRivals::FEvent& Event : MarketRivals::NewsOn(MarketRivals::ChainOpensDay, Seed, Aisles)) bChain |= Event.Kind == MarketRivals::EKind::NewRival;
     TestTrue(TEXT("Opening is in the news"), bChain);
-    TestTrue(TEXT("The new store takes some shoppers for good"), MarketRivals::TrafficFactor(40, Seed, Aisles) <= 0.95f);
+    // G-077 (#17): the new store takes shoppers through the share model (MarketCompetitors), not through the news.
+    TestTrue(TEXT("The opening news does not cut traffic twice"), MarketRivals::TrafficFactor(40, Seed, Aisles) <= 1.f);
     TestTrue(TEXT("A different campaign brings different news"),
         MarketRivals::NewsOn(6, Seed, Aisles).Num() != MarketRivals::NewsOn(6, Seed + 1, Aisles).Num() ||
         MarketRivals::NewsOn(9, Seed, Aisles).Num() != MarketRivals::NewsOn(9, Seed + 1, Aisles).Num() ||

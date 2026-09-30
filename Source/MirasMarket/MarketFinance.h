@@ -23,8 +23,8 @@ namespace MarketFinance
     constexpr float EarlyRepayFee = 0.01f;
     constexpr float LateFee = 0.03f;
     constexpr double EmergencyRateBonus = 0.12;   // yearly, on top of the year's rate
-    constexpr int64 HouseholdDraw = 3000;         // 2011 kurus a day taken home, follows the minimum wage
-    const int64 LoanSteps[3] = { 50000, 100000, 250000 };   // 500 / 1.000 / 2.500 TL at 2011 prices
+    constexpr int64 HouseholdDraw = 3000;         // start-level kurus a day taken home, follows the minimum wage
+    const int64 LoanSteps[3] = { 50000, 100000, 250000 };   // 500 / 1.000 / 2.500 TL at the start price level
 
     int64 Installment(int64 Principal, double MonthlyRate, int32 Months);
     int64 LoanLimit(const FMarketState& State);

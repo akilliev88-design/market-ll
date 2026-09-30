@@ -1,0 +1,545 @@
+{
+  "schemaVersion": 1,
+  "note": "Karar L12 (Mustafa 29.09.2026): markalar kurgu ama gercek firmaya yakin (Game Dev Tycoon'daki Sony->Vonny gibi). Oyuncu ileride Marka Editoru ile ad ve logo degistirebilir. 'tier': pazardaki agirligi (lider/guclu/orta/yerel), gercek pazar yapisindan esinli, oyun icin yaklasik.",
+  "brands": [
+    {
+      "real": "Sütaş",
+      "fictional": "Sütkaş",
+      "category": "süt",
+      "tier": "güçlü",
+      "country": "TR"
+    },
+    {
+      "real": "Pınar",
+      "fictional": "Punar",
+      "category": "süt",
+      "tier": "lider",
+      "country": "TR"
+    },
+    {
+      "real": "İçim",
+      "fictional": "İçin",
+      "category": "süt",
+      "tier": "orta",
+      "country": "TR"
+    },
+    {
+      "real": "Torku",
+      "fictional": "Torko",
+      "category": "süt",
+      "tier": "orta",
+      "country": "TR"
+    },
+    {
+      "real": "Danone",
+      "fictional": "Danane",
+      "category": "süt",
+      "tier": "orta",
+      "country": "kuresel"
+    },
+    {
+      "real": "Coca-Cola",
+      "fictional": "Coca-Loca",
+      "category": "içecek",
+      "tier": "lider",
+      "country": "kuresel"
+    },
+    {
+      "real": "Fanta",
+      "fictional": "Fantu",
+      "category": "içecek",
+      "tier": "orta",
+      "country": "kuresel"
+    },
+    {
+      "real": "Sprite",
+      "fictional": "Spryte",
+      "category": "içecek",
+      "tier": "orta",
+      "country": "kuresel"
+    },
+    {
+      "real": "Pepsi",
+      "fictional": "Popsi",
+      "category": "içecek",
+      "tier": "güçlü",
+      "country": "kuresel"
+    },
+    {
+      "real": "Yedigün",
+      "fictional": "Yedigön",
+      "category": "içecek",
+      "tier": "orta",
+      "country": "TR"
+    },
+    {
+      "real": "Cola Turka",
+      "fictional": "Kola Turko",
+      "category": "içecek",
+      "tier": "orta",
+      "country": "TR"
+    },
+    {
+      "real": "Çamlıca",
+      "fictional": "Çamlıka",
+      "category": "içecek",
+      "tier": "orta",
+      "country": "TR"
+    },
+    {
+      "real": "Uludağ",
+      "fictional": "Uluçağ",
+      "category": "içecek",
+      "tier": "orta",
+      "country": "TR"
+    },
+    {
+      "real": "Beypazarı",
+      "fictional": "Beypazar",
+      "category": "içecek",
+      "tier": "orta",
+      "country": "TR"
+    },
+    {
+      "real": "Kızılay",
+      "fictional": "Kızılsu",
+      "category": "içecek",
+      "tier": "orta",
+      "country": "TR"
+    },
+    {
+      "real": "Erikli",
+      "fictional": "Erikçi",
+      "category": "içecek",
+      "tier": "orta",
+      "country": "TR"
+    },
+    {
+      "real": "Hayat",
+      "fictional": "Hayet",
+      "category": "içecek",
+      "tier": "orta",
+      "country": "TR"
+    },
+    {
+      "real": "Cappy",
+      "fictional": "Cappo",
+      "category": "içecek",
+      "tier": "orta",
+      "country": "kuresel"
+    },
+    {
+      "real": "Dimes",
+      "fictional": "Dimos",
+      "category": "içecek",
+      "tier": "orta",
+      "country": "TR"
+    },
+    {
+      "real": "Tamek",
+      "fictional": "Tamak",
+      "category": "içecek",
+      "tier": "orta",
+      "country": "TR"
+    },
+    {
+      "real": "Lipton",
+      "fictional": "Lupton",
+      "category": "içecek",
+      "tier": "güçlü",
+      "country": "kuresel"
+    },
+    {
+      "real": "Red Bull",
+      "fictional": "Red Bison",
+      "category": "içecek",
+      "tier": "orta",
+      "country": "kuresel"
+    },
+    {
+      "real": "Çaykur",
+      "fictional": "Çaykor",
+      "category": "çay-kahve",
+      "tier": "lider",
+      "country": "TR"
+    },
+    {
+      "real": "Doğuş",
+      "fictional": "Doğaç",
+      "category": "çay-kahve",
+      "tier": "orta",
+      "country": "TR"
+    },
+    {
+      "real": "Doğadan",
+      "fictional": "Doğadam",
+      "category": "çay-kahve",
+      "tier": "orta",
+      "country": "TR"
+    },
+    {
+      "real": "Nescafé",
+      "fictional": "Nescafo",
+      "category": "çay-kahve",
+      "tier": "orta",
+      "country": "kuresel"
+    },
+    {
+      "real": "Jacobs",
+      "fictional": "Jacobi",
+      "category": "çay-kahve",
+      "tier": "orta",
+      "country": "kuresel"
+    },
+    {
+      "real": "Ülker",
+      "fictional": "Ülkar",
+      "category": "bisküvi-çikolata",
+      "tier": "lider",
+      "country": "TR"
+    },
+    {
+      "real": "Eti",
+      "fictional": "Ete",
+      "category": "bisküvi-çikolata",
+      "tier": "güçlü",
+      "country": "TR"
+    },
+    {
+      "real": "Nestlé",
+      "fictional": "Nestla",
+      "category": "bisküvi-çikolata",
+      "tier": "güçlü",
+      "country": "kuresel"
+    },
+    {
+      "real": "Milka",
+      "fictional": "Milko",
+      "category": "bisküvi-çikolata",
+      "tier": "orta",
+      "country": "kuresel"
+    },
+    {
+      "real": "Falım",
+      "fictional": "Falın",
+      "category": "bisküvi-çikolata",
+      "tier": "orta",
+      "country": "TR"
+    },
+    {
+      "real": "Lay's",
+      "fictional": "Lay'z",
+      "category": "atıştırmalık",
+      "tier": "orta",
+      "country": "kuresel"
+    },
+    {
+      "real": "Ruffles",
+      "fictional": "Rufflers",
+      "category": "atıştırmalık",
+      "tier": "orta",
+      "country": "kuresel"
+    },
+    {
+      "real": "Doritos",
+      "fictional": "Doritas",
+      "category": "atıştırmalık",
+      "tier": "orta",
+      "country": "kuresel"
+    },
+    {
+      "real": "Çerezza",
+      "fictional": "Çerezzo",
+      "category": "atıştırmalık",
+      "tier": "orta",
+      "country": "TR"
+    },
+    {
+      "real": "Peyman",
+      "fictional": "Peymen",
+      "category": "atıştırmalık",
+      "tier": "orta",
+      "country": "TR"
+    },
+    {
+      "real": "Tadım",
+      "fictional": "Tadam",
+      "category": "atıştırmalık",
+      "tier": "orta",
+      "country": "TR"
+    },
+    {
+      "real": "Filiz",
+      "fictional": "Filis",
+      "category": "makarna-bakliyat",
+      "tier": "orta",
+      "country": "TR"
+    },
+    {
+      "real": "Barilla",
+      "fictional": "Barella",
+      "category": "makarna-bakliyat",
+      "tier": "orta",
+      "country": "kuresel"
+    },
+    {
+      "real": "Nuh'un Ankara",
+      "fictional": "Nuh'un Başkent",
+      "category": "makarna-bakliyat",
+      "tier": "orta",
+      "country": "TR"
+    },
+    {
+      "real": "Pastavilla",
+      "fictional": "Pastavella",
+      "category": "makarna-bakliyat",
+      "tier": "orta",
+      "country": "TR"
+    },
+    {
+      "real": "Söke",
+      "fictional": "Söğe",
+      "category": "makarna-bakliyat",
+      "tier": "orta",
+      "country": "TR"
+    },
+    {
+      "real": "Duru",
+      "fictional": "Dura",
+      "category": "makarna-bakliyat",
+      "tier": "orta",
+      "country": "TR"
+    },
+    {
+      "real": "Reis",
+      "fictional": "Rais",
+      "category": "makarna-bakliyat",
+      "tier": "orta",
+      "country": "TR"
+    },
+    {
+      "real": "Komili",
+      "fictional": "Kamili",
+      "category": "yağ-salça",
+      "tier": "güçlü",
+      "country": "TR"
+    },
+    {
+      "real": "Kırlangıç",
+      "fictional": "Kırlanguç",
+      "category": "yağ-salça",
+      "tier": "orta",
+      "country": "TR"
+    },
+    {
+      "real": "Yudum",
+      "fictional": "Yudom",
+      "category": "yağ-salça",
+      "tier": "güçlü",
+      "country": "TR"
+    },
+    {
+      "real": "Orkide",
+      "fictional": "Orkida",
+      "category": "yağ-salça",
+      "tier": "orta",
+      "country": "TR"
+    },
+    {
+      "real": "Tat",
+      "fictional": "Tad",
+      "category": "yağ-salça",
+      "tier": "lider",
+      "country": "TR"
+    },
+    {
+      "real": "Tukaş",
+      "fictional": "Tukeş",
+      "category": "yağ-salça",
+      "tier": "orta",
+      "country": "TR"
+    },
+    {
+      "real": "Bizim Mutfak",
+      "fictional": "Bizim Mutbak",
+      "category": "yağ-salça",
+      "tier": "orta",
+      "country": "TR"
+    },
+    {
+      "real": "Knorr",
+      "fictional": "Knarr",
+      "category": "yağ-salça",
+      "tier": "güçlü",
+      "country": "kuresel"
+    },
+    {
+      "real": "Kemal Kükrer",
+      "fictional": "Kemal Kükür",
+      "category": "yağ-salça",
+      "tier": "orta",
+      "country": "TR"
+    },
+    {
+      "real": "Calvé",
+      "fictional": "Calva",
+      "category": "yağ-salça",
+      "tier": "orta",
+      "country": "kuresel"
+    },
+    {
+      "real": "Algida",
+      "fictional": "Algeda",
+      "category": "dondurma",
+      "tier": "lider",
+      "country": "kuresel"
+    },
+    {
+      "real": "Ariel",
+      "fictional": "Ariol",
+      "category": "temizlik",
+      "tier": "lider",
+      "country": "kuresel"
+    },
+    {
+      "real": "Alo",
+      "fictional": "Ala",
+      "category": "temizlik",
+      "tier": "orta",
+      "country": "TR"
+    },
+    {
+      "real": "Omo",
+      "fictional": "Oma",
+      "category": "temizlik",
+      "tier": "güçlü",
+      "country": "kuresel"
+    },
+    {
+      "real": "Persil",
+      "fictional": "Persel",
+      "category": "temizlik",
+      "tier": "orta",
+      "country": "kuresel"
+    },
+    {
+      "real": "Bingo",
+      "fictional": "Bengo",
+      "category": "temizlik",
+      "tier": "orta",
+      "country": "TR"
+    },
+    {
+      "real": "Fairy",
+      "fictional": "Feary",
+      "category": "temizlik",
+      "tier": "lider",
+      "country": "kuresel"
+    },
+    {
+      "real": "Pril",
+      "fictional": "Pral",
+      "category": "temizlik",
+      "tier": "orta",
+      "country": "TR"
+    },
+    {
+      "real": "Yumoş",
+      "fictional": "Yumuş",
+      "category": "temizlik",
+      "tier": "orta",
+      "country": "TR"
+    },
+    {
+      "real": "Domestos",
+      "fictional": "Domastos",
+      "category": "temizlik",
+      "tier": "orta",
+      "country": "kuresel"
+    },
+    {
+      "real": "Cif",
+      "fictional": "Caf",
+      "category": "temizlik",
+      "tier": "orta",
+      "country": "kuresel"
+    },
+    {
+      "real": "Colgate",
+      "fictional": "Colgait",
+      "category": "kişisel bakım",
+      "tier": "lider",
+      "country": "kuresel"
+    },
+    {
+      "real": "Signal",
+      "fictional": "Signel",
+      "category": "kişisel bakım",
+      "tier": "orta",
+      "country": "kuresel"
+    },
+    {
+      "real": "Ipana",
+      "fictional": "Ipena",
+      "category": "kişisel bakım",
+      "tier": "orta",
+      "country": "TR"
+    },
+    {
+      "real": "Arko",
+      "fictional": "Arka",
+      "category": "kişisel bakım",
+      "tier": "orta",
+      "country": "TR"
+    },
+    {
+      "real": "Elidor",
+      "fictional": "Elidar",
+      "category": "kişisel bakım",
+      "tier": "orta",
+      "country": "TR"
+    },
+    {
+      "real": "Head & Shoulders",
+      "fictional": "Head & Holders",
+      "category": "kişisel bakım",
+      "tier": "orta",
+      "country": "kuresel"
+    },
+    {
+      "real": "Rexona",
+      "fictional": "Rexana",
+      "category": "kişisel bakım",
+      "tier": "orta",
+      "country": "kuresel"
+    },
+    {
+      "real": "Selpak",
+      "fictional": "Selpek",
+      "category": "kağıt",
+      "tier": "lider",
+      "country": "TR"
+    },
+    {
+      "real": "Solo",
+      "fictional": "Sola",
+      "category": "kağıt",
+      "tier": "orta",
+      "country": "TR"
+    },
+    {
+      "real": "Familia",
+      "fictional": "Famelia",
+      "category": "kağıt",
+      "tier": "orta",
+      "country": "TR"
+    },
+    {
+      "real": "Mehmet Efendi",
+      "fictional": "Ahmet Efendi",
+      "category": "çay-kahve",
+      "tier": "lider",
+      "country": "TR"
+    }
+  ]
+}

@@ -11,5 +11,6 @@ public class MirasMarket : ModuleRules
         PrivateDependencyModuleNames.AddRange(new[] { "Slate", "SlateCore" });
         RuntimeDependencies.Add("$(ProjectDir)/Config/products.json", StagedFileType.NonUFS);
         RuntimeDependencies.Add("$(ProjectDir)/Config/planograms.json", StagedFileType.NonUFS);
+        RuntimeDependencies.Add("$(ProjectDir)/Config/iller.json", StagedFileType.NonUFS); // province map of the Subeler page
     }
 }

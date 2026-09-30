@@ -1,4 +1,5 @@
 #include "MarketPromotions.h"
+#include "MarketCountry.h"
 #include "MarketGoods.h"
 #include "MarketPrices.h"
 #include "MarketSuppliers.h"
@@ -8,8 +9,7 @@ namespace MarketPromotions
 {
     FString PromoTl(int64 Kurus)
     {
-        const int64 Abs = Kurus < 0 ? -Kurus : Kurus;
-        return FString::Printf(TEXT("%s%lld,%02lld TL"), Kurus < 0 ? TEXT("-") : TEXT(""), static_cast<long long>(Abs / 100), static_cast<long long>(Abs % 100));
+        return MarketCountry::Money(Kurus); // G-084: the active country\'s currency
     }
 
     uint32 PromoMix(int32 Seed, int32 Day, uint32 Salt)
@@ -26,10 +26,38 @@ namespace MarketPromotions
         return static_cast<EKind>(FMath::Min<uint8>(Promo.Kind, static_cast<uint8>(EKind::Count) - 1));
     }
 
+    EScope ScopeOf(const FMarketPromotion& Promo) { return static_cast<EScope>(FMath::Min<uint8>(Promo.Scope, static_cast<uint8>(EScope::Count) - 1)); }
+    EMechanic MechanicOf(const FMarketPromotion& Promo) { return static_cast<EMechanic>(FMath::Min<uint8>(Promo.Mechanic, static_cast<uint8>(EMechanic::Count) - 1)); }
+
+    // G-078: does a scope reach product Index? Key = the brand / subcategory / aisle name of the scope.
+    bool InScope(const TArray<FMarketProduct>& Products, int32 Index, EScope Scope, int32 Product, const FString& Key)
+    {
+        if (!Products.IsValidIndex(Index)) return false;
+        const FMarketProduct& P = Products[Index];
+        switch (Scope)
+        {
+        case EScope::Product: return Index == Product;
+        case EScope::Brand: return !Key.IsEmpty() && MarketGoods::Fold(P.Brand) == MarketGoods::Fold(Key);
+        case EScope::Subcategory: return !Key.IsEmpty() && MarketGoods::Fold(P.Subcategory.IsEmpty() ? P.Category : P.Subcategory) == MarketGoods::Fold(Key);
+        case EScope::Category: return MarketGoods::Fold(P.Category) == MarketGoods::Fold(Key);
+        default: return true;
+        }
+    }
+
+    // G-078: 1 = a deal is news; down to 0.3 for a product on a deal most of the last month.
+    float DealTrust(const FMarketStock& Item) { return FMath::Clamp(1.f - Item.PromoHeat / 20.f, 0.3f, 1.f); }
+
+    // Price elasticity of a product (catalog value, else a middle value): how strongly a deal moves it.
+    float ElasticityOf(const TArray<FMarketProduct>& Products, int32 Index)
+    {
+        return Products.IsValidIndex(Index) && Products[Index].Elasticity > 0.f ? Products[Index].Elasticity : 2.5f;
+    }
+
     // Whether a promotion covers catalog product Index.
     bool Covers(const FMarketPromotion& Promo, const TArray<FMarketProduct>& Products, int32 Index)
     {
         if (!Products.IsValidIndex(Index)) return false;
+        if (KindOf(Promo) == EKind::Scoped) return InScope(Products, Index, ScopeOf(Promo), Promo.Product, Promo.ScopeKey);
         if (KindOf(Promo) == EKind::AisleDiscount) return MarketGoods::Fold(Products[Index].Category) == MarketGoods::Fold(Promo.Category);
         if (KindOf(Promo) == EKind::Flyer) return false;
         return Promo.Product == Index;
@@ -80,7 +108,15 @@ TArray<const FMarketPromotion*> MarketPromotions::Active(const FMarketState& Sta
 int32 MarketPromotions::AdjustQuantity(const FMarketState& State, int32 Index, int32 Quantity)
 {
     for (const FMarketPromotion& P : State.Promotions)
-        if (IsActive(P, State.Day) && KindOf(P) == EKind::MultiBuy && P.Product == Index && Quantity >= 2) return FMath::Max(3, Quantity);
+    {
+        if (!IsActive(P, State.Day) || P.Product != Index) continue;
+        if (KindOf(P) == EKind::MultiBuy && Quantity >= 2) return FMath::Max(3, Quantity);
+        // G-078: a single-product multi-buy tops the basket up to the free unit. Wider scopes only change the price
+        // (UnitPrice); the shopper who already takes enough gets the deal.
+        if (KindOf(P) != EKind::Scoped || ScopeOf(P) != EScope::Product) continue;
+        if (MechanicOf(P) == EMechanic::ThreeForTwo && Quantity >= 2) return FMath::Max(3, Quantity);
+        if (MechanicOf(P) == EMechanic::TwoForOne && Quantity >= 1) return FMath::Max(2, Quantity);
+    }
     return Quantity;
 }
 
@@ -99,6 +135,16 @@ int64 MarketPromotions::UnitPrice(const FMarketState& State, const TArray<FMarke
         case EKind::MultiBuy:
             // Three for two: every third unit is free.
             if (Quantity >= 3) Factor = FMath::Min(Factor, static_cast<double>(Quantity - Quantity / 3) / Quantity);
+            break;
+        case EKind::Scoped:
+            switch (MechanicOf(P))
+            {
+            case EMechanic::Percent: Factor = FMath::Min(Factor, 1.0 - FMath::Clamp(P.Percent, 0, 50) / 100.0); break;
+            case EMechanic::ThreeForTwo: if (Quantity >= 3) Factor = FMath::Min(Factor, static_cast<double>(Quantity - Quantity / 3) / Quantity); break;
+            case EMechanic::TwoForOne: if (Quantity >= 2) Factor = FMath::Min(Factor, static_cast<double>(Quantity - Quantity / 2) / Quantity); break;
+            case EMechanic::SecondHalf: if (Quantity >= 2) Factor = FMath::Min(Factor, (Quantity - 0.5 * (Quantity / 2)) / Quantity); break;
+            default: break;
+            }
             break;
         default: break;
         }
@@ -123,18 +169,42 @@ float MarketPromotions::Interest(const FMarketState& State, const TArray<FMarket
         case EKind::MultiBuy: Factor *= 1.35f; break;
         case EKind::Endcap: Factor *= 1.6f; break;
         case EKind::SupplierDeal: Factor *= 1.2f; break;
+        case EKind::Scoped:
+        {
+            // G-078: the deeper the deal and the more price-sensitive the product, the more it is sought; a
+            // store-wide sale lifts each product less (the shopper does not notice every price).
+            const float Depth = MechanicOf(P) == EMechanic::Percent ? FMath::Clamp(P.Percent, 0, 50) / 100.f
+                : MechanicOf(P) == EMechanic::TwoForOne ? 0.5f : MechanicOf(P) == EMechanic::ThreeForTwo ? 0.33f : 0.25f;
+            const float Reach = ScopeOf(P) == EScope::Store ? 0.35f : ScopeOf(P) == EScope::Product ? 1.f : 0.75f;
+            Factor *= 1.f + Depth * ElasticityOf(Products, Index) * 0.6f * Reach;
+            break;
+        }
         default: break;
         }
     }
     if (bFlyer && bPromoted) Factor *= 1.25f; // the flyer shows the promoted products
+    if (State.Stock.IsValidIndex(Index))
+    {
+        // G-078: a product always on a deal stops exciting shoppers (its "real" price becomes the deal price), and
+        // what they stocked up at home on the last deal keeps them away for a while.
+        if (bPromoted) Factor = 1.f + (Factor - 1.f) * DealTrust(State.Stock[Index]);
+        Factor *= FMath::Clamp(1.f - State.Stock[Index].Pantry * 0.02f, 0.6f, 1.f);
+    }
     return FMath::Clamp(Factor, 0.5f, 3.f);
 }
 
 float MarketPromotions::TrafficFactor(const FMarketState& State)
 {
+    float Factor = 1.f;
     for (const FMarketPromotion& P : State.Promotions)
-        if (IsActive(P, State.Day) && KindOf(P) == EKind::Flyer) return 1.15f;
-    return 1.f;
+    {
+        if (!IsActive(P, State.Day)) continue;
+        if (KindOf(P) == EKind::Flyer) Factor = FMath::Max(Factor, 1.15f);
+        // G-078: a store-wide sale is news in the neighbourhood.
+        if (KindOf(P) == EKind::Scoped && ScopeOf(P) == EScope::Store && MechanicOf(P) == EMechanic::Percent)
+            Factor *= 1.f + FMath::Clamp(P.Percent, 0, 50) / 200.f;
+    }
+    return FMath::Min(Factor, 1.35f);
 }
 
 float MarketPromotions::CostFactor(const FMarketState& State, int32 Index)
@@ -156,6 +226,7 @@ FString MarketPromotions::Badge(const FMarketState& State, const TArray<FMarketP
         case EKind::MultiBuy: return TEXT("3 al 2 \u00f6de");
         case EKind::SupplierDeal: return FString::Printf(TEXT("%%%d indirim"), DealShelfCut);
         case EKind::Endcap: return TEXT("gondol ba\u015f\u0131");
+        case EKind::Scoped: return MechanicName(MechanicOf(P), P.Percent);
         default: break;
         }
     }
@@ -172,6 +243,12 @@ FString MarketPromotions::Describe(const FMarketPromotion& Promo, const TArray<F
     case EKind::MultiBuy: return FString::Printf(TEXT("%s: 3 al 2 \u00f6de"), *Name);
     case EKind::Flyer: return TEXT("Mahalleye bro\u015f\u00fcr");
     case EKind::Endcap: return FString::Printf(TEXT("%s gondol ba\u015f\u0131nda"), *Name);
+    case EKind::Scoped:
+    {
+        const FString Where = ScopeOf(Promo) == EScope::Product ? Name : ScopeOf(Promo) == EScope::Store ? FString(TEXT("T\u00fcm ma\u011faza"))
+            : FString::Printf(TEXT("%s (%s)"), *Promo.ScopeKey, *ScopeName(ScopeOf(Promo)).ToLower());
+        return FString::Printf(TEXT("%s: %s"), *Where, *MechanicName(MechanicOf(Promo), Promo.Percent));
+    }
     default: return FString::Printf(TEXT("%s: toptanc\u0131 destekli %%%d indirim"), *Name, DealShelfCut);
     }
 }
@@ -264,6 +341,17 @@ void MarketPromotions::CloseDay(FMarketState& State, const TArray<FMarketProduct
     const int32 Closed = State.Day - 1;
     if (Closed < 1) return;
     TArray<FString>& News = State.DayNews;
+    // G-078 shopper memory: deal days and the stock shoppers took home.
+    for (int32 Index = 0; Index < State.Stock.Num() && Index < Products.Num(); ++Index)
+    {
+        bool bOnDeal = false;
+        for (const FMarketPromotion& P : State.Promotions)
+            if (IsActive(P, Closed) && KindOf(P) != EKind::Flyer && KindOf(P) != EKind::Endcap && Covers(P, Products, Index)) { bOnDeal = true; break; }
+        FMarketStock& Item = State.Stock[Index];
+        Item.PromoHeat = Item.PromoHeat * 0.97f + (bOnDeal ? 1.f : 0.f);
+        const float Stockpile = Products[Index].Stockpile >= 0.f ? Products[Index].Stockpile : 0.6f;
+        Item.Pantry = Item.Pantry * 0.8f + (bOnDeal ? Item.Yesterday.Sold * Stockpile * 0.3f : 0.f);
+    }
     for (int32 I = 0; I < State.Promotions.Num();)
     {
         FMarketPromotion& P = State.Promotions[I];
@@ -276,6 +364,19 @@ void MarketPromotions::CloseDay(FMarketState& State, const TArray<FMarketProduct
                 P.Sold += Sold;
                 const int64 Price = State.Stock[Index].Price;
                 if (KindOf(P) == EKind::AisleDiscount) P.MarginLost += Price * Sold * P.Percent / 100;
+                else if (KindOf(P) == EKind::Scoped)
+                {
+                    // Estimate of the price given away (baskets are gone by now): % off on every unit; multi-buys on
+                    // the free share of the units.
+                    switch (MechanicOf(P))
+                    {
+                    case EMechanic::Percent: P.MarginLost += Price * Sold * FMath::Clamp(P.Percent, 0, 50) / 100; break;
+                    case EMechanic::ThreeForTwo: P.MarginLost += Price * (Sold / 3); break;
+                    case EMechanic::TwoForOne: P.MarginLost += Price * (Sold / 2); break;
+                    case EMechanic::SecondHalf: P.MarginLost += Price * (Sold / 2) / 2; break;
+                    default: break;
+                    }
+                }
                 else if (KindOf(P) == EKind::SupplierDeal) P.MarginLost += Price * Sold * DealShelfCut / 100;
                 else if (KindOf(P) == EKind::MultiBuy) P.MarginLost += Price * (Sold / 3);
             }
@@ -286,7 +387,8 @@ void MarketPromotions::CloseDay(FMarketState& State, const TArray<FMarketProduct
             FString Line = FString::Printf(TEXT("Kampanya bitti: %s. %d g\u00fcnde %d adet"), *Describe(P, Products), Days, P.Sold);
             if (KindOf(P) != EKind::Flyer)
             {
-                const int32 Expected = P.Baseline * Days / FMath::Max(1, FMath::Min(DaysOf(KindOf(P)), 30));
+                const int32 Planned = KindOf(P) == EKind::Scoped ? FMath::Max(1, P.EndDay - P.StartDay + 1) : DaysOf(KindOf(P));
+                const int32 Expected = P.Baseline * Days / FMath::Max(1, FMath::Min(Planned, 30));
                 Line += FString::Printf(TEXT(" (\u00f6ncesine g\u00f6re %s%d)"), P.Sold >= Expected ? TEXT("+") : TEXT(""), P.Sold - Expected);
             }
             if (P.MarginLost > 0) Line += TEXT(", verilen indirim ") + PromoTl(P.MarginLost);
@@ -319,4 +421,99 @@ void MarketPromotions::CloseDay(FMarketState& State, const TArray<FMarketProduct
                 *(Products[Product].RealName.IsEmpty() ? Products[Product].Id : Products[Product].RealName), DealDays, DealCostCut, DealShelfCut, State.Offer.EndDay));
         }
     }
+}
+
+// ---- G-078: scoped campaigns (karar J07) -------------------------------------------------------------------------
+
+FString MarketPromotions::ScopeName(EScope Scope)
+{
+    switch (Scope)
+    {
+    case EScope::Product: return TEXT("\u00dcr\u00fcn");
+    case EScope::Brand: return TEXT("Marka");
+    case EScope::Subcategory: return TEXT("Alt grup");
+    case EScope::Category: return TEXT("Reyon");
+    default: return TEXT("T\u00fcm ma\u011faza");
+    }
+}
+
+FString MarketPromotions::MechanicName(EMechanic Mechanic, int32 Percent)
+{
+    switch (Mechanic)
+    {
+    case EMechanic::ThreeForTwo: return TEXT("3 al 2 \u00f6de");
+    case EMechanic::TwoForOne: return TEXT("2 al 1 \u00f6de");
+    case EMechanic::SecondHalf: return TEXT("2. \u00fcr\u00fcn %50");
+    default: return FString::Printf(TEXT("%%%d indirim"), FMath::Clamp(Percent, 0, 50));
+    }
+}
+
+FString MarketPromotions::ScopeKeyOf(const TArray<FMarketProduct>& Products, int32 Product, EScope Scope)
+{
+    if (!Products.IsValidIndex(Product)) return FString();
+    const FMarketProduct& P = Products[Product];
+    switch (Scope)
+    {
+    case EScope::Brand: return P.Brand;
+    case EScope::Subcategory: return P.Subcategory.IsEmpty() ? P.Category : P.Subcategory;
+    case EScope::Category: return P.Category;
+    default: return FString();
+    }
+}
+
+int32 MarketPromotions::ScopeSize(const TArray<FMarketProduct>& Products, int32 Product, EScope Scope)
+{
+    const FString Key = ScopeKeyOf(Products, Product, Scope);
+    int32 Count = 0;
+    for (int32 I = 0; I < Products.Num(); ++I) if (InScope(Products, I, Scope, Product, Key)) ++Count;
+    return Count;
+}
+
+int32 MarketPromotions::PackArg(int32 Product, EScope Scope, EMechanic Mechanic, int32 Percent, int32 Days)
+{
+    return FMath::Clamp(Product, 0, 9999) + 10000 * static_cast<int32>(Scope) + 100000 * static_cast<int32>(Mechanic)
+        + 1000000 * FMath::Clamp(Percent, 0, 99) + 100000000 * FMath::Clamp(Days, 1, MaxScopedDays);
+}
+
+bool MarketPromotions::StartScoped(FMarketState& State, const TArray<FMarketProduct>& Products, int32 PackedArg, FString& OutMessage)
+{
+    if (PackedArg < 0) { OutMessage = TEXT("Ge\u00e7ersiz kampanya."); return false; }
+    const int32 Product = PackedArg % 10000;
+    const EScope Scope = static_cast<EScope>(FMath::Min((PackedArg / 10000) % 10, static_cast<int32>(EScope::Count) - 1));
+    const EMechanic Mechanic = static_cast<EMechanic>(FMath::Min((PackedArg / 100000) % 10, static_cast<int32>(EMechanic::Count) - 1));
+    const int32 Percent = FMath::Clamp((PackedArg / 1000000) % 100, 5, 50);
+    const int32 Days = FMath::Clamp(PackedArg / 100000000, 1, MaxScopedDays);
+    if (!Products.IsValidIndex(Product)) { OutMessage = TEXT("\u00d6nce bir \u00fcr\u00fcn se\u00e7."); return false; }
+    if (RunningCount(State) >= MaxRunning)
+    {
+        OutMessage = FString::Printf(TEXT("Ayn\u0131 anda en \u00e7ok %d kampanya y\u00fcr\u00fcr; biri bitsin ya da durdur."), MaxRunning);
+        return false;
+    }
+    const FString Key = ScopeKeyOf(Products, Product, Scope);
+    if ((Scope == EScope::Brand || Scope == EScope::Subcategory) && Key.IsEmpty())
+    {
+        OutMessage = FString::Printf(TEXT("Bu \u00fcr\u00fcn\u00fcn %s bilgisi yok; \u00fcr\u00fcn ya da reyon kapsam\u0131n\u0131 se\u00e7."), *ScopeName(Scope).ToLower());
+        return false;
+    }
+    FMarketPromotion Promo;
+    Promo.Kind = static_cast<uint8>(EKind::Scoped);
+    Promo.Scope = static_cast<uint8>(Scope);
+    Promo.Mechanic = static_cast<uint8>(Mechanic);
+    Promo.ScopeKey = Key;
+    Promo.Product = Product;
+    Promo.Category = Products[Product].Category;
+    Promo.Percent = Mechanic == EMechanic::Percent ? Percent : 0;
+    Promo.StartDay = State.Day;
+    Promo.EndDay = State.Day + Days - 1;
+    for (const FMarketPromotion& P : State.Promotions)
+    {
+        if (!IsActive(P, State.Day) || KindOf(P) != EKind::Scoped || P.Scope != Promo.Scope) continue;
+        const bool bSame = Scope == EScope::Store || (Scope == EScope::Product ? P.Product == Product : MarketGoods::Fold(P.ScopeKey) == MarketGoods::Fold(Key));
+        if (bSame) { OutMessage = TEXT("Bu kapsamda bir kampanya zaten s\u00fcr\u00fcyor."); return false; }
+    }
+    Promo.Baseline = CoveredSold(State, Promo, Products) * FMath::Min(Days, 30);
+    State.Promotions.Add(Promo);
+    OutMessage = FString::Printf(TEXT("Kampanya ba\u015flad\u0131: %s, %d g\u00fcn (%d \u00fcr\u00fcn). Sonucu bitince g\u00fcn raporunda."),
+        *Describe(Promo, Products), Days, ScopeSize(Products, Product, Scope));
+    return true;
 }

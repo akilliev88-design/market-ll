@@ -1,474 +1,394 @@
 #include "MarketHudWidget.h"
+#include "MarketCountry.h"
 
 #include "MarketGame.h"
+#include "MarketMenuWidget.h"
 #include "MarketVisuals.h"
+#include "MarketTheme.h"
+#include "Widgets/Images/SImage.h"
 #include "Styling/CoreStyle.h"
 #include "Widgets/Layout/SBorder.h"
 #include "Widgets/Layout/SBox.h"
+#include "Widgets/Layout/SDPIScaler.h"
 #include "Widgets/Layout/SUniformGridPanel.h"
 #include "Widgets/Notifications/SProgressBar.h"
 #include "Widgets/SBoxPanel.h"
 #include "Widgets/SOverlay.h"
 #include "Widgets/Text/STextBlock.h"
 
-namespace
+// Named namespace (the module is a unity build; MarketGame.cpp and the menu have their own helpers).
+namespace MarketHudUi
 {
-    // Palette: warm charcoal glass cards, cream text, honey accent, soft teal for progress.
-    const FLinearColor Cream(1.f, 0.96f, 0.90f);
-    const FLinearColor Muted(0.78f, 0.72f, 0.64f, 0.85f);
-    const FLinearColor Honey(1.f, 0.74f, 0.38f);
-    const FLinearColor Teal(0.45f, 0.82f, 0.78f);
-    const FLinearColor Coral(1.f, 0.52f, 0.38f);
-    const FLinearColor Leaf(0.55f, 0.85f, 0.50f);
-
-    FSlateFontInfo Font(const char* Style, int32 Size, int32 Spacing = 0)
+    FSlateFontInfo HudFont(bool bBold, int32 Size, int32 Spacing = 0)
     {
-        FSlateFontInfo Info = FCoreStyle::GetDefaultFontStyle(Style, Size);
+        // G-086d: the menu's design language (IBM Plex Sans; big bold text in Bricolage Grotesque). Size in points.
+        using MarketTheme::EFace;
+        FSlateFontInfo Info = bBold && Size >= 17 ? MarketTheme::Font(EFace::DisplayBold, Size / 0.75f)
+            : MarketTheme::Font(bBold ? EFace::Semi : EFace::Regular, Size / 0.75f);
         Info.LetterSpacing = Spacing;
         return Info;
     }
 
     // 1234.5 TL -> "1.234,50 TL"
-    FString Lira(int64 Kurus)
+    FString HudLira(int64 Kurus)
     {
-        const bool bNegative = Kurus < 0;
-        const int64 Abs = FMath::Abs(Kurus);
-        FString Whole = FString::Printf(TEXT("%lld"), Abs / 100);
-        for (int32 I = Whole.Len() - 3; I > 0; I -= 3) Whole.InsertAt(I, TEXT('.'));
-        return FString::Printf(TEXT("%s%s,%02lld TL"), bNegative ? TEXT("-") : TEXT(""), *Whole, Abs % 100);
+        return MarketCountry::Money(Kurus); // G-084: the active country\'s currency
     }
 
-    FString Clock(const AMarketGameMode* G)
+    FString HudClock(const AMarketGameMode* G)
     {
         const int32 Minutes = 8 * 60 + (G && G->bOpen ? static_cast<int32>(G->DayTime * 3) : 0);
         return FString::Printf(TEXT("%02d:%02d"), Minutes / 60, Minutes % 60);
     }
+
+    FLinearColor HudHex(const TCHAR* Code, float Alpha = 1.f)
+    {
+        FLinearColor Result(FColor::FromHex(Code));
+        Result.A = Alpha;
+        return Result;
+    }
 }
 
-void SMarketHud::Construct(const FArguments& InArgs)
-{
-    Game = InArgs._Game;
-    BarStyle = FProgressBarStyle()
-        .SetBackgroundImage(TrackBrush)
-        .SetFillImage(FillBrush)
-        .SetMarqueeImage(FillBrush);
+// ---------------------------------------------------------------------------------------------------------------
+// Theme (the menu's light / dark choice, design tokens of "Miras Market Menu Tasarimi")
 
-    ChildSlot
-    [
-        SNew(SOverlay)
-        .Visibility(EVisibility::HitTestInvisible)
-        + SOverlay::Slot().HAlign(HAlign_Left).VAlign(VAlign_Top).Padding(24.f)
-        [
-            SNew(SVerticalBox)
-            + SVerticalBox::Slot().AutoHeight()[ StatusCard() ]
-            + SVerticalBox::Slot().AutoHeight().Padding(0.f, 12.f, 0.f, 0.f)[ StockCard() ]
-            + SVerticalBox::Slot().AutoHeight().Padding(0.f, 12.f, 0.f, 0.f)[ OfficeCard() ]
-        ]
-        + SOverlay::Slot().HAlign(HAlign_Right).VAlign(VAlign_Top).Padding(24.f)
-        [
-            SNew(SVerticalBox)
-            + SVerticalBox::Slot().AutoHeight()[ ArrangeCard() ]
-            + SVerticalBox::Slot().AutoHeight()
-            [
-                // While arranging shelves the right side belongs to the arrange panel.
-                SNew(SBox).Visibility_Lambda([this] { const AMarketGameMode* G = Game.Get(); return G && G->bArrange ? EVisibility::Collapsed : EVisibility::HitTestInvisible; })
-                [
-                    SNew(SVerticalBox)
-                    + SVerticalBox::Slot().AutoHeight()[ DayCard() ]
-                    + SVerticalBox::Slot().AutoHeight().Padding(0.f, 12.f, 0.f, 0.f)[ GoalCard() ]
-                ]
-            ]
-        ]
-        + SOverlay::Slot().HAlign(HAlign_Center).VAlign(VAlign_Center)
-        [
-            SNew(SBox).WidthOverride(6.f).HeightOverride(6.f)
-            [ SNew(SBorder).BorderImage(&DotBrush) ]
-        ]
-        + SOverlay::Slot().HAlign(HAlign_Center).VAlign(VAlign_Center).Padding(0.f, 0.f, 0.f, 120.f)
-        [ ReportCard() ]
-        + SOverlay::Slot().HAlign(HAlign_Left).VAlign(VAlign_Bottom).Padding(24.f)
-        [ ControlsCard() ]
-        + SOverlay::Slot().HAlign(HAlign_Center).VAlign(VAlign_Bottom).Padding(0.f, 0.f, 0.f, 28.f)
-        [ HintCard() ]
-    ];
+bool SMarketHud::IsLight() const
+{
+    const AMarketGameMode* G = Game.Get();
+    return !G || G->bLightTheme;
+}
+
+FLinearColor SMarketHud::Color(ETone Tone) const
+{
+    using MarketHudUi::HudHex;
+    const bool bLight = IsLight();
+    // G-086d: the tokens of the design boards (the menu uses the same).
+    switch (Tone)
+    {
+    case ETone::Card: return bLight ? HudHex(TEXT("FFFFFF"), 0.97f) : HudHex(TEXT("1B1E22"), 0.94f);
+    case ETone::Text: return bLight ? HudHex(TEXT("1B1E22")) : HudHex(TEXT("F2F3F4"));
+    case ETone::Muted: return bLight ? HudHex(TEXT("6B7178")) : HudHex(TEXT("9AA3AC"));
+    case ETone::Accent: return bLight ? HudHex(TEXT("2F8A70")) : HudHex(TEXT("71C6AC"));
+    case ETone::Good: return bLight ? HudHex(TEXT("2F8A70")) : HudHex(TEXT("71C6AC"));
+    case ETone::Bad: return bLight ? HudHex(TEXT("C4453A")) : HudHex(TEXT("F07F6E"));
+    case ETone::Warn: return bLight ? HudHex(TEXT("D08A1E")) : HudHex(TEXT("E8A94E"));
+    case ETone::Info: return bLight ? HudHex(TEXT("2F5FA8")) : HudHex(TEXT("7FA7E0"));
+    case ETone::KeyFill: return bLight ? HudHex(TEXT("1B1E22")) : HudHex(TEXT("F2F3F4"));
+    case ETone::KeyText: return bLight ? HudHex(TEXT("FFFFFF")) : HudHex(TEXT("101316"));
+    case ETone::PrimaryFill: return bLight ? HudHex(TEXT("2F8A70")) : HudHex(TEXT("71C6AC"));
+    case ETone::PrimaryText: return bLight ? HudHex(TEXT("FFFFFF")) : HudHex(TEXT("0F1A16"));
+    case ETone::Track: return bLight ? HudHex(TEXT("EDE9E1")) : HudHex(TEXT("2C3137"));
+    case ETone::OpenFill: return bLight ? HudHex(TEXT("E3F2EC")) : HudHex(TEXT("1F3A33"));
+    case ETone::WarnSoft: return bLight ? HudHex(TEXT("FFF4E2")) : HudHex(TEXT("3A2E17"));
+    case ETone::BadSoft: return bLight ? HudHex(TEXT("F8E1DC")) : HudHex(TEXT("3D2220"));
+    case ETone::InfoSoft: return bLight ? HudHex(TEXT("E3F2EC")) : HudHex(TEXT("1F3A33"));
+    }
+    return FLinearColor::White;
+}
+
+TAttribute<FSlateColor> SMarketHud::Col(ETone Tone) const
+{
+    return TAttribute<FSlateColor>::CreateLambda([this, Tone] { return FSlateColor(Color(Tone)); });
+}
+
+TSharedRef<SWidget> SMarketHud::Text(TFunction<FString()> Make, int32 Size, ETone Tone, bool bBold, bool bWrap)
+{
+    return SNew(STextBlock).Font(MarketHudUi::HudFont(bBold, Size)).ColorAndOpacity(Col(Tone)).AutoWrapText(bWrap)
+        .Text_Lambda([Make] { return FText::FromString(Make ? Make() : FString()); });
+}
+
+TSharedRef<SWidget> SMarketHud::Fixed(const FString& Value, int32 Size, ETone Tone, bool bBold)
+{
+    return SNew(STextBlock).Font(MarketHudUi::HudFont(bBold, Size)).ColorAndOpacity(Col(Tone)).Text(FText::FromString(Value));
 }
 
 TSharedRef<SWidget> SMarketHud::Card(const TSharedRef<SWidget>& Content, const FMargin& Padding)
 {
-    return SNew(SBorder).BorderImage(&CardBrush).Padding(Padding)[ Content ];
+    return Raised(SNew(SBorder).BorderImage(&CardBrush).BorderBackgroundColor(Col(ETone::Card)).Padding(Padding)[ Content ]);
 }
 
-TSharedRef<SWidget> SMarketHud::Bar(TFunction<float()> Value, const FLinearColor& Color, float Width)
+TSharedRef<SWidget> SMarketHud::Raised(const TSharedRef<SWidget>& Surface)
 {
-    TSharedRef<SWidget> Progress = SNew(SProgressBar)
-        .Style(&BarStyle)
-        .BorderPadding(FVector2D(0.f, 0.f))
-        .FillColorAndOpacity(Color)
-        .Percent_Lambda([Value]() -> TOptional<float> { return FMath::Clamp(Value(), 0.f, 1.f); });
-    if (Width > 0.f) return SNew(SBox).WidthOverride(Width).HeightOverride(6.f)[ Progress ];
-    return SNew(SBox).HeightOverride(6.f)[ Progress ];
+    // G-086e: no image shadow (it showed as grey boxes); the brushes carry a faint outline.
+    return Surface;
 }
 
-TSharedRef<SWidget> SMarketHud::KeyCap(const FString& Key)
+TSharedRef<SWidget> SMarketHud::Pill(const TSharedRef<SWidget>& Content, float Height, TFunction<ETone()> Fill)
 {
-    return SNew(SBorder).BorderImage(&KeyBrush).Padding(FMargin(7.f, 2.f)).VAlign(VAlign_Center)
+    return Raised(SNew(SBox).HeightOverride(Height)
     [
-        SNew(STextBlock).Text(FText::FromString(Key)).Font(Font("Bold", 10)).ColorAndOpacity(FLinearColor(0.12f, 0.10f, 0.08f))
+        SNew(SBorder).BorderImage(&PillBrush).Padding(FMargin(20.f, 0.f)).VAlign(VAlign_Center)
+        .BorderBackgroundColor_Lambda([this, Fill] { return FSlateColor(Color(Fill ? Fill() : ETone::Card)); })
+        [ Content ]
+    ]);
+}
+
+TSharedRef<SWidget> SMarketHud::Mono(TFunction<FString()> Make, float Pixels, TFunction<ETone()> Tone)
+{
+    return SNew(STextBlock).Font(MarketTheme::Font(MarketTheme::EFace::Mono, Pixels))
+        .ColorAndOpacity_Lambda([this, Tone] { return FSlateColor(Color(Tone ? Tone() : ETone::Text)); })
+        .Text_Lambda([Make] { return FText::FromString(Make ? Make() : FString()); });
+}
+
+TSharedRef<SWidget> SMarketHud::Bar(TFunction<float()> Value, ETone Tone, float Width)
+{
+    TSharedRef<SWidget> Progress = SNew(SBorder).BorderImage(&TrackBrush).BorderBackgroundColor(Col(ETone::Track)).Padding(0.f)
+    [
+        SNew(SProgressBar).Style(&BarStyle).BorderPadding(FVector2D(0.f, 0.f)).FillColorAndOpacity(Col(Tone))
+        .Percent_Lambda([Value]() -> TOptional<float> { return FMath::Clamp(Value ? Value() : 0.f, 0.f, 1.f); })
+    ];
+    if (Width > 0.f) return SNew(SBox).WidthOverride(Width).HeightOverride(4.f)[ Progress ];
+    return SNew(SBox).HeightOverride(4.f)[ Progress ];
+}
+
+TSharedRef<SWidget> SMarketHud::KeyCap(TFunction<FString()> Key)
+{
+    return SNew(SBorder).BorderImage(&KeyBrush).BorderBackgroundColor(Col(ETone::KeyFill)).Padding(FMargin(7.f, 2.f)).VAlign(VAlign_Center)
+    [
+        SNew(STextBlock).Font(MarketHudUi::HudFont(true, 10)).ColorAndOpacity(Col(ETone::KeyText))
+        .Text_Lambda([Key] { return FText::FromString(Key ? Key() : FString()); })
     ];
 }
 
 TSharedRef<SWidget> SMarketHud::KeyRow(const FString& Key, const FString& Label)
 {
     return SNew(SHorizontalBox)
-        + SHorizontalBox::Slot().AutoWidth().VAlign(VAlign_Center)[ KeyCap(Key) ]
-        + SHorizontalBox::Slot().AutoWidth().VAlign(VAlign_Center).Padding(8.f, 3.f, 18.f, 3.f)
-        [ SNew(STextBlock).Text(FText::FromString(Label)).Font(Font("Regular", 10)).ColorAndOpacity(Cream) ];
+        + SHorizontalBox::Slot().AutoWidth().VAlign(VAlign_Center)[ KeyCap([Key] { return Key; }) ]
+        + SHorizontalBox::Slot().AutoWidth().VAlign(VAlign_Center).Padding(8.f, 3.f, 18.f, 3.f)[ Fixed(Label, 10, ETone::Text) ];
 }
 
-TSharedRef<SWidget> SMarketHud::StatusCard()
+TSharedRef<SWidget> SMarketHud::Divider()
 {
-    return Card(
-        SNew(SVerticalBox)
-        + SVerticalBox::Slot().AutoHeight()
-        [ SNew(STextBlock).Text(FText::FromString(TEXT("M\u0130RAS MARKET  \u00b7  L\u00dcLEBURGAZ 2011"))).Font(Font("Bold", 8, 180)).ColorAndOpacity(Muted) ]
-        + SVerticalBox::Slot().AutoHeight().Padding(0.f, 6.f, 0.f, 0.f)
+    return SNew(SBox).WidthOverride(1.f).HeightOverride(34.f)[ SNew(SBorder).BorderImage(&TrackBrush).BorderBackgroundColor(Col(ETone::Track)) ];
+}
+
+// ---------------------------------------------------------------------------------------------------------------
+
+void SMarketHud::Construct(const FArguments& InArgs)
+{
+    Game = InArgs._Game;
+    PillBrush.OutlineSettings.RoundingType = ESlateBrushRoundingType::HalfHeightRadius;
+    DotBrush.OutlineSettings.RoundingType = ESlateBrushRoundingType::HalfHeightRadius;
+    BarStyle = FProgressBarStyle().SetBackgroundImage(TrackBrush).SetFillImage(TrackBrush).SetMarqueeImage(TrackBrush);
+    auto NotArranging = [this] { const AMarketGameMode* G = Game.Get(); return G && G->bArrange ? EVisibility::Collapsed : EVisibility::HitTestInvisible; };
+    auto Details = [this] { const AMarketGameMode* G = Game.Get(); return G && G->bShowDetails ? EVisibility::HitTestInvisible : EVisibility::Collapsed; };
+
+    ChildSlot
+    [
+        // G-075: the HUD is laid out for 1600 x 900 and scales with the screen (and the menu's text size setting).
+        SNew(SDPIScaler).DPIScale_Lambda([this] { return UiScale(); })
         [
-            SNew(SHorizontalBox)
-            + SHorizontalBox::Slot().AutoWidth().VAlign(VAlign_Center)
+        SNew(SOverlay)
+        // The menu covers the screen and has its own status: the game screen steps aside.
+        .Visibility_Lambda([this] { const AMarketGameMode* G = Game.Get(); return G && G->bMenuOpen ? EVisibility::Collapsed : EVisibility::HitTestInvisible; })
+        + SOverlay::Slot().HAlign(HAlign_Center).VAlign(VAlign_Top).Padding(0.f, 24.f, 0.f, 0.f)
+        [ PausedBanner() ]
+        + SOverlay::Slot().HAlign(HAlign_Left).VAlign(VAlign_Top).Padding(24.f, 20.f)
+        [
+            SNew(SVerticalBox)
+            + SVerticalBox::Slot().AutoHeight().HAlign(HAlign_Left)[ StatusBar() ]
+            + SVerticalBox::Slot().AutoHeight().Padding(0.f, 12.f, 0.f, 0.f).HAlign(HAlign_Left)
+            [ SNew(SBox).Visibility_Lambda(Details)[ StockCard() ] ]
+        ]
+        + SOverlay::Slot().HAlign(HAlign_Right).VAlign(VAlign_Top).Padding(24.f, 20.f)
+        [
+            SNew(SVerticalBox)
+            + SVerticalBox::Slot().AutoHeight()[ ArrangeCard() ]
+            + SVerticalBox::Slot().AutoHeight()[ SNew(SBox).Visibility_Lambda(NotArranging)[ Notices() ] ]
+        ]
+        + SOverlay::Slot().HAlign(HAlign_Center).VAlign(VAlign_Center)
+        [ SNew(SBox).WidthOverride(6.f).HeightOverride(6.f)[ SNew(SBorder).BorderImage(&CrossBrush) ] ]
+        + SOverlay::Slot().HAlign(HAlign_Center).VAlign(VAlign_Center).Padding(0.f, 0.f, 0.f, 120.f)
+        [ ReportCard() ]
+        + SOverlay::Slot().HAlign(HAlign_Left).VAlign(VAlign_Bottom).Padding(24.f)
+        [
+            SNew(SVerticalBox)
+            + SVerticalBox::Slot().AutoHeight().Padding(0.f, 0.f, 0.f, 10.f)[ SNew(SBox).Visibility_Lambda(Details)[ ControlsCard() ] ]
+            + SVerticalBox::Slot().AutoHeight()[ TodayCards() ]
+        ]
+        + SOverlay::Slot().HAlign(HAlign_Center).VAlign(VAlign_Bottom).Padding(0.f, 0.f, 0.f, 28.f)
+        [ HintCard() ]
+        + SOverlay::Slot().HAlign(HAlign_Right).VAlign(VAlign_Bottom).Padding(24.f)
+        [ MenuButtons() ]
+        ]
+    ];
+}
+
+void SMarketHud::Tick(const FGeometry& AllottedGeometry, const double InCurrentTime, const float InDeltaTime)
+{
+    SCompoundWidget::Tick(AllottedGeometry, InCurrentTime, InDeltaTime);
+    LastSize = FVector2D(AllottedGeometry.GetLocalSize());
+}
+
+float SMarketHud::UiScale() const
+{
+    const FVector2D Size = LastSize.X > 1.0 && LastSize.Y > 1.0 ? LastSize : FVector2D(1920.0, 1080.0);
+    const float Fit = FMath::Min(static_cast<float>(Size.X) / 1600.f, static_cast<float>(Size.Y) / 900.f);
+    const AMarketGameMode* G = Game.Get();
+    return FMath::Clamp(Fit * (G ? G->UiTextFactor() : 1.f), 0.5f, 4.f);
+}
+
+TSharedRef<SWidget> SMarketHud::SpeedPill()
+{
+    auto G = [this] { return Game.Get(); };
+    return SNew(SBox).HeightOverride(28.f)
+    [
+        SNew(SBorder).BorderImage(&PillBrush).Padding(FMargin(12.f, 0.f)).VAlign(VAlign_Center)
+        .BorderBackgroundColor_Lambda([this, G] { return FSlateColor(Color(G() && G()->bTimePaused ? ETone::WarnSoft : ETone::Track)); })
+        [
+            SNew(STextBlock).Font(MarketHudUi::HudFont(true, 9))
+            .ColorAndOpacity_Lambda([this, G] { return FSlateColor(Color(G() && G()->bTimePaused ? ETone::Warn : ETone::Text)); })
+            .Text_Lambda([G]
+            {
+                if (!G()) return FText();
+                return FText::FromString(G()->bTimePaused ? FString(TEXT("II  Durdu")) : FString::Printf(TEXT("%dx"), G()->GameSpeed));
+            })
+        ]
+    ];
+}
+
+TSharedRef<SWidget> SMarketHud::PausedBanner()
+{
+    return SNew(SBox)
+        .Visibility_Lambda([this] { const AMarketGameMode* G = Game.Get(); return G && G->bTimePaused ? EVisibility::HitTestInvisible : EVisibility::Collapsed; })
+    [
+        Card(SNew(SHorizontalBox)
+            + SHorizontalBox::Slot().AutoWidth().VAlign(VAlign_Center).Padding(0.f, 0.f, 10.f, 0.f)[ Fixed(TEXT("ZAMAN DURDU"), 13, ETone::Warn, true) ]
+            + SHorizontalBox::Slot().AutoWidth().VAlign(VAlign_Center).Padding(0.f, 0.f, 8.f, 0.f)[ KeyCap([] { return FString(TEXT("Space")); }) ]
+            + SHorizontalBox::Slot().AutoWidth().VAlign(VAlign_Center)[ Fixed(TEXT("devam \u00b7 1 / 2 / 3 h\u0131z"), 11, ETone::Muted) ],
+            FMargin(18.f, 9.f))
+    ];
+}
+
+TSharedRef<SWidget> SMarketHud::StatusBar()
+{
+    // G-086d: the pills of the main screen. The date pill (day, clock, open or closed, speed) and the till pill
+    // (cash, today, the inherited debt while it is open).
+    auto G = [this] { return Game.Get(); };
+    auto Column = [this](const FString& Heading, TFunction<FString()> Value, TFunction<ETone()> Tone) -> TSharedRef<SWidget>
+    {
+        return SNew(SVerticalBox)
+            + SVerticalBox::Slot().AutoHeight().HAlign(HAlign_Right)[ Fixed(Heading, 8, ETone::Muted) ]
+            + SVerticalBox::Slot().AutoHeight().HAlign(HAlign_Right)[ Mono(Value, 16.f, Tone) ];
+    };
+    TSharedRef<SWidget> Date = Pill(
+        SNew(SHorizontalBox)
+        + SHorizontalBox::Slot().AutoWidth().VAlign(VAlign_Center)
+        [
+            SNew(SVerticalBox)
+            + SVerticalBox::Slot().AutoHeight()[ Text([G] { return G() ? MarketDirector::DateText(G()->State) : FString(); }, 11, ETone::Text, true) ]
+            + SVerticalBox::Slot().AutoHeight()
+            [ Text([G] { return G() ? FString::Printf(TEXT("G\u00fcn %d \u00b7 %s"), G()->State.Day, *MarketHudUi::HudClock(G())) : FString(); }, 8, ETone::Muted) ]
+        ]
+        + SHorizontalBox::Slot().AutoWidth().VAlign(VAlign_Center).Padding(14.f, 0.f, 0.f, 0.f)
+        [
+            SNew(SBox).HeightOverride(28.f)
             [
-                SNew(STextBlock).Font(Font("Bold", 22)).ColorAndOpacity(Cream)
-                .Text_Lambda([this] { const AMarketGameMode* G = Game.Get(); return FText::FromString(G ? FString::Printf(TEXT("G\u00fcn %d \u00b7 %s"), G->State.Day, *MarketDirector::DateText(G->State)) : FString(TEXT("G\u00fcn 1"))); })
-            ]
-            + SHorizontalBox::Slot().AutoWidth().VAlign(VAlign_Center).Padding(12.f, 0.f, 0.f, 0.f)
-            [
-                SNew(SBorder).BorderImage(&PillBrush).Padding(FMargin(10.f, 3.f))
-                .BorderBackgroundColor_Lambda([this] { const AMarketGameMode* G = Game.Get(); return FSlateColor(G && G->bOpen ? Leaf : Honey); })
+                SNew(SBorder).BorderImage(&PillBrush).Padding(FMargin(12.f, 0.f)).VAlign(VAlign_Center)
+                .BorderBackgroundColor_Lambda([this, G] { return FSlateColor(Color(G() && G()->bOpen ? ETone::OpenFill : ETone::Track)); })
                 [
-                    SNew(STextBlock).Font(Font("Bold", 9, 80)).ColorAndOpacity(FLinearColor(0.10f, 0.08f, 0.06f))
-                    .Text_Lambda([this] { const AMarketGameMode* G = Game.Get(); return FText::FromString(G && G->bOpen ? TEXT("A\u00c7IK") : TEXT("HAZIRLIK")); })
+                    SNew(STextBlock).Font(MarketHudUi::HudFont(true, 9))
+                    .ColorAndOpacity_Lambda([this, G] { return FSlateColor(Color(G() && G()->bOpen ? ETone::Accent : ETone::Muted)); })
+                    .Text_Lambda([G] { return FText::FromString(G() && G()->bOpen ? TEXT("A\u00e7\u0131k") : TEXT("Kapal\u0131")); })
                 ]
             ]
         ]
-        + SVerticalBox::Slot().AutoHeight().Padding(0.f, 4.f, 0.f, 0.f)
+        + SHorizontalBox::Slot().AutoWidth().VAlign(VAlign_Center).Padding(6.f, 0.f, 0.f, 0.f)[ SpeedPill() ]
+        + SHorizontalBox::Slot().AutoWidth().VAlign(VAlign_Center).Padding(6.f, 0.f, 0.f, 0.f)
         [
-            SNew(STextBlock).Font(Font("Bold", 16)).ColorAndOpacity(Honey)
-            .Text_Lambda([this] { const AMarketGameMode* G = Game.Get(); return FText::FromString(G ? Lira(G->State.Cash) : FString()); })
-        ]);
-}
-
-TSharedRef<SWidget> SMarketHud::DayCard()
-{
-    return SNew(SBox).MinDesiredWidth(250.f)
-    [
-        Card(
-            SNew(SVerticalBox)
-            + SVerticalBox::Slot().AutoHeight()
+            SNew(SBox).HeightOverride(28.f).Visibility_Lambda([G] { return G() && G()->bTestMode ? EVisibility::HitTestInvisible : EVisibility::Collapsed; })
             [
-                SNew(SHorizontalBox)
-                + SHorizontalBox::Slot().FillWidth(1.f).VAlign(VAlign_Center)
-                [ SNew(STextBlock).Text(FText::FromString(TEXT("G\u00dcN\u00dcN SAAT\u0130"))).Font(Font("Bold", 8, 180)).ColorAndOpacity(Muted) ]
-                + SHorizontalBox::Slot().AutoWidth()
-                [
-                    SNew(STextBlock).Font(Font("Bold", 18)).ColorAndOpacity(Cream)
-                    .Text_Lambda([this] { return FText::FromString(Clock(Game.Get())); })
-                ]
+                SNew(SBorder).BorderImage(&PillBrush).Padding(FMargin(10.f, 0.f)).VAlign(VAlign_Center).BorderBackgroundColor(Col(ETone::WarnSoft))
+                [ SNew(STextBlock).Font(MarketHudUi::HudFont(true, 9)).ColorAndOpacity(Col(ETone::Warn)).Text(FText::FromString(TEXT("TEST \u00b7 F2"))) ]
             ]
-            + SVerticalBox::Slot().AutoHeight().Padding(0.f, 8.f, 0.f, 0.f)
-            [ Bar([this] { const AMarketGameMode* G = Game.Get(); return G && G->bOpen ? G->DayTime / 240.f : 0.f; }, Honey) ]
-            + SVerticalBox::Slot().AutoHeight().Padding(0.f, 4.f, 0.f, 0.f)
-            [
-                SNew(SHorizontalBox)
-                + SHorizontalBox::Slot().FillWidth(1.f)[ SNew(STextBlock).Text(FText::FromString(TEXT("08:00"))).Font(Font("Regular", 8)).ColorAndOpacity(Muted) ]
-                + SHorizontalBox::Slot().AutoWidth()[ SNew(STextBlock).Text(FText::FromString(TEXT("20:00"))).Font(Font("Regular", 8)).ColorAndOpacity(Muted) ]
-            ]
-            + SVerticalBox::Slot().AutoHeight().Padding(0.f, 10.f, 0.f, 0.f)
-            [
-                SNew(SHorizontalBox)
-                + SHorizontalBox::Slot().AutoWidth()
-                [
-                    SNew(SBorder).BorderImage(&PillBrush).BorderBackgroundColor(FLinearColor(1.f, 1.f, 1.f, 0.10f)).Padding(FMargin(10.f, 3.f))
-                    [
-                        SNew(STextBlock).Font(Font("Regular", 9)).ColorAndOpacity(Cream)
-                        .Text_Lambda([this] { const AMarketGameMode* G = Game.Get(); return FText::FromString(FString::Printf(TEXT("I\u015f\u0131k: %s  \u00b7  F4"), MarketVisuals::MoodName(G ? G->Mood : 0))); })
-                    ]
-                ]
-                + SHorizontalBox::Slot().AutoWidth().Padding(8.f, 0.f, 0.f, 0.f)
-                [
-                    SNew(SBorder).BorderImage(&PillBrush).BorderBackgroundColor(Coral).Padding(FMargin(10.f, 3.f))
-                    .Visibility_Lambda([this] { const AMarketGameMode* G = Game.Get(); return G && G->bTestMode ? EVisibility::HitTestInvisible : EVisibility::Collapsed; })
-                    [ SNew(STextBlock).Text(FText::FromString(TEXT("TEST  \u00b7  F2"))).Font(Font("Bold", 9, 60)).ColorAndOpacity(FLinearColor(0.12f, 0.06f, 0.04f)) ]
-                ]
-            ])
-    ];
-}
-
-bool SMarketHud::ShowStock() const
-{
-    const AMarketGameMode* G = Game.Get();
-    return G && (G->bShowDetails || G->NearOffice());
-}
-
-TSharedRef<SWidget> SMarketHud::StockCard()
-{
-    TSharedRef<SVerticalBox> Rows = SNew(SVerticalBox)
-        + SVerticalBox::Slot().AutoHeight().Padding(0.f, 0.f, 0.f, 8.f)
+        ],
+        52.f);
+    TSharedRef<SWidget> Till = Pill(
+        SNew(SHorizontalBox)
+        + SHorizontalBox::Slot().AutoWidth().VAlign(VAlign_Center)
+        [ Column(TEXT("Kasa"), [G] { return G() ? MarketHudUi::HudLira(G()->State.Cash) : FString(); }, [G] { return G() && G()->State.Cash < 0 ? ETone::Bad : ETone::Text; }) ]
+        + SHorizontalBox::Slot().AutoWidth().VAlign(VAlign_Center).Padding(22.f, 0.f, 0.f, 0.f)
+        [ Column(TEXT("Bug\u00fcn"), [G] { return G() ? MarketHudUi::HudLira(G()->State.Revenue) : FString(); }, [] { return ETone::Accent; }) ]
+        + SHorizontalBox::Slot().AutoWidth().VAlign(VAlign_Center).Padding(22.f, 0.f, 0.f, 0.f)
         [
-            SNew(SHorizontalBox)
-            + SHorizontalBox::Slot().FillWidth(1.f)[ SNew(STextBlock).Text(FText::FromString(TEXT("STOK"))).Font(Font("Bold", 8, 180)).ColorAndOpacity(Muted) ]
-            + SHorizontalBox::Slot().AutoWidth()[ SNew(SBox).WidthOverride(150.f)[ SNew(STextBlock).Text(FText::FromString(TEXT("RAF"))).Font(Font("Bold", 8, 120)).ColorAndOpacity(Muted) ] ]
-            + SHorizontalBox::Slot().AutoWidth()[ SNew(SBox).WidthOverride(46.f)[ SNew(STextBlock).Text(FText::FromString(TEXT("DEPO"))).Font(Font("Bold", 8, 120)).ColorAndOpacity(Muted) ] ]
-            + SHorizontalBox::Slot().AutoWidth()[ SNew(SBox).WidthOverride(46.f)[ SNew(STextBlock).Text(FText::FromString(TEXT("KABUL"))).Font(Font("Bold", 8, 120)).ColorAndOpacity(Muted) ] ]
-            + SHorizontalBox::Slot().AutoWidth()[ SNew(SBox).WidthOverride(46.f)[ SNew(STextBlock).Text(FText::FromString(TEXT("YOLDA"))).Font(Font("Bold", 8, 120)).ColorAndOpacity(Muted) ] ]
-        ];
-    const AMarketGameMode* G0 = Game.Get();
-    const int32 Count = G0 ? G0->Products.Num() : 0;
-    constexpr int32 Window = 9;
-    for (int32 I = 0; I < Count; ++I)
-    {
-        auto InWindow = [this, I, Count]
-        {
-            const AMarketGameMode* G = Game.Get();
-            if (!G) return false;
-            const int32 First = FMath::Clamp(G->Selected - Window / 2, 0, FMath::Max(0, Count - Window));
-            return I >= First && I < First + Window;
-        };
-        Rows->AddSlot().AutoHeight().Padding(0.f, 3.f)
-        [
-            SNew(SHorizontalBox)
-            .Visibility_Lambda([InWindow] { return InWindow() ? EVisibility::HitTestInvisible : EVisibility::Collapsed; })
-            + SHorizontalBox::Slot().FillWidth(1.f).VAlign(VAlign_Center)
+            SNew(SBox).WidthOverride(150.f)
+            .Visibility_Lambda([G] { return G() && MarketCampaign::DebtOpen(G()->State) ? EVisibility::HitTestInvisible : EVisibility::Collapsed; })
             [
                 SNew(SVerticalBox)
-                + SVerticalBox::Slot().AutoHeight()
-                [
-                    SNew(STextBlock).Font(Font("Regular", 10))
-                    .ColorAndOpacity_Lambda([this, I] { const AMarketGameMode* G = Game.Get(); return FSlateColor(G && G->Selected == I ? Honey : Cream); })
-                    .Text_Lambda([this, I] { const AMarketGameMode* G = Game.Get(); return FText::FromString(G && G->Products.IsValidIndex(I) ? G->ProductName(I) : FString()); })
-                ]
-                + SVerticalBox::Slot().AutoHeight()
-                [
-                    SNew(STextBlock).Font(Font("Regular", 8)).ColorAndOpacity(Muted)
-                    .Text_Lambda([this, I] { const AMarketGameMode* G = Game.Get(); return FText::FromString(G && G->State.Stock.IsValidIndex(I) ? Lira(G->State.Stock[I].Price) : FString()); })
-                ]
+                + SVerticalBox::Slot().AutoHeight()[ Text([G] { return G() ? FString::Printf(TEXT("Bor\u00e7 \u00b7 %s kald\u0131"), *MarketHudUi::HudLira(G()->State.InheritedDebt)) : FString(); }, 8, ETone::Muted) ]
+                + SVerticalBox::Slot().AutoHeight().Padding(0.f, 7.f, 0.f, 0.f)[ Bar([G] { return G() ? MarketCampaign::DebtProgress(G()->State) : 0.f; }, ETone::Warn) ]
             ]
-            + SHorizontalBox::Slot().AutoWidth().VAlign(VAlign_Center).Padding(14.f, 0.f, 0.f, 0.f)
+        ],
+        52.f);
+    return SNew(SHorizontalBox)
+        + SHorizontalBox::Slot().AutoWidth()[ Date ]
+        + SHorizontalBox::Slot().AutoWidth().Padding(12.f, 0.f, 0.f, 0.f)[ Till ];
+}
+
+TSharedRef<SWidget> SMarketHud::Notices()
+{
+    TSharedRef<SVerticalBox> List = SNew(SVerticalBox);
+    for (int32 Slot = 0; Slot < 3; ++Slot)
+    {
+        auto Todo = [this, Slot]() -> const FMarketTodo* { const AMarketGameMode* G = Game.Get(); return G && G->Todos().IsValidIndex(Slot) ? &G->Todos()[Slot] : nullptr; };
+        List->AddSlot().AutoHeight().Padding(0.f, 0.f, 0.f, 8.f)
+        [
+            SNew(SBox).WidthOverride(360.f)
+            .Visibility_Lambda([Todo] { return Todo() ? EVisibility::HitTestInvisible : EVisibility::Collapsed; })
             [
-                SNew(SBox).WidthOverride(136.f)
-                [
-                    SNew(SVerticalBox)
-                    + SVerticalBox::Slot().AutoHeight()
+                Card(
+                    SNew(SHorizontalBox)
+                    + SHorizontalBox::Slot().AutoWidth().VAlign(VAlign_Top).Padding(0.f, 0.f, 14.f, 0.f)
                     [
-                        Bar([this, I] { const AMarketGameMode* G = Game.Get();
-                            if (!G || !G->State.Stock.IsValidIndex(I)) return 0.f;
-                            return G->State.Stock[I].Shelf / float(FMath::Max(1, G->State.Stock[I].Capacity)); }, Teal)
+                        // The design's round sign: "!" on a soft warm (or red) disc, "i" on a soft green one.
+                        SNew(SBox).WidthOverride(36.f).HeightOverride(36.f)
+                        [
+                            SNew(SBorder).BorderImage(&DotBrush).HAlign(HAlign_Center).VAlign(VAlign_Center).Padding(0.f)
+                            .BorderBackgroundColor_Lambda([this, Todo] { const FMarketTodo* T = Todo(); return FSlateColor(Color(!T ? ETone::Track : T->Severity >= 2 ? ETone::BadSoft : T->Severity == 1 ? ETone::WarnSoft : ETone::InfoSoft)); })
+                            [
+                                SNew(STextBlock).Font(MarketTheme::Font(MarketTheme::EFace::DisplayBold, 17.f))
+                                .Text_Lambda([Todo] { const FMarketTodo* T = Todo(); return FText::FromString(T && T->Severity >= 1 ? TEXT("!") : TEXT("i")); })
+                                .ColorAndOpacity_Lambda([this, Todo] { const FMarketTodo* T = Todo(); return FSlateColor(Color(!T ? ETone::Muted : T->Severity >= 2 ? ETone::Bad : T->Severity == 1 ? ETone::Warn : ETone::Accent)); })
+                            ]
+                        ]
                     ]
-                    + SVerticalBox::Slot().AutoHeight().Padding(0.f, 2.f, 0.f, 0.f)
+                    + SHorizontalBox::Slot().FillWidth(1.f)
                     [
-                        SNew(STextBlock).Font(Font("Regular", 8)).ColorAndOpacity(Muted)
-                        .Text_Lambda([this, I] { const AMarketGameMode* G = Game.Get();
-                            return FText::FromString(G && G->State.Stock.IsValidIndex(I) ? FString::Printf(TEXT("%d / %d"), G->State.Stock[I].Shelf, G->State.Stock[I].Capacity) : FString()); })
-                    ]
-                ]
-            ]
-            + SHorizontalBox::Slot().AutoWidth().VAlign(VAlign_Center).Padding(14.f, 0.f, 0.f, 0.f)
-            [
-                SNew(SBox).WidthOverride(46.f)
-                [
-                    SNew(STextBlock).Font(Font("Regular", 10)).ColorAndOpacity(Cream)
-                    .Text_Lambda([this, I] { const AMarketGameMode* G = Game.Get(); return FText::AsNumber(G && G->State.Stock.IsValidIndex(I) ? G->State.Stock[I].Warehouse : 0); })
-                ]
-            ]
-            + SHorizontalBox::Slot().AutoWidth().VAlign(VAlign_Center)
-            [
-                SNew(SBox).WidthOverride(46.f)
-                [
-                    SNew(STextBlock).Font(Font("Regular", 10)).ColorAndOpacity(Honey)
-                    .Text_Lambda([this, I] { const AMarketGameMode* G = Game.Get(); return FText::AsNumber(G && G->State.Stock.IsValidIndex(I) ? G->State.Stock[I].Dock : 0); })
-                ]
-            ]
-            + SHorizontalBox::Slot().AutoWidth().VAlign(VAlign_Center)
-            [
-                SNew(SBox).WidthOverride(46.f)
-                [
-                    SNew(STextBlock).Font(Font("Regular", 10)).ColorAndOpacity(Cream)
-                    .Text_Lambda([this, I] { const AMarketGameMode* G = Game.Get(); return FText::AsNumber(G && G->State.Stock.IsValidIndex(I) ? G->State.Stock[I].Incoming : 0); })
-                ]
+                        SNew(SVerticalBox)
+                        + SVerticalBox::Slot().AutoHeight()[ Text([Todo] { const FMarketTodo* T = Todo(); return T ? T->Title : FString(); }, 11, ETone::Text, true, true) ]
+                        + SVerticalBox::Slot().AutoHeight().Padding(0.f, 2.f, 0.f, 0.f)[ Text([Todo] { const FMarketTodo* T = Todo(); return T ? T->Text : FString(); }, 9, ETone::Muted, false, true) ]
+                        + SVerticalBox::Slot().AutoHeight().Padding(0.f, 6.f, 0.f, 0.f)
+                        [ Text([Todo] { const FMarketTodo* T = Todo(); return T ? FString::Printf(TEXT("M \u203a %s"), SMarketMenu::PageName(T->Page)) : FString(); }, 9, ETone::Accent, true) ]
+                    ],
+                    FMargin(14.f, 12.f))
             ]
         ];
     }
-    Rows->AddSlot().AutoHeight().Padding(0.f, 8.f, 0.f, 0.f)
+    // The last notice (a deal, a warning, a sale) floats under the list for a few seconds.
+    List->AddSlot().AutoHeight()
     [
-        SNew(STextBlock).Font(Font("Regular", 8)).ColorAndOpacity(Muted)
-        .Text_Lambda([Count] { return FText::FromString(FString::Printf(TEXT("%d \u00fcr\u00fcn  \u00b7  masada TAB ile se\u00e7"), Count)); })
+        SNew(SBox).WidthOverride(340.f)
+        .Visibility_Lambda([this] { const AMarketGameMode* G = Game.Get(); return G && G->MessageTime > 0.f && !G->Message.IsEmpty() ? EVisibility::HitTestInvisible : EVisibility::Collapsed; })
+        [ Card(Text([this] { const AMarketGameMode* G = Game.Get(); return G ? G->Message : FString(); }, 10, ETone::Text, false, true), FMargin(14.f, 10.f)) ]
     ];
-    return SNew(SBox).MinDesiredWidth(430.f)
-        .Visibility_Lambda([this] { return ShowStock() ? EVisibility::HitTestInvisible : EVisibility::Collapsed; })
-        [ Card(Rows) ];
+    return List;
 }
 
-TSharedRef<SWidget> SMarketHud::OfficeCard()
+TSharedRef<SWidget> SMarketHud::TodayCards()
 {
-    return SNew(SBox).MinDesiredWidth(430.f)
-        .Visibility_Lambda([this] { const AMarketGameMode* G = Game.Get(); return G && G->NearOffice() ? EVisibility::HitTestInvisible : EVisibility::Collapsed; })
-    [
-        Card(
-            SNew(SVerticalBox)
-            + SVerticalBox::Slot().AutoHeight()
-            [ SNew(STextBlock).Text(FText::FromString(TEXT("Y\u00d6NET\u0130M MASASI"))).Font(Font("Bold", 8, 180)).ColorAndOpacity(Muted) ]
-            + SVerticalBox::Slot().AutoHeight().Padding(0.f, 6.f, 0.f, 0.f)
-            [
-                SNew(STextBlock).Font(Font("Bold", 14)).ColorAndOpacity(Cream)
-                .Text_Lambda([this] { const AMarketGameMode* G = Game.Get(); return FText::FromString(G && G->Products.IsValidIndex(G->Selected) ? G->ProductName(G->Selected) : FString()); })
-            ]
-            + SVerticalBox::Slot().AutoHeight().Padding(0.f, 2.f, 0.f, 0.f)
-            [
-                SNew(STextBlock).Font(Font("Regular", 10)).ColorAndOpacity(Honey)
-                .Text_Lambda([this]
-                {
-                    const AMarketGameMode* G = Game.Get();
-                    if (!G || !G->Products.IsValidIndex(G->Selected)) return FText::GetEmpty();
-                    const FMarketProduct& P = G->Products[G->Selected];
-                    return FText::FromString(G->bTestMode
-                        ? FString::Printf(TEXT("Koli %d adet  \u00b7  test modunda bedava, hemen depoda"), P.CaseUnits)
-                        : FString::Printf(TEXT("Koli %d \u00d7 %s = %s  \u00b7  ertesi sabah arka kap\u0131da"), P.CaseUnits, *Lira(P.Cost), *Lira(P.Cost * P.CaseUnits)));
-                })
-            ]
-            + SVerticalBox::Slot().AutoHeight().Padding(0.f, 8.f, 0.f, 0.f)
-            [
-                SNew(STextBlock).Font(Font("Regular", 9)).ColorAndOpacity(Teal).AutoWrapText(true)
-                .Text_Lambda([this] { const AMarketGameMode* G = Game.Get(); return FText::FromString(G ? G->OrderDraftSummary() : FString()); })
-            ]
-            + SVerticalBox::Slot().AutoHeight().Padding(0.f, 2.f, 0.f, 0.f)
-            [
-                // Order help for the selected product: stock, yesterday's demand, suggested cases (MarketOrderAdvice).
-                SNew(STextBlock).Font(Font("Regular", 9)).ColorAndOpacity(Muted).AutoWrapText(true)
-                .Text_Lambda([this] { const AMarketGameMode* G = Game.Get(); return FText::FromString(G && !G->bTestMode ? G->OrderAdvice(G->Selected) : FString()); })
-            ]
-            + SVerticalBox::Slot().AutoHeight().Padding(0.f, 2.f, 0.f, 0.f)
-            [
-                SNew(STextBlock).Font(Font("Regular", 9)).ColorAndOpacity(Muted).AutoWrapText(true)
-                .Text_Lambda([this] { const AMarketGameMode* G = Game.Get(); return FText::FromString(G && !G->bTestMode ? G->LoyaltySummary() : FString()); })
-            ]
-            + SVerticalBox::Slot().AutoHeight().Padding(0.f, 2.f, 0.f, 0.f)
-            [
-                // Price decision: our shelf price against the rival's and how many shoppers accept it (MarketDemand).
-                SNew(STextBlock).Font(Font("Regular", 10)).ColorAndOpacity(Cream)
-                .Text_Lambda([this] { const AMarketGameMode* G = Game.Get(); return FText::FromString(G ? G->PriceSummary(G->Selected) : FString()); })
-            ]
-            + SVerticalBox::Slot().AutoHeight().Padding(0.f, 10.f, 0.f, 0.f)
-            [
-                SNew(SVerticalBox)
-                + SVerticalBox::Slot().AutoHeight()
-                [
-                    SNew(SHorizontalBox)
-                    + SHorizontalBox::Slot().AutoWidth()[ KeyRow(TEXT("TAB"), TEXT("\u00dcr\u00fcn")) ]
-                    + SHorizontalBox::Slot().AutoWidth()[ KeyRow(TEXT("B/V"), TEXT("Koli +/-")) ]
-                    + SHorizontalBox::Slot().AutoWidth()[ KeyRow(TEXT("L"), TEXT("\u00d6neri")) ]
-                    + SHorizontalBox::Slot().AutoWidth()[ KeyRow(TEXT("N"), TEXT("Onayla")) ]
-                    + SHorizontalBox::Slot().AutoWidth()[ KeyRow(TEXT("+/-"), TEXT("Fiyat")) ]
-                ]
-                + SVerticalBox::Slot().AutoHeight().Padding(0.f, 4.f, 0.f, 0.f)
-                [
-                    SNew(SHorizontalBox)
-                    + SHorizontalBox::Slot().AutoWidth()[ KeyRow(TEXT("H"), TEXT("Kasiyer")) ]
-                    + SHorizontalBox::Slot().AutoWidth()[ KeyRow(TEXT("J"), TEXT("G\u00f6revli")) ]
-                    + SHorizontalBox::Slot().AutoWidth()[ KeyRow(TEXT("M"), TEXT("Y\u00f6netim men\u00fcs\u00fc")) ]
-                    + SHorizontalBox::Slot().AutoWidth()[ KeyRow(TEXT("P"), TEXT("Bor\u00e7 \u00f6de")) ]
-                    + SHorizontalBox::Slot().AutoWidth()[ KeyRow(TEXT("G"), TEXT("\u0130kinci \u015fube")) ]
-                ]
-            ])
-    ];
-}
-
-TSharedRef<SWidget> SMarketHud::GoalCard()
-{
-    auto GoalRow = [this](const FString& Label, TFunction<FString()> Value, TFunction<float()> Progress, const FLinearColor& Color) -> TSharedRef<SWidget>
+    auto G = [this] { return Game.Get(); };
+    auto Small = [this](const FString& Heading, TFunction<FString()> Value) -> TSharedRef<SWidget>
     {
-        return SNew(SVerticalBox)
-            + SVerticalBox::Slot().AutoHeight().Padding(0.f, 8.f, 0.f, 3.f)
-            [
-                SNew(SHorizontalBox)
-                + SHorizontalBox::Slot().FillWidth(1.f)[ SNew(STextBlock).Text(FText::FromString(Label)).Font(Font("Regular", 10)).ColorAndOpacity(Cream) ]
-                + SHorizontalBox::Slot().AutoWidth()[ SNew(STextBlock).Font(Font("Bold", 10)).ColorAndOpacity(Color).Text_Lambda([Value] { return FText::FromString(Value()); }) ]
-            ]
-            + SVerticalBox::Slot().AutoHeight()[ Bar(Progress, Color) ];
+        return Pill(SNew(SVerticalBox)
+            + SVerticalBox::Slot().AutoHeight()[ Fixed(Heading, 8, ETone::Muted) ]
+            + SVerticalBox::Slot().AutoHeight()[ Text(Value, 11, ETone::Text, true) ], 52.f);
     };
-    return SNew(SBox).MinDesiredWidth(250.f)
-        .Visibility_Lambda([this] { const AMarketGameMode* G = Game.Get(); return G && G->bShowDetails ? EVisibility::HitTestInvisible : EVisibility::Collapsed; })
-    [
-        Card(
-            SNew(SVerticalBox)
-            + SVerticalBox::Slot().AutoHeight()
-            [ SNew(STextBlock).Text(FText::FromString(TEXT("HEDEF  \u00b7  BOR\u00c7 VE \u0130K\u0130NC\u0130 \u015eUBE"))).Font(Font("Bold", 8, 180)).ColorAndOpacity(Muted) ]
-            + SVerticalBox::Slot().AutoHeight()
-            [
-                GoalRow(TEXT("Baban\u0131n borcu"),
-                    [this] { const AMarketGameMode* G = Game.Get(); return G ? (MarketCampaign::DebtOpen(G->State) ? FString::Printf(TEXT("%s kald\u0131"), *Lira(G->State.InheritedDebt)) : FString(TEXT("kapand\u0131"))) : FString(); },
-                    [this] { const AMarketGameMode* G = Game.Get(); return G ? MarketCampaign::DebtProgress(G->State) : 0.f; }, Honey)
-            ]
-            + SVerticalBox::Slot().AutoHeight()
-            [
-                GoalRow(TEXT("Nakit"),
-                    [this] { const AMarketGameMode* G = Game.Get(); return G ? FString::Printf(TEXT("%s / 950"), *Lira(G->State.Cash).LeftChop(6)) : FString(); },
-                    [this] { const AMarketGameMode* G = Game.Get(); return G ? G->State.Cash / 95000.f : 0.f; }, Honey)
-            ]
-            + SVerticalBox::Slot().AutoHeight()
-            [
-                GoalRow(TEXT("K\u00e2rl\u0131 g\u00fcn"),
-                    [this] { const AMarketGameMode* G = Game.Get(); return G ? FString::Printf(TEXT("%d / 3"), G->State.ProfitableDays) : FString(); },
-                    [this] { const AMarketGameMode* G = Game.Get(); return G ? G->State.ProfitableDays / 3.f : 0.f; }, Leaf)
-            ]
-            + SVerticalBox::Slot().AutoHeight()
-            [
-                GoalRow(TEXT("Yerel pay"),
-                    [this] { const AMarketGameMode* G = Game.Get(); return G ? FString::Printf(TEXT("%%%.0f / %%35"), G->State.MarketShare) : FString(); },
-                    [this] { const AMarketGameMode* G = Game.Get(); return G ? G->State.MarketShare / 35.f : 0.f; }, Teal)
-            ]
-            + SVerticalBox::Slot().AutoHeight().Padding(0.f, 12.f, 0.f, 0.f)
-            [
-                SNew(STextBlock).Font(Font("Regular", 9)).ColorAndOpacity(Muted).AutoWrapText(true)
-                .Text_Lambda([this]
-                {
-                    const AMarketGameMode* G = Game.Get();
-                    if (!G) return FText::GetEmpty();
-                    const FString Staff = G->WorkerSummary();
-                    return FText::FromString(FString::Printf(TEXT("Bug\u00fcn %s ciro \u00b7 %d sat\u0131\u015f \u00b7 %d kay\u0131p\nKasiyer %s \u00b7 reyon g\u00f6revlisi %d \u00b7 rakip %s%s%s"),
-                        *Lira(G->State.Revenue), G->State.Served, G->State.Lost, G->State.bCashier ? TEXT("var") : TEXT("yok"), G->State.Stockers,
-                        MarketRivals::ActiveOn(G->State.Day, G->State.RivalSeed, G->RivalAisles).Num() > 0 ? TEXT("kampanyada") : TEXT("sakin"), Staff.IsEmpty() ? TEXT("") : TEXT("\n"), *Staff));
-                })
-            ])
-    ];
-}
-
-TSharedRef<SWidget> SMarketHud::ControlsCard()
-{
-    return SNew(SBox)
-        .Visibility_Lambda([this] { const AMarketGameMode* G = Game.Get(); return G && G->bShowDetails ? EVisibility::HitTestInvisible : EVisibility::Collapsed; })
-    [
-        Card(
-            SNew(SVerticalBox)
-            + SVerticalBox::Slot().AutoHeight().Padding(0.f, 0.f, 0.f, 8.f)
-            [ SNew(STextBlock).Text(FText::FromString(TEXT("KISAYOLLAR"))).Font(Font("Bold", 8, 180)).ColorAndOpacity(Muted) ]
-            + SVerticalBox::Slot().AutoHeight()
-            [
-                SNew(SUniformGridPanel).SlotPadding(FMargin(0.f, 2.f))
-                + SUniformGridPanel::Slot(0, 0)[ KeyRow(TEXT("WASD"), TEXT("Y\u00fcr\u00fc")) ]
-                + SUniformGridPanel::Slot(1, 0)[ KeyRow(TEXT("E"), TEXT("Etkile\u015fim")) ]
-                + SUniformGridPanel::Slot(2, 0)[ KeyRow(TEXT("O"), TEXT("Marketi a\u00e7 / kapat")) ]
-                + SUniformGridPanel::Slot(0, 1)[ KeyRow(TEXT("F1"), TEXT("Paneller")) ]
-                + SUniformGridPanel::Slot(1, 1)[ KeyRow(TEXT("F2"), TEXT("Test modu")) ]
-                + SUniformGridPanel::Slot(2, 1)[ KeyRow(TEXT("F3"), TEXT("Raflar\u0131 doldur (test)")) ]
-                + SUniformGridPanel::Slot(0, 2)[ KeyRow(TEXT("F4"), TEXT("I\u015f\u0131k")) ]
-                + SUniformGridPanel::Slot(1, 2)[ KeyRow(TEXT("F5"), TEXT("Kaydet")) ]
-                + SUniformGridPanel::Slot(2, 2)[ KeyRow(TEXT("F9"), TEXT("Y\u00fckle")) ]
-                + SUniformGridPanel::Slot(0, 3)[ KeyRow(TEXT("F8"), TEXT("Marka adlar\u0131")) ]
-                + SUniformGridPanel::Slot(1, 3)[ KeyRow(TEXT("F6"), TEXT("Yeni kampanya")) ]
-                + SUniformGridPanel::Slot(2, 3)[ KeyRow(TEXT("ESC"), TEXT("\u00c7\u0131k\u0131\u015f")) ]
-                + SUniformGridPanel::Slot(0, 4)[ KeyRow(TEXT("F11"), TEXT("Tam ekran")) ]
-                + SUniformGridPanel::Slot(1, 4)[ KeyRow(TEXT("R"), TEXT("Reyonu diz (kapal\u0131yken)")) ]
-                + SUniformGridPanel::Slot(2, 4)[ KeyRow(TEXT("M"), TEXT("Y\u00f6netim men\u00fcs\u00fc")) ]
-            ])
-    ];
+    return SNew(SHorizontalBox)
+        .Visibility_Lambda([G] { return G() && G()->bOpen && !G()->bArrange ? EVisibility::HitTestInvisible : EVisibility::Collapsed; })
+        + SHorizontalBox::Slot().AutoWidth().Padding(0.f, 0.f, 10.f, 0.f)
+        [ Small(TEXT("Kasa kuyru\u011fu"), [G] { return !G() ? FString() : G()->QueueSize() > 0 ? FString::Printf(TEXT("%d m\u00fc\u015fteri bekliyor"), G()->QueueSize()) : FString(TEXT("Kimse beklemiyor")); }) ]
+        + SHorizontalBox::Slot().AutoWidth()
+        [ Small(TEXT("Bug\u00fcn"), [G] { return G() ? FString::Printf(TEXT("%d sat\u0131\u015f \u00b7 %d kay\u0131p"), G()->State.Served, G()->State.Lost) : FString(); }) ];
 }
 
 FString SMarketHud::HintKey() const
@@ -491,95 +411,153 @@ FString SMarketHud::HintText() const
 
 TSharedRef<SWidget> SMarketHud::HintCard()
 {
-    return Card(
-        SNew(SVerticalBox)
-        + SVerticalBox::Slot().AutoHeight().HAlign(HAlign_Center)
+    return Pill(
+        SNew(SHorizontalBox)
+        + SHorizontalBox::Slot().AutoWidth().VAlign(VAlign_Center).Padding(0.f, 0.f, 10.f, 0.f)
+        [
+            SNew(SBox).Visibility_Lambda([this] { return HintKey().IsEmpty() ? EVisibility::Collapsed : EVisibility::HitTestInvisible; })
+            [ KeyCap([this] { return HintKey(); }) ]
+        ]
+        + SHorizontalBox::Slot().AutoWidth().VAlign(VAlign_Center)[ Text([this] { return HintText(); }, 11, ETone::Text) ],
+        44.f);
+}
+
+TSharedRef<SWidget> SMarketHud::MenuButtons()
+{
+    // The way to the main screen, like the dock's "D\u00fckk\u00e2na gir" in reverse: an accent pill with M.
+    auto G = [this] { return Game.Get(); };
+    auto Icon = [this](const FString& Name, ETone Tone) -> TSharedRef<SWidget>
+    {
+        const FSlateBrush* Brush = MarketTheme::Icon(Name);
+        return SNew(SBox).WidthOverride(18.f).HeightOverride(18.f).Visibility(Brush ? EVisibility::HitTestInvisible : EVisibility::Collapsed)
+        [ SNew(SImage).Image(Brush).ColorAndOpacity(Col(Tone)) ];
+    };
+    return SNew(SHorizontalBox)
+        + SHorizontalBox::Slot().AutoWidth().Padding(0.f, 0.f, 10.f, 0.f)
+        [
+            SNew(SBox).Visibility_Lambda([G] { return G() && !G()->bArrange ? EVisibility::HitTestInvisible : EVisibility::Collapsed; })
+            [
+                Pill(SNew(SHorizontalBox)
+                    + SHorizontalBox::Slot().AutoWidth().VAlign(VAlign_Center).Padding(0.f, 0.f, 8.f, 0.f)[ KeyCap([] { return FString(TEXT("O")); }) ]
+                    + SHorizontalBox::Slot().AutoWidth().VAlign(VAlign_Center)
+                    [ Text([G] { return G() && G()->bOpen ? FString(TEXT("G\u00fcn\u00fc kapat")) : FString(TEXT("Marketi a\u00e7")); }, 11, ETone::Text, true) ],
+                    52.f)
+            ]
+        ]
+        + SHorizontalBox::Slot().AutoWidth()
+        [
+            Pill(SNew(SHorizontalBox)
+                + SHorizontalBox::Slot().AutoWidth().VAlign(VAlign_Center).Padding(0.f, 0.f, 8.f, 0.f)[ Icon(TEXT("map"), ETone::PrimaryText) ]
+                + SHorizontalBox::Slot().AutoWidth().VAlign(VAlign_Center).Padding(0.f, 0.f, 10.f, 0.f)[ Fixed(TEXT("Y\u00f6netim"), 11, ETone::PrimaryText, true) ]
+                + SHorizontalBox::Slot().AutoWidth().VAlign(VAlign_Center)
+                [
+                    SNew(SBorder).BorderImage(&KeyBrush).BorderBackgroundColor(Col(ETone::PrimaryText)).Padding(FMargin(7.f, 1.f))
+                    [ SNew(STextBlock).Font(MarketHudUi::HudFont(true, 9)).ColorAndOpacity(Col(ETone::PrimaryFill)).Text(FText::FromString(TEXT("M"))) ]
+                ],
+                52.f, [] { return ETone::PrimaryFill; })
+        ];
+}
+
+TSharedRef<SWidget> SMarketHud::StockCard()
+{
+    // F1: a quick look at the shelves around the selected product (the full table is Yonetim > Siparis).
+    TSharedRef<SVerticalBox> Rows = SNew(SVerticalBox)
+        + SVerticalBox::Slot().AutoHeight().Padding(0.f, 0.f, 0.f, 6.f)
         [
             SNew(SHorizontalBox)
-            + SHorizontalBox::Slot().AutoWidth().VAlign(VAlign_Center).Padding(0.f, 0.f, 10.f, 0.f)
+            + SHorizontalBox::Slot().FillWidth(1.f)[ Fixed(TEXT("STOK"), 9, ETone::Muted, true) ]
+            + SHorizontalBox::Slot().AutoWidth()[ SNew(SBox).WidthOverride(120.f)[ Fixed(TEXT("RAF"), 9, ETone::Muted, true) ] ]
+            + SHorizontalBox::Slot().AutoWidth()[ SNew(SBox).WidthOverride(44.f)[ Fixed(TEXT("DEPO"), 9, ETone::Muted, true) ] ]
+            + SHorizontalBox::Slot().AutoWidth()[ SNew(SBox).WidthOverride(44.f)[ Fixed(TEXT("KABUL"), 9, ETone::Muted, true) ] ]
+        ];
+    const AMarketGameMode* G0 = Game.Get();
+    const int32 Count = G0 ? G0->Products.Num() : 0;
+    static constexpr int32 Window = 9;
+    for (int32 I = 0; I < Count; ++I)
+    {
+        auto InWindow = [this, I, Count]
+        {
+            const AMarketGameMode* G = Game.Get();
+            if (!G) return false;
+            const int32 First = FMath::Clamp(G->Selected - Window / 2, 0, FMath::Max(0, Count - Window));
+            return I >= First && I < First + Window;
+        };
+        auto Stock = [this, I]() -> const FMarketStock* { const AMarketGameMode* G = Game.Get(); return G && G->State.Stock.IsValidIndex(I) ? &G->State.Stock[I] : nullptr; };
+        Rows->AddSlot().AutoHeight().Padding(0.f, 3.f)
+        [
+            SNew(SHorizontalBox)
+            .Visibility_Lambda([InWindow] { return InWindow() ? EVisibility::HitTestInvisible : EVisibility::Collapsed; })
+            + SHorizontalBox::Slot().FillWidth(1.f).VAlign(VAlign_Center)
+            [ Text([this, I] { const AMarketGameMode* G = Game.Get(); return G && G->Products.IsValidIndex(I) ? G->ProductName(I) : FString(); }, 10, ETone::Text) ]
+            + SHorizontalBox::Slot().AutoWidth().VAlign(VAlign_Center).Padding(12.f, 0.f, 0.f, 0.f)
             [
-                SNew(SBox).Visibility_Lambda([this] { return HintKey().IsEmpty() ? EVisibility::Collapsed : EVisibility::HitTestInvisible; })
+                SNew(SBox).WidthOverride(108.f)
                 [
-                    SNew(SBorder).BorderImage(&KeyBrush).Padding(FMargin(8.f, 2.f))
-                    [ SNew(STextBlock).Font(Font("Bold", 11)).ColorAndOpacity(FLinearColor(0.12f, 0.10f, 0.08f)).Text_Lambda([this] { return FText::FromString(HintKey()); }) ]
+                    SNew(SVerticalBox)
+                    + SVerticalBox::Slot().AutoHeight()[ Bar([Stock] { const FMarketStock* S = Stock(); return S ? S->Shelf / static_cast<float>(FMath::Max(1, S->Capacity)) : 0.f; }, ETone::Accent) ]
+                    + SVerticalBox::Slot().AutoHeight().Padding(0.f, 2.f, 0.f, 0.f)
+                    [ Text([Stock] { const FMarketStock* S = Stock(); return S ? FString::Printf(TEXT("%d / %d"), S->Shelf, S->Capacity) : FString(); }, 8, ETone::Muted) ]
                 ]
             ]
+            + SHorizontalBox::Slot().AutoWidth().VAlign(VAlign_Center).Padding(12.f, 0.f, 0.f, 0.f)
+            [ SNew(SBox).WidthOverride(44.f)[ Text([Stock] { const FMarketStock* S = Stock(); return S ? FString::FromInt(S->Warehouse) : FString(); }, 10, ETone::Text) ] ]
             + SHorizontalBox::Slot().AutoWidth().VAlign(VAlign_Center)
-            [ SNew(STextBlock).Font(Font("Regular", 12)).ColorAndOpacity(Cream).Text_Lambda([this] { return FText::FromString(HintText()); }) ]
-        ]
-        + SVerticalBox::Slot().AutoHeight().HAlign(HAlign_Center).Padding(0.f, 6.f, 0.f, 0.f)
+            [ SNew(SBox).WidthOverride(44.f)[ Text([Stock] { const FMarketStock* S = Stock(); return S ? FString::FromInt(S->Dock) : FString(); }, 10, ETone::Warn) ] ]
+        ];
+    }
+    return SNew(SBox).MinDesiredWidth(380.f)[ Card(Rows) ];
+}
+
+TSharedRef<SWidget> SMarketHud::ControlsCard()
+{
+    return Card(
+        SNew(SVerticalBox)
+        + SVerticalBox::Slot().AutoHeight().Padding(0.f, 0.f, 0.f, 8.f)[ Fixed(TEXT("KISAYOLLAR"), 9, ETone::Muted, true) ]
+        + SVerticalBox::Slot().AutoHeight()
         [
-            SNew(STextBlock).Font(Font("Regular", 10)).ColorAndOpacity(Honey)
-            .Visibility_Lambda([this] { const AMarketGameMode* G = Game.Get(); return G && G->MessageTime > 0.f ? EVisibility::HitTestInvisible : EVisibility::Collapsed; })
-            .Text_Lambda([this] { const AMarketGameMode* G = Game.Get(); return FText::FromString(G ? G->Message : FString()); })
-        ]
-        + SVerticalBox::Slot().AutoHeight().HAlign(HAlign_Center).Padding(0.f, 6.f, 0.f, 0.f)
-        [
-            SNew(STextBlock).Font(Font("Regular", 8)).ColorAndOpacity(Muted)
-            .Visibility_Lambda([this] { const AMarketGameMode* G = Game.Get(); return G && !G->bShowDetails ? EVisibility::HitTestInvisible : EVisibility::Collapsed; })
-            .Text(FText::FromString(TEXT("M men\u00fc  \u00b7  F1 paneller  \u00b7  F4 \u0131\u015f\u0131k")))
-        ],
-        FMargin(20.f, 10.f));
+            SNew(SUniformGridPanel).SlotPadding(FMargin(0.f, 2.f))
+            + SUniformGridPanel::Slot(0, 0)[ KeyRow(TEXT("WASD"), TEXT("Y\u00fcr\u00fc")) ]
+            + SUniformGridPanel::Slot(1, 0)[ KeyRow(TEXT("E"), TEXT("Etkile\u015fim")) ]
+            + SUniformGridPanel::Slot(2, 0)[ KeyRow(TEXT("M"), TEXT("Y\u00f6netim men\u00fcs\u00fc")) ]
+            + SUniformGridPanel::Slot(0, 1)[ KeyRow(TEXT("O"), TEXT("Marketi a\u00e7 / kapat")) ]
+            + SUniformGridPanel::Slot(1, 1)[ KeyRow(TEXT("R"), TEXT("Reyonu diz (kapal\u0131yken)")) ]
+            + SUniformGridPanel::Slot(2, 1)[ KeyRow(TEXT("F1"), TEXT("Bu paneller")) ]
+            + SUniformGridPanel::Slot(0, 2)[ KeyRow(TEXT("F2"), TEXT("Test modu")) ]
+            + SUniformGridPanel::Slot(1, 2)[ KeyRow(TEXT("F3"), TEXT("Raflar\u0131 doldur (test)")) ]
+            + SUniformGridPanel::Slot(2, 2)[ KeyRow(TEXT("F4"), TEXT("I\u015f\u0131k")) ]
+            + SUniformGridPanel::Slot(0, 3)[ KeyRow(TEXT("F5 / F9"), TEXT("Kaydet / y\u00fckle")) ]
+            + SUniformGridPanel::Slot(1, 3)[ KeyRow(TEXT("F6"), TEXT("Yeni kampanya")) ]
+            + SUniformGridPanel::Slot(2, 3)[ KeyRow(TEXT("F8"), TEXT("Marka adlar\u0131")) ]
+            + SUniformGridPanel::Slot(0, 4)[ KeyRow(TEXT("F11"), TEXT("Tam ekran")) ]
+            + SUniformGridPanel::Slot(1, 4)[ KeyRow(TEXT("Esc"), TEXT("Oyundan \u00e7\u0131k")) ]
+            + SUniformGridPanel::Slot(2, 4)[ KeyRow(TEXT("Space"), TEXT("Zaman\u0131 durdur")) ]
+            + SUniformGridPanel::Slot(0, 5)[ KeyRow(TEXT("1 / 2 / 3"), TEXT("Oyun h\u0131z\u0131")) ]
+        ]);
 }
 
 TSharedRef<SWidget> SMarketHud::ReportCard()
 {
-    auto Line = [this](TFunction<FString(const AMarketGameMode&)> Make, const FSlateFontInfo& InFont, const FLinearColor& Color) -> TSharedRef<SWidget>
+    auto Line = [this](TFunction<FString(const AMarketGameMode&)> Make, int32 Size, ETone Tone, bool bBold) -> TSharedRef<SWidget>
     {
-        return SNew(STextBlock).Font(InFont).ColorAndOpacity(Color)
-            .Text_Lambda([this, Make] { const AMarketGameMode* G = Game.Get(); return FText::FromString(G ? Make(*G) : FString()); });
+        return Text([this, Make] { const AMarketGameMode* G = Game.Get(); return G ? Make(*G) : FString(); }, Size, Tone, bBold, true);
     };
-    return SNew(SBox).MinDesiredWidth(520.f)
-        .Visibility_Lambda([this]
-        {
-            const AMarketGameMode* G = Game.Get();
-            return G && !G->bOpen && G->State.Day > 1 && (G->ReportTime > 0.f || G->bShowDetails) ? EVisibility::HitTestInvisible : EVisibility::Collapsed;
-        })
+    return SNew(SBox).MinDesiredWidth(520.f).MaxDesiredWidth(600.f)
+        .Visibility_Lambda([this] { const AMarketGameMode* G = Game.Get(); return G && !G->bOpen && G->State.Day > 1 && G->ReportTime > 0.f ? EVisibility::HitTestInvisible : EVisibility::Collapsed; })
     [
         Card(
             SNew(SVerticalBox)
-            + SVerticalBox::Slot().AutoHeight()
-            [ Line([](const AMarketGameMode& G) { return FString::Printf(TEXT("G\u00dcN %d RAPORU"), G.State.Day - 1); }, Font("Bold", 9, 180), Muted) ]
+            + SVerticalBox::Slot().AutoHeight()[ Line([](const AMarketGameMode& G) { return FString::Printf(TEXT("G\u00dcN %d RAPORU"), G.State.Day - 1); }, 9, ETone::Muted, true) ]
             + SVerticalBox::Slot().AutoHeight().Padding(0.f, 6.f, 0.f, 0.f)
-            [ Line([](const AMarketGameMode& G) { return FString::Printf(TEXT("Net sonu\u00e7  %s"), *Lira(G.State.LastProfit)); }, Font("Bold", 20), Honey) ]
+            [ Line([](const AMarketGameMode& G) { return FString::Printf(TEXT("Net sonu\u00e7  %s"), *MarketHudUi::HudLira(G.State.LastProfit)); }, 20, ETone::Text, true) ]
             + SVerticalBox::Slot().AutoHeight().Padding(0.f, 8.f, 0.f, 0.f)
-            [ Line([](const AMarketGameMode& G) { return FString::Printf(TEXT("Ciro %s  \u00b7  mal maliyeti %s"), *Lira(G.State.LastRevenue), *Lira(G.State.LastCostOfGoods)); }, Font("Regular", 11), Cream) ]
+            [ Line([](const AMarketGameMode& G) { return FString::Printf(TEXT("Ciro %s  \u00b7  mal maliyeti %s  \u00b7  gider %s"), *MarketHudUi::HudLira(G.State.LastRevenue), *MarketHudUi::HudLira(G.State.LastCostOfGoods), *MarketHudUi::HudLira(G.State.LastOperatingCost)); }, 11, ETone::Text, false) ]
             + SVerticalBox::Slot().AutoHeight().Padding(0.f, 2.f, 0.f, 0.f)
-            [ Line([](const AMarketGameMode& G) { return FString::Printf(TEXT("Gider %s  \u00b7  ikinci \u015fube katk\u0131s\u0131 %s"), *Lira(G.State.LastOperatingCost), *Lira(G.State.LastBranchProfit)); }, Font("Regular", 11), Cream) ]
-            + SVerticalBox::Slot().AutoHeight().Padding(0.f, 2.f, 0.f, 0.f)
-            [ Line([](const AMarketGameMode& G) { return FString::Printf(TEXT("%d sat\u0131\u015f  \u00b7  %d kay\u0131p m\u00fc\u015fteri"), G.State.LastServed, G.State.LastLost); }, Font("Regular", 11), Cream) ]
-            + SVerticalBox::Slot().AutoHeight().Padding(0.f, 10.f, 0.f, 0.f)
-            [ Line([](const AMarketGameMode&) { return FString(TEXT("NEREDE M\u00dc\u015eTER\u0130 KAYBETT\u0130N")); }, Font("Bold", 8, 180), Muted) ]
-            + SVerticalBox::Slot().AutoHeight().Padding(0.f, 4.f, 0.f, 0.f)
-            [
-                SNew(SBox).MaxDesiredWidth(560.f)
-                [
-                    SNew(STextBlock).Font(Font("Regular", 10)).ColorAndOpacity(Honey).AutoWrapText(true)
-                    .Text_Lambda([this] { const AMarketGameMode* G = Game.Get(); return FText::FromString(G ? G->DayProblemsText() : FString()); })
-                ]
-            ]
-            + SVerticalBox::Slot().AutoHeight().Padding(0.f, 10.f, 0.f, 0.f)
-            [ Line([](const AMarketGameMode&) { return FString(TEXT("RAK\u0130P HABERLER\u0130  \u00b7  YARIN")); }, Font("Bold", 8, 180), Muted) ]
-            + SVerticalBox::Slot().AutoHeight().Padding(0.f, 4.f, 0.f, 0.f)
-            [
-                SNew(SBox).MaxDesiredWidth(560.f)
-                [
-                    SNew(STextBlock).Font(Font("Regular", 10)).ColorAndOpacity(Cream).AutoWrapText(true)
-                    .Text_Lambda([this] { const AMarketGameMode* G = Game.Get(); return FText::FromString(G ? G->RivalNewsText() : FString()); })
-                ]
-            ]
-            + SVerticalBox::Slot().AutoHeight().Padding(0.f, 10.f, 0.f, 0.f)
-            [
-                SNew(SVerticalBox)
-                .Visibility_Lambda([this] { const AMarketGameMode* G = Game.Get(); return G && G->bWeekJustEnded ? EVisibility::HitTestInvisible : EVisibility::Collapsed; })
-                + SVerticalBox::Slot().AutoHeight()
-                [ Line([](const AMarketGameMode& G) { return FString::Printf(TEXT("%d. HAFTA RAPORU"), G.State.LastWeekNumber); }, Font("Bold", 8, 180), Muted) ]
-                + SVerticalBox::Slot().AutoHeight().Padding(0.f, 4.f, 0.f, 0.f)
-                [ Line([](const AMarketGameMode& G) { return G.WeekReportText(); }, Font("Regular", 10), Honey) ]
-            ]
-            + SVerticalBox::Slot().AutoHeight().Padding(0.f, 10.f, 0.f, 0.f)
-            [ Line([](const AMarketGameMode&) { return FString(TEXT("Raflar\u0131 doldur, fiyatlar\u0131 ayarla, O ile a\u00e7.")); }, Font("Regular", 9), Muted) ]
-        , FMargin(24.f, 18.f))
+            [ Line([](const AMarketGameMode& G) { return FString::Printf(TEXT("%d sat\u0131\u015f  \u00b7  %d kay\u0131p m\u00fc\u015fteri"), G.State.LastServed, G.State.LastLost); }, 11, ETone::Text, false) ]
+            + SVerticalBox::Slot().AutoHeight().Padding(0.f, 8.f, 0.f, 0.f)
+            [ Line([](const AMarketGameMode& G) { return G.DayProblemsText(); }, 10, ETone::Warn, false) ]
+            + SVerticalBox::Slot().AutoHeight().Padding(0.f, 8.f, 0.f, 0.f)
+            [ Line([](const AMarketGameMode& G) { return G.RivalNewsText(); }, 10, ETone::Text, false) ],
+            FMargin(24.f, 18.f))
     ];
 }
 
@@ -589,7 +567,7 @@ TSharedRef<SWidget> SMarketHud::ArrangeCard()
     // the crosshair, what a click would do (green / red) and only the keys that work right now.
     auto Str = [this](FString AMarketGameMode::* Field)
     {
-        return [this, Field] { const AMarketGameMode* G = Game.Get(); return FText::FromString(G ? G->*Field : FString()); };
+        return [this, Field] { const AMarketGameMode* G = Game.Get(); return G ? G->*Field : FString(); };
     };
     TSharedRef<SVerticalBox> Keys = SNew(SVerticalBox);
     for (int32 I = 0; I < 14; ++I)
@@ -599,18 +577,9 @@ TSharedRef<SWidget> SMarketHud::ArrangeCard()
             SNew(SHorizontalBox)
             .Visibility_Lambda([this, I] { const AMarketGameMode* G = Game.Get(); return G && G->ArrangeKeys.IsValidIndex(I) ? EVisibility::HitTestInvisible : EVisibility::Collapsed; })
             + SHorizontalBox::Slot().AutoWidth().VAlign(VAlign_Center)
-            [
-                SNew(SBorder).BorderImage(&KeyBrush).Padding(FMargin(7.f, 2.f)).VAlign(VAlign_Center)
-                [
-                    SNew(STextBlock).Font(Font("Bold", 9)).ColorAndOpacity(FLinearColor(0.12f, 0.10f, 0.08f))
-                    .Text_Lambda([this, I] { const AMarketGameMode* G = Game.Get(); return FText::FromString(G && G->ArrangeKeys.IsValidIndex(I) ? G->ArrangeKeys[I].Key : FString()); })
-                ]
-            ]
+            [ KeyCap([this, I] { const AMarketGameMode* G = Game.Get(); return G && G->ArrangeKeys.IsValidIndex(I) ? G->ArrangeKeys[I].Key : FString(); }) ]
             + SHorizontalBox::Slot().FillWidth(1.f).VAlign(VAlign_Center).Padding(8.f, 0.f, 0.f, 0.f)
-            [
-                SNew(STextBlock).Font(Font("Regular", 10)).ColorAndOpacity(Cream).AutoWrapText(true)
-                .Text_Lambda([this, I] { const AMarketGameMode* G = Game.Get(); return FText::FromString(G && G->ArrangeKeys.IsValidIndex(I) ? G->ArrangeKeys[I].Value : FString()); })
-            ]
+            [ Text([this, I] { const AMarketGameMode* G = Game.Get(); return G && G->ArrangeKeys.IsValidIndex(I) ? G->ArrangeKeys[I].Value : FString(); }, 10, ETone::Text, false, true) ]
         ];
     }
     return SNew(SBox).WidthOverride(400.f)
@@ -618,35 +587,26 @@ TSharedRef<SWidget> SMarketHud::ArrangeCard()
     [
         Card(
             SNew(SVerticalBox)
-            + SVerticalBox::Slot().AutoHeight()
-            [ SNew(STextBlock).Text(FText::FromString(TEXT("RAF D\u00dcZEN\u0130"))).Font(Font("Bold", 8, 180)).ColorAndOpacity(Muted) ]
-            + SVerticalBox::Slot().AutoHeight().Padding(0.f, 4.f, 0.f, 0.f)
-            [ SNew(STextBlock).Font(Font("Bold", 15)).ColorAndOpacity(Cream).AutoWrapText(true).Text_Lambda(Str(&AMarketGameMode::ArrangeTitle)) ]
-            + SVerticalBox::Slot().AutoHeight().Padding(0.f, 4.f, 0.f, 4.f)
-            [ SNew(STextBlock).Font(Font("Regular", 9)).ColorAndOpacity(Muted).AutoWrapText(true).Text_Lambda(Str(&AMarketGameMode::ArrangeRow)) ]
-            + SVerticalBox::Slot().AutoHeight()
-            [ Bar([this] { const AMarketGameMode* G = Game.Get(); return G ? G->ArrangeRowFill : 0.f; }, Teal) ]
-            + SVerticalBox::Slot().AutoHeight().Padding(0.f, 14.f, 0.f, 0.f)
-            [ SNew(STextBlock).Font(Font("Bold", 12)).ColorAndOpacity(Honey).AutoWrapText(true).Text_Lambda(Str(&AMarketGameMode::ArrangeHandTitle)) ]
-            + SVerticalBox::Slot().AutoHeight().Padding(0.f, 3.f, 0.f, 0.f)
-            [ SNew(STextBlock).Font(Font("Regular", 10)).ColorAndOpacity(Cream).AutoWrapText(true).Text_Lambda(Str(&AMarketGameMode::ArrangeHandText)) ]
+            + SVerticalBox::Slot().AutoHeight()[ Fixed(TEXT("RAF D\u00dcZEN\u0130"), 9, ETone::Muted, true) ]
+            + SVerticalBox::Slot().AutoHeight().Padding(0.f, 4.f, 0.f, 0.f)[ Text(Str(&AMarketGameMode::ArrangeTitle), 15, ETone::Text, true, true) ]
+            + SVerticalBox::Slot().AutoHeight().Padding(0.f, 4.f, 0.f, 4.f)[ Text(Str(&AMarketGameMode::ArrangeRow), 9, ETone::Muted, false, true) ]
+            + SVerticalBox::Slot().AutoHeight()[ Bar([this] { const AMarketGameMode* G = Game.Get(); return G ? G->ArrangeRowFill : 0.f; }, ETone::Accent) ]
+            + SVerticalBox::Slot().AutoHeight().Padding(0.f, 14.f, 0.f, 0.f)[ Text(Str(&AMarketGameMode::ArrangeHandTitle), 12, ETone::Accent, true, true) ]
+            + SVerticalBox::Slot().AutoHeight().Padding(0.f, 3.f, 0.f, 0.f)[ Text(Str(&AMarketGameMode::ArrangeHandText), 10, ETone::Text, false, true) ]
             + SVerticalBox::Slot().AutoHeight().Padding(0.f, 12.f, 0.f, 0.f)
             [
                 SNew(SVerticalBox)
                 .Visibility_Lambda([this] { const AMarketGameMode* G = Game.Get(); return G && !G->ArrangeTargetTitle.IsEmpty() ? EVisibility::HitTestInvisible : EVisibility::Collapsed; })
-                + SVerticalBox::Slot().AutoHeight()
-                [ SNew(STextBlock).Font(Font("Bold", 12)).ColorAndOpacity(FLinearColor(1.f, 0.72f, 0.20f)).AutoWrapText(true).Text_Lambda(Str(&AMarketGameMode::ArrangeTargetTitle)) ]
-                + SVerticalBox::Slot().AutoHeight().Padding(0.f, 3.f, 0.f, 0.f)
-                [ SNew(STextBlock).Font(Font("Regular", 10)).ColorAndOpacity(Cream).AutoWrapText(true).Text_Lambda(Str(&AMarketGameMode::ArrangeTargetText)) ]
+                + SVerticalBox::Slot().AutoHeight()[ Text(Str(&AMarketGameMode::ArrangeTargetTitle), 12, ETone::Warn, true, true) ]
+                + SVerticalBox::Slot().AutoHeight().Padding(0.f, 3.f, 0.f, 0.f)[ Text(Str(&AMarketGameMode::ArrangeTargetText), 10, ETone::Text, false, true) ]
             ]
             + SVerticalBox::Slot().AutoHeight().Padding(0.f, 12.f, 0.f, 0.f)
             [
-                SNew(STextBlock).Font(Font("Bold", 11)).AutoWrapText(true).Text_Lambda(Str(&AMarketGameMode::ArrangeStatus))
-                .ColorAndOpacity_Lambda([this] { const AMarketGameMode* G = Game.Get(); return FSlateColor(G && G->bArrangeStatusOk ? Leaf : Coral); })
+                SNew(STextBlock).Font(MarketHudUi::HudFont(true, 11)).AutoWrapText(true)
+                .Text_Lambda([this] { const AMarketGameMode* G = Game.Get(); return FText::FromString(G ? G->ArrangeStatus : FString()); })
+                .ColorAndOpacity_Lambda([this] { const AMarketGameMode* G = Game.Get(); return FSlateColor(Color(G && G->bArrangeStatusOk ? ETone::Good : ETone::Bad)); })
             ]
-            + SVerticalBox::Slot().AutoHeight().Padding(0.f, 12.f, 0.f, 0.f)
-            [ SNew(STextBlock).Text(FText::FromString(TEXT("TU\u015eLAR"))).Font(Font("Bold", 8, 180)).ColorAndOpacity(Muted) ]
-            + SVerticalBox::Slot().AutoHeight().Padding(0.f, 4.f, 0.f, 0.f)
-            [ Keys ])
+            + SVerticalBox::Slot().AutoHeight().Padding(0.f, 12.f, 0.f, 0.f)[ Fixed(TEXT("TU\u015eLAR"), 9, ETone::Muted, true) ]
+            + SVerticalBox::Slot().AutoHeight().Padding(0.f, 4.f, 0.f, 0.f)[ Keys ])
     ];
 }

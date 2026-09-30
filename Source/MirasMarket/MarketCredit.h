@@ -22,7 +22,7 @@ namespace MarketCredit
     const FMarketCreditAccount* Find(const FMarketState& State, int32 CustomerId);
     // After a paid basket: may turn the receipt into credit. Roll 0..1. Returns a Turkish note ("" = paid cash).
     FString OnCheckout(FMarketState& State, int32 CustomerId, int64 Receipt, float Roll);
-    // Limit step 0..3 (0, 20, 50, 100 TL at 2011 prices).
+    // Limit step 0..3 (0, 20, 50, 100 TL at the start price level).
     bool SetLimit(FMarketState& State, int32 Step, FString& OutMessage);
     // Ask everybody to pay now: some pay, everybody is a little offended.
     int64 CollectAll(FMarketState& State, FString& OutMessage);

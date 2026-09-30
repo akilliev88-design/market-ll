@@ -5,7 +5,7 @@
 
 // Wholesalers, payment terms and price lists (G-063, Docs/Kurgu/00_KURGU_KITABI.md \u00a78). Independent of the world,
 // tested (MirasMarket.Suppliers.*).
-//  - Prices: the catalog's cost and list price are 2011 values; the game uses them x MarketPrices::ListLevel, which
+//  - Prices: the catalog's cost and list price are start-level values (M24); the game uses them x MarketPrices::ListLevel, which
 //    moves on the 1st of every month (the wholesaler's "zam listesi"). The rival's shelf price follows the same
 //    list, so a player who does not pass the rise on sells cheaper than the rivals but earns less.
 //  - Trakya G\u0131da Da\u011f\u0131t\u0131m (Selim): the father's wholesaler. Pays in cash at first; trust grows with orders and
@@ -52,12 +52,15 @@ namespace MarketSuppliers
     double MonthSwing(const FMarketState& State);
     int64 UnitCost(const FMarketState& State, const FMarketProduct& Base, int32 Index = INDEX_NONE);
     int64 ListPrice(const FMarketState& State, const FMarketProduct& Base);
-    // Writes today's costs and list prices of the catalog (Base, 2011 values) into the game's products.
+    // Writes today's costs and list prices of the catalog (Base, start-level values) into the game's products.
     void ApplyPrices(const FMarketState& State, const TArray<FMarketProduct>& Base, TArray<FMarketProduct>& Out);
 
     // After FMarketState::SubmitOrder succeeded with Bill: counts the volume and, with terms, gives the cash back
     // and writes the bill to be paid later. Returns a Turkish line for the player ("" = nothing to add).
     FString OnOrder(FMarketState& State, int64 Bill);
+    // G-077 (#33): how much more than the cash in the till the current wholesaler lets us order on terms today:
+    // 500 TL (at today's list level) + half of the last 30 days' purchases, minus the open bills. 0 without terms.
+    int64 OrderAllowance(const FMarketState& State);
     bool Switch(FMarketState& State, ESupplier Supplier, FString& OutMessage);
     // Pays every open bill now if the cash allows; returns the amount paid.
     int64 PayBills(FMarketState& State);

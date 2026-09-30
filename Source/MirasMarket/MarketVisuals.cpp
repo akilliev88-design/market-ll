@@ -29,7 +29,7 @@ namespace
         float TileCm;
     };
 
-    const FSurfaceSpec& Spec(EMarketSurface Kind)
+    const FSurfaceSpec& SurfaceSpecOf(EMarketSurface Kind)
     {
         // Colors follow the reference photo: bright polished floor, light painted shelving,
         // dark walnut on feature fixtures, red category signs and white price tags.
@@ -136,12 +136,12 @@ bool HasSurfaceLibrary()
 
 FLinearColor SurfaceColor(EMarketSurface Kind)
 {
-    return Spec(Kind).Fallback;
+    return SurfaceSpecOf(Kind).Fallback;
 }
 
 UMaterialInterface* CreateSurface(UObject* Outer, EMarketSurface Kind)
 {
-    const FSurfaceSpec& S = Spec(Kind);
+    const FSurfaceSpec& S = SurfaceSpecOf(Kind);
     if (Kind == EMarketSurface::Acrylic)
     {
         UMaterialInterface* Master = LoadMaster(AcrylicMasterPath);

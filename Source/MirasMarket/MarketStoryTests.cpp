@@ -72,7 +72,8 @@ bool FMarketEventsTest::RunTest(const FString& Parameters)
     Close(S, Products);
     Close(S, Products);
     TestTrue(TEXT("Decided by default"), !S.Decisions.ContainsByPredicate([](const FMarketDecision& D) { return D.Id == TEXT("event.complaint"); }));
-    TestTrue(TEXT("Word spreads"), S.Loyalty.Last().Satisfaction < 70.f);
+    const FMarketLoyalty* Complainer = S.Loyalty.FindByPredicate([](const FMarketLoyalty& L) { return L.CustomerId == 3; });
+    TestTrue(TEXT("Word spreads"), Complainer && Complainer->Satisfaction < 70.f);
 
     // A broken truck holds the next day's order one more day.
     FMarketState T; T.Initialize(Products); T.Cash = 100000; T.ApplyShelfCapacities({ 24, 24 });
@@ -157,21 +158,21 @@ bool FMarketStoryTest::RunTest(const FString& Parameters)
     TestTrue(TEXT("Cheaper purchases"), MarketEvents::Factor(S, MarketEvents::EModifier::CostFactor, MarketGoods::EGroup::Dairy) < 1.f);
     TestTrue(TEXT("Price hunters"), MarketEvents::Tolerance(S, MarketGoods::EGroup::Dairy) < 0.0);
 
-    // The other road: sign and it is an ending (free play goes on).
+    // The other road: sign and it is an ending; the money waits for the last choice (karar J03).
     const int64 Before = Sold.Cash;
     MarketEvents::Decide(Sold, Products, 1, Message);
     TestTrue(TEXT("Sign"), MarketEvents::Decide(Sold, Products, 1, Message));
     TestEqual(TEXT("Ending"), Sold.Story.Ending, static_cast<uint8>(MarketStory::EEnding::Sold));
-    TestTrue(TEXT("Paid"), Sold.Cash > Before);
+    TestEqual(TEXT("Sale money not in the till yet"), Sold.Cash, Before);
     TestTrue(TEXT("Dream or the end"), MarketEvents::Pending(Sold) && MarketEvents::Pending(Sold)->Id == TEXT("story.dream"));
     // It was a dream: back in the shop, the money never came, the identity is asked.
     FMarketState Dream = Sold;
     TestTrue(TEXT("Dream"), MarketEvents::Decide(Dream, Products, 0, Message));
     TestEqual(TEXT("No sale money"), Dream.Cash, Before);
-    TestTrue(TEXT("Story goes on"), Dream.Story.Chapter != MarketStory::StoryOverChapter);
+    TestFalse(TEXT("Story goes on"), MarketStory::StoryClosed(Dream));
     TestTrue(TEXT("Identity asked after the dream"), MarketEvents::Pending(Dream) && MarketEvents::Pending(Dream)->Id == TEXT("story.identity"));
     TestTrue(TEXT("The end"), MarketEvents::Decide(Sold, Products, 1, Message));
-    TestEqual(TEXT("Story over"), Sold.Story.Chapter, MarketStory::StoryOverChapter);
+    TestTrue(TEXT("Campaign over"), Sold.Story.bCampaignOver && MarketStory::StoryClosed(Sold));
     TestEqual(TEXT("No goals in free play"), MarketStory::Objectives(Sold).Num(), 0);
     TestTrue(TEXT("Chapter titles"), MarketStory::ChapterTitle(3) == TEXT("\u0130kinci Tabela"));
     return true;

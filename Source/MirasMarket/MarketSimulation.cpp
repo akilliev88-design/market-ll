@@ -1,10 +1,13 @@
 #include "MarketSimulation.h"
+#include "MarketCalendar.h"
+#include "MarketCountry.h"
 #include "MarketBasket.h"
 #include "MarketCampaign.h"
 #include "MarketCustomers.h"
 #include "MarketDemand.h"
 #include "MarketDirector.h"
 #include "MarketEvents.h"
+#include "MarketManagers.h"
 #include "MarketOrderAdvice.h"
 #include "MarketPromotions.h"
 #include "MarketRivals.h"
@@ -24,8 +27,7 @@ namespace MarketSimulation
 
     FString SimTl(int64 Kurus)
     {
-        const int64 Abs = Kurus < 0 ? -Kurus : Kurus;
-        return FString::Printf(TEXT("%s%lld,%02lld TL"), Kurus < 0 ? TEXT("-") : TEXT(""), static_cast<long long>(Abs / 100), static_cast<long long>(Abs % 100));
+        return MarketCountry::Money(Kurus); // G-084: the active country\'s currency
     }
 
     void FillShelves(FMarketState& State)
@@ -128,6 +130,8 @@ bool MarketSimulation::SetDifficulty(FMarketState& State, int32 Difficulty, FStr
 {
     const uint8 Value = static_cast<uint8>(FMath::Clamp(Difficulty, 0, 2));
     if (State.Difficulty == Value) { OutMessage = TEXT("Zorluk zaten b\u00f6yle."); return false; }
+    // G-076: chosen at the start of a campaign and then locked, so it cannot be switched just before an advance.
+    if (State.Day > 1) { OutMessage = TEXT("Zorluk kampanyan\u0131n ba\u015f\u0131nda se\u00e7ilir; ilk g\u00fcnden sonra de\u011fi\u015fmez."); return false; }
     State.Difficulty = Value;
     OutMessage = FString::Printf(TEXT("Zorluk: %s. %s"), *DifficultyName(static_cast<EDifficulty>(Value)),
         Value == 0 ? TEXT("Biraz daha \u00e7ok m\u00fc\u015fteri, fiyata daha ho\u015fg\u00f6r\u00fcl\u00fc.")
@@ -143,7 +147,9 @@ MarketSimulation::FDay MarketSimulation::PlayDay(FMarketState& State, const TArr
     const TArray<FString> Aisles = MarketRivals::Aisles(Products);
     // Morning routine of the family: the month's price rise goes on the shelf tags, the declared tax is paid, and
     // a spare 50 TL goes to the father's debt when the till can bear it.
-    if (MarketSuppliers::PriceGap(State) > 0.02) MarketSuppliers::PassOnPriceRise(State, Products);
+    // G-086b ek (M19): with a manager in the family shop his style and skill run the routine (bManaged false: as before).
+    const MarketManagers::FFamilyRule Family = MarketManagers::FamilyRule(State);
+    if (MarketSuppliers::PriceGap(State) > Family.PriceRiseGap) MarketSuppliers::PassOnPriceRise(State, Products);
     if (State.Books.TaxDue > 0) MarketStaff::PayTax(State);
     if (MarketCampaign::DebtOpen(State) && State.Cash > 4 * MarketCampaign::Installment + 20000) MarketCampaign::PayDebt(State);
     // Morning: the rear door is carried in and the shelves are filled.
@@ -151,13 +157,14 @@ MarketSimulation::FDay MarketSimulation::PlayDay(FMarketState& State, const TArr
     FillShelves(State);
     // The world's crowd limit: nine people inside turn the next one away at the door (about 1 in 25 on busy days).
     const float Traffic = MarketDirector::TrafficFactor(State, Aisles);
-    Day.Shoppers = FMath::Max(0, FMath::RoundToInt(ShoppersPerDay * Traffic));
+    // G-084: a day the law keeps shops shut (Germany: Sundays, holidays) has no shoppers; wages and rent still run.
+    Day.Shoppers = MarketCalendar::ClosedByLaw(State.Day) ? 0 : FMath::Max(0, FMath::RoundToInt(ShoppersPerDay * Traffic));
     const int32 Crowded = Traffic > 1.3f ? Day.Shoppers / 25 : 0;
     for (int32 N = 0; N < Crowded; ++N) MarketDemand::RecordWaitingLoss(State);
     for (int32 N = Crowded; N < Day.Shoppers; ++N)
     {
         Shopper(State, Products, Aisles, Random);
-        if (N % 8 == 7) FillShelves(State);   // the family (and the stockers) refill between customers
+        if (N % Family.RefillEvery == Family.RefillEvery - 1) FillShelves(State);   // the family (and the stockers) refill between customers
     }
     Day.Served = State.Served;
     Day.Lost = State.Lost;
@@ -169,9 +176,11 @@ MarketSimulation::FDay MarketSimulation::PlayDay(FMarketState& State, const TArr
         Draft.Init(0, Products.Num());
         const TArray<float> Scales = MarketDirector::OrderScales(State, Products);
         MarketOrderAdvice::FillSuggested(State, Products, Draft, &Scales);
+        MarketManagers::ShapeFamilyOrder(State, Family, Draft);
         int64 Bill = 0;
         for (int32 I = 0; I < Draft.Num(); ++I) Bill += Draft[I] * MarketOrderAdvice::CaseUnits(Products[I]) * Products[I].Cost;
-        if (Bill >= MarketOrderAdvice::MinimumOrder && Bill <= State.Cash && State.SubmitOrder(Draft, Products, &Bill))
+        const int64 Allowance = MarketDirector::OrderAllowance(State);   // G-077 (#33): terms count
+        if (Bill >= MarketOrderAdvice::MinimumOrderOn(State.Day) && Bill <= State.Cash + Allowance && State.SubmitOrder(Draft, Products, &Bill, nullptr, Allowance))
         {
             MarketDirector::OnOrder(State, Bill);
             Day.Ordered = Bill;
@@ -194,6 +203,7 @@ int32 MarketSimulation::Advance(FMarketState& State, const TArray<FMarketProduct
     for (; Played < FMath::Clamp(Days, 1, 31);)
     {
         if (MarketEvents::Pending(State)) { Reason = TEXT("bir karar seni bekliyor"); break; }
+        if (State.Stock.Num() != Products.Num()) { Reason = TEXT("stok kay\u0131tlar\u0131 katalogla uyu\u015fmuyor"); break; }
         const int32 WeekBefore = State.LastWeekNumber;
         const FDay Day = PlayDay(State, CatalogBase, Products);
         ++Played;

@@ -1,4 +1,5 @@
 #include "MarketGoods.h"
+#include "MarketEconomy.h"
 
 FString MarketGoods::Fold(const FString& Text)
 {
@@ -84,4 +85,9 @@ int32 MarketGoods::ShelfLifeDays(EGroup Group)
     case EGroup::Drinks: return 180;
     default: return 0;
     }
+}
+
+int32 MarketGoods::ShelfLifeDays(const FMarketProduct& Product)
+{
+    return Product.ShelfLifeDays > 0 ? Product.ShelfLifeDays : ShelfLifeDays(Classify(Product.Category));
 }

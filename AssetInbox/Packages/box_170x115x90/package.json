@@ -1,0 +1,10 @@
+{
+	"schemaVersion": 1,
+	"id": "box_170x115x90",
+	"type": "box",
+	"widthMm": 170,
+	"depthMm": 115,
+	"heightMm": 90,
+	"atlasSize": 2048,
+	"mesh": "/Game/Products/Packages/box_170x115x90/SM_box_170x115x90.SM_box_170x115x90"
+}

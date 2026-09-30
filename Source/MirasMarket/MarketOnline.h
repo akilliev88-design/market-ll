@@ -27,7 +27,7 @@ namespace MarketOnline
 
     constexpr double PlatformCommission = 0.18;
     constexpr double WebCardCommission = 0.018;
-    constexpr int64 WebSetupCost = 150000;         // 2011 kurus x price list
+    constexpr int64 WebSetupCost = 150000;         // start-level kurus x price list
     constexpr int64 WebMonthlyHosting = 5000;
     constexpr int64 CourierDailyWage = 1800;       // x wage index
     constexpr int64 PackagingPerOrder = 25;        // bags, receipt

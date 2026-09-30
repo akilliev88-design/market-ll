@@ -85,18 +85,20 @@ FMarketPlanogram MarketLayout::Fixtures(const FString& Format)
         Plan.Fixtures.Add(MakeFixture(TEXT("duvar_1"), TEXT("wall_shelf_2400"), -420.f, 250.f, 90.f));
         return Plan;
     }
-    const bool bBig = Format == TEXT("buyuk");
+    const bool bHyper = Format == TEXT("hiper"); // G-086: hypermarket, the widest range
+    const bool bBig = Format == TEXT("buyuk") || bHyper;
     // The family shop's arrangement: gondolas in rows, wall shelves on both sides.
-    const int32 Rows = bBig ? 2 : 1;
+    const int32 Rows = bHyper ? 4 : bBig ? 2 : 1;
     int32 Index = 0;
     for (int32 Row = 0; Row < Rows; ++Row)
-        for (const float X : { -260.f, 0.f, 260.f, bBig ? 520.f : -99999.f })
+        for (const float X : { -520.f, -260.f, 0.f, 260.f, 520.f })
         {
-            if (X < -9999.f) continue;
+            if (X < -300.f && !bHyper) continue;   // hypermarket: five columns
+            if (X > 300.f && !bBig) continue;      // supermarket: four
             Plan.Fixtures.Add(MakeFixture(*FString::Printf(TEXT("gondol_%d"), ++Index), TEXT("gondola_double_1200"), X, 550.f + Row * 310.f, 0.f));
         }
     Plan.Fixtures.Add(MakeFixture(*FString::Printf(TEXT("gondol_%d"), ++Index), TEXT("gondola_double_1200"), 0.f, 550.f + Rows * 310.f, 0.f));
-    const int32 Walls = bBig ? 3 : 3;
+    const int32 Walls = bHyper ? 5 : 3;
     for (int32 W = 0; W < Walls; ++W)
     {
         Plan.Fixtures.Add(MakeFixture(*FString::Printf(TEXT("duvar_sol_%d"), W + 1), TEXT("wall_shelf_2400"), -596.f, 180.f + W * 250.f, 90.f));

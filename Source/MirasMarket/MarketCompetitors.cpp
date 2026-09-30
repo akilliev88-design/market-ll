@@ -1,13 +1,22 @@
 #include "MarketCompetitors.h"
+#include "MarketCountry.h"
 #include "MarketCalendar.h"
 #include "MarketGoods.h"
 #include "MarketPromotions.h"
 #include "MarketRivals.h"
 #include "MarketStaff.h"
+#include "MarketEvents.h"
+#include "MarketPrices.h"
+#include "MarketStory.h"
+#include "Dom/JsonObject.h"
+#include "Misc/FileHelper.h"
+#include "Misc/Paths.h"
+#include "Serialization/JsonReader.h"
+#include "Serialization/JsonSerializer.h"
 
 namespace MarketCompetitors
 {
-    enum ETold : int32 { ToldStruggling = 1, ToldRaised = 2, ToldSecondStore = 4, ToldOpened = 8 };
+    enum ETold : int32 { ToldStruggling = 1, ToldRaised = 2, ToldSecondStore = 4, ToldOpened = 8, ToldForSale = 16, ToldSold = 32, ToldCut = 64 };
 
     uint32 RivalMix(int32 Seed, int32 Day, uint32 Salt)
     {
@@ -28,6 +37,19 @@ namespace MarketCompetitors
         return FMath::Exp(-(PriceIndex - 1.f) / PriceSensitivity) * Service * Proximity * FMath::Sqrt(static_cast<float>(FMath::Max(1, Stores)));
     }
 
+    // G-077 (#14): a rival's price level for the whole store is the average of its aisle prices, so aisle price
+    // wars, aisle sales, rises and empty shelves (MarketRivals news) reach the share model. Before, the share model
+    // asked with an empty aisle name and only store-wide effects counted.
+    float StoreIndex(const FMarketState& State, ECompany Company, const TArray<FString>& Aisles)
+    {
+        if (Aisles.Num() == 0) return PriceIndex(State, Company, FString(), Aisles);
+        float Sum = 0.f;
+        int32 Count = 0;
+        for (const FString& Aisle : Aisles)
+            if (Sells(Company, Aisle)) { Sum += PriceIndex(State, Company, Aisle, Aisles); ++Count; }
+        return Count > 0 ? Sum / Count : 1.5f; // sells none of our aisles: no pull on price
+    }
+
     // A101 pushes hard in its first month in the district.
     float OpeningPush(const FMarketState& State, ECompany Company)
     {
@@ -45,8 +67,84 @@ const MarketCompetitors::FProfile& MarketCompetitors::Profile(ECompany Company)
         { TEXT("Migros"), TEXT("s\u00fcpermarket"), 1.03f, 1.10f, 0.80f, 1, 50000000, 1 },
         { TEXT("A101"), TEXT("indirim marketi"), 0.94f, 0.85f, 1.00f, MarketRivals::ChainOpensDay, 50000000, 2 },
         { TEXT("\u015eok"), TEXT("indirim marketi"), 0.95f, 0.85f, 0.95f, 131, 50000000, INDEX_NONE }, // 15 July 2011
+        // G-079: four corner grocers together; a little dearer, very close, credit and cigarettes, open late.
+        { TEXT("Mahalle bakkallar\u0131"), TEXT("bakkal ve tekel"), 1.10f, 1.00f, 1.25f, 1, 3000000, INDEX_NONE, 4 },
+        // G-079: the Tuesday street market: cheap and fresh, only dairy (and produce later), only on its day.
+        { TEXT("Sal\u0131 Pazar\u0131"), TEXT("semt pazar\u0131"), 0.82f, 0.90f, 1.00f, 1, 0, INDEX_NONE, 1, 1, true },
     };
     return Profiles[FMath::Clamp(static_cast<int32>(Company), 0, static_cast<int32>(ECompany::Count) - 1)];
+}
+
+namespace MarketCompetitors
+{
+    const TCHAR* ChainIdOf(ECompany Company)
+    {
+        switch (Company)
+        {
+        case ECompany::Bim: return TEXT("bim");
+        case ECompany::Migros: return TEXT("migros");
+        case ECompany::A101: return TEXT("a101");
+        case ECompany::Sok: return TEXT("sok");
+        default: return TEXT("");
+        }
+    }
+}
+
+FString MarketCompetitors::DisplayName(ECompany Company)
+{
+    // Config/zincirler.json is read once: {"useFictional": bool, "chains":[{"id","real","fictional"}]}.
+    static TMap<FString, FString> Fictional;
+    static bool bLoaded = false, bUseFictional = false;
+    if (!bLoaded)
+    {
+        bLoaded = true;
+        FString Json;
+        if (FFileHelper::LoadFileToString(Json, *FPaths::Combine(FPaths::ProjectConfigDir(), TEXT("zincirler.json"))))
+        {
+            TSharedPtr<FJsonObject> Root;
+            const TSharedRef<TJsonReader<>> Reader = TJsonReaderFactory<>::Create(Json);
+            if (FJsonSerializer::Deserialize(Reader, Root) && Root.IsValid())
+            {
+                Root->TryGetBoolField(TEXT("useFictional"), bUseFictional);
+                const TArray<TSharedPtr<FJsonValue>>* Chains = nullptr;
+                if (Root->TryGetArrayField(TEXT("chains"), Chains))
+                    for (const TSharedPtr<FJsonValue>& Value : *Chains)
+                    {
+                        const TSharedPtr<FJsonObject> Chain = Value.IsValid() ? Value->AsObject() : nullptr;
+                        FString Id, Name;
+                        if (Chain.IsValid() && Chain->TryGetStringField(TEXT("id"), Id) && Chain->TryGetStringField(TEXT("fictional"), Name)) Fictional.Add(Id, Name);
+                    }
+            }
+        }
+    }
+    const FString Id = ChainIdOf(Company);
+    // G-084: the country pack names its own chains and traditional trade.
+    const bool bHome = MarketCountry::Active().Id == TEXT("tr");
+    if (!Id.IsEmpty() && (bUseFictional || !bHome))
+    {
+        const FString Local = MarketCountry::ChainName(Id);
+        if (!Local.IsEmpty()) return Local;
+    }
+    if (Company == ECompany::Bakkal && !MarketCountry::Active().GrocerName.IsEmpty()) return MarketCountry::Active().GrocerName;
+    if (Company == ECompany::Pazar && !MarketCountry::Active().MarketName.IsEmpty()) return MarketCountry::Active().MarketName;
+    if (bUseFictional && !Id.IsEmpty())
+        if (const FString* Name = Fictional.Find(Id)) return *Name;
+    return Profile(Company).Name;
+}
+
+bool MarketCompetitors::Sells(ECompany Company, const FString& Category)
+{
+    if (!Profile(Company).bFreshOnly) return true;
+    return !Category.IsEmpty() && MarketGoods::Classify(Category) == MarketGoods::EGroup::Dairy;
+}
+
+bool MarketCompetitors::IsOpenOn(const FMarketState& State, ECompany Company, int32 GameDay)
+{
+    const FProfile& P = Profile(Company);
+    if (GameDay < P.OpenDay) return false;
+    if (const FMarketCompetitor* C = Find(State, Company); C && (C->Told & ToldSold)) return false; // bought and closed
+    const int32 Weekday = Company == ECompany::Pazar ? MarketCountry::Active().MarketWeekday : P.Weekday; // G-084: the country's market day
+    return Weekday < 0 || MarketCalendar::DateOf(GameDay).Weekday == Weekday;
 }
 
 void MarketCompetitors::Ensure(FMarketState& State)
@@ -60,7 +158,7 @@ void MarketCompetitors::Ensure(FMarketState& State)
         New.Cash = P.StartCash;
         New.BaseIndex = P.BaseIndex;
         New.Service = P.Service;
-        New.Stores = 1;
+        New.Stores = FMath::Max(1, P.StartStores);
         State.Competitors.Add(New);
     }
 }
@@ -72,7 +170,7 @@ const FMarketCompetitor* MarketCompetitors::Find(const FMarketState& State, ECom
 
 bool MarketCompetitors::IsOpen(const FMarketState& State, ECompany Company)
 {
-    return State.Day >= Profile(Company).OpenDay;
+    return IsOpenOn(State, Company, State.Day);
 }
 
 float MarketCompetitors::PriceIndex(const FMarketState& State, ECompany Company, const FString& Category, const TArray<FString>& Aisles)
@@ -97,7 +195,7 @@ float MarketCompetitors::RivalPriceFactor(const FMarketState& State, const FStri
     for (int32 C = 0; C < static_cast<int32>(ECompany::Count); ++C)
     {
         const ECompany Company = static_cast<ECompany>(C);
-        if (!IsOpen(State, Company)) continue;
+        if (!IsOpen(State, Company) || !Sells(Company, Category)) continue;
         const FMarketCompetitor* Found = Find(State, Company);
         // Before the first day close the shares are unknown: weigh by how attractive each rival is.
         const FProfile& P = Profile(Company);
@@ -150,6 +248,7 @@ float MarketCompetitors::OurAttraction(const FMarketState& State, const TArray<F
 float MarketCompetitors::TargetShare(const FMarketState& State, const TArray<FMarketProduct>& Products, const TArray<FString>& Aisles)
 {
     const float Ours = OurAttraction(State, Products);
+    const float Crowd = MarketCountry::CityCompetition(State.CountryId, State.CityId); // G-084: a crowded city pulls harder
     float Total = Ours;
     for (int32 C = 0; C < static_cast<int32>(ECompany::Count); ++C)
     {
@@ -157,7 +256,7 @@ float MarketCompetitors::TargetShare(const FMarketState& State, const TArray<FMa
         if (!IsOpen(State, Company)) continue;
         const FMarketCompetitor* Found = Find(State, Company);
         const FProfile& P = Profile(Company);
-        Total += Attraction(PriceIndex(State, Company, FString(), Aisles), Found ? Found->Service : P.Service, P.Proximity, Found ? Found->Stores : 1);
+        Total += Crowd * Attraction(StoreIndex(State, Company, Aisles), Found ? Found->Service : P.Service, P.Proximity, Found ? Found->Stores : 1);
     }
     return Total > 0.f ? Ours / Total : 0.f;
 }
@@ -171,28 +270,33 @@ void MarketCompetitors::CloseDay(FMarketState& State, const TArray<FMarketProduc
 
     // 1. Shares of the district.
     const float Ours = OurAttraction(State, Products);
+    const float Crowd = MarketCountry::CityCompetition(State.CountryId, State.CityId); // G-084
     float Total = Ours;
     TArray<float> Attr;
     Attr.Init(0.f, static_cast<int32>(ECompany::Count));
     for (int32 C = 0; C < Attr.Num(); ++C)
     {
         const ECompany Company = static_cast<ECompany>(C);
-        if (!IsOpen(State, Company)) continue;
+        if (!IsOpenOn(State, Company, Closed)) continue; // G-079 (#9): the day that was played, not tomorrow
         const FMarketCompetitor* Found = Find(State, Company);
-        Attr[C] = Attraction(PriceIndex(State, Company, FString(), Aisles), Found->Service, Profile(Company).Proximity, Found->Stores);
+        Attr[C] = Crowd * Attraction(StoreIndex(State, Company, Aisles), Found->Service, Profile(Company).Proximity, Found->Stores);
         Total += Attr[C];
     }
     const float Target = Total > 0.f ? Ours / Total : 0.f;
-    for (FMarketCompetitor& C : State.Competitors)
-        C.Share = Total > 0.f && C.Company < Attr.Num() ? Attr[C.Company] / Total : 0.f;
     // Habits change slowly: the day's result moves the local share a little. This replaces the simple satisfaction
     // update of FMarketState::CloseDay (satisfaction is part of our attractiveness here). A day without visitors
     // (shop closed) keeps the share, as before.
     if (State.LastServed + State.LastLost > 0)
         State.MarketShare = FMath::Clamp(State.ShareBeforeClose * 0.85f + Target * 100.f * 0.15f, 5.f, 65.f);
+    // G-077 (#15): the rivals split what we do not hold, in proportion to their attractiveness, so every share the
+    // menu shows adds up to 100 %.
+    const float RivalTotal = Total - Ours;
+    const float RivalPart = 1.f - State.MarketShare / 100.f;
+    for (FMarketCompetitor& C : State.Competitors)
+        C.Share = RivalTotal > 0.f && C.Company < Attr.Num() ? RivalPart * Attr[C.Company] / RivalTotal : 0.f;
 
     // 2. Bereket Market: pride, anger, price wars, money.
-    if (FMarketCompetitor* B = FindMutable(State, ECompany::Bereket))
+    if (FMarketCompetitor* B = FindMutable(State, ECompany::Bereket); B && !(B->Told & ToldSold))
     {
         const float OurShare = State.MarketShare / 100.f;
         B->Anger = FMath::Clamp(B->Anger * 0.93f + FMath::Max(0.f, OurShare - B->Share) * 60.f, 0.f, 100.f);
@@ -237,14 +341,74 @@ void MarketCompetitors::CloseDay(FMarketState& State, const TArray<FMarketProduc
             B->BaseIndex = 1.05f;
             News.Add(TEXT("Bereket Market fiyatlar\u0131n\u0131 art\u0131rd\u0131; sava\u015fa dayanacak paras\u0131 kalmad\u0131."));
         }
+        // G-079 (karar E03): a month without money and Kadir Bey puts the shop up for sale. Recovering resets it.
+        B->RedDays = B->Cash < 0 ? B->RedDays + 1 : 0;
+        if (B->Cash >= 0 && (B->Told & ToldRaised) && B->Share > 0.2f) { B->BaseIndex = 1.f; B->Told &= ~ToldRaised; B->Service = FMath::Min(0.9f, B->Service + 0.05f); }
+        if (B->RedDays >= SaleAfterRedDays && !(B->Told & ToldForSale) && !MarketStory::StoryClosed(State))
+        {
+            B->Told |= ToldForSale;
+            const int64 Price = MarketPrices::Scaled(BereketPrice2011, Closed);
+            FMarketDecision D;
+            D.Id = TEXT("rival.bereket");
+            D.Title = TEXT("Bereket Market sat\u0131l\u0131k");
+            D.Text = FString::Printf(TEXT("Kadir Bey'in o\u011flu geldi: \"Babam yoruldu. D\u00fckk\u00e2n\u0131, mal\u0131yla raf\u0131yla sana verelim, %s.\" Al\u0131rsan Bereket kapan\u0131r, m\u00fc\u015fterileri sokakta sana kal\u0131r."),
+                *MarketCountry::Money(Price / 100 * 100));
+            D.Options = { FString::Printf(TEXT("Sat\u0131n al (%s)"), *MarketCountry::Money(Price)), FString(TEXT("Almayaca\u011f\u0131m")) };
+            D.DefaultOption = 1;
+            D.Deadline = State.Day + 6;
+            D.Arg = static_cast<int32>(FMath::Min<int64>(Price, MAX_int32));
+            MarketEvents::Offer(State, D);
+        }
     }
 
-    // 3. Chains: openings and a second A101 when we are strong.
+    // 3. Chains: openings, a second A101 when we are strong, and (G-079) their answer to a rising shop. They watch
+    // a slow average of our share; when we climb well above it the discount chains cut prices a little and the
+    // supermarket improves service; when we fall back they drift home. Harder difficulty: they notice sooner and cut
+    // deeper. Over the years they open more shops around us.
+    const float Threshold = State.Difficulty == 0 ? 5.f : State.Difficulty == 2 ? 2.f : 3.f;
+    const float Step = State.Difficulty == 0 ? 0.005f : State.Difficulty == 2 ? 0.015f : 0.01f;
+    const int32 Year = MarketCalendar::DateOf(Closed).Year;
     for (int32 C = 1; C < static_cast<int32>(ECompany::Count); ++C)
     {
         const ECompany Company = static_cast<ECompany>(C);
         FMarketCompetitor* Chain = FindMutable(State, Company);
         if (!Chain) continue;
+        const bool bChain = Company == ECompany::Bim || Company == ECompany::Migros || Company == ECompany::A101 || Company == ECompany::Sok;
+        if (bChain && IsOpenOn(State, Company, Closed))
+        {
+            if (Chain->WatchShare <= 0.f) Chain->WatchShare = State.MarketShare;
+            Chain->WatchShare = Chain->WatchShare * 0.96f + State.MarketShare * 0.04f;
+            if (Closed % 7 == 0)
+            {
+                const FProfile& P = Profile(Company);
+                const float Lead = State.MarketShare - Chain->WatchShare;
+                if (Lead > Threshold)
+                {
+                    if (Company == ECompany::Migros) Chain->Service = FMath::Min(P.Service + 0.1f, Chain->Service + 0.02f);
+                    else if (Chain->BaseIndex > P.BaseIndex - 0.04f)
+                    {
+                        Chain->BaseIndex = FMath::Max(P.BaseIndex - 0.04f, Chain->BaseIndex - Step);
+                        if (!(Chain->Told & ToldCut)) { Chain->Told |= ToldCut; News.Add(FString::Printf(TEXT("%s mahalledeki fiyatlar\u0131n\u0131 k\u0131rd\u0131: m\u00fc\u015fterilerinin sana kayd\u0131\u011f\u0131n\u0131 fark ettiler."), *DisplayName(Company))); }
+                    }
+                }
+                else if (Lead < 0.f)
+                {
+                    Chain->BaseIndex = FMath::Min(P.BaseIndex, Chain->BaseIndex + Step * 0.5f);
+                    Chain->Service = FMath::Max(P.Service, Chain->Service - 0.01f);
+                    if (FMath::IsNearlyEqual(Chain->BaseIndex, P.BaseIndex)) Chain->Told &= ~ToldCut;
+                }
+            }
+            // More shops around us over the years (discount chains), one step every few years.
+            if (Company != ECompany::Migros)
+            {
+                const int32 Grown = FMath::Clamp(1 + (Year - 2011) / 4, 1, 3);
+                if (Grown > Chain->Stores)
+                {
+                    Chain->Stores = Grown;
+                    News.Add(FString::Printf(TEXT("%s il\u00e7eye bir ma\u011faza daha a\u00e7t\u0131 (sokaklar\u0131m\u0131za %d ma\u011faza)."), *DisplayName(Company), Grown));
+                }
+            }
+        }
         if (Company == ECompany::Sok && State.Day == Profile(Company).OpenDay && !(Chain->Told & ToldOpened))
         {
             Chain->Told |= ToldOpened;
@@ -269,7 +433,12 @@ void MarketCompetitors::CloseDay(FMarketState& State, const TArray<FMarketProduc
         }
         if (PoachingTarget)
         {
-            const TCHAR* Chain = RivalMix(State.RivalSeed, Closed, 0x9A7Fu) % 2u == 0u ? TEXT("A101") : TEXT("B\u0130M");
+            // G-079 (#22): only a chain that is in the district makes an offer.
+            TArray<ECompany> Hiring;
+            for (const ECompany Candidate : { ECompany::Bim, ECompany::A101, ECompany::Sok, ECompany::Migros })
+                if (IsOpenOn(State, Candidate, Closed)) Hiring.Add(Candidate);
+            const FString ChainName = Hiring.Num() > 0 ? DisplayName(Hiring[RivalMix(State.RivalSeed, Closed, 0x9A7Fu) % static_cast<uint32>(Hiring.Num())]) : DisplayName(ECompany::Bim);
+            const TCHAR* Chain = *ChainName;
             if (PoachingTarget->Morale < 45.f) // below the level where MarketStaff lets a notice be withdrawn
             {
                 PoachingTarget->LeaveDay = State.Day + 1;
@@ -284,9 +453,14 @@ void MarketCompetitors::CloseDay(FMarketState& State, const TArray<FMarketProduc
 FString MarketCompetitors::Describe(const FMarketState& State, ECompany Company)
 {
     const FProfile& P = Profile(Company);
-    if (!IsOpen(State, Company)) return FString::Printf(TEXT("%s \u00b7 hen\u00fcz il\u00e7ede yok"), P.Name);
+    const FString Name = DisplayName(Company);
+    const FMarketCompetitor* Sold = Find(State, Company);
+    if (Sold && (Sold->Told & ToldSold)) return FString::Printf(TEXT("%s \u00b7 kapand\u0131 (sen sat\u0131n ald\u0131n)"), *Name);
+    if (P.Weekday >= 0 && State.Day >= P.OpenDay && !IsOpen(State, Company))
+        return FString::Printf(TEXT("%s \u00b7 %s \u00b7 haftada bir kurulur, taze \u00fcr\u00fcnde ucuz"), *Name, P.Format);
+    if (!IsOpen(State, Company)) return FString::Printf(TEXT("%s \u00b7 hen\u00fcz il\u00e7ede yok"), *Name);
     const FMarketCompetitor* C = Find(State, Company);
-    FString Text = FString::Printf(TEXT("%s \u00b7 %s \u00b7 pay %%%.0f \u00b7 fiyat d\u00fczeyi %%%.0f"), P.Name, P.Format, C ? C->Share * 100.f : 0.f,
+    FString Text = FString::Printf(TEXT("%s \u00b7 %s \u00b7 pay %%%.0f \u00b7 fiyat d\u00fczeyi %%%.0f"), *Name, P.Format, C ? C->Share * 100.f : 0.f,
         (C ? C->BaseIndex : P.BaseIndex) * OpeningPush(State, Company) * 100.f);
     if (C && Company == ECompany::Bereket)
     {
@@ -306,4 +480,24 @@ float MarketCompetitors::NewsRivalIndex(const FMarketState& State, int32 NewsRiv
             return (Found ? Found->BaseIndex : Profile(static_cast<ECompany>(C)).BaseIndex) * OpeningPush(State, static_cast<ECompany>(C));
         }
     return 1.f;
+}
+
+bool MarketCompetitors::Resolve(FMarketState& State, const TArray<FMarketProduct>& Products, const FMarketDecision& D, int32 Option, FString& OutMessage)
+{
+    if (D.Id != TEXT("rival.bereket")) { OutMessage = TEXT("Bu karar art\u0131k ge\u00e7erli de\u011fil."); return true; }
+    FMarketCompetitor* B = FindMutable(State, ECompany::Bereket);
+    if (Option != 0 || !B)
+    {
+        OutMessage = TEXT("Bereket Market'i almad\u0131n. Kadir Bey d\u00fckk\u00e2n\u0131 ba\u015fka birine satmay\u0131 deneyecek.");
+        if (B) { B->Told &= ~ToldForSale; B->RedDays = 0; B->Cash = 0; } // someone keeps it going for a while
+        return true;
+    }
+    const int64 Price = FMath::Max<int64>(0, D.Arg);
+    if (State.Cash < Price) { OutMessage = TEXT("Kasada bu kadar para yok. Banka kredisiyle ya da biraz bekleyerek tekrar d\u00fc\u015f\u00fcn."); return false; }
+    State.Cash -= Price;
+    B->Told |= ToldSold;
+    B->Share = 0.f;
+    MarketStory::AddMemory(State, TEXT("Bereket Market'i sat\u0131n ald\u0131n; sokakta tek bakkal kald\u0131n"));
+    OutMessage = TEXT("Bereket Market art\u0131k kapal\u0131. M\u00fc\u015fterileri yava\u015f yava\u015f sana ge\u00e7ecek; Kadir Bey sana elini uzatt\u0131.");
+    return true;
 }

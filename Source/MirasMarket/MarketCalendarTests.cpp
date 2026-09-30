@@ -38,7 +38,7 @@ bool FMarketCalendarDatesTest::RunTest(const FString& Parameters)
     TestTrue(TEXT("Mother's Day 2011 = 8 May"), Info(GameDayOf(2011, 5, 8), 1).Has(ETag::MothersDay));
     TestTrue(TEXT("Schools open 19 September 2011"), Info(GameDayOf(2011, 9, 19), 1).Has(ETag::SchoolStart));
     TestTrue(TEXT("23 Nisan"), Info(GameDayOf(2011, 4, 23), 1).Has(ETag::NationalHoliday));
-    TestTrue(TEXT("Date text"), DateText(1).StartsWith(TEXT("7 Mart 2011 Pazartesi")));
+    TestTrue(TEXT("Date text: the campaign's own year"), DateText(1).StartsWith(TEXT("7 Mart, 1. y\u0131l Pazartesi")));
     return true;
 }
 

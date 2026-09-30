@@ -1,0 +1,1353 @@
+{
+  "schemaVersion": 1,
+  "note": "G-084/G-086 (karar L02-L14, Docs/Kurgu/03_MAGAZA_AGI.md): ulke paketleri. displayScale = ic birim basina yerel para; fxPerWorld = dunya birimi karsiligi yerel para; economy.character = istikrarli / oynak / yuksek_enflasyon. Zincir adlari kurgu (karar L12). provinces: il listesi (dizi) ya da il dosyasinin adi (TR: iller.json). regions: ana bolgeler (bolge direktoru); subregions: alt bolgeler (bolge muduru), her il tek alt bolgede; income alt bolgenin alim gucu. Il degerleri verilmezse nufustan turetilir: s = log2(nufus / referencePopK); gelir = alt bolge geliri x (1 + 0.03 s); kira = gelir^1.5 x (1 + 0.1 s); rekabet = (1 + 0.08 s), TR'de zincir yogunlugu ile. Varsayilan baslangic ili yok (Mustafa 29.09.2026). holidays: rule = fixed | easter | nth | lunar; kind = national | feast. sundayClosed: pazar ve resmi tatilde kapali.",
+  "countries": [
+    {
+      "id": "tr",
+      "name": "Türkiye",
+      "nameEn": "Turkey",
+      "currency": {
+        "code": "TRY",
+        "symbol": "TL",
+        "name": "Türk lirası",
+        "symbolBefore": false,
+        "decimal": ","
+      },
+      "displayScale": 1.0,
+      "fxPerWorld": 1.5,
+      "economy": {
+        "character": "yuksek_enflasyon",
+        "inflationMean": 0.14,
+        "inflationVol": 0.06,
+        "loanSpread": 0.05,
+        "wageFactor": 1.0,
+        "rentFactor": 1.0
+      },
+      "habits": {
+        "weeklyShopShare": 0.25,
+        "sundayClosed": false,
+        "cardShare": 0.35
+      },
+      "traditional": {
+        "grocer": "Mahalle bakkalları",
+        "market": "Salı Pazarı",
+        "marketWeekday": 1
+      },
+      "chains": {
+        "bim": "BİN",
+        "a101": "A110",
+        "sok": "ŞAK",
+        "migros": "Migron"
+      },
+      "holidays": [
+        {
+          "name": "Yılbaşı",
+          "month": 1,
+          "day": 1
+        },
+        {
+          "name": "23 Nisan",
+          "month": 4,
+          "day": 23
+        },
+        {
+          "name": "Ramazan Bayramı",
+          "rule": "lunar",
+          "kind": "feast",
+          "days": 3
+        },
+        {
+          "name": "Kurban Bayramı",
+          "rule": "lunar",
+          "kind": "feast",
+          "days": 4
+        },
+        {
+          "name": "Cumhuriyet Bayramı",
+          "month": 10,
+          "day": 29
+        }
+      ],
+      "names": {
+        "first": [
+          "Ayşe",
+          "Mehmet",
+          "Elif",
+          "Can",
+          "Zeynep",
+          "Emre",
+          "Fatma",
+          "Burak",
+          "Selin",
+          "Murat"
+        ],
+        "last": [
+          "Yılmaz",
+          "Kaya",
+          "Demir",
+          "Şahin",
+          "Çelik",
+          "Aydın",
+          "Öztürk",
+          "Arslan"
+        ]
+      },
+      "relatives": [
+        "teyzen",
+        "dayın",
+        "halan",
+        "amcan",
+        "büyükannen"
+      ],
+      "referencePopK": 341,
+      "referenceProvince": "kirklareli",
+      "regions": [
+        {
+          "id": "marmara",
+          "name": "Marmara"
+        },
+        {
+          "id": "ege",
+          "name": "Ege"
+        },
+        {
+          "id": "akdeniz",
+          "name": "Akdeniz"
+        },
+        {
+          "id": "icanadolu",
+          "name": "İç Anadolu"
+        },
+        {
+          "id": "karadeniz",
+          "name": "Karadeniz"
+        },
+        {
+          "id": "doguanadolu",
+          "name": "Doğu Anadolu"
+        },
+        {
+          "id": "guneydogu",
+          "name": "Güneydoğu Anadolu"
+        }
+      ],
+      "subregions": [
+        {
+          "id": "trakya",
+          "name": "Trakya",
+          "region": "marmara",
+          "income": 1.0,
+          "provinces": [
+            "edirne",
+            "kirklareli",
+            "tekirdag"
+          ]
+        },
+        {
+          "id": "istanbul-kocaeli",
+          "name": "İstanbul–Kocaeli",
+          "region": "marmara",
+          "income": 1.2,
+          "provinces": [
+            "istanbul",
+            "kocaeli",
+            "sakarya",
+            "yalova"
+          ]
+        },
+        {
+          "id": "guney-marmara",
+          "name": "Güney Marmara",
+          "region": "marmara",
+          "income": 1.0,
+          "provinces": [
+            "bursa",
+            "balikesir",
+            "canakkale",
+            "bilecik"
+          ]
+        },
+        {
+          "id": "ege-kiyisi",
+          "name": "Ege Kıyısı",
+          "region": "ege",
+          "income": 1.05,
+          "provinces": [
+            "izmir",
+            "aydin",
+            "mugla",
+            "manisa"
+          ]
+        },
+        {
+          "id": "ic-ege",
+          "name": "İç Ege",
+          "region": "ege",
+          "income": 0.95,
+          "provinces": [
+            "denizli",
+            "usak",
+            "kutahya",
+            "afyonkarahisar"
+          ]
+        },
+        {
+          "id": "bati-akdeniz",
+          "name": "Batı Akdeniz",
+          "region": "akdeniz",
+          "income": 1.0,
+          "provinces": [
+            "antalya",
+            "isparta",
+            "burdur"
+          ]
+        },
+        {
+          "id": "cukurova",
+          "name": "Çukurova",
+          "region": "akdeniz",
+          "income": 0.9,
+          "provinces": [
+            "adana",
+            "mersin",
+            "hatay",
+            "osmaniye",
+            "kahramanmaras"
+          ]
+        },
+        {
+          "id": "ankara",
+          "name": "Ankara",
+          "region": "icanadolu",
+          "income": 1.1,
+          "provinces": [
+            "ankara",
+            "kirikkale",
+            "cankiri",
+            "eskisehir"
+          ]
+        },
+        {
+          "id": "konya",
+          "name": "Konya",
+          "region": "icanadolu",
+          "income": 0.9,
+          "provinces": [
+            "konya",
+            "karaman",
+            "aksaray",
+            "nigde"
+          ]
+        },
+        {
+          "id": "orta-kizilirmak",
+          "name": "Orta Kızılırmak",
+          "region": "icanadolu",
+          "income": 0.9,
+          "provinces": [
+            "kayseri",
+            "nevsehir",
+            "kirsehir",
+            "yozgat",
+            "sivas"
+          ]
+        },
+        {
+          "id": "bati-karadeniz",
+          "name": "Batı Karadeniz",
+          "region": "karadeniz",
+          "income": 0.9,
+          "provinces": [
+            "zonguldak",
+            "bartin",
+            "karabuk",
+            "bolu",
+            "duzce",
+            "kastamonu",
+            "sinop"
+          ]
+        },
+        {
+          "id": "orta-karadeniz",
+          "name": "Orta Karadeniz",
+          "region": "karadeniz",
+          "income": 0.85,
+          "provinces": [
+            "samsun",
+            "amasya",
+            "corum",
+            "tokat",
+            "ordu"
+          ]
+        },
+        {
+          "id": "dogu-karadeniz",
+          "name": "Doğu Karadeniz",
+          "region": "karadeniz",
+          "income": 0.88,
+          "provinces": [
+            "giresun",
+            "trabzon",
+            "rize",
+            "artvin",
+            "gumushane",
+            "bayburt"
+          ]
+        },
+        {
+          "id": "erzurum-kars",
+          "name": "Erzurum–Kars",
+          "region": "doguanadolu",
+          "income": 0.75,
+          "provinces": [
+            "erzurum",
+            "kars",
+            "ardahan",
+            "igdir",
+            "agri",
+            "erzincan"
+          ]
+        },
+        {
+          "id": "yukari-firat",
+          "name": "Yukarı Fırat",
+          "region": "doguanadolu",
+          "income": 0.8,
+          "provinces": [
+            "malatya",
+            "elazig",
+            "tunceli",
+            "bingol"
+          ]
+        },
+        {
+          "id": "van-golu",
+          "name": "Van Gölü",
+          "region": "doguanadolu",
+          "income": 0.72,
+          "provinces": [
+            "van",
+            "mus",
+            "bitlis",
+            "hakkari"
+          ]
+        },
+        {
+          "id": "orta-firat",
+          "name": "Orta Fırat",
+          "region": "guneydogu",
+          "income": 0.78,
+          "provinces": [
+            "gaziantep",
+            "sanliurfa",
+            "adiyaman",
+            "kilis"
+          ]
+        },
+        {
+          "id": "dicle",
+          "name": "Dicle",
+          "region": "guneydogu",
+          "income": 0.72,
+          "provinces": [
+            "diyarbakir",
+            "mardin",
+            "batman",
+            "siirt",
+            "sirnak"
+          ]
+        }
+      ],
+      "provinces": "iller.json"
+    },
+    {
+      "id": "de",
+      "name": "Almanya",
+      "nameEn": "Germany",
+      "currency": {
+        "code": "EUR",
+        "symbol": "€",
+        "name": "euro",
+        "symbolBefore": false,
+        "decimal": ","
+      },
+      "displayScale": 0.36,
+      "fxPerWorld": 0.9,
+      "economy": {
+        "character": "istikrarli",
+        "inflationMean": 0.02,
+        "inflationVol": 0.012,
+        "loanSpread": 0.03,
+        "wageFactor": 2.6,
+        "rentFactor": 2.2
+      },
+      "habits": {
+        "weeklyShopShare": 0.55,
+        "sundayClosed": true,
+        "cardShare": 0.45
+      },
+      "traditional": {
+        "grocer": "Kiosk ve Spätkauf",
+        "market": "Wochenmarkt",
+        "marketWeekday": 5
+      },
+      "chains": {
+        "bim": "Alda",
+        "a101": "Nordpreis",
+        "sok": "Penni",
+        "migros": "Edaka"
+      },
+      "holidays": [
+        {
+          "name": "Neujahr",
+          "month": 1,
+          "day": 1
+        },
+        {
+          "name": "Karfreitag",
+          "rule": "easter",
+          "offset": -2
+        },
+        {
+          "name": "Ostern",
+          "rule": "easter",
+          "kind": "feast",
+          "days": 2
+        },
+        {
+          "name": "Tag der Arbeit",
+          "month": 5,
+          "day": 1
+        },
+        {
+          "name": "Tag der Deutschen Einheit",
+          "month": 10,
+          "day": 3
+        },
+        {
+          "name": "Weihnachten",
+          "month": 12,
+          "day": 25,
+          "kind": "feast",
+          "days": 2
+        }
+      ],
+      "names": {
+        "first": [
+          "Anna",
+          "Lukas",
+          "Mia",
+          "Jonas",
+          "Lea",
+          "Felix",
+          "Emma",
+          "Paul"
+        ],
+        "last": [
+          "Müller",
+          "Schmidt",
+          "Schneider",
+          "Fischer",
+          "Weber",
+          "Wagner"
+        ]
+      },
+      "relatives": [
+        "Tante",
+        "Onkel",
+        "Oma",
+        "Opa"
+      ],
+      "referencePopK": 2500,
+      "regions": [
+        {
+          "id": "nord",
+          "name": "Nord"
+        },
+        {
+          "id": "ost",
+          "name": "Ost"
+        },
+        {
+          "id": "west",
+          "name": "West"
+        },
+        {
+          "id": "sued",
+          "name": "Süd"
+        }
+      ],
+      "subregions": [
+        {
+          "id": "nord",
+          "name": "Nord",
+          "region": "nord",
+          "income": 1.0,
+          "provinces": [
+            "sh",
+            "hh",
+            "hb",
+            "ni",
+            "mv"
+          ]
+        },
+        {
+          "id": "ost",
+          "name": "Ost",
+          "region": "ost",
+          "income": 0.9,
+          "provinces": [
+            "be",
+            "bb",
+            "sn",
+            "st",
+            "th"
+          ]
+        },
+        {
+          "id": "west",
+          "name": "West",
+          "region": "west",
+          "income": 1.02,
+          "provinces": [
+            "nw",
+            "he",
+            "rp",
+            "sl"
+          ]
+        },
+        {
+          "id": "sued",
+          "name": "Süd",
+          "region": "sued",
+          "income": 1.15,
+          "provinces": [
+            "bw",
+            "by"
+          ]
+        }
+      ],
+      "provinces": [
+        {
+          "id": "bw",
+          "name": "Baden-Württemberg",
+          "populationK": 11100
+        },
+        {
+          "id": "by",
+          "name": "Bayern",
+          "populationK": 13100
+        },
+        {
+          "id": "be",
+          "name": "Berlin",
+          "populationK": 3650
+        },
+        {
+          "id": "bb",
+          "name": "Brandenburg",
+          "populationK": 2530
+        },
+        {
+          "id": "hb",
+          "name": "Bremen",
+          "populationK": 680
+        },
+        {
+          "id": "hh",
+          "name": "Hamburg",
+          "populationK": 1850
+        },
+        {
+          "id": "he",
+          "name": "Hessen",
+          "populationK": 6290
+        },
+        {
+          "id": "mv",
+          "name": "Mecklenburg-Vorpommern",
+          "populationK": 1610
+        },
+        {
+          "id": "ni",
+          "name": "Niedersachsen",
+          "populationK": 8000
+        },
+        {
+          "id": "nw",
+          "name": "Nordrhein-Westfalen",
+          "populationK": 17900
+        },
+        {
+          "id": "rp",
+          "name": "Rheinland-Pfalz",
+          "populationK": 4100
+        },
+        {
+          "id": "sl",
+          "name": "Saarland",
+          "populationK": 980
+        },
+        {
+          "id": "sn",
+          "name": "Sachsen",
+          "populationK": 4050
+        },
+        {
+          "id": "st",
+          "name": "Sachsen-Anhalt",
+          "populationK": 2180
+        },
+        {
+          "id": "sh",
+          "name": "Schleswig-Holstein",
+          "populationK": 2910
+        },
+        {
+          "id": "th",
+          "name": "Thüringen",
+          "populationK": 2120
+        }
+      ]
+    },
+    {
+      "id": "gb",
+      "name": "Birleşik Krallık",
+      "nameEn": "United Kingdom",
+      "currency": {
+        "code": "GBP",
+        "symbol": "£",
+        "name": "sterlin",
+        "symbolBefore": true,
+        "decimal": "."
+      },
+      "displayScale": 0.32,
+      "fxPerWorld": 0.78,
+      "economy": {
+        "character": "istikrarli",
+        "inflationMean": 0.025,
+        "inflationVol": 0.02,
+        "loanSpread": 0.03,
+        "wageFactor": 2.4,
+        "rentFactor": 2.6
+      },
+      "habits": {
+        "weeklyShopShare": 0.5,
+        "sundayClosed": false,
+        "cardShare": 0.6
+      },
+      "traditional": {
+        "grocer": "Corner shops",
+        "market": "Farmers' market",
+        "marketWeekday": 5
+      },
+      "chains": {
+        "bim": "Alda",
+        "a101": "Nordl",
+        "sok": "Iseland",
+        "migros": "Tesko"
+      },
+      "holidays": [
+        {
+          "name": "New Year's Day",
+          "month": 1,
+          "day": 1
+        },
+        {
+          "name": "Good Friday",
+          "rule": "easter",
+          "offset": -2
+        },
+        {
+          "name": "Easter",
+          "rule": "easter",
+          "kind": "feast",
+          "days": 2
+        },
+        {
+          "name": "Early May Bank Holiday",
+          "rule": "nth",
+          "month": 5,
+          "weekday": 0,
+          "n": 1
+        },
+        {
+          "name": "Summer Bank Holiday",
+          "rule": "nth",
+          "month": 8,
+          "weekday": 0,
+          "n": 5
+        },
+        {
+          "name": "Christmas",
+          "month": 12,
+          "day": 25,
+          "kind": "feast",
+          "days": 2
+        }
+      ],
+      "names": {
+        "first": [
+          "Oliver",
+          "Amelia",
+          "Harry",
+          "Isla",
+          "George",
+          "Ava",
+          "Jack",
+          "Emily"
+        ],
+        "last": [
+          "Smith",
+          "Jones",
+          "Taylor",
+          "Brown",
+          "Williams",
+          "Wilson"
+        ]
+      },
+      "relatives": [
+        "aunt",
+        "uncle",
+        "grandmother",
+        "grandfather"
+      ],
+      "referencePopK": 5000,
+      "regions": [
+        {
+          "id": "england",
+          "name": "İngiltere"
+        },
+        {
+          "id": "celtic",
+          "name": "İskoçya–Galler–K. İrlanda"
+        }
+      ],
+      "subregions": [
+        {
+          "id": "guney",
+          "name": "Güney İngiltere",
+          "region": "england",
+          "income": 1.15,
+          "provinces": [
+            "london",
+            "south-east",
+            "south-west",
+            "east"
+          ]
+        },
+        {
+          "id": "midlands",
+          "name": "Midlands",
+          "region": "england",
+          "income": 0.95,
+          "provinces": [
+            "east-midlands",
+            "west-midlands"
+          ]
+        },
+        {
+          "id": "kuzey",
+          "name": "Kuzey İngiltere",
+          "region": "england",
+          "income": 0.93,
+          "provinces": [
+            "north-east",
+            "north-west",
+            "yorkshire"
+          ]
+        },
+        {
+          "id": "scotland",
+          "name": "İskoçya",
+          "region": "celtic",
+          "income": 0.97,
+          "provinces": [
+            "scotland"
+          ]
+        },
+        {
+          "id": "wales",
+          "name": "Galler",
+          "region": "celtic",
+          "income": 0.9,
+          "provinces": [
+            "wales"
+          ]
+        },
+        {
+          "id": "northern-ireland",
+          "name": "Kuzey İrlanda",
+          "region": "celtic",
+          "income": 0.88,
+          "provinces": [
+            "northern-ireland"
+          ]
+        }
+      ],
+      "provinces": [
+        {
+          "id": "london",
+          "name": "London",
+          "populationK": 8800
+        },
+        {
+          "id": "south-east",
+          "name": "South East",
+          "populationK": 9200
+        },
+        {
+          "id": "south-west",
+          "name": "South West",
+          "populationK": 5700
+        },
+        {
+          "id": "east",
+          "name": "East of England",
+          "populationK": 6300
+        },
+        {
+          "id": "east-midlands",
+          "name": "East Midlands",
+          "populationK": 4900
+        },
+        {
+          "id": "west-midlands",
+          "name": "West Midlands",
+          "populationK": 5950
+        },
+        {
+          "id": "north-east",
+          "name": "North East",
+          "populationK": 2650
+        },
+        {
+          "id": "north-west",
+          "name": "North West",
+          "populationK": 7400
+        },
+        {
+          "id": "yorkshire",
+          "name": "Yorkshire and the Humber",
+          "populationK": 5500
+        },
+        {
+          "id": "scotland",
+          "name": "Scotland",
+          "populationK": 5450
+        },
+        {
+          "id": "wales",
+          "name": "Wales",
+          "populationK": 3100
+        },
+        {
+          "id": "northern-ireland",
+          "name": "Northern Ireland",
+          "populationK": 1900
+        }
+      ]
+    },
+    {
+      "id": "us",
+      "name": "Amerika Birleşik Devletleri",
+      "nameEn": "United States",
+      "currency": {
+        "code": "USD",
+        "symbol": "$",
+        "name": "dolar",
+        "symbolBefore": true,
+        "decimal": "."
+      },
+      "displayScale": 0.4,
+      "fxPerWorld": 1.0,
+      "economy": {
+        "character": "istikrarli",
+        "inflationMean": 0.025,
+        "inflationVol": 0.018,
+        "loanSpread": 0.035,
+        "wageFactor": 2.8,
+        "rentFactor": 2.0
+      },
+      "habits": {
+        "weeklyShopShare": 0.65,
+        "sundayClosed": false,
+        "cardShare": 0.75
+      },
+      "traditional": {
+        "grocer": "Bodegas and corner stores",
+        "market": "Farmers' market",
+        "marketWeekday": 5
+      },
+      "chains": {
+        "bim": "Alda",
+        "a101": "Dollar Genius",
+        "sok": "7-Nine",
+        "migros": "Krueger"
+      },
+      "holidays": [
+        {
+          "name": "New Year's Day",
+          "month": 1,
+          "day": 1
+        },
+        {
+          "name": "Memorial Day",
+          "rule": "nth",
+          "month": 5,
+          "weekday": 0,
+          "n": 5
+        },
+        {
+          "name": "Independence Day",
+          "month": 7,
+          "day": 4
+        },
+        {
+          "name": "Labor Day",
+          "rule": "nth",
+          "month": 9,
+          "weekday": 0,
+          "n": 1
+        },
+        {
+          "name": "Thanksgiving",
+          "rule": "nth",
+          "month": 11,
+          "weekday": 3,
+          "n": 4,
+          "kind": "feast",
+          "days": 1
+        },
+        {
+          "name": "Christmas",
+          "month": 12,
+          "day": 25,
+          "kind": "feast",
+          "days": 1
+        }
+      ],
+      "names": {
+        "first": [
+          "James",
+          "Olivia",
+          "Liam",
+          "Emma",
+          "Noah",
+          "Sophia",
+          "Lucas",
+          "Mia"
+        ],
+        "last": [
+          "Johnson",
+          "Garcia",
+          "Miller",
+          "Davis",
+          "Martinez",
+          "Lopez"
+        ]
+      },
+      "relatives": [
+        "aunt",
+        "uncle",
+        "grandmother",
+        "grandfather"
+      ],
+      "referencePopK": 5000,
+      "regions": [
+        {
+          "id": "northeast",
+          "name": "Northeast"
+        },
+        {
+          "id": "midwest",
+          "name": "Midwest"
+        },
+        {
+          "id": "south",
+          "name": "South"
+        },
+        {
+          "id": "west",
+          "name": "West"
+        }
+      ],
+      "subregions": [
+        {
+          "id": "new-england",
+          "name": "New England",
+          "region": "northeast",
+          "income": 1.2,
+          "provinces": [
+            "ct",
+            "me",
+            "ma",
+            "nh",
+            "ri",
+            "vt"
+          ]
+        },
+        {
+          "id": "mid-atlantic",
+          "name": "Mid-Atlantic",
+          "region": "northeast",
+          "income": 1.15,
+          "provinces": [
+            "nj",
+            "ny",
+            "pa"
+          ]
+        },
+        {
+          "id": "east-north-central",
+          "name": "East North Central",
+          "region": "midwest",
+          "income": 1.0,
+          "provinces": [
+            "il",
+            "in",
+            "mi",
+            "oh",
+            "wi"
+          ]
+        },
+        {
+          "id": "west-north-central",
+          "name": "West North Central",
+          "region": "midwest",
+          "income": 0.95,
+          "provinces": [
+            "ia",
+            "ks",
+            "mn",
+            "mo",
+            "ne",
+            "nd",
+            "sd"
+          ]
+        },
+        {
+          "id": "south-atlantic",
+          "name": "South Atlantic",
+          "region": "south",
+          "income": 1.0,
+          "provinces": [
+            "de",
+            "fl",
+            "ga",
+            "md",
+            "nc",
+            "sc",
+            "va",
+            "wv"
+          ]
+        },
+        {
+          "id": "east-south-central",
+          "name": "East South Central",
+          "region": "south",
+          "income": 0.85,
+          "provinces": [
+            "al",
+            "ky",
+            "ms",
+            "tn"
+          ]
+        },
+        {
+          "id": "west-south-central",
+          "name": "West South Central",
+          "region": "south",
+          "income": 0.95,
+          "provinces": [
+            "ar",
+            "la",
+            "ok",
+            "tx"
+          ]
+        },
+        {
+          "id": "mountain",
+          "name": "Mountain",
+          "region": "west",
+          "income": 1.0,
+          "provinces": [
+            "az",
+            "co",
+            "id",
+            "mt",
+            "nv",
+            "nm",
+            "ut",
+            "wy"
+          ]
+        },
+        {
+          "id": "pacific",
+          "name": "Pacific",
+          "region": "west",
+          "income": 1.2,
+          "provinces": [
+            "ak",
+            "ca",
+            "hi",
+            "or",
+            "wa"
+          ]
+        }
+      ],
+      "provinces": [
+        {
+          "id": "ct",
+          "name": "Connecticut",
+          "populationK": 3606
+        },
+        {
+          "id": "me",
+          "name": "Maine",
+          "populationK": 1362
+        },
+        {
+          "id": "ma",
+          "name": "Massachusetts",
+          "populationK": 7030
+        },
+        {
+          "id": "nh",
+          "name": "New Hampshire",
+          "populationK": 1378
+        },
+        {
+          "id": "ri",
+          "name": "Rhode Island",
+          "populationK": 1098
+        },
+        {
+          "id": "vt",
+          "name": "Vermont",
+          "populationK": 643
+        },
+        {
+          "id": "nj",
+          "name": "New Jersey",
+          "populationK": 9289
+        },
+        {
+          "id": "ny",
+          "name": "New York",
+          "populationK": 20201
+        },
+        {
+          "id": "pa",
+          "name": "Pennsylvania",
+          "populationK": 13003
+        },
+        {
+          "id": "il",
+          "name": "Illinois",
+          "populationK": 12813
+        },
+        {
+          "id": "in",
+          "name": "Indiana",
+          "populationK": 6786
+        },
+        {
+          "id": "mi",
+          "name": "Michigan",
+          "populationK": 10077
+        },
+        {
+          "id": "oh",
+          "name": "Ohio",
+          "populationK": 11799
+        },
+        {
+          "id": "wi",
+          "name": "Wisconsin",
+          "populationK": 5894
+        },
+        {
+          "id": "ia",
+          "name": "Iowa",
+          "populationK": 3190
+        },
+        {
+          "id": "ks",
+          "name": "Kansas",
+          "populationK": 2938
+        },
+        {
+          "id": "mn",
+          "name": "Minnesota",
+          "populationK": 5706
+        },
+        {
+          "id": "mo",
+          "name": "Missouri",
+          "populationK": 6155
+        },
+        {
+          "id": "ne",
+          "name": "Nebraska",
+          "populationK": 1962
+        },
+        {
+          "id": "nd",
+          "name": "North Dakota",
+          "populationK": 779
+        },
+        {
+          "id": "sd",
+          "name": "South Dakota",
+          "populationK": 887
+        },
+        {
+          "id": "de",
+          "name": "Delaware",
+          "populationK": 990
+        },
+        {
+          "id": "fl",
+          "name": "Florida",
+          "populationK": 21538
+        },
+        {
+          "id": "ga",
+          "name": "Georgia",
+          "populationK": 10712
+        },
+        {
+          "id": "md",
+          "name": "Maryland",
+          "populationK": 6177
+        },
+        {
+          "id": "nc",
+          "name": "North Carolina",
+          "populationK": 10439
+        },
+        {
+          "id": "sc",
+          "name": "South Carolina",
+          "populationK": 5118
+        },
+        {
+          "id": "va",
+          "name": "Virginia",
+          "populationK": 8631
+        },
+        {
+          "id": "wv",
+          "name": "West Virginia",
+          "populationK": 1794
+        },
+        {
+          "id": "al",
+          "name": "Alabama",
+          "populationK": 5024
+        },
+        {
+          "id": "ky",
+          "name": "Kentucky",
+          "populationK": 4506
+        },
+        {
+          "id": "ms",
+          "name": "Mississippi",
+          "populationK": 2961
+        },
+        {
+          "id": "tn",
+          "name": "Tennessee",
+          "populationK": 6911
+        },
+        {
+          "id": "ar",
+          "name": "Arkansas",
+          "populationK": 3012
+        },
+        {
+          "id": "la",
+          "name": "Louisiana",
+          "populationK": 4658
+        },
+        {
+          "id": "ok",
+          "name": "Oklahoma",
+          "populationK": 3959
+        },
+        {
+          "id": "tx",
+          "name": "Texas",
+          "populationK": 29146
+        },
+        {
+          "id": "az",
+          "name": "Arizona",
+          "populationK": 7152
+        },
+        {
+          "id": "co",
+          "name": "Colorado",
+          "populationK": 5774
+        },
+        {
+          "id": "id",
+          "name": "Idaho",
+          "populationK": 1839
+        },
+        {
+          "id": "mt",
+          "name": "Montana",
+          "populationK": 1084
+        },
+        {
+          "id": "nv",
+          "name": "Nevada",
+          "populationK": 3105
+        },
+        {
+          "id": "nm",
+          "name": "New Mexico",
+          "populationK": 2118
+        },
+        {
+          "id": "ut",
+          "name": "Utah",
+          "populationK": 3272
+        },
+        {
+          "id": "wy",
+          "name": "Wyoming",
+          "populationK": 577
+        },
+        {
+          "id": "ak",
+          "name": "Alaska",
+          "populationK": 733
+        },
+        {
+          "id": "ca",
+          "name": "California",
+          "populationK": 39538
+        },
+        {
+          "id": "hi",
+          "name": "Hawaii",
+          "populationK": 1455
+        },
+        {
+          "id": "or",
+          "name": "Oregon",
+          "populationK": 4237
+        },
+        {
+          "id": "wa",
+          "name": "Washington",
+          "populationK": 7705
+        }
+      ]
+    }
+  ]
+}

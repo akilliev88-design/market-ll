@@ -2,6 +2,8 @@
 
 #include "CoreMinimal.h"
 
+struct FMarketProduct;
+
 // Demand groups of the catalog's categories. Calendar, customer segments, promotions and freshness all speak in
 // these groups, so a new category only has to be mapped once (Classify). Independent of the world.
 namespace MarketGoods
@@ -30,4 +32,6 @@ namespace MarketGoods
     FString GroupName(EGroup Group);
     // Days a product of this group stays sellable on the shelf (0 = does not spoil in the game).
     int32 ShelfLifeDays(EGroup Group);
+    // G-078: the product's own shelf life from the catalog, else its group's.
+    int32 ShelfLifeDays(const FMarketProduct& Product);
 }

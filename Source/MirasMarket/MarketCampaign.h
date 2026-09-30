@@ -15,6 +15,7 @@ namespace MarketCampaign
     constexpr int32 MaxHistoryDays = 3650;
     // Second branch conditions (v0.1 values) plus the closed debt.
     constexpr int64 ExpandCash = 95000;
+    int64 ExpandCashOn(int32 GameDay);   // G-077 (#36): at today's prices
     constexpr int32 ExpandProfitableDays = 3;
     constexpr float ExpandShare = 35.f;
 

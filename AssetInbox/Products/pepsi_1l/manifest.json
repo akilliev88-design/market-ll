@@ -1,0 +1,17 @@
+{
+	"labelMode": "model_uv",
+	"schemaVersion": 1,
+	"productId": "pepsi_1l",
+	"package": "shape_pet_sise_1l",
+	"labels":
+	{
+		"label": "Labels/label.jpg",
+		"cap": "Labels/cap.jpg"
+	},
+	"materials": [
+		"/Game/Products/Items/pepsi_1l/MI_pepsi_1l.MI_pepsi_1l",
+		"/Game/Products/Items/pepsi_1l/MI_pepsi_1l_cam.MI_pepsi_1l_cam",
+		"/Game/Products/Items/pepsi_1l/MI_pepsi_1l_Kapak.MI_pepsi_1l_Kapak"
+	],
+	"publishedAt": "2026-09-29T13:00:27.994Z"
+}

@@ -55,6 +55,19 @@ bool FMarketSuppliersTest::RunTest(const FString& Parameters)
     TestFalse(TEXT("Terms line"), OnOrder(S, 10000).IsEmpty());
     TestEqual(TEXT("Cash given back"), S.Cash, Cash + 10000);
     TestTrue(TEXT("Bill written"), S.Payables.Num() == 1 && S.Payables[0].DueDay == S.Day + 7);
+    {
+        // G-077 (#33): terms let a short till buy more than it holds; the cash stays where it was.
+        FMarketState T = S;
+        T.Cash = 2000;
+        TArray<int32> Cases = { 1 };
+        const int64 Allowance = OrderAllowance(T);
+        TestTrue(TEXT("Trade credit with terms"), Allowance > 0);
+        int64 Bill = 0;
+        TestFalse(TEXT("No terms, no order"), T.SubmitOrder(Cases, Today, &Bill, nullptr, 0));
+        TestTrue(TEXT("On terms the order goes through"), T.SubmitOrder(Cases, Today, &Bill, nullptr, Allowance));
+        OnOrder(T, Bill);
+        TestEqual(TEXT("Till unchanged"), T.Cash, int64(2000));
+    }
     // Paid at the close of the due day from the till.
     for (int32 D = 0; D < 8; ++D) { S.CloseDay(); CloseDay(S); }
     TestEqual(TEXT("Paid on time"), S.Payables.Num(), 0);

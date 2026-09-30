@@ -1,4 +1,10 @@
 #include "MarketOrderAdvice.h"
+#include "MarketPrices.h"
+
+int64 MarketOrderAdvice::MinimumOrderOn(int32 GameDay)
+{
+    return MarketPrices::Scaled(MinimumOrder, GameDay);
+}
 
 int32 MarketOrderAdvice::CaseUnits(const FMarketProduct& Product)
 {

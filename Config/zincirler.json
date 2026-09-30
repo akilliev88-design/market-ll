@@ -1,0 +1,161 @@
+{
+  "schemaVersion": 1,
+  "note": "Karar L12 (Mustafa 29.09.2026): yayinda markalar kurgu ama gercege yakin (Game Dev Tycoon: Sony->Vonny). useFictional varsayilan true; oyuncu ileride Marka Editoru ile ad/logo degistirir. Pazar paylari gercek zincirlerden esinli (MarketRetail).",
+  "useFictional": true,
+  "chains": [
+    {
+      "id": "bereket",
+      "real": "Bereket Market",
+      "fictional": "Bereket Market",
+      "color": "#8C5A2B",
+      "archetype": "family",
+      "scope": "yerel",
+      "alreadyFictional": true
+    },
+    {
+      "id": "bim",
+      "real": "BİM",
+      "fictional": "BİN",
+      "color": "#C8102E",
+      "archetype": "discount",
+      "scope": "ulusal"
+    },
+    {
+      "id": "a101",
+      "real": "A101",
+      "fictional": "A110",
+      "color": "#0072CE",
+      "archetype": "discount",
+      "scope": "ulusal"
+    },
+    {
+      "id": "sok",
+      "real": "ŞOK",
+      "fictional": "ŞAK",
+      "color": "#FFC600",
+      "archetype": "discount",
+      "scope": "ulusal"
+    },
+    {
+      "id": "migros",
+      "real": "Migros",
+      "fictional": "Migron",
+      "color": "#F28C00",
+      "archetype": "super",
+      "scope": "ulusal"
+    },
+    {
+      "id": "carrefoursa",
+      "real": "CarrefourSA",
+      "fictional": "CarreFive SA",
+      "color": "#1B4F9C",
+      "archetype": "hyper",
+      "scope": "ulusal"
+    },
+    {
+      "id": "kipa",
+      "real": "Tesco Kipa",
+      "fictional": "Tesko Kupa",
+      "color": "#00539F",
+      "archetype": "hyper",
+      "scope": "ulusal"
+    },
+    {
+      "id": "onur",
+      "real": "Onur Market",
+      "fictional": "Onar Market",
+      "color": "#2E7D32",
+      "archetype": "regional",
+      "scope": "bolgesel"
+    },
+    {
+      "id": "metro",
+      "real": "Metro Toptan",
+      "fictional": "Metra Toptan",
+      "color": "#003D7C",
+      "archetype": "wholesale",
+      "scope": "ulusal"
+    },
+    {
+      "id": "getir",
+      "real": "Getir",
+      "fictional": "Getirsin",
+      "color": "#5D3EBC",
+      "archetype": "quick",
+      "scope": "ulusal",
+      "alreadyFictional": true
+    },
+    {
+      "id": "walmart",
+      "real": "Walmart",
+      "fictional": "Wallmark",
+      "color": "#0071CE",
+      "archetype": "hyper",
+      "scope": "kuresel",
+      "home": "ABD"
+    },
+    {
+      "id": "costco",
+      "real": "Costco",
+      "fictional": "Costko",
+      "color": "#E31837",
+      "archetype": "club",
+      "scope": "kuresel",
+      "home": "ABD"
+    },
+    {
+      "id": "kroger",
+      "real": "Kroger",
+      "fictional": "Krueger",
+      "color": "#134B97",
+      "archetype": "super",
+      "scope": "kuresel",
+      "home": "ABD"
+    },
+    {
+      "id": "schwarz",
+      "real": "Schwarz Grubu",
+      "fictional": "Schwarm Grubu",
+      "color": "#0050AA",
+      "archetype": "discount",
+      "scope": "kuresel",
+      "home": "Almanya"
+    },
+    {
+      "id": "aldi",
+      "real": "Aldi",
+      "fictional": "Alda",
+      "color": "#00005F",
+      "archetype": "discount",
+      "scope": "kuresel",
+      "home": "Almanya"
+    },
+    {
+      "id": "carrefour",
+      "real": "Carrefour",
+      "fictional": "CarreFive",
+      "color": "#1B4F9C",
+      "archetype": "hyper",
+      "scope": "kuresel",
+      "home": "Fransa"
+    },
+    {
+      "id": "tesco",
+      "real": "Tesco",
+      "fictional": "Tesko",
+      "color": "#00539F",
+      "archetype": "super",
+      "scope": "kuresel",
+      "home": "İngiltere"
+    },
+    {
+      "id": "metrogroup",
+      "real": "Metro Group",
+      "fictional": "Metra Group",
+      "color": "#003D7C",
+      "archetype": "wholesale",
+      "scope": "kuresel",
+      "home": "Almanya"
+    }
+  ]
+}
