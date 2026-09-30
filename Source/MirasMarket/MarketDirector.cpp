@@ -19,6 +19,9 @@
 #include "MarketCompany.h"
 #include "MarketManagers.h"
 #include "MarketDepots.h"
+#include "MarketChains.h"
+#include "MarketBrands.h"
+#include "MarketSourcing.h"
 
 float MarketDirector::TrafficFactor(const FMarketState& State, const TArray<FString>& Aisles)
 {
@@ -79,6 +82,13 @@ FString MarketDirector::TomorrowText(const FMarketState& State)
 void MarketDirector::ApplyPrices(const FMarketState& State, const TArray<FMarketProduct>& CatalogBase, TArray<FMarketProduct>& Products)
 {
     MarketSuppliers::ApplyPrices(State, CatalogBase, Products);
+    // Karar M25: a brand we starve charges more, a friend less.
+    for (FMarketProduct& Product : Products)
+    {
+        // G-083: the supply line's tier and the company's buying power.
+        const float Factor = MarketBrands::CostFactor(State, Product.Brand) * MarketSourcing::CostFactor(State, Product.Category);
+        if (!FMath::IsNearlyEqual(Factor, 1.f)) Product.Cost = FMath::Max<int64>(1, FMath::RoundToInt64(static_cast<double>(Product.Cost) * Factor));
+    }
 }
 
 uint8 MarketDirector::PaymentMethod(const FMarketState& State, uint8 Segment, float Roll)
@@ -222,6 +232,22 @@ bool MarketDirector::Command(FMarketState& State, const TArray<FMarketProduct>& 
         if (!MarketManagers::DecodeArea(Arg, Level, Country, Province) || Level != MarketManagers::ELevel::Depot) { OutMessage = TEXT("B\u00f6yle bir il yok."); return false; }
         return MarketDepots::Build(State, Country, Province, OutMessage);
     }
+    if (Action == TEXT("AcceptBrandOffer")) return MarketBrands::Accept(State, Arg, OutMessage); // Arg = offer id (M25)
+    if (Action == TEXT("RejectBrandOffer")) return MarketBrands::Reject(State, Arg, OutMessage);
+    if (Action == TEXT("SetSourcing")) // G-083: Arg = line x 10 + tier
+    {
+        MarketSourcing::ELine Line = MarketSourcing::ELine::Drinks;
+        MarketSourcing::ETier Tier = MarketSourcing::ETier::Local;
+        if (!MarketSourcing::Decode(Arg, Line, Tier)) { OutMessage = TEXT("B\u00f6yle bir se\u00e7enek yok."); return false; }
+        return MarketSourcing::Set(State, Line, Tier, OutMessage);
+    }
+    if (Action == TEXT("BuyChain")) return MarketChains::Buy(State, Products, Arg, OutMessage); // Arg = State.Rivals.Chains index (Akis C2b)
+    if (Action == TEXT("VisitBranch")) // Codex A4 calls it when a branch visit starts (what a visit reveals: later, C)
+    {
+        if (!State.Branches.IsValidIndex(Arg)) { OutMessage = TEXT("B\u00f6yle bir \u015fube yok."); return false; }
+        OutMessage = FString::Printf(TEXT("%s ziyaret ediliyor."), *State.Branches[Arg].Name);
+        return true;
+    }
     if (Action == TEXT("Difficulty")) return MarketSimulation::SetDifficulty(State, Arg, OutMessage);
     if (Action == TEXT("PandemicProfile"))
     {
@@ -253,6 +279,9 @@ void MarketDirector::CloseDay(FMarketState& State, const TArray<FMarketProduct>&
     MarketBranches::CloseDay(State, Products);   // opening steps and the simulated day of every branch (G-068)
     MarketManagers::CloseDay(State);             // managers' wages, morale, weekly marks, the player's span (G-086b)
     MarketDepots::CloseDay(State);               // depots: a caught depot manager, missing managers, losses (G-089)
+    MarketChains::CloseDay(State);               // rival chains of our countries and the world giants (Akis C2b)
+    MarketBrands::CloseDay(State, Products);     // brands: sales, deals, trust, offers (karar M25)
+    MarketSourcing::CloseDay(State, Products);   // supply lines: the month's minimums (G-083)
     MarketCompany::CloseDay(State);              // stores in other cities, depot, trucks, leadership (G-072)
     MarketPayments::CloseDay(State);             // card money arrives, commissions and POS rent (G-069)
     MarketOnline::CloseDay(State, Products);     // phone, web and platform orders picked from our stock (G-069)

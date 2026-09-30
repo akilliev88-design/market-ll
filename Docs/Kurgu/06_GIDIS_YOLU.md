@@ -23,6 +23,25 @@ Her yeni sistem ve menü sayfası bu ilkelere göre kontrol edilir.
 | Hızlı zaman | Gün / hafta / ay ilerletme; ilerletme karar gerekince, kasa eksiye düşünce ya da önemli bir olayda kendiliğinden durur |
 | Sabit ekran | Kartlar sabit yükseklikte, düğmeler yer değiştirmez (M15) |
 
+## 2b. Zevk ve akış: "bir tur daha" hissi (Mustafa, 30.09.2026)
+
+Oyuncunun zamanı su gibi akmalı. Her sistem yazılırken şu soruya cevap verilir: **bu, oyuncuya bir sonraki dakikayı oynatmak için ne veriyor?**
+
+| İlke | Anlamı | Örnek |
+|---|---|---|
+| Hep yarım kalmış bir şey | Ekranda her an yakında bitecek bir hedef ya da gelişme durur | "Şube 3 gün sonra açılıyor", "ilde birinciliğe %2 kaldı", "son taksit ay sonunda" |
+| Üç ölçekte hedef | Kısa (gün), orta (ay), uzun (yıl/bölüm) hedefler aynı anda | Günlük satış rekoru · aylık kâr hedefi · "ülkede ilk 3" |
+| Görünür ilerleme ve kutlama | Eşik geçilince kısa bir kutlama kartı, haritada yeni iğne, rekor satırı | "İlk 10 mağaza!", "İlk kez il birincisi" |
+| Kararın sonucunu görmek | Her kararın etkisi birkaç gün içinde bir sayıda ya da haberde görünür | "İndirim sayesinde bu hafta +120 müşteri" |
+| Anlamlı takas | Kararlarda açık tek doğru yok: ucuz mu kaliteli mi, hızlı mı güvenli mi | Deneyimli ama pahalı müdür / ucuz ama gelişmeye açık aday |
+| Hikâye ve yüzler | Rakiplerin ve karakterlerin adı, kişiliği, hafızası var; oyuncunun "ezeli rakibi" olur | Yıllardır aynı ilde çekiştiğin zincirin sahibi seni tebrik eder ya da intikam alır |
+| Ritim | Sakin dönemlerle yoğun dönemler (bayram, kriz, rakip saldırısı, açılış) sırayla gelir | Uzun sessizlik olmaz, üst üste felaket de olmaz |
+| Ceza değil ders | Kötü gidenin nedeni tek cümleyle söylenir ve toparlanma yolu vardır; oyun affedicidir ama tembelliği ödüllendirmez | "Kasa eksi: toptancı borcu vadesi geldi. Seçenekler: kredi, stok indirimi, tahsilat" |
+| Sıkmadan devret | Tekrar eden iş sıkmaya başladığı anda devredilebilir hâle gelir | Üç kez elle verilen siparişten sonra "bunu müdüre bırak" önerisi |
+| Merak | Açılacak bir sonraki şey hep görünür ama kilitli | Haritada "5 ilde mağaza olunca ülke müdürü" rozeti |
+
+**Ölçülür:** otomatik oyuncu raporu "sıkıcı dönemleri" (30 günden uzun süre ne karar ne olay ne eşik) ve "felaket yığılmasını" (7 gün içinde 3'ten çok kötü olay) işaretler.
+
 ## 3. Aşamalar
 
 ### Aşama 0 — Doğrulama borcu (hemen)

@@ -250,9 +250,21 @@ void MarketSuppliers::CloseDay(FMarketState& State)
             State.Payables.RemoveAt(I);
             continue;
         }
-        const int64 Fee = FMath::Max<int64>(100, FMath::RoundToInt64(Bill.Amount * LateFee));
-        // The late fee grows every unpaid day; the lost trust and the late mark come once per bill.
+        // The late fee grows every unpaid day for LateFeeDays (#41: capped); the lost trust and the late mark come
+        // once per bill, a reminder every week after the fee stops.
         const bool bFirstDay = Bill.LateSince == 0;
+        const bool bFeeOver = !bFirstDay && Closed - Bill.LateSince >= LateFeeDays;
+        const int64 Fee = bFeeOver ? 0 : FMath::Max<int64>(100, FMath::RoundToInt64(Bill.Amount * LateFee));
+        if (bFeeOver)
+        {
+            if ((Closed - Bill.LateSince) % 7 == 0)
+            {
+                A.Trust = FMath::Max(0, A.Trust - 5);
+                News.Add(FString::Printf(TEXT("%s: fatura h\u00e2l\u00e2 \u00f6denmedi (%s). G\u00fcven azal\u0131yor."), Who.Name, *SupplierTl(Bill.Amount)));
+            }
+            ++I;
+            continue;
+        }
         Bill.Amount += Fee;
         if (bFirstDay) { Bill.LateSince = Closed; ++A.Late; A.Trust = FMath::Max(0, A.Trust - 25); }
         State.LastProfit -= Fee;

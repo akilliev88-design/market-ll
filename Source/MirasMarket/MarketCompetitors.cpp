@@ -241,7 +241,20 @@ float MarketCompetitors::OurAttraction(const FMarketState& State, const TArray<F
         Satisfaction /= State.Loyalty.Num();
     }
     const float Loyalty = 0.8f + Satisfaction / 250.f;
-    const float Promotions = FMath::Min(1.25f, 1.f + 0.08f * MarketPromotions::Active(State).Num()) * (MarketPromotions::TrafficFactor(State) > 1.f ? 1.1f : 1.f);
+    // #19: promotions pull by how deep and how wide they are, not by how many (ten tiny ones = one small one).
+    float Pull = 0.f;
+    for (const FMarketPromotion* Promo : MarketPromotions::Active(State))
+    {
+        const MarketPromotions::EMechanic Mechanic = static_cast<MarketPromotions::EMechanic>(Promo->Mechanic);
+        const float Depth = Mechanic == MarketPromotions::EMechanic::ThreeForTwo ? 0.33f : Mechanic == MarketPromotions::EMechanic::TwoForOne ? 0.5f
+            : Mechanic == MarketPromotions::EMechanic::SecondHalf ? 0.25f : FMath::Clamp(Promo->Percent / 100.f, 0.f, 0.5f);
+        const bool bScoped = Promo->Kind == static_cast<uint8>(MarketPromotions::EKind::Scoped);
+        const MarketPromotions::EScope Scope = static_cast<MarketPromotions::EScope>(Promo->Scope);
+        const float Width = !bScoped ? 0.3f : Scope == MarketPromotions::EScope::Store ? 1.f : Scope == MarketPromotions::EScope::Category ? 0.6f
+            : Scope == MarketPromotions::EScope::Subcategory ? 0.4f : Scope == MarketPromotions::EScope::Brand ? 0.3f : 0.15f;
+        Pull += Depth * Width;
+    }
+    const float Promotions = (1.f + 0.25f * (1.f - FMath::Exp(-2.5f * Pull))) * (MarketPromotions::TrafficFactor(State) > 1.f ? 1.1f : 1.f);
     return Attraction(OurIndex, Service, HomeAdvantage, 1) * FMath::Pow(Availability, 1.2f) * Loyalty * Promotions;
 }
 

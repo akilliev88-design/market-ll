@@ -31,6 +31,7 @@ namespace MarketSuppliers
     constexpr int64 VolumeTier1 = 150000;   // 1.500 TL in about 30 days: 3 %
     constexpr int64 VolumeTier2 = 400000;   // 4.000 TL: 5 %
     constexpr float LateFee = 0.02f;
+    constexpr int32 LateFeeDays = 5;   // #41: the late fee runs five days at most (about 10 %), then only the trust suffers
 
     const FInfo& Info(ESupplier Supplier);
     ESupplier Current(const FMarketState& State);

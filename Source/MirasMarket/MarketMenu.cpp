@@ -15,6 +15,9 @@
 #include "MarketManagers.h"
 #include "MarketBranches.h"
 #include "MarketDepots.h"
+#include "MarketChains.h"
+#include "MarketBrands.h"
+#include "MarketSourcing.h"
 #include "Framework/Application/SlateApplication.h"
 #include "GameFramework/PlayerController.h"
 #include "Kismet/GameplayStatics.h"
@@ -404,6 +407,46 @@ const TArray<FMarketTodo>& AMarketGameMode::Todos() const
                     FString::Printf(TEXT("600 km i\u00e7inde depo yok: mal toptanc\u0131dan geliyor (+%%3).%s Ma\u011fazalar \u203a \u015eirket \u203a Depolar."),
                         Best ? *FString::Printf(TEXT(" \u00d6nerilen il: %s."), *Best->Name) : TEXT("")), SMarketMenu::Branches);
             }
+        }
+    }
+    // G-083: a supply line that could move up a tier.
+    for (int32 L = 0; L < MarketSourcing::LineCount; ++L)
+    {
+        const MarketSourcing::ELine Line = static_cast<MarketSourcing::ELine>(L);
+        const int32 Next = static_cast<int32>(MarketSourcing::TierOf(State, Line)) + 1;
+        FString Why;
+        if (Next >= MarketSourcing::TierCount || !MarketSourcing::CanSet(State, Line, static_cast<MarketSourcing::ETier>(Next), Why)) continue;
+        Add(0, FString::Printf(TEXT("%s daha ucuza al\u0131nabilir"), *MarketSourcing::LineName(Line)), MarketSourcing::NextStep(State, Line) + TEXT(" Ma\u011fazalar \u203a \u015eirket \u203a Tedarik."), SMarketMenu::Branches);
+        break;
+    }
+    // Karar M25: a brand's offer waiting for an answer.
+    if (State.Brands.Offers.Num() > 0)
+    {
+        const FMarketBrandOffer& Offer = State.Brands.Offers[0];
+        Add(0, FString::Printf(TEXT("%s teklif getirdi"), *MarketBrands::NameOf(State, Offer.Brand)),
+            MarketBrands::DescribeOffer(State, Offer) + FString::Printf(TEXT(" %d g\u00fcn i\u00e7inde cevap ver: Kampanyalar \u203a Markalar."), FMath::Max(0, Offer.ExpireDay - State.Day)), SMarketMenu::Promotions);
+    }
+    // Akis C2b: a chain at war with one of our branches, a chain for sale we could buy.
+    {
+        const TArray<FMarketChain>& Chains = State.Rivals.Chains;
+        for (const FMarketChain& Chain : Chains)
+        {
+            if (Chain.bGone || Chain.WarProvince.IsEmpty() || State.Day > Chain.WarUntil) continue;
+            if (MarketBranches::ShopsIn(State, Chain.Country, Chain.WarProvince) <= 0) continue;
+            const MarketCountry::FCity* City = MarketCountry::FindCity(Chain.Country, Chain.WarProvince);
+            Add(2, FString::Printf(TEXT("%s, %s'da sana kar\u015f\u0131 fiyat sava\u015f\u0131nda"), *Chain.Name, City ? *City->Name : *Chain.WarProvince),
+                FString::Printf(TEXT("Oradaki \u015fubenin m\u00fc\u015fterisi azal\u0131yor. Dolu raf ve iyi m\u00fcd\u00fcrle dayan: sava\u015f %d g\u00fcn sonra biter."), FMath::Max(0, Chain.WarUntil - State.Day)),
+                SMarketMenu::Branches);
+            break;
+        }
+        for (int32 I = 0; I < Chains.Num(); ++I)
+        {
+            FString Why;
+            if (!Chains[I].bForSale || !MarketChains::CanBuy(State, I, Why)) continue;
+            Add(1, FString::Printf(TEXT("%s sat\u0131l\u0131k"), *Chains[I].Name),
+                FString::Printf(TEXT("%d ma\u011faza, fiyat\u0131 %s. Ba\u015fka bir zincir kapmadan Rakipler \u203a Ulusal'dan sat\u0131n alabilirsin."), MarketChains::TotalStores(Chains[I]), *MarketCountry::Money(MarketChains::Price(State, I))),
+                SMarketMenu::Rivals);
+            break;
         }
     }
     TodoCache.StableSort([](const FMarketTodo& A, const FMarketTodo& B) { return A.Severity > B.Severity; });

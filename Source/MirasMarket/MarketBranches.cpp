@@ -13,6 +13,10 @@
 #include "MarketStaff.h"
 #include "MarketStart.h"
 #include "MarketStory.h"
+#include "MarketStoreAssign.h"
+#include "MarketStoreViews.h"
+#include "MarketChains.h"
+#include "MarketSourcing.h"
 #include "MarketSuppliers.h"
 
 namespace MarketBranches
@@ -99,12 +103,15 @@ namespace MarketBranches
         FMarketPlanogram Plan = MarketLayout::Fixtures(Branch.Format);
         MarketLayout::Plan(Plan, Products, Demand);
         const TArray<int32> Capacities = MarketLayout::Capacities(Plan, Products);
+        const float Variety = MarketStoreAssign::VarietyFactor(MarketStoreViews::MeasuresOf(Branch), Branch.Format);
         Branch.Items.Reset();
         for (int32 I = 0; I < Products.Num(); ++I)
         {
             FMarketBranchItem Item;
             Item.ProductId = Products[I].Id;
             Item.Capacity = Capacities.IsValidIndex(I) ? Capacities[I] : 0;
+            // G-088 C: the signed store's shelf front against the type's nominal store (0.6..1.5).
+            if (Item.Capacity > 0) Item.Capacity = FMath::Max(1, FMath::RoundToInt32(Item.Capacity * Variety));
             Branch.Items.Add(Item);
         }
     }
@@ -251,9 +258,12 @@ int64 MarketBranches::OpeningCost(const FMarketState& State, const TArray<FMarke
     Probe.Country = Country.IsEmpty() ? State.CountryId : Country;
     Probe.Province = Province;
     Probe.Format = Kind.Id;
+    MarketStoreViews::PreviewTo(State, Probe); // G-088 C: the store this site would get
     PlanShelves(State, Probe, Products);
     const FSite Site = SiteOf(State, Probe);
-    return 2 * MonthlyRent(Site, Kind, Level) + FMath::RoundToInt64(Kind.FitOut * Level) + StockCost(Probe, Products);
+    const MarketStoreAssign::FStoreMeasures Measures = MarketStoreViews::MeasuresOf(Probe);
+    return 2 * FMath::RoundToInt64(MonthlyRent(Site, Kind, Level) * MarketStoreAssign::RentFactor(Measures, Kind.Id))
+        + FMath::RoundToInt64(Kind.FitOut * Level * MarketStoreAssign::FitOutFactor(Measures, Kind.Id)) + StockCost(Probe, Products);
 }
 
 int32 MarketBranches::OpenCount(const FMarketState& State)
@@ -307,13 +317,16 @@ bool MarketBranches::Open(FMarketState& State, const TArray<FMarketProduct>& Pro
     Branch.Format = Kind.Id;
     Branch.Stage = static_cast<uint8>(EStage::Renovation);
     Branch.StageUntil = State.Day + RenovationDays - 1;
-    Branch.Rent = MonthlyRent(Site, Kind, Level);
+    // G-088 C: the site's ready-made store (saved for the province and type); its size sets rent and fit-out.
+    MarketStoreViews::AssignTo(State, Branch);
+    const MarketStoreAssign::FStoreMeasures Measures = MarketStoreViews::MeasuresOf(Branch);
+    Branch.Rent = FMath::RoundToInt64(MonthlyRent(Site, Kind, Level) * MarketStoreAssign::RentFactor(Measures, Kind.Id));
     Branch.PriceIndex = FMath::Clamp(Kind.PriceTarget, 0.85f, 1.2f);
     PlanShelves(State, Branch, Products);
     // The deposit leaves the till now and comes back when the branch closes; the fit-out is an expense of today
     // (paid at the day close with the other costs).
     State.Cash -= 2 * Branch.Rent;
-    State.OtherCosts += FMath::RoundToInt64(Kind.FitOut * Level);
+    State.OtherCosts += FMath::RoundToInt64(Kind.FitOut * Level * MarketStoreAssign::FitOutFactor(Measures, Kind.Id));
     State.Branches.Add(Branch);
     State.bSecondStore = true;
     OutMessage = FString::Printf(TEXT("%s: kira s\u00f6zle\u015fmesi imzaland\u0131 (depozito %s), tadilat ba\u015flad\u0131 (%d g\u00fcn). Raflar senin kurallar\u0131nla otomatik planland\u0131."),
@@ -324,6 +337,35 @@ bool MarketBranches::Open(FMarketState& State, const TArray<FMarketProduct>& Pro
         MarketStory::AddMemory(State, FString::Printf(TEXT("%s: yurt d\u0131\u015f\u0131nda ilk ma\u011faza"), Pack ? *Pack->Name : *Site.Country));
     }
     return true;
+}
+
+int32 MarketBranches::AddAcquired(FMarketState& State, const TArray<FMarketProduct>& Products, const FString& Country, const FString& Province, const FString& Format)
+{
+    const FSite Site = SiteOf(State, Country, Province);
+    if (!Site.bValid || ShopsIn(State, Site.Country, Site.Province) >= Room(Site)) return INDEX_NONE;
+    const FFormat& Kind = FormatInfo(Format);
+    FMarketBranch Branch;
+    Branch.Country = Site.Country;
+    Branch.Province = Site.Province;
+    Branch.Name = NameFor(State, Site, Kind);
+    Branch.Format = Kind.Id;
+    Branch.Stage = static_cast<uint8>(EStage::Open);
+    Branch.StageUntil = State.Day;
+    Branch.OpenedDay = State.Day;
+    MarketStoreViews::AssignTo(State, Branch);
+    const MarketStoreAssign::FStoreMeasures Measures = MarketStoreViews::MeasuresOf(Branch);
+    Branch.Rent = FMath::RoundToInt64(MonthlyRent(Site, Kind, MarketPrices::ListLevel(State.Day)) * MarketStoreAssign::RentFactor(Measures, Kind.Id));
+    Branch.PriceIndex = FMath::Clamp(Kind.PriceTarget, 0.85f, 1.2f);
+    Branch.Workers = MarketStoreAssign::WorkersFor(Measures, Kind.Id);
+    Branch.Maturity = 0.6f;       // the district already shops there
+    Branch.Satisfaction = 60.f;
+    PlanShelves(State, Branch, Products);
+    for (FMarketBranchItem& Item : Branch.Items) Item.Units = Item.Capacity; // the goods came with the chain
+    State.Branches.Add(Branch);
+    State.bSecondStore = true;
+    const int32 Index = State.Branches.Num() - 1;
+    MarketManagers::HireStoreManager(State, Index);
+    return Index;
 }
 
 bool MarketBranches::Close(FMarketState& State, const TArray<FMarketProduct>& Products, int32 BranchIndex, FString& OutMessage)
@@ -519,6 +561,7 @@ void MarketBranches::CloseDay(FMarketState& State, const TArray<FMarketProduct>&
 {
     Migrate(State, Products);
     MarketManagers::Migrate(State); // G-086b: older saves' store managers get a style and morale
+    MarketStoreViews::Migrate(State); // G-088 C: older saves' branches get their store view (rent and shelves stay)
     const int32 Closed = State.Day - 1;
     if (Closed < 1) return;
     TArray<FString>& News = State.DayNews;
@@ -548,7 +591,7 @@ void MarketBranches::CloseDay(FMarketState& State, const TArray<FMarketProduct>&
         if (Stage == EStage::Permits && Closed >= B.StageUntil)
         {
             B.Stage = static_cast<uint8>(EStage::Hiring);
-            B.Workers = Kind.Workers;
+            B.Workers = MarketStoreAssign::WorkersFor(MarketStoreViews::MeasuresOf(B), B.Format); // G-088 C: the store's size and tills
             State.OtherCosts += MarketStaff::HireCostOn(MarketStaff::ERole::Cashier, Closed) * B.Workers;
             if (B.ManagerName.IsEmpty()) MarketManagers::HireStoreManager(State, Index); // G-086b ek (M22): a name never used before
             News.Add(FString::Printf(TEXT("%s: ruhsat \u00e7\u0131kt\u0131. %d \u00e7al\u0131\u015fan i\u015fe al\u0131nd\u0131; m\u00fcd\u00fcr %s (beceri %d)."), *B.Name, B.Workers, *B.ManagerName, B.ManagerSkill));
@@ -600,9 +643,17 @@ void MarketBranches::CloseDay(FMarketState& State, const TArray<FMarketProduct>&
         const float Service = Kind.Service * (B.ManagerName.IsEmpty() ? 0.9f : 1.f);
         const float Pull = FMath::Exp(-(B.PriceIndex - 1.f) / MarketCompetitors::PriceSensitivity) * Availability * Service *
             (0.8f + B.Satisfaction / 250.f) * (0.9f + 0.4f * B.Maturity) * (State.Day - B.OpenedDay < 7 ? 1.3f : 1.f) * MarketCompany::TrafficBonus(State);
-        const float Share = Pull / (Pull + 3.f * Where.Competition);
+        // Akis C2b: the province's chains against the start, a price war against us on top.
+        const float Share = Pull / (Pull + 3.f * Where.Competition * MarketChains::PressureFactor(State, Where.Country, Where.Province, Closed));
         const float Trips = MarketCalendar::ClosedByLaw(Closed) ? 0.f : TripsOf(Where, Kind) * MarketCalendar::TrafficFactor(Closed, State.RivalSeed);
-        const int32 Shoppers = FMath::RoundToInt32(Trips * Share * (0.5f + 0.5f * B.Maturity) * Cannibalization(State, Index, Where));
+        const int32 Arrived = FMath::RoundToInt32(Trips * Share * (0.5f + 0.5f * B.Maturity) * Cannibalization(State, Index, Where));
+        // G-088 C: the store's tills. Too few lanes lose shoppers in the queue; roomy ones keep a few more.
+        const MarketStoreAssign::FStoreMeasures Measures = MarketStoreViews::MeasuresOf(B);
+        const int32 Shoppers = FMath::RoundToInt32(Arrived * MarketStoreAssign::QueueFactor(Measures, B.Format, static_cast<float>(Arrived)));
+        B.LastQueueLost = FMath::Max(0, Arrived - Shoppers);
+        const float FreshDemand = MarketStoreAssign::FreshFactor(Measures, B.Format);
+        const float FreshSpoil = MarketStoreAssign::SpoilFactor(Measures, B.Format);
+        const float ColdChain = MarketSourcing::DairySpoilFactor(State); // G-083: a distributor keeps the cold chain
 
         // What they want, what is on the shelf.
         int64 Revenue = 0, Cogs = 0, WasteCost = 0;
@@ -611,7 +662,10 @@ void MarketBranches::CloseDay(FMarketState& State, const TArray<FMarketProduct>&
         {
             FMarketBranchItem* Item = ItemOf(B, Products[I].Id);
             if (!Item) continue;
-            const int32 Want = FMath::RoundToInt32(Shoppers * UnitsPerShopper * WishToday[I] * Where.Income);
+            // G-088 C: dairy and ice cream follow the store's cold room (and spoil more when it is crowded).
+            const MarketGoods::EGroup Group = MarketGoods::Classify(Products[I].Category);
+            const bool bFresh = Group == MarketGoods::EGroup::Dairy || Group == MarketGoods::EGroup::IceCream;
+            const int32 Want = FMath::RoundToInt32(Shoppers * UnitsPerShopper * WishToday[I] * Where.Income * (bFresh ? FreshDemand : 1.f));
             const int32 Take = Item->Capacity > 0 ? FMath::Min(Want, Item->Units) : 0;
             Item->Units -= Take;
             Item->LastSold = Take;
@@ -622,7 +676,7 @@ void MarketBranches::CloseDay(FMarketState& State, const TArray<FMarketProduct>&
             Revenue += Price * Take;
             Cogs += Products[I].Cost * Take;
             // G-086b: waste follows the manager's style (a generous one keeps more on hand and throws more away).
-            const float SpoilExact = Item->Units * (Rule.WasteRate + Link.ExtraWaste); // G-089: the depot's handling
+            const float SpoilExact = Item->Units * (Rule.WasteRate + Link.ExtraWaste) * (bFresh ? FreshSpoil : 1.f) * (Group == MarketGoods::EGroup::Dairy ? ColdChain : 1.f); // G-089: the depot's handling
             int32 Spoil = FMath::FloorToInt32(SpoilExact);
             if ((BranchMix(State.RivalSeed, Closed, 0x5F01u + Index * 131u + I) % 1000u) < static_cast<uint32>((SpoilExact - Spoil) * 1000.f)) ++Spoil;
             Spoil = FMath::Clamp(Spoil, 0, Item->Units);
@@ -649,6 +703,7 @@ void MarketBranches::CloseDay(FMarketState& State, const TArray<FMarketProduct>&
         B.LastShoppers = Shoppers;
         B.WeekProfit += Profit;
         B.Last30Profit = B.Last30Profit * 29 / 30 + Profit;
+        B.Last30Revenue = B.Last30Revenue * 29 / 30 + Revenue;
         const float DayAvailability = DaySold + DayEmpty > 0 ? static_cast<float>(DaySold) / (DaySold + DayEmpty) : 1.f;
         B.Satisfaction = FMath::Clamp(B.Satisfaction + ((50.f + 40.f * DayAvailability - 100.f * (B.PriceIndex - 1.f)) - B.Satisfaction) * 0.1f, 0.f, 100.f);
         B.Maturity = FMath::Min(1.f, B.Maturity + 1.f / MaturityDays);
@@ -659,6 +714,8 @@ void MarketBranches::CloseDay(FMarketState& State, const TArray<FMarketProduct>&
         const bool bTight = State.Cash < Opex * 3; // short of money: the manager orders half
         // Never more than the till holds; nothing when the company is already in the red.
         const int64 Budget = FMath::Max<int64>(0, State.Cash);
+        // G-088 C: what fits behind the shop (half a shelf more at the nominal stock room).
+        const float StockRoom = 1.f + 0.5f * MarketStoreAssign::BackroomFactor(Measures, B.Format);
         int64 Bill = 0;
         for (int32 I = 0; I < Products.Num(); ++I)
         {
@@ -666,13 +723,14 @@ void MarketBranches::CloseDay(FMarketState& State, const TArray<FMarketProduct>&
             if (!Item || Item->Capacity <= 0) continue;
             const float Noise = (BranchMix(State.RivalSeed, Closed, 0x0DE7u + Index * 131u + I) % 2001u) / 1000.f - 1.f;
             const float Expected = (Item->LastSold + Item->LastEmpty) * Tomorrow * (1.f + Error * Noise);
-            const int32 Target = FMath::RoundToInt32(Rule.OrderFactor * FMath::Min(Item->Capacity * 1.5f, FMath::Max(static_cast<float>(Item->Capacity), Expected * 1.2f)));
+            const int32 Target = FMath::RoundToInt32(Rule.OrderFactor * FMath::Min(Item->Capacity * StockRoom, FMath::Max(static_cast<float>(Item->Capacity), Expected * 1.2f)));
             int32 Order = FMath::Max(0, Target - Item->Units);
             if (bTight) Order /= 2;
             if (Products[I].Cost > 0) Order = static_cast<int32>(FMath::Min<int64>(Order, FMath::Max<int64>(0, Budget - Bill) / Products[I].Cost));
             Order = FMath::Max(0, Order);
             Item->Incoming = Order;
             Bill += Products[I].Cost * Order;
+            MarketSourcing::RecordPurchase(State, Products[I].Category, Products[I].Cost * Order); // G-083: the line's monthly minimum
         }
         State.Cash -= Bill;
         State.Purchases += Bill;
@@ -688,8 +746,9 @@ void MarketBranches::CloseDay(FMarketState& State, const TArray<FMarketProduct>&
 
         if (Closed % 7 == 0)
         {
-            News.Add(FString::Printf(TEXT("%s haftas\u0131: net %s, karne %s, d\u00fcn %d m\u00fc\u015fteri, raf dolulu\u011fu %%%.0f.%s"), *B.Name, *BranchTl(B.WeekProfit), *Grade(State, Index), Shoppers, DayAvailability * 100.f,
-                Skim > 0 && MarketStaff::HasAccountant(State) && !Rule.bSkimHidden ? TEXT(" Necati Bey: \"\u015eubenin kasas\u0131 sat\u0131\u015flarla tutmuyor.\"") : TEXT("")));
+            News.Add(FString::Printf(TEXT("%s haftas\u0131: net %s, karne %s, d\u00fcn %d m\u00fc\u015fteri, raf dolulu\u011fu %%%.0f.%s%s"), *B.Name, *BranchTl(B.WeekProfit), *Grade(State, Index), Shoppers, DayAvailability * 100.f,
+                Skim > 0 && MarketStaff::HasAccountant(State) && !Rule.bSkimHidden ? TEXT(" Necati Bey: \"\u015eubenin kasas\u0131 sat\u0131\u015flarla tutmuyor.\"") : TEXT(""),
+                *MarketStoreViews::WeeklyHint(B, Arrived))); // G-088 C: tills or cold room too small
             B.WeekProfit = 0;
         }
     }
