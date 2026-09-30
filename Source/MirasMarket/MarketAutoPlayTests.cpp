@@ -29,10 +29,12 @@ bool FMarketAutoPlayIntegrity::RunTest(const FString& Parameters)
 {
     FMarketProduct Product; Product.Id = TEXT("tea"); Product.Category = TEXT("cay-kahve"); Product.Cost = 100; Product.BasePrice = 200;
     const TArray<FMarketProduct> Base = {Product};
-    MarketAutoPlay::FOptions Options; Options.Days = 8; Options.Seeds = 1;
+    MarketAutoPlay::FOptions Options; Options.Days = 8; Options.Seeds = 1; Options.bKeepFinalStates = true;
     const auto First = MarketAutoPlay::Run(Options, Base, {24});
     const auto Second = MarketAutoPlay::Run(Options, Base, {24});
     TestEqual(TEXT("Campaigns created"), First.Runs.Num(), 3);
+    TestEqual(TEXT("Review snapshots returned only when requested"), First.FinalStates.Num(), 3);
+    TestEqual(TEXT("Review snapshot is the real final day"), First.FinalStates[0].Day, 9);
     for (int32 Index = 0; Index < First.Runs.Num(); ++Index)
     {
         TestEqual(TEXT("Repeat seed cash"), First.Runs[Index].Daily.Last().Cash, Second.Runs[Index].Daily.Last().Cash);

@@ -1572,7 +1572,7 @@ void AMarketGameMode::LoadCampaign(bool bQuiet)
 void AMarketHUD::DrawHUD()
 {
     Super::DrawHUD();
-    if (Overlay.IsValid()) { if (auto* Mode = GetMarket(this)) Overlay->SetVisibility(Mode->IsBranchVisit() ? EVisibility::Collapsed : EVisibility::SelfHitTestInvisible); return; }
+    if (Overlay.IsValid()) { if (auto* Mode = GetMarket(this)) Overlay->SetVisibility(Mode->IsBranchVisit() || Mode->bMenuOpen ? EVisibility::Collapsed : EVisibility::HitTestInvisible); return; }
     AMarketGameMode* Game = GetMarket(this);
     if (!Game || Game->bStoreTour || Game->Products.Num() == 0 || !GEngine || !GEngine->GameViewport) return;
     // Created lazily: the game mode may begin play after the HUD.
@@ -1593,7 +1593,7 @@ void AMarketHUD::EndPlay(const EEndPlayReason::Type EndPlayReason)
 
 bool AMarketGameMode::AdvanceTime(MarketSimulation::ETurn Turn)
 {
-    if (bOpen || bNeedStart || bStoreTour)
+    if (bOpen || bNeedStart || bStoreTour || IsBranchVisit())
     {
         Notify(TEXT("Gun ilerletmek icin aile dukkaninin acik gununu once kapat."));
         return false;

@@ -336,6 +336,7 @@ namespace MarketAutoPlay
                 }
             }
             UE_LOG(LogTemp, Display, TEXT("AutoPlay %s seed %d: %d days, cash %lld, stores %d, audit failures %d"), *Trial.Profile, Trial.Seed, Trial.Daily.Num(), Trial.Daily.Last().Cash, Trial.Daily.Last().Stores, Trial.AuditFailures);
+            if (Options.bKeepFinalStates) Report.FinalStates.Add(State);
             Report.Runs.Add(MoveTemp(Trial));
         }
         MarketCountry::SetActiveProfile(PreviousCountry, RestoreSeed);

@@ -22,6 +22,7 @@ namespace MarketAutoPlay
         int32 Days = 3652;
         int32 Seeds = 3;
         int32 FirstSeed = 21;
+        bool bKeepFinalStates = false; // read-only review snapshots; player saves are never written
         FString Country = TEXT("tr");
         FString Province = TEXT("kirklareli");
     };
@@ -50,6 +51,7 @@ namespace MarketAutoPlay
     {
         FOptions Options;
         TArray<FRun> Runs;
+        TArray<FMarketState> FinalStates;
         double Seconds = 0;
         TArray<FString> Errors;
     };

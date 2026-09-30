@@ -93,4 +93,3 @@ bool AMarketGameMode::TickBranchVisitReview()
     UE_LOG(LogTemp,Display,TEXT("BranchVisitReview PASSED: 3 views, exact campaign/plan/clock/player/disk preservation; %s"),*R.Directory);
     FPlatformMisc::RequestExitWithStatus(false,0); return false;
 }
-bool AMarketGameMode::TickMenuCapture() { return true; }
