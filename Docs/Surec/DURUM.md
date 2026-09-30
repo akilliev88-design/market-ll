@@ -1,6 +1,6 @@
 # Güncel durum
 
-Son güncelleme: 30.09.2026 gece — Claude (M19–M23 menü denetimi, M24, şube özeti gizli beceri; derlenmedi)
+Son güncelleme: 30.09.2026 — Codex, Akış A / Aşama 0 doğrulaması
 
 ## Kısaca
 
@@ -96,6 +96,9 @@ GitHub ana deposu: `https://github.com/m07tas/market-ll` (`main`). Unreal/Blende
 Görsel ve raf dizme işleri yeterli seviyede; bir süre **donduruldu**. Öncelik **"İlk Hafta" oynanabilir dilimi**: bir oyuncu 7 günü baştan sona oynayabilmeli (sipariş → mal kabul → raf → fiyat → satış → gün raporu → hafta hedefi). Görevler G-051…G-055. Başarı ölçütü: yeni biri ilk 30 dakikada döngüyü anlıyor ve ilk kararının sonucunu görüyor.
 
 ## Devam notu
+
+**30.09.2026 — Codex / A0:** Main derlemesi GEÇTİ; TEST 84/84 (83 temiz + 1 motor bağlantı uyarısı), Smoke GEÇTİ (1 satış, gün kapama, sipariş/mal kabul, işe alma, disk kayıt/yükleme). Kaynak düzeltmesi gerekmedi. Test.ps1:9–10 alt sınır 46 → 84; uyarıyla başarılı testler toplama dahil. Aşama 0 commit/push sonrası A, akis-a worktree'de otomatik oyuncu ve zamanı yapacak. B/C sözleşmedeki kendi alanlarına başlayabilir. Önceki DERLENMEDİ notları tarihsel; bugünkü kaynaklar doğrulandı.
+
 
 **30.09.2026 gece — Claude (Cowork): M19–M23 menü denetimi bitti, M24 yazıldı — DERLENMEDİ. KALDIĞIM YER.**
 - **Menü denetimi (önceki oturumdan yarım kalan) tamamlandı.** `MarketMenuPages.cpp` (kademe ağacı, aday kartları, Depolar kartı, depo seçimi, şube satırındaki "mal nereden"), `MarketMenu.cpp` (`Todos` depo uyarıları), `MarketMap.*` (depo "D" kutusu, menzil halkası), `MarketMenuWidget.*` elle okundu; ayrıca betikle: çağrılan her `MarketDepots::/MarketManagers::/...` işlevinin başlıkta var olduğu ve argüman sayısı, menüdeki her `Manage("...")` eyleminin `MarketDirector::Command`'da karşılığı, `ERole` değerleri, yerel ad gölgelemesi (C4456/C4458) ve unity build ad çakışması, ASCII. **Hata bulunmadı**; derleme hâlâ gerekli.

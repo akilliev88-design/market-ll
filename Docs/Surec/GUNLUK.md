@@ -3,6 +3,14 @@
 En yeni giriş en üstte. Biçim: tarih — ajan — başlık, ardından **Yapılan**, **Doğrulama**, **Sıradaki**.
 
 
+## 30.09.2026 — Codex / Akış A — Aşama 0 doğrulaması
+
+**Yapılan:** AGENTS ve 07 iş bölümü sözleşmesi okundu. Main temiz başladı (dfdd266). DERLE başarılı; kaynaklarda düzeltme gerekmedi. Test.ps1:9–10: alt sınır 46'dan 84'e yükseltildi; succeededWithWarnings da başarılı toplamına eklendi. Oyun mantığı değiştirilmedi.
+
+**Doğrulama:** DERLE GEÇTİ; TEST 84/84 (83 temiz, 1 Unreal bağlantı kontrolü uyarısı; başarısız/çalışmayan yok); Smoke GEÇTİ: 49,5 saniyede 1 müşteri satışı, ikinci güne geçiş, sipariş, mal kabul, işe alma ve disk kayıt/yükleme. Yeni test alt sınırıyla ikinci tam TEST de 84/84 GEÇTİ.
+
+**Sıradaki:** Aşama 0 commit + push, akis-a worktree ve LFS; A1 otomatik oyuncu, A3 zaman. B ve C bu commit'ten başlayabilir. Main'de sonraki iş C'de.
+
 ## 30.09.2026 gece — Claude (Cowork) — Gidiş yolu: önce akıl, sonra simülasyon
 
 **Yapılan:** Mustafa ile yön belirlendi: oyun ana ekrandan yönetilen, ayrıntılı ama boğmayan bir tycoon; önce arkadaki akıl bitirilir, dükkân içi simülasyon sonra. Mustafa uzun oynamayacak; oyunu Codex bir otomatik oyuncuyla (bot) oynatıp rapor ve ekran görüntüsü getirecek. Yeni tek yol haritası `Docs/Kurgu/06_GIDIS_YOLU.md` (Aşama 0 doğrulama, Aşama 1 A1–A8, Aşama 2 simülasyon; tycoon arayüz ilkeleri). `05_YOL_HARITASI.md` başına yönlendirme notu, GOREVLER'e G-090, AGENTS §7'ye "tek derlenmemiş Claude işi" kuralı.
