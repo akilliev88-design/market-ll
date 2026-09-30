@@ -163,8 +163,10 @@ MarketSimulation::FDay MarketSimulation::PlayDay(FMarketState& State, const TArr
     // Morning routine of the family: the month's price rise goes on the shelf tags, the declared tax is paid, and
     // a spare 50 TL goes to the father's debt when the till can bear it.
     // G-086b ek (M19): with a manager in the family shop his style and skill run the routine (bManaged false: as before).
-    const MarketManagers::FFamilyRule Family = MarketManagers::FamilyRule(State);
-    if (MarketSuppliers::PriceGap(State) > Family.PriceRiseGap) MarketSuppliers::PassOnPriceRise(State, Products);
+    MarketManagers::FFamilyRule Family = MarketManagers::FamilyRule(State);
+    Family.ForgetPermille = RoutineForgetPermille(State);
+    Family.bManaged = true; // the family also makes occasional mistakes without a hired manager
+    if (MarketSuppliers::PriceGap(State) > Family.PriceRiseGap && !DelayPriceRise(State)) MarketSuppliers::PassOnPriceRise(State, Products);
     if (State.Books.TaxDue > 0) MarketStaff::PayTax(State);
     if (MarketCampaign::DebtOpen(State) && State.Cash > 4 * MarketCampaign::Installment + 20000) MarketCampaign::PayDebt(State);
     // Morning: the rear door is carried in and the shelves are filled.
@@ -198,6 +200,7 @@ MarketSimulation::FDay MarketSimulation::PlayDay(FMarketState& State, const TArr
         const TArray<float> Scales = MarketDirector::OrderScales(State, Products);
         MarketOrderAdvice::FillSuggested(State, Products, Draft, &Scales);
         MarketManagers::ShapeFamilyOrder(State, Family, Draft);
+        for (int32& Cases : Draft) Cases = FMath::Clamp(Cases, 0, MarketOrderAdvice::MaxCases);
         int64 Bill = 0;
         for (int32 I = 0; I < Draft.Num(); ++I) Bill += Draft[I] * MarketOrderAdvice::CaseUnits(Products[I]) * Products[I].Cost;
         const int64 OrderCash = State.Cash;
@@ -223,30 +226,6 @@ MarketSimulation::FDay MarketSimulation::PlayDay(FMarketState& State, const TArr
     return Day;
 }
 
-int32 MarketSimulation::Advance(FMarketState& State, const TArray<FMarketProduct>& CatalogBase, TArray<FMarketProduct>& Products, int32 Days, FString& OutSummary)
-{
-    FDay Total;
-    int32 Played = 0;
-    FString Reason;
-    for (; Played < FMath::Clamp(Days, 1, 31);)
-    {
-        if (MarketEvents::Pending(State)) { Reason = TEXT("bir karar seni bekliyor"); break; }
-        if (State.Stock.Num() != Products.Num()) { Reason = TEXT("stok kay\u0131tlar\u0131 katalogla uyu\u015fmuyor"); break; }
-        const int32 WeekBefore = State.LastWeekNumber;
-        const FDay Day = PlayDay(State, CatalogBase, Products);
-        ++Played;
-        Total.Shoppers += Day.Shoppers; Total.Served += Day.Served; Total.Lost += Day.Lost;
-        Total.Revenue += Day.Revenue; Total.Profit += Day.Profit; Total.Ordered += Day.Ordered;
-        if (State.Cash < 0) { Reason = TEXT("kasa eksiye d\u00fc\u015ft\u00fc"); break; }
-        if (MarketEvents::Pending(State)) { Reason = TEXT("bir karar seni bekliyor"); break; }
-        if (State.LastWeekNumber != WeekBefore && Played < Days) { Reason = TEXT("hafta bitti, raporuna bak"); break; }
-    }
-    OutSummary = FString::Printf(TEXT("%d g\u00fcn ilerledi: %d m\u00fc\u015fteri, %d sat\u0131\u015f, %d kay\u0131p; ciro %s, net %s, sipari\u015f %s."),
-        Played, Total.Shoppers, Total.Served, Total.Lost, *SimTl(Total.Revenue), *SimTl(Total.Profit), *SimTl(Total.Ordered));
-    if (!Reason.IsEmpty()) OutSummary += FString::Printf(TEXT(" Durdu: %s."), *Reason);
-    return Played;
-}
-
 bool MarketSimulation::AdjustPrice(FMarketState& State, const TArray<FMarketProduct>& Products, int32 Index, bool bUp)
 {
     if (!State.Stock.IsValidIndex(Index) || !Products.IsValidIndex(Index)) return false;
@@ -255,4 +234,154 @@ bool MarketSimulation::AdjustPrice(FMarketState& State, const TArray<FMarketProd
     const int64 Step = MarketDemand::PriceStep(Products[Index]);
     Item.Price = FMath::Clamp<int64>(Item.Price + (bUp ? Step : -Step), 10, Products[Index].BasePrice * 3);
     return Item.Price != Previous;
+}
+int32 MarketSimulation::RoutineSkill(const FMarketState& State)
+{
+    const MarketManagers::FFamilyRule Family = MarketManagers::FamilyRule(State);
+    return Family.bManaged ? Family.Skill : 55; // familiar family routine, not perfect management
+}
+int32 MarketSimulation::RoutineForgetPermille(const FMarketState& State)
+{
+    return FMath::Clamp((85 - RoutineSkill(State)) * 4, 0, 340);
+}
+bool MarketSimulation::DelayPriceRise(const FMarketState& State)
+{
+    const int32 Chance = FMath::Clamp((80 - RoutineSkill(State)) * 6, 0, 480);
+    return static_cast<int32>(SimMix(State.RivalSeed, State.Day, 0xA3F1u) % 1000u) < Chance;
+}
+int32 MarketSimulation::RequestedDays(const FMarketState& State, ETurn Turn)
+{
+    if (Turn == ETurn::Week) return 7;
+    if (Turn == ETurn::Month)
+    {
+        const MarketCalendar::FDate Date = MarketCalendar::DateOf(State.Day);
+        return MarketCalendar::DaysInMonth(Date.Year, Date.Month) - Date.Day + 1;
+    }
+    return 1;
+}
+FString MarketSimulation::StopMessage(EStop Reason, int32 Played)
+{
+    const TCHAR* Why = TEXT("tur tamamlandi");
+    switch (Reason)
+    {
+    case EStop::Decision: Why = TEXT("bir karar seni bekliyor"); break;
+    case EStop::NegativeCash: Why = TEXT("kasa eksiye dustu"); break;
+    case EStop::WeekReport: Why = TEXT("hafta ozeti hazir"); break;
+    case EStop::MonthReport: Why = TEXT("ay ozeti hazir"); break;
+    case EStop::Chapter: Why = TEXT("yeni hikaye bolumu acildi"); break;
+    case EStop::ImportantEvent: Why = TEXT("onemli bir gelisme var, kararlara bak"); break;
+    case EStop::InvalidCatalog: Why = TEXT("stok kaydi katalogla uyusmuyor"); break;
+    case EStop::CampaignOver: Why = TEXT("bu kampanya sona erdi"); break;
+    default: break;
+    }
+    return FString::Printf(TEXT("%d gun ilerledi; %s."), Played, Why);
+}
+namespace MarketSimulation
+{
+    struct FSignals
+    {
+        int32 Chapter = 0;
+        TArray<int32> Wars, Caught;
+        TArray<FString> DepotCaught;
+        explicit FSignals(const FMarketState& State)
+        {
+            Chapter = State.Story.Chapter;
+            for (const FMarketCompetitor& Rival : State.Competitors) Wars.Add(Rival.WarUntil);
+            for (const FMarketBranch& Branch : State.Branches) Caught.Add(Branch.ManagerCaughtDay);
+            for (const FMarketDepot& Depot : State.Company.DepotSites) DepotCaught.Add(Depot.CaughtName);
+        }
+        bool Important(const FMarketState& State) const
+        {
+            for (int32 Index = 0; Index < State.Competitors.Num(); ++Index)
+                if (State.Competitors[Index].WarUntil >= State.Day && State.Competitors[Index].WarUntil > (Wars.IsValidIndex(Index) ? Wars[Index] : 0)) return true;
+            for (int32 Index = 0; Index < State.Branches.Num(); ++Index)
+                if (State.Branches[Index].ManagerCaughtDay > (Caught.IsValidIndex(Index) ? Caught[Index] : 0)) return true;
+            for (int32 Index = 0; Index < State.Company.DepotSites.Num(); ++Index)
+                if (!State.Company.DepotSites[Index].CaughtName.IsEmpty() && State.Company.DepotSites[Index].CaughtName != (DepotCaught.IsValidIndex(Index) ? DepotCaught[Index] : FString())) return true;
+            return false;
+        }
+    };
+    EStop BeforeTurn(const FMarketState& State, const TArray<FMarketProduct>& Products)
+    {
+        if (State.Story.bCampaignOver) return EStop::CampaignOver;
+        if (State.Stock.Num() != Products.Num() || Products.IsEmpty()) return EStop::InvalidCatalog;
+        if (State.Cash < 0) return EStop::NegativeCash;
+        if (MarketEvents::Pending(State)) return EStop::Decision;
+        return EStop::None;
+    }
+    FTurn PlayTurn(FMarketState& State, const TArray<FMarketProduct>& Base, TArray<FMarketProduct>& Products, int32 Requested, ETurn Kind, const FHooks& Hooks)
+    {
+        FTurn Result; Result.Requested = FMath::Clamp(Requested, 1, FMath::Clamp(Hooks.MaxDays, 1, 31));
+        const int32 First = State.Day;
+        for (; Result.Played < Result.Requested;)
+        {
+            Result.Stop = BeforeTurn(State, Products);
+            if (Result.Stop != EStop::None) break;
+            if (Hooks.BeforeDay) Hooks.BeforeDay();
+            // Policy commands can offer a new choice or exhaust the cash before a day starts.
+            Result.Stop = BeforeTurn(State, Products);
+            if (Result.Stop != EStop::None) break;
+            const FSignals Before(State);
+            const FDay Today = PlayDay(State, Base, Products, Hooks.bAutoOrder);
+            ++Result.Played;
+            Result.Total.Shoppers += Today.Shoppers; Result.Total.Served += Today.Served; Result.Total.Lost += Today.Lost;
+            Result.Total.Revenue += Today.Revenue; Result.Total.Profit += Today.Profit; Result.Total.Ordered += Today.Ordered;
+            Result.Total.AuditFailures += Today.AuditFailures;
+            if (Hooks.AfterDay) Hooks.AfterDay(Today);
+            Result.Stop = BeforeTurn(State, Products);
+            if (Result.Stop != EStop::None) break;
+            if (State.Story.Chapter != Before.Chapter) { Result.Stop = EStop::Chapter; break; }
+            if (Before.Important(State)) { Result.Stop = EStop::ImportantEvent; break; }
+            // A seven-day request crosses the intervening calendar week; it never ends after 1..6 days for a report.
+        }
+        if (Result.Stop == EStop::None)
+        {
+            if (Kind == ETurn::Week) Result.Stop = EStop::WeekReport;
+            else if (Kind == ETurn::Month && MarketCalendar::DateOf(State.Day).Day == 1) Result.Stop = EStop::MonthReport;
+            else if ((State.Day - 1) % 7 == 0 && Result.Played > 0) Result.Stop = EStop::WeekReport;
+        }
+        Result.Period = Summary(State, First, State.Day - 1);
+        Result.Message = StopMessage(Result.Stop, Result.Played);
+        return Result;
+    }
+}
+MarketSimulation::FTurn MarketSimulation::AdvanceTurn(FMarketState& State, const TArray<FMarketProduct>& CatalogBase, TArray<FMarketProduct>& Products, ETurn Turn, const FHooks& Hooks)
+{
+    return PlayTurn(State, CatalogBase, Products, RequestedDays(State, Turn), Turn, Hooks);
+}
+int32 MarketSimulation::Advance(FMarketState& State, const TArray<FMarketProduct>& CatalogBase, TArray<FMarketProduct>& Products, int32 Days, FString& OutSummary)
+{
+    const ETurn Kind = Days == 7 ? ETurn::Week : ETurn::Day;
+    const FTurn Result = PlayTurn(State, CatalogBase, Products, Days, Kind, FHooks());
+    OutSummary = Result.Message;
+    return Result.Played;
+}
+MarketSimulation::FPeriod MarketSimulation::Summary(const FMarketState& State, int32 FirstDay, int32 LastDay)
+{
+    FPeriod Result; Result.FirstDay = FMath::Max(1, FirstDay); Result.LastDay = FMath::Min(State.Day - 1, LastDay);
+    if (Result.LastDay < Result.FirstDay) return Result;
+    int32 LastSeen = 0;
+    for (const FMarketDayRecord& Record : State.History)
+    {
+        if (Record.Day < Result.FirstDay || Record.Day > Result.LastDay) continue;
+        ++Result.RecordedDays; Result.Revenue += Record.Revenue; Result.Profit += Record.Profit;
+        Result.Served += Record.Served; Result.Lost += Record.Lost;
+        if (Record.Day >= LastSeen) { LastSeen = Record.Day; Result.ClosingCash = Record.Cash; }
+    }
+    Result.MissingDays = FMath::Max(0, Result.LastDay - Result.FirstDay + 1 - Result.RecordedDays);
+    return Result;
+}
+MarketSimulation::FPeriod MarketSimulation::WeekSummary(const FMarketState& State, int32 ClosedDay)
+{
+    const int32 Anchor = ClosedDay > 0 ? FMath::Min(State.Day - 1, ClosedDay) : State.Day - 1;
+    if (Anchor < 1) return FPeriod();
+    const int32 First = (Anchor - 1) / 7 * 7 + 1;
+    return Summary(State, First, FMath::Min(Anchor, First + 6));
+}
+MarketSimulation::FPeriod MarketSimulation::MonthSummary(const FMarketState& State, int32 ClosedDay)
+{
+    const int32 Anchor = ClosedDay > 0 ? FMath::Min(State.Day - 1, ClosedDay) : State.Day - 1;
+    if (Anchor < 1) return FPeriod();
+    const MarketCalendar::FDate Date = MarketCalendar::DateOf(Anchor);
+    return Summary(State, MarketCalendar::GameDayOf(Date.Year, Date.Month, 1), Anchor);
 }

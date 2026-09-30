@@ -54,7 +54,7 @@ namespace MarketAutoPlay
         TArray<FString> Errors;
     };
     // Pure campaign runner; never writes player saves, creates actors or grants money/stock.
-    FReport Run(const FOptions& Options, const TArray<FMarketProduct>& Base, const TArray<int32>& Capacities);
+    FReport Run(const FOptions& Options, const TArray<FMarketProduct>& Base, const TArray<int32>& Capacities, int32 RestoreSeed = 0);
     bool LoadInputs(TArray<FMarketProduct>& OutBase, TArray<int32>& OutCapacities, TArray<FString>& OutErrors);
     // Runtime output path is supplied separately: timestamps affect filenames only, never decisions.
     bool WriteReport(const FReport& Report, const FString& Directory);

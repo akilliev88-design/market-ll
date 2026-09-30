@@ -5,6 +5,7 @@
 #include "GameFramework/HUD.h"
 #include "GameFramework/SaveGame.h"
 #include "MarketEconomy.h"
+#include "MarketSimulation.h"
 #include "Planogram.h"
 #include "MarketVisuals.h"
 #include "MarketPeople.h"
@@ -183,6 +184,9 @@ public:
     AMarketGameMode();
     virtual void InitGame(const FString& MapName, const FString& Options, FString& ErrorMessage) override;
     virtual void BeginPlay() override;
+    // C: connect day/week/month menu buttons to this common entry.
+    bool AdvanceTime(MarketSimulation::ETurn Turn);
+    MarketSimulation::FTurn LastAdvance;
     virtual void Tick(float DeltaTime) override;
     UPROPERTY() TArray<FMarketProduct> Products;
     UPROPERTY() FMarketState State;

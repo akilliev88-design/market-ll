@@ -117,24 +117,34 @@ namespace MarketAutoPlay
         if (Stores >= 8) Command(State, Products, TEXT("Build"), 2, Run);
         if (MarketDepots::Count(State) > 0 && State.Company.Trucks < MarketDepots::TrucksNeeded(State)) Command(State, Products, TEXT("Build"), 1, Run);
         if (Stores >= 20) Command(State, Products, TEXT("Build"), 3, Run);
-        int32 BestArg = INDEX_NONE;
-        int64 BestCost = MAX_int64;
+        TArray<MarketBranches::FSite> Sites;
         for (const MarketCountry::FProfile& Country : MarketCountry::All())
         {
             if (Country.Id != State.CountryId && !MarketCompany::ChapterOpen(State, 6)) continue;
             for (const MarketCountry::FCity& Province : Country.Cities)
             {
-                if (Province.Id != State.CityId && (!MarketStaff::HasHr(State) || !MarketStaff::HasAccountant(State))) continue;
-                FString Reason;
-                const FString Format = Profile.Style == EStyle::Bold ? TEXT("kucuk") : TEXT("mahalle");
-                const int64 Cost = MarketBranches::OpeningCost(State, Products, Country.Id, Province.Id, Format);
-                if (Cost >= BestCost || State.Cash < FMath::RoundToInt64(Cost * Profile.ExpansionBuffer) + Reserve) continue;
-                if (!MarketBranches::CanOpen(State, Products, Country.Id, Province.Id, Format, Reason)) continue;
-                BestCost = Cost;
-                BestArg = MarketBranches::EncodeSite(Country.Id, Province.Id, Format);
+                const auto Site = MarketBranches::SiteOf(State, Country.Id, Province.Id);
+                if (!Site.bHome && (!MarketStaff::HasHr(State) || !MarketStaff::HasAccountant(State))) continue;
+                if (MarketBranches::ShopsIn(State, Country.Id, Province.Id) >= MarketBranches::Room(Site)) continue;
+                Sites.Add(Site);
             }
         }
-        if (BestArg != INDEX_NONE) Command(State, Products, TEXT("OpenBranch"), BestArg, Run);
+        Sites.Sort([&](const MarketBranches::FSite& Left, const MarketBranches::FSite& Right)
+        {
+            const float A = Left.Rent / FMath::Max(0.1f, Left.Income) + MarketBranches::ShopsIn(State, Left.Country, Left.Province) * 0.25f;
+            const float B = Right.Rent / FMath::Max(0.1f, Right.Income) + MarketBranches::ShopsIn(State, Right.Country, Right.Province) * 0.25f;
+            return A == B ? Left.Country + Left.Province < Right.Country + Right.Province : A < B;
+        });
+        if (Sites.IsEmpty()) return;
+        // Investigate one visible site per growth turn. OpeningCost plans shelves and is deliberately not run
+        // for every province every week; map rent/income and our crowding choose which site to investigate.
+        const auto& Site = Sites[0];
+        const FString Format = Profile.Style == EStyle::Bold ? TEXT("kucuk") : TEXT("mahalle");
+        FString Reason;
+        if (!MarketBranches::CanOpen(State, Products, Site.Country, Site.Province, Format, Reason)) return;
+        const int64 Cost = MarketBranches::OpeningCost(State, Products, Site.Country, Site.Province, Format);
+        if (State.Cash >= FMath::RoundToInt64(Cost * Profile.ExpansionBuffer) + Reserve)
+            Command(State, Products, TEXT("OpenBranch"), MarketBranches::EncodeSite(Site.Country, Site.Province, Format), Run);
     }
     int64 PlaceOrder(FMarketState& State, const TArray<FMarketProduct>& Products, const FProfile& Profile, FRun& Trial)
     {
@@ -182,6 +192,7 @@ namespace MarketAutoPlay
     {
         TArray<FString> Errors;
         auto Check = [&](bool Value, const TCHAR* Text) { if (!Value) Errors.AddUnique(Text); };
+        Check(State.IsValidFor(Products), TEXT("Kayit yapisi veya katalog eslesmesi gecersiz."));
         Check(State.Stock.Num() == Products.Num(), TEXT("Stok ve katalog satirlari uyusmuyor."));
         Check(FMath::IsFinite(State.MarketShare) && State.MarketShare >= 0 && State.MarketShare <= 100, TEXT("Pazar payi sinir disinda."));
         Check(FMath::IsFinite(State.ShelfPriceLevel) && State.ShelfPriceLevel > 0, TEXT("Fiyat duzeyi gecersiz."));
@@ -241,13 +252,13 @@ namespace MarketAutoPlay
         Mark(TEXT("5 il"), MarketCompany::Provinces(State) >= 5);
         Mark(TEXT("Ikinci ulke"), MarketCompany::ForeignCountries(State) > 0);
     }
-    FReport Run(const FOptions& Options, const TArray<FMarketProduct>& Base, const TArray<int32>& Capacities)
+    FReport Run(const FOptions& Options, const TArray<FMarketProduct>& Base, const TArray<int32>& Capacities, int32 RestoreSeed)
     {
         FReport Report; Report.Options = Options;
         const double Started = FPlatformTime::Seconds();
         if (Base.IsEmpty() || Capacities.Num() != Base.Num() || !MarketCountry::FindCity(Options.Country, Options.Province) || Options.Days < 1 || Options.Days > 10958 || Options.Seeds < 1 || Options.Seeds > 100)
         { Report.Errors.Add(TEXT("Katalog, raf plani, ulke, il ya da kosu suresi gecersiz.")); return Report; }
-        const FString PreviousCountry = MarketCountry::Active().Id;
+        const MarketCountry::FProfile PreviousCountry = MarketCountry::Active();
         for (const FProfile& Profile : Profiles()) for (int32 SeedIndex = 0; SeedIndex < Options.Seeds; ++SeedIndex)
         {
             FRun Trial; Trial.Profile = Profile.Name; Trial.Seed = Options.FirstSeed + SeedIndex;
@@ -259,19 +270,27 @@ namespace MarketAutoPlay
             State.ApplyShelfCapacities(Capacities);
             MarketStart::StockShelvesPartly(State, Trial.Seed);
             FRow Week;
-            for (int32 DayIndex = 0; DayIndex < Options.Days; ++DayIndex)
+            int32 DayIndex = 0;
+            while (DayIndex < Options.Days)
             {
                 ResolveChoices(State, Products, Profile, Trial);
-                SetPrices(State, Products, Profile);
-                Manage(State, Products, Profile, Trial);
-                Grow(State, Products, Profile, Trial);
-                const int64 Payroll = State.DailyPayroll();
-                const int64 TaxBefore = State.Books.TotalTaxPaid;
-                
-                
-                const int64 Ordered = PlaceOrder(State, Products, Profile, Trial);
-                MarketSimulation::FDay DayResult = MarketSimulation::PlayDay(State, Base, Products, false);
-                DayResult.Ordered = Ordered;
+                int64 Payroll = 0, TaxBefore = 0, Ordered = 0;
+                bool BeforeCalled = false;
+                MarketSimulation::FHooks Hooks;
+                Hooks.bAutoOrder = false;
+                Hooks.MaxDays = FMath::Min(31, Options.Days - DayIndex);
+                Hooks.BeforeDay = [&]()
+                {
+                    BeforeCalled = true;
+                    SetPrices(State, Products, Profile);
+                    Manage(State, Products, Profile, Trial);
+                    Grow(State, Products, Profile, Trial);
+                    Payroll = State.DailyPayroll(); TaxBefore = State.Books.TotalTaxPaid;
+                    Ordered = PlaceOrder(State, Products, Profile, Trial);
+                };
+                Hooks.AfterDay = [&](const MarketSimulation::FDay& Raw)
+                {
+                    MarketSimulation::FDay DayResult = Raw; DayResult.Ordered = Ordered;
                 Trial.AuditFailures += DayResult.AuditFailures;
                 Trial.BackgroundNet += DayResult.BackgroundCashDelta;
                 const TArray<FString> Problems = Validate(State, Products);
@@ -305,11 +324,21 @@ namespace MarketAutoPlay
                 Week.Stores = Today.Stores; Week.Provinces = Today.Provinces; Week.Workers = Today.Workers; Week.Share = Today.Share;
                 if (State.Day % 7 == 1 || DayIndex + 1 == Options.Days) { Trial.Weekly.Add(Week); Week = FRow(); }
                 Milestones(State, Trial);
+                    ++DayIndex;
+                };
+                const MarketSimulation::FTurn Turn = MarketSimulation::AdvanceTurn(State, Base, Products, MarketSimulation::ETurn::Month, Hooks);
+                if (Turn.Played == 0)
+                {
+                    // The normal UI stops on cash trouble. The bot keeps observing recovery/late bills, one
+                    // ordinary PlayDay at a time, instead of freezing the ten-year report at that first stop.
+                    if (!BeforeCalled) Hooks.BeforeDay();
+                    Hooks.AfterDay(MarketSimulation::PlayDay(State, Base, Products, false));
+                }
             }
             UE_LOG(LogTemp, Display, TEXT("AutoPlay %s seed %d: %d days, cash %lld, stores %d, audit failures %d"), *Trial.Profile, Trial.Seed, Trial.Daily.Num(), Trial.Daily.Last().Cash, Trial.Daily.Last().Stores, Trial.AuditFailures);
             Report.Runs.Add(MoveTemp(Trial));
         }
-        MarketCountry::SetActive(PreviousCountry, 0);
+        MarketCountry::SetActiveProfile(PreviousCountry, RestoreSeed);
         Report.Seconds = FPlatformTime::Seconds() - Started;
         return Report;
     }
@@ -320,6 +349,14 @@ namespace MarketAutoPlay
             for (const FRow& Value : bWeekly ? Trial.Weekly : Trial.Daily)
                 Output += FString::Printf(TEXT("%s,%d,%d,%lld,%lld,%lld,%lld,%d,%d,%.8f,%d\n"), *Trial.Profile, Trial.Seed, Value.Day, Value.Cash, Value.Debt, Value.Profit, Value.Revenue, Value.Stores, Value.Provinces, Value.Share, Value.Workers);
         return Output;
+    }
+    FString ReportMoney(const FReport& Report, int64 Amount)
+    {
+        const MarketCountry::FProfile* Country = MarketCountry::Find(Report.Options.Country);
+        if (!Country) return FString::Printf(TEXT("%lld kurus"), Amount);
+        const int64 Local = FMath::RoundToInt64(static_cast<double>(Amount) * Country->DisplayScale);
+        const int64 Magnitude = FMath::Abs(Local);
+        return FString::Printf(TEXT("%s%lld%c%02lld %s"), Local < 0 ? TEXT("-") : TEXT(""), Magnitude / 100, Country->DecimalMark, Magnitude % 100, *Country->CurrencySymbol);
     }
     bool WriteReport(const FReport& Report, const FString& Directory)
     {
@@ -333,7 +370,7 @@ namespace MarketAutoPlay
         {
             const FRow& Last = Trial.Daily.Last();
             Broke += Trial.NegativeDays > 0 ? 1 : 0; Expanded += Last.Stores > 1 ? 1 : 0; Failures += Trial.AuditFailures;
-            Text += FString::Printf(TEXT("| %s | %d | %s | %s | %d | %d | %.4f%% | %d | %d | %d |\n"), *Trial.Profile, Trial.Seed, *MarketCountry::Money(Last.Cash), *MarketCountry::Money(Last.Debt), Last.Stores, Last.Provinces, Last.Share, Trial.NegativeDays, Trial.TroubleDays, Trial.AuditFailures);
+            Text += FString::Printf(TEXT("| %s | %d | %s | %s | %d | %d | %.4f%% | %d | %d | %d |\n"), *Trial.Profile, Trial.Seed, *ReportMoney(Report, Last.Cash), *ReportMoney(Report, Last.Debt), Last.Stores, Last.Provinces, Last.Share, Trial.NegativeDays, Trial.TroubleDays, Trial.AuditFailures);
             if (Last.Cash > 0) LowestPositive = FMath::Min(LowestPositive, Last.Cash);
             Highest = FMath::Max(Highest, Last.Cash);
         }
@@ -352,15 +389,36 @@ namespace MarketAutoPlay
             TArray<FString> Names; Trial.Expenses.GetKeys(Names);
             Names.Sort([&](const FString& Left, const FString& Right) { const int64 A = Trial.Expenses[Left], B = Trial.Expenses[Right]; return A == B ? Left < Right : A > B; });
             Text += TEXT("\nEn buyuk 5 yuk (nakit gideri, stok yatirimi ve fire ayri anlam tasir):\n\n");
-            for (int32 Index = 0; Index < FMath::Min(5, Names.Num()); ++Index) Text += FString::Printf(TEXT("- %s: %s.\n"), *Names[Index], *MarketCountry::Money(Trial.Expenses[Names[Index]]));
-            Text += FString::Printf(TEXT("\nArka planin kasaya toplam net etkisi: %s. Reddedilen komut: %d.\n"), *MarketCountry::Money(Trial.BackgroundNet), Trial.RejectedDecisions);
+            for (int32 Index = 0; Index < FMath::Min(5, Names.Num()); ++Index) Text += FString::Printf(TEXT("- %s: %s.\n"), *Names[Index], *ReportMoney(Report, Trial.Expenses[Names[Index]]));
+            Text += FString::Printf(TEXT("\nArka planin kasaya toplam net etkisi: %s. Reddedilen komut: %d.\n"), *ReportMoney(Report, Trial.BackgroundNet), Trial.RejectedDecisions);
             Text += TEXT("\nNet sonucun kaynagi (kasaya girisle ayni degildir):\n\n");
             TArray<FString> ResultNames; Trial.Results.GetKeys(ResultNames); ResultNames.Sort();
-            for (const FString& Name : ResultNames) Text += FString::Printf(TEXT("- %s: %s.\n"), *Name, *MarketCountry::Money(Trial.Results[Name]));
+            for (const FString& Name : ResultNames) Text += FString::Printf(TEXT("- %s: %s.\n"), *Name, *ReportMoney(Report, Trial.Results[Name]));
             for (const FString& Problem : Trial.Issues) Text += TEXT("- Kontrol: ") + Problem + TEXT("\n");
         }
         Text += TEXT("\n## Denetimin kapsami\n\nSatis fisindeki para, siparis bedeli, ana gun kapanisi ve mal kabul aktarimi bagimsiz hesapla kontrol edilir. Negatif stok, gecersiz sayilar ve pay sinirlari her gun denetlenir. Arka planin net kasa hareketi ayrica olculur; tek tek kalemlerin tam korunum denetimi B'nin muhasebe defteri C tarafindan baglandiginda tamamlanacak. Kasa eksisi oyun sonu degildir; sikinti gunleri ayri sayilir. Lig henuz yok: ulusal ilk 3 ve dunya ilk 10 hedefleri bu raporda olculemez.\n\nFiyatlar normal oyuncunun kullandigi adimlarla degisir. Kredi, sube, depo, yonetici ve kararlar normal komutlardan gecer. Aile dukkani PlayDay ile oynar; test modu, bedava mal veya para kullanilmaz. CSV tutarlari kurustur.\n");
         for (const FString& Error : Report.Errors) Text += TEXT("- Hata: ") + Error + TEXT("\n");
+        struct FTranslation { const TCHAR* From; const TCHAR* To; };
+        const FTranslation Translations[] = {
+            {TEXT("kosu"), TEXT("ko\u015fu")}, {TEXT("gun"), TEXT("g\u00fcn")},
+            {TEXT("magaza"), TEXT("ma\u011faza")}, {TEXT("sube"), TEXT("\u015fube")},
+            {TEXT("Ilk"), TEXT("\u0130lk")}, {TEXT("| Il |"), TEXT("| \u0130l |")},
+            {TEXT("Borc"), TEXT("Bor\u00e7")}, {TEXT("Sikinti"), TEXT("S\u0131k\u0131nt\u0131")},
+            {TEXT("dukkani"), TEXT("d\u00fckk\u00e2n\u0131")}, {TEXT("dukkaninin"), TEXT("d\u00fckk\u00e2n\u0131n\u0131n")},
+            {TEXT("ucret"), TEXT("\u00fccret")}, {TEXT("alim"), TEXT("al\u0131m")},
+            {TEXT("yatirim"), TEXT("yat\u0131r\u0131m")}, {TEXT("Isletme"), TEXT("\u0130\u015fletme")},
+            {TEXT("haric"), TEXT("hari\u00e7")}, {TEXT("odem"), TEXT("\u00f6dem")},
+            {TEXT("cikis"), TEXT("\u00e7\u0131k\u0131\u015f")}, {TEXT("Ust"), TEXT("\u00dcst")},
+            {TEXT("yonetim"), TEXT("y\u00f6netim")}, {TEXT("mudur"), TEXT("m\u00fcd\u00fcr")},
+            {TEXT("ulasilmadi"), TEXT("ula\u015f\u0131lmad\u0131")}, {TEXT("ulasti"), TEXT("ula\u015ft\u0131")},
+            {TEXT("buyuk"), TEXT("b\u00fcy\u00fck")}, {TEXT("kaynak"), TEXT("kaynak")},
+            {TEXT("satis"), TEXT("sat\u0131\u015f")}, {TEXT("Satis"), TEXT("Sat\u0131\u015f")},
+            {TEXT("Diger"), TEXT("Di\u011fer")}, {TEXT("Istismar"), TEXT("\u0130stismar")},
+            {TEXT("suphesi"), TEXT("\u015f\u00fcphesi")}, {TEXT("kapsami"), TEXT("kapsam\u0131")},
+            {TEXT("neye bakmali"), TEXT("neye bakmal\u0131")}, {TEXT("dust u"), TEXT("d\u00fc\u015ft\u00fc")},
+            {TEXT("dustu"), TEXT("d\u00fc\u015ft\u00fc")}, {TEXT("kasa farki"), TEXT("kasa fark\u0131")}
+        };
+        for (const FTranslation& Translation : Translations) Text.ReplaceInline(Translation.From, Translation.To, ESearchCase::CaseSensitive);
         return FFileHelper::SaveStringToFile(Text, *(Directory / TEXT("rapor.md")), FFileHelper::EEncodingOptions::ForceUTF8) &&
             FFileHelper::SaveStringToFile(Csv(Report.Runs, false), *(Directory / TEXT("gunluk.csv")), FFileHelper::EEncodingOptions::ForceUTF8) &&
             FFileHelper::SaveStringToFile(Csv(Report.Runs, true), *(Directory / TEXT("haftalik.csv")), FFileHelper::EEncodingOptions::ForceUTF8);

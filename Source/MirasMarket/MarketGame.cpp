@@ -1585,3 +1585,23 @@ void AMarketHUD::EndPlay(const EEndPlayReason::Type EndPlayReason)
     Menu.Reset();
     Super::EndPlay(EndPlayReason);
 }
+
+bool AMarketGameMode::AdvanceTime(MarketSimulation::ETurn Turn)
+{
+    if (bOpen || bNeedStart || bStoreTour)
+    {
+        Notify(TEXT("Gun ilerletmek icin aile dukkaninin acik gununu once kapat."));
+        return false;
+    }
+    const int32 WeekBefore = State.LastWeekNumber;
+    LastAdvance = MarketSimulation::AdvanceTurn(State, CatalogBase, Products, Turn);
+    bWeekJustEnded = State.LastWeekNumber != WeekBefore;
+    if (LastAdvance.Played > 0)
+    {
+        ResetWorkerJobs(); RefreshDeliveryCrates(); SyncWorkers();
+        RefreshPrices(); RefreshLabels(); SaveCampaign();
+        OpenDayReport();
+    }
+    Notify(LastAdvance.Message);
+    return LastAdvance.Played > 0;
+}
