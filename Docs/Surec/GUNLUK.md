@@ -2,6 +2,14 @@
 
 En yeni giriş en üstte. Biçim: tarih — ajan — başlık, ardından **Yapılan**, **Doğrulama**, **Sıradaki**.
 
+## 30.09.2026 — Codex — G-088 depo kapısı, kolon, duvar ve gezi kaydı
+
+**Yapılan:** Mustafa'nın beş eksik maddesi için depo iç kapısı (mor) koy/taşı/sil; kolon ekle/seç/taşı/köşeden boyut ve dikdörtgen/yuvarlak görünüm; aralıklı paralel raflarda iki eksen hizası ve mavi çizgiler; bina/depo duvarlarını çizgiden/tutamaktan sürükleme. Ortak dış duvar birlikte uzar; raf/kolon/dekor/tabela konumları sabit. Sayısal Resize da artık rafları taşımaz. Geometri çakışması/kesişme geçersiz hareketi atomik reddeder. Kaydetmenin tür bantlarına takılmasını gezi kaydıyla çözdüm: Saved/StoreTours, son mağaza işaretçisi, Kaydet ve gez, F10 özel mağazalar; hazır katalog sözleşmesi korunur. Kayıt hatası görünür açıklama penceresi açar, taslak korunur. İsteğe bağlı depo kapısı/kolon şekli JSON alanları; yeni MarketStoreGeometry/test ve gerçek gezi kontrol betiği. Kılavuz/ekranlar güncel.
+
+**Doğrulama:** DERLE GEÇTİ; TEST 73/73 (bir UE bağlantı uyarısı, başarısız yok); Smoke GEÇTİ. StoreEditorReview gerçek fare olaylarıyla depo kapısı, kolon taşı/köşe boyut/şekil, bina/depo duvar çekme ve önceki seçim/grup/geri alma kontrolleri GEÇTİ. Küçük kolon ortası ile köşeyi ayırt eden hit kontrolü düzeltildi. StoreTourSavedReview eksik reyonlu özel kayıtla gerçek oyun dünyasını kurdu, raf koordinatları ve yürünebilir zemin GEÇTİ; PNG gözle incelendi. Geçici kayıt temizlenir, kullanıcının son mağaza işaretçisi korunur. Kullanıcı taslaklarına ve dört hazır mağazaya doğrulama sırasında yazılmadı.
+
+**Sıradaki:** Mustafa düzenlediği mağazada Kaydet ve gez kullanarak denesin; sonraki MAGAZA_GEZI aynı mağazayı açar. Claude'un şube/ekonomi/oyun kaydı bağlantısı için LoadTour/TourIds girişi mevcut; o dosyalara dokunulmadı. Kalan 16 hazır mağaza A onayından sonra.
+
 ## 30.09.2026 — Codex — G-088 ön/arka ve karşı sıra hizalama
 
 **Yapılan:** Mustafa'nın yan yana raflarda ön/arka ve karşı sırayla hizalama isteği. En kısa temas adayının hizalama adayını bastırması düzeltildi; geçerli ön/arka kenarlar öncelikli. Paralel ve 180 derece karşılıklı raflar koridor boyunca başlangıç/bitiş çizgisine oturur, koridor mesafesi değişmez. Toplu taşıma/ekleme/önizleme aynı çözücü; yaslama kapalıyken serbest konum. Farklı derinlik, ön/arka, 90 derece ve karşı sıra testleri, kılavuz.

@@ -39,15 +39,19 @@ Kütüphanede her ekipmanın gerçek model görseli vardır. Planda bir parçaya
 
 Yaslama ve ızgara seçenekleri yeni parça eklerken de uygulanır; kapatırsan istemediğin yuvarlama yapılmaz. Seçim, döndürme, kopyalama ve kaldırma düğmeleri çalışma alanının üstünde her zaman görünür.
 
-**Ön/arka ve karşı sıra hizası:** Komşuya yasla / hizala açıkken yan yana rafı ön veya arka kenara yaklaştır; kenarlar aynı çizgiye oturur. Arada koridor olan paralel veya karşılıklı raf sıralarında da başlangıç/bitiş kenarına yaklaştırınca hizalanır; koridor genişliği korunur. Toplu seçimde aralarındaki mesafeler değişmez. Serbest konum için Komşuya yasla / hizala seçeneğini kapat.
+**Ön/arka ve karşı sıra hizası:** Komşuya yasla / hizala açıkken rafları kenar veya merkez çizgisine yaklaştır; aynı çizgiye otururlar. Arada koridor olsa da hem yatay hem dikey hizalama çalışır; koridor genişliği korunur. Mavi çizgiler oturan hizayı gösterir. Toplu seçimde aralarındaki mesafeler değişmez. Serbest konum için Komşuya yasla / hizala seçeneğini kapat.
 
 ## Bina, depo ve bölümler
 
 Sağdaki **Bina ve depo** alanları metre cinsindendir: mağaza eni/boyu, depo eni/boyu ve tavan yüksekliği. Değeri yazıp Enter'a bas veya sayıyı sürükle. Kapılar doğrudan plandan taşınır.
 
-Bina boyutları değişince girintili dış hat korunarak ölçeklenir. Ekipman merkezleri, kolonlar ve tabelalar yeni boyuta taşınır; ekipmanların gerçek ölçüleri değişmez. Küçültme sonrasında kırmızı ekipmanları düzelt. Depo arka taraftadır; eni ve boyu bağımsız değişir.
+**Duvarı tutup çek:** bina ve deponun duvar çizgilerini veya çizgi üzerindeki renkli tutamakları sürükle. Turuncu bina, mavi depo tutamağıdır. Yalnız çektiğin duvar hareket eder; rafların, kolonların, dekorun ve tabelaların konumu değişmez. Deponun iç duvarını çekince depo büyür/küçülür. Dış duvarını çekince ortak bina duvarı da gider. Raf/kolon üstüne küçültme ve duvarların birbirini kesmesi kabul edilmez; son geçerli konum korunur. Sayısal ölçü değişikliği de rafları taşımaz. Ctrl+Z geri alır.
 
 **Kapı taşıma:** yeşil giriş veya mavi mal kabul kapısını tutup istediğin dış duvara sürükle. Kapı kendiliğinden duvara oturur ve köşelerden yeterli pay bırakır. Sağdaki **Kapılar > Giriş kapısı / Mal kabul kapısı** düğmeleri kapıyı seçip yakından gösterir. Giriş taşınırken oyuncunun başlangıç konumu/yönü ve müşteri geliş noktası da yeni duvara göre ayarlanır. Kapıların üst üste gelmesi engellenir; geri al çalışır. Sağ/sol sayısal kapı koordinatları kaldırıldı.
+
+**Depo kapısı:** sağdan **Depo kapısı ekle / taşı** düğmesine bas, deponun iç duvarında istediğin yere tıkla. Mor kapı mal kabul kapısından ayrıdır. Tutup başka iç duvara sürükleyebilirsin; Del ile kaldırılır. Duvarı hareket ettirince kapı da duvarda kalır. Gerçek gezi dünyasında seçtiğin yerde geçilebilir açıklık oluşturulur.
+
+**Kolon:** sağdan **Kolon ekle**, ardından planda boş yere tıkla. Mevcut kolonu da doğrudan seçebilirsin. Ortasını tutup taşı; sarı köşesini çekerek boyutlandır. Seçilince sağda **Dikdörtgen / Yuvarlak** ve en/boy alanları görünür. Del kaldırır, Ctrl+Z geri alır. Raf veya diğer kolonla çakışan konumlar kabul edilmez. Yuvarlak kolon gezi dünyasında da yuvarlaktır.
 
 **Kasap**, **Şarküteri**, **Manav** ve **Teknoloji** düğmeleri boş alana ilgili ekipmanları ve bölüm tabelasını ekler. Kasapta servis ve hazırlık tezgâhı; teknolojide deneme masası ve duvar teşhiri vardır. Parçaları sonrasında ayrı ayrı taşıyabilirsin. Yeterli alan yoksa bütün bölüm ekleme işlemi geri alınır.
 
@@ -60,7 +64,8 @@ Sağ paneli aşağı kaydırınca **Zemin** ayarları görünür: krem, açık/k
 - **Oyuna kaydet**: `Config/magazalar.json` içindeki seçili mağazayı günceller. Alan, kasa, raf, soğutma bantları ve zorunlu bölümler doğrulanır. `stats` ekipmandan yeniden hesaplanır. Hatalı düzen katalog üzerine yazılmaz.
 - Dosya değiştirilmeden önce `Saved/StoreBackups/` altında tarihli yedek alınır. Yazma geçici dosya üzerinden yapılır.
 - Kaydedilmemiş bir mağazadan diğerine geçerken taslak otomatik korunur; hatalı geometri varsa geçiş engellenir. Pencereyi kapatmadan **Taslak kaydet** kullan.
-- Oyuna kaydettiğin mağazayı `MAGAZA_GEZI.cmd` ile gezebilirsin: F10 mağaza değiştirir, F3/F7 rafları rastgele doldurur.
+- **Oyuna kaydet:** gezilebilir düzen `Saved/StoreTours/<id>.json` içinde saklanır; eksik reyon veya hazır tür bantları gezmeyi engellemez. Geometri çakışması varsa kayıt yapılmaz ve açıklama penceresi açılır. Tam hazır mağaza sözleşmesini sağlayanlar ayrıca `Config/magazalar.json` içine aktarılır. Taslak da aynı düzenle korunur.
+- **Kaydet ve gez:** mevcut mağazayı kaydedip doğrudan oyun dünyasında açar. `MAGAZA_GEZI.cmd` son kaydettiğin mağazayla başlar; istersen dosyaya kimlik argümanı verebilirsin. F10 hazır ve kaydedilmiş mağazalar arasında geçer, F3/F7 rafları rastgele doldurur. Gezi başlığında mağazanın adı ve kimliği görünür.
 
 Aile bakkalının elle dizilmiş düzeni bu editörün mağaza kataloğuna dahil değildir. Ekonomi, şube ataması ve oyun kayıt bağlantıları Claude'un alanıdır. Editör doğrudan stok veya para değiştirmez.
 
@@ -77,5 +82,8 @@ Referans: [BUZ teşhir reyonları](http://www.buzrefrigeration.com/tr/urun/teshi
 - Üretim: `Tools/Blender/create_display_cabinets.py`; kontrol: `Tools/Blender/check_display_cabinets.py`; aktarım: `Tools/import_display_cabinets.py`, `Tools/create_store_surface.py`.
 - Otomatik ekran/işlem kontrolü: `powershell -File Tools/StoreEditorReview.ps1`; görüntüler `Saved/Screenshots/StoreEditor/`.
 - Düzenlenebilir kabukla gerçek oyun gezisi kontrolü: `powershell -File Tools/StoreTourTest.ps1 -EditableShell`; dört mağazada zemin/yürüyüş/rastgele dolum kontrol edilir, katalog değiştirilmez.
+- Editör kaydının aynı raf konumlarıyla oyun dünyasında açılması: `powershell -File Tools/StoreTourSavedReview.ps1`; geçici test mağazası sonrasında kaldırılır, kullanıcının son mağaza seçimi korunur.
 
 `editableShell`, `floorColor` (doğrusal RGB) ve `floorFinish` isteğe bağlı mağaza alanlarıdır. Eski mağazalar değiştirilene kadar Blender kabuklarını kullanır. Düzenlenen mağazada dış hat, depo, kapılar ve kolonlar çalışma anında instanced geometri ile kurulur; yüksek büyük mağazalarda tesisatlı tavan devam eder.
+
+Geriye uyumlu isteğe bağlı alanlar: `points.depotDoor` (`at`, `yaw`), `points.hasDepotDoor`, kolonlarda `shape` (`rectangle` / `round`). Eski belgelerde depo kapısı ön duvarın ortası, kolon şekli dikdörtgen kabul edilir. Tek duvar genişletilirken dünya orijini ve ekipman koordinatları sabit kalır; `footprintCm` orijine göre kabuğu kapsayan sınır, gerçek alan ise `outlineCm` çokgeninden hesaplanır.

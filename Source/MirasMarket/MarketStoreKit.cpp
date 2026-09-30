@@ -77,7 +77,7 @@ bool MarketStoreKit::Parse(const FString& Json,TArray<FStoreTemplate>& Out,TArra
             {
                 const auto Ob=Value->AsObject(); FStoreObstacle Entry;
                 if(!Ob.IsValid()||!Ob->TryGetStringField(TEXT("id"),Entry.Id)||!Ob->TryGetStringField(TEXT("kind"),Entry.Kind)||!StoreData::Vector(Ob,TEXT("at"),Entry.At)||!StoreData::Vector(Ob,TEXT("sizeCm"),Entry.Size)) Errors.Add(TEXT("Invalid obstacle: ")+S.Id);
-                else S.Obstacles.Add(Entry);
+                else {Ob->TryGetStringField(TEXT("shape"),Entry.Shape);S.Obstacles.Add(Entry);}
             }
             if((*Architecture)->TryGetArrayField(TEXT("sections"),Values)) for(const auto& Value:*Values)
             {
@@ -92,6 +92,8 @@ bool MarketStoreKit::Parse(const FString& Json,TArray<FStoreTemplate>& Out,TArra
             && StoreData::Vector(*Back,TEXT("min"),Lo) && StoreData::Vector(*Back,TEXT("max"),Hi);
         if (!Valid) { Errors.Add(TEXT("Invalid store points: ")+S.Id); continue; }
         S.Backroom=FBox(Lo,Hi);
+        S.DepotDoor.At=FVector(FMath::Clamp(0.,Lo.X+90,Hi.X-90),Lo.Y,0);S.DepotDoor.Yaw=90;
+        StoreData::Point(*Points,TEXT("depotDoor"),S.DepotDoor);(*Points)->TryGetBoolField(TEXT("hasDepotDoor"),S.bHasDepotDoor);
         const TArray<TSharedPtr<FJsonValue>>* Spawns=nullptr;
         if ((*Points)->TryGetArrayField(TEXT("customerSpawn"),Spawns))
             for (const auto& Spawn:*Spawns)

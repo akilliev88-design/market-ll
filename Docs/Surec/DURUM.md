@@ -1,6 +1,6 @@
 # Güncel durum
 
-Son güncelleme: 30.09.2026 — Codex (G-088 ön/arka kenar ve koridor karşısı raf hizalama)
+Son güncelleme: 30.09.2026 — Codex (G-088 depo kapısı, kolon, duvar ve gezi kaydı)
 
 ## Kısaca
 
@@ -20,6 +20,7 @@ GitHub ana deposu: `https://github.com/m07tas/market-ll` (`main`). Unreal/Blende
 
 | Kontrol | Sonuç |
 |---|---|
+| G-088 depo kapısı, kolon, duvar ve gezi kaydı | DERLE GEÇTİ; TEST 73/73; Smoke, gerçek editörde mimari sürükleme ve kaydedilen özel mağazanın oyun gezisi GEÇTİ; PNG'ler incelendi — 30.09.2026 |
 | G-088 ön/arka ve karşı sıra hizalama | DERLE GEÇTİ; TEST 72/72; yeni kenar/90 derece/karşı sıra testi ve gerçek StoreEditorReview GEÇTİ — 30.09.2026 |
 | G-088 resimli ekipman ve kapı taşıma | DERLE GEÇTİ; TEST 72/72; Smoke GEÇTİ; dolap teması, gerçek editörde kapı taşıma/görseller/seçim ve PNG gözle kontrolü GEÇTİ — 30.09.2026 |
 | G-088 sade kuşbakışı editör | DERLE GEÇTİ; TEST 71/71; Smoke GEÇTİ; gerçek editör kaydırma/çerçeve/grup taşıma/yakınlaştırma sınırı GEÇTİ — 30.09.2026 |
@@ -89,6 +90,13 @@ GitHub ana deposu: `https://github.com/m07tas/market-ll` (`main`). Unreal/Blende
 Görsel ve raf dizme işleri yeterli seviyede; bir süre **donduruldu**. Öncelik **"İlk Hafta" oynanabilir dilimi**: bir oyuncu 7 günü baştan sona oynayabilmeli (sipariş → mal kabul → raf → fiyat → satış → gün raporu → hafta hedefi). Görevler G-051…G-055. Başarı ölçütü: yeni biri ilk 30 dakikada döngüyü anlıyor ve ilk kararının sonucunu görüyor.
 
 ## Devam notu
+
+**30.09.2026 — Codex: G-088 depo kapısı, kolon, duvar ve gezi kaydı.**
+
+- Mustafa'nın beş maddesi: mor depo iç kapısı yerleştirme/taşıma/silme; kolon ekle/seç/taşı, köşeden boyutlandır ve dikdörtgen/yuvarlak şekil; aralıklı raflarda iki eksen ve merkez/kenar hizası, mavi kılavuz çizgileri; bina/depo duvar çizgisi veya tutamağı sürükleme. İçerideki raf/kolon/dekor/tabela dünya koordinatları sabit; ortak depo dış duvarı kabuğu da uzatır. Geçersiz küçültme/çakışma/kesişme atomik reddedilir. Sayısal Resize artık ekipmanları ölçeklemez/taşımaz.
+- Dosyalar: yeni `MarketStoreGeometry.cpp` + testleri, `MarketStoreEditing.*`, `MarketStoreKit.*`, `MarketStoreArchitecture.cpp`, `MarketStoreTour.cpp`, `SStoreStudio.*`, `MAGAZA_GEZI.cmd`, `Tools/StoreTourSavedReview.ps1`. İsteğe bağlı `points.depotDoor`, `hasDepotDoor`, kolon `shape`; eski veriler ortada depo kapısı/dikdörtgen ile okunur. Dünya orijini korunurken footprint kabuğu kapsar; gerçek alan dış çokgenden hesaplanır.
+- Oyuna kaydet önce taslağı korur, sonra geometrik olarak geçerli düzeni `Saved/StoreTours/<id>.json` içine yazar. Eksik reyonlar/tür bantları geziyi engellemez; hazır katalog sözleşmesi korunur, yalnız tam uygunlar ayrıca Config/magazalar.json'a geçer. Kaydet ve gez aynı kimliği doğrudan açar; MAGAZA_GEZI son kaydedilenle başlar, F10 özel kayıtları da içerir. Geçersiz kayıt açıklama penceresi gösterir. Şube/ekonomi/oyun kayıtlarına bağlama Claude'un alanında kalır; özel gezi dosyaları için entegrasyon noktası `MarketStoreEditing::LoadTour/TourIds`.
+- DERLE, TEST 73/73, Smoke GEÇTİ. StoreEditorReview gerçek fare olaylarıyla kolon taşı/yeniden boyut/şekil, depo kapısı ekle/taşı ve duvar çekmede rafların yerinde kalmasını geçti. StoreTourSavedReview eksik reyonlu özel kaydı gerçek dünyada aynı raf konumları ve yürünebilir zeminle açtı; test kaydı kaldırıldı, kullanıcının son seçimi korundu. Ekranlar gözle incelendi ve kılavuz güncellendi. Kalan 16 hazır mağaza A onayından sonra.
 
 **30.09.2026 — Codex: G-088 ön/arka ve karşı sıra hizalama.**
 

@@ -31,13 +31,13 @@ namespace StoreEdit
         O->SetArrayField(TEXT("footprintCm"),{MakeShared<FJsonValueNumber>(S.FootprintCm.X),MakeShared<FJsonValueNumber>(S.FootprintCm.Y)});
         O->SetNumberField(TEXT("salesAreaM2"),S.SalesAreaM2);O->SetNumberField(TEXT("backroomM2"),S.BackroomM2);O->SetNumberField(TEXT("ceilingCm"),S.CeilingCm);
         O->SetStringField(TEXT("floorFinish"),S.FloorFinish);O->SetArrayField(TEXT("floorColor"),Vec(FVector(S.FloorColor.R,S.FloorColor.G,S.FloorColor.B)));
-        auto P=MakeShared<FJsonObject>();P->SetObjectField(TEXT("entrance"),Point(S.Entrance));P->SetObjectField(TEXT("receiving"),Point(S.Receiving));P->SetObjectField(TEXT("playerStart"),Point(S.PlayerStart));
+        auto P=MakeShared<FJsonObject>();P->SetObjectField(TEXT("entrance"),Point(S.Entrance));P->SetObjectField(TEXT("receiving"),Point(S.Receiving));P->SetObjectField(TEXT("playerStart"),Point(S.PlayerStart));P->SetObjectField(TEXT("depotDoor"),Point(MarketStoreEditing::DepotDoor(S)));P->SetBoolField(TEXT("hasDepotDoor"),S.bHasDepotDoor);
         auto B=MakeShared<FJsonObject>();B->SetArrayField(TEXT("min"),Vec(S.Backroom.Min));B->SetArrayField(TEXT("max"),Vec(S.Backroom.Max));P->SetObjectField(TEXT("backroom"),B);
         TArray<TSharedPtr<FJsonValue>> Spawns;for(auto V:S.CustomerSpawn) Spawns.Add(MakeShared<FJsonValueArray>(Vec(V)));P->SetArrayField(TEXT("customerSpawn"),Spawns);O->SetObjectField(TEXT("points"),P);
         const TSharedPtr<FJsonObject>* Existing=nullptr;auto A=O->TryGetObjectField(TEXT("architecture"),Existing)?*Existing:MakeShared<FJsonObject>();
         TArray<TSharedPtr<FJsonValue>> Outline,Obstacles,Sections,Fixtures,Props;
         for(auto V:S.Outline) Outline.Add(MakeShared<FJsonValueArray>(TArray<TSharedPtr<FJsonValue>>{MakeShared<FJsonValueNumber>(V.X),MakeShared<FJsonValueNumber>(V.Y)}));
-        for(const auto& V:S.Obstacles) { auto J=MakeShared<FJsonObject>();J->SetStringField(TEXT("id"),V.Id);J->SetStringField(TEXT("kind"),V.Kind);J->SetArrayField(TEXT("at"),Vec(V.At));J->SetArrayField(TEXT("sizeCm"),Vec(V.Size));Obstacles.Add(MakeShared<FJsonValueObject>(J)); }
+        for(const auto& V:S.Obstacles) { auto J=MakeShared<FJsonObject>();J->SetStringField(TEXT("id"),V.Id);J->SetStringField(TEXT("kind"),V.Kind);J->SetStringField(TEXT("shape"),V.Shape);J->SetArrayField(TEXT("at"),Vec(V.At));J->SetArrayField(TEXT("sizeCm"),Vec(V.Size));Obstacles.Add(MakeShared<FJsonValueObject>(J)); }
         for(const auto& V:S.Sections) {auto J=MakeShared<FJsonObject>();J->SetStringField(TEXT("label"),V.Label);J->SetArrayField(TEXT("at"),Vec(V.At));J->SetNumberField(TEXT("yaw"),V.Yaw);J->SetNumberField(TEXT("widthCm"),V.WidthCm);Sections.Add(MakeShared<FJsonValueObject>(J));}
         A->SetArrayField(TEXT("outlineCm"),Outline);A->SetArrayField(TEXT("obstacles"),Obstacles);A->SetArrayField(TEXT("sections"),Sections);O->SetObjectField(TEXT("architecture"),A);
         for(const auto& F:S.Fixtures) {auto J=MakeShared<FJsonObject>();J->SetStringField(TEXT("id"),F.Id);J->SetStringField(TEXT("equipment"),F.EquipmentId);J->SetStringField(TEXT("category"),F.Category);J->SetArrayField(TEXT("at"),Vec(F.Location));J->SetNumberField(TEXT("yaw"),F.Yaw);auto Faces=MakeShared<FJsonObject>();for(const auto& C:F.FaceCategories) Faces->SetStringField(C.Key,C.Value);J->SetObjectField(TEXT("faceCategories"),Faces);Fixtures.Add(MakeShared<FJsonValueObject>(J));}
@@ -101,9 +101,8 @@ bool MarketStoreEditing::MoveGroup(FStoreTemplate& S,const TSet<int32>& Selectio
             // Parallel rows share start/end lines even when a corridor separates them.
             if(FMath::Abs(FMath::Sin(FMath::DegreesToRadians(F.Yaw-O.Yaw)))<.01)
             {
-                const bool AlongX=FMath::Abs(FMath::Cos(FMath::DegreesToRadians(F.Yaw)))>.7;
-                if(AlongX)for(double X:{O.Location.X-OH.X+H.X,O.Location.X+OH.X-H.X}){if(FMath::Abs(X-At.X)<=Range)AcrossAisle.AddUnique(FVector(X-At.X,0,0));}
-                else for(double Y:{O.Location.Y-OH.Y+H.Y,O.Location.Y+OH.Y-H.Y}){if(FMath::Abs(Y-At.Y)<=Range)AcrossAisle.AddUnique(FVector(0,Y-At.Y,0));}
+                for(double X:{O.Location.X-OH.X+H.X,O.Location.X+OH.X-H.X,O.Location.X})if(FMath::Abs(X-At.X)>.001&&FMath::Abs(X-At.X)<=Range)AcrossAisle.AddUnique(FVector(X-At.X,0,0));
+                for(double Y:{O.Location.Y-OH.Y+H.Y,O.Location.Y+OH.Y-H.Y,O.Location.Y})if(FMath::Abs(Y-At.Y)>.001&&FMath::Abs(Y-At.Y)<=Range)AcrossAisle.AddUnique(FVector(0,Y-At.Y,0));
             }
             if(FMath::Abs(At.Y-O.Location.Y)<H.Y+OH.Y+Range)for(double X:{O.Location.X-H.X-OH.X,O.Location.X+H.X+OH.X}){Add(X-At.X,0);Add(X-At.X,O.Location.Y-At.Y);Edge(X-At.X,O.Location.Y-OH.Y+H.Y-At.Y);Edge(X-At.X,O.Location.Y+OH.Y-H.Y-At.Y);}
             if(FMath::Abs(At.X-O.Location.X)<H.X+OH.X+Range)for(double Y:{O.Location.Y-H.Y-OH.Y,O.Location.Y+H.Y+OH.Y}){Add(0,Y-At.Y);Add(O.Location.X-At.X,Y-At.Y);Edge(O.Location.X-OH.X+H.X-At.X,Y-At.Y);Edge(O.Location.X+OH.X-H.X-At.X,Y-At.Y);}
@@ -178,18 +177,12 @@ bool MarketStoreEditing::Duplicate(FStoreTemplate& S,int32 Index,float Gap,int32
 bool MarketStoreEditing::Resize(FStoreTemplate& S,double W,double D,double BW,double BD,double H,FString& Error)
 {
     if(!FMath::IsFinite(W)||!FMath::IsFinite(D)||!FMath::IsFinite(BW)||!FMath::IsFinite(BD)||!FMath::IsFinite(H)||W<500||D<500||BW<100||BD<100||BW>W||BD>D-300||H<250||H>1500){Error=TEXT("Ge\u00e7ersiz \u00f6l\u00e7\u00fc. Depo ma\u011fazadan k\u00fc\u00e7\u00fck olmal\u0131.");return false;}
-    const double SX=W/S.FootprintCm.X,SY=D/S.FootprintCm.Y;
-    if(S.Outline.IsEmpty())S.Outline={FVector2D(-S.FootprintCm.X/2,-S.FootprintCm.Y/2),FVector2D(S.FootprintCm.X/2,-S.FootprintCm.Y/2),S.FootprintCm/2,FVector2D(-S.FootprintCm.X/2,S.FootprintCm.Y/2)};
-    for(auto& V:S.Outline){V.X*=SX;V.Y*=SY;}
-    for(auto& O:S.Obstacles){O.At.X*=SX;O.At.Y*=SY;O.Size.Z=H;}
-    for(auto& F:S.Fixtures){F.Location.X*=SX;F.Location.Y*=SY;}
-    for(auto& V:S.Sections){V.At.X*=SX;V.At.Y*=SY;V.At.Z=FMath::Min(double(V.At.Z),H-55);}
-    for(auto& P:S.Props){P.At.X*=SX;P.At.Y*=SY;}
-    for(auto& P:S.CustomerSpawn){P.X*=SX;P.Y*=SY;}
-    S.Entrance.At.X*=SX;S.Entrance.At.Y*=SY;S.Receiving.At.X=0;S.Receiving.At.Y=D/2;S.PlayerStart.At.X*=SX;S.PlayerStart.At.Y*=SY;
-    S.FootprintCm=FVector2D(W,D);S.Backroom=FBox(FVector(-BW/2,D/2-BD,0),FVector(BW/2,D/2,H));S.CeilingCm=H;S.BackroomM2=BW*BD/10000;
-    double Area=0;for(int32 I=0;I<S.Outline.Num();++I){const auto A=S.Outline[I],B=S.Outline[(I+1)%S.Outline.Num()];Area+=A.X*B.Y-B.X*A.Y;}S.SalesAreaM2=FMath::Abs(Area)/20000-S.BackroomM2;
-    S.bEditableShell=true;S.Stats=MarketStoreKit::CalculateStats(S);return true;
+    auto C=S;double MinX=1.e30,MaxX=-1.e30,MinY=1.e30,MaxY=-1.e30;for(auto P:S.Outline){MinX=FMath::Min(MinX,P.X);MaxX=FMath::Max(MaxX,P.X);MinY=FMath::Min(MinY,P.Y);MaxY=FMath::Max(MaxY,P.Y);}
+    for(auto& P:C.Outline){if(FMath::IsNearlyEqual(P.X,MaxX))P.X=MinX+W;if(FMath::IsNearlyEqual(P.Y,MaxY))P.Y=MinY+D;}
+    C.Backroom=FBox(FVector(C.Backroom.Min.X,MinY+D-BD,0),FVector(C.Backroom.Min.X+BW,MinY+D,H));C.CeilingCm=H;for(auto& O:C.Obstacles)O.Size.Z=H;
+    C.FootprintCm=FVector2D(2*FMath::Max(FMath::Abs(MinX),FMath::Abs(MinX+W)),2*FMath::Max(FMath::Abs(MinY),FMath::Abs(MinY+D)));
+    C.BackroomM2=BW*BD/10000;double Area=0;for(int32 I=0;I<C.Outline.Num();++I){const auto A=C.Outline[I],B=C.Outline[(I+1)%C.Outline.Num()];Area+=A.X*B.Y-B.X*A.Y;}C.SalesAreaM2=FMath::Abs(Area)/20000-C.BackroomM2;
+    if(!GeometryValid(C,Error))return false;MoveDoor(C,false,S.Entrance.At);MoveDoor(C,true,S.Receiving.At);if(C.bHasDepotDoor)MoveDepotDoor(C,DepotDoor(S).At);C.bEditableShell=true;C.Stats=MarketStoreKit::CalculateStats(C);S=MoveTemp(C);return true;
 }
 bool MarketStoreEditing::Save(const FStoreTemplate& S,const FString& Path,FString& Error)
 {

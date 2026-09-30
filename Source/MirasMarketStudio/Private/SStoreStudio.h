@@ -16,6 +16,8 @@ public:
     FStoreTemplate Store;
     int32 Selected=INDEX_NONE;
     int32 SelectedDoor=0;
+    int32 SelectedObstacle=INDEX_NONE;
+    FString ArmedStructure;
     FString ArmedEquipment,Category,Message;
     bool bGrid=false,bWallSnap=true,bNeighbourSnap=true,bMarquee=false;
     TSet<int32> Selection;
@@ -50,4 +52,5 @@ private:
     void AddDepartment(FString Kind);
     void NewStoreDialog();
     void LoadPaletteImages();
+    TSharedRef<SWidget> StructureControl(FString Label,int32 Field);
 };

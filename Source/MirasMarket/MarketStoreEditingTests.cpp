@@ -70,7 +70,7 @@ bool FStoreEditResizeTest::RunTest(const FString&)
 {
     TArray<FString> Errors;MarketStoreKit::Load(Errors);auto S=*MarketStoreKit::Find(TEXT("mahalle_01"));const auto Before=S;FString Error;
     TestTrue(TEXT("Resize preserves recessed floor"),MarketStoreEditing::Resize(S,1600,1400,1400,220,350,Error));TestTrue(TEXT("Parametric architecture selected"),S.bEditableShell);TestEqual(TEXT("Polygon points preserved"),S.Outline.Num(),Before.Outline.Num());TestEqual(TEXT("Depot square metres computed"),S.BackroomM2,30.8);TestEqual(TEXT("Column height follows ceiling"),S.Obstacles[0].Size.Z,350.);
-    TestFalse(TEXT("Invalid depot rejected"),MarketStoreEditing::Resize(S,1600,1400,2000,220,350,Error));TestEqual(TEXT("Failure leaves store unchanged"),S.FootprintCm.X,1600.);
+    const auto Resized=S;TestFalse(TEXT("Invalid depot rejected"),MarketStoreEditing::Resize(S,1600,1400,2000,220,350,Error));TestEqual(TEXT("Failure leaves store unchanged"),S.FootprintCm.X,Resized.FootprintCm.X);for(int32 I=0;I<S.Fixtures.Num();++I)TestEqual(TEXT("Resizing keeps fixture positions"),S.Fixtures[I].Location,Before.Fixtures[I].Location);TestEqual(TEXT("Resizing keeps column position"),S.Obstacles[0].At,Before.Obstacles[0].At);
     return true;
 }
 IMPLEMENT_SIMPLE_AUTOMATION_TEST(FStoreEditSaveTest,"MirasMarket.Stores.EditorDraftAndPublish",EAutomationTestFlags::EditorContext|EAutomationTestFlags::EngineFilter)

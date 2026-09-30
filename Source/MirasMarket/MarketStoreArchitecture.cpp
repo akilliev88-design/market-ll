@@ -43,8 +43,9 @@ void MarketStoreEditing::BuildArchitecture(UWorld* W,const FStoreTemplate& S)
     };
     for(int32 I=0;I<V.Num();++I)Wall(V[I],V[(I+1)%V.Num()],{S.Entrance.At,S.Receiving.At});
     const auto Lo=S.Backroom.Min,Hi=S.Backroom.Max;
-    Wall(FVector2D(Lo.X,Lo.Y),FVector2D(Hi.X,Lo.Y),{FVector(0,Lo.Y,0)});
-    if(Lo.X>-S.FootprintCm.X/2+.1)Wall(FVector2D(Lo.X,Lo.Y),FVector2D(Lo.X,Hi.Y),{});
-    if(Hi.X<S.FootprintCm.X/2-.1)Wall(FVector2D(Hi.X,Lo.Y),FVector2D(Hi.X,Hi.Y),{});
-    for(auto O:S.Obstacles)Cube(Walls,O.At+FVector(0,0,O.Size.Z/2),O.Size);
+    const TArray<FVector> DepotDoors=S.bHasDepotDoor?TArray<FVector>{DepotDoor(S).At}:TArray<FVector>{};
+    auto DepotWall=[&](FVector2D A,FVector2D B){const auto Mid=(A+B)/2;for(int32 I=0;I<V.Num();++I){const auto C=V[I],D=V[(I+1)%V.Num()];if((FMath::IsNearlyEqual(A.X,B.X)&&FMath::IsNearlyEqual(C.X,D.X)&&FMath::IsNearlyEqual(Mid.X,C.X)&&Mid.Y>=FMath::Min(C.Y,D.Y)&&Mid.Y<=FMath::Max(C.Y,D.Y))||(FMath::IsNearlyEqual(A.Y,B.Y)&&FMath::IsNearlyEqual(C.Y,D.Y)&&FMath::IsNearlyEqual(Mid.Y,C.Y)&&Mid.X>=FMath::Min(C.X,D.X)&&Mid.X<=FMath::Max(C.X,D.X)))return;}Wall(A,B,DepotDoors);};
+    DepotWall(FVector2D(Lo.X,Lo.Y),FVector2D(Hi.X,Lo.Y));DepotWall(FVector2D(Lo.X,Hi.Y),FVector2D(Hi.X,Hi.Y));DepotWall(FVector2D(Lo.X,Lo.Y),FVector2D(Lo.X,Hi.Y));DepotWall(FVector2D(Hi.X,Lo.Y),FVector2D(Hi.X,Hi.Y));
+    auto* Round=Make(FLinearColor(.77,.77,.73),false,.72f);Round->SetStaticMesh(LoadObject<UStaticMesh>(nullptr,TEXT("/Engine/BasicShapes/Cylinder.Cylinder")));
+    for(auto O:S.Obstacles)if(O.Shape==TEXT("round")){const auto Bounds=Round->GetStaticMesh()->GetBounds().BoxExtent*2;Round->AddInstance(FTransform(FRotator::ZeroRotator,O.At+FVector(0,0,O.Size.Z/2),O.Size/Bounds));}else Cube(Walls,O.At+FVector(0,0,O.Size.Z/2),O.Size);
 }

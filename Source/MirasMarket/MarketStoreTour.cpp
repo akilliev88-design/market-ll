@@ -1,5 +1,6 @@
 #include "MarketGame.h"
 #include "MarketStoreKit.h"
+#include "MarketStoreEditing.h"
 #include "ProductCatalog.h"
 #include "Engine/Engine.h"
 #include "Engine/GameViewportClient.h"
@@ -17,10 +18,12 @@
 
 namespace StoreTour
 {
+    TMap<FString,FString> Names;
     TArray<FString> Ids()
     {
         TArray<FString> Result;
         for(const TCHAR* Format:{TEXT("mahalle"),TEXT("kucuk"),TEXT("buyuk"),TEXT("hiper")}) Result.Append(MarketStoreKit::TemplatesFor(Format));
+        for(auto Id:MarketStoreEditing::TourIds())Result.AddUnique(Id);
         return Result;
     }
 }
@@ -28,13 +31,15 @@ bool AMarketGameMode::StartStoreTour(const FString& Id,bool bRandom)
 {
     TArray<FString> Errors;
     if(!MarketStoreKit::Load(Errors)) return false;
-    const auto* Store=MarketStoreKit::Find(Id); if(!Store) return false;
     FStoreTemplate Editable;
+    FString EditError;const bool Custom=MarketStoreEditing::LoadTour(Id,Editable,EditError);
+    const auto* Store=Custom?&Editable:MarketStoreKit::Find(Id); if(!Store) return false;
     if(FParse::Param(FCommandLine::Get(),TEXT("MirasStoreEditableTest"))) {Editable=*Store;Editable.bEditableShell=true;Store=&Editable;}
     const auto Overrides=Id==ActiveStoreKitId?StoreCategoryOverrides:TMap<FString,FString>();
     auto TourPlan=MarketStoreKit::ToPlanogram(*Store,Overrides);
     if(bRandom) MarketStoreKit::FillRandom(TourPlan,Products,StoreTourSeed++);
-    if(!MarketStoreKit::Build(GetWorld(),*Store,TourPlan)) return false;
+    if(!MarketStoreKit::Build(GetWorld(),*Store,TourPlan,Custom)) return false;
+    StoreTour::Names.Add(Id,Store->Name);
     bStoreTour=true; bTestMode=true; bOpen=false;
     if(auto* PC=UGameplayStatics::GetPlayerController(this,0))
     {
@@ -55,8 +60,8 @@ bool AMarketGameMode::StartStoreTour(const FString& Id,bool bRandom)
             [SNew(SBorder).Padding(12).BorderBackgroundColor(FLinearColor(.025f,.035f,.04f,.96f))
                 [SNew(STextBlock).ColorAndOpacity(FLinearColor::White).Text_Lambda([this]()
                 {
-                    const auto* S=MarketStoreKit::Find(ActiveStoreKitId);
-                    return FText::FromString(FString::Printf(TEXT("TEST MA\u011eAZA GEZ\u0130S\u0130 \u2014 %s\nWASD: y\u00fcr\u00fc \u00b7 Fare: bak \u00b7 F10: sonraki \u00b7 Shift+F10: \u00f6nceki \u00b7 F3 / F7: rastgele doldur \u00b7 T: raf kategorisi \u00b7 Esc: \u00e7\u0131k\n%s"),S?*S->Name:*ActiveStoreKitId,*StoreTourNotice));
+                    const auto* Name=StoreTour::Names.Find(ActiveStoreKitId);
+                    return FText::FromString(FString::Printf(TEXT("TEST MA\u011eAZA GEZ\u0130S\u0130 \u2014 %s (%s)\nWASD: y\u00fcr\u00fc \u00b7 Fare: bak \u00b7 F10: sonraki \u00b7 Shift+F10: \u00f6nceki \u00b7 F3 / F7: rastgele doldur \u00b7 T: raf kategorisi \u00b7 Esc: \u00e7\u0131k\n%s"),Name?**Name:*ActiveStoreKitId,*ActiveStoreKitId,*StoreTourNotice));
                 })]]
             +SOverlay::Slot().HAlign(HAlign_Center).VAlign(VAlign_Center)[SNew(STextBlock).Text(FText::FromString(TEXT("+"))).ColorAndOpacity(FLinearColor::White)];
         GEngine->GameViewport->AddViewportWidgetContent(StoreTourOverlay.ToSharedRef(),50);
@@ -90,6 +95,14 @@ bool AMarketGameMode::StoreTourCommand(FName Action)
 }
 void AMarketGameMode::TickStoreTour()
 {
+    if(FParse::Param(FCommandLine::Get(),TEXT("MirasStoreTourSavedTest")))
+    {
+        const float Now=GetWorld()->GetTimeSeconds();if(Now<6)return;
+        if(CaptureStage==0){FStoreTemplate S;FString E;auto* Pawn=UGameplayStatics::GetPlayerPawn(this,0);if(!MarketStoreEditing::LoadTour(ActiveStoreKitId,S,E)||!Pawn||Pawn->GetActorLocation().Z<50||Planogram.Fixtures.Num()!=S.Fixtures.Num()){UE_LOG(LogTemp,Error,TEXT("SavedStoreTour FAILED: layout or walking floor"));FPlatformMisc::RequestExitWithStatus(false,1);return;}
+            for(int32 I=0;I<S.Fixtures.Num();++I)if(!Planogram.Fixtures[I].Location.Equals(S.Fixtures[I].Location,.01)){UE_LOG(LogTemp,Error,TEXT("SavedStoreTour FAILED: fixture moved"));FPlatformMisc::RequestExitWithStatus(false,1);return;}
+            FScreenshotRequest::RequestScreenshot(FPaths::ProjectSavedDir()/TEXT("Screenshots/Stores")/(ActiveStoreKitId+TEXT("_SavedTour.png")),true,false);CaptureStage=1;CaptureAt=Now;return;}
+        if(Now>CaptureAt+2){UE_LOG(LogTemp,Display,TEXT("SavedStoreTour PASSED: exact edited layout and walking floor, %s"),*ActiveStoreKitId);FPlatformMisc::RequestExitWithStatus(false,0);}return;
+    }
     if(!FParse::Param(FCommandLine::Get(),TEXT("MirasStoreTourTest"))) return;
     const float Now=GetWorld()->GetTimeSeconds();
     if(CaptureStage%3==1)

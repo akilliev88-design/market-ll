@@ -4,7 +4,7 @@
 class UWorld;
 struct FStorePoint { FVector At = FVector::ZeroVector; float Yaw = 0; };
 struct FStoreProp { FString Mesh; FVector At = FVector::ZeroVector; float Yaw = 0; };
-struct FStoreObstacle { FString Id, Kind; FVector At = FVector::ZeroVector, Size = FVector::ZeroVector; };
+struct FStoreObstacle { FString Id, Kind; FVector At = FVector::ZeroVector, Size = FVector::ZeroVector; FString Shape=TEXT("rectangle"); };
 struct FStoreSection { FString Label; FVector At = FVector::ZeroVector; float Yaw = -90, WidthCm = 300; };
 struct FStoreStats
 {
@@ -18,6 +18,8 @@ struct FStoreTemplate
     FVector2D FootprintCm = FVector2D::ZeroVector;
     double SalesAreaM2 = 0, BackroomM2 = 0, CeilingCm = 0;
     FStorePoint Entrance, Receiving, PlayerStart;
+    FStorePoint DepotDoor;
+    bool bHasDepotDoor=true;
     TArray<FVector> CustomerSpawn;
     FBox Backroom = FBox(ForceInit);
     TArray<FPlanogramFixture> Fixtures;
