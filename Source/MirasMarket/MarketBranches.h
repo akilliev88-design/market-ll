@@ -85,6 +85,9 @@ namespace MarketBranches
     bool CanOpen(const FMarketState& State, const TArray<FMarketProduct>& Products, const FString& Country, const FString& Province, const FString& Format, FString& OutReason);
     bool Open(FMarketState& State, const TArray<FMarketProduct>& Products, const FString& Country, const FString& Province, const FString& Format, FString& OutMessage);
     bool Close(FMarketState& State, const TArray<FMarketProduct>& Products, int32 BranchIndex, FString& OutMessage);
+    // Akis C2b: a store taken over with a chain we bought opens at once as our branch (its shelves stocked, a
+    // manager hired, the district already half used to it). INDEX_NONE when the province has no room.
+    int32 AddAcquired(FMarketState& State, const TArray<FMarketProduct>& Products, const FString& Country, const FString& Province, const FString& Format);
     // Moves a person from the family shop to run a branch (Cem's road in the story).
     bool Promote(FMarketState& State, int32 EmployeeId, int32 BranchIndex, FString& OutMessage);
     // Older saves: the aggregate second shop becomes a mature branch; branches without a province get the home

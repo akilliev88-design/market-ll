@@ -356,6 +356,20 @@ struct FMarketBranch
     // G-086b ek (M21): the manager's hidden ceiling of skill (55..95). 0 = an older save: MarketManagers::Migrate
     // derives it once from the skill (+5..20, at most 95).
     UPROPERTY() int32 ManagerPotential = 0;
+    // G-088 stage C (MarketStoreViews.h): the ready-made store view signed for this branch and a copy of its
+    // measured size (lengths in metres, areas in m2). Empty view = an older save: the format's nominal store.
+    UPROPERTY() FString StoreView;
+    UPROPERTY() float ViewShelfM = 0.f;
+    UPROPERTY() float ViewCoolerM = 0.f;
+    UPROPERTY() float ViewFreezerM = 0.f;
+    UPROPERTY() float ViewProduceM2 = 0.f;
+    UPROPERTY() float ViewAreaM2 = 0.f;
+    UPROPERTY() int32 ViewCounters = 0;
+    UPROPERTY() int32 ViewCheckouts = 0;
+    UPROPERTY() int32 ViewSelfCheckouts = 0;
+    UPROPERTY() int32 ViewPallets = 0;
+    UPROPERTY() int32 LastQueueLost = 0;   // shoppers the tills lost on the last closed day
+    UPROPERTY() int64 Last30Revenue = 0;   // running sum over about 30 days (national table, world league)
 };
 
 // G-072 aggregate city stores (older saves only). G-086 turns every row into real branches in its province
@@ -519,6 +533,140 @@ struct FMarketBooks
     UPROPERTY() int32 Audits = 0;
 };
 
+// Akis C2 (Docs/Kurgu/07_AKIL_ISBOLUMU.md C2b, MarketChains.h): the rival chains of the countries we play in and
+// the world's giants. Older saves start empty; MarketChains seeds a country the first time it is needed.
+USTRUCT()
+struct FMarketChainSpot
+{
+    GENERATED_BODY()
+    UPROPERTY() FString Province;
+    UPROPERTY() int32 Stores = 0;
+};
+
+USTRUCT()
+struct FMarketChain
+{
+    GENERATED_BODY()
+    UPROPERTY() FString Id;              // roster id ("bim"); local ones "yerel.<province>.<n>", regional "bolge.<subregion>"
+    UPROPERTY() FString Country;
+    UPROPERTY() FString Name;
+    UPROPERTY() FString Boss;            // the owner or chief the news quotes
+    UPROPERTY() uint8 Archetype = 0;     // MarketChains::EArchetype
+    UPROPERTY() uint8 Scope = 0;         // MarketChains::EScope
+    UPROPERTY() FString Home;            // local / regional: its province or sub-region; foreign arm: the giant's id
+    UPROPERTY() TArray<FMarketChainSpot> Spots;
+    UPROPERTY() int64 Cash = 0;          // kurus
+    UPROPERTY() float PriceIndex = 1.f;  // everyday shelf prices against the list
+    UPROPERTY() float Service = 1.f;
+    UPROPERTY() float Aggression = 0.5f; // 0..1: attacks where we grow
+    UPROPERTY() float Ambition = 0.5f;   // 0..1: how fast it wants to grow
+    UPROPERTY() float Rivalry = 0.f;     // 0..100: how much it minds us
+    UPROPERTY() FString WarProvince;     // a price war against us in this province until WarUntil
+    UPROPERTY() int32 WarUntil = 0;
+    UPROPERTY() int32 WarsLost = 0;
+    UPROPERTY() int32 RedTurns = 0;      // monthly turns in a row deep in the red
+    UPROPERTY() bool bForSale = false;
+    UPROPERTY() int32 ForSaleTurns = 0;
+    UPROPERTY() bool bGone = false;
+    UPROPERTY() int32 TurnDay = 0;       // day of its last monthly turn
+    UPROPERTY() int32 OursSeen = 0;      // our shops in its provinces at its last turn
+    UPROPERTY() int64 MonthRevenue = 0;  // last month, kurus
+    UPROPERTY() int64 MonthProfit = 0;
+};
+
+USTRUCT()
+struct FMarketGiant
+{
+    GENERATED_BODY()
+    UPROPERTY() FString Id;
+    UPROPERTY() FString Name;
+    UPROPERTY() FString Home;            // its home country (name for the menu)
+    UPROPERTY() float RevenueB = 0.f;    // billions of world units a year at the start price level (real)
+    UPROPERTY() float Growth = 0.03f;    // real growth a year
+    UPROPERTY() uint8 Archetype = 0;
+    UPROPERTY() TArray<FString> Countries; // pack ids where it runs an arm (our countries only)
+};
+
+USTRUCT()
+struct FMarketChainsState
+{
+    GENERATED_BODY()
+    UPROPERTY() TArray<FMarketChain> Chains;
+    UPROPERTY() TArray<FMarketGiant> Giants;
+    UPROPERTY() TArray<FString> Countries;       // seeded countries
+    UPROPERTY() TArray<FString> LocalPools;      // "country|province" whose local chains exist
+    UPROPERTY() TMap<FString, float> Baseline;   // "country|province" -> weighted chain stores at seeding
+    UPROPERTY() FString Nemesis;                 // chain id
+    UPROPERTY() int32 LastYearDay = 0;           // giants' yearly turn
+    UPROPERTY() int32 LastLeagueDay = 0;
+    UPROPERTY() int32 LeagueRank = 0;            // 0 = not ranked yet
+    UPROPERTY() int32 BestLeagueRank = 0;
+    UPROPERTY() int32 NationalRank = 0;
+    UPROPERTY() int32 BestNationalRank = 0;
+};
+
+// Akis C2 / karar M25 (MarketBrands.h): brands ask for room on our shelves. Older saves start empty.
+USTRUCT()
+struct FMarketBrandShare
+{
+    GENERATED_BODY()
+    UPROPERTY() FString Brand;           // Product.Brand (the real name is the key; the menu shows the fictional one)
+    UPROPERTY() FString Category;
+    UPROPERTY() float National = 0.f;    // 0..1 share of the category in the country
+    UPROPERTY() float Trust = 0.f;       // -100..100: how the brand sees us
+};
+
+USTRUCT()
+struct FMarketBrandOffer
+{
+    GENERATED_BODY()
+    UPROPERTY() int32 Id = 0;
+    UPROPERTY() FString Brand;
+    UPROPERTY() FString Category;
+    UPROPERTY() uint8 Kind = 0;          // MarketBrands::EKind
+    UPROPERTY() float Target = 0.f;      // shelf share (0..1) or the rebate's percent (0..1)
+    UPROPERTY() int64 Amount = 0;        // kurus: a month (shelf share), once (listing), the rebate's monthly sales floor
+    UPROPERTY() int32 Months = 0;
+    UPROPERTY() int32 ExpireDay = 0;
+    UPROPERTY() FString ProductId;       // listing: the product it wants on our shelves
+    UPROPERTY() FString ProductName;     // listing: shown to the player
+};
+
+USTRUCT()
+struct FMarketBrandDeal
+{
+    GENERATED_BODY()
+    UPROPERTY() FMarketBrandOffer Terms;
+    UPROPERTY() int32 StartDay = 0;
+    UPROPERTY() int32 UntilDay = 0;
+    UPROPERTY() int32 Strikes = 0;
+    UPROPERTY() int64 Paid = 0;
+};
+
+USTRUCT()
+struct FMarketBrandsState
+{
+    GENERATED_BODY()
+    UPROPERTY() TArray<FMarketBrandShare> Shares;
+    UPROPERTY() TArray<FMarketBrandOffer> Offers;
+    UPROPERTY() TArray<FMarketBrandDeal> Deals;
+    UPROPERTY() TMap<FString, int64> MonthSales;   // brand -> this month's sales in our shops (kurus)
+    UPROPERTY() int32 LastMonthDay = 0;
+    UPROPERTY() int32 NextOfferId = 1;
+    UPROPERTY() int64 TotalReceived = 0;
+};
+
+// Akis C2c / G-083 (MarketSourcing.h): where each supply line buys from. Older saves: every line local.
+USTRUCT()
+struct FMarketSourcingState
+{
+    GENERATED_BODY()
+    UPROPERTY() TArray<uint8> Tiers;       // per line: MarketSourcing::ETier
+    UPROPERTY() TArray<uint8> Missed;      // per line: months in a row under the tier's minimum
+    UPROPERTY() TArray<int64> MonthBuy;    // per line: this month's purchases (kurus)
+    UPROPERTY() int32 LastMonthDay = 0;
+};
+
 // Money uses integer kurus. Inventory is removed only when a checkout succeeds.
 USTRUCT()
 struct FMarketState
@@ -651,6 +799,15 @@ struct FMarketState
     UPROPERTY() int32 TroubleStage = 0;
     // Branches (MarketBranches.h). bSecondStore stays true while at least one branch exists (older code and saves).
     UPROPERTY() TArray<FMarketBranch> Branches;
+    // G-088 stage C: the store view of every site (MarketStoreAssign::SiteKey -> magazalar.json id), so a province
+    // keeps its view for every branch of that type and across saves (MarketStoreViews).
+    UPROPERTY() TMap<FString, FString> StoreViews;
+    // Akis C2: rival chains of our countries and the world giants (MarketChains.h).
+    UPROPERTY() FMarketChainsState Rivals;
+    // Karar M25: brands, their shares, offers and deals (MarketBrands.h).
+    UPROPERTY() FMarketBrandsState Brands;
+    // G-083: supply lines and their tiers (MarketSourcing.h).
+    UPROPERTY() FMarketSourcingState Sourcing;
     // Online orders and payment methods (MarketOnline.h, MarketPayments.h).
     UPROPERTY() FMarketOnline Online;
     UPROPERTY() FMarketPayments Payments;

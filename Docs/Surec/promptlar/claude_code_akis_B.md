@@ -16,7 +16,7 @@ Miras Market projesindesin (Unreal 5.8, C++, Türkçe market yönetim oyunu). Pr
 - **B2 · Muhasebe defteri** (`MarketLedger.*`): tek kaynak defter, gelir tablosu + bilanço, "kasa değişimi = kayıtlar toplamı" denetimi; kendi dosyalarındaki para hareketlerini bağla, diğerleri için C'ye satır satır liste.
 - **B3 · Ücret ve sigorta:** asgari ücret tabanı, işveren sigorta payı (ülke paketinden), kıdem tazminatı, deftere yazım.
 - **B4 · Dönem olayları** (`MarketEras.*`): kur şoku, yüksek enflasyon, durgunluk, salgın (mevcut `MarketOnline` salgınını buradan tetikle), toparlanma; sıra sabit, zaman kampanyaya göre ±2 yıl, sıklık ülke ekonomi karakterine bağlı (`ulkeler.json`); adsız, yılsız.
-- **B5 · (vakit kalırsa)** dünya ve son: kurgu kurlar, `MarketLeague.*`, oyun sonu. Vakit yoksa başlama, notuna yaz.
+- **B5 · (vakit kalırsa)** dünya ve son: kurgu kurlar ve ortak birim, oyun sonu (lig sıralaması ve rakip devler C'de). Vakit yoksa başlama, notuna yaz.
 Ayrıntılı tarif 07 §4 Akış B'de.
 
 ## Kurallar (kısaca; ayrıntısı 07 §2–§3)
