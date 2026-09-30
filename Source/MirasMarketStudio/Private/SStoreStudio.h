@@ -4,7 +4,8 @@
 class SVerticalBox;
 class SStoreMap;
 class FJsonObject;
-struct FStorePaletteItem { FString Id,Name,Family; };
+struct FSlateDynamicImageBrush;
+struct FStorePaletteItem { FString Id,Name,Family; TSharedPtr<FSlateDynamicImageBrush> Image; };
 class SStoreStudio : public SCompoundWidget
 {
 public:
@@ -14,6 +15,7 @@ public:
     virtual FReply OnKeyDown(const FGeometry&,const FKeyEvent&) override;
     FStoreTemplate Store;
     int32 Selected=INDEX_NONE;
+    int32 SelectedDoor=0;
     FString ArmedEquipment,Category,Message;
     bool bGrid=false,bWallSnap=true,bNeighbourSnap=true,bMarquee=false;
     TSet<int32> Selection;
@@ -29,6 +31,7 @@ public:
     void Select(int32 Index,bool Add=false);
     bool ReviewMap(FString& Error);
     bool CreateStore(FString Format,FString Name,bool Copy=false);
+    FString SelectionLabel() const;
 private:
     TArray<FStoreTemplate> UndoStack,RedoStack;
     TArray<TSharedPtr<FString>> Stores,Categories;
@@ -46,4 +49,5 @@ private:
     void SetDimension(double Value,int32 Field);
     void AddDepartment(FString Kind);
     void NewStoreDialog();
+    void LoadPaletteImages();
 };

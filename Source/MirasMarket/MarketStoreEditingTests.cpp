@@ -19,6 +19,20 @@ bool FStoreEditPlacementTest::RunTest(const FString&)
     S.Fixtures[0].Yaw=90;int32 New;TestTrue(TEXT("Duplicate rotated module"),MarketStoreEditing::Duplicate(S,0,2,New));TestEqual(TEXT("Keep angle"),S.Fixtures[New].Yaw,90.f);TestTrue(TEXT("Duplicate fits"),MarketStoreEditing::CanPlace(S,S.Fixtures[New],New));TestNotEqual(TEXT("Unique fixture IDs"),S.Fixtures[0].Id,S.Fixtures[New].Id);
     return true;
 }
+IMPLEMENT_SIMPLE_AUTOMATION_TEST(FStoreEditDoorSnapTest,"MirasMarket.Stores.EditorDoorAndUnequalCabinets",EAutomationTestFlags::EditorContext|EAutomationTestFlags::EngineFilter)
+bool FStoreEditDoorSnapTest::RunTest(const FString&)
+{
+    FStoreTemplate S;MarketStoreEditing::Create(TEXT("buyuk"),TEXT("buyuk_98"),TEXT("Flexible editor"),S);int32 A,B;
+    MarketStoreEditing::Place(S,TEXT("wall_shelf_2400"),TEXT(""),FVector(0,0,0),A,false,false,0);
+    MarketStoreEditing::Place(S,TEXT("gondola_double_1200"),TEXT(""),FVector(-400,0,0),B,false,false,0);
+    TestTrue(TEXT("Unequal cabinets snap even when pointer overshoots into neighbour"),MarketStoreEditing::MoveGroup(S,{B},FVector(230,8,0),false,true,0,80));
+    TestEqual(TEXT("Unequal widths touch exactly"),S.Fixtures[B].Location.X,-180.);TestTrue(TEXT("Snapped placement has no overlap"),MarketStoreEditing::CanPlace(S,S.Fixtures[B],B));
+    TestTrue(TEXT("Entrance moves to left wall"),MarketStoreEditing::MoveDoor(S,false,FVector(-2400,-300,0)));TestEqual(TEXT("Door on wall"),S.Entrance.At.X,-2000.);TestEqual(TEXT("Start faces interior"),S.PlayerStart.Yaw,0.f);TestEqual(TEXT("Start stays inside"),S.PlayerStart.At.X,-1820.);
+    TestTrue(TEXT("Door moves to right wall"),MarketStoreEditing::MoveDoor(S,false,FVector(2400,-300,0)));TestEqual(TEXT("Right wall"),S.Entrance.At.X,2000.);
+    TestTrue(TEXT("Receiving moves to rear wall"),MarketStoreEditing::MoveDoor(S,true,FVector(600,1900,0)));TestEqual(TEXT("Receiving on rear wall"),S.Receiving.At.Y,1500.);
+    const auto Before=S;TestFalse(TEXT("Doors cannot overlap"),MarketStoreEditing::MoveDoor(S,true,S.Entrance.At));TestEqual(TEXT("Invalid move preserves door"),S.Receiving.At,Before.Receiving.At);
+    return true;
+}
 IMPLEMENT_SIMPLE_AUTOMATION_TEST(FStoreEditNewAndPickTest,"MirasMarket.Stores.EditorCreateAndPick",EAutomationTestFlags::EditorContext|EAutomationTestFlags::EngineFilter)
 bool FStoreEditNewAndPickTest::RunTest(const FString&)
 {

@@ -27,6 +27,11 @@
 #include "Widgets/Text/STextBlock.h"
 #include "Widgets/SBoxPanel.h"
 #include "Widgets/Layout/SSpacer.h"
+#include "Widgets/Images/SImage.h"
+#include "Brushes/SlateDynamicImageBrush.h"
+#include "Rendering/SlateRenderer.h"
+#include "ObjectTools.h"
+#include "Misc/ObjectThumbnail.h"
 
 namespace StoreUI
 {
@@ -45,7 +50,7 @@ public:
     void Construct(const FArguments& A){Owner=A._Owner;SetClipping(EWidgetClipping::ClipToBoundsAlways);}
     virtual FVector2D ComputeDesiredSize(float) const override{return FVector2D(700,650);}
     virtual bool SupportsKeyboardFocus() const override{return true;}
-    SStoreStudio* Owner=nullptr;bool Drag=false,Changed=false,PanDrag=false,BoxDrag=false;double Zoom=1;FVector2D Pan=FVector2D::ZeroVector,LastPointer,BoxStart,BoxEnd;FVector Hover,DragStart;bool bHover=false;FStoreTemplate DragStore;
+    SStoreStudio* Owner=nullptr;bool Drag=false,Changed=false,PanDrag=false,BoxDrag=false;int32 DoorDrag=0;double Zoom=1;FVector2D Pan=FVector2D::ZeroVector,LastPointer,BoxStart,BoxEnd;FVector Hover,DragStart;bool bHover=false;FStoreTemplate DragStore;
     void Fit(){Zoom=1;Pan=FVector2D::ZeroVector;}
     void FocusSelected(){if(!Owner->Store.Fixtures.IsValidIndex(Owner->Selected)){Fit();return;}Zoom=4;const auto P=Owner->Store.Fixtures[Owner->Selected].Location;Pan=-FVector2D(P.X,-P.Y)*Scale(GetCachedGeometry());}
     double Scale(const FGeometry& G)const{return Zoom*FMath::Max(.001f,FMath::Min((G.GetLocalSize().X-70)/Owner->Store.FootprintCm.X,(G.GetLocalSize().Y-70)/Owner->Store.FootprintCm.Y));}
@@ -69,7 +74,7 @@ public:
             const auto P=ToMap(G,FVector2D(F.Location.X,F.Location.Y));const auto Facing=FRotator(0,F.Yaw-90,0).Vector();Line({P,ToMap(G,FVector2D(F.Location.X+Facing.X*H.GetMin(),F.Location.Y+Facing.Y*H.GetMin()))},FLinearColor::White,2);
         }
         if(bHover&&!Owner->ArmedEquipment.IsEmpty()){const auto F=Owner->Placement(Hover);Box(F.Location,MarketStoreEditing::HalfSize(F),MarketStoreEditing::CanPlace(S,F)?FLinearColor(.2f,.85f,.4f,.7f):FLinearColor(1,.15f,.1f,.7f));}
-        Box(S.Entrance.At,FVector2D(65,18),FLinearColor(.25f,.90f,.55f));Box(S.Receiving.At,FVector2D(65,18),FLinearColor(.26f,.62f,.98f));Box(S.PlayerStart.At,FVector2D(18,18),FLinearColor(1,.80f,.20f));
+        auto Door=[&](const FStorePoint& P,FLinearColor C,int32 Id){const bool Vertical=FMath::Abs(FRotator(0,P.Yaw,0).Vector().X)>.5;const FVector2D H=Vertical?FVector2D(18,65):FVector2D(65,18);if(Owner->SelectedDoor==Id)Box(P.At,H+FVector2D(8,8),FLinearColor(1,.77f,.19f));Box(P.At,H,C);};Door(S.Entrance,FLinearColor(.25f,.90f,.55f),1);Door(S.Receiving,FLinearColor(.26f,.62f,.98f),2);Box(S.PlayerStart.At,FVector2D(18,18),FLinearColor(1,.80f,.20f));
         FSlateDrawElement::MakeText(Out,Layer+3,G.ToPaintGeometry(FVector2D(500,30),FSlateLayoutTransform(FVector2D(15,12))),StoreUI::Text(TEXT("\u00dcSTTEN PLAN  |  ye\u015fil: giri\u015f  mavi: mal kabul  sar\u0131: oyuncu")),FAppStyle::GetFontStyle(TEXT("SmallFont")),ESlateDrawEffect::None,FLinearColor(.78f,.84f,.86f));
         if(BoxDrag){const auto Min=FVector2D(FMath::Min(BoxStart.X,BoxEnd.X),FMath::Min(BoxStart.Y,BoxEnd.Y)),Max=FVector2D(FMath::Max(BoxStart.X,BoxEnd.X),FMath::Max(BoxStart.Y,BoxEnd.Y));FSlateDrawElement::MakeBox(Out,Layer+3,G.ToPaintGeometry(Max-Min,FSlateLayoutTransform(Min)),Brush,ESlateDrawEffect::None,FLinearColor(.15f,.55f,1,.18f));Line({Min,FVector2D(Max.X,Min.Y),Max,FVector2D(Min.X,Max.Y),Min},FLinearColor(.3f,.7f,1),2);}
         return Layer+4;
@@ -81,8 +86,9 @@ public:
         if(Button!=EKeys::LeftMouseButton)return;
         if(Owner->bMarquee||Shift){BoxDrag=true;BoxStart=BoxEnd=LastPointer;if(!Ctrl)Owner->Select(INDEX_NONE);return;}
         if(!Owner->ArmedEquipment.IsEmpty()){Owner->AddAt(At);return;}
+        for(int32 D:{1,2}){const auto P=D==1?Owner->Store.Entrance.At:Owner->Store.Receiving.At;if((ToMap(G,FVector2D(P.X,P.Y))-LastPointer).Size()<22){Owner->Select(INDEX_NONE);Owner->SelectedDoor=D;DoorDrag=D;Changed=false;return;}}
         int32 Hit=INDEX_NONE;for(int32 I=Owner->Store.Fixtures.Num()-1;I>=0;--I){const auto& F=Owner->Store.Fixtures[I];const auto H=MarketStoreEditing::HalfSize(F);if(FMath::Abs(At.X-F.Location.X)<=H.X&&FMath::Abs(At.Y-F.Location.Y)<=H.Y){Hit=I;break;}}
-        if(Hit==INDEX_NONE){PanDrag=true;return;}
+        if(Hit==INDEX_NONE){Owner->Select(INDEX_NONE);Owner->Message=TEXT("Secim birakildi. Bos alani surukleyerek plani kaydir.");PanDrag=true;return;}
         if(Ctrl){Owner->Select(Hit,true);return;}
         if(!Owner->Selection.Contains(Hit))Owner->Select(Hit);else Owner->Selected=Hit;
         Drag=true;Changed=false;DragStart=At;DragStore=Owner->Store;
@@ -91,14 +97,15 @@ public:
     {
         const auto Local=G.AbsoluteToLocal(Screen);Hover=ToWorld(G,Screen);bHover=true;
         if(PanDrag){Pan+=Local-LastPointer;LastPointer=Local;}
+        else if(DoorDrag){if(!Changed){Owner->Remember();Changed=true;}if(MarketStoreEditing::MoveDoor(Owner->Store,DoorDrag==2,Hover)){Owner->Changed();Owner->Message=TEXT("Kapi duvara yerlestirildi.");}}
         else if(BoxDrag)BoxEnd=Local;
-        else if(Drag){if(!Changed){Owner->Remember();Changed=true;}auto Candidate=DragStore;if(MarketStoreEditing::MoveGroup(Candidate,Owner->Selection,Hover-DragStart,Owner->bWallSnap,Owner->bNeighbourSnap,Owner->bGrid?10:0)){Owner->Store=MoveTemp(Candidate);Owner->Changed();Owner->Message=TEXT("Secili ekipmanlar tasindi.");}else Owner->Message=TEXT("Burada duvar veya baska ekipman var.");}
+        else if(Drag){if(!Changed){Owner->Remember();Changed=true;}auto Candidate=DragStore;if(MarketStoreEditing::MoveGroup(Candidate,Owner->Selection,Hover-DragStart,Owner->bWallSnap,Owner->bNeighbourSnap,Owner->bGrid?10:0,FMath::Clamp(14/Scale(G),8.,120.))){Owner->Store=MoveTemp(Candidate);Owner->Changed();Owner->Message=TEXT("Secili ekipmanlar tasindi.");}else Owner->Message=TEXT("Burada duvar veya baska ekipman var.");}
         Invalidate(EInvalidateWidgetReason::Paint);
     }
     void End(const FGeometry& G)
     {
         if(BoxDrag){const auto Min=FVector2D(FMath::Min(BoxStart.X,BoxEnd.X),FMath::Min(BoxStart.Y,BoxEnd.Y)),Max=FVector2D(FMath::Max(BoxStart.X,BoxEnd.X),FMath::Max(BoxStart.Y,BoxEnd.Y));for(int32 I=0;I<Owner->Store.Fixtures.Num();++I){const auto& F=Owner->Store.Fixtures[I];const auto H=MarketStoreEditing::HalfSize(F);const auto A=ToMap(G,FVector2D(F.Location.X-H.X,F.Location.Y+H.Y)),B=ToMap(G,FVector2D(F.Location.X+H.X,F.Location.Y-H.Y));if(A.X<=Max.X&&B.X>=Min.X&&A.Y<=Max.Y&&B.Y>=Min.Y)Owner->Selection.Add(I);}Owner->Selected=Owner->Selection.IsEmpty()?INDEX_NONE:Owner->Selection.Array()[0];Owner->bMarquee=false;Owner->Message=FString::Printf(TEXT("%d parca secildi. Birini tutup hepsini tasi."),Owner->Selection.Num());}
-        PanDrag=BoxDrag=Drag=false;Invalidate(EInvalidateWidgetReason::Paint);
+        PanDrag=BoxDrag=Drag=false;DoorDrag=0;Invalidate(EInvalidateWidgetReason::Paint);
     }
     virtual FReply OnMouseButtonDown(const FGeometry& G,const FPointerEvent& E)override{Begin(G,E.GetScreenSpacePosition(),E.GetEffectingButton(),E.IsShiftDown(),E.IsControlDown());Invalidate(EInvalidateWidgetReason::Paint);return FReply::Handled().SetUserFocus(SharedThis(this)).CaptureMouse(SharedThis(this));}
     virtual FReply OnMouseMove(const FGeometry& G,const FPointerEvent& E)override{Move(G,E.GetScreenSpacePosition());return FReply::Handled();}
@@ -118,11 +125,11 @@ void SStoreStudio::SetDimension(double Value,int32 F)
 }
 TSharedRef<SWidget> SStoreStudio::SizeControl(FString Label,int32 Field)
 {
-    return SNew(SHorizontalBox)+SHorizontalBox::Slot().FillWidth(1)[SNew(STextBlock).Text(StoreUI::Text(Label))]+SHorizontalBox::Slot().AutoWidth()[SNew(SBox).WidthOverride(90)[SNew(SSpinBox<double>).MinValue(Field<5?.1f:-100.).MaxValue(120.).Delta(.1f).Value_Lambda([this,Field]{return Dimension(Field);}).OnValueCommitted_Lambda([this,Field](double V,ETextCommit::Type){SetDimension(V,Field);})]];
+    return SNew(SHorizontalBox)+SHorizontalBox::Slot().FillWidth(1)[SNew(STextBlock).Text(StoreUI::Text(Label))]+SHorizontalBox::Slot().AutoWidth()[SNew(SBox).WidthOverride(90)[SNew(SSpinBox<double>).MaxFractionalDigits(2).MinValue(Field<5?.1f:-100.).MaxValue(120.).Delta(.1f).Value_Lambda([this,Field]{return Dimension(Field);}).OnValueCommitted_Lambda([this,Field](double V,ETextCommit::Type){SetDimension(V,Field);})]];
 }
 TSharedRef<SWidget> SStoreStudio::NumberControl(FString Label,int32 Field)
 {
-    return SNew(SHorizontalBox)+SHorizontalBox::Slot().FillWidth(1)[SNew(STextBlock).Text(StoreUI::Text(Label))]+SHorizontalBox::Slot().AutoWidth()[SNew(SBox).WidthOverride(90)[SNew(SSpinBox<double>).Delta(Field==2?15:.1f).Value_Lambda([this,Field]{if(!Store.Fixtures.IsValidIndex(Selected))return 0.;auto F=Store.Fixtures[Selected];return Field==0?F.Location.X/100:Field==1?F.Location.Y/100:double(F.Yaw);}).OnValueCommitted_Lambda([this,Field](double V,ETextCommit::Type){if(!Store.Fixtures.IsValidIndex(Selected))return;auto Old=Store.Fixtures[Selected];Remember();auto& F=Store.Fixtures[Selected];if(Field==0)F.Location.X=V*100;else if(Field==1)F.Location.Y=V*100;else F.Yaw=V;if(!MarketStoreEditing::CanPlace(Store,F,Selected)){F=Old;UndoStack.Pop();Message=TEXT("Buraya yerle\u015fmez: \u00e7ak\u0131\u015fma veya d\u0131\u015far\u0131 ta\u015fma.");}else{Changed();Invalidate(EInvalidateWidgetReason::Paint);}})]];
+    return SNew(SHorizontalBox)+SHorizontalBox::Slot().FillWidth(1)[SNew(STextBlock).Text(StoreUI::Text(Label))]+SHorizontalBox::Slot().AutoWidth()[SNew(SBox).WidthOverride(90)[SNew(SSpinBox<double>).MaxFractionalDigits(2).Delta(Field==2?15:.1f).Value_Lambda([this,Field]{if(!Store.Fixtures.IsValidIndex(Selected))return 0.;auto F=Store.Fixtures[Selected];return Field==0?F.Location.X/100:Field==1?F.Location.Y/100:double(F.Yaw);}).OnValueCommitted_Lambda([this,Field](double V,ETextCommit::Type){if(!Store.Fixtures.IsValidIndex(Selected))return;auto Old=Store.Fixtures[Selected];Remember();auto& F=Store.Fixtures[Selected];if(Field==0)F.Location.X=V*100;else if(Field==1)F.Location.Y=V*100;else F.Yaw=V;if(!MarketStoreEditing::CanPlace(Store,F,Selected)){F=Old;UndoStack.Pop();Message=TEXT("Buraya yerle\u015fmez: \u00e7ak\u0131\u015fma veya d\u0131\u015far\u0131 ta\u015fma.");}else{Changed();Invalidate(EInvalidateWidgetReason::Paint);}})]];
 }
 void SStoreStudio::Construct(const FArguments&)
 {
@@ -136,11 +143,15 @@ void SStoreStudio::Construct(const FArguments&)
     TArray<FString> Files;IFileManager::Get().FindFilesRecursive(Files,*(FPaths::ProjectDir()/TEXT("AssetInbox/Environment/Stores")),TEXT("equipment.json"),true,false);
     Palette.Add({TEXT("gondola_double_1200"),TEXT("\u00c7ift y\u00fczl\u00fc gondol"),TEXT("shelf")});Palette.Add({TEXT("wall_shelf_2400"),TEXT("Duvar raf\u0131"),TEXT("shelf")});
     for(auto Path:Files){FString Text;TSharedPtr<FJsonObject> O;if(FFileHelper::LoadFileToString(Text,*Path)&&FJsonSerializer::Deserialize(TJsonReaderFactory<>::Create(Text),O)&&O->HasField(TEXT("planogram"))){FStorePaletteItem I;I.Id=O->GetStringField(TEXT("id"));I.Family=O->GetStringField(TEXT("family"));if(!O->TryGetStringField(TEXT("displayName"),I.Name))I.Name=FString::Printf(TEXT("%s (%.1f m)"),*StoreUI::EquipmentLabel(I.Family),MarketPlanogram::Equipment(I.Id).DimensionsCm.X/100);Palette.Add(I);}}
+    LoadPaletteImages();
     Palette.Sort([](auto A,auto B){return A.Name<B.Name;});
     auto Heading=[](FString Label){return SNew(STextBlock).Text(StoreUI::Text(Label)).Font(FAppStyle::GetFontStyle(TEXT("HeadingExtraSmall")));};
     auto Options=SNew(SVerticalBox);
     Options->AddSlot().AutoHeight().Padding(0,8)[Heading(TEXT("B\u0130NA VE DEPO (metre)"))];
-    const TCHAR* Labels[]={TEXT("Ma\u011faza eni"),TEXT("Ma\u011faza boyu"),TEXT("Depo eni"),TEXT("Depo boyu"),TEXT("Tavan y\u00fcksekli\u011fi"),TEXT("Giri\u015f sa\u011f / sol"),TEXT("Mal kabul sa\u011f / sol")};for(int32 I=0;I<7;++I)Options->AddSlot().AutoHeight().Padding(0,3)[SizeControl(Labels[I],I)];
+    const TCHAR* Labels[]={TEXT("Ma\u011faza eni"),TEXT("Ma\u011faza boyu"),TEXT("Depo eni"),TEXT("Depo boyu"),TEXT("Tavan y\u00fcksekli\u011fi")};for(int32 I=0;I<5;++I)Options->AddSlot().AutoHeight().Padding(0,3)[SizeControl(Labels[I],I)];
+    Options->AddSlot().AutoHeight().Padding(0,8)[Heading(TEXT("KAPILAR"))];
+    Options->AddSlot().AutoHeight()[SNew(STextBlock).AutoWrapText(true).Text(StoreUI::Text(TEXT("Kap\u0131y\u0131 tutup istedi\u011fin duvara s\u00fcr\u00fckle.")))];
+    Options->AddSlot().AutoHeight().Padding(0,4)[SNew(SHorizontalBox)+SHorizontalBox::Slot()[Button(TEXT("Giri\u015f kap\u0131s\u0131"),TEXT("door:1"))]+SHorizontalBox::Slot()[Button(TEXT("Mal kabul kap\u0131s\u0131"),TEXT("door:2"))]];
     Options->AddSlot().AutoHeight().Padding(0,8)[Heading(TEXT("YERLE\u015eT\u0130RME"))];
     auto Check=[&](FString Label,bool* Value){Options->AddSlot().AutoHeight().Padding(0,3)[SNew(SCheckBox).IsChecked_Lambda([Value]{return *Value?ECheckBoxState::Checked:ECheckBoxState::Unchecked;}).OnCheckStateChanged_Lambda([Value](ECheckBoxState S){*Value=S==ECheckBoxState::Checked;})[SNew(STextBlock).Text(StoreUI::Text(Label))]];};
     Check(TEXT("10 cm \u0131zgara"),&bGrid);Check(TEXT("Duvara yasla"),&bWallSnap);Check(TEXT("Kom\u015fuya yasla / hizala"),&bNeighbourSnap);
@@ -148,7 +159,7 @@ void SStoreStudio::Construct(const FArguments&)
     Options->AddSlot().AutoHeight()[SNew(SHorizontalBox)+SHorizontalBox::Slot()[Button(TEXT("\u00d6ne yasla"),TEXT("front"))]+SHorizontalBox::Slot()[Button(TEXT("Depoya yasla"),TEXT("rear"))]];
     Options->AddSlot().AutoHeight().Padding(0,4)[SNew(SHorizontalBox)+SHorizontalBox::Slot()[Button(TEXT("D\u00f6nd\u00fcr 90\u00b0 [R]"),TEXT("rotate"))]+SHorizontalBox::Slot()[Button(TEXT("Yan yana kopyala"),TEXT("duplicate"))]];
     Options->AddSlot().AutoHeight()[SNew(SHorizontalBox)+SHorizontalBox::Slot()[Button(TEXT("Sil [Del]"),TEXT("delete"))]+SHorizontalBox::Slot()[Button(TEXT("Se\u00e7im modu [Esc]"),TEXT("select"))]];
-    Options->AddSlot().AutoHeight().Padding(0,6)[SNew(STextBlock).Text_Lambda([this]{return StoreUI::Text(Store.Fixtures.IsValidIndex(Selected)?Store.Fixtures[Selected].Id:TEXT("Par\u00e7ay\u0131 planda se\u00e7 ve s\u00fcr\u00fckle"));})];
+    Options->AddSlot().AutoHeight().Padding(0,6)[SNew(STextBlock).Text_Lambda([this]{return StoreUI::Text(SelectionLabel());})];
     for(int32 I=0;I<3;++I)Options->AddSlot().AutoHeight()[NumberControl(I==0?TEXT("X (m)"):I==1?TEXT("Y (m)"):TEXT("A\u00e7\u0131"),I)];
     Options->AddSlot().AutoHeight().Padding(0,5)[SNew(SComboBox<TSharedPtr<FString>>).OptionsSource(&Categories).OnGenerateWidget_Lambda([](auto V){return SNew(STextBlock).Text(StoreUI::Text(*V));}).OnSelectionChanged_Lambda([this](auto V,ESelectInfo::Type){if(!V)return;Category=*V==TEXT("Kategorisiz")?FString():*V;if(Store.Fixtures.IsValidIndex(Selected)){Remember();Store.Fixtures[Selected].Category=Category;Store.Fixtures[Selected].FaceCategories.Reset();Changed();Invalidate(EInvalidateWidgetReason::Paint);}})[SNew(STextBlock).Text_Lambda([this]{return StoreUI::Text(Category.IsEmpty()?TEXT("Kategori: Kategorisiz"):Category);})]];
     Options->AddSlot().AutoHeight().Padding(0,8)[Heading(TEXT("HAZIR B\u00d6L\u00dcM"))];
@@ -156,7 +167,7 @@ void SStoreStudio::Construct(const FArguments&)
     Options->AddSlot().AutoHeight().Padding(0,8)[Heading(TEXT("ZEM\u0130N"))];
     for(const TCHAR* K:{TEXT("Krem"),TEXT("A\u00e7\u0131k gri"),TEXT("Koyu gri"),TEXT("Toprak"),TEXT("Ye\u015fil")})Options->AddSlot().AutoHeight().Padding(0,2)[Button(K,FString(TEXT("color:"))+K)];
     Options->AddSlot().AutoHeight()[SNew(SHorizontalBox)+SHorizontalBox::Slot()[Button(TEXT("Seramik"),TEXT("finish:tile"))]+SHorizontalBox::Slot()[Button(TEXT("Beton"),TEXT("finish:concrete"))]+SHorizontalBox::Slot()[Button(TEXT("Parlak"),TEXT("finish:polished"))]];
-    for(int32 Channel=0;Channel<3;++Channel)Options->AddSlot().AutoHeight().Padding(0,3)[SNew(SHorizontalBox)+SHorizontalBox::Slot()[SNew(STextBlock).Text(StoreUI::Text(Channel==0?TEXT("K\u0131rm\u0131z\u0131"):Channel==1?TEXT("Ye\u015fil"):TEXT("Mavi")))]+SHorizontalBox::Slot()[SNew(SSpinBox<double>).MinValue(0).MaxValue(255).Delta(1).Value_Lambda([this,Channel]{return double((&Store.FloorColor.R)[Channel])*255;}).OnValueCommitted_Lambda([this,Channel](double V,ETextCommit::Type){Remember();(&Store.FloorColor.R)[Channel]=float(V/255);Store.bEditableShell=true;Changed();Invalidate(EInvalidateWidgetReason::Paint);})]];
+    for(int32 Channel=0;Channel<3;++Channel)Options->AddSlot().AutoHeight().Padding(0,3)[SNew(SHorizontalBox)+SHorizontalBox::Slot()[SNew(STextBlock).Text(StoreUI::Text(Channel==0?TEXT("K\u0131rm\u0131z\u0131"):Channel==1?TEXT("Ye\u015fil"):TEXT("Mavi")))]+SHorizontalBox::Slot()[SNew(SSpinBox<double>).MaxFractionalDigits(2).MinValue(0).MaxValue(255).Delta(1).Value_Lambda([this,Channel]{return double((&Store.FloorColor.R)[Channel])*255;}).OnValueCommitted_Lambda([this,Channel](double V,ETextCommit::Type){Remember();(&Store.FloorColor.R)[Channel]=float(V/255);Store.bEditableShell=true;Changed();Invalidate(EInvalidateWidgetReason::Paint);})]];
     ChildSlot[SNew(SVerticalBox)
         +SVerticalBox::Slot().AutoHeight().Padding(8)[SNew(SHorizontalBox)
             +SHorizontalBox::Slot().AutoWidth()[SNew(SBox).WidthOverride(200)[SNew(SComboBox<TSharedPtr<FString>>).OptionsSource(&Stores).OnGenerateWidget_Lambda([](auto V){return SNew(STextBlock).Text(StoreUI::Text(*V));}).OnSelectionChanged_Lambda([this](auto V,ESelectInfo::Type){if(V)LoadStore(*V);})[SNew(STextBlock).Text_Lambda([this]{return StoreUI::Text(Store.Id+(bDirty?TEXT(" *"):TEXT("")));})]]]
@@ -180,6 +191,7 @@ void SStoreStudio::Construct(const FArguments&)
             +SHorizontalBox::Slot().AutoWidth()[Button(TEXT("Kopyala [Ctrl D]"),TEXT("duplicate"))]
             +SHorizontalBox::Slot().AutoWidth().Padding(8,0)[Button(TEXT("Kald\u0131r [Del]"),TEXT("delete"))]
             +SHorizontalBox::Slot().FillWidth(1)[SNew(STextBlock).AutoWrapText(true).Text_Lambda([this]{return StoreUI::Text(TEXT("Bos alani tut: plani kaydir. Parcayi tut: tasi. Toplu sec: cerceve ciz. Tekerlek: yakinlas."));})]]
+        +SVerticalBox::Slot().AutoHeight().Padding(12,0,12,6)[SNew(STextBlock).Text_Lambda([this]{return StoreUI::Text(SelectionLabel());})]
         +SVerticalBox::Slot().FillHeight(1)[SNew(SHorizontalBox)
             +SHorizontalBox::Slot().AutoWidth()[SNew(SBox).WidthOverride(250).Visibility_Lambda([this]{return bLibrary?EVisibility::Visible:EVisibility::Collapsed;})[SNew(SVerticalBox)+SVerticalBox::Slot().AutoHeight().Padding(8)[Heading(TEXT("EK\u0130PMAN K\u00dcT\u00dcPHANES\u0130"))]+SVerticalBox::Slot().AutoHeight().Padding(8)[SNew(SSearchBox).HintText(StoreUI::Text(TEXT("Dolap, kasap, teknoloji..."))).OnTextChanged_Lambda([this](FText T){Search=T.ToString();PopulateBank();})]+SVerticalBox::Slot().FillHeight(1)[SNew(SScrollBox)+SScrollBox::Slot()[SAssignNew(Bank,SVerticalBox)]]]]
              +SHorizontalBox::Slot().FillWidth(1)[SAssignNew(Map,SStoreMap).Owner(this).Clipping(EWidgetClipping::ClipToBoundsAlways)]
@@ -187,13 +199,13 @@ void SStoreStudio::Construct(const FArguments&)
         +SVerticalBox::Slot().AutoHeight().Padding(10,5)[SNew(STextBlock).AutoWrapText(true).Text_Lambda([this]{return StoreUI::Text(FString::Printf(TEXT("%.1f m\u00b2 sat\u0131\u015f  |  %.1f m\u00b2 depo  |  %d ekipman  |  %s"),Store.SalesAreaM2,Store.BackroomM2,Store.Fixtures.Num(),*Message));})]];
     PopulateBank();Invalidate(EInvalidateWidgetReason::Paint);
 }
-void SStoreStudio::PopulateBank(){Bank->ClearChildren();for(auto I:Palette)if(Search.IsEmpty()||I.Name.Contains(Search)||I.Id.Contains(Search))Bank->AddSlot().AutoHeight().Padding(8,3)[Button(I.Name,TEXT("arm:")+I.Id)];}
-void SStoreStudio::LoadStore(FString Id){FStoreTemplate Draft;FString DraftError;const auto* S=MarketStoreKit::Find(Id);if(MarketStoreEditing::LoadDraft(FPaths::ProjectSavedDir()/TEXT("StoreDrafts")/(Id+TEXT(".json")),Draft,DraftError))S=&Draft;if(S){if(bDirty){FString Error;if(!MarketStoreEditing::Save(Store,FPaths::ProjectSavedDir()/TEXT("StoreDrafts")/(Store.Id+TEXT(".json")),Error)){Message=TEXT("\u00d6nce tasla\u011f\u0131 d\u00fczelt: ")+Error;return;}}Store=*S;if(Map)Map->Fit();Selection.Reset();Selected=INDEX_NONE;UndoStack.Reset();RedoStack.Reset();bDirty=false;ArmedEquipment.Empty();Message=TEXT("Ekipman se\u00e7, planda bo\u015f yere t\u0131kla. Ta\u015f\u0131mak i\u00e7in s\u00fcr\u00fckle.");Invalidate(EInvalidateWidgetReason::Paint);}}
+void SStoreStudio::PopulateBank(){Bank->ClearChildren();for(const auto& I:Palette)if(Search.IsEmpty()||I.Name.Contains(Search)||I.Id.Contains(Search))Bank->AddSlot().AutoHeight().Padding(6,3)[SNew(SButton).ToolTipText(StoreUI::Text(I.Name)).OnClicked_Lambda([this,Id=I.Id]{return Action(TEXT("arm:")+Id);})[SNew(SHorizontalBox)+SHorizontalBox::Slot().AutoWidth()[SNew(SBox).WidthOverride(82).HeightOverride(82)[SNew(SImage).Image(I.Image.Get())]]+SHorizontalBox::Slot().FillWidth(1).VAlign(VAlign_Center).Padding(8,0)[SNew(STextBlock).AutoWrapText(true).Text(StoreUI::Text(I.Name))]]];}
+void SStoreStudio::LoadStore(FString Id){FStoreTemplate Draft;FString DraftError;const auto* S=MarketStoreKit::Find(Id);if(MarketStoreEditing::LoadDraft(FPaths::ProjectSavedDir()/TEXT("StoreDrafts")/(Id+TEXT(".json")),Draft,DraftError))S=&Draft;if(S){if(bDirty){FString Error;if(!MarketStoreEditing::Save(Store,FPaths::ProjectSavedDir()/TEXT("StoreDrafts")/(Store.Id+TEXT(".json")),Error)){Message=TEXT("\u00d6nce tasla\u011f\u0131 d\u00fczelt: ")+Error;return;}}Store=*S;if(Map)Map->Fit();Selection.Reset();Selected=INDEX_NONE;SelectedDoor=0;UndoStack.Reset();RedoStack.Reset();bDirty=false;ArmedEquipment.Empty();Message=TEXT("Ekipman se\u00e7, planda bo\u015f yere t\u0131kla. Ta\u015f\u0131mak i\u00e7in s\u00fcr\u00fckle.");Invalidate(EInvalidateWidgetReason::Paint);}}
 void SStoreStudio::Remember(){UndoStack.Add(Store);if(UndoStack.Num()>50)UndoStack.RemoveAt(0);RedoStack.Reset();}
 void SStoreStudio::Changed(){bDirty=true;Store.Stats=MarketStoreKit::CalculateStats(Store);if(Map)Map->Invalidate(EInvalidateWidgetReason::Paint);Invalidate(EInvalidateWidgetReason::Paint);}
 bool SStoreStudio::MoveSelected(FVector At){if(!Store.Fixtures.IsValidIndex(Selected))return false;auto F=Store.Fixtures[Selected];F.Location=At;F.Location=MarketStoreEditing::Snap(Store,F,bWallSnap,bNeighbourSnap,bGrid?10:0,0);if(!MarketStoreEditing::CanPlace(Store,F,Selected)){Message=TEXT("Buraya yerle\u015fmez. Duvar, depo veya ekipmanla \u00e7ak\u0131\u015f\u0131yor.");return false;}Store.Fixtures[Selected]=F;Changed();Message=TEXT("Yerle\u015ftirildi.");return true;}
 void SStoreStudio::EndDrag(){Invalidate(EInvalidateWidgetReason::Paint);}
-void SStoreStudio::AddAt(FVector At){Remember();if(MarketStoreEditing::Place(Store,ArmedEquipment,Category,At,Selected,bWallSnap,bNeighbourSnap,bGrid?10:0,PlacementYaw,0)){Selection.Reset();Selection.Add(Selected);Changed();Message=TEXT("Eklendi. Esc ile se\u00e7im moduna d\u00f6n.");Invalidate(EInvalidateWidgetReason::Paint);}else{UndoStack.Pop();Message=TEXT("Buraya yerle\u015fmez; bo\u015f bir alan se\u00e7.");}}
+void SStoreStudio::AddAt(FVector At){Remember();if(MarketStoreEditing::Place(Store,ArmedEquipment,Category,At,Selected,bWallSnap,bNeighbourSnap,bGrid?10:0,PlacementYaw,0,FMath::Clamp(14/Map->Scale(Map->GetCachedGeometry()),8.,120.))){Selection.Reset();Selection.Add(Selected);Changed();Message=TEXT("Eklendi. Esc ile se\u00e7im moduna d\u00f6n.");Invalidate(EInvalidateWidgetReason::Paint);}else{UndoStack.Pop();Message=TEXT("Buraya yerle\u015fmez; bo\u015f bir alan se\u00e7.");}}
 void SStoreStudio::AddDepartment(FString Kind)
 {
     TArray<FString> Parts;if(Kind==TEXT("Kasap"))Parts={TEXT("butcher_display_2500"),TEXT("butcher_workbench_1800")};else if(Kind==TEXT("\u015eark\u00fcteri"))Parts={TEXT("deli_display_2500")};else if(Kind==TEXT("Teknoloji"))Parts={TEXT("tech_table_1800"),TEXT("tech_wall_2400")};else Parts={TEXT("produce_small")};
@@ -207,6 +219,7 @@ void SStoreStudio::AddDepartment(FString Kind)
 }
 FReply SStoreStudio::Action(FString C)
 {
+    if(C.StartsWith(TEXT("door:"))){Select(INDEX_NONE);SelectedDoor=C==TEXT("door:1")?1:2;Map->Zoom=3;const auto P=SelectedDoor==1?Store.Entrance.At:Store.Receiving.At;Map->Pan=-FVector2D(P.X,-P.Y)*Map->Scale(Map->GetCachedGeometry());Map->Invalidate(EInvalidateWidgetReason::Paint);return FReply::Handled();}
     if(C==TEXT("new")){NewStoreDialog();return FReply::Handled();}
     if(C==TEXT("library")){bLibrary=!bLibrary;return FReply::Handled();}
     if(C==TEXT("properties")){bProperties=!bProperties;return FReply::Handled();}
@@ -215,12 +228,12 @@ FReply SStoreStudio::Action(FString C)
     if(C==TEXT("all")){Selection.Reset();for(int32 I=0;I<Store.Fixtures.Num();++I)Selection.Add(I);Selected=Selection.IsEmpty()?INDEX_NONE:0;Invalidate(EInvalidateWidgetReason::Paint);return FReply::Handled();}
     if(C==TEXT("focus")||C==TEXT("focusSelection")){if(C==TEXT("focusSelection"))Map->FocusSelected();else Map->Fit();Map->Invalidate(EInvalidateWidgetReason::Paint);return FReply::Handled();}
     if(C==TEXT("rotate")&&!ArmedEquipment.IsEmpty()){PlacementYaw=FMath::Fmod(PlacementYaw+90,360.f);return FReply::Handled();}
-    if(C.StartsWith(TEXT("arm:"))){ArmedEquipment=C.Mid(4);Selection.Reset();Selected=INDEX_NONE;bMarquee=false;PlacementYaw=0;Message=TEXT("Planda bo\u015f yere t\u0131kla. Esc: se\u00e7im modu.");return FReply::Handled();}
+    if(C.StartsWith(TEXT("arm:"))){ArmedEquipment=C.Mid(4);SelectedDoor=0;Selection.Reset();Selected=INDEX_NONE;SelectedDoor=0;bMarquee=false;PlacementYaw=0;Message=TEXT("Planda bo\u015f yere t\u0131kla. Esc: se\u00e7im modu.");return FReply::Handled();}
     if(C==TEXT("select")){ArmedEquipment.Empty();bMarquee=false;return FReply::Handled();}
-    if(C==TEXT("undo")&&!UndoStack.IsEmpty()){RedoStack.Add(Store);Store=UndoStack.Pop();Selected=INDEX_NONE;Selection.Reset();Changed();Invalidate(EInvalidateWidgetReason::Paint);}
-    else if(C==TEXT("redo")&&!RedoStack.IsEmpty()){UndoStack.Add(Store);Store=RedoStack.Pop();Selected=INDEX_NONE;Selection.Reset();Changed();Invalidate(EInvalidateWidgetReason::Paint);}
+    if(C==TEXT("undo")&&!UndoStack.IsEmpty()){RedoStack.Add(Store);Store=UndoStack.Pop();Selected=INDEX_NONE;SelectedDoor=0;Selection.Reset();Changed();Invalidate(EInvalidateWidgetReason::Paint);}
+    else if(C==TEXT("redo")&&!RedoStack.IsEmpty()){UndoStack.Add(Store);Store=RedoStack.Pop();Selected=INDEX_NONE;SelectedDoor=0;Selection.Reset();Changed();Invalidate(EInvalidateWidgetReason::Paint);}
     else if(C==TEXT("draft")||C==TEXT("publish")){FString Error;const FString P=C==TEXT("draft")?FPaths::ProjectSavedDir()/TEXT("StoreDrafts")/(Store.Id+TEXT(".json")):FPaths::ProjectConfigDir()/TEXT("magazalar.json");if(MarketStoreEditing::Save(Store,P,Error)){bDirty=false;Message=C==TEXT("draft")?TEXT("Taslak kaydedildi. Oyuna kaydet ile katalo\u011fa aktar."):TEXT("Oyuna kaydedildi. Ma\u011faza gezi modunda g\u00f6rebilirsin.");if(C==TEXT("publish")){TArray<FString> E;MarketStoreKit::Load(E);}}else Message=Error;}
-    else if(C==TEXT("loadDraft")){FString Error;FStoreTemplate S;if(MarketStoreEditing::LoadDraft(FPaths::ProjectSavedDir()/TEXT("StoreDrafts")/(Store.Id+TEXT(".json")),S,Error)){Remember();Store=S;Selected=INDEX_NONE;Selection.Reset();Changed();Invalidate(EInvalidateWidgetReason::Paint);Message=TEXT("Taslak a\u00e7\u0131ld\u0131.");}else Message=Error;}
+    else if(C==TEXT("loadDraft")){FString Error;FStoreTemplate S;if(MarketStoreEditing::LoadDraft(FPaths::ProjectSavedDir()/TEXT("StoreDrafts")/(Store.Id+TEXT(".json")),S,Error)){Remember();Store=S;Selected=INDEX_NONE;SelectedDoor=0;Selection.Reset();Changed();Invalidate(EInvalidateWidgetReason::Paint);Message=TEXT("Taslak a\u00e7\u0131ld\u0131.");}else Message=Error;}
     else if(C.StartsWith(TEXT("department:")))AddDepartment(C.Mid(11));
     else if(C.StartsWith(TEXT("color:"))){Remember();const auto V=C.Mid(6);Store.FloorColor=V==TEXT("Krem")?FLinearColor(.70f,.64f,.51f):V==TEXT("A\u00e7\u0131k gri")?FLinearColor(.65f,.67f,.68f):V==TEXT("Koyu gri")?FLinearColor(.19f,.22f,.24f):V==TEXT("Toprak")?FLinearColor(.39f,.25f,.17f):FLinearColor(.26f,.39f,.29f);Store.bEditableShell=true;Changed();Invalidate(EInvalidateWidgetReason::Paint);}
     else if(C.StartsWith(TEXT("finish:"))){Remember();Store.FloorFinish=C.Mid(7);Store.bEditableShell=true;Changed();Invalidate(EInvalidateWidgetReason::Paint);}
@@ -228,7 +241,7 @@ FReply SStoreStudio::Action(FString C)
     else if(Store.Fixtures.IsValidIndex(Selected))
     {
         Remember();auto Old=Store.Fixtures[Selected];bool Done=false;
-        if(C==TEXT("delete")){Store.Fixtures.RemoveAt(Selected);Selected=INDEX_NONE;Done=true;}
+        if(C==TEXT("delete")){Store.Fixtures.RemoveAt(Selected);Selected=INDEX_NONE;SelectedDoor=0;Done=true;}
         else if(C==TEXT("duplicate")){int32 N;Done=MarketStoreEditing::Duplicate(Store,Selected,0,N);if(Done)Select(N);}
         else
         {
@@ -242,8 +255,8 @@ FReply SStoreStudio::Action(FString C)
 }
 FReply SStoreStudio::OnKeyDown(const FGeometry&,const FKeyEvent& E){if(E.IsControlDown()&&E.GetKey()==EKeys::A)return Action(TEXT("all"));if(E.GetKey()==EKeys::F11)return Action(TEXT("workspace"));if(E.GetKey()==EKeys::Home)return Action(TEXT("focus"));if(E.GetKey()==EKeys::F)return Action(TEXT("focusSelection"));if(E.IsControlDown()&&E.GetKey()==EKeys::S)return Action(TEXT("draft"));if(E.IsControlDown()&&E.GetKey()==EKeys::Z)return Action(TEXT("undo"));if(E.IsControlDown()&&E.GetKey()==EKeys::Y)return Action(TEXT("redo"));if(E.IsControlDown()&&E.GetKey()==EKeys::D)return Action(TEXT("duplicate"));if(E.GetKey()==EKeys::R)return Action(TEXT("rotate"));if(E.GetKey()==EKeys::Delete)return Action(TEXT("delete"));if(E.GetKey()==EKeys::Escape)return Action(TEXT("select"));return FReply::Unhandled();}
 
-FPlanogramFixture SStoreStudio::Placement(FVector At)const{FPlanogramFixture F;F.EquipmentId=ArmedEquipment;F.Location=At;F.Yaw=PlacementYaw;F.Location=MarketStoreEditing::Snap(Store,F,bWallSnap,bNeighbourSnap,bGrid?10:0,0);return F;}
-void SStoreStudio::Select(int32 Index,bool Add){if(!Add)Selection.Reset();if(Store.Fixtures.IsValidIndex(Index)){if(Add&&Selection.Contains(Index))Selection.Remove(Index);else Selection.Add(Index);}Selected=Selection.Contains(Index)?Index:Selection.IsEmpty()?INDEX_NONE:Selection.Array()[0];ArmedEquipment.Empty();if(Store.Fixtures.IsValidIndex(Selected))Category=Store.Fixtures[Selected].Category;Invalidate(EInvalidateWidgetReason::Paint);}
+FPlanogramFixture SStoreStudio::Placement(FVector At)const{FPlanogramFixture F;F.EquipmentId=ArmedEquipment;F.Location=At;F.Yaw=PlacementYaw;auto Candidate=Store;const int32 I=Candidate.Fixtures.Add(F);if(MarketStoreEditing::MoveGroup(Candidate,{I},FVector::ZeroVector,bWallSnap,bNeighbourSnap,bGrid?10:0,FMath::Clamp(14/Map->Scale(Map->GetCachedGeometry()),8.,120.)))return Candidate.Fixtures[I];return F;}
+void SStoreStudio::Select(int32 Index,bool Add){SelectedDoor=0;if(!Add)Selection.Reset();if(Store.Fixtures.IsValidIndex(Index)){if(Add&&Selection.Contains(Index))Selection.Remove(Index);else Selection.Add(Index);}Selected=Selection.Contains(Index)?Index:Selection.IsEmpty()?INDEX_NONE:Selection.Array()[0];ArmedEquipment.Empty();if(Store.Fixtures.IsValidIndex(Selected))Category=Store.Fixtures[Selected].Category;Invalidate(EInvalidateWidgetReason::Paint);}
 bool SStoreStudio::CreateStore(FString Format,FString Name,bool Copy)
 {
     FString Error;if(bDirty&&!MarketStoreEditing::Save(Store,FPaths::ProjectSavedDir()/TEXT("StoreDrafts")/(Store.Id+TEXT(".json")),Error)){Message=Error;return false;}
@@ -251,7 +264,7 @@ bool SStoreStudio::CreateStore(FString Format,FString Name,bool Copy)
     FStoreTemplate New;if(!MarketStoreEditing::Create(Format,Id,Name,New))return false;
     if(Copy){New=Store;New.Id=Id;New.Name=Name;New.Format=Format;}
     if(!MarketStoreEditing::Save(New,FPaths::ProjectSavedDir()/TEXT("StoreDrafts")/(Id+TEXT(".json")),Error)){Message=Error;return false;}
-    Stores.Add(MakeShared<FString>(Id));Store=MoveTemp(New);Selection.Reset();Selected=INDEX_NONE;ArmedEquipment.Empty();UndoStack.Reset();RedoStack.Reset();bDirty=false;Map->Fit();Invalidate(EInvalidateWidgetReason::Paint);Message=TEXT("Yeni ma\u011faza olu\u015fturuldu. Sa\u011fdan bina/depo \u00f6l\u00e7\u00fclerini ayarla; soldan ekipman se\u00e7ip yerle\u015ftir.");return true;
+    Stores.Add(MakeShared<FString>(Id));Store=MoveTemp(New);Selection.Reset();Selected=INDEX_NONE;SelectedDoor=0;ArmedEquipment.Empty();UndoStack.Reset();RedoStack.Reset();bDirty=false;Map->Fit();Invalidate(EInvalidateWidgetReason::Paint);Message=TEXT("Yeni ma\u011faza olu\u015fturuldu. Sa\u011fdan bina/depo \u00f6l\u00e7\u00fclerini ayarla; soldan ekipman se\u00e7ip yerle\u015ftir.");return true;
 }
 void SStoreStudio::NewStoreDialog()
 {
@@ -270,9 +283,10 @@ void SStoreStudio::NewStoreDialog()
 
 bool SStoreStudio::ReviewMap(FString& Error)
 {
+    for(const auto& I:Palette)if(!I.Image){Error=TEXT("Missing equipment image: ")+I.Id;return false;}
     const auto G=Map->GetCachedGeometry();const auto Before=Map->Pan;const auto Start=G.LocalToAbsolute(FVector2D(12,12));
     Map->Begin(G,Start,EKeys::LeftMouseButton);Map->Move(G,G.LocalToAbsolute(FVector2D(112,62)));Map->End(G);
-    if(!Map->Pan.Equals(Before+FVector2D(100,50),.01)){Error=TEXT("Empty-space pan failed");return false;}Map->Fit();
+    if(!Map->Pan.Equals(Before+FVector2D(100,50),.01)||!Selection.IsEmpty()){Error=TEXT("Empty-space pan/deselect failed");return false;}Map->Fit();
     if(Store.Fixtures.Num()<2){Error=TEXT("Missing review fixtures");return false;}
     auto Screen=[&](FVector2D P){return G.LocalToAbsolute(Map->ToMap(G,P));};
     const auto A=Store.Fixtures[0],B=Store.Fixtures[1];const auto AH=MarketStoreEditing::HalfSize(A),BH=MarketStoreEditing::HalfSize(B);
@@ -281,6 +295,26 @@ bool SStoreStudio::ReviewMap(FString& Error)
     if(!Selection.Contains(0)||!Selection.Contains(1)){Error=TEXT("Marquee missed equipment");return false;}
     const auto Offset=B.Location-A.Location;Map->Begin(G,Screen(FVector2D(A.Location.X,A.Location.Y)),EKeys::LeftMouseButton);Map->Move(G,Screen(FVector2D(A.Location.X+500,A.Location.Y-500)));Map->End(G);
     if(Store.Fixtures[0].Location.Equals(A.Location,1)||!(Store.Fixtures[1].Location-Store.Fixtures[0].Location).Equals(Offset,.01)){Error=TEXT("Group move failed or spacing changed");return false;}
-    Action(TEXT("undo"));Action(TEXT("redo"));Map->Zoom=8;Map->Pan=-FVector2D(Store.Fixtures[0].Location.X,-Store.Fixtures[0].Location.Y)*Map->Scale(G);Map->Invalidate(EInvalidateWidgetReason::Paint);
+    Action(TEXT("undo"));Action(TEXT("redo"));Select(0);if(!SelectionLabel().Contains(TEXT("s\u00fctl\u00fck"))){Error=TEXT("Selected name missing");return false;}
+    const auto Door=Store.Entrance.At;const auto DoorScreen=Screen(FVector2D(Door.X,Door.Y));Map->Begin(G,DoorScreen,EKeys::LeftMouseButton);Map->Move(G,Screen(FVector2D(-2400,-300)));Map->End(G);if(Store.Entrance.At.X!=-2000||SelectedDoor!=1){Error=TEXT("Direct door drag failed");return false;}Action(TEXT("undo"));Select(0);
+    Map->Zoom=5;Map->Pan=-FVector2D(Store.Fixtures[0].Location.X,-Store.Fixtures[0].Location.Y)*Map->Scale(G);Map->Invalidate(EInvalidateWidgetReason::Paint);
     return true;
+}
+
+FString SStoreStudio::SelectionLabel() const
+{
+    if(SelectedDoor)return SelectedDoor==1?TEXT("Giris kapisi \u2014 tutup istedigin duvara surukle"):TEXT("Mal kabul kapisi \u2014 tutup istedigin duvara surukle");
+    const FString Id=Store.Fixtures.IsValidIndex(Selected)?Store.Fixtures[Selected].EquipmentId:ArmedEquipment;
+    if(const auto* I=Palette.FindByPredicate([&](const auto& P){return P.Id==Id;})){const auto E=MarketPlanogram::Equipment(Id);return FString::Printf(TEXT("%s: %s  |  %.2f x %.2f m  |  %d secili"),ArmedEquipment.IsEmpty()?TEXT("Secili ekipman"):TEXT("Eklenecek ekipman"),*I->Name,E.DimensionsCm.X/100,E.DimensionsCm.Y/100,Selection.Num());}
+    return TEXT("Parcaya tikla: adini gor. Yesil/mavi kapiyi tut: duvarini degistir.");
+}
+void SStoreStudio::LoadPaletteImages()
+{
+    TArray<FString> Files;IFileManager::Get().FindFilesRecursive(Files,*(FPaths::ProjectDir()/TEXT("AssetInbox/Environment")),TEXT("equipment.json"),true,false);TMap<FString,FString> Paths;
+    for(const auto& Path:Files){FString T;TSharedPtr<FJsonObject> O;if(FFileHelper::LoadFileToString(T,*Path)&&FJsonSerializer::Deserialize(TJsonReaderFactory<>::Create(T),O)){FString Id;if(O->TryGetStringField(TEXT("id"),Id)){const auto P=FPaths::GetPath(Path)/TEXT("preview.png");if(IFileManager::Get().FileExists(*P))Paths.Add(Id,P);}}}
+    for(auto& I:Palette)
+    {
+        if(const auto* P=Paths.Find(I.Id)){const FName Resource(**P);const auto Size=FSlateApplication::Get().GetRenderer()->GenerateDynamicImageResource(Resource);if(Size.X>0)I.Image=MakeShared<FSlateDynamicImageBrush>(Resource,FVector2D(Size.X,Size.Y));}
+        if(!I.Image){auto* Mesh=LoadObject<UObject>(nullptr,*MarketPlanogram::Equipment(I.Id).MeshPath);if(Mesh){FObjectThumbnail Thumb;ThumbnailTools::RenderThumbnail(Mesh,256,256,ThumbnailTools::EThumbnailTextureFlushMode::AlwaysFlush,nullptr,&Thumb);const FName Resource(*(TEXT("MirasStorePalette_")+I.Id));if(FSlateApplication::Get().GetRenderer()->GenerateDynamicImageResource(Resource,256,256,Thumb.GetUncompressedImageData()))I.Image=MakeShared<FSlateDynamicImageBrush>(Resource,FVector2D(256,256));}}
+    }
 }

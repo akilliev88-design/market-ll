@@ -1,6 +1,6 @@
 # Güncel durum
 
-Son güncelleme: 30.09.2026 — Codex (G-088 editör yalnız kuşbakışı: boş alandan kaydır, çerçeveyle seç, topluca taşı, dolapları dayama)
+Son güncelleme: 30.09.2026 — Codex (G-088 dolap yaslama düzeltmesi, resimli kütüphane ve plandan kapı taşıma)
 
 ## Kısaca
 
@@ -20,6 +20,7 @@ GitHub ana deposu: `https://github.com/m07tas/market-ll` (`main`). Unreal/Blende
 
 | Kontrol | Sonuç |
 |---|---|
+| G-088 resimli ekipman ve kapı taşıma | DERLE GEÇTİ; TEST 72/72; Smoke GEÇTİ; dolap teması, gerçek editörde kapı taşıma/görseller/seçim ve PNG gözle kontrolü GEÇTİ — 30.09.2026 |
 | G-088 sade kuşbakışı editör | DERLE GEÇTİ; TEST 71/71; Smoke GEÇTİ; gerçek editör kaydırma/çerçeve/grup taşıma/yakınlaştırma sınırı GEÇTİ — 30.09.2026 |
 | G-088 editör kullanım revizyonu | DERLE GEÇTİ; TEST 70/70; Smoke GEÇTİ; gerçek editörde 3B tıkla/seç/taşı/ekle, yürüyüş çarpışması, yeni/kopya/taslak ve üç görünüm ekran kontrolü GEÇTİ — 30.09.2026 |
 | G-088 mağaza editörü + dolap kütüphanesi | DERLE GEÇTİ; TEST 69/69; Smoke ve dört mağaza gezi testi GEÇTİ; 15/15 Blender kaynak kontrolü; gerçek editör ekranları incelendi — 30.09.2026 |
@@ -87,6 +88,16 @@ GitHub ana deposu: `https://github.com/m07tas/market-ll` (`main`). Unreal/Blende
 Görsel ve raf dizme işleri yeterli seviyede; bir süre **donduruldu**. Öncelik **"İlk Hafta" oynanabilir dilimi**: bir oyuncu 7 günü baştan sona oynayabilmeli (sipariş → mal kabul → raf → fiyat → satış → gün raporu → hafta hedefi). Görevler G-051…G-055. Başarı ölçütü: yeni biri ilk 30 dakikada döngüyü anlıyor ve ilk kararının sonucunu görüyor.
 
 ## Devam notu
+
+**30.09.2026 — Codex: G-088 dolap yaslama, resimli kütüphane ve kapı taşıma.**
+
+- Son doğrulama: StoreEditorReview GEÇTİ; son sürümde resimli kütüphane, seçili ekipman adı, Kapılar düğmeleri ve yan yana dolap ekranları gözle incelendi. Smoke GEÇTİ (oyuncu, doldurma, mal kabul, işe alma, satış, gün kapama ve disk kayıt/yükleme).
+
+- `MoveGroup` artık en yakın geçerli temas seçeneklerini dener; çakışan tek bir hizayı zorlayıp hareketi kilitlemez. Farklı genişliklerde ve imleç dolabın içine biraz taşsa da yan yana sıfır boşlukta oturur. Yaslama toleransı ekranda 14 piksel (8–120 cm sınırı); ekleme önizlemesi ve gerçek ekleme aynı çözümü kullanır. Diğer runtime çağrılarının eski 2 cm varsayılanı korunur.
+- Boş sol tık seçimi bırakır; boş alandan sürükleme pan eder. Orta/sağ tuşla pan seçimi korur. Kütüphanede her ekipmanın PNG renderı veya gerçek UE varlık thumbnail'i; seçili parçanın Türkçe adı/ölçüsü/seçim sayısı plan üstünde ve özellik panelinde görünür. Sayısal ölçüler iki ondalıkla gösterilir.
+- Yeşil giriş/mavi mal kabul kapısını tutup istenen dış duvara sürükle. Köşeden 90 cm pay ve iki kapı için çakışma kontrolü; giriş yönü/oyuncu başlangıcı/müşteri geliş noktası güncellenir. Sağ panelde Kapılar düğmeleri ilgili kapıyı seçip yakından gösterir; yalnız sağ/sol sayısal kapı alanları kaldırıldı. Geri alma çalışır.
+- DERLE GEÇTİ; TEST 72/72 (bir UE HTTP bağlantı zaman aşımı uyarısı, başarısız yok). Yeni EditorDoorAndUnequalCabinets testi: farklı genişlik ve taşan imleçle temas, sol/sağ/arka duvar kapı konumu/yönü, üst üste kapıyı reddetme. StoreEditorReview bütün kütüphane görselleri, boş tıkta seçim bırakma, seçili ad ve gerçek map olaylarıyla kapı sürüklemeyi de doğrular. Güncel kılavuz `Docs/Environment/MAGAZA_EDITORU.md`.
+- Hazır dört mağaza/aile bakkalı değişmedi; kalan 16 A görsel onayından sonra. Şube/oyun kaydı/ekonomi/menü bağlantıları Claude'da. Duvar/kolon/depo/ekipman çakışması ve yayın sözleşmesi kontrolleri devam eder.
 
 **30.09.2026 — Codex: G-088 yalnız kuşbakışı editör.**
 

@@ -6,7 +6,7 @@
 
 Editör yalnızca kuşbakışıdır. **Ekipmanlar** ve **Özellikler** düğmeleri ilgili yan paneli açıp kapatır; **F11 / Geniş alan** ikisini birlikte gizler veya açar. Yakınlaştırılmış plan yalnızca orta çalışma alanında çizilir; yan menülere taşmaz.
 
-- **Boş alanı sol tuşla tutup sürükle:** planı istediğin yöne kaydır. Orta veya sağ tuşla planın herhangi bir yerinden de kaydırabilirsin.
+- **Boş alana tıkla:** seçimi bırak. Aynı boş alanı sol tuşla tutup sürükle: planı kaydır. Seçimi koruyarak kaydırmak için orta/sağ tuşu kullan.
 - **Tekerlek:** imlecin bulunduğu noktaya yakınlaş/uzaklaş. **Home:** bütün mağazayı sığdır. **F:** seçili ekipmana yakınlaş.
 - **Parçayı sol tuşla tutup sürükle:** taşı. Sarı çerçeveli parçalar seçilidir.
 - **Toplu seç:** düğmeye bas, sol tuşu basılı tutarak istediğin parçaların üzerinden çerçeve çiz. Alternatif: Shift + sol sürükle. Çerçeve bitince taşıma moduna döner.
@@ -33,15 +33,19 @@ Kimlik otomatik ve benzersizdir; mevcut hazır mağazanın üzerine yazılmaz. Y
 
 Yeni rafın hangi ürünleri taşıyacağını sağ paneldeki kategori listesinden seç. **Kategorisiz** raflar oyun gezi modunda rastgele doldurulmaz; soğutucuda süt, dondurucuda dondurma gibi uygun kategoriler kullan.
 
+Kütüphanede her ekipmanın gerçek model görseli vardır. Planda bir parçaya tıklayınca **planın üstünde ve sağ panelde adı ile ölçüleri** görünür. Çoklu seçimde seçili parça sayısı da yazılır.
+
 **Duvara yasla** ve **Komşuya yasla / hizala** açık başlar. Yakındaki dolabın kenarına boşluk bırakmadan oturur; grubun dış kenarları da diğer dolaplara yaslanır. **10 cm ızgara kapalı başlar:** parçayı serbestçe konumlandırabilirsin. İstersen yaslamayı veya ızgarayı değiştir. Sola, sağa, öne ve depoya yaslama düğmeleri de vardır. Duvar/kolon/depo içinde veya başka dolabın üzerinde yerleştirme kabul edilmez; satış zemininin her uygun noktasına yerleştirme serbesttir. Kırmızı parçalar düzeltilmesi gereken yerleridir.
 
 Yaslama ve ızgara seçenekleri yeni parça eklerken de uygulanır; kapatırsan istemediğin yuvarlama yapılmaz. Seçim, döndürme, kopyalama ve kaldırma düğmeleri çalışma alanının üstünde her zaman görünür.
 
 ## Bina, depo ve bölümler
 
-Sağdaki **Bina ve depo** alanları metre cinsindendir: mağaza eni/boyu, depo eni/boyu ve tavan yüksekliği. Giriş ve mal kabul kapısının sağ/sol konumunu da değiştirebilirsin. Değeri yazıp Enter'a bas veya sayıyı sürükle.
+Sağdaki **Bina ve depo** alanları metre cinsindendir: mağaza eni/boyu, depo eni/boyu ve tavan yüksekliği. Değeri yazıp Enter'a bas veya sayıyı sürükle. Kapılar doğrudan plandan taşınır.
 
 Bina boyutları değişince girintili dış hat korunarak ölçeklenir. Ekipman merkezleri, kolonlar ve tabelalar yeni boyuta taşınır; ekipmanların gerçek ölçüleri değişmez. Küçültme sonrasında kırmızı ekipmanları düzelt. Depo arka taraftadır; eni ve boyu bağımsız değişir.
+
+**Kapı taşıma:** yeşil giriş veya mavi mal kabul kapısını tutup istediğin dış duvara sürükle. Kapı kendiliğinden duvara oturur ve köşelerden yeterli pay bırakır. Sağdaki **Kapılar > Giriş kapısı / Mal kabul kapısı** düğmeleri kapıyı seçip yakından gösterir. Giriş taşınırken oyuncunun başlangıç konumu/yönü ve müşteri geliş noktası da yeni duvara göre ayarlanır. Kapıların üst üste gelmesi engellenir; geri al çalışır. Sağ/sol sayısal kapı koordinatları kaldırıldı.
 
 **Kasap**, **Şarküteri**, **Manav** ve **Teknoloji** düğmeleri boş alana ilgili ekipmanları ve bölüm tabelasını ekler. Kasapta servis ve hazırlık tezgâhı; teknolojide deneme masası ve duvar teşhiri vardır. Parçaları sonrasında ayrı ayrı taşıyabilirsin. Yeterli alan yoksa bütün bölüm ekleme işlemi geri alınır.
 

@@ -2,6 +2,16 @@
 
 En yeni giriş en üstte. Biçim: tarih — ajan — başlık, ardından **Yapılan**, **Doğrulama**, **Sıradaki**.
 
+## 30.09.2026 — Codex — G-088 dolap yaslama, ekipman görselleri ve kapı taşıma
+
+**Son kontrol:** StoreEditorReview GEÇTİ; son sürümün iki ekranı gözle incelendi ve Docs/Images/Stores/Cabinets/store_editor*.png güncellendi. Smoke GEÇTİ: oyuncu, raf doldurma, mal kabul, işe alma, satış, gün kapama ve disk kayıt/yükleme.
+
+**Yapılan:** Mustafa'nın işaretlediği yan yana gelmeme için sıralı/tek hizaya kilitlenen yaslama yerine en yakın geçerli temas adayları; ekran ölçeğine göre 14 piksel tolerans, taşan imleci de kenara oturtma. Ekleme önizlemesi ve gerçek ekleme aynı çözümü kullanır. Boş sol tık seçimi bırakır; sağ/orta pan korur. Kütüphanenin bütün ekipmanlarında gerçek PNG render/UE model thumbnail'i; plan üstünde ve sağda seçili Türkçe ekipman adı/ölçü/seçim sayısı. Ölçü alanları iki ondalık. Kullanımın basit/esnek olması ve kapı geri bildirimi için giriş/mal kabul kapısını doğrudan her uygun dış duvara sürükleme; yön, oyuncu başlangıcı/müşteri geliş noktası güncellenir, kapı köşe payı/çakışma/geri al. Sağda kapıyı bulup yakından gösteren Kapılar düğmeleri, eski sağ/sol kapı koordinatları kaldırıldı. Kılavuz güncel.
+
+**Doğrulama:** DERLE GEÇTİ; TEST 72/72 (bir UE HTTP bağlantı zaman aşımı uyarısı, başarısız yok). EditorDoorAndUnequalCabinets: farklı genişlikli dolapların sıfır boşlukta teması, imlecin komşunun içine taşması, sol/sağ/arka kapı duvarları, yön/başlangıç ve çakışmayı atomik reddetme. StoreEditorReview kütüphanedeki bütün görsellerin yüklenmesini, boş tıkta seçim bırakmayı, seçili adı, gerçek harita olaylarıyla kapı sürükleme/geri alma ve önceki toplu taşıma/taslak/kopya kontrollerini doğrular.
+
+**Sıradaki:** Mustafa resimli kuşbakışı editörü kullansın; yeşil/mavi kapıyı tutup duvara sürükle veya sağdaki Kapılar düğmesiyle bul. Kalan 16 hazır mağaza A onayından sonra; şube/oyun kayıt bağlantısı Claude'da. Aile bakkalı ve dört katalog mağazası bu revizyonda değiştirilmedi. Açık editör Mustafa tarafından taslağı kaydedilerek kapatıldı; kullanıcının verileri korunuyor.
+
 ## 30.09.2026 — Codex — G-088 sade kuşbakışı ve toplu taşıma
 
 **Yapılan:** Mustafa'nın isteğiyle iki 3B editör modu ve kaynakları kaldırıldı. Boş alandan sol tuşla kaydırma, sağ/orta tuşla her yerden kaydırma; pan/zoom/seçimde çizimi yenileme ve ClipToBoundsAlways ile yan menülere taşmayı engelleme. Toplu seç/Shift çerçevesi, Ctrl+tık seçime ekle/çıkar, Ctrl+A tümünü seç, grubu aralarındaki mesafeyi koruyarak sürükle, toplu sil ve tek adım geri al. Izgara varsayılan kapalı; editörde dolap/duvar kenarları sıfır boşlukla yaslanır. Diğer Snap/Place çağrılarının eski 2 cm varsayılanı korunur. Yeni mağaza/bina/depo/bölüm/zemin/taslak işlevleri duruyor; 3B gezi/rastgele dolum yalnız oyun test gezisinde. Kılavuz ve gerçek kuşbakışı ekran görüntüleri güncellendi.
