@@ -39,6 +39,8 @@ Kütüphanede her ekipmanın gerçek model görseli vardır. Planda bir parçaya
 
 Yaslama ve ızgara seçenekleri yeni parça eklerken de uygulanır; kapatırsan istemediğin yuvarlama yapılmaz. Seçim, döndürme, kopyalama ve kaldırma düğmeleri çalışma alanının üstünde her zaman görünür.
 
+**Ön/arka ve karşı sıra hizası:** Komşuya yasla / hizala açıkken yan yana rafı ön veya arka kenara yaklaştır; kenarlar aynı çizgiye oturur. Arada koridor olan paralel veya karşılıklı raf sıralarında da başlangıç/bitiş kenarına yaklaştırınca hizalanır; koridor genişliği korunur. Toplu seçimde aralarındaki mesafeler değişmez. Serbest konum için Komşuya yasla / hizala seçeneğini kapat.
+
 ## Bina, depo ve bölümler
 
 Sağdaki **Bina ve depo** alanları metre cinsindendir: mağaza eni/boyu, depo eni/boyu ve tavan yüksekliği. Değeri yazıp Enter'a bas veya sayıyı sürükle. Kapılar doğrudan plandan taşınır.

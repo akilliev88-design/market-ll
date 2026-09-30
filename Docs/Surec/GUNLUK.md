@@ -2,6 +2,14 @@
 
 En yeni giriş en üstte. Biçim: tarih — ajan — başlık, ardından **Yapılan**, **Doğrulama**, **Sıradaki**.
 
+## 30.09.2026 — Codex — G-088 ön/arka ve karşı sıra hizalama
+
+**Yapılan:** Mustafa'nın yan yana raflarda ön/arka ve karşı sırayla hizalama isteği. En kısa temas adayının hizalama adayını bastırması düzeltildi; geçerli ön/arka kenarlar öncelikli. Paralel ve 180 derece karşılıklı raflar koridor boyunca başlangıç/bitiş çizgisine oturur, koridor mesafesi değişmez. Toplu taşıma/ekleme/önizleme aynı çözücü; yaslama kapalıyken serbest konum. Farklı derinlik, ön/arka, 90 derece ve karşı sıra testleri, kılavuz.
+
+**Doğrulama:** DERLE GEÇTİ; TEST 72/72; gerçek editör StoreEditorReview GEÇTİ. Ön/arka, 90 derece, karşı sıra başlangıcı/bitişi ve koridor koruma testleri geçti. Döndürülmüş ölçüler gerçek HalfSize ile 0,001 cm toleransında kontrol edilir. Oyun akışı değişmedi; önceki Smoke geçti.
+
+**Sıradaki:** Mustafa yan yana ve koridor karşısı rafları Komşuya yasla / hizala açıkken sürükleyerek denesin. Kalan 16 hazır mağaza A görsel onayından sonra.
+
 ## 30.09.2026 — Codex — G-088 dolap yaslama, ekipman görselleri ve kapı taşıma
 
 **Son kontrol:** StoreEditorReview GEÇTİ; son sürümün iki ekranı gözle incelendi ve Docs/Images/Stores/Cabinets/store_editor*.png güncellendi. Smoke GEÇTİ: oyuncu, raf doldurma, mal kabul, işe alma, satış, gün kapama ve disk kayıt/yükleme.

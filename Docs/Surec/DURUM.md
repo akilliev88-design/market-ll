@@ -1,6 +1,6 @@
 # Güncel durum
 
-Son güncelleme: 30.09.2026 — Codex (G-088 dolap yaslama düzeltmesi, resimli kütüphane ve plandan kapı taşıma)
+Son güncelleme: 30.09.2026 — Codex (G-088 ön/arka kenar ve koridor karşısı raf hizalama)
 
 ## Kısaca
 
@@ -20,6 +20,7 @@ GitHub ana deposu: `https://github.com/m07tas/market-ll` (`main`). Unreal/Blende
 
 | Kontrol | Sonuç |
 |---|---|
+| G-088 ön/arka ve karşı sıra hizalama | DERLE GEÇTİ; TEST 72/72; yeni kenar/90 derece/karşı sıra testi ve gerçek StoreEditorReview GEÇTİ — 30.09.2026 |
 | G-088 resimli ekipman ve kapı taşıma | DERLE GEÇTİ; TEST 72/72; Smoke GEÇTİ; dolap teması, gerçek editörde kapı taşıma/görseller/seçim ve PNG gözle kontrolü GEÇTİ — 30.09.2026 |
 | G-088 sade kuşbakışı editör | DERLE GEÇTİ; TEST 71/71; Smoke GEÇTİ; gerçek editör kaydırma/çerçeve/grup taşıma/yakınlaştırma sınırı GEÇTİ — 30.09.2026 |
 | G-088 editör kullanım revizyonu | DERLE GEÇTİ; TEST 70/70; Smoke GEÇTİ; gerçek editörde 3B tıkla/seç/taşı/ekle, yürüyüş çarpışması, yeni/kopya/taslak ve üç görünüm ekran kontrolü GEÇTİ — 30.09.2026 |
@@ -88,6 +89,11 @@ GitHub ana deposu: `https://github.com/m07tas/market-ll` (`main`). Unreal/Blende
 Görsel ve raf dizme işleri yeterli seviyede; bir süre **donduruldu**. Öncelik **"İlk Hafta" oynanabilir dilimi**: bir oyuncu 7 günü baştan sona oynayabilmeli (sipariş → mal kabul → raf → fiyat → satış → gün raporu → hafta hedefi). Görevler G-051…G-055. Başarı ölçütü: yeni biri ilk 30 dakikada döngüyü anlıyor ve ilk kararının sonucunu görüyor.
 
 ## Devam notu
+
+**30.09.2026 — Codex: G-088 ön/arka ve karşı sıra hizalama.**
+
+- `MarketStoreEditing.cpp`: sadece temas düzeltmesi kenar hizasını bastırıyordu; geçerli ön/arka kenar hizaları önce denenir. Koridorla ayrılan paralel/karşılıklı sıralar genişlik yönündeki başlangıç/bitiş çizgilerine oturur, koridor mesafesi korunur. Aynı çözüm ekleme, önizleme ve toplu taşımada kullanılır; Komşuya yasla kapalıyken serbest konum korunur. Testlere farklı derinlik, iki kenar, 90 derece ve karşılıklı sıra kontrolleri eklendi. Kılavuz güncel.
+- Doğrulama: DERLE GEÇTİ; TEST 72/72; StoreEditorReview GEÇTİ. Döndürülmüş raf testleri trigonometriden etkilenmeyen gerçek döndürülmüş ölçülerle 0,001 cm toleransında karşılaştırılır. Oyun akışı değişmedi; önceki revizyonun Smoke kontrolü geçti. Kalan 16 mağaza A onayından sonra.
 
 **30.09.2026 — Codex: G-088 dolap yaslama, resimli kütüphane ve kapı taşıma.**
 

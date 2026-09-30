@@ -90,19 +90,28 @@ bool MarketStoreEditing::MoveGroup(FStoreTemplate& S,const TSet<int32>& Selectio
 {
     if(Selection.IsEmpty()||Delta.ContainsNaN())return false;TArray<int32> Indices=Selection.Array();Indices.Sort();for(int32 I:Indices)if(!S.Fixtures.IsValidIndex(I))return false;
     Delta.Z=0;if(Grid>0){const auto At=S.Fixtures[Indices[0]].Location+Delta;Delta.X=FMath::GridSnap(At.X,Grid)-S.Fixtures[Indices[0]].Location.X;Delta.Y=FMath::GridSnap(At.Y,Grid)-S.Fixtures[Indices[0]].Location.Y;}
-    TArray<FVector> Corrections;auto Add=[&](double X,double Y){if(FMath::Abs(X)<=Range&&FMath::Abs(Y)<=Range)Corrections.AddUnique(FVector(X,Y,0));};
+    TArray<FVector> Corrections,Aligned,AcrossAisle;auto Add=[&](double X,double Y){if(FMath::Abs(X)<=Range&&FMath::Abs(Y)<=Range)Corrections.AddUnique(FVector(X,Y,0));};
+    auto Edge=[&](double X,double Y){if(FMath::Abs(X)<=Range&&FMath::Abs(Y)<=Range)Aligned.AddUnique(FVector(X,Y,0));};
     for(int32 I:Indices)
     {
         const auto& F=S.Fixtures[I];const auto H=HalfSize(F);const auto At=F.Location+Delta;
         if(Neighbours)for(int32 J=0;J<S.Fixtures.Num();++J)if(!Selection.Contains(J))
         {
             const auto& O=S.Fixtures[J];const auto OH=HalfSize(O);
-            if(FMath::Abs(At.Y-O.Location.Y)<H.Y+OH.Y+Range)for(double X:{O.Location.X-H.X-OH.X,O.Location.X+H.X+OH.X}){Add(X-At.X,0);Add(X-At.X,O.Location.Y-At.Y);Add(X-At.X,O.Location.Y-OH.Y+H.Y-At.Y);Add(X-At.X,O.Location.Y+OH.Y-H.Y-At.Y);}
-            if(FMath::Abs(At.X-O.Location.X)<H.X+OH.X+Range)for(double Y:{O.Location.Y-H.Y-OH.Y,O.Location.Y+H.Y+OH.Y}){Add(0,Y-At.Y);Add(O.Location.X-At.X,Y-At.Y);Add(O.Location.X-OH.X+H.X-At.X,Y-At.Y);Add(O.Location.X+OH.X-H.X-At.X,Y-At.Y);}
+            // Parallel rows share start/end lines even when a corridor separates them.
+            if(FMath::Abs(FMath::Sin(FMath::DegreesToRadians(F.Yaw-O.Yaw)))<.01)
+            {
+                const bool AlongX=FMath::Abs(FMath::Cos(FMath::DegreesToRadians(F.Yaw)))>.7;
+                if(AlongX)for(double X:{O.Location.X-OH.X+H.X,O.Location.X+OH.X-H.X}){if(FMath::Abs(X-At.X)<=Range)AcrossAisle.AddUnique(FVector(X-At.X,0,0));}
+                else for(double Y:{O.Location.Y-OH.Y+H.Y,O.Location.Y+OH.Y-H.Y}){if(FMath::Abs(Y-At.Y)<=Range)AcrossAisle.AddUnique(FVector(0,Y-At.Y,0));}
+            }
+            if(FMath::Abs(At.Y-O.Location.Y)<H.Y+OH.Y+Range)for(double X:{O.Location.X-H.X-OH.X,O.Location.X+H.X+OH.X}){Add(X-At.X,0);Add(X-At.X,O.Location.Y-At.Y);Edge(X-At.X,O.Location.Y-OH.Y+H.Y-At.Y);Edge(X-At.X,O.Location.Y+OH.Y-H.Y-At.Y);}
+            if(FMath::Abs(At.X-O.Location.X)<H.X+OH.X+Range)for(double Y:{O.Location.Y-H.Y-OH.Y,O.Location.Y+H.Y+OH.Y}){Add(0,Y-At.Y);Add(O.Location.X-At.X,Y-At.Y);Edge(O.Location.X-OH.X+H.X-At.X,Y-At.Y);Edge(O.Location.X+OH.X-H.X-At.X,Y-At.Y);}
         }
         if(Walls){auto M=F;M.Location=At;const auto W=Snap(S,M,true,false,0,0)-At;if(!W.IsNearlyZero())Add(W.X,W.Y);}
     }
-    Corrections.Sort([](const auto& A,const auto& B){return A.SizeSquared()<B.SizeSquared();});Corrections.Add(FVector::ZeroVector);
+    // Prefer a flush edge over contact alone; otherwise the smaller contact correction always wins.
+    Aligned.Sort([](const auto& A,const auto& B){return A.SizeSquared()<B.SizeSquared();});AcrossAisle.Sort([](const auto& A,const auto& B){return A.SizeSquared()<B.SizeSquared();});Corrections.Sort([](const auto& A,const auto& B){return A.SizeSquared()<B.SizeSquared();});Aligned.Append(AcrossAisle);Aligned.Append(Corrections);Corrections=MoveTemp(Aligned);Corrections.Add(FVector::ZeroVector);
     for(const auto C:Corrections)
     {
         auto Candidate=S;for(int32 I:Indices)Candidate.Fixtures[I].Location+=Delta+C;
