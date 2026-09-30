@@ -4,7 +4,7 @@ Sözleşme: `Docs/Kurgu/07_AKIL_ISBOLUMU.md` §4 Akış B. Dal: `claude/miras-ma
 
 ## Kaldığım yer
 
-B1–B5 bitti ve commit edildi. İkinci tur: B6 (hedefler, kilometre taşları, kutlamalar) sürüyor.
+B1–B6 bitti ve commit edildi (UE'de derlenmedi; Linux katmanında 90/90). Açık iş yok; Codex derlemesi ve C bağlaması bekleniyor.
 
 ## Yapılanlar
 
@@ -69,13 +69,26 @@ Yeni `MarketEras.h/.cpp` (`namespace MarketEras`), durum `FMarketState::Eras` (`
 - Test: `Country.Currencies`.
 - Yeni ülkeler için `ulkeler.json` iskeleti yapılmadı (ülke seçim ekranı eksik paketleri de listeleyeceği için; ülke ekleme kararı Mustafa/C).
 
+### B6 · Hedefler, kilometre taşları ve kutlamalar (06 §2b "bir tur daha")
+
+Yeni `MarketGoals.h/.cpp` (`namespace MarketGoals`), durum `FMarketState::Goals` (`FMarketGoals`, tek alan).
+
+- **Üç ölçekte hedef, her an üç tane:** kısa (7 gün: bir günde X ciro, bu hafta X net kâr, bu hafta 4 akşam rafları %X dolu kapat, borçtan X öde, bu hafta N müşteri), orta (30 gün: N mağaza, bu ay X kâr, mahallede pay %Y, ilk depo, borcu kapat), uzun (365 gün: bölüm hedefleri, N ilde mağaza, ulusal pay %Z, yurt dışında ilk mağaza, bu yıl X kâr). Aşamaya göre (`Stage`: aile dükkânı → ilk şube → birkaç il → ülke → yurt dışı) ve oyuncunun **kendi son 7/14/30 gününe** göre: hedef ortalamanın biraz üstü (ciro +%8…+%25, kâr +%4), en iyi günün az üstünü geçmez. Aynı ölçekte son iki hedef tekrar verilmez; kapısı kapalı hedef verilmez (borç varken şube, 5 il olmadan yurt dışı…); %95'i hazır hedef verilmez. Kısa hedef hep vardır (yedek: "bu hafta N müşteriye hizmet et").
+- Her hedef: başlık, ilerleme 0–1, kalan gün, tek cümle "neden önemli", ödül. Bitince kutlama + ödül: kısa +3 moral; orta +5 moral ve toptancıya +3 güven; uzun hatıra (`MarketStory::AddMemory`) ve +8 moral. Para ödülü yok. Süresi dolan kısa hedef sessizce yenilenir; ay/yıl hedefi için tek satır ("Hedefin süresi doldu: … (%72 tamamlandı). Yeni hedef geldi.").
+- **İlkler (23 tane):** ilk kârlı gün, borç bitti, ilk şube, 5/10/25/50/100/250/500/1000 mağaza, 2/5/10/20 il, ilk depo, yurt dışı, ilk online sipariş, ulusal pay %0,1 / %1, dünya ilk 10 / 3 / 1. **Rekorlar:** en iyi gün cirosu, en iyi hafta cirosu, en kârlı 30 gün, en çok mağaza (ilk iki hafta rekor söylenmez; haftada en çok bir rekor kutlanır, rekor hep kaydedilir). Her biri `FMarketCelebration` (gün, başlık, bir cümle, önem 0–2) + gün raporunda "Kutlama: …" satırı; son 40 kart saklanır. İlklerde ekibe +2/+5 moral (hatıra zaten `MarketStory`'de).
+- **Eski kayıt:** ilk kapanışta ilkler ve rekorlar (geçmiş gün kayıtlarından en iyi gün) sessizce işaretlenir; geçmiş için kutlama yağmuru olmaz. Aynı gün iki kez kapanış hiçbir şey eklemez (`LastClosedDay`).
+- **Ritim koruyucusu:** olay, bekleyen karar ya da ilk/rekor olmadan geçen gün sayısı kolay 15 / normal 20 / zor 25'i bulursa hoş ya da ilginç bir olay (yeni `event.fair` semt şenliği +%25 müşteri bir gün; yeni `event.newbuilding` yeni apartman bir ay +%5; ya da düğün, derbi). Son 7 günde kolay 2 / normal 3 / zor 4 kötü olay (dolap, elektrik, zabıta, şikâyet, kaldırım, kamyon) olduysa yeni kötü olay ertelenir (`MarketEvents::CloseDay` `HoldBadEvent`'e sorar). Yeni iki olay yalnız koruyucu tarafından çağrılır; rastgele havuza girmedi.
+- **J02 oyun sonu kancası:** C'nin dünya ligi bir lig yılını kapatınca `MarketGoals::OnLeagueYear(State, Sıra, bTamYıl)` çağırır; 7. bölümde 2 lig yılı üst üste 1. + o yılın faaliyet sonucu (defterden net kâr + faiz + vergi) artı + borç (banka + toptancı) < 3 × faaliyet sonucu → "Miras". 7. bölüm hedeflerine "Dünya liginde 2 yıl üst üste 1. (son yıl N. sıra)" satırı eklendi; eski yerel liderlik yolu duruyor.
+- 2 yıllık otomatik koşuda (aile dükkânı): hedefsiz gün 0, 77 kutlama, süresi dolan ay/yıl hedefi 15.
+- Testler: `Goals.AlwaysAGoalWithinReach`, `Goals.FirstsRecordsAndCelebrations`, `Goals.RhythmGuard`, `Goals.LeagueFinale`.
+
 ## Doğrulama
 
 Bu oturum Linux bulut kapsayıcısında; Unreal yok, `DERLE.cmd` / `TEST.cmd` çalıştırılamadı. **Derlenmedi (UE).** Yerine:
 
 - Saf modüller ve testleri, Unreal'in kullanılan kısmını taklit eden küçük bir katmanla (sahte `CoreMinimal.h`: FString, TArray, TMap, FMath, FRandomStream UE algoritmasıyla, JSON, otomasyon testi makroları) clang ile `-Wshadow-all -Werror=shadow` derlenip çalıştırıldı. Dünyaya bağlı dosyalar (MarketGame, menü, mağaza kiti) bu katmanda derlenmez.
 - 30.09.2026, B1 sonrası: **77/77 test geçti** (başlangıçta 70/70; +7 `Balance.*`). UE'deki toplam 84 testin dünyaya bağlı 14'ü bu sayıya dahil değil.
-- B2 sonrası: **81/81** (+4 `Ledger.*`). B3 sonrası: **82/82** (+1 `Staff.WagesAndSocialSecurity`). B4 sonrası: **85/85** (+3 `Eras.*`). B5 sonrası: **86/86** (+1 `Country.Currencies`).
+- B2 sonrası: **81/81** (+4 `Ledger.*`). B3 sonrası: **82/82** (+1 `Staff.WagesAndSocialSecurity`). B4 sonrası: **85/85** (+3 `Eras.*`). B5 sonrası: **86/86** (+1 `Country.Currencies`). B6 sonrası: **90/90** (+4 `Goals.*`).
 - Codex'in `DERLE.cmd /q` + `TEST.cmd /q` koşusu bekleniyor.
 
 ## Yeni açık işlevler
@@ -96,6 +109,7 @@ Bu oturum Linux bulut kapsayıcısında; Unreal yok, `DERLE.cmd` / `TEST.cmd` ç
 - `MarketStaff::MinimumDailyWage(Gün)`, `EmployerSocialRate()`, `EmployerShare(Ücret)`, `EmployerCost(Ücret)`, `SeniorityPay(Ücret, İşeGirişGünü, Gün)`, `SeverancePay(State, Çalışan)`, `DailySocialSecurity(State)`.
 - `MarketCountry::FProfile::EmployerSocialRate`, `SeveranceDaysPerYear` (`ulkeler.json` → `economy.employerSocialRate`, `economy.severanceDaysPerYear`).
 - `MarketCountry::FxRate(State, Ülke, Gün)`, `MarketCountry::ToWorld(State, Ülke, İçTutar, Gün)` — ortak birim (C'nin dünya ligi bunu kullanmalı).
+- `MarketGoals::Goals(State)` → `FGoalView` (Title, Why, Reward, Progress, DaysLeft, Scale), `NextGoal(State, Out)`, `StripText(State)`, `CelebrationsOn(State, Gün)`, `RecentCelebrations(State, N)`, `Records(State)`, `Stage(State)`, `HoldBadEvent / IsBadEvent / QuietDays / BadLimit`, `OnLeagueYear(State, Sıra, bTamYıl)`, `CloseDay(State, Products)` (Director B bloğu, sonda, `EndClose`'dan sonra).
 - `MarketEras::Setup(State)`, `Activate(State)`, `ActivateNominal(Karakter)`, `PlanOf(State)` / `Plan(...)`, `Current(State, Gün, OutEra)`, `BudgetFactor(State)`, `Summary(State)`, `Name(EKind)`, `PandemicShiftDays(State)`, `InflationBump(Yıl)`, `CloseDay(State)` (Director B bloğu, kapanış başında).
 
 ## C'ye istekler
@@ -152,6 +166,14 @@ Bu oturum Linux bulut kapsayıcısında; Unreal yok, `DERLE.cmd` / `TEST.cmd` ç
    - Menü: Finans ya da Rakipler sayfasında (dönem varsa) tek satır `MarketEras::Summary(State)`; "Nasıl işler?": "Ekonomide dönemler sırayla gelir; zamanları her oyunda farklıdır."
    - Otomatik oyuncu (A): tarz tablosuna "dönem tepkisi" (kur şokunda ithal ürün fiyatını yükselt, durgunlukta ucuz ürün) eklenebilir.
 
+11. **Hedefler, kutlamalar (B6) — menü:**
+   - **Üst şerit (hedef hapları):** `MarketGoals::Goals(State)` üç hap (kısa/orta/uzun): `Title`, altında ince ilerleme çubuğu `Progress`, sağda "`DaysLeft` gün"; ipucu `Why` + "Bitince: " `Reward`. Yer darsa tek hap: `StripText(State)` (örn. "Bu hafta: Bir günde 850,00 TL ciro yap (%64, 3 gün)").
+   - **Kısa kutlama kartı:** gün kapanışında `CelebrationsOn(State, State.Day - 1)`; her kart `Title` büyük, `Text` tek satır; `Importance` 2 ise ortada birkaç saniye, 0–1 ise köşede kısa. Aynı gün birden çoksa önemlisi önce, en çok üç.
+   - **Raporlar › Rekorlar sekmesi:** `Records(State)` (ad, değer) tablosu + altında `RecentCelebrations(State, 10)` (gün "N. yıl" biçiminde, başlık, cümle).
+   - **"Şimdi ne yapmalı":** `NextGoal(State, V)` varsa "Hedef: `V.Title` (%`V.Progress*100`, `V.DaysLeft` gün)" satırı; düğme hedefin sayfasına (MoreStores/Provinces/Abroad → Mağazalar, MonthProfit/WeekProfit/DayRevenue → Fiyat/Kampanyalar, ShelvesFull → Sipariş, PayDebt/DebtFree → Finans, LocalShare → Kampanyalar, Chapter → Raporlar/Hikâye).
+   - **Director:** B bloğunun sonunda `MarketGoals::CloseDay(State, Products);` (defter `EndClose`'dan sonra olmalı). C'nin dünya ligi yıl kapanışında `MarketGoals::OnLeagueYear(State, Sıra, bTamYıl);` (ve ortak birim için `MarketCountry::ToWorld`).
+   - Otomatik oyuncu (A): "sıkıcı dönem" ölçüsü için `State.Goals.LastLivelyDay`, koruyucunun işleri için `Goals.QuietEvents`, `Goals.HeldBadEvents`.
+
 ## Kararlar ve varsayımlar
 
 - **#24 sayıları:** rakip fiyatında alma %90 (eski eğri %97,3); duyarlılık K = 3; kayıptan kaçınma ×1,4; `kvi` ×(1 + kvi); esneklik 0,5–6 aralığına kırpılır. Sonuç: süt (1,5; kvi 1) rakibin %10 üstünde ~%72, kola (4) %15 üstünde ~%40 alır. 400 günlük denemede aile dükkânının cirosu ~%9 düştü (rakip fiyatında %97 → %90). Otomatik oyuncu raporunda izlenmeli; gerekirse `ParityChance` 0,92–0,93'e çekilir.
@@ -167,6 +189,9 @@ Bu oturum Linux bulut kapsayıcısında; Unreal yok, `DERLE.cmd` / `TEST.cmd` ç
 - **B4:** Dönem tarihleri iç çapa olarak gerçek yakın tarihlerde (2018 kur, 2019 durgunluk, 2020 salgın, 2021–23 enflasyon, 2024 toparlanma); oyuncu yıl görmez. Kaydırma bütün plan için tek (sıra ve aralıklar korunur). Kur şokunun alış artışı dönem boyunca sürer, dönem bitince kalkar (liste fiyatı zaten enflasyonla yükselmiş olur). Fiyat eğrisi süreç içi tek (global) plandan okunur (`MarketPrices` durumsuz); plan her gün kapanışında kampanyadan yeniden kurulur.
 - **B4 sayıları:** şiddetler ve etki yüzdeleri Claude önerisi; bot raporuyla ayarlanmalı.
 
+- **B6 sayıları:** ritim eşikleri (sessiz 15/20/25 gün, kötü olay 2/3/4 / 7 gün), hedef katsayıları, ödüller (moral +3/+5/+8, güven +3), ilk ve rekor eşikleri Claude önerisi; bot raporuyla ayarlanmalı.
+- **Denge bulgusu (B1+B3 sonrası, 6 yıllık aile dükkânı otomatik koşusu, `MarketSimulation::PlayDay`):** eski kodda dükkân yılda ~120–140 TL/gün kâr ediyordu, şimdi ~65 TL/gün ve 4.–5. yılda nakit sıkıntısına girip batıyor. Varyantlarla ayrıldı: ciro etkisi küçük (#24: −%3); asıl fark **çalışanlar**: eski kurallarda düşük becerili çalışanlar asgari ücretin altındaki ücrete küsüp birkaç ay içinde istifa ediyordu ve otomatik oyuncu dükkânı çalışansız, maaşsız işletiyordu (bu yüzden kârlıydı). Asgari ücret tabanıyla kimse küsmüyor; 2 çalışanın ücreti + sigortası (~60 TL/gün) otomatik oyuncuda karşılıksız bir gider (simülasyon çalışana hız/doluluk karşılığı vermiyor). Yani sorun ücret kuralında değil, **otomatik oyuncunun ve simülasyonun çalışanı değerlendirmemesinde** (A: rutin gereksiz çalışanı çıkarmıyor; simülasyon kasiyersiz günü cezalandırmıyor). Düzeltme önerisi A/C'ye: `PlayDay`'de kasiyer/reyon görevlisi yokken müşteri kaybı (kuyruk, boş raf) ya da ailenin rutini çalışan sayısını ciroya göre ayarlasın. Batıştan sonraki absürt kasa (10¹⁸) #41 tavansız gecikme faiziydi; C'nin #41 düzeltmesi onu durdurur.
+
 ## Bilinen sorunlar
 
 - Oyun cirosu gerçeğin ~1/10'u (#49, C). Ulusal pay bu ölçeğe göre ayarlandı; #49 düzelirse `groceryPerPersonDay` de ~10 kat büyümeli.
@@ -175,3 +200,5 @@ Bu oturum Linux bulut kapsayıcısında; Unreal yok, `DERLE.cmd` / `TEST.cmd` ç
 
 1. 5. bölümün "ulusal pay" hedefi: %0,1 (≈50 ucuzcu kadar ciro) uygun mu, yoksa daha büyük bir hedef mi (ör. %0,25)?
 2. Raf fiyatına tepki: rakip fiyatında %90 alma (eskisi %97) dükkânın cirosunu ~%9 düşürdü. Bot raporuna göre 0,92–0,93 yapılabilir.
+3. Oyun sonu: dünya liginde 2 yıl birincilik (J02) eklendi; eski "bir yıl her ölçütte önde (yerel pay %40, 60 mağaza)" yolu da hâlâ "Miras" sonunu veriyor. Eski yol kalksın mı?
+4. Hedef ödülleri para değil (moral, toptancı güveni, hatıra). Uygun mu?
