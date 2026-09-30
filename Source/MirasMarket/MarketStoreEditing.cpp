@@ -63,7 +63,7 @@ bool MarketStoreEditing::CanPlace(const FStoreTemplate& S,const FPlanogramFixtur
     for(int32 I=0;I<S.Fixtures.Num();++I)if(I!=Ignore&&B.Intersect(StoreEdit::Box(S.Fixtures[I].Location,HalfSize(S.Fixtures[I]))))return false;
     return true;
 }
-FVector MarketStoreEditing::Snap(const FStoreTemplate& S,const FPlanogramFixture& F,bool Walls,bool Neighbours,float Grid)
+FVector MarketStoreEditing::Snap(const FStoreTemplate& S,const FPlanogramFixture& F,bool Walls,bool Neighbours,float Grid,float Gap)
 {
     FVector P=F.Location;const auto H=HalfSize(F);if(Grid>0){P.X=FMath::GridSnap(P.X,Grid);P.Y=FMath::GridSnap(P.Y,Grid);}
     auto Near=[](double& Value,double Target){if(FMath::Abs(Value-Target)<35)Value=Target;};
@@ -73,24 +73,35 @@ FVector MarketStoreEditing::Snap(const FStoreTemplate& S,const FPlanogramFixture
         for(int32 I=0;I<V.Num();++I)
         {
             const auto A=V[I],B=V[(I+1)%V.Num()];
-            if(FMath::IsNearlyEqual(A.X,B.X)&&P.Y-H.Y>=FMath::Min(A.Y,B.Y)&&P.Y+H.Y<=FMath::Max(A.Y,B.Y)){Near(P.X,A.X+H.X+2);Near(P.X,A.X-H.X-2);}
-            if(FMath::IsNearlyEqual(A.Y,B.Y)&&P.X-H.X>=FMath::Min(A.X,B.X)&&P.X+H.X<=FMath::Max(A.X,B.X)){Near(P.Y,A.Y+H.Y+2);Near(P.Y,A.Y-H.Y-2);}
+            if(FMath::IsNearlyEqual(A.X,B.X)&&P.Y-H.Y>=FMath::Min(A.Y,B.Y)&&P.Y+H.Y<=FMath::Max(A.Y,B.Y)){Near(P.X,A.X+H.X+Gap);Near(P.X,A.X-H.X-Gap);}
+            if(FMath::IsNearlyEqual(A.Y,B.Y)&&P.X-H.X>=FMath::Min(A.X,B.X)&&P.X+H.X<=FMath::Max(A.X,B.X)){Near(P.Y,A.Y+H.Y+Gap);Near(P.Y,A.Y-H.Y-Gap);}
         }
-        Near(P.Y,S.Backroom.Min.Y-H.Y-2);
+        Near(P.Y,S.Backroom.Min.Y-H.Y-Gap);
     }
     if(Neighbours)for(const auto& O:S.Fixtures)if(O.Id!=F.Id)
     {
         const auto OH=HalfSize(O);
-        if(FMath::Abs(P.Y-O.Location.Y)<H.Y+OH.Y+30){Near(P.X,O.Location.X+OH.X+H.X+2);Near(P.X,O.Location.X-OH.X-H.X-2);Near(P.Y,O.Location.Y);}
-        if(FMath::Abs(P.X-O.Location.X)<H.X+OH.X+30){Near(P.Y,O.Location.Y+OH.Y+H.Y+2);Near(P.Y,O.Location.Y-OH.Y-H.Y-2);Near(P.X,O.Location.X);}
+        if(FMath::Abs(P.Y-O.Location.Y)<H.Y+OH.Y+30){Near(P.X,O.Location.X+OH.X+H.X+Gap);Near(P.X,O.Location.X-OH.X-H.X-Gap);Near(P.Y,O.Location.Y);}
+        if(FMath::Abs(P.X-O.Location.X)<H.X+OH.X+30){Near(P.Y,O.Location.Y+OH.Y+H.Y+Gap);Near(P.Y,O.Location.Y-OH.Y-H.Y-Gap);Near(P.X,O.Location.X);}
     }
     P.Z=0;return P;
 }
-bool MarketStoreEditing::Place(FStoreTemplate& S,const FString& E,const FString& C,FVector At,int32& Selected,bool Walls,bool Neighbours,float Grid,float Yaw)
+bool MarketStoreEditing::MoveGroup(FStoreTemplate& S,const TSet<int32>& Selection,FVector Delta,bool Walls,bool Neighbours,float Grid)
+{
+    if(Selection.IsEmpty()||Delta.ContainsNaN())return false;TArray<int32> Indices=Selection.Array();Indices.Sort();for(int32 I:Indices)if(!S.Fixtures.IsValidIndex(I))return false;
+    // Snap the outside edges of every selected module, ignoring members of its own group.
+    FStoreTemplate External=S;TSet<FString> Ids;for(int32 I:Indices)Ids.Add(S.Fixtures[I].Id);External.Fixtures.RemoveAll([&](const auto& F){return Ids.Contains(F.Id);});
+    FVector Best=Delta;Best.Z=0;double BestCorrection=1.e30;
+    for(int32 I:Indices){auto F=S.Fixtures[I];F.Location+=Delta;const auto Snapped=Snap(External,F,Walls,Neighbours,Grid,0);const auto Correction=Snapped-F.Location;const double D=Correction.SizeSquared();if(D>1.e-6&&D<BestCorrection){BestCorrection=D;Best=Delta+Correction;Best.Z=0;}}
+    auto Candidate=S;for(int32 I:Indices)Candidate.Fixtures[I].Location+=Best;
+    for(int32 I:Indices)if(!CanPlace(Candidate,Candidate.Fixtures[I],I))return false;
+    for(int32 I:Indices)S.Fixtures[I]=Candidate.Fixtures[I];return true;
+}
+bool MarketStoreEditing::Place(FStoreTemplate& S,const FString& E,const FString& C,FVector At,int32& Selected,bool Walls,bool Neighbours,float Grid,float Yaw,float Gap)
 {
     FPlanogramFixture F;F.EquipmentId=E;F.Category=C;F.Label=C;F.Location=At;F.Location.Z=0;F.Yaw=Yaw;
     int32 N=1;do {F.Id=FString::Printf(TEXT("editor_%04d"),N++);}while(S.Fixtures.ContainsByPredicate([&](const auto& O){return O.Id==F.Id;})||S.Obstacles.ContainsByPredicate([&](const auto& O){return O.Id==F.Id;}));
-    F.Location=Snap(S,F,Walls,Neighbours,Grid);if(!CanPlace(S,F))return false;Selected=S.Fixtures.Add(F);return true;
+    F.Location=Snap(S,F,Walls,Neighbours,Grid,Gap);if(!CanPlace(S,F))return false;Selected=S.Fixtures.Add(F);return true;
 }
 int32 MarketStoreEditing::Pick(const FStoreTemplate& S,FVector Origin,FVector Direction)
 {

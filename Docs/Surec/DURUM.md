@@ -1,6 +1,6 @@
 # Güncel durum
 
-Son güncelleme: 30.09.2026 — Codex (G-088 editör: tek büyük görünüm, mağaza içinde seçim/taşıma ve yeni mağaza oluşturma)
+Son güncelleme: 30.09.2026 — Codex (G-088 editör yalnız kuşbakışı: boş alandan kaydır, çerçeveyle seç, topluca taşı, dolapları dayama)
 
 ## Kısaca
 
@@ -20,6 +20,7 @@ GitHub ana deposu: `https://github.com/m07tas/market-ll` (`main`). Unreal/Blende
 
 | Kontrol | Sonuç |
 |---|---|
+| G-088 sade kuşbakışı editör | DERLE GEÇTİ; TEST 71/71; Smoke GEÇTİ; gerçek editör kaydırma/çerçeve/grup taşıma/yakınlaştırma sınırı GEÇTİ — 30.09.2026 |
 | G-088 editör kullanım revizyonu | DERLE GEÇTİ; TEST 70/70; Smoke GEÇTİ; gerçek editörde 3B tıkla/seç/taşı/ekle, yürüyüş çarpışması, yeni/kopya/taslak ve üç görünüm ekran kontrolü GEÇTİ — 30.09.2026 |
 | G-088 mağaza editörü + dolap kütüphanesi | DERLE GEÇTİ; TEST 69/69; Smoke ve dört mağaza gezi testi GEÇTİ; 15/15 Blender kaynak kontrolü; gerçek editör ekranları incelendi — 30.09.2026 |
 | `DERLE.cmd` (v1) | GEÇTİ — 27.09.2026 |
@@ -86,6 +87,14 @@ GitHub ana deposu: `https://github.com/m07tas/market-ll` (`main`). Unreal/Blende
 Görsel ve raf dizme işleri yeterli seviyede; bir süre **donduruldu**. Öncelik **"İlk Hafta" oynanabilir dilimi**: bir oyuncu 7 günü baştan sona oynayabilmeli (sipariş → mal kabul → raf → fiyat → satış → gün raporu → hafta hedefi). Görevler G-051…G-055. Başarı ölçütü: yeni biri ilk 30 dakikada döngüyü anlıyor ve ilk kararının sonucunu görüyor.
 
 ## Devam notu
+
+**30.09.2026 — Codex: G-088 yalnız kuşbakışı editör.**
+
+- Mustafa'nın yeni isteğiyle iki 3B mod, viewport kaynakları ve editörün 3B/dolum/ışık düğmeleri kaldırıldı. Oyun gezi modu ve rastgele dolum devam eder. Bina/depo/yeni mağaza/bölüm/zemin/taslak özellikleri korunuyor.
+- Boş alandan sol sürükleme planı kaydırır; orta/sağ tuş her yerden kaydırır. Her hareket/zoom/seçim çizimi yeniler; eski kaydırmanın görünmemesi giderildi. Plan ClipToBoundsAlways ile menülerin içine/altına çizilmez.
+- Toplu seç düğmesi veya Shift + sol sürükleme: çerçeveyle çoklu seçim, Ctrl+tık ekle/çıkar, Ctrl+A tümünü seç. Seçili birini sürükle: grup mesafeleri korunur; çakışan toplu hareket tümüyle reddedilir. Toplu silme tek geri alma adımıdır. Izgara kapalı başlar; komşuya/duvara yaslama sıfır boşlukla çalışır, eski runtime Snap/Place varsayılan 2 cm davranışı diğer çağrılarda korunur.
+- DERLE GEÇTİ; TEST 71/71 (bir UE HTTP bağlantı zaman aşımı uyarısı, başarısız yok); StoreEditorReview gerçek harita olaylarıyla kaydırma/çerçeve/grup/geri al/yinele ve yeni/kopya/taslak kontrolleri GEÇTİ. Zoom 8× ekranı gözle incelendi, yan menülere taşma yok. Güncel kılavuz ve `store_editor.png` / `store_editor_full.png` kuşbakışıdır.
+- Aşama B 16 hazır mağaza hâlâ görsel onaydan sonra; şube/oyun kayıt bağlantısı Claude'da. Yerleştirme satış zemininin uygun noktalarında serbesttir; duvar/kolon/depo/başka ekipmanla çakışma kabul edilmez. R ve kopyala tek aktif parçaya, taşı/kaldır seçili gruba uygulanır.
 
 **30.09.2026 — Codex: G-088 editör kullanım revizyonu.**
 

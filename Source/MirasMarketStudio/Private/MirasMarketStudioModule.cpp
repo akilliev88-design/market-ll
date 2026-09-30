@@ -7,7 +7,6 @@
 #include "SProductStudio.h"
 #include "SPlanogramStudio.h"
 #include "SStoreStudio.h"
-#include "SStoreEditorViewport.h"
 #include "MarketStoreEditing.h"
 #include "ImageUtils.h"
 #include "Misc/FileHelper.h"
@@ -80,34 +79,27 @@ private:
                 Editor->Action(TEXT("color:Krem"));Editor->Action(TEXT("finish:tile"));Editor->Action(TEXT("arm:open_chiller_2500"));Editor->Category=TEXT("s\u00fct");Editor->AddAt(FVector(-1500,900,0));Editor->Action(TEXT("select"));Editor->Action(TEXT("duplicate"));
                 const int32 Count=Editor->Store.Fixtures.Num();Editor->Action(TEXT("undo"));Editor->Action(TEXT("redo"));
                 if(Count!=2||Editor->Store.Fixtures.Num()!=Count){UE_LOG(LogTemp,Error,TEXT("StoreEditor REVIEW failed: add / duplicate / undo"));FPlatformMisc::RequestExitWithStatus(false,1);return false;}
-                Editor->Action(TEXT("department:Kasap"));Editor->Action(TEXT("department:Teknoloji"));Editor->Action(TEXT("department:Manav"));Editor->RebuildPreview(true);
+                Editor->Action(TEXT("department:Kasap"));Editor->Action(TEXT("department:Teknoloji"));Editor->Action(TEXT("department:Manav"));
                 const auto Path=FPaths::ProjectSavedDir()/TEXT("Tests/StoreEditorReview.json");
                 if(!MarketStoreEditing::Save(Editor->Store,Path,Error)){UE_LOG(LogTemp,Error,TEXT("StoreEditor REVIEW save failed: %s"),*Error);FPlatformMisc::RequestExitWithStatus(false,1);return false;}
             }
-            if(*Step==2)Editor->Action(TEXT("view:1"));
-            if(*Step==3)
-            {
-                FString Error;if(!Editor->Viewport->ReviewInteraction(Error)){UE_LOG(LogTemp,Error,TEXT("StoreEditor REVIEW interaction failed: %s"),*Error);FPlatformMisc::RequestExitWithStatus(false,1);return false;}
-                Editor->Action(TEXT("workspace"));
-                if(Editor->bLibrary||Editor->bProperties){UE_LOG(LogTemp,Error,TEXT("StoreEditor REVIEW panels failed"));FPlatformMisc::RequestExitWithStatus(false,1);return false;}
-            }
-            if(*Step==0||*Step>=4)
+            if(*Step==2){FString Error;if(!Editor->ReviewMap(Error)){UE_LOG(LogTemp,Error,TEXT("StoreEditor REVIEW map failed: %s"),*Error);FPlatformMisc::RequestExitWithStatus(false,1);return false;}}
+            if(*Step==0||*Step>=2)
             {
                 TArray<FColor> Pixels;FIntVector Size;
                 if(!FSlateApplication::Get().TakeScreenshot(Window,Pixels,Size)){UE_LOG(LogTemp,Error,TEXT("StoreEditor REVIEW screenshot failed"));FPlatformMisc::RequestExitWithStatus(false,1);return false;}
                 TArray64<uint8> PNG;FImageUtils::PNGCompressImageArray(Size.X,Size.Y,MakeArrayView(Pixels),PNG);
                 const FString Dir=FPaths::ProjectSavedDir()/TEXT("Screenshots/StoreEditor");IFileManager::Get().MakeDirectory(*Dir,true);FFileHelper::SaveArrayToFile(PNG,*(Dir/FString::Printf(TEXT("editor_%d.png"),*Step)));
             }
-            if(*Step==4){Editor->Store=*MarketStoreKit::Find(TEXT("buyuk_01"));Editor->RebuildPreview(true);Editor->Action(TEXT("view:2"));}
-            if(*Step==5)Editor->Action(TEXT("view:0"));
-            if((*Step)++>=6)
+
+            if((*Step)++>=3)
             {
                 auto NewEditor=SNew(SStoreStudio);bool Ok=NewEditor->CreateStore(TEXT("mahalle"),TEXT("Review empty store"));const FString First=NewEditor->Store.Id;
                 if(Ok){NewEditor->Action(TEXT("arm:gondola_double_1200"));NewEditor->AddAt(FVector::ZeroVector);Ok=NewEditor->Store.Fixtures.Num()==1&&NewEditor->CreateStore(TEXT("mahalle"),TEXT("Review copied store"),true);}
                 const FString Second=NewEditor->Store.Id;FStoreTemplate Draft;FString Error;Ok=Ok&&First!=Second&&NewEditor->Store.Fixtures.Num()==1&&MarketStoreEditing::LoadDraft(FPaths::ProjectSavedDir()/TEXT("StoreDrafts")/(Second+TEXT(".json")),Draft,Error)&&Draft.Id==Second;
                 for(const auto& Id:{First,Second})if(Id.StartsWith(TEXT("mahalle_"))&&Id!=TEXT("mahalle_01"))IFileManager::Get().Delete(*(FPaths::ProjectSavedDir()/TEXT("StoreDrafts")/(Id+TEXT(".json"))));
                 if(!Ok){UE_LOG(LogTemp,Error,TEXT("StoreEditor REVIEW create/copy/reload failed"));FPlatformMisc::RequestExitWithStatus(false,1);return false;}
-                UE_LOG(LogTemp,Display,TEXT("StoreEditor REVIEW PASSED: new/copy/unique ID/reload, placement, duplicate, undo/redo, departments, resize, floor, draft, 3D click/drag/place, stable camera, walking collision, switchable views, hidden panels and screenshots"));Window->RequestDestroyWindow();FPlatformMisc::RequestExitWithStatus(false,0);return false;
+                UE_LOG(LogTemp,Display,TEXT("StoreEditor REVIEW PASSED: new/copy/unique ID/reload, placement, duplicate, undo/redo, departments, resize, floor, draft, 2D empty-space pan, marquee selection, group movement, zero-gap contact, zoom clipping and screenshots"));Window->RequestDestroyWindow();FPlatformMisc::RequestExitWithStatus(false,0);return false;
             }
             return true;
         }),6.f);

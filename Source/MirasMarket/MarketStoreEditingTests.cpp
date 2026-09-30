@@ -54,3 +54,16 @@ bool FStoreEditSaveTest::RunTest(const FString&)
     FFileHelper::LoadFileToString(After,*Path);TestTrue(TEXT("Last good draft retained"),After.Contains(TEXT("concrete")));IFileManager::Get().Delete(*Path);
     return true;
 }
+IMPLEMENT_SIMPLE_AUTOMATION_TEST(FStoreEditGroupTest,"MirasMarket.Stores.EditorGroupAndContact",EAutomationTestFlags::EditorContext|EAutomationTestFlags::EngineFilter)
+bool FStoreEditGroupTest::RunTest(const FString&)
+{
+    FStoreTemplate S;MarketStoreEditing::Create(TEXT("buyuk"),TEXT("buyuk_99"),TEXT("Group test"),S);int32 A,B;
+    TestTrue(TEXT("First module"),MarketStoreEditing::Place(S,TEXT("gondola_double_1200"),TEXT(""),FVector(0,0,0),A,false,false,0));
+    TestTrue(TEXT("Second flush module"),MarketStoreEditing::Place(S,TEXT("gondola_double_1200"),TEXT(""),FVector(123,0,0),B,false,true,0,0,0));
+    TestEqual(TEXT("No forced gap between cabinets"),S.Fixtures[B].Location.X,120.);
+    const FVector Spacing=S.Fixtures[B].Location-S.Fixtures[A].Location;TSet<int32> Group={A,B};
+    TestTrue(TEXT("Group moves freely without grid"),MarketStoreEditing::MoveGroup(S,Group,FVector(371,213,0),false,false,0));TestEqual(TEXT("Exact free destination"),S.Fixtures[A].Location.X,371.);TestEqual(TEXT("Relative spacing retained"),S.Fixtures[B].Location-S.Fixtures[A].Location,Spacing);
+    const auto Before=S;TestFalse(TEXT("Whole group blocked at exterior"),MarketStoreEditing::MoveGroup(S,Group,FVector(90000,0,0),true,true,0));TestEqual(TEXT("No partial group movement"),S.Fixtures[A].Location,Before.Fixtures[A].Location);
+    auto F=S.Fixtures[A];F.Location=FVector(S.FootprintCm.X/2-65,-400,0);TestEqual(TEXT("Zero-gap wall snap"),MarketStoreEditing::Snap(S,F,true,false,0,0).X,S.FootprintCm.X/2-60);
+    return true;
+}

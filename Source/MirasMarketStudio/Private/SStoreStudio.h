@@ -2,7 +2,6 @@
 #include "Widgets/SCompoundWidget.h"
 #include "MarketStoreKit.h"
 class SVerticalBox;
-class SStoreEditorViewport;
 class SStoreMap;
 class FJsonObject;
 struct FStorePaletteItem { FString Id,Name,Family; };
@@ -13,12 +12,11 @@ public:
     void Construct(const FArguments&);
     virtual bool SupportsKeyboardFocus() const override {return true;}
     virtual FReply OnKeyDown(const FGeometry&,const FKeyEvent&) override;
-    virtual void Tick(const FGeometry&,double,float) override;
     FStoreTemplate Store;
     int32 Selected=INDEX_NONE;
     FString ArmedEquipment,Category,Message;
-    bool bGrid=true,bWallSnap=true,bNeighbourSnap=true;
-    int32 ViewMode=0;
+    bool bGrid=false,bWallSnap=true,bNeighbourSnap=true,bMarquee=false;
+    TSet<int32> Selection;
     bool bLibrary=true,bProperties=true;
     float PlacementYaw=0;
     void Remember();
@@ -27,11 +25,10 @@ public:
     void AddAt(FVector At);
     void EndDrag();
     FReply Action(FString Command);
-    void RebuildPreview(bool Filled=false);
     FPlanogramFixture Placement(FVector At) const;
-    void Select(int32 Index);
+    void Select(int32 Index,bool Add=false);
+    bool ReviewMap(FString& Error);
     bool CreateStore(FString Format,FString Name,bool Copy=false);
-    TSharedPtr<SStoreEditorViewport> Viewport;
 private:
     TArray<FStoreTemplate> UndoStack,RedoStack;
     TArray<TSharedPtr<FString>> Stores,Categories;
@@ -40,7 +37,6 @@ private:
     TSharedPtr<SStoreMap> Map;
     FString Search;
     bool bDirty=false;
-    int32 FocusAfterLayout=0;
     void LoadStore(FString Id);
     void PopulateBank();
     TSharedRef<SWidget> Button(FString Label,FString Command);

@@ -4,17 +4,18 @@
 
 ## Tek büyük çalışma alanı
 
-Üstte **Kuşbakışı [1]**, **3B genel [2]** ve **Mağazada gez [3]** arasında geçiş yap. Aynı anda tek görünüm açıktır. **Ekipmanlar** ve **Özellikler** düğmeleri ilgili yan paneli açıp kapatır; **F11 / Geniş alan** ikisini birlikte gizler veya açar.
+Editör yalnızca kuşbakışıdır. **Ekipmanlar** ve **Özellikler** düğmeleri ilgili yan paneli açıp kapatır; **F11 / Geniş alan** ikisini birlikte gizler veya açar. Yakınlaştırılmış plan yalnızca orta çalışma alanında çizilir; yan menülere taşmaz.
 
-- Kuşbakışı: fare tekerleğiyle yakınlaş, orta fare tuşunu basılı tutarak planı kaydır. **Home** bütün mağazayı sığdırır; **F** seçili ekipmana yakınlaşır.
-- 3B genel: sağ fare tuşu ve WASD ile kamerayı hareket ettir. **Home** genel kadraja döner, **F** seçime gider. Çatı kaldırılır.
-- Mağazada gez: WASD ile yürü, sağ fare tuşunu basılı tutarak bak, Shift ile hızlan. Göz yüksekliği sabittir; duvar ve ekipman çarpışmaları yürüyüşü engeller. Çatı ve büyük marketlerin tesisatı görünür.
-- Her görünümde sol tıkla ekipman seç, basılı tutup sürükleyerek taşı. Seçili ekipman sarı çerçeveyle gösterilir. Taşıma sırasında kamera yerinde kalır; 3B ekipman da sürüklerken hareket eder.
+- **Boş alanı sol tuşla tutup sürükle:** planı istediğin yöne kaydır. Orta veya sağ tuşla planın herhangi bir yerinden de kaydırabilirsin.
+- **Tekerlek:** imlecin bulunduğu noktaya yakınlaş/uzaklaş. **Home:** bütün mağazayı sığdır. **F:** seçili ekipmana yakınlaş.
+- **Parçayı sol tuşla tutup sürükle:** taşı. Sarı çerçeveli parçalar seçilidir.
+- **Toplu seç:** düğmeye bas, sol tuşu basılı tutarak istediğin parçaların üzerinden çerçeve çiz. Alternatif: Shift + sol sürükle. Çerçeve bitince taşıma moduna döner.
+- **Birden fazla parça seçiliyken birini tut:** tüm seçimi aralarındaki mesafeleri koruyarak taşı. **Ctrl + tık:** bir parçayı seçime ekle/çıkar. **Ctrl+A:** hepsini seç. **Delete:** seçili parçaları topluca kaldır. **Ctrl+Z:** bütün işlemi bir adımda geri al.
 
-Rastgele raf doldurma 3B önizlemeyi giydirir; görünüm değiştirirken veya ekipman taşırken doluluk korunur. Aynı düğmeye yeniden basınca yeni bir rastgele dizilim hazırlanır. Katalogdaki ürün ve fiyatlar değişmez.
+Editörde iki 3B mod ve ilgili önizleme kontrolleri kaldırıldı. Oyundaki mağaza gezisi ve rastgele raf doldurma `MAGAZA_GEZI.cmd` içinde devam eder.
 
 ![Tek görünümle düzenleme](../Images/Stores/Cabinets/store_editor.png)
-![Mağaza içinde gezinme](../Images/Stores/Cabinets/store_editor_walk.png)
+![Yakınlaştırma sınırları](../Images/Stores/Cabinets/store_editor_full.png)
 
 ## Yeni mağaza
 
@@ -25,14 +26,14 @@ Kimlik otomatik ve benzersizdir; mevcut hazır mağazanın üzerine yazılmaz. Y
 ## Yerleştirme
 
 1. Üstten mağazayı seç. Soldaki kütüphanede ekipman ara ve adına tıkla.
-2. Aktif kuşbakışı veya 3B görünümde boş yere tıkla. Önizleme yeşilse sığar, kırmızıysa çakışır. Eklerken **R** ile parçayı döndür. Aynı ekipmandan başka parçalar eklemek için tekrar tıkla.
+2. Planda boş yere tıkla. Önizleme yeşilse sığar, kırmızıysa çakışır. Eklerken **R** ile parçayı döndür. Aynı ekipmandan başka parçalar eklemek için tekrar tıkla. Ekleme sırasında planı sağ/orta tuşla kaydırabilirsin.
 3. **Esc / Seçim modu** ile eklemeyi bitir. Parçaya tıklayıp sürükleyerek taşı.
 4. **R / Döndür 90°**, **Yan yana kopyala / Ctrl+D** ve **Sil / Delete** seçili parçaya uygulanır.
 5. **Ctrl+Z** geri alır; **Ctrl+Y** yineler. Son 50 düzenleme tutulur.
 
-Yeni rafın hangi ürünleri taşıyacağını sağ paneldeki kategori listesinden seç. **Kategorisiz** raflar rastgele doldurulmaz; soğutucuda süt, dondurucuda dondurma gibi uygun kategoriler kullan. Seçili rafın kategorisi listeye yansır ve tabela hemen güncellenir.
+Yeni rafın hangi ürünleri taşıyacağını sağ paneldeki kategori listesinden seç. **Kategorisiz** raflar oyun gezi modunda rastgele doldurulmaz; soğutucuda süt, dondurucuda dondurma gibi uygun kategoriler kullan.
 
-**Duvara yasla**, **Komşuya yasla / hizala** ve **10 cm ızgara** sürüklerken çalışır. Yakındaki duvar veya komşu ekipmana 2 cm payla oturur; milimetrik koordinat yazmak gerekmez. Sola, sağa, öne ve depoya yaslama düğmeleri de vardır. Çakışan veya mağaza dışına taşan hareket uygulanmaz. Kırmızı parçalar mevcut taslağın düzeltilmesi gereken yerleridir.
+**Duvara yasla** ve **Komşuya yasla / hizala** açık başlar. Yakındaki dolabın kenarına boşluk bırakmadan oturur; grubun dış kenarları da diğer dolaplara yaslanır. **10 cm ızgara kapalı başlar:** parçayı serbestçe konumlandırabilirsin. İstersen yaslamayı veya ızgarayı değiştir. Sola, sağa, öne ve depoya yaslama düğmeleri de vardır. Duvar/kolon/depo içinde veya başka dolabın üzerinde yerleştirme kabul edilmez; satış zemininin her uygun noktasına yerleştirme serbesttir. Kırmızı parçalar düzeltilmesi gereken yerleridir.
 
 Yaslama ve ızgara seçenekleri yeni parça eklerken de uygulanır; kapatırsan istemediğin yuvarlama yapılmaz. Seçim, döndürme, kopyalama ve kaldırma düğmeleri çalışma alanının üstünde her zaman görünür.
 
@@ -44,7 +45,7 @@ Bina boyutları değişince girintili dış hat korunarak ölçeklenir. Ekipman 
 
 **Kasap**, **Şarküteri**, **Manav** ve **Teknoloji** düğmeleri boş alana ilgili ekipmanları ve bölüm tabelasını ekler. Kasapta servis ve hazırlık tezgâhı; teknolojide deneme masası ve duvar teşhiri vardır. Parçaları sonrasında ayrı ayrı taşıyabilirsin. Yeterli alan yoksa bütün bölüm ekleme işlemi geri alınır.
 
-Sağ paneli aşağı kaydırınca **Zemin** ayarları görünür: krem, açık/koyu gri, toprak, yeşil; özel kırmızı/yeşil/mavi değerleri; seramik, beton ve parlak yüzey. 3B önizleme üstten açık ve aydınlık tasarım görünümüyle açılır. **Mağaza ışıkları** gerçek ışık görünümünü, **Net görünüm** tasarım görünümünü seçer. Sağ fare + WASD ile önizleme kamerasını gezdirebilirsin. **3B yenile** kamerayı mağazaya geri oturtur. **Rafları rastgele doldur** yalnızca önizlemeyi katalog ürünleriyle doldurur.
+Sağ paneli aşağı kaydırınca **Zemin** ayarları görünür: krem, açık/koyu gri, toprak, yeşil; özel kırmızı/yeşil/mavi değerleri; seramik, beton ve parlak yüzey. Bu görünüşü oyuna kaydettikten sonra mağaza gezi modunda inceleyebilirsin.
 
 ## Kaydetme
 

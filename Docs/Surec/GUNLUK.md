@@ -2,6 +2,16 @@
 
 En yeni giriş en üstte. Biçim: tarih — ajan — başlık, ardından **Yapılan**, **Doğrulama**, **Sıradaki**.
 
+## 30.09.2026 — Codex — G-088 sade kuşbakışı ve toplu taşıma
+
+**Yapılan:** Mustafa'nın isteğiyle iki 3B editör modu ve kaynakları kaldırıldı. Boş alandan sol tuşla kaydırma, sağ/orta tuşla her yerden kaydırma; pan/zoom/seçimde çizimi yenileme ve ClipToBoundsAlways ile yan menülere taşmayı engelleme. Toplu seç/Shift çerçevesi, Ctrl+tık seçime ekle/çıkar, Ctrl+A tümünü seç, grubu aralarındaki mesafeyi koruyarak sürükle, toplu sil ve tek adım geri al. Izgara varsayılan kapalı; editörde dolap/duvar kenarları sıfır boşlukla yaslanır. Diğer Snap/Place çağrılarının eski 2 cm varsayılanı korunur. Yeni mağaza/bina/depo/bölüm/zemin/taslak işlevleri duruyor; 3B gezi/rastgele dolum yalnız oyun test gezisinde. Kılavuz ve gerçek kuşbakışı ekran görüntüleri güncellendi.
+
+**Doğrulama:** DERLE GEÇTİ; TEST 71/71 (bir UE HTTP bağlantı zaman aşımı uyarısı, başarısız yok). Yeni EditorGroupAndContact testi: sıfır boşlukta dolap dayama, serbest hassas konum, grup mesafeleri, geçersiz harekette parçalı hareket olmaması ve duvara dayama. StoreEditorReview gerçek map olaylarıyla boş alandan pan, çerçeve seçimi, grup sürükleme, undo/redo, yeni/kopya/taslak kontrolleri GEÇTİ; 8× zoom ekranı gözle incelendi, çizim yan panellerin altında görünmüyor.
+
+**Smoke:** GEÇTİ — mevcut oyuncu, raf doldurma, sipariş/mal kabul, işe alma, satış, gün kapama ve disk kayıt/yükleme akışı doğrulandı.
+
+**Sıradaki:** Mustafa yalnız kuşbakışı editörü kullansın: boşluğu tut/kaydır, Toplu seç ile çerçeve çiz, bir seçiliyi tut/hepsini taşı. R/kopyala aktif parçaya; taşı/sil gruba uygulanır. Duvar/kolon/depo/ekipman çakışmaları kabul edilmez. Kalan 16 hazır mağaza A görsel onayından sonra; şube/oyun kayıt bağlantısı Claude'da.
+
 ## 30.09.2026 — Codex — G-088 editörde tek görünüm ve mağaza içi düzenleme
 
 **Yapılan:** Mustafa'nın kullanım geri bildirimi uygulandı. Zorunlu iki görüntü kaldırıldı; Kuşbakışı/3B genel/Mağazada gez arasında tek büyük görünüm. Ayrı gizlenebilir ekipman/özellik panelleri ve F11 geniş alan; plan yakınlaştırma/kaydırma, Home/F kadraj; görünür seçim/döndür/kopyala/kaldır araçları. 3B ekipman ray seçimi, sürüklerken HISM hareketi, doğrudan ekleme, yeşil/kırmızı önizleme, kamera konumunu koruma. İçeride WASD/sağ fare/Shift, sabit göz ve duvar/ekipman çarpışması; tavan gösterilir, ışık ikonları gizlenir. Rastgele dolum görünüm/düzenleme sırasında korunur. Yeni mağaza ad/tür penceresi, boş bina veya ayrı düzen kopyası; benzersiz id, ilk taslak ve sonraki açılışta liste. Yeni eklemede de isteğe bağlı ızgara/yaslama ve R döndürme çalışır. Kılavuz ve gerçek ekran PNG'leri güncellendi.
