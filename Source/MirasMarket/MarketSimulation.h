@@ -25,6 +25,8 @@ namespace MarketSimulation
     double ToleranceBonus(const FMarketState& State);
     bool SetDifficulty(FMarketState& State, int32 Difficulty, FString& OutMessage);
 
+    bool AdjustPrice(FMarketState& State, const TArray<FMarketProduct>& Products, int32 Index, bool bUp);
+
     struct FDay
     {
         int32 Shoppers = 0;
@@ -32,7 +34,10 @@ namespace MarketSimulation
         int32 Lost = 0;
         int64 Revenue = 0;
         int64 Profit = 0;
+        int64 FamilyProfit = 0;
         int64 Ordered = 0;
+        int32 AuditFailures = 0; // independently checked checkout/order/core-close and stock transfers
+        int64 BackgroundCashDelta = 0; // Director systems; full ledger audit is integrated by stream C
     };
 
     // Plays and closes one day (State.Day moves on). Products get the new day's prices from CatalogBase.

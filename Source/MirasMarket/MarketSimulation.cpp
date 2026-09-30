@@ -36,7 +36,7 @@ namespace MarketSimulation
     }
 
     // One shopper, as AMarketGameMode::SpawnCustomer + ResolveCustomerItem + Checkout do it in the world.
-    void Shopper(FMarketState& State, const TArray<FMarketProduct>& Products, const TArray<FString>& Aisles, FRandomStream& Random)
+    void Shopper(FMarketState& State, const TArray<FMarketProduct>& Products, const TArray<FString>& Aisles, FRandomStream& Random, int32& AuditFailures)
     {
         bool bReturning = false;
         const int32 CustomerId = MarketBasket::ChooseCustomer(State, Random.FRand(), Random.FRand(), bReturning);
@@ -100,7 +100,22 @@ namespace MarketSimulation
             return;
         }
         int64 Receipt = 0;
-        if (State.SellBasket(Lines, Products, &Receipt)) MarketDirector::OnCheckout(State, CustomerId, Receipt, Random.FRand(), Method);
+        const int64 CheckoutCash = State.Cash;
+        TArray<int32> ShelvesBefore;
+        for (const FMarketStock& Item : State.Stock) ShelvesBefore.Add(Item.Shelf);
+        int64 ExpectedReceipt = 0;
+        for (const FMarketSaleLine& Line : Lines) ExpectedReceipt += Line.QuotedPrice * Line.Quantity;
+        if (State.SellBasket(Lines, Products, &Receipt))
+        {
+            if (Receipt != ExpectedReceipt || State.Cash - CheckoutCash != ExpectedReceipt) ++AuditFailures;
+            for (int32 Index = 0; Index < State.Stock.Num(); ++Index)
+            {
+                int32 ExpectedShelf = ShelvesBefore[Index];
+                for (const FMarketSaleLine& Line : Lines) if (Line.Product == Index) ExpectedShelf -= Line.Quantity;
+                if (State.Stock[Index].Shelf != ExpectedShelf) ++AuditFailures;
+            }
+            MarketDirector::OnCheckout(State, CustomerId, Receipt, Random.FRand(), Method);
+        }
         else ++State.Lost;
         MarketBasket::RecordVisit(State, CustomerId, List.Num(), Fulfilled, false);
     }
@@ -153,7 +168,13 @@ MarketSimulation::FDay MarketSimulation::PlayDay(FMarketState& State, const TArr
     if (State.Books.TaxDue > 0) MarketStaff::PayTax(State);
     if (MarketCampaign::DebtOpen(State) && State.Cash > 4 * MarketCampaign::Installment + 20000) MarketCampaign::PayDebt(State);
     // Morning: the rear door is carried in and the shelves are filled.
-    for (int32 I = 0; I < State.Stock.Num(); ++I) State.ReceiveDelivery(I);
+    for (int32 I = 0; I < State.Stock.Num(); ++I)
+    {
+        const FMarketStock Before = State.Stock[I];
+        State.ReceiveDelivery(I);
+        const FMarketStock& After = State.Stock[I];
+        if (Before.Dock + Before.Warehouse + Before.Shelf != After.Dock + After.Warehouse + After.Shelf) ++Day.AuditFailures;
+    }
     FillShelves(State);
     // The world's crowd limit: nine people inside turn the next one away at the door (about 1 in 25 on busy days).
     const float Traffic = MarketDirector::TrafficFactor(State, Aisles);
@@ -163,7 +184,7 @@ MarketSimulation::FDay MarketSimulation::PlayDay(FMarketState& State, const TArr
     for (int32 N = 0; N < Crowded; ++N) MarketDemand::RecordWaitingLoss(State);
     for (int32 N = Crowded; N < Day.Shoppers; ++N)
     {
-        Shopper(State, Products, Aisles, Random);
+        Shopper(State, Products, Aisles, Random, Day.AuditFailures);
         if (N % Family.RefillEvery == Family.RefillEvery - 1) FillShelves(State);   // the family (and the stockers) refill between customers
     }
     Day.Served = State.Served;
@@ -179,15 +200,22 @@ MarketSimulation::FDay MarketSimulation::PlayDay(FMarketState& State, const TArr
         MarketManagers::ShapeFamilyOrder(State, Family, Draft);
         int64 Bill = 0;
         for (int32 I = 0; I < Draft.Num(); ++I) Bill += Draft[I] * MarketOrderAdvice::CaseUnits(Products[I]) * Products[I].Cost;
+        const int64 OrderCash = State.Cash;
         const int64 Allowance = MarketDirector::OrderAllowance(State);   // G-077 (#33): terms count
         if (Bill >= MarketOrderAdvice::MinimumOrderOn(State.Day) && Bill <= State.Cash + Allowance && State.SubmitOrder(Draft, Products, &Bill, nullptr, Allowance))
         {
+            if (State.Cash != OrderCash - Bill) ++Day.AuditFailures;
             MarketDirector::OnOrder(State, Bill);
             Day.Ordered = Bill;
         }
     }
+    const int64 CoreCash = State.Cash;
     State.CloseDay();
+    if (State.Cash != CoreCash + State.LastBranchProfit - State.LastOperatingCost) ++Day.AuditFailures;
+    Day.FamilyProfit = State.LastProfit;
+    const int64 DirectorCash = State.Cash;
     MarketDirector::CloseDay(State, Products);
+    Day.BackgroundCashDelta = State.Cash - DirectorCash;
     MarketDirector::ApplyPrices(State, CatalogBase, Products);
     MarketCampaign::CloseDay(State);
     Day.Profit = State.LastProfit;
@@ -217,4 +245,14 @@ int32 MarketSimulation::Advance(FMarketState& State, const TArray<FMarketProduct
         Played, Total.Shoppers, Total.Served, Total.Lost, *SimTl(Total.Revenue), *SimTl(Total.Profit), *SimTl(Total.Ordered));
     if (!Reason.IsEmpty()) OutSummary += FString::Printf(TEXT(" Durdu: %s."), *Reason);
     return Played;
+}
+
+bool MarketSimulation::AdjustPrice(FMarketState& State, const TArray<FMarketProduct>& Products, int32 Index, bool bUp)
+{
+    if (!State.Stock.IsValidIndex(Index) || !Products.IsValidIndex(Index)) return false;
+    FMarketStock& Item = State.Stock[Index];
+    const int64 Previous = Item.Price;
+    const int64 Step = MarketDemand::PriceStep(Products[Index]);
+    Item.Price = FMath::Clamp<int64>(Item.Price + (bUp ? Step : -Step), 10, Products[Index].BasePrice * 3);
+    return Item.Price != Previous;
 }

@@ -1,4 +1,5 @@
 #include "MarketGame.h"
+#include "MarketSimulation.h"
 #include "MarketWorldText.h"
 #include "MarketCountry.h"
 #include "MarketStart.h"
@@ -1113,9 +1114,7 @@ void AMarketGameMode::Command(FName Action)
         }
         else if (Action == "PriceUp" || Action == "PriceDown")
         {
-            auto& Item = State.Stock[Selected];
-            const int64 Step = MarketDemand::PriceStep(Products[Selected]);
-            Item.Price = FMath::Clamp<int64>(Item.Price + (Action == "PriceUp" ? Step : -Step), 10, Products[Selected].BasePrice * 3);
+            MarketSimulation::AdjustPrice(State, Products, Selected, Action == "PriceUp");
             RefreshLabels();
             Notify(FString::Printf(TEXT("%s: %s"), *ProductName(Selected), *PriceSummary(Selected)));
         }
