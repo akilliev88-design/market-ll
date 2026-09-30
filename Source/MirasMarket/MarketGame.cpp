@@ -75,6 +75,9 @@ void AMarketCharacter::SetupPlayerInputComponent(UInputComponent* Input)
     Input->BindAction("ToggleDetails", IE_Pressed, this, &AMarketCharacter::ToggleDetails);
     Input->BindAction("TestMode", IE_Pressed, this, &AMarketCharacter::ToggleTestMode);
     Input->BindAction("FillAll", IE_Pressed, this, &AMarketCharacter::FillAll);
+    Input->BindKey(EKeys::F10, IE_Pressed, this, &AMarketCharacter::NextStore);
+    Input->BindKey(FInputChord(EKeys::F10, true, false, false, false), IE_Pressed, this, &AMarketCharacter::PreviousStore);
+    Input->BindKey(EKeys::F7, IE_Pressed, this, &AMarketCharacter::RandomizeShelves);
     Input->BindAction("Mood", IE_Pressed, this, &AMarketCharacter::NextMood);
     Input->BindAction("Fullscreen", IE_Pressed, this, &AMarketCharacter::ToggleFullscreen);
     Input->BindAction("Quit", IE_Pressed, this, &AMarketCharacter::Quit);
@@ -107,6 +110,9 @@ MARKET_ACTION(NewCampaign, "NewCampaign")
 MARKET_ACTION(ToggleDetails, "ToggleDetails")
 MARKET_ACTION(ToggleTestMode, "TestMode")
 MARKET_ACTION(FillAll, "FillAll")
+MARKET_ACTION(NextStore, "TourNext")
+MARKET_ACTION(PreviousStore, "TourPrevious")
+MARKET_ACTION(RandomizeShelves, "RandomFill")
 MARKET_ACTION(NextMood, "Mood")
 MARKET_ACTION(ToggleFullscreen, "Fullscreen")
 #undef MARKET_ACTION
@@ -154,6 +160,15 @@ void AMarketGameMode::BeginPlay()
         // This does not publish products or change campaign stock.
         TArray<FString> Errors; MarketCatalog::LoadFile(MarketCatalog::DefaultPath(), Products, Errors);
         for (auto& Product : Products) Product.bActive = true;
+        return;
+    }
+    FString TourId;
+    if (FParse::Value(FCommandLine::Get(), TEXT("MirasStoreTour="), TourId))
+    {
+        TArray<FString> Errors; MarketCatalog::LoadFile(MarketCatalog::DefaultPath(), Products, Errors);
+        for (auto& Product : Products) Product.bActive = true;
+        State.Initialize(Products); bTestMode = true; bStoreTour = true;
+        if (!StartStoreTour(TourId, true)) FPlatformMisc::RequestExitWithStatus(false, 1);
         return;
     }
     BuildStore();
@@ -315,7 +330,7 @@ void AMarketGameMode::BuildStore()
     const float Middle = (Back - 300) / 2;
     const bool bTextured = MarketVisuals::HasSurfaceLibrary();
     SurfaceBox(FVector(0, Middle, -15), FVector(1250, Length, 30), EMarketSurface::Floor);
-    SurfaceBox(FVector(0, Middle, 355), FVector(1250, Length, 15), EMarketSurface::Ceiling);
+    Box(FVector(0, Middle, 355), FVector(1250, Length, 15), FLinearColor(.82f, .82f, .78f));
     SurfaceBox(FVector(-625, Middle, 165), FVector(20, Length, 360), EMarketSurface::Wall);
     SurfaceBox(FVector(625, Middle, 165), FVector(20, Length, 360), EMarketSurface::Wall);
     SurfaceBox(FVector(0, Back, 165), FVector(1250, 20, 360), EMarketSurface::Wall);
@@ -370,7 +385,7 @@ void AMarketGameMode::BuildStore()
         // Terracotta header over the wooden top sign (front face at y = +14 cm) and a price card on the
         // front edge of every tier, under its bin (create_store_kit.py: tiers 64 cm deep, 7.5 cm thick).
         SurfaceBox(BulkLocation + FVector(0, 13.2f, 158), FVector(130, 1.2f, 30), EMarketSurface::SignRed, false);
-        Label(BulkLocation + FVector(0, 12.4f, 158), FRotator(0, -90, 0), TEXT("KURUYEMIS  /  DOKME"), 11, FColor::White, true);
+        Label(BulkLocation + FVector(0, 12.4f, 158), FRotator(0, -90, 0), TEXT("KURUYEM\u0130\u015e  /  D\u00d6KME"), 11, FColor::White, true);
         static const TCHAR* BulkPrices[] = { TEXT("1,90"), TEXT("2,40"), TEXT("1,15"), TEXT("3,20"), TEXT("0,99"), TEXT("2,75") };
         for (int32 Row = 0; Row < 3; ++Row)
             for (int32 Col = 0; Col < 4; ++Col)
@@ -383,13 +398,7 @@ void AMarketGameMode::BuildStore()
                     FString::Printf(TEXT("%s TL/100g"), BulkPrices[(Row * 4 + Col) % UE_ARRAY_COUNT(BulkPrices)]), 1.6f, FColor(25, 22, 20), true)->SetCullDistance(800);
             }
     }
-    else Label(BulkLocation + FVector(0, -54, 157), FRotator(0, -90, 0), TEXT("KURUYEMIS  /  LOKUM"), 13, FColor(255, 225, 165));
-    const TCHAR* CeilingPath = TEXT("/Game/Environment/StoreKit/CeilingBay_6000/SM_CeilingBay_6000.SM_CeilingBay_6000");
-    bool bCeilingKitLoaded = false;
-    for (float X : { -300.f, 300.f })
-        for (float Y : { 200.f, 800.f })
-            bCeilingKitLoaded |= SpawnKit(CeilingPath, FVector(X, Y, 343), FRotator::ZeroRotator, false) != nullptr;
-
+    else Label(BulkLocation + FVector(0, -54, 157), FRotator(0, -90, 0), TEXT("KURUYEM\u0130\u015e  /  LOKUM"), 13, FColor(255, 225, 165));
     for (const FPlanogramFixture& Fixture : Planogram.Fixtures)
     {
         const FPlanogramEquipment Spec = MarketPlanogram::Equipment(Fixture.EquipmentId);
@@ -446,10 +455,10 @@ void AMarketGameMode::BuildStore()
         SurfaceBox(FVector(-430, -30, 42), FVector(210, 90, 84), EMarketSurface::Wood);
         SurfaceBox(FVector(-430, -30, 85.5f), FVector(214, 94, 3), EMarketSurface::CounterTop);
     }
-    Label(FVector(-430, -85, 188), FRotator(0, -90, 0), TEXT("YONETIM MASASI"), 18);
+    Label(FVector(-430, -85, 188), FRotator(0, -90, 0), TEXT("Y\u00d6NET\u0130M MASASI"), 18);
     // A working local market needs cold storage and a fresh-produce focal point, not only dry shelves.
     if (SpawnKit(TEXT("/Game/Environment/StoreKit/RefrigeratedWall_3000/SM_RefrigeratedWall_3000.SM_RefrigeratedWall_3000"), FVector(0, Back - 43, 0), FRotator(0, 180, 0), true))
-        Label(FVector(0, Back - 88, 245), FRotator(0, -90, 0), TEXT("SOGUK URUNLER"), 16, FColor::White, true);
+        Label(FVector(0, Back - 88, 245), FRotator(0, -90, 0), TEXT("SO\u011eUK \u00dcR\u00dcNLER"), 16, FColor::White, true);
     if (SpawnKit(TEXT("/Game/Environment/StoreKit/ProduceIsland_2400/SM_ProduceIsland_2400.SM_ProduceIsland_2400"), FVector(350, Back - 190, 0), FRotator(0, 180, 0), true))
         Label(FVector(350, Back - 255, 152), FRotator(0, -90, 0), TEXT("MANAV"), 15, FColor(255, 238, 208), true);
     // Depot: stacked cartons of different sizes, slightly turned.
@@ -469,12 +478,12 @@ void AMarketGameMode::BuildStore()
         }
     }
     Label(FVector(-430, Back - 30, 140), FRotator(0, -90, 0), TEXT("DEPO"), 20);
-    if (!bCeilingKitLoaded)
-        for (float Y = 40.f; Y < Back; Y += 320.f)
+    // The family shop has a plain ceiling and flush light panels. Exposed services belong to large stores.
+    for (float Y = 40.f; Y < Back; Y += 320.f)
+        for (float X : { -300.f, 300.f })
         {
-            SurfaceBox(FVector(0.f, Y, 337.f), FVector(1250.f, 10.f, 12.f), EMarketSurface::CeilingSteel, false);
-            SurfaceBox(FVector(-300.f, Y, 329.f), FVector(290.f, 22.f, 3.f), EMarketSurface::Emissive, false);
-            SurfaceBox(FVector(300.f, Y, 329.f), FVector(290.f, 22.f, 3.f), EMarketSurface::Emissive, false);
+            SurfaceBox(FVector(X, Y, 346.f), FVector(125.f, 55.f, 3.f), EMarketSurface::ShelfMetal, false);
+            SurfaceBox(FVector(X, Y, 344.f), FVector(120.f, 50.f, 1.f), EMarketSurface::Emissive, false);
         }
     Lighting = MarketVisuals::BuildStoreLighting(GetWorld(), Back);
     MarketVisuals::ApplyMood(Lighting, Mood);
@@ -908,6 +917,7 @@ void AMarketGameMode::RefreshLabels()
 void AMarketGameMode::Command(FName Action)
 {
     if (CategoryCommand(Action)) return;
+    if (StoreTourCommand(Action)) return;
     if (Action == "Menu") { OpenMenu(MenuPage); return; } // G-059: clickable management menu (MarketMenu.cpp)
     if (ArrangeCommand(Action)) return; // R mode: aim + click/E, wheel/TAB/Q, +/-, Y, U, F, C, DEL, arrows (MarketArrange.cpp)
     if (Action == "ToggleShop")
@@ -1277,6 +1287,7 @@ void AMarketGameMode::Checkout()
 void AMarketGameMode::Tick(float DeltaTime)
 {
     Super::Tick(DeltaTime);
+    if (bStoreTour) { TickStoreTour(); return; }
     MessageTime = FMath::Max(0.f, MessageTime - DeltaTime);
     TickArrange();
     TickPlayerDelivery();
@@ -1476,7 +1487,7 @@ void AMarketHUD::DrawHUD()
     Super::DrawHUD();
     if (Overlay.IsValid()) return;
     AMarketGameMode* Game = GetMarket(this);
-    if (!Game || Game->Products.Num() == 0 || !GEngine || !GEngine->GameViewport) return;
+    if (!Game || Game->bStoreTour || Game->Products.Num() == 0 || !GEngine || !GEngine->GameViewport) return;
     // Created lazily: the game mode may begin play after the HUD.
     Overlay = SNew(SMarketHud).Game(Game);
     GEngine->GameViewport->AddViewportWidgetContent(Overlay.ToSharedRef(), 10);

@@ -1,0 +1,16 @@
+{
+  "schemaVersion": 1,
+  "id": "roof_mahalle_01",
+  "mesh": "SM_Roof_mahalle_01.fbx",
+  "origin": "floor_center",
+  "frontAxis": "-Y",
+  "dimensionsMm": {
+    "width": 14000.0,
+    "depth": 12000.0,
+    "height": 3170.0
+  },
+  "collision": {
+    "policy": "custom_ucx",
+    "pieces": 3
+  }
+}

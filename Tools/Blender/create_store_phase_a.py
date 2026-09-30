@@ -24,9 +24,16 @@ def equipment(e,s):
     white=kit.mat('MI_Store_White',(.82,.82,.78),0,.36)
     glass=kit.mat('MI_Store_Glass',(.35,.48,.50),.05,.13,.75)
     light=kit.mat('MI_Store_Light',(.85,.86,.80),0,.2,emission=(.85,.86,.8))
+    fresh=[kit.mat('MI_Produce_R2_'+str(i),c,0,.48) for i,c in enumerate([(.55,.065,.028),(.23,.42,.045),(.85,.36,.035),(.51,.36,.16),(.69,.61,.055),(.11,.28,.045)])]
+    bread=kit.mat('MI_Bread_R2',(.60,.34,.13),0,.59)
     w,d,h=[v/100 for v in s['size']]; f=s['family']; parts=[]
     def box(label,p,size,mat=metal,bevel=.005):
         obj=kit.cube(label,p,size,mat,bevel); parts.append(obj); return obj
+    def oval(label,p,scale,mat):
+        bpy.ops.mesh.primitive_uv_sphere_add(segments=12,ring_count=6,location=p)
+        obj=bpy.context.object;obj.name=label;obj.scale=scale
+        bpy.ops.object.transform_apply(location=False,rotation=False,scale=True)
+        obj.data.materials.append(mat);parts.append(obj);return obj
     if f=='checkout':
         for lane in range(s.get('checkouts',1)):
             x=(lane-(s.get('checkouts',1)-1)/2)*1.1
@@ -55,12 +62,17 @@ def equipment(e,s):
         box('FrontGlass',(0,-d/2+.06,h*.72),(w-.16,.02,h*.46),glass)
         box('TopGlass',(0,0,h-.04),(w-.16,d-.12,.02),glass)
         box('Rail',(0,-d/2-.005,h*.5),(w-.10,.02,.05),rail)
+        for n in range(12):
+            x=-w/2+.24+(n%6)*(w-.48)/5;y=-.22+(n//6)*.42
+            oval('FreshDisplay',(x,y,s['levels'][0]/100+.07),(.16,.10,.07),bread if f=='deli' else fresh[0] if f=='butcher' else white)
     elif f in ('bakery','tobacco','home','electronics','textile'):
         box('Back',(0,d/2-.025,h/2),(w,.05,h),wood if f=='bakery' else metal)
         for x in (-w/2+.025,w/2-.025): box('Post',(x,d/2-.06,h/2),(.05,.08,h),dark)
         for z in s['levels'] or [35,85,135,180]:
             box('Board',(0,0,z/100-.02),(w-.08,d,.04),wood if f=='bakery' else white)
             box('Rail',(0,-d/2,z/100-.04),(w-.08,.02,.05),rail)
+            if f=='bakery':
+                for n in range(6): oval('BreadLoaf',(-w/2+.24+n*(w-.48)/5,-.08,z/100+.07),(.16,.22,.075),bread)
         if f=='electronics':
             for x in (-.65,0,.65):
                 box('Screen',(x,.06,1.4),(.48,.06,.3),dark)
@@ -74,11 +86,13 @@ def equipment(e,s):
         box('Tray',(0,0,.66),(w-.08,d-.08,.09),dark)
         for n in range(max(2,int(w/.5))):
             x=-w/2+.28+n*.5
-            box('Crate',(x,0,.78),(.46,d-.13,.20),wood)
-            for row in range(3):
+            box('CrateBase',(x,0,.735),(.46,d-.13,.03),wood)
+            for xx in (-.23,.23):box('CrateRim',(x+xx,0,.79),(.025,d-.13,.11),wood)
+            for yy in (-(d-.13)/2,(d-.13)/2):box('CrateRim',(x,yy,.79),(.46,.025,.11),wood)
+            for row in range(5):
                 for col in range(3):
-                    fruit=kit.cylinder('Produce',(x+(col-1)*.11,(row-1)*.18,.91),.055,.065,rail if n%2==0 else wood,vertices=12)
-                    parts.append(fruit)
+                    oval('Produce',(x+(col-1)*.12,(row-2)*(d-.23)/5,.815),(.057,.063,.057),fresh[n%len(fresh)])
+        for x in (-w/2+.05,w/2-.05):box('CrateStand',(x,d/2-.06,h/2),(.05,.05,h),dark)
     elif f=='pallet':
         for n in range(6): box('PalletSlat',(-w/2+.09+n*.20,0,.12),(.16,d,.04),wood)
         for x in (-.4,.4): box('PalletFoot',(x,0,.06),(.14,d,.12),wood)
@@ -119,44 +133,14 @@ def equipment(e,s):
     kit.save_asset(e,name,model,collisions,metadata,(w*1.3,-d*3,h*1.2),(0,0,h/2))
 
 def shell(s):
-    kit.reset(); w,d=[v/100 for v in s['footprintCm']]; h=s['ceilingCm']/100; back=s['backroomM2']/w; rear=d/2-back
-    floor=kit.mat('MI_Store_Floor',(.42,.40,.36) if s['theme']=='sicak_ahsap' else (.64,.67,.64),0,.55)
-    wall=kit.mat('MI_Store_Wall',(.79,.78,.70),0,.63)
-    dark=kit.mat('MI_Store_DarkMetal',(.025,.035,.037),.7,.28)
-    light=kit.mat('MI_Store_Light',(.85,.86,.8),0,.2,emission=(.9,.87,.8))
-    glass=kit.mat('MI_Store_FacadeGlass',(.45,.58,.62),.05,.12,.85)
-    parts=[]; collisions=[]; name='SM_Shell_'+s['id']
-    def box(label,p,size,mat=wall,block=True):
-        # With UE's FBX Y mirror and yaw=180, author X opposite to the UE contract.
-        p=(-p[0],p[1],p[2]); parts.append(kit.cube(label,p,size,mat,.004))
-        if block: collisions.append(kit.collision(name,len(collisions),p,size))
-    box('Floor',(0,0,.025),(w,d,.05),floor)
-    for x in (-w/2,w/2): box('Side',(x,0,h/2),(.12,d,h))
-    # Front and rear doors are real holes, including the storage-room passage.
-    for y,gapx,gap in [(-d/2,0,2.4),(d/2,w/2-1.5,1.6),(rear,w/2-1.5,1.6)]:
-        left=-w/2; a=gapx-gap/2; b=gapx+gap/2; right=w/2
-        for x0,x1 in [(left,a),(b,right)]:
-            if x1>x0:
-                if y==-d/2:
-                    box('Sill',((x0+x1)/2,y,.225),(x1-x0,.12,.45))
-                    box('Window',((x0+x1)/2,y,1.375),(x1-x0,.025,1.85),glass)
-                    box('Fascia',((x0+x1)/2,y,(h+2.3)/2),(x1-x0,.12,h-2.3))
-                    for xx in (x0,x1): box('WindowMullion',(xx,y,1.375),(.04,.06,1.85),dark,False)
-                else: box('Wall',( (x0+x1)/2,y,h/2),(x1-x0,.12,h))
-        box('Lintel',(gapx,y,(h+2.3)/2),(gap,.12,h-2.3))
-    box('Roof',(0,0,h-.025),(w,d,.05))
-    # Visible service beams and strips below the roof.
-    for x in range(int(-w/2+2),int(w/2),4):
-        box('Beam',(x,0,h-.08),(.10,d,.16),dark,False)
-        for y in range(int(-d/2+2),int(d/2),4):
-            box('Luminaire',(x,y,h-.23),(.14,1.3,.08),dark,False)
-            box('Diffuser',(x,y,h-.28),(.12,1.28,.02),light,False)
-    model=kit.join(parts,name,s['id'],(int(w*1000),int(d*1000),int(h*1000)))
-    kit.save_asset('shell_'+s['id'],name,model,collisions,dict(schemaVersion=1,id=s['id'],mesh=name+'.fbx',origin='floor_center',frontAxis='-Y',dimensionsMm=dict(width=w*1000,depth=d*1000,height=h*1000),collision=dict(policy='custom_ucx',pieces=len(collisions))), (w*.7,-d*.9,h*1.5),(0,0,1))
+    from store_architecture import build_shell
+    build_shell(kit,s)
 
 if __name__=='__main__':
-    for e,s in EQUIPMENT.items(): equipment(e,s)
-    for s in json.loads((ROOT/'Config/magazalar.json').read_text(encoding='utf-8'))['stores']: shell(s)
+    if '--shells-only' not in sys.argv:
+        for e,s in EQUIPMENT.items(): equipment(e,s)
+    if '--equipment-only' not in sys.argv:
+        for s in json.loads((ROOT/'Config/magazalar.json').read_text(encoding='utf-8'))['stores']: shell(s)
     from export_store_fbx import export_all
     export_all(ROOT)
     print('MIRAS_PHASE_A_MODELS_READY')

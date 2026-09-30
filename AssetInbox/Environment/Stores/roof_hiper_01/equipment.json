@@ -1,0 +1,16 @@
+{
+  "schemaVersion": 1,
+  "id": "roof_hiper_01",
+  "mesh": "SM_Roof_hiper_01.fbx",
+  "origin": "floor_center",
+  "frontAxis": "-Y",
+  "dimensionsMm": {
+    "width": 80000.0,
+    "depth": 50000.0,
+    "height": 8070.0
+  },
+  "collision": {
+    "policy": "custom_ucx",
+    "pieces": 1
+  }
+}

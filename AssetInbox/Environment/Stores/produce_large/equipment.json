@@ -5,16 +5,21 @@
   "unrealMesh": "/Game/Stores/Equipment/SM_ProduceLarge.SM_ProduceLarge",
   "family": "produce",
   "dimensionsMm": {
-    "width": 3010.0,
+    "width": 3022.5,
     "depth": 1400.0,
-    "height": 942.5
+    "height": 1350.0
   },
   "origin": "floor_center",
   "frontAxis": "-Y",
   "materials": [
     "MI_Store_WarmWood",
     "MI_Store_DarkMetal",
-    "MI_Store_PriceRail"
+    "MI_Produce_R2_0",
+    "MI_Produce_R2_1",
+    "MI_Produce_R2_2",
+    "MI_Produce_R2_3",
+    "MI_Produce_R2_4",
+    "MI_Produce_R2_5"
   ],
   "collision": {
     "policy": "custom_ucx",

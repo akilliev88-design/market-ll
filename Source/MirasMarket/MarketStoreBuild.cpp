@@ -46,6 +46,8 @@ bool MarketStoreKit::Build(UWorld* World,const FStoreTemplate& S,const FMarketPl
     if(!World) return false;
     TArray<FString> Errors; if(!Validate(S,Errors)) return false;
     UStaticMesh* Shell=LoadObject<UStaticMesh>(nullptr,*S.Shell); if(!Shell) { UE_LOG(LogTemp,Error,TEXT("Store shell missing: %s"),*S.Shell); return false; }
+    UStaticMesh* Roof=S.Roof.IsEmpty()?nullptr:LoadObject<UStaticMesh>(nullptr,*S.Roof);
+    if(!S.Roof.IsEmpty()&&!Roof) { UE_LOG(LogTemp,Error,TEXT("Store roof missing: %s"),*S.Roof); return false; }
     if(auto* Body=Shell->GetBodySetup())
     {
         UE_LOG(LogTemp,Display,TEXT("Store shell collision: %d convex, %d boxes"),Body->AggGeom.ConvexElems.Num(),Body->AggGeom.BoxElems.Num());
@@ -61,7 +63,23 @@ bool MarketStoreKit::Build(UWorld* World,const FStoreTemplate& S,const FMarketPl
     }
     Clear(World); auto* A=StoreBuild::Holder(World);
     auto* ShellComponent=NewObject<UStaticMeshComponent>(A); ShellComponent->SetupAttachment(A->GetRootComponent()); ShellComponent->SetStaticMesh(Shell); ShellComponent->SetCollisionProfileName(TEXT("BlockAll")); ShellComponent->RegisterComponent(); ShellComponent->SetRelativeRotation(FRotator(0,180,0));
+    if(Roof)
+    {
+        auto* RoofActor=StoreBuild::Holder(World); RoofActor->Tags.Add(TEXT("MirasStoreRoof"));
+        auto* C=NewObject<UStaticMeshComponent>(RoofActor); C->SetupAttachment(RoofActor->GetRootComponent()); C->SetStaticMesh(Roof); C->SetCollisionProfileName(TEXT("BlockAll")); C->RegisterComponent(); C->SetRelativeRotation(FRotator(0,180,0));
+    }
     FHitResult FloorHit;
+    if(S.Format==TEXT("buyuk")||S.Format==TEXT("hiper"))
+    {
+        if(auto* Services=LoadObject<UStaticMesh>(nullptr,TEXT("/Game/Environment/StoreKit/CeilingBay_6000/SM_CeilingBay_6000.SM_CeilingBay_6000")))
+        {
+            auto* CeilingActor=StoreBuild::Holder(World); CeilingActor->Tags.Add(TEXT("MirasStoreRoof"));
+            auto* Bays=StoreBuild::Instances(CeilingActor,Services,false);
+            for(float X=-S.FootprintCm.X*.5f+300;X<=S.FootprintCm.X*.5f-300;X+=600)
+                for(float Y=-S.FootprintCm.Y*.5f+300;Y<=S.FootprintCm.Y*.5f-300;Y+=600)
+                    Bays->AddInstance(FTransform(FRotator(0,180,0),FVector(X,Y,S.CeilingCm-15)));
+        }
+    }
     const bool Floor=World->LineTraceSingleByChannel(FloorHit,S.PlayerStart.At+FVector(0,0,50),S.PlayerStart.At-FVector(0,0,200),ECC_Visibility);
     UE_LOG(LogTemp,Display,TEXT("Store floor trace: %d at %s, actor %s"),Floor,*FloorHit.ImpactPoint.ToString(),*GetNameSafe(FloorHit.GetActor()));
     if(auto* Game=World->GetAuthGameMode<AMarketGameMode>())
@@ -77,7 +95,16 @@ bool MarketStoreKit::Build(UWorld* World,const FStoreTemplate& S,const FMarketPl
     TMap<FString,UHierarchicalInstancedStaticMeshComponent*> Groups;
     for(const auto& Pair:EquipmentMeshes) Groups.Add(Pair.Key,StoreBuild::Instances(A,Pair.Value,true));
     auto* SignBoards=StoreBuild::Instances(A,LoadObject<UStaticMesh>(nullptr,TEXT("/Engine/BasicShapes/Cube.Cube")),false);
-    SignBoards->SetMaterial(0,MarketVisuals::CreateSurface(A,EMarketSurface::SignRed));
+    const FLinearColor SignColor=S.Theme==TEXT("sicak_ahsap")?FLinearColor(.19,.105,.055):S.Theme==TEXT("aydinlik")?FLinearColor(.16,.20,.22):S.Theme==TEXT("dogal_yesil")?FLinearColor(.055,.15,.095):FLinearColor(.055,.09,.12);
+    auto* SignBase=LoadObject<UMaterialInterface>(nullptr,TEXT("/Game/Materials/M_Market.M_Market"));
+    auto* SignMaterial=UMaterialInstanceDynamic::Create(SignBase,A); SignMaterial->SetVectorParameterValue(TEXT("Color"),SignColor); SignBoards->SetMaterial(0,SignMaterial);
+    for(const auto& Section:S.Sections)
+    {
+        const FRotator Facing(0,Section.Yaw,0);
+        SignBoards->AddInstance(FTransform(FRotator(0,Section.Yaw+90,0),Section.At-Facing.Vector()*3,FVector(Section.WidthCm/100,.05f,.48f)));
+        const float Size=FMath::Clamp(Section.WidthCm/FMath::Max(1,Section.Label.Len())*1.35f,16.f,40.f);
+        StoreBuild::Text(World,Section.At,Section.Yaw,MarketCatalog::UpperTurkish(Section.Label),Size)->SetCullDistance(16000);
+    }
     for(const auto& F:S.Fixtures)
     {
         const auto E=MarketPlanogram::Equipment(F.EquipmentId);
@@ -111,7 +138,9 @@ bool MarketStoreKit::Build(UWorld* World,const FStoreTemplate& S,const FMarketPl
         if(Fallback)
         {
             auto* Base=LoadObject<UMaterialInterface>(nullptr,TEXT("/Game/Materials/M_Market.M_Market"));
-            auto* M=UMaterialInstanceDynamic::Create(Base,A); M->SetVectorParameterValue(TEXT("Color"),FLinearColor(P.Color)); C->SetMaterial(0,M);
+            auto* M=UMaterialInstanceDynamic::Create(Base,A);
+            // Unfinished packages use restrained paper colours; the catalogue's colour still distinguishes them.
+            M->SetVectorParameterValue(TEXT("Color"),FLinearColor(P.Color)*.22f+FLinearColor(.60f,.56f,.47f)*.78f); C->SetMaterial(0,M);
         }
         else for(int32 Slot=0;Slot<Mesh->GetStaticMaterials().Num();++Slot)
         {

@@ -40,11 +40,45 @@ bool FStoreTemplatesTest::RunTest(const FString&)
                         TestEqual(TEXT("Refill respects the chosen face category"),Changed.FindFixture(B.FixtureId)->CategoryForFace(B.Face),P->Category);
             }
             auto Bad=*S; Bad.SalesAreaM2=1; Errors.Reset(); TestFalse(TEXT("Reject band"),MarketStoreKit::Validate(Bad,Errors));
+            if(!S->Obstacles.IsEmpty())
+            {
+                Bad=*S; Bad.Fixtures[0].Location=Bad.Obstacles[0].At; Errors.Reset();
+                TestFalse(TEXT("Reject a fixture inside a structural column"),MarketStoreKit::Validate(Bad,Errors));
+                Bad=*S; Bad.SalesAreaM2+=9; Errors.Reset();
+                TestFalse(TEXT("Area follows recessed floor polygon"),MarketStoreKit::Validate(Bad,Errors));
+            }
             Bad=*S; Bad.Fixtures.Append(S->Fixtures); Errors.Reset(); TestFalse(TEXT("Reject duplicate fixtures"),MarketStoreKit::Validate(Bad,Errors));
             Bad=*S; Bad.Fixtures.RemoveAll([](const auto& F){return MarketPlanogram::Equipment(F.EquipmentId).Family==TEXT("cooler");}); Errors.Reset(); TestFalse(TEXT("Reject missing dairy"),MarketStoreKit::Validate(Bad,Errors));
         }
     }
     TArray<FStoreTemplate> Parsed; Errors.Reset(); TestFalse(TEXT("Reject broken JSON"),MarketStoreKit::Parse(TEXT("{broken"),Parsed,Errors));
+    return true;
+}
+IMPLEMENT_SIMPLE_AUTOMATION_TEST(FStoreRandomDressingTest,"MirasMarket.Stores.RandomDressing",EAutomationTestFlags::EditorContext|EAutomationTestFlags::EngineFilter)
+bool FStoreRandomDressingTest::RunTest(const FString&)
+{
+    TArray<FString> Errors; TestTrue(TEXT("Load tour stores"),MarketStoreKit::Load(Errors));
+    TArray<FMarketProduct> Products; MarketCatalog::LoadFile(MarketCatalog::DefaultPath(),Products,Errors);
+    for(auto& P:Products) P.bActive=true;
+    const auto CatalogBefore=Products;
+    for(const TCHAR* Format:{TEXT("mahalle"),TEXT("kucuk"),TEXT("buyuk"),TEXT("hiper")})
+        for(const auto& Id:MarketStoreKit::TemplatesFor(Format))
+        {
+            const auto* S=MarketStoreKit::Find(Id); auto A=MarketStoreKit::ToPlanogram(*S),B=A,C=A;
+            MarketStoreKit::FillRandom(A,Products,17); MarketStoreKit::FillRandom(B,Products,17); MarketStoreKit::FillRandom(C,Products,29);
+            TestEqual(Id+TEXT(" seeded fill is reproducible"),MarketPlanogram::Serialize(A),MarketPlanogram::Serialize(B));
+            TestTrue(Id+TEXT(" another press changes assortment"),MarketPlanogram::Serialize(A)!=MarketPlanogram::Serialize(C));
+            TArray<FString> Warnings; MarketPlanogram::FindOverflows(A,Products,Warnings); TestEqual(Id+TEXT(" random blocks fit packages"),Warnings.Num(),0);
+            for(const auto& Block:A.Placements)
+                if(const auto* P=MarketCatalog::FindProduct(Products,Block.ProductId))
+                    TestEqual(TEXT("Random fill keeps department"),A.FindFixture(Block.FixtureId)->CategoryForFace(Block.Face),P->Category);
+        }
+    for(int32 I=0;I<Products.Num();++I)
+    {
+        TestEqual(TEXT("Test fill keeps real brand"),Products[I].Brand,CatalogBefore[I].Brand);
+        TestEqual(TEXT("Test fill keeps price"),Products[I].BasePrice,CatalogBefore[I].BasePrice);
+        TestEqual(TEXT("Test fill keeps cost"),Products[I].Cost,CatalogBefore[I].Cost);
+    }
     return true;
 }
 IMPLEMENT_SIMPLE_AUTOMATION_TEST(FTurkishSignsTest,"MirasMarket.Stores.TurkishAndFaceCategories",EAutomationTestFlags::EditorContext|EAutomationTestFlags::EngineFilter)

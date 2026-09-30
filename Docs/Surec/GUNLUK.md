@@ -2,6 +2,28 @@
 
 En yeni giriş en üstte. Biçim: tarih — ajan — başlık, ardından **Yapılan**, **Doğrulama**, **Sıradaki**.
 
+## 30.09.2026 — Codex — G-088 A görsel revizyonu ve yürüyerek test gezisi
+
+**Yapılan**
+- Mustafa ilk tekdüze raf planını reddetti; verdiği büyük mağaza görseli bölüm düzeni için referans alındı, birebir kopyalanmadı. Dört A örneği yeniden tasarlandı; kalan 16 mağazaya başlanmadı.
+- Mahalle: L biçimi, iki kolon, duvar dönüşü, üç ayrı raf grubu; 127,6 m². Ucuzcu: köşe girintisi, kolonlar, farklı uzunlukta raf grupları ve koli teşhiri; 360,6 m². Süpermarket: manav avlusu, servis hattı, çapraz koridor ve iki kasa grubu; 1080 m². Hipermarket: üç raf bölgesi, geniş ana/kesişen koridorlar, ayrı gıda dışı bölüm; 3600 m².
+- Süpermarket 6 m, hipermarket 8 m tavan; mevcut borulu `CeilingBay_6000` yalnız büyüklerde HISM. Mahalle/ucuzcu 3,1/3,6 m. Mustafa'nın isteğiyle ana bakkalın borulu tavanı açık renk düz tavana ve yüzeye yakın ışık panellerine çevrildi; ekipman konumları değişmedi. Sabit dökme/soğuk ürün/yönetim tabelalarının Türkçe harfleri de düzeltildi.
+- `create_store_design.py` ve `store_architecture.py`: çokgen zemin, gerçek girinti/kolon/duvar, bölüm zemin kaplaması ve tabelası, ayrı çatı. C++ okuyucu ve Python doğrulayıcı mimariyi/gerçek alanı ve yapısal çakışmaları denetler. Manavda açık kasalar ve meyveler; servis/bakery ekipmanında yiyecek geometrisi. Raf/ürün renkleri daha sakin.
+- Önizleme açıları genel, giriş/kasa, manav/teşhir, kolon/servis ve tam tepeden plan; iki genel açıda çatı/tesisat kaldırılır, iç açılarda gerçek tavan görünür. İlk tepeden kadrajın kenar kesmesi düzeltilip görüntüler yenilendi.
+- Mustafa'nın ek isteği: `MAGAZA_GEZI.cmd` ile bağımsız test gezisi; WASD/fare, F10 sonraki, Shift+F10 önceki, F3/F7 rastgele doldur, T kategori, Esc çıkış. `MarketStoreTour.cpp` ayrı başlangıç/komut/panel; kampanya yüklenmez veya kaydedilmez, simülasyon çalışmaz. Aile dükkânında F2 açıkken F7 rastgele dolum; fikstür yerleri değişmez. `FillRandom` katalog kopyasında geçici marka sıralama anahtarı kullanır, gerçek marka/fiyat/ölçü değişmez. Rastgele plan fiziksel ölçüleri ve yüz kategorilerini korur. Görüntü, yeni instance/ışık yerleşimi oturduktan sonra alınır.
+
+**Doğrulama**
+- `DERLE.cmd /q`: GEÇTİ. `TEST.cmd /q`: 54/54, 0 hata; motorun internet erişim yoklaması için 1 HTTP zaman aşımı uyarısı (google generate_204), oyun/test uyarısı yok. Rastgele dolum aynı seed ile aynı, farklı seed ile farklı; paketler sığıyor, katalog/fiyat değişmiyor. `SmokeTest.ps1`: GEÇTİ (1 satış, mal kabul, gün kapanışı, kayıt/yükleme).
+- `Tools/StoreTourTest.ps1`: dört mağazada oyuncu zeminde, dolum her basışta değişiyor, para aynı; GEÇTİ. Dört gezme PNG'si ve sürekli kontrol paneli gözle incelendi; `Saved/Screenshots/Stores/<id>_Tour.png`.
+- `validate_stores.py --write` ve yazmasız kontrol: 4/4. Blender üretimi/ölçüm ve Unreal UCX aktarımı geçti; C++ ASCII. Ek dolaşım denetimi 25 cm ızgarada, 34 cm açıklıkla dört başlangıçtan depo koridorunu erişilebilir buldu.
+- Dört mağazada beşer 1280×720 görüntü gözle incelendi; ana bakkal beş açıyla yeniden çekildi. `Saved/Screenshots/Stores/PhaseA_R2_overview.png`, `<id>_QA_R2.png`, mağaza `01.png`…`05.png`; bakkal `Saved/Screenshots/MirasMarket.png` ve dört yan açı.
+- 1080p offscreen önizleme beş açıda 90,0 FPS; yüksek tesisatlı tavanlar dahil. Bu müşteri/yürüme simülasyonu içeren performans testi değildir.
+
+**Devir**
+- A yeniden görsel onay bekliyor; B'ye yalnız Mustafa onayından sonra geçilecek. Atama/kayıt/menü/stats hesabı ve metadata staging bağlantısı Claude'da; sınırlar değişmedi.
+- Önceden bekleyen Claude değişiklikleri korundu; ortak kaynak/belgelerde yalnız bu revizyonun satırları commit'e seçildi. Kontroller ortak çalışma ağacında yapıldı.
+
+
 ## 30.09.2026 — Codex — G-088 Aşama A: dört mağaza, Türkçe tabela ve raf kategorisi
 
 **Yapılan**

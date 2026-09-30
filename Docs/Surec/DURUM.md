@@ -1,6 +1,6 @@
 # Güncel durum
 
-Son güncelleme: 30.09.2026 — Codex (G-088 Aşama A doğrulandı; görsel onay bekliyor)
+Son güncelleme: 30.09.2026 — Codex (G-088 A görsel revizyonu doğrulandı; yeniden onay bekliyor)
 
 ## Kısaca
 
@@ -85,7 +85,14 @@ Görsel ve raf dizme işleri yeterli seviyede; bir süre **donduruldu**. Önceli
 
 ## Devam notu
 
-**30.09.2026 — Codex: G-088 Aşama A hazır; Mustafa görsel onayı bekleniyor.**
+**30.09.2026 — Codex: G-088 A görsel revizyonu doğrulandı; yeniden Mustafa onayı bekleniyor.**
+- İlk tasarım reddedildi; dört örnek reyonlara göre yeniden kuruldu. Küçüklerde gerçek girinti/kolon/duvar dönüşleri; büyüklerde manav/servis/gıda dışı bölgeler ve geniş kesişen koridorlar. Süpermarket 6 m, hiper 8 m, borulu tesisatlı tavan; ana bakkal düz açık renk tavan, ekipman düzeni aynı.
+- Yeni kaynaklar: `Tools/create_store_design.py`, `Tools/Blender/store_architecture.py`; çokgen/obstacle/section verisi `Config/magazalar.json`, okuyucu `MarketStoreKit`, kurucu `MarketStoreBuild`. DERLE GEÇTİ, TEST 54/54 GEÇTİ (1 motor HTTP yoklama zaman aşımı uyarısı), Smoke GEÇTİ; doğrulayıcı 4/4; 20 mağaza ve 5 aile görüntüsü incelendi. 1080p offscreen 90 FPS (müşterisiz).
+- Mustafa için `MAGAZA_GEZI.cmd`: doğrudan yürüyerek test gezisi; F10 sonraki, Shift+F10 önceki, F3/F7 rastgele doldur. `MarketStoreTour.cpp`; `StoreTourTest.ps1` dört mağazada zemin/dolum/para yalıtımı GEÇTİ. Ailede F2 + F7. Kampanya veya katalog yazılmaz; fiziksel raf yerleri korunur.
+- İnceleme: `Saved/Screenshots/Stores/PhaseA_R2_overview.png`, `<id>_QA_R2.png`; düz bakkal tavanı `Saved/Screenshots/MirasMarket.png`. API/komutlar `Docs/Environment/MAGAZA_KITI_UYGULAMA.md`. Yarım kaynak işi yok; kalan 16 mağaza **görsel onaydan sonra**.
+
+
+**30.09.2026 — Codex: G-088 ilk A teslimi (sonraki görsel revizyon üstte).**
 - Dört mağaza: `mahalle_01`, `kucuk_01`, `buyuk_01`, `hiper_01`; 18 ekipman, Türkçe offline font ve T ile yüz başına kategori seçimi. Aile ekipman düzeni korundu.
 - DERLE GEÇTİ, TEST 53/53 GEÇTİ, Smoke GEÇTİ; doğrulayıcı 4/4, 20 önizleme PNG'si gözle incelendi. 1080p offscreen önizleme 90.0–90.0 FPS (müşteri simülasyonu olmadan).
 - Görüntüler `Saved/Screenshots/Stores/<id>/`; kolaj `PhaseA_overview.png`. Kaynak/komut/API: `Docs/Environment/MAGAZA_KITI_UYGULAMA.md`. Yarım kaynak işi yok; kalan 16 mağaza Aşama B'de **onaydan sonra**.

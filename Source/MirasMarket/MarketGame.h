@@ -78,6 +78,9 @@ public:
     void ToggleDetails();
     void ToggleTestMode();
     void FillAll();
+    void NextStore();
+    void PreviousStore();
+    void RandomizeShelves();
     void NextMood();
     void ToggleFullscreen();
     void Quit();
@@ -277,6 +280,7 @@ public:
     double StoreFrameSeconds = 0;
     int32 StoreFrameCount = 0;
     FString ActiveStoreKitId;
+    if (bStoreTour) { TickStoreTour(); return; }
     TMap<FString, FString> StoreCategoryOverrides;
     TFunction<void(const TMap<FString, FString>&)> OnStoreCategoriesChanged;
     // In-game shelf arranging (R while the shop is closed). See MarketArrange.cpp.

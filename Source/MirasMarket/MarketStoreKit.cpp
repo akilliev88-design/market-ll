@@ -11,6 +11,18 @@
 namespace StoreData
 {
     TArray<FStoreTemplate> Templates;
+    bool Inside(const FVector2D& P,const TArray<FVector2D>& Outline)
+    {
+        bool Hit=false;
+        for(int32 I=0;I<Outline.Num();++I)
+        {
+            const auto A=Outline[I], B=Outline[(I+1)%Outline.Num()];
+            const double Cross=(P.X-A.X)*(B.Y-A.Y)-(P.Y-A.Y)*(B.X-A.X);
+            if(FMath::Abs(Cross)<.01 && P.X>=FMath::Min(A.X,B.X)-.01 && P.X<=FMath::Max(A.X,B.X)+.01 && P.Y>=FMath::Min(A.Y,B.Y)-.01 && P.Y<=FMath::Max(A.Y,B.Y)+.01) return true;
+            if((A.Y>P.Y)!=(B.Y>P.Y) && P.X<(B.X-A.X)*(P.Y-A.Y)/(B.Y-A.Y)+A.X) Hit=!Hit;
+        }
+        return Hit;
+    }
     bool Vector(const TSharedPtr<FJsonObject>& Obj, const TCHAR* Key, FVector& Out)
     {
         const TArray<TSharedPtr<FJsonValue>>* A=nullptr;
@@ -46,6 +58,30 @@ bool MarketStoreKit::Parse(const FString& Json,TArray<FStoreTemplate>& Out,TArra
             && O->TryGetObjectField(TEXT("points"),Points) && O->TryGetArrayField(TEXT("fixtures"),Fixtures);
         if (!Valid) { Errors.Add(TEXT("Store required fields missing: ")+S.Id); continue; }
         S.FootprintCm=FVector2D((*Footprint)[0]->AsNumber(),(*Footprint)[1]->AsNumber());
+        O->TryGetStringField(TEXT("roof"),S.Roof);
+        const TSharedPtr<FJsonObject>* Architecture=nullptr;
+        if(O->TryGetObjectField(TEXT("architecture"),Architecture))
+        {
+            const TArray<TSharedPtr<FJsonValue>>* Values=nullptr;
+            if((*Architecture)->TryGetArrayField(TEXT("outlineCm"),Values)) for(const auto& Value:*Values)
+            {
+                const TArray<TSharedPtr<FJsonValue>>* XY=nullptr;
+                if(!Value->TryGetArray(XY)||XY->Num()!=2) Errors.Add(TEXT("Invalid floor polygon: ")+S.Id);
+                else S.Outline.Add(FVector2D((*XY)[0]->AsNumber(),(*XY)[1]->AsNumber()));
+            }
+            if((*Architecture)->TryGetArrayField(TEXT("obstacles"),Values)) for(const auto& Value:*Values)
+            {
+                const auto Ob=Value->AsObject(); FStoreObstacle Entry;
+                if(!Ob.IsValid()||!Ob->TryGetStringField(TEXT("id"),Entry.Id)||!Ob->TryGetStringField(TEXT("kind"),Entry.Kind)||!StoreData::Vector(Ob,TEXT("at"),Entry.At)||!StoreData::Vector(Ob,TEXT("sizeCm"),Entry.Size)) Errors.Add(TEXT("Invalid obstacle: ")+S.Id);
+                else S.Obstacles.Add(Entry);
+            }
+            if((*Architecture)->TryGetArrayField(TEXT("sections"),Values)) for(const auto& Value:*Values)
+            {
+                const auto Section=Value->AsObject(); FStoreSection Entry;
+                if(!Section.IsValid()||!Section->TryGetStringField(TEXT("label"),Entry.Label)||!StoreData::Vector(Section,TEXT("at"),Entry.At)||!Section->TryGetNumberField(TEXT("yaw"),Entry.Yaw)||!Section->TryGetNumberField(TEXT("widthCm"),Entry.WidthCm)) Errors.Add(TEXT("Invalid section: ")+S.Id);
+                else S.Sections.Add(Entry);
+            }
+        }
         const TSharedPtr<FJsonObject>* Back=nullptr; FVector Lo,Hi;
         Valid=StoreData::Point(*Points,TEXT("entrance"),S.Entrance) && StoreData::Point(*Points,TEXT("receiving"),S.Receiving)
             && StoreData::Point(*Points,TEXT("playerStart"),S.PlayerStart) && (*Points)->TryGetObjectField(TEXT("backroom"),Back)
@@ -107,13 +143,26 @@ bool MarketStoreKit::Validate(const FStoreTemplate& S,TArray<FString>& Errors)
     if (!MarketCatalog::IsValidId(S.Id)||!S.Id.StartsWith(S.Format+TEXT("_"))||S.Id.Len()!=S.Format.Len()+3||!FChar::IsDigit(S.Id[S.Id.Len()-1])||!FChar::IsDigit(S.Id[S.Id.Len()-2])) Fail(TEXT("Invalid id"));
     if (S.Shell.IsEmpty()||S.Theme.IsEmpty()||S.CustomerSpawn.IsEmpty()) Fail(TEXT("Shell/theme/spawn missing"));
     const double W=S.FootprintCm.X,D=S.FootprintCm.Y;
-    if (W<=0||D<=0||S.CeilingCm<=230||S.BackroomM2<=0||!FMath::IsFinite(S.SalesAreaM2)||FMath::Abs(W*D/10000-S.SalesAreaM2-S.BackroomM2)>.02) Fail(TEXT("Invalid area/dimensions"));
+    const TArray<FVector2D> Outline=S.Outline.IsEmpty()?TArray<FVector2D>{FVector2D(-W/2,-D/2),FVector2D(W/2,-D/2),FVector2D(W/2,D/2),FVector2D(-W/2,D/2)}:S.Outline;
+    double Area=0;
+    if(Outline.Num()<3) Fail(TEXT("Invalid floor polygon"));
+    for(int32 I=0;I<Outline.Num();++I) { const auto A=Outline[I],B=Outline[(I+1)%Outline.Num()]; Area+=A.X*B.Y-B.X*A.Y; if(A.ContainsNaN()||FMath::Abs(A.X)>W/2+.1||FMath::Abs(A.Y)>D/2+.1) Fail(TEXT("Invalid polygon vertex")); }
+    Area=FMath::Abs(Area)/20000;
+    if (W<=0||D<=0||S.CeilingCm<=230||S.BackroomM2<=0||!FMath::IsFinite(S.SalesAreaM2)||FMath::Abs(Area-S.SalesAreaM2-S.BackroomM2)>.02) Fail(TEXT("Invalid area/dimensions"));
     if (S.Backroom.Min.X>=S.Backroom.Max.X||S.Backroom.Min.Y>=S.Backroom.Max.Y||S.Backroom.Min.Z>=S.Backroom.Max.Z
         ||FMath::Abs(S.Backroom.GetSize().X*S.Backroom.GetSize().Y/10000-S.BackroomM2)>.02) Fail(TEXT("Invalid backroom"));
     for (const FStorePoint* P:{&S.Entrance,&S.Receiving,&S.PlayerStart})
-        if (P->At.ContainsNaN()||!FMath::IsFinite(P->Yaw)||FMath::Abs(P->At.X)>W/2+20||FMath::Abs(P->At.Y)>D/2+20) Fail(TEXT("Point outside shell"));
+        if (P->At.ContainsNaN()||!FMath::IsFinite(P->Yaw)||!StoreData::Inside(FVector2D(P->At.X,P->At.Y),Outline)) Fail(TEXT("Point outside shell"));
     TSet<FString> Ids,Categories,Families;
     TArray<FBox2D> Footprints;
+    for(const auto& Ob:S.Obstacles)
+    {
+        if(!MarketCatalog::IsValidId(Ob.Id)||Ids.Contains(Ob.Id)||Ob.Size.ContainsNaN()||Ob.Size.GetMin()<=0||Ob.Size.Z>S.CeilingCm||(Ob.Kind!=TEXT("column")&&Ob.Kind!=TEXT("wall"))) Fail(TEXT("Invalid obstacle: ")+Ob.Id);
+        Ids.Add(Ob.Id);
+        const FVector2D Half(Ob.Size.X/2,Ob.Size.Y/2),Center(Ob.At.X,Ob.At.Y);
+        for(int32 X:{-1,1}) for(int32 Y:{-1,1}) if(!StoreData::Inside(Center+FVector2D(X*Half.X,Y*Half.Y),Outline)) Fail(TEXT("Obstacle outside floor: ")+Ob.Id);
+        Footprints.Add(FBox2D(Center-Half,Center+Half));
+    }
     TArray<FMarketProduct> Products; TArray<FString> CatalogErrors; MarketCatalog::LoadFile(MarketCatalog::DefaultPath(),Products,CatalogErrors);
     TSet<FString> KnownCategories; for (const auto& P:Products) KnownCategories.Add(P.Category);
     for (const auto& F:S.Fixtures)
@@ -130,6 +179,7 @@ bool MarketStoreKit::Validate(const FStoreTemplate& S,TArray<FString>& Errors)
         const double Y=(FMath::Abs(FMath::Sin(Angle))*E.DimensionsCm.X+FMath::Abs(FMath::Cos(Angle))*E.DimensionsCm.Y)/2;
         if (F.Location.ContainsNaN()||FMath::Abs(F.Location.X)+X>W/2+1||FMath::Abs(F.Location.Y)+Y>D/2+1||F.Location.Z!=0) Fail(TEXT("Fixture outside shell: ")+F.Id);
         const FBox2D Bounds(FVector2D(F.Location.X-X+.25,F.Location.Y-Y+.25),FVector2D(F.Location.X+X-.25,F.Location.Y+Y-.25));
+        for(int32 DX:{-1,0,1}) for(int32 DY:{-1,0,1}) if(!StoreData::Inside(FVector2D(F.Location.X+DX*X,F.Location.Y+DY*Y),Outline)) Fail(TEXT("Fixture crosses floor recess: ")+F.Id);
         for(const auto& Other:Footprints) if(Bounds.Intersect(Other)) { Fail(TEXT("Overlapping equipment: ")+F.Id); break; }
         Footprints.Add(Bounds);
         const double PlayerDX=FMath::Max(0.0,FMath::Abs(S.PlayerStart.At.X-F.Location.X)-X), PlayerDY=FMath::Max(0.0,FMath::Abs(S.PlayerStart.At.Y-F.Location.Y)-Y);
@@ -205,4 +255,12 @@ void MarketStoreKit::Fill(FMarketPlanogram& Plan,const TArray<FMarketProduct>& P
         for(const auto& Block:Department.Placements)
             if(const auto* F=Plan.FindFixture(Block.FixtureId)) if(StaffPlanner::SameCategory(F->CategoryForFace(Block.Face),C)) Plan.Placements.Add(Block);
     }
+}
+void MarketStoreKit::FillRandom(FMarketPlanogram& Plan,const TArray<FMarketProduct>& Products,int32 Seed)
+{
+    TArray<FMarketProduct> Ranked=Products; FRandomStream Random(Seed);
+    // The planner orders brand blocks. Temporary ranking keys shuffle those blocks without changing
+    // identifiers, categories, package dimensions or the catalogue used to draw the products.
+    for(auto& P:Ranked) P.Brand=FString::Printf(TEXT("%010u"),Random.GetUnsignedInt());
+    Fill(Plan,Ranked);
 }

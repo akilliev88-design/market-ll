@@ -7,14 +7,16 @@
   "dimensionsMm": {
     "width": 1600.0,
     "depth": 900.0,
-    "height": 942.5
+    "height": 1200.0
   },
   "origin": "floor_center",
   "frontAxis": "-Y",
   "materials": [
     "MI_Store_WarmWood",
     "MI_Store_DarkMetal",
-    "MI_Store_PriceRail"
+    "MI_Produce_R2_0",
+    "MI_Produce_R2_1",
+    "MI_Produce_R2_2"
   ],
   "collision": {
     "policy": "custom_ucx",

@@ -5,12 +5,12 @@
   "origin": "floor_center",
   "frontAxis": "-Y",
   "dimensionsMm": {
-    "width": 36000.0,
-    "depth": 24000.0,
-    "height": 4200.0
+    "width": 40000.0,
+    "depth": 30000.0,
+    "height": 6000.0
   },
   "collision": {
     "policy": "custom_ucx",
-    "pieces": 17
+    "pieces": 16
   }
 }

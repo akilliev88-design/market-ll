@@ -4,6 +4,16 @@ from pathlib import Path
 ROOT=Path(__file__).resolve().parents[1]
 BANDS={'mahalle':(80,200,1,2,25,60,4,10),'kucuk':(250,400,2,3,60,110,8,16),'buyuk':(600,1500,4,8,180,400,25,60),'hiper':(3000,6000,15,30,700,1500,100,200)}
 REQUIRED={'mahalle':{'produce','tobacco'},'kucuk':set(),'buyuk':{'produce','tobacco','deli','bakery','freezer'},'hiper':{'produce','tobacco','deli','bakery','freezer','butcher','fish','home','electronics','textile','service'}}
+
+def inside(x,y,outline):
+    hit=False
+    for a,b in zip(outline,outline[1:]+outline[:1]):
+        cross=(x-a[0])*(b[1]-a[1])-(y-a[1])*(b[0]-a[0])
+        if abs(cross)<.01 and min(a[0],b[0])-.01<=x<=max(a[0],b[0])+.01 and min(a[1],b[1])-.01<=y<=max(a[1],b[1])+.01:return True
+        if (a[1]>y)!=(b[1]>y) and x<(b[0]-a[0])*(y-a[1])/(b[1]-a[1])+a[0]:hit=not hit
+    return hit
+
+def floor_area(outline):return abs(sum(a[0]*b[1]-b[0]*a[1] for a,b in zip(outline,outline[1:]+outline[:1])))/20000
 def registry(root=ROOT):
     # Established modules retain their existing physical behaviour.
     result={'gondola_double_1200':dict(family='shelf',size=[120,90,160],front=2.4),
@@ -26,16 +36,24 @@ def validate(document,equipment,categories):
         if fmt not in BANDS: fail('Unknown format'); continue
         w,d=s['footprintCm']; area=s['salesAreaM2']; back=s['backroomM2']
         if not all(math.isfinite(v) and v>0 for v in (w,d,area,back,s['ceilingCm'])): fail('Invalid dimensions')
-        if abs(area+back-w*d/10000)>.02: fail('Sales + backroom area must match footprint')
+        architecture=s.get('architecture',{})
+        outline=architecture.get('outlineCm',[[-w/2,-d/2],[w/2,-d/2],[w/2,d/2],[-w/2,d/2]])
+        if len(outline)<3 or any(len(v)!=2 or any(not math.isfinite(n) for n in v) for v in outline): fail('Invalid floor outline');continue
+        if abs(area+back-floor_area(outline))>.02: fail('Sales + backroom area must match actual floor polygon')
         p=s['points']; lo=p['backroom']['min']; hi=p['backroom']['max']
         if any(lo[i]>=hi[i] for i in range(3)): fail('Invalid backroom bounds')
         if abs((hi[0]-lo[0])*(hi[1]-lo[1])/10000-back)>.02: fail('Backroom bounds disagree with area')
         for key in ('entrance','receiving','playerStart'):
             at=p[key]['at']
-            if len(at)!=3 or any(not math.isfinite(v) for v in at) or abs(at[0])>w/2+20 or abs(at[1])>d/2+20: fail('Invalid point '+key)
+            if len(at)!=3 or any(not math.isfinite(v) for v in at) or not inside(at[0],at[1],outline): fail('Invalid point '+key)
         if not p['customerSpawn']: fail('No customer spawn')
         stats=dict(shelfFrontM=0.,coolerM=0.,freezerM=0.,produceM2=0.,counters=[],checkouts=0,selfCheckouts=0,backroomPallets=int(back/3.5))
         fixture_ids=set(); families=set(); aisle=set(); boxes=[]
+        for o in architecture.get('obstacles',[]):
+            oid=o['id'];x,y,z=o['at'];ew,ed,eh=o['sizeCm']
+            if oid in fixture_ids or o['kind'] not in ('column','wall') or min(ew,ed,eh)<=0 or eh>s['ceilingCm']: fail('Invalid structural obstacle '+oid)
+            fixture_ids.add(oid); boxes.append((oid,x,y,ew/2,ed/2))
+            if any(not inside(x+dx*ew/2,y+dy*ed/2,outline) for dx in (-1,1) for dy in (-1,1)): fail('Structural obstacle outside shell '+oid)
         for f in s['fixtures']:
             fid=f['id']; cat=f['category']; eid=f['equipment']
             if not re.fullmatch('[a-z][a-z0-9_]{2,39}',fid) or fid in fixture_ids: fail('Invalid/duplicate fixture '+fid)
@@ -49,7 +67,7 @@ def validate(document,equipment,categories):
             x,y,z=f['at']; angle=math.radians(f['yaw']); ew,ed,_=e['size']
             bx=abs(math.cos(angle))*ew/2+abs(math.sin(angle))*ed/2
             by=abs(math.sin(angle))*ew/2+abs(math.cos(angle))*ed/2
-            if abs(x)+bx>w/2+1 or abs(y)+by>d/2+1 or z!=0: fail('Fixture outside shell '+fid)
+            if any(not inside(x+dx*bx,y+dy*by,outline) for dx in (-1,0,1) for dy in (-1,0,1)) or z!=0: fail('Fixture outside shell '+fid)
             boxes.append((fid,x,y,bx,by))
             if lo[0]<x<hi[0] and lo[1]<y<hi[1]: fail('Sales fixture in backroom '+fid)
             if fam in ('shelf','bakery','tobacco'): stats['shelfFrontM']+=e['front']

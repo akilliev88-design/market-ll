@@ -63,10 +63,21 @@ bool AMarketGameMode::TickAutomation()
         auto SetView = [&](int32 Index)
         {
             const float W = Store->FootprintCm.X, D = Store->FootprintCm.Y;
-            const float Rear = Store->Backroom.Min.Y;
-            const FVector Views[] = { FVector(W*.18f,-D*.5f+80,220), FVector(-W*.35f,-D*.30f,175), FVector(-W*.40f,Rear-350,210), FVector(W*.30f,-D*.15f,Store->CeilingCm-60), FVector(0,-D*.5f-550,220) };
-            const FVector Targets[] = { FVector(-W*.35f,-D*.5f+155,105), FVector(0,0,135), FVector(0,Rear-60,140), FVector(0,D*.10f,140), FVector(0,-D*.5f,150) };
-            StorePreviewCamera->SetActorLocationAndRotation(Views[Index], (Targets[Index]-Views[Index]).Rotation());
+            FVector Checkout=FVector(-W*.25f,-D*.4f,0),Fresh=FVector(-W*.3f,-D*.2f,0),Service=FVector(-W*.3f,D*.3f,0);
+            for(const auto& F:Store->Fixtures)
+            {
+                const auto E=MarketPlanogram::Equipment(F.EquipmentId);
+                if(E.Family==TEXT("checkout")) { Checkout=F.Location; break; }
+            }
+            for(const auto& F:Store->Fixtures) if(MarketPlanogram::Equipment(F.EquipmentId).Family==TEXT("produce")) { Fresh=F.Location; break; }
+            if(Store->Format==TEXT("kucuk")) for(const auto& F:Store->Fixtures) if(MarketPlanogram::Equipment(F.EquipmentId).Family==TEXT("pallet")) { Fresh=F.Location; break; }
+            if(!Store->Obstacles.IsEmpty()) Service=Store->Obstacles[0].At;
+            else for(const auto& F:Store->Fixtures) if(MarketPlanogram::Equipment(F.EquipmentId).Family==TEXT("deli")) { Service=F.Location; break; }
+            const FVector FreshEye(FMath::Clamp(Fresh.X+300,-W/2+80,W/2-80),FMath::Max(Fresh.Y-240,-D/2+80),195);
+            const FVector Views[] = { FVector(W*.55f,-D*.65f,FMath::Max(W*.58f,float(Store->CeilingCm+450))), Store->PlayerStart.At+FVector(0,50,95), FreshEye, Service+FVector(250,-300,190), FVector(0,0,FMath::Max3(W*.75f,D*1.2f,float(Store->CeilingCm+600))) };
+            const FVector Targets[] = { FVector(0,0,40), Checkout+FVector(0,0,105), Fresh+FVector(0,0,95), Service+FVector(0,0,130), FVector(0,0,0) };
+            for(TActorIterator<AActor> It(GetWorld());It;++It) if(It->ActorHasTag(TEXT("MirasStoreRoof"))) It->SetActorHiddenInGame(Index==0||Index==4);
+            StorePreviewCamera->SetActorLocationAndRotation(Views[Index], Index==4?FRotator(-90,-90,0):(Targets[Index]-Views[Index]).Rotation());
         };
         bool ShadersReady = true;
 #if WITH_EDITOR

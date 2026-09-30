@@ -2,6 +2,10 @@
 
 Aşama A dört örnek içerir: `mahalle_01`, `kucuk_01`, `buyuk_01`, `hiper_01`. Kalan 16 mağaza Mustafa'nın görsel onayından sonra hazırlanır. Aile dükkânının ekipman yerleşimi değişmedi.
 
+Mustafa'nın ilk görseli reddetmesinden sonra yerleşimler yeniden tasarlandı. Mahalle dükkânı L biçiminde, iki kolon ve duvar dönüşü içerir; ucuzcuda köşe girintisi, kolonlar ve farklı uzunlukta raf grupları vardır. Süpermarketin manav avlusu ve arka servis hattı, hipermarketin üç raf bölgesi, geniş kesişen koridorları ve ayrı gıda dışı bölümü bulunur. Süpermarket tavanı 600 cm, hipermarket tavanı 800 cm; mevcut `CeilingBay_6000` boru/taşıyıcı modülü yalnız bu iki türde instanced kullanılır. Mahalle/ucuzcu 310/360 cm. Aile bakkalında aynı kabuk ve ekipman konumları korunarak açık renk düz tavan ve yüzeye yakın ışık panelleri kullanılır.
+
+`Tools/create_store_design.py` dört yerleşimin kaynağıdır; `create_store_templates.py` bunu çağırır. İsteğe bağlı `architecture` alanı `outlineCm` zemin çokgenini, `obstacles` kolon/duvar dönüşlerini, `zones` zemin kaplamalarını ve `sections` bölüm tabelalarını taşır. Kabuklar `Tools/Blender/store_architecture.py` ile üretilir. Alan çokgenden hesaplanır; doğrulayıcılar ekipmanların girinti/kolonlara taşmasını reddeder. `roof` ayrı varlıktır: önizlemenin genel ve tepeden açılarında çatı ile tesisat gizlenir; üç iç açı gerçek tavanı gösterir. Manav kasaları açık kenarlı, ürünler ayrı meyve geometrisidir.
+
 ## Kaynaklar ve üretim
 
 - `Tools/store_specs.py`: ekipman ölçüleri, dört kabuğun üretim parametreleri.
@@ -36,13 +40,15 @@ powershell -File Tools/StorePreview.ps1 -Benchmark
 
 ## Raf kategorisi ve Türkçe yazı
 
+`MAGAZA_GEZI.cmd` bağımsız test gezisini açar; kampanya yüklenmez/kaydedilmez, mağazalar oyuncunun yürüdüğü gerçek dünyada kurulur. Başlangıç mahalledir; isteğe bağlı ilk argüman mağaza id'sidir. **F10** sonraki, **Shift+F10** önceki mağaza; **F3 / F7** her basışta yeni rastgele raf dolumu; **WASD/fare** hareket/bakış, **T** kategori, **Esc** çıkış. Ekranda mağaza adı ve tuşlar sürekli görünür. Gezi sırasında ekonomi/menü/kayıt komutları çalışmaz. Normal aile dükkânında F2 test modu açıkken F7 rastgele dolum yapar; rafların fiziksel yerleri değişmez. Rastgele dolum katalog kopyasında geçici sıralama anahtarlarıyla `MarketLayout::Plan` kullanır; gerçek marka/fiyat/ölçü ve kategori değişmez. `Tools/StoreTourTest.ps1` dört mağazada oyuncunun zeminde kalması, dolum değişmesi ve paranın değişmemesini denetler.
+
 Tabelaya nişan alıp T: Türkçe alfabetik kategori listesi, mevcut seçim önce, Kategorisiz en sonda. Oklar veya tekerlek, E veya tıkla onay, Esc ile kapat. İki gondol yüzü bağımsızdır. Eski bloklar taşınmaz; tabelada uyumsuz ürün sayısı çıkar. Aile dükkânında seçim planograma yazılır.
 
 Eski planogramlar `Category` değerini iki yüzde miras alır. Yeni isteğe bağlı `faceCategories` alanı boş kategoriyi de saklar; şema v3 geriye uyumlu kalır. `UpperTurkish` yalnız i/ı değil, ç/ğ/ö/ş/ü harflerini de açıkça dönüştürür. Ortak `MarketWorldText::Apply` tabela, fiyat ve diğer dünya yazısında aynı atlas/material çiftini kullanır.
 
 ## Önizleme ve doğrulama
 
-- `-MirasStorePreview=<id>`: oyuncu başlangıcı ve zemin çarpışması kontrolü, bağımsız sabit kamera, shader/ışık bekleme, beş 1280×720 PNG (kasa/giriş, yakın raf, soğutucu, genel görünüm, cephe). Çevre haritası olmadan cepheyi incelemek için yalnız önizlemede nötr dolgu ışığı eklenir. Yol: `Saved/Screenshots/Stores/<id>/01.png` … `05.png`.
+- `-MirasStorePreview=<id>`: oyuncu başlangıcı ve zemin çarpışması kontrolü, bağımsız sabit kamera, shader/ışık bekleme, beş 1280×720 PNG (çatı kaldırılmış genel görünüm, giriş/kasa, manav/teşhir, kolon/servis, tepeden plan). Yol: `Saved/Screenshots/Stores/<id>/01.png` … `05.png`.
 - Sanat önizlemesi katalogdaki hazırlık ürünlerini de geçici olarak kullanır; bunların bir kısmı renkli prototip kutudur. Ürün kataloğu ve kampanya stoğu değişmez. Normal `Fill` yalnız aktif ürünleri kullanır.
 - `-MirasStoreBenchmark`: aynı beş açı 1920×1080, FPS logu, ekran görüntüsü yazmadan. Ölçüm offscreen editör oyununda yapılır; yürüme/müşteri simülasyonuyla ayrı performans testi değildir.
 - `validate_stores.py --write`: fiziksel ekipmandan stats hesaplar; bant, bölüm, kategori/id, noktalar, ekipman çakışması ve oyuncu başlangıcı denetlenir. Yazmasız çalıştırma eskimiş stats'ı reddeder.

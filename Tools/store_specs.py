@@ -21,8 +21,8 @@ EQUIPMENT = {
 }
 
 STORES = {
-    'mahalle_01': dict(name='Sıcak mahalle dükkânı', format='mahalle', theme='sicak_ahsap', footprint=[1200,1000], back=200, ceiling=300, cols=3, rows=3, xstep=270, ystep=160, first=-220, walls=4, cold=2, frozen=1, checkouts=1),
-    'kucuk_01': dict(name='Aydınlık ucuzcu', format='kucuk', theme='aydinlik', footprint=[2000,1700], back=200, ceiling=360, cols=5, rows=6, xstep=300, ystep=155, first=-470, walls=4, cold=3, frozen=1, checkouts=2),
-    'buyuk_01': dict(name='Reyon adalı süpermarket', format='buyuk', theme='dogal_yesil', footprint=[3600,2400], back=240, ceiling=420, cols=9, rows=9, xstep=290, ystep=150, first=-690, walls=8, cold=9, frozen=4, checkouts=5),
-    'hiper_01': dict(name='Geniş koridorlu hipermarket', format='hiper', theme='soguk_beyaz', footprint=[8000,5000], back=500, ceiling=650, cols=17, rows=19, xstep=380, ystep=180, first=-1650, walls=16, cold=30, frozen=12, checkouts=18),
+    'mahalle_01': dict(name='Girintili mahalle dükkânı', format='mahalle', theme='sicak_ahsap', footprint=[1400,1200], back=220, ceiling=310),
+    'kucuk_01': dict(name='Köşe girişli ucuzcu', format='kucuk', theme='aydinlik', footprint=[2200,1900], back=220, ceiling=360),
+    'buyuk_01': dict(name='Taze ürün avlulu süpermarket', format='buyuk', theme='dogal_yesil', footprint=[4000,3000], back=300, ceiling=600),
+    'hiper_01': dict(name='Bölümlü hipermarket', format='hiper', theme='soguk_beyaz', footprint=[8000,5000], back=500, ceiling=800),
 }

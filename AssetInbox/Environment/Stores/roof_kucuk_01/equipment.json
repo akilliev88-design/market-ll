@@ -1,0 +1,16 @@
+{
+  "schemaVersion": 1,
+  "id": "roof_kucuk_01",
+  "mesh": "SM_Roof_kucuk_01.fbx",
+  "origin": "floor_center",
+  "frontAxis": "-Y",
+  "dimensionsMm": {
+    "width": 22000.0,
+    "depth": 19000.0,
+    "height": 3670.0
+  },
+  "collision": {
+    "policy": "custom_ucx",
+    "pieces": 3
+  }
+}

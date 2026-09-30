@@ -1,0 +1,16 @@
+{
+  "schemaVersion": 1,
+  "id": "roof_buyuk_01",
+  "mesh": "SM_Roof_buyuk_01.fbx",
+  "origin": "floor_center",
+  "frontAxis": "-Y",
+  "dimensionsMm": {
+    "width": 40000.0,
+    "depth": 30000.0,
+    "height": 6070.0
+  },
+  "collision": {
+    "policy": "custom_ucx",
+    "pieces": 1
+  }
+}

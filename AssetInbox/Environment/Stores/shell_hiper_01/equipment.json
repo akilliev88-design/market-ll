@@ -7,10 +7,10 @@
   "dimensionsMm": {
     "width": 80000.0,
     "depth": 50000.0,
-    "height": 6500.0
+    "height": 8000.0
   },
   "collision": {
     "policy": "custom_ucx",
-    "pieces": 17
+    "pieces": 16
   }
 }

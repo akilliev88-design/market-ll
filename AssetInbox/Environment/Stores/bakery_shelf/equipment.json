@@ -14,7 +14,8 @@
   "materials": [
     "MI_Store_WarmWood",
     "MI_Store_DarkMetal",
-    "MI_Store_PriceRail"
+    "MI_Store_PriceRail",
+    "MI_Bread_R2"
   ],
   "collision": {
     "policy": "custom_ucx",

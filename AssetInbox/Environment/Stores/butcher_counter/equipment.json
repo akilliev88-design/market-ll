@@ -16,7 +16,8 @@
     "MI_Store_PaintedMetal",
     "MI_Store_DarkMetal",
     "MI_Store_Glass",
-    "MI_Store_PriceRail"
+    "MI_Store_PriceRail",
+    "MI_Produce_R2_0"
   ],
   "collision": {
     "policy": "custom_ucx",
