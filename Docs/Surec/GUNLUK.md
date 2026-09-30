@@ -2,6 +2,27 @@
 
 En yeni giriş en üstte. Biçim: tarih — ajan — başlık, ardından **Yapılan**, **Doğrulama**, **Sıradaki**.
 
+## 30.09.2026 — Codex — G-088 Aşama A: dört mağaza, Türkçe tabela ve raf kategorisi
+
+**Yapılan**
+- `mahalle_01` (96 m²), `kucuk_01` (300 m²), `buyuk_01` (777,6 m²), `hiper_01` (3600 m²): kabuk, giriş/arka kapı, depo, başlangıç, yerleşim ve tema. 18 yeni ekipman; Blender kaynakları, FBX, UCX ve ölçülmüş metadata `AssetInbox/Environment/Stores`, oyun varlıkları `Content/Stores` altında.
+- `MarketStoreKit` okuyucu/doğrulayıcı, kategori eşlemesi alan `ToPlanogram`, `MarketLayout::Plan` kullanan `Fill`, HISM kurucu ve `Clear`; metadata okuyan `StoreEquipment`; `validate_stores.py` stats'ı ekipmandan hesaplar. Eski gondol/duvar rafı davranışı korundu.
+- Plex SemiBold offline Türkçe atlası ve bağlı materyal, `UpperTurkish`, bütün ortak dünya yazılarında font; T ile Türkçe kategori listesi, yüz başına seçim, Kategorisiz, eski bloklar korunur ve uyumsuz ürün uyarısı. Aile planı kaydı; şube için override map + callback. Aile dükkânı ekipman yerleşimi değişmedi.
+- `-MirasStorePreview` beş açı ve oyuncu/zemin kontrolü; `Tools/StorePreview.ps1`; 1080p benchmark. UE FBX birim/UCX sorunu giderildi: kaynak metre, geçici FBX santimetre; 100 kat küçük hull bırakılmaz. Cephe görüntüsü için yalnız önizlemede nötr ışık.
+
+**Doğrulama**
+- `DERLE.cmd /q`: GEÇTİ. `TEST.cmd /q`: 53/53, 0 hata/uyarı; mağaza sözleşmesi, otomatik dolum, yüz override ve Türkçe glifler dahil. `SmokeTest.ps1`: GEÇTİ (mal kabul, 1 müşteri satışı, gün kapanışı, disk kayıt/yükleme).
+- Python doğrulama: 4/4; C++ ASCII kontrolü temiz. Blender ölçüm/orijin/UCX denetimi ve Unreal UCX aktarım denetimi geçti.
+- Dört mağazada 20 adet 1280×720 PNG gözle incelendi: kasa/koridor, tabela, soğutucu, genel görünüm, cephe. `Saved/Screenshots/Stores/<id>/01.png`…`05.png`; `PhaseA_overview.png` ve `<id>_QA.png` inceleme kolajları.
+- Son 1080p offscreen önizlemede 90.0–90.0 FPS. Bu ölçüm müşteri/yürüme simülasyonu içermez; hipermarket 83.385 ürün instance'ı.
+
+**Varsayım / bağlantı notu**
+- Katalogda “kuru gıda” yok; mevcut `makarna-bakliyat` kuru bölümünü karşılar. Sanat önizlemesi 97 ürünün hazırlık kutularını da geçici gösterir; katalog ve stok değişmez, normal dolum yalnız aktif ürün kullanır.
+- Claude dosyalarına dokunulmadı. Atama, ülke/il/tür kaydı, menüde gezme, stats → ekonomi, aile dükkânına dönüş ve paketlenmiş oyunda metadata staging Aşama C/release bağlantısıdır. API ve personelin paylaşılan stok uyarlaması `Docs/Environment/MAGAZA_KITI_UYGULAMA.md` içinde.
+- Oturum başındaki Claude değişiklikleri korundu; yalnız G-088 dosyaları ve ortak dosyaların G-088 satırları commit'e alındı. Derleme/test mevcut ortak çalışma ağacında doğrulandı.
+
+**Sıradaki**: Mustafa bu dört mağazayı görsel olarak onaylar. Aşama B'deki kalan 16 mağazaya onaydan önce başlanmadı.
+
 ## 29.09.2026 — Codex — GitHub eşitleme ve G-060…G-073 doğrulaması
 
 **Yapılan**

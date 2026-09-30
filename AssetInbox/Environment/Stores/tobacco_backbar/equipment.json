@@ -1,0 +1,91 @@
+{
+  "schemaVersion": 1,
+  "id": "tobacco_backbar",
+  "mesh": "SM_TobaccoBackbar.fbx",
+  "unrealMesh": "/Game/Stores/Equipment/SM_TobaccoBackbar.SM_TobaccoBackbar",
+  "family": "tobacco",
+  "dimensionsMm": {
+    "width": 1200.0,
+    "depth": 360.0,
+    "height": 2100.0
+  },
+  "origin": "floor_center",
+  "frontAxis": "-Y",
+  "materials": [
+    "MI_Store_PaintedMetal",
+    "MI_Store_DarkMetal",
+    "MI_Store_White",
+    "MI_Store_PriceRail"
+  ],
+  "collision": {
+    "policy": "custom_ucx",
+    "pieces": 2
+  },
+  "zones": [
+    {
+      "id": "front_l00",
+      "face": "front",
+      "level": 0,
+      "centerCm": [
+        0,
+        0,
+        40
+      ],
+      "usableWidthCm": 112,
+      "usableDepthCm": 20,
+      "clearanceHeightCm": 35
+    },
+    {
+      "id": "front_l01",
+      "face": "front",
+      "level": 1,
+      "centerCm": [
+        0,
+        0,
+        80
+      ],
+      "usableWidthCm": 112,
+      "usableDepthCm": 20,
+      "clearanceHeightCm": 35
+    },
+    {
+      "id": "front_l02",
+      "face": "front",
+      "level": 2,
+      "centerCm": [
+        0,
+        0,
+        120
+      ],
+      "usableWidthCm": 112,
+      "usableDepthCm": 20,
+      "clearanceHeightCm": 35
+    },
+    {
+      "id": "front_l03",
+      "face": "front",
+      "level": 3,
+      "centerCm": [
+        0,
+        0,
+        160
+      ],
+      "usableWidthCm": 112,
+      "usableDepthCm": 20,
+      "clearanceHeightCm": 45
+    }
+  ],
+  "checkouts": 0,
+  "planogram": {
+    "doubleSided": false,
+    "widthCm": 112,
+    "depthCm": 20,
+    "frontY": -9.5,
+    "meshYaw": 180
+  },
+  "lod": {
+    "naniteCandidate": true,
+    "lod1TriangleRatio": 0.5,
+    "lod2TriangleRatio": 0.2
+  }
+}

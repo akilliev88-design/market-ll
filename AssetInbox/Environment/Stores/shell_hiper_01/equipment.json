@@ -1,0 +1,16 @@
+{
+  "schemaVersion": 1,
+  "id": "hiper_01",
+  "mesh": "SM_Shell_hiper_01.fbx",
+  "origin": "floor_center",
+  "frontAxis": "-Y",
+  "dimensionsMm": {
+    "width": 80000.0,
+    "depth": 50000.0,
+    "height": 6500.0
+  },
+  "collision": {
+    "policy": "custom_ucx",
+    "pieces": 17
+  }
+}

@@ -9,6 +9,9 @@ struct MIRASMARKET_API FPlanogramFixture
     FString EquipmentId = TEXT("gondola_double_1200");
     FString Label;
     FString Category;
+    // Optional per-face override. Empty is meaningful (uncategorised); old saves inherit Category.
+    TMap<FString, FString> FaceCategories;
+    FString CategoryForFace(const FString& Face) const { const FString* C = FaceCategories.Find(Face); return C ? *C : Category; }
     FVector Location = FVector::ZeroVector;
     float Yaw = 0.f;
 };
@@ -59,6 +62,9 @@ struct MIRASMARKET_API FPlanogramEquipment
     float SignY = 0.f;             // sign center |y| (0 = on top, both faces)
     float SignWidthCm = 112.f;
     bool bSignOnTop = true;
+    FVector DimensionsCm = FVector(120, 90, 160);
+    FString Family;
+    int32 CheckoutCount = 0;
 };
 
 struct MIRASMARKET_API FMarketPlanogram
@@ -91,6 +97,7 @@ namespace MarketPlanogram
     // Known fixture models: gondola_double_1200, wall_shelf_2400. Unknown ids use gondola sizes
     // (double sided only when the id contains "double").
     MIRASMARKET_API FPlanogramEquipment Equipment(const FString& EquipmentId);
+    MIRASMARKET_API bool IsKnownEquipment(const FString& EquipmentId);
     MIRASMARKET_API FPlanogramEquipment EquipmentFor(const FMarketPlanogram& Planogram, const FString& FixtureId);
     MIRASMARKET_API bool Parse(const FString& Json, FMarketPlanogram& OutPlanogram, TArray<FString>& OutErrors);
     MIRASMARKET_API FString Serialize(const FMarketPlanogram& Planogram);

@@ -86,6 +86,7 @@ bool AMarketGameMode::CommitPlan(FString& OutError)
     ++ArrangeVersion;
     const bool bSaved = MarketPlanogram::SaveFile(MarketPlanogram::DefaultPath(), Planogram, OutError);
     RebuildShelfContents();
+    RefreshCategorySigns();
     return bSaved;
 }
 
@@ -124,7 +125,7 @@ void AMarketGameMode::SyncWorkers()
         else Worker.Actor = SimplePerson(Spot, FLinearColor(.72f, .22f, .12f)); // company terracotta
         // 3D text has no Turkish glyphs: "GOREVLI AYSE".
         Worker.Tag = Label(Spot + FVector(0, 0, 205), FRotator::ZeroRotator,
-            MarketCatalog::FoldTurkish(TEXT("G\u00d6REVL\u0130 ") + Worker.Name.ToUpper()), 9.f, FColor(255, 214, 150), true);
+            MarketCatalog::UpperTurkish(TEXT("G\u00d6REVL\u0130 ") + Worker.Name), 9.f, FColor(255, 214, 150), true);
         Worker.Tag->SetCullDistance(1600.f);
         Worker.Timer = 0.5f + Index * 0.4f;
         Worker.bResting = true;
@@ -207,8 +208,44 @@ void AMarketGameMode::WorkerThink(int32 WorkerIndex)
         return;
     }
     TArray<TPair<int32, FString>> NoRoom;
+    // Category changes leave old blocks intact. Do not replenish their shared stock until every
+    // block of that product belongs to its current face category.
+    for (const auto& Block : Planogram.Placements)
+        if (const auto* F = Planogram.FindFixture(Block.FixtureId))
+            if (const auto* P = MarketCatalog::FindProduct(Products, Block.ProductId))
+                if (!StaffPlanner::SameCategory(F->CategoryForFace(Block.Face), P->Category)) Busy.Add(MarketCatalog::IndexOfProduct(Products, P->Id));
     // While the player arranges (R) the plan belongs to the player: workers only refill. Beginners only refill too.
-    const StaffPlanner::FJob Job = StaffPlanner::ChooseJob(Planogram, Products, State, Busy, Unplaceable, !bArrange && WorkerMayPlan(State, Worker), &NoRoom);
+    StaffPlanner::FJob Job = StaffPlanner::ChooseJob(Planogram, Products, State, Busy, Unplaceable, !bArrange && WorkerMayPlan(State, Worker), &NoRoom);
+    auto FaceFits = [this](const FPlanogramPlacement& Block)
+    {
+        const auto* F = Planogram.FindFixture(Block.FixtureId); const auto* P = MarketCatalog::FindProduct(Products, Block.ProductId);
+        return F && P && StaffPlanner::SameCategory(F->CategoryForFace(Block.Face), P->Category);
+    };
+    if (Job.Kind == StaffPlanner::EJob::Place && !FaceFits(Job.Block)) Job = StaffPlanner::FJob();
+    // StaffPlanner's existing API reads the fixture-wide category. Supply face-specific new-block
+    // choices here without changing Claude's planning rules or his files.
+    if (Job.Kind == StaffPlanner::EJob::None && !bArrange && WorkerMayPlan(State, Worker))
+        for (int32 P = 0; P < Products.Num() && State.Stock.IsValidIndex(P) && Job.Kind == StaffPlanner::EJob::None; ++P)
+        {
+            if (Busy.Contains(P) || State.Stock[P].Capacity > 0 || State.Stock[P].Warehouse <= 0) continue;
+            for (const auto& F : Planogram.Fixtures)
+            {
+                const auto E = MarketPlanogram::Equipment(F.EquipmentId);
+                for (int32 Side = 0; Side < (E.bDoubleSided ? 2 : 1) && Job.Kind == StaffPlanner::EJob::None; ++Side)
+                {
+                    const FString Face = Side == 0 ? TEXT("front") : TEXT("back");
+                    if (!StaffPlanner::SameCategory(F.CategoryForFace(Face), Products[P].Category)) continue;
+                    for (int32 Level = 0; Level < E.Levels && Job.Kind == StaffPlanner::EJob::None; ++Level)
+                    {
+                        FPlanogramPlacement Wish; Wish.ProductId = Products[P].Id; Wish.FixtureId = F.Id; Wish.Face = Face; Wish.Level = Level;
+                        Wish.Facings = 2; Wish.Depth = MarketPlanogram::MaxDepth;
+                        const auto Spot = MarketPlanogramEdit::PlanBlock(Planogram, Products, Wish, -E.UsableWidthCm / 2, 10000);
+                        if (Spot.bOk) { Job.Kind = StaffPlanner::EJob::Place; Job.Product = P; Job.Block = Spot.Block; }
+                    }
+                }
+                if (Job.Kind != StaffPlanner::EJob::None) break;
+            }
+        }
     for (const TPair<int32, FString>& Item : NoRoom)
     {
         Unplaceable.Add(Item.Key);

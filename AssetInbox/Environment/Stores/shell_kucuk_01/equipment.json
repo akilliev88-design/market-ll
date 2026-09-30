@@ -1,0 +1,16 @@
+{
+  "schemaVersion": 1,
+  "id": "kucuk_01",
+  "mesh": "SM_Shell_kucuk_01.fbx",
+  "origin": "floor_center",
+  "frontAxis": "-Y",
+  "dimensionsMm": {
+    "width": 20000.0,
+    "depth": 17000.0,
+    "height": 3600.0
+  },
+  "collision": {
+    "policy": "custom_ucx",
+    "pieces": 17
+  }
+}

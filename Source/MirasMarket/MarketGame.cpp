@@ -1,4 +1,5 @@
 #include "MarketGame.h"
+#include "MarketWorldText.h"
 #include "MarketVisuals.h"
 #include "ProductCatalog.h"
 #include "Camera/CameraComponent.h"
@@ -52,6 +53,9 @@ AMarketCharacter::AMarketCharacter()
 void AMarketCharacter::SetupPlayerInputComponent(UInputComponent* Input)
 {
     Super::SetupPlayerInputComponent(Input);
+    FInputKeyBinding CategoryKey(FInputChord(EKeys::T), IE_Pressed);
+    CategoryKey.KeyDelegate.GetDelegateForManualSet().BindLambda([this]() { SendCommand("Category"); });
+    Input->KeyBindings.Add(CategoryKey);
     Input->BindAxis("MoveForward", this, &AMarketCharacter::Forward);
     Input->BindAxis("MoveRight", this, &AMarketCharacter::Right);
     Input->BindAxis("Turn", this, &AMarketCharacter::Turn);
@@ -144,6 +148,14 @@ void AMarketGameMode::BeginPlay()
     bTestMode = bTestModeAtStart && !FParse::Param(FCommandLine::Get(), TEXT("MirasSmoke"));
     // Opening inventory waits in the warehouse. Test mode keeps free stocking controls, but the player
     // still starts by experiencing the empty shop and choosing what to place on the shelves.
+    if (FParse::Value(FCommandLine::Get(), TEXT("MirasStorePreview="), StorePreviewId))
+    {
+        // Art review dresses every department with the full catalog, including preparation prototypes.
+        // This does not publish products or change campaign stock.
+        TArray<FString> Errors; MarketCatalog::LoadFile(MarketCatalog::DefaultPath(), Products, Errors);
+        for (auto& Product : Products) Product.bActive = true;
+        return;
+    }
     BuildStore();
     RefreshDeliveryCrates();
     if (auto* PC = UGameplayStatics::GetPlayerController(this, 0))
@@ -286,6 +298,7 @@ UTextRenderComponent* AMarketGameMode::Label(FVector Location, FRotator Rotation
     Actor->SetRootComponent(Component);
     Component->RegisterComponent();
     Component->SetWorldLocationAndRotation(Location, Rotation);
+    MarketWorldText::Apply(Component);
     Component->SetText(FText::FromString(Text));
     Component->SetHorizontalAlignment(EHorizTextAligment::EHTA_Center);
     if (bCenter) Component->SetVerticalAlignment(EVerticalTextAligment::EVRTA_TextCenter);
@@ -397,22 +410,28 @@ void AMarketGameMode::BuildStore()
             }
         }
         // Category sign: on top of a gondola (readable from both aisles) or on a wall shelf's header.
-        const FString SignText = MarketCatalog::FoldTurkish(Fixture.Label).ToUpper();
+        const FString SignText = MarketCatalog::UpperTurkish(Fixture.Label);
         if (Spec.bSignOnTop)
         {
             auto* Sign = SurfaceBox(FixtureXf.TransformPosition(FVector(0, 0, Spec.SignZ)), FVector(Spec.SignWidthCm, 2.5f, 22), EMarketSurface::SignRed, false);
             Sign->SetActorRotation(FixtureRotation);
             for (int32 Side = 0; Side < (Spec.bDoubleSided ? 2 : 1); ++Side)
-                Label(FixtureXf.TransformPosition(FVector(0, Side == 0 ? -1.45f : 1.45f, Spec.SignZ)), FixtureRotation + FRotator(0, Side == 0 ? -90.f : 90.f, 0),
-                    SignText, 10, FColor::White, true)->SetCullDistance(2000);
+            {
+                auto* Text = Label(FixtureXf.TransformPosition(FVector(0, Side == 0 ? -1.45f : 1.45f, Spec.SignZ)), FixtureRotation + FRotator(0, Side == 0 ? -90.f : 90.f, 0),
+                    SignText, 10, FColor::White, true);
+                Text->SetCullDistance(2000);
+                CategorySigns.Add(Text); CategorySignKeys.Add(Fixture.Id + (Side == 0 ? TEXT("/front") : TEXT("/back")));
+            }
         }
         else
         {
             auto* Sign = SurfaceBox(FixtureXf.TransformPosition(FVector(0, Spec.SignY - 0.6f, Spec.SignZ)), FVector(Spec.SignWidthCm, 1.2f, 16), EMarketSurface::SignRed, false);
             Sign->SetActorRotation(FixtureRotation);
-            Label(FixtureXf.TransformPosition(FVector(0, Spec.SignY - 1.4f, Spec.SignZ)), FixtureRotation + FRotator(0, -90.f, 0), SignText, 10, FColor::White, true)->SetCullDistance(2000);
+            auto* Text = Label(FixtureXf.TransformPosition(FVector(0, Spec.SignY - 1.4f, Spec.SignZ)), FixtureRotation + FRotator(0, -90.f, 0), SignText, 10, FColor::White, true);
+            Text->SetCullDistance(2000); CategorySigns.Add(Text); CategorySignKeys.Add(Fixture.Id + TEXT("/front"));
         }
     }
+    RefreshCategorySigns();
     BuildShelfContents();
     // Detailed Blender fixtures replace the old blockouts while keeping interaction coordinates stable.
     if (!SpawnKit(TEXT("/Game/Environment/StoreKit/CheckoutLane_2500/SM_CheckoutLane_2500.SM_CheckoutLane_2500"), FVector(405, -45, 0), FRotator(0, 180, 0), true))
@@ -846,6 +865,8 @@ int32 FMarketQueueRules::FindFront(const TArray<FMarketCustomer>& Customers)
 }
 FString AMarketGameMode::ContextHint() const
 {
+    FString TargetFace;
+    if (CategoryTarget(TargetFace) != INDEX_NONE) return TEXT("Kategoriyi de\u011fi\u015ftir [T]");
     // "K: text" = key K does the action (the HUD draws K as a key cap). Proper Turkish: Slate font.
     if (bArrange) return ArrangeHint();
     if (CarriedDeliveryProduct != INDEX_NONE)
@@ -872,19 +893,21 @@ FString AMarketGameMode::ContextHint() const
 }
 void AMarketGameMode::RefreshLabels()
 {
+    RefreshCategorySigns();
     for (int32 L = 0; L < ShelfLabels.Num() && ShelfLabelProduct.IsValidIndex(L); ++L)
         if (ShelfLabels[L] && State.Stock.IsValidIndex(ShelfLabelProduct[L]))
         {
             // The tag shows the single-unit price the shopper pays today and the promotion (3D text: ASCII).
             const int32 P = ShelfLabelProduct[L];
-            const FString Badge = MarketCatalog::FoldTurkish(MarketPromotions::Badge(State, Products, P));
-            ShelfLabels[L]->SetText(FText::FromString(Money(MarketPromotions::UnitPrice(State, Products, P, 1)) + (Badge.IsEmpty() ? FString() : TEXT("\n") + Badge.ToUpper())));
+            const FString Badge = MarketPromotions::Badge(State, Products, P);
+            ShelfLabels[L]->SetText(FText::FromString(Money(MarketPromotions::UnitPrice(State, Products, P, 1)) + (Badge.IsEmpty() ? FString() : TEXT("\n") + MarketCatalog::UpperTurkish(Badge))));
         }
     RefreshShelfItems();
 }
 
 void AMarketGameMode::Command(FName Action)
 {
+    if (CategoryCommand(Action)) return;
     if (Action == "Menu") { OpenMenu(MenuPage); return; } // G-059: clickable management menu (MarketMenu.cpp)
     if (ArrangeCommand(Action)) return; // R mode: aim + click/E, wheel/TAB/Q, +/-, Y, U, F, C, DEL, arrows (MarketArrange.cpp)
     if (Action == "ToggleShop")

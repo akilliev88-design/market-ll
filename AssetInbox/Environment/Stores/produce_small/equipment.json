@@ -1,0 +1,51 @@
+{
+  "schemaVersion": 1,
+  "id": "produce_small",
+  "mesh": "SM_ProduceSmall.fbx",
+  "unrealMesh": "/Game/Stores/Equipment/SM_ProduceSmall.SM_ProduceSmall",
+  "family": "produce",
+  "dimensionsMm": {
+    "width": 1600.0,
+    "depth": 900.0,
+    "height": 942.5
+  },
+  "origin": "floor_center",
+  "frontAxis": "-Y",
+  "materials": [
+    "MI_Store_WarmWood",
+    "MI_Store_DarkMetal",
+    "MI_Store_PriceRail"
+  ],
+  "collision": {
+    "policy": "custom_ucx",
+    "pieces": 1
+  },
+  "zones": [
+    {
+      "id": "front_l00",
+      "face": "front",
+      "level": 0,
+      "centerCm": [
+        0,
+        0,
+        65
+      ],
+      "usableWidthCm": 152,
+      "usableDepthCm": 75,
+      "clearanceHeightCm": 50
+    }
+  ],
+  "checkouts": 0,
+  "planogram": {
+    "doubleSided": false,
+    "widthCm": 152,
+    "depthCm": 75,
+    "frontY": -37.0,
+    "meshYaw": 180
+  },
+  "lod": {
+    "naniteCandidate": true,
+    "lod1TriangleRatio": 0.5,
+    "lod2TriangleRatio": 0.2
+  }
+}

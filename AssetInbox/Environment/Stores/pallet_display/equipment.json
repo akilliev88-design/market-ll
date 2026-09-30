@@ -1,0 +1,49 @@
+{
+  "schemaVersion": 1,
+  "id": "pallet_display",
+  "mesh": "SM_PalletDisplay.fbx",
+  "unrealMesh": "/Game/Stores/Equipment/SM_PalletDisplay.SM_PalletDisplay",
+  "family": "pallet",
+  "dimensionsMm": {
+    "width": 1200.0,
+    "depth": 1000.0,
+    "height": 580.0
+  },
+  "origin": "floor_center",
+  "frontAxis": "-Y",
+  "materials": [
+    "MI_Store_WarmWood"
+  ],
+  "collision": {
+    "policy": "custom_ucx",
+    "pieces": 1
+  },
+  "zones": [
+    {
+      "id": "front_l00",
+      "face": "front",
+      "level": 0,
+      "centerCm": [
+        0,
+        0,
+        16
+      ],
+      "usableWidthCm": 112,
+      "usableDepthCm": 85,
+      "clearanceHeightCm": 84
+    }
+  ],
+  "checkouts": 0,
+  "planogram": {
+    "doubleSided": false,
+    "widthCm": 112,
+    "depthCm": 85,
+    "frontY": -42.0,
+    "meshYaw": 180
+  },
+  "lod": {
+    "naniteCandidate": true,
+    "lod1TriangleRatio": 0.5,
+    "lod2TriangleRatio": 0.2
+  }
+}

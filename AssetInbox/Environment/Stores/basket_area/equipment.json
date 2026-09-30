@@ -1,0 +1,36 @@
+{
+  "schemaVersion": 1,
+  "id": "basket_area",
+  "mesh": "SM_BasketArea.fbx",
+  "unrealMesh": "/Game/Stores/Equipment/SM_BasketArea.SM_BasketArea",
+  "family": "basket",
+  "dimensionsMm": {
+    "width": 900.0,
+    "depth": 650.0,
+    "height": 852.5
+  },
+  "origin": "floor_center",
+  "frontAxis": "-Y",
+  "materials": [
+    "MI_Store_DarkMetal",
+    "MI_Store_PriceRail"
+  ],
+  "collision": {
+    "policy": "custom_ucx",
+    "pieces": 1
+  },
+  "zones": [],
+  "checkouts": 0,
+  "planogram": {
+    "doubleSided": false,
+    "widthCm": 82,
+    "depthCm": 50,
+    "frontY": -24.5,
+    "meshYaw": 180
+  },
+  "lod": {
+    "naniteCandidate": true,
+    "lod1TriangleRatio": 0.5,
+    "lod2TriangleRatio": 0.2
+  }
+}

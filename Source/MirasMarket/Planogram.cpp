@@ -1,4 +1,5 @@
 #include "Planogram.h"
+#include "StoreEquipment.h"
 
 #include "Dom/JsonObject.h"
 #include "Misc/FileHelper.h"
@@ -63,6 +64,10 @@ bool MarketPlanogram::Parse(const FString& Json, FMarketPlanogram& OutPlanogram,
         Obj->TryGetStringField(TEXT("equipment"), Fixture.EquipmentId);
         Obj->TryGetStringField(TEXT("label"), Fixture.Label);
         Obj->TryGetStringField(TEXT("category"), Fixture.Category);
+        const TSharedPtr<FJsonObject>* Faces = nullptr;
+        if (Obj->TryGetObjectField(TEXT("faceCategories"), Faces))
+            for (const auto& Pair : (*Faces)->Values)
+                if (Pair.Key == TEXT("front") || Pair.Key == TEXT("back")) Fixture.FaceCategories.Add(FString(Pair.Key), FString(Pair.Value->AsString()));
         double X = 0, Y = 0, Z = 0, Yaw = 0;
         Obj->TryGetNumberField(TEXT("x"), X); Obj->TryGetNumberField(TEXT("y"), Y);
         Obj->TryGetNumberField(TEXT("z"), Z); Obj->TryGetNumberField(TEXT("yaw"), Yaw);
@@ -116,9 +121,13 @@ FString MarketPlanogram::Serialize(const FMarketPlanogram& Planogram)
     for (int32 I = 0; I < Planogram.Fixtures.Num(); ++I)
     {
         const FPlanogramFixture& F = Planogram.Fixtures[I];
-        Out += FString::Printf(TEXT("    {\"id\":%s,\"equipment\":%s,\"label\":%s,\"category\":%s,\"x\":%.1f,\"y\":%.1f,\"z\":%.1f,\"yaw\":%.1f}%s\n"),
+        FString Faces = TEXT("{");
+        for (const TCHAR* Face : { TEXT("front"), TEXT("back") })
+            if (const FString* C = F.FaceCategories.Find(Face)) { if (Faces.Len() > 1) Faces += TEXT(","); Faces += MarketCatalog::JsonQuote(Face) + TEXT(":") + MarketCatalog::JsonQuote(*C); }
+        Faces += TEXT("}");
+        Out += FString::Printf(TEXT("    {\"id\":%s,\"equipment\":%s,\"label\":%s,\"category\":%s,\"x\":%.1f,\"y\":%.1f,\"z\":%.1f,\"yaw\":%.1f,\"faceCategories\":%s}%s\n"),
             *MarketCatalog::JsonQuote(F.Id), *MarketCatalog::JsonQuote(F.EquipmentId), *MarketCatalog::JsonQuote(F.Label), *MarketCatalog::JsonQuote(F.Category),
-            F.Location.X, F.Location.Y, F.Location.Z, F.Yaw, I + 1 < Planogram.Fixtures.Num() ? TEXT(",") : TEXT(""));
+            F.Location.X, F.Location.Y, F.Location.Z, F.Yaw, *Faces, I + 1 < Planogram.Fixtures.Num() ? TEXT(",") : TEXT(""));
     }
     Out += TEXT("  ],\n  \"placements\": [\n");
     TArray<const FPlanogramPlacement*> Saved;
@@ -167,7 +176,9 @@ bool MarketPlanogram::SaveFile(const FString& Path, const FMarketPlanogram& Plan
 
 FPlanogramEquipment MarketPlanogram::Equipment(const FString& EquipmentId)
 {
+    if (const FPlanogramEquipment* Loaded = StoreEquipment::Registry().Find(EquipmentId)) return *Loaded;
     FPlanogramEquipment E; // gondola_double_1200 (Tools/Blender/create_gondola_shelf.py)
+    E.Family = TEXT("shelf");
     E.Id = EquipmentId;
     E.MeshPath = TEXT("/Game/Environment/Shelves/Gondola_1200/SM_Gondola_1200.SM_Gondola_1200");
     E.SignZ = 171.f;
@@ -177,6 +188,7 @@ FPlanogramEquipment MarketPlanogram::Equipment(const FString& EquipmentId)
         // thickness); the 6th board sits under the header and is left empty. Price rails at y -.255 / -.225.
         E.MeshPath = TEXT("/Game/Environment/StoreKit/WallShelf_2400/SM_WallShelf_2400.SM_WallShelf_2400");
         E.UsableWidthCm = 235.f; // full 2.35 m board; the posts stand behind the products
+        E.DimensionsCm = FVector(240, 51.8f, 222);
         E.Levels = 5;
         const float Tops[] = { 15.4f, 51.4f, 87.4f, 123.4f, 159.4f };
         const float Rails[] = { 27.f, 27.f, 24.f, 24.f, 24.f };
@@ -195,6 +207,11 @@ FPlanogramEquipment MarketPlanogram::Equipment(const FString& EquipmentId)
     }
     E.bDoubleSided = EquipmentId.IsEmpty() || EquipmentId.Contains(TEXT("double"));
     return E;
+}
+
+bool MarketPlanogram::IsKnownEquipment(const FString& Id)
+{
+    return Id == TEXT("gondola_double_1200") || Id == TEXT("wall_shelf_2400") || StoreEquipment::Registry().Contains(Id);
 }
 
 FPlanogramEquipment MarketPlanogram::EquipmentFor(const FMarketPlanogram& Planogram, const FString& FixtureId)

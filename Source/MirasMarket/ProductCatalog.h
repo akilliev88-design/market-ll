@@ -27,6 +27,7 @@ namespace MarketCatalog
     MIRASMARKET_API FString JsonQuote(const FString& Value);
     // World-space text (TextRender) has no Turkish glyphs: folds c-cedilla -> c, dotless i -> i, s-cedilla -> s, ...
     MIRASMARKET_API FString FoldTurkish(const FString& Text);
+    MIRASMARKET_API FString UpperTurkish(const FString& Text);
 
     // Invalid rows are skipped and reported in OutErrors. Returns false only if the JSON itself is unreadable.
     MIRASMARKET_API bool Parse(const FString& Json, TArray<FMarketProduct>& OutProducts, TArray<FString>& OutErrors, FString* OutNote = nullptr);

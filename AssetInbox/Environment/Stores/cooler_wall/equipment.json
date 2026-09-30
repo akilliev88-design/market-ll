@@ -1,0 +1,105 @@
+{
+  "schemaVersion": 1,
+  "id": "cooler_wall",
+  "mesh": "SM_CoolerWall.fbx",
+  "unrealMesh": "/Game/Stores/Equipment/SM_CoolerWall.SM_CoolerWall",
+  "family": "cooler",
+  "dimensionsMm": {
+    "width": 3000.0,
+    "depth": 944.5,
+    "height": 2250.0
+  },
+  "origin": "floor_center",
+  "frontAxis": "-Y",
+  "materials": [
+    "MI_Store_PaintedMetal",
+    "MI_Store_DarkMetal",
+    "MI_Store_White",
+    "MI_Store_Glass",
+    "MI_Store_Light"
+  ],
+  "collision": {
+    "policy": "custom_ucx",
+    "pieces": 2
+  },
+  "zones": [
+    {
+      "id": "front_l00",
+      "face": "front",
+      "level": 0,
+      "centerCm": [
+        0,
+        0,
+        25
+      ],
+      "usableWidthCm": 292,
+      "usableDepthCm": 77,
+      "clearanceHeightCm": 35
+    },
+    {
+      "id": "front_l01",
+      "face": "front",
+      "level": 1,
+      "centerCm": [
+        0,
+        0,
+        65
+      ],
+      "usableWidthCm": 292,
+      "usableDepthCm": 77,
+      "clearanceHeightCm": 35
+    },
+    {
+      "id": "front_l02",
+      "face": "front",
+      "level": 2,
+      "centerCm": [
+        0,
+        0,
+        105
+      ],
+      "usableWidthCm": 292,
+      "usableDepthCm": 77,
+      "clearanceHeightCm": 35
+    },
+    {
+      "id": "front_l03",
+      "face": "front",
+      "level": 3,
+      "centerCm": [
+        0,
+        0,
+        145
+      ],
+      "usableWidthCm": 292,
+      "usableDepthCm": 77,
+      "clearanceHeightCm": 35
+    },
+    {
+      "id": "front_l04",
+      "face": "front",
+      "level": 4,
+      "centerCm": [
+        0,
+        0,
+        185
+      ],
+      "usableWidthCm": 292,
+      "usableDepthCm": 77,
+      "clearanceHeightCm": 35
+    }
+  ],
+  "checkouts": 0,
+  "planogram": {
+    "doubleSided": false,
+    "widthCm": 292,
+    "depthCm": 77,
+    "frontY": -38.0,
+    "meshYaw": 180
+  },
+  "lod": {
+    "naniteCandidate": true,
+    "lod1TriangleRatio": 0.5,
+    "lod2TriangleRatio": 0.2
+  }
+}

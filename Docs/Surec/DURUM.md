@@ -1,6 +1,6 @@
 # Güncel durum
 
-Son güncelleme: 29.09.2026 — Codex (GitHub eşitleme; G-060…G-073 DERLENDİ ve doğrulandı)
+Son güncelleme: 30.09.2026 — Codex (G-088 Aşama A doğrulandı; görsel onay bekliyor)
 
 ## Kısaca
 
@@ -84,6 +84,12 @@ GitHub ana deposu: `https://github.com/m07tas/market-ll` (`main`). Unreal/Blende
 Görsel ve raf dizme işleri yeterli seviyede; bir süre **donduruldu**. Öncelik **"İlk Hafta" oynanabilir dilimi**: bir oyuncu 7 günü baştan sona oynayabilmeli (sipariş → mal kabul → raf → fiyat → satış → gün raporu → hafta hedefi). Görevler G-051…G-055. Başarı ölçütü: yeni biri ilk 30 dakikada döngüyü anlıyor ve ilk kararının sonucunu görüyor.
 
 ## Devam notu
+
+**30.09.2026 — Codex: G-088 Aşama A hazır; Mustafa görsel onayı bekleniyor.**
+- Dört mağaza: `mahalle_01`, `kucuk_01`, `buyuk_01`, `hiper_01`; 18 ekipman, Türkçe offline font ve T ile yüz başına kategori seçimi. Aile ekipman düzeni korundu.
+- DERLE GEÇTİ, TEST 53/53 GEÇTİ, Smoke GEÇTİ; doğrulayıcı 4/4, 20 önizleme PNG'si gözle incelendi. 1080p offscreen önizleme 90.0–90.0 FPS (müşteri simülasyonu olmadan).
+- Görüntüler `Saved/Screenshots/Stores/<id>/`; kolaj `PhaseA_overview.png`. Kaynak/komut/API: `Docs/Environment/MAGAZA_KITI_UYGULAMA.md`. Yarım kaynak işi yok; kalan 16 mağaza Aşama B'de **onaydan sonra**.
+- Claude bağlantıları: kategori override map + callback hazır. Atama/kayıt/gez düğmesi/stats hesabı, aileye geri dönüş ve release metadata staging Claude'da; ilgili dosyalar değiştirilmedi. Normal dolum aktif ürünlerle; sanat önizlemesi hazırlık ürünlerini de gösterir.
 
 G-052 ve G-057 tamamlandı. Sipariş masasında B/V ile çok ürünlü liste hazırlanır ve N ile onaylanır; ertesi sabah koliler KABUL stoğunda ve arka kapıda görünür. Oyuncu E ile depoya taşır, reyon görevlileri bunu otomatik önceliklendirir. MetaHuman yürüyüş oynatma oranı klibin ölçülen 250,85 cm/sn kök hızına bağlandı; 12 cm/sn altında beklemeye geçer.
 

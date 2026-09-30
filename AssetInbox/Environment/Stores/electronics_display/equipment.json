@@ -1,0 +1,38 @@
+{
+  "schemaVersion": 1,
+  "id": "electronics_display",
+  "mesh": "SM_ElectronicsDisplay.fbx",
+  "unrealMesh": "/Game/Stores/Equipment/SM_ElectronicsDisplay.SM_ElectronicsDisplay",
+  "family": "electronics",
+  "dimensionsMm": {
+    "width": 2400.0,
+    "depth": 660.0,
+    "height": 2100.0
+  },
+  "origin": "floor_center",
+  "frontAxis": "-Y",
+  "materials": [
+    "MI_Store_PaintedMetal",
+    "MI_Store_DarkMetal",
+    "MI_Store_White",
+    "MI_Store_PriceRail"
+  ],
+  "collision": {
+    "policy": "custom_ucx",
+    "pieces": 1
+  },
+  "zones": [],
+  "checkouts": 0,
+  "planogram": {
+    "doubleSided": false,
+    "widthCm": 232,
+    "depthCm": 50,
+    "frontY": -24.5,
+    "meshYaw": 180
+  },
+  "lod": {
+    "naniteCandidate": true,
+    "lod1TriangleRatio": 0.5,
+    "lod2TriangleRatio": 0.2
+  }
+}

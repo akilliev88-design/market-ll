@@ -1,0 +1,6834 @@
+{
+  "schemaVersion": 1,
+  "stores": [
+    {
+      "id": "mahalle_01",
+      "format": "mahalle",
+      "name": "Sıcak mahalle dükkânı",
+      "theme": "sicak_ahsap",
+      "shell": "/Game/Stores/Shells/SM_Shell_mahalle_01",
+      "footprintCm": [
+        1200,
+        1000
+      ],
+      "salesAreaM2": 96.0,
+      "backroomM2": 24.0,
+      "ceilingCm": 300,
+      "points": {
+        "entrance": {
+          "at": [
+            0,
+            -500.0,
+            0
+          ],
+          "yaw": 90
+        },
+        "receiving": {
+          "at": [
+            450.0,
+            500.0,
+            0
+          ],
+          "yaw": -90
+        },
+        "playerStart": {
+          "at": [
+            0,
+            -330.0,
+            97
+          ],
+          "yaw": 90
+        },
+        "customerSpawn": [
+          [
+            0,
+            -700.0,
+            0
+          ]
+        ],
+        "backroom": {
+          "min": [
+            -600.0,
+            300.0,
+            0
+          ],
+          "max": [
+            600.0,
+            500.0,
+            300
+          ]
+        }
+      },
+      "fixtures": [
+        {
+          "id": "f_0001",
+          "equipment": "gondola_double_1200",
+          "category": "atıştırmalık",
+          "at": [
+            -270.0,
+            -220,
+            0
+          ],
+          "yaw": 90
+        },
+        {
+          "id": "f_0002",
+          "equipment": "gondola_double_1200",
+          "category": "bisküvi-çikolata",
+          "at": [
+            -270.0,
+            -60,
+            0
+          ],
+          "yaw": 90
+        },
+        {
+          "id": "f_0003",
+          "equipment": "gondola_double_1200",
+          "category": "içecek",
+          "at": [
+            -270.0,
+            100,
+            0
+          ],
+          "yaw": 90
+        },
+        {
+          "id": "f_0004",
+          "equipment": "gondola_double_1200",
+          "category": "kağıt",
+          "at": [
+            0.0,
+            -220,
+            0
+          ],
+          "yaw": 90
+        },
+        {
+          "id": "f_0005",
+          "equipment": "gondola_double_1200",
+          "category": "kişisel bakım",
+          "at": [
+            0.0,
+            -60,
+            0
+          ],
+          "yaw": 90
+        },
+        {
+          "id": "f_0006",
+          "equipment": "gondola_double_1200",
+          "category": "makarna-bakliyat",
+          "at": [
+            0.0,
+            100,
+            0
+          ],
+          "yaw": 90
+        },
+        {
+          "id": "f_0007",
+          "equipment": "gondola_double_1200",
+          "category": "temizlik",
+          "at": [
+            270.0,
+            -220,
+            0
+          ],
+          "yaw": 90
+        },
+        {
+          "id": "f_0008",
+          "equipment": "gondola_double_1200",
+          "category": "yağ-salça",
+          "at": [
+            270.0,
+            -60,
+            0
+          ],
+          "yaw": 90
+        },
+        {
+          "id": "f_0009",
+          "equipment": "gondola_double_1200",
+          "category": "çay-kahve",
+          "at": [
+            270.0,
+            100,
+            0
+          ],
+          "yaw": 90
+        },
+        {
+          "id": "f_0010",
+          "equipment": "wall_shelf_2400",
+          "category": "atıştırmalık",
+          "at": [
+            -565.0,
+            -250.0,
+            0
+          ],
+          "yaw": 90
+        },
+        {
+          "id": "f_0011",
+          "equipment": "wall_shelf_2400",
+          "category": "bisküvi-çikolata",
+          "at": [
+            565.0,
+            -250.0,
+            0
+          ],
+          "yaw": -90
+        },
+        {
+          "id": "f_0012",
+          "equipment": "wall_shelf_2400",
+          "category": "içecek",
+          "at": [
+            -565.0,
+            0.0,
+            0
+          ],
+          "yaw": 90
+        },
+        {
+          "id": "f_0013",
+          "equipment": "wall_shelf_2400",
+          "category": "kağıt",
+          "at": [
+            565.0,
+            0.0,
+            0
+          ],
+          "yaw": -90
+        },
+        {
+          "id": "f_0014",
+          "equipment": "cooler_wall",
+          "category": "süt",
+          "at": [
+            -350.0,
+            248.0,
+            0
+          ],
+          "yaw": 0
+        },
+        {
+          "id": "f_0015",
+          "equipment": "cooler_wall",
+          "category": "süt",
+          "at": [
+            -50.0,
+            248.0,
+            0
+          ],
+          "yaw": 0
+        },
+        {
+          "id": "f_0016",
+          "equipment": "freezer_chest",
+          "category": "dondurma",
+          "at": [
+            -460.0,
+            20.0,
+            0
+          ],
+          "yaw": 90
+        },
+        {
+          "id": "f_0017",
+          "equipment": "checkout_single",
+          "category": "",
+          "at": [
+            -420.0,
+            -345.0,
+            0
+          ],
+          "yaw": 0
+        },
+        {
+          "id": "f_0018",
+          "equipment": "tobacco_backbar",
+          "category": "",
+          "at": [
+            -420.0,
+            -180.0,
+            0
+          ],
+          "yaw": 0
+        },
+        {
+          "id": "f_0019",
+          "equipment": "basket_area",
+          "category": "",
+          "at": [
+            240,
+            -430.0,
+            0
+          ],
+          "yaw": 0
+        },
+        {
+          "id": "f_0020",
+          "equipment": "produce_small",
+          "category": "",
+          "at": [
+            370,
+            -365,
+            0
+          ],
+          "yaw": 0
+        }
+      ],
+      "props": [],
+      "stats": {
+        "shelfFrontM": 32.4,
+        "coolerM": 6.0,
+        "freezerM": 2.5,
+        "produceM2": 1.44,
+        "counters": [],
+        "checkouts": 1,
+        "selfCheckouts": 0,
+        "backroomPallets": 6
+      }
+    },
+    {
+      "id": "kucuk_01",
+      "format": "kucuk",
+      "name": "Aydınlık ucuzcu",
+      "theme": "aydinlik",
+      "shell": "/Game/Stores/Shells/SM_Shell_kucuk_01",
+      "footprintCm": [
+        2000,
+        1700
+      ],
+      "salesAreaM2": 300.0,
+      "backroomM2": 40.0,
+      "ceilingCm": 360,
+      "points": {
+        "entrance": {
+          "at": [
+            0,
+            -850.0,
+            0
+          ],
+          "yaw": 90
+        },
+        "receiving": {
+          "at": [
+            850.0,
+            850.0,
+            0
+          ],
+          "yaw": -90
+        },
+        "playerStart": {
+          "at": [
+            0,
+            -610.0,
+            97
+          ],
+          "yaw": 90
+        },
+        "customerSpawn": [
+          [
+            0,
+            -1050.0,
+            0
+          ]
+        ],
+        "backroom": {
+          "min": [
+            -1000.0,
+            650.0,
+            0
+          ],
+          "max": [
+            1000.0,
+            850.0,
+            360
+          ]
+        }
+      },
+      "fixtures": [
+        {
+          "id": "f_0001",
+          "equipment": "gondola_double_1200",
+          "category": "atıştırmalık",
+          "at": [
+            -600.0,
+            -470,
+            0
+          ],
+          "yaw": 90
+        },
+        {
+          "id": "f_0002",
+          "equipment": "gondola_double_1200",
+          "category": "bisküvi-çikolata",
+          "at": [
+            -600.0,
+            -315,
+            0
+          ],
+          "yaw": 90
+        },
+        {
+          "id": "f_0003",
+          "equipment": "gondola_double_1200",
+          "category": "içecek",
+          "at": [
+            -600.0,
+            -160,
+            0
+          ],
+          "yaw": 90
+        },
+        {
+          "id": "f_0004",
+          "equipment": "gondola_double_1200",
+          "category": "kağıt",
+          "at": [
+            -600.0,
+            -5,
+            0
+          ],
+          "yaw": 90
+        },
+        {
+          "id": "f_0005",
+          "equipment": "gondola_double_1200",
+          "category": "kişisel bakım",
+          "at": [
+            -600.0,
+            150,
+            0
+          ],
+          "yaw": 90
+        },
+        {
+          "id": "f_0006",
+          "equipment": "gondola_double_1200",
+          "category": "makarna-bakliyat",
+          "at": [
+            -600.0,
+            305,
+            0
+          ],
+          "yaw": 90
+        },
+        {
+          "id": "f_0007",
+          "equipment": "gondola_double_1200",
+          "category": "temizlik",
+          "at": [
+            -300.0,
+            -470,
+            0
+          ],
+          "yaw": 90
+        },
+        {
+          "id": "f_0008",
+          "equipment": "gondola_double_1200",
+          "category": "yağ-salça",
+          "at": [
+            -300.0,
+            -315,
+            0
+          ],
+          "yaw": 90
+        },
+        {
+          "id": "f_0009",
+          "equipment": "gondola_double_1200",
+          "category": "çay-kahve",
+          "at": [
+            -300.0,
+            -160,
+            0
+          ],
+          "yaw": 90
+        },
+        {
+          "id": "f_0010",
+          "equipment": "gondola_double_1200",
+          "category": "atıştırmalık",
+          "at": [
+            -300.0,
+            -5,
+            0
+          ],
+          "yaw": 90
+        },
+        {
+          "id": "f_0011",
+          "equipment": "gondola_double_1200",
+          "category": "bisküvi-çikolata",
+          "at": [
+            -300.0,
+            150,
+            0
+          ],
+          "yaw": 90
+        },
+        {
+          "id": "f_0012",
+          "equipment": "gondola_double_1200",
+          "category": "içecek",
+          "at": [
+            -300.0,
+            305,
+            0
+          ],
+          "yaw": 90
+        },
+        {
+          "id": "f_0013",
+          "equipment": "gondola_double_1200",
+          "category": "kağıt",
+          "at": [
+            0.0,
+            -470,
+            0
+          ],
+          "yaw": 90
+        },
+        {
+          "id": "f_0014",
+          "equipment": "gondola_double_1200",
+          "category": "kişisel bakım",
+          "at": [
+            0.0,
+            -315,
+            0
+          ],
+          "yaw": 90
+        },
+        {
+          "id": "f_0015",
+          "equipment": "gondola_double_1200",
+          "category": "makarna-bakliyat",
+          "at": [
+            0.0,
+            -160,
+            0
+          ],
+          "yaw": 90
+        },
+        {
+          "id": "f_0016",
+          "equipment": "gondola_double_1200",
+          "category": "temizlik",
+          "at": [
+            0.0,
+            -5,
+            0
+          ],
+          "yaw": 90
+        },
+        {
+          "id": "f_0017",
+          "equipment": "gondola_double_1200",
+          "category": "yağ-salça",
+          "at": [
+            0.0,
+            150,
+            0
+          ],
+          "yaw": 90
+        },
+        {
+          "id": "f_0018",
+          "equipment": "gondola_double_1200",
+          "category": "çay-kahve",
+          "at": [
+            0.0,
+            305,
+            0
+          ],
+          "yaw": 90
+        },
+        {
+          "id": "f_0019",
+          "equipment": "gondola_double_1200",
+          "category": "atıştırmalık",
+          "at": [
+            300.0,
+            -470,
+            0
+          ],
+          "yaw": 90
+        },
+        {
+          "id": "f_0020",
+          "equipment": "gondola_double_1200",
+          "category": "bisküvi-çikolata",
+          "at": [
+            300.0,
+            -315,
+            0
+          ],
+          "yaw": 90
+        },
+        {
+          "id": "f_0021",
+          "equipment": "gondola_double_1200",
+          "category": "içecek",
+          "at": [
+            300.0,
+            -160,
+            0
+          ],
+          "yaw": 90
+        },
+        {
+          "id": "f_0022",
+          "equipment": "gondola_double_1200",
+          "category": "kağıt",
+          "at": [
+            300.0,
+            -5,
+            0
+          ],
+          "yaw": 90
+        },
+        {
+          "id": "f_0023",
+          "equipment": "gondola_double_1200",
+          "category": "kişisel bakım",
+          "at": [
+            300.0,
+            150,
+            0
+          ],
+          "yaw": 90
+        },
+        {
+          "id": "f_0024",
+          "equipment": "gondola_double_1200",
+          "category": "makarna-bakliyat",
+          "at": [
+            300.0,
+            305,
+            0
+          ],
+          "yaw": 90
+        },
+        {
+          "id": "f_0025",
+          "equipment": "gondola_double_1200",
+          "category": "temizlik",
+          "at": [
+            600.0,
+            -470,
+            0
+          ],
+          "yaw": 90
+        },
+        {
+          "id": "f_0026",
+          "equipment": "gondola_double_1200",
+          "category": "yağ-salça",
+          "at": [
+            600.0,
+            -315,
+            0
+          ],
+          "yaw": 90
+        },
+        {
+          "id": "f_0027",
+          "equipment": "gondola_double_1200",
+          "category": "çay-kahve",
+          "at": [
+            600.0,
+            -160,
+            0
+          ],
+          "yaw": 90
+        },
+        {
+          "id": "f_0028",
+          "equipment": "gondola_double_1200",
+          "category": "atıştırmalık",
+          "at": [
+            600.0,
+            -5,
+            0
+          ],
+          "yaw": 90
+        },
+        {
+          "id": "f_0029",
+          "equipment": "gondola_double_1200",
+          "category": "bisküvi-çikolata",
+          "at": [
+            600.0,
+            150,
+            0
+          ],
+          "yaw": 90
+        },
+        {
+          "id": "f_0030",
+          "equipment": "gondola_double_1200",
+          "category": "içecek",
+          "at": [
+            600.0,
+            305,
+            0
+          ],
+          "yaw": 90
+        },
+        {
+          "id": "f_0031",
+          "equipment": "wall_shelf_2400",
+          "category": "atıştırmalık",
+          "at": [
+            -965.0,
+            -425.0,
+            0
+          ],
+          "yaw": 90
+        },
+        {
+          "id": "f_0032",
+          "equipment": "wall_shelf_2400",
+          "category": "bisküvi-çikolata",
+          "at": [
+            965.0,
+            -425.0,
+            0
+          ],
+          "yaw": -90
+        },
+        {
+          "id": "f_0033",
+          "equipment": "wall_shelf_2400",
+          "category": "içecek",
+          "at": [
+            -965.0,
+            -175.0,
+            0
+          ],
+          "yaw": 90
+        },
+        {
+          "id": "f_0034",
+          "equipment": "wall_shelf_2400",
+          "category": "kağıt",
+          "at": [
+            965.0,
+            -175.0,
+            0
+          ],
+          "yaw": -90
+        },
+        {
+          "id": "f_0035",
+          "equipment": "cooler_wall",
+          "category": "süt",
+          "at": [
+            -750.0,
+            598.0,
+            0
+          ],
+          "yaw": 0
+        },
+        {
+          "id": "f_0036",
+          "equipment": "cooler_wall",
+          "category": "süt",
+          "at": [
+            -450.0,
+            598.0,
+            0
+          ],
+          "yaw": 0
+        },
+        {
+          "id": "f_0037",
+          "equipment": "cooler_wall",
+          "category": "süt",
+          "at": [
+            -150.0,
+            598.0,
+            0
+          ],
+          "yaw": 0
+        },
+        {
+          "id": "f_0038",
+          "equipment": "freezer_chest",
+          "category": "dondurma",
+          "at": [
+            -860.0,
+            -330.0,
+            0
+          ],
+          "yaw": 90
+        },
+        {
+          "id": "f_0039",
+          "equipment": "checkout_single",
+          "category": "",
+          "at": [
+            -820.0,
+            -695.0,
+            0
+          ],
+          "yaw": 0
+        },
+        {
+          "id": "f_0040",
+          "equipment": "checkout_single",
+          "category": "",
+          "at": [
+            -685.0,
+            -695.0,
+            0
+          ],
+          "yaw": 0
+        },
+        {
+          "id": "f_0041",
+          "equipment": "tobacco_backbar",
+          "category": "",
+          "at": [
+            -820.0,
+            -530.0,
+            0
+          ],
+          "yaw": 0
+        },
+        {
+          "id": "f_0042",
+          "equipment": "basket_area",
+          "category": "",
+          "at": [
+            240,
+            -780.0,
+            0
+          ],
+          "yaw": 0
+        },
+        {
+          "id": "f_0043",
+          "equipment": "produce_large",
+          "category": "",
+          "at": [
+            770.0,
+            480.0,
+            0
+          ],
+          "yaw": 0
+        },
+        {
+          "id": "f_0044",
+          "equipment": "pallet_display",
+          "category": "",
+          "at": [
+            800.0,
+            -490.0,
+            0
+          ],
+          "yaw": 0
+        }
+      ],
+      "props": [],
+      "stats": {
+        "shelfFrontM": 82.8,
+        "coolerM": 9.0,
+        "freezerM": 2.5,
+        "produceM2": 4.214,
+        "counters": [],
+        "checkouts": 2,
+        "selfCheckouts": 0,
+        "backroomPallets": 11
+      }
+    },
+    {
+      "id": "buyuk_01",
+      "format": "buyuk",
+      "name": "Reyon adalı süpermarket",
+      "theme": "dogal_yesil",
+      "shell": "/Game/Stores/Shells/SM_Shell_buyuk_01",
+      "footprintCm": [
+        3600,
+        2400
+      ],
+      "salesAreaM2": 777.6,
+      "backroomM2": 86.4,
+      "ceilingCm": 420,
+      "points": {
+        "entrance": {
+          "at": [
+            0,
+            -1200.0,
+            0
+          ],
+          "yaw": 90
+        },
+        "receiving": {
+          "at": [
+            1650.0,
+            1200.0,
+            0
+          ],
+          "yaw": -90
+        },
+        "playerStart": {
+          "at": [
+            0,
+            -860.0,
+            97
+          ],
+          "yaw": 90
+        },
+        "customerSpawn": [
+          [
+            0,
+            -1400.0,
+            0
+          ]
+        ],
+        "backroom": {
+          "min": [
+            -1800.0,
+            960.0,
+            0
+          ],
+          "max": [
+            1800.0,
+            1200.0,
+            420
+          ]
+        }
+      },
+      "fixtures": [
+        {
+          "id": "f_0001",
+          "equipment": "gondola_double_1200",
+          "category": "atıştırmalık",
+          "at": [
+            -1160.0,
+            -690,
+            0
+          ],
+          "yaw": 90
+        },
+        {
+          "id": "f_0002",
+          "equipment": "gondola_double_1200",
+          "category": "atıştırmalık",
+          "at": [
+            -1160.0,
+            -540,
+            0
+          ],
+          "yaw": 90
+        },
+        {
+          "id": "f_0003",
+          "equipment": "gondola_double_1200",
+          "category": "atıştırmalık",
+          "at": [
+            -1160.0,
+            -390,
+            0
+          ],
+          "yaw": 90
+        },
+        {
+          "id": "f_0004",
+          "equipment": "gondola_double_1200",
+          "category": "atıştırmalık",
+          "at": [
+            -1160.0,
+            -240,
+            0
+          ],
+          "yaw": 90
+        },
+        {
+          "id": "f_0005",
+          "equipment": "gondola_double_1200",
+          "category": "atıştırmalık",
+          "at": [
+            -1160.0,
+            -90,
+            0
+          ],
+          "yaw": 90
+        },
+        {
+          "id": "f_0006",
+          "equipment": "gondola_double_1200",
+          "category": "atıştırmalık",
+          "at": [
+            -1160.0,
+            60,
+            0
+          ],
+          "yaw": 90
+        },
+        {
+          "id": "f_0007",
+          "equipment": "gondola_double_1200",
+          "category": "atıştırmalık",
+          "at": [
+            -1160.0,
+            210,
+            0
+          ],
+          "yaw": 90
+        },
+        {
+          "id": "f_0008",
+          "equipment": "gondola_double_1200",
+          "category": "atıştırmalık",
+          "at": [
+            -1160.0,
+            360,
+            0
+          ],
+          "yaw": 90
+        },
+        {
+          "id": "f_0009",
+          "equipment": "gondola_double_1200",
+          "category": "atıştırmalık",
+          "at": [
+            -1160.0,
+            510,
+            0
+          ],
+          "yaw": 90
+        },
+        {
+          "id": "f_0010",
+          "equipment": "gondola_double_1200",
+          "category": "bisküvi-çikolata",
+          "at": [
+            -870.0,
+            -690,
+            0
+          ],
+          "yaw": 90
+        },
+        {
+          "id": "f_0011",
+          "equipment": "gondola_double_1200",
+          "category": "bisküvi-çikolata",
+          "at": [
+            -870.0,
+            -540,
+            0
+          ],
+          "yaw": 90
+        },
+        {
+          "id": "f_0012",
+          "equipment": "gondola_double_1200",
+          "category": "bisküvi-çikolata",
+          "at": [
+            -870.0,
+            -390,
+            0
+          ],
+          "yaw": 90
+        },
+        {
+          "id": "f_0013",
+          "equipment": "gondola_double_1200",
+          "category": "bisküvi-çikolata",
+          "at": [
+            -870.0,
+            -240,
+            0
+          ],
+          "yaw": 90
+        },
+        {
+          "id": "f_0014",
+          "equipment": "gondola_double_1200",
+          "category": "bisküvi-çikolata",
+          "at": [
+            -870.0,
+            -90,
+            0
+          ],
+          "yaw": 90
+        },
+        {
+          "id": "f_0015",
+          "equipment": "gondola_double_1200",
+          "category": "bisküvi-çikolata",
+          "at": [
+            -870.0,
+            60,
+            0
+          ],
+          "yaw": 90
+        },
+        {
+          "id": "f_0016",
+          "equipment": "gondola_double_1200",
+          "category": "bisküvi-çikolata",
+          "at": [
+            -870.0,
+            210,
+            0
+          ],
+          "yaw": 90
+        },
+        {
+          "id": "f_0017",
+          "equipment": "gondola_double_1200",
+          "category": "bisküvi-çikolata",
+          "at": [
+            -870.0,
+            360,
+            0
+          ],
+          "yaw": 90
+        },
+        {
+          "id": "f_0018",
+          "equipment": "gondola_double_1200",
+          "category": "bisküvi-çikolata",
+          "at": [
+            -870.0,
+            510,
+            0
+          ],
+          "yaw": 90
+        },
+        {
+          "id": "f_0019",
+          "equipment": "gondola_double_1200",
+          "category": "içecek",
+          "at": [
+            -580.0,
+            -690,
+            0
+          ],
+          "yaw": 90
+        },
+        {
+          "id": "f_0020",
+          "equipment": "gondola_double_1200",
+          "category": "içecek",
+          "at": [
+            -580.0,
+            -540,
+            0
+          ],
+          "yaw": 90
+        },
+        {
+          "id": "f_0021",
+          "equipment": "gondola_double_1200",
+          "category": "içecek",
+          "at": [
+            -580.0,
+            -390,
+            0
+          ],
+          "yaw": 90
+        },
+        {
+          "id": "f_0022",
+          "equipment": "gondola_double_1200",
+          "category": "içecek",
+          "at": [
+            -580.0,
+            -240,
+            0
+          ],
+          "yaw": 90
+        },
+        {
+          "id": "f_0023",
+          "equipment": "gondola_double_1200",
+          "category": "içecek",
+          "at": [
+            -580.0,
+            -90,
+            0
+          ],
+          "yaw": 90
+        },
+        {
+          "id": "f_0024",
+          "equipment": "gondola_double_1200",
+          "category": "içecek",
+          "at": [
+            -580.0,
+            60,
+            0
+          ],
+          "yaw": 90
+        },
+        {
+          "id": "f_0025",
+          "equipment": "gondola_double_1200",
+          "category": "içecek",
+          "at": [
+            -580.0,
+            210,
+            0
+          ],
+          "yaw": 90
+        },
+        {
+          "id": "f_0026",
+          "equipment": "gondola_double_1200",
+          "category": "içecek",
+          "at": [
+            -580.0,
+            360,
+            0
+          ],
+          "yaw": 90
+        },
+        {
+          "id": "f_0027",
+          "equipment": "gondola_double_1200",
+          "category": "içecek",
+          "at": [
+            -580.0,
+            510,
+            0
+          ],
+          "yaw": 90
+        },
+        {
+          "id": "f_0028",
+          "equipment": "gondola_double_1200",
+          "category": "kağıt",
+          "at": [
+            -290.0,
+            -690,
+            0
+          ],
+          "yaw": 90
+        },
+        {
+          "id": "f_0029",
+          "equipment": "gondola_double_1200",
+          "category": "kağıt",
+          "at": [
+            -290.0,
+            -540,
+            0
+          ],
+          "yaw": 90
+        },
+        {
+          "id": "f_0030",
+          "equipment": "gondola_double_1200",
+          "category": "kağıt",
+          "at": [
+            -290.0,
+            -390,
+            0
+          ],
+          "yaw": 90
+        },
+        {
+          "id": "f_0031",
+          "equipment": "gondola_double_1200",
+          "category": "kağıt",
+          "at": [
+            -290.0,
+            -240,
+            0
+          ],
+          "yaw": 90
+        },
+        {
+          "id": "f_0032",
+          "equipment": "gondola_double_1200",
+          "category": "kağıt",
+          "at": [
+            -290.0,
+            -90,
+            0
+          ],
+          "yaw": 90
+        },
+        {
+          "id": "f_0033",
+          "equipment": "gondola_double_1200",
+          "category": "kağıt",
+          "at": [
+            -290.0,
+            60,
+            0
+          ],
+          "yaw": 90
+        },
+        {
+          "id": "f_0034",
+          "equipment": "gondola_double_1200",
+          "category": "kağıt",
+          "at": [
+            -290.0,
+            210,
+            0
+          ],
+          "yaw": 90
+        },
+        {
+          "id": "f_0035",
+          "equipment": "gondola_double_1200",
+          "category": "kağıt",
+          "at": [
+            -290.0,
+            360,
+            0
+          ],
+          "yaw": 90
+        },
+        {
+          "id": "f_0036",
+          "equipment": "gondola_double_1200",
+          "category": "kağıt",
+          "at": [
+            -290.0,
+            510,
+            0
+          ],
+          "yaw": 90
+        },
+        {
+          "id": "f_0037",
+          "equipment": "gondola_double_1200",
+          "category": "kişisel bakım",
+          "at": [
+            0.0,
+            -690,
+            0
+          ],
+          "yaw": 90
+        },
+        {
+          "id": "f_0038",
+          "equipment": "gondola_double_1200",
+          "category": "kişisel bakım",
+          "at": [
+            0.0,
+            -540,
+            0
+          ],
+          "yaw": 90
+        },
+        {
+          "id": "f_0039",
+          "equipment": "gondola_double_1200",
+          "category": "kişisel bakım",
+          "at": [
+            0.0,
+            -390,
+            0
+          ],
+          "yaw": 90
+        },
+        {
+          "id": "f_0040",
+          "equipment": "gondola_double_1200",
+          "category": "kişisel bakım",
+          "at": [
+            0.0,
+            -240,
+            0
+          ],
+          "yaw": 90
+        },
+        {
+          "id": "f_0041",
+          "equipment": "gondola_double_1200",
+          "category": "kişisel bakım",
+          "at": [
+            0.0,
+            -90,
+            0
+          ],
+          "yaw": 90
+        },
+        {
+          "id": "f_0042",
+          "equipment": "gondola_double_1200",
+          "category": "kişisel bakım",
+          "at": [
+            0.0,
+            60,
+            0
+          ],
+          "yaw": 90
+        },
+        {
+          "id": "f_0043",
+          "equipment": "gondola_double_1200",
+          "category": "kişisel bakım",
+          "at": [
+            0.0,
+            210,
+            0
+          ],
+          "yaw": 90
+        },
+        {
+          "id": "f_0044",
+          "equipment": "gondola_double_1200",
+          "category": "kişisel bakım",
+          "at": [
+            0.0,
+            360,
+            0
+          ],
+          "yaw": 90
+        },
+        {
+          "id": "f_0045",
+          "equipment": "gondola_double_1200",
+          "category": "kişisel bakım",
+          "at": [
+            0.0,
+            510,
+            0
+          ],
+          "yaw": 90
+        },
+        {
+          "id": "f_0046",
+          "equipment": "gondola_double_1200",
+          "category": "makarna-bakliyat",
+          "at": [
+            290.0,
+            -690,
+            0
+          ],
+          "yaw": 90
+        },
+        {
+          "id": "f_0047",
+          "equipment": "gondola_double_1200",
+          "category": "makarna-bakliyat",
+          "at": [
+            290.0,
+            -540,
+            0
+          ],
+          "yaw": 90
+        },
+        {
+          "id": "f_0048",
+          "equipment": "gondola_double_1200",
+          "category": "makarna-bakliyat",
+          "at": [
+            290.0,
+            -390,
+            0
+          ],
+          "yaw": 90
+        },
+        {
+          "id": "f_0049",
+          "equipment": "gondola_double_1200",
+          "category": "makarna-bakliyat",
+          "at": [
+            290.0,
+            -240,
+            0
+          ],
+          "yaw": 90
+        },
+        {
+          "id": "f_0050",
+          "equipment": "gondola_double_1200",
+          "category": "makarna-bakliyat",
+          "at": [
+            290.0,
+            -90,
+            0
+          ],
+          "yaw": 90
+        },
+        {
+          "id": "f_0051",
+          "equipment": "gondola_double_1200",
+          "category": "makarna-bakliyat",
+          "at": [
+            290.0,
+            60,
+            0
+          ],
+          "yaw": 90
+        },
+        {
+          "id": "f_0052",
+          "equipment": "gondola_double_1200",
+          "category": "makarna-bakliyat",
+          "at": [
+            290.0,
+            210,
+            0
+          ],
+          "yaw": 90
+        },
+        {
+          "id": "f_0053",
+          "equipment": "gondola_double_1200",
+          "category": "makarna-bakliyat",
+          "at": [
+            290.0,
+            360,
+            0
+          ],
+          "yaw": 90
+        },
+        {
+          "id": "f_0054",
+          "equipment": "gondola_double_1200",
+          "category": "makarna-bakliyat",
+          "at": [
+            290.0,
+            510,
+            0
+          ],
+          "yaw": 90
+        },
+        {
+          "id": "f_0055",
+          "equipment": "gondola_double_1200",
+          "category": "temizlik",
+          "at": [
+            580.0,
+            -690,
+            0
+          ],
+          "yaw": 90
+        },
+        {
+          "id": "f_0056",
+          "equipment": "gondola_double_1200",
+          "category": "temizlik",
+          "at": [
+            580.0,
+            -540,
+            0
+          ],
+          "yaw": 90
+        },
+        {
+          "id": "f_0057",
+          "equipment": "gondola_double_1200",
+          "category": "temizlik",
+          "at": [
+            580.0,
+            -390,
+            0
+          ],
+          "yaw": 90
+        },
+        {
+          "id": "f_0058",
+          "equipment": "gondola_double_1200",
+          "category": "temizlik",
+          "at": [
+            580.0,
+            -240,
+            0
+          ],
+          "yaw": 90
+        },
+        {
+          "id": "f_0059",
+          "equipment": "gondola_double_1200",
+          "category": "temizlik",
+          "at": [
+            580.0,
+            -90,
+            0
+          ],
+          "yaw": 90
+        },
+        {
+          "id": "f_0060",
+          "equipment": "gondola_double_1200",
+          "category": "temizlik",
+          "at": [
+            580.0,
+            60,
+            0
+          ],
+          "yaw": 90
+        },
+        {
+          "id": "f_0061",
+          "equipment": "gondola_double_1200",
+          "category": "temizlik",
+          "at": [
+            580.0,
+            210,
+            0
+          ],
+          "yaw": 90
+        },
+        {
+          "id": "f_0062",
+          "equipment": "gondola_double_1200",
+          "category": "temizlik",
+          "at": [
+            580.0,
+            360,
+            0
+          ],
+          "yaw": 90
+        },
+        {
+          "id": "f_0063",
+          "equipment": "gondola_double_1200",
+          "category": "temizlik",
+          "at": [
+            580.0,
+            510,
+            0
+          ],
+          "yaw": 90
+        },
+        {
+          "id": "f_0064",
+          "equipment": "gondola_double_1200",
+          "category": "yağ-salça",
+          "at": [
+            870.0,
+            -690,
+            0
+          ],
+          "yaw": 90
+        },
+        {
+          "id": "f_0065",
+          "equipment": "gondola_double_1200",
+          "category": "yağ-salça",
+          "at": [
+            870.0,
+            -540,
+            0
+          ],
+          "yaw": 90
+        },
+        {
+          "id": "f_0066",
+          "equipment": "gondola_double_1200",
+          "category": "yağ-salça",
+          "at": [
+            870.0,
+            -390,
+            0
+          ],
+          "yaw": 90
+        },
+        {
+          "id": "f_0067",
+          "equipment": "gondola_double_1200",
+          "category": "yağ-salça",
+          "at": [
+            870.0,
+            -240,
+            0
+          ],
+          "yaw": 90
+        },
+        {
+          "id": "f_0068",
+          "equipment": "gondola_double_1200",
+          "category": "yağ-salça",
+          "at": [
+            870.0,
+            -90,
+            0
+          ],
+          "yaw": 90
+        },
+        {
+          "id": "f_0069",
+          "equipment": "gondola_double_1200",
+          "category": "yağ-salça",
+          "at": [
+            870.0,
+            60,
+            0
+          ],
+          "yaw": 90
+        },
+        {
+          "id": "f_0070",
+          "equipment": "gondola_double_1200",
+          "category": "yağ-salça",
+          "at": [
+            870.0,
+            210,
+            0
+          ],
+          "yaw": 90
+        },
+        {
+          "id": "f_0071",
+          "equipment": "gondola_double_1200",
+          "category": "yağ-salça",
+          "at": [
+            870.0,
+            360,
+            0
+          ],
+          "yaw": 90
+        },
+        {
+          "id": "f_0072",
+          "equipment": "gondola_double_1200",
+          "category": "yağ-salça",
+          "at": [
+            870.0,
+            510,
+            0
+          ],
+          "yaw": 90
+        },
+        {
+          "id": "f_0073",
+          "equipment": "gondola_double_1200",
+          "category": "çay-kahve",
+          "at": [
+            1160.0,
+            -690,
+            0
+          ],
+          "yaw": 90
+        },
+        {
+          "id": "f_0074",
+          "equipment": "gondola_double_1200",
+          "category": "çay-kahve",
+          "at": [
+            1160.0,
+            -540,
+            0
+          ],
+          "yaw": 90
+        },
+        {
+          "id": "f_0075",
+          "equipment": "gondola_double_1200",
+          "category": "çay-kahve",
+          "at": [
+            1160.0,
+            -390,
+            0
+          ],
+          "yaw": 90
+        },
+        {
+          "id": "f_0076",
+          "equipment": "gondola_double_1200",
+          "category": "çay-kahve",
+          "at": [
+            1160.0,
+            -240,
+            0
+          ],
+          "yaw": 90
+        },
+        {
+          "id": "f_0077",
+          "equipment": "gondola_double_1200",
+          "category": "çay-kahve",
+          "at": [
+            1160.0,
+            -90,
+            0
+          ],
+          "yaw": 90
+        },
+        {
+          "id": "f_0078",
+          "equipment": "gondola_double_1200",
+          "category": "çay-kahve",
+          "at": [
+            1160.0,
+            60,
+            0
+          ],
+          "yaw": 90
+        },
+        {
+          "id": "f_0079",
+          "equipment": "gondola_double_1200",
+          "category": "çay-kahve",
+          "at": [
+            1160.0,
+            210,
+            0
+          ],
+          "yaw": 90
+        },
+        {
+          "id": "f_0080",
+          "equipment": "gondola_double_1200",
+          "category": "çay-kahve",
+          "at": [
+            1160.0,
+            360,
+            0
+          ],
+          "yaw": 90
+        },
+        {
+          "id": "f_0081",
+          "equipment": "gondola_double_1200",
+          "category": "çay-kahve",
+          "at": [
+            1160.0,
+            510,
+            0
+          ],
+          "yaw": 90
+        },
+        {
+          "id": "f_0082",
+          "equipment": "wall_shelf_2400",
+          "category": "atıştırmalık",
+          "at": [
+            -1765.0,
+            -600.0,
+            0
+          ],
+          "yaw": 90
+        },
+        {
+          "id": "f_0083",
+          "equipment": "wall_shelf_2400",
+          "category": "bisküvi-çikolata",
+          "at": [
+            1765.0,
+            -600.0,
+            0
+          ],
+          "yaw": -90
+        },
+        {
+          "id": "f_0084",
+          "equipment": "wall_shelf_2400",
+          "category": "içecek",
+          "at": [
+            -1765.0,
+            -350.0,
+            0
+          ],
+          "yaw": 90
+        },
+        {
+          "id": "f_0085",
+          "equipment": "wall_shelf_2400",
+          "category": "kağıt",
+          "at": [
+            1765.0,
+            -350.0,
+            0
+          ],
+          "yaw": -90
+        },
+        {
+          "id": "f_0086",
+          "equipment": "wall_shelf_2400",
+          "category": "kişisel bakım",
+          "at": [
+            -1765.0,
+            -100.0,
+            0
+          ],
+          "yaw": 90
+        },
+        {
+          "id": "f_0087",
+          "equipment": "wall_shelf_2400",
+          "category": "makarna-bakliyat",
+          "at": [
+            1765.0,
+            -100.0,
+            0
+          ],
+          "yaw": -90
+        },
+        {
+          "id": "f_0088",
+          "equipment": "wall_shelf_2400",
+          "category": "temizlik",
+          "at": [
+            -1765.0,
+            150.0,
+            0
+          ],
+          "yaw": 90
+        },
+        {
+          "id": "f_0089",
+          "equipment": "wall_shelf_2400",
+          "category": "yağ-salça",
+          "at": [
+            1765.0,
+            150.0,
+            0
+          ],
+          "yaw": -90
+        },
+        {
+          "id": "f_0090",
+          "equipment": "cooler_wall",
+          "category": "süt",
+          "at": [
+            -1550.0,
+            908.0,
+            0
+          ],
+          "yaw": 0
+        },
+        {
+          "id": "f_0091",
+          "equipment": "cooler_wall",
+          "category": "süt",
+          "at": [
+            -1250.0,
+            908.0,
+            0
+          ],
+          "yaw": 0
+        },
+        {
+          "id": "f_0092",
+          "equipment": "cooler_wall",
+          "category": "süt",
+          "at": [
+            -950.0,
+            908.0,
+            0
+          ],
+          "yaw": 0
+        },
+        {
+          "id": "f_0093",
+          "equipment": "cooler_wall",
+          "category": "süt",
+          "at": [
+            -650.0,
+            908.0,
+            0
+          ],
+          "yaw": 0
+        },
+        {
+          "id": "f_0094",
+          "equipment": "cooler_wall",
+          "category": "süt",
+          "at": [
+            -350.0,
+            908.0,
+            0
+          ],
+          "yaw": 0
+        },
+        {
+          "id": "f_0095",
+          "equipment": "cooler_wall",
+          "category": "süt",
+          "at": [
+            -50.0,
+            908.0,
+            0
+          ],
+          "yaw": 0
+        },
+        {
+          "id": "f_0096",
+          "equipment": "cooler_wall",
+          "category": "süt",
+          "at": [
+            250.0,
+            908.0,
+            0
+          ],
+          "yaw": 0
+        },
+        {
+          "id": "f_0097",
+          "equipment": "cooler_wall",
+          "category": "süt",
+          "at": [
+            550.0,
+            908.0,
+            0
+          ],
+          "yaw": 0
+        },
+        {
+          "id": "f_0098",
+          "equipment": "cooler_wall",
+          "category": "süt",
+          "at": [
+            850.0,
+            908.0,
+            0
+          ],
+          "yaw": 0
+        },
+        {
+          "id": "f_0099",
+          "equipment": "freezer_chest",
+          "category": "dondurma",
+          "at": [
+            -1660.0,
+            -680.0,
+            0
+          ],
+          "yaw": 90
+        },
+        {
+          "id": "f_0100",
+          "equipment": "freezer_chest",
+          "category": "dondurma",
+          "at": [
+            -1540.0,
+            -680.0,
+            0
+          ],
+          "yaw": 90
+        },
+        {
+          "id": "f_0101",
+          "equipment": "freezer_chest",
+          "category": "dondurma",
+          "at": [
+            -1660.0,
+            -410.0,
+            0
+          ],
+          "yaw": 90
+        },
+        {
+          "id": "f_0102",
+          "equipment": "freezer_chest",
+          "category": "dondurma",
+          "at": [
+            -1540.0,
+            -410.0,
+            0
+          ],
+          "yaw": 90
+        },
+        {
+          "id": "f_0103",
+          "equipment": "checkout_single",
+          "category": "",
+          "at": [
+            -1620.0,
+            -1045.0,
+            0
+          ],
+          "yaw": 0
+        },
+        {
+          "id": "f_0104",
+          "equipment": "checkout_single",
+          "category": "",
+          "at": [
+            -1485.0,
+            -1045.0,
+            0
+          ],
+          "yaw": 0
+        },
+        {
+          "id": "f_0105",
+          "equipment": "checkout_single",
+          "category": "",
+          "at": [
+            -1350.0,
+            -1045.0,
+            0
+          ],
+          "yaw": 0
+        },
+        {
+          "id": "f_0106",
+          "equipment": "checkout_single",
+          "category": "",
+          "at": [
+            -1215.0,
+            -1045.0,
+            0
+          ],
+          "yaw": 0
+        },
+        {
+          "id": "f_0107",
+          "equipment": "checkout_single",
+          "category": "",
+          "at": [
+            -1080.0,
+            -1045.0,
+            0
+          ],
+          "yaw": 0
+        },
+        {
+          "id": "f_0108",
+          "equipment": "tobacco_backbar",
+          "category": "",
+          "at": [
+            -1620.0,
+            -880.0,
+            0
+          ],
+          "yaw": 0
+        },
+        {
+          "id": "f_0109",
+          "equipment": "basket_area",
+          "category": "",
+          "at": [
+            240,
+            -1130.0,
+            0
+          ],
+          "yaw": 0
+        },
+        {
+          "id": "f_0110",
+          "equipment": "pallet_display",
+          "category": "",
+          "at": [
+            1600.0,
+            -840.0,
+            0
+          ],
+          "yaw": 0
+        },
+        {
+          "id": "f_0111",
+          "equipment": "deli_counter",
+          "category": "",
+          "at": [
+            -1580.0,
+            800.0,
+            0
+          ],
+          "yaw": 0
+        },
+        {
+          "id": "f_0112",
+          "equipment": "bakery_shelf",
+          "category": "",
+          "at": [
+            -1550.0,
+            510.0,
+            0
+          ],
+          "yaw": 0
+        },
+        {
+          "id": "f_0113",
+          "equipment": "cart_area",
+          "category": "",
+          "at": [
+            1560.0,
+            -1020.0,
+            0
+          ],
+          "yaw": 0
+        },
+        {
+          "id": "f_0114",
+          "equipment": "produce_large",
+          "category": "",
+          "at": [
+            1580.0,
+            760.0,
+            0
+          ],
+          "yaw": 0
+        },
+        {
+          "id": "f_0115",
+          "equipment": "produce_large",
+          "category": "",
+          "at": [
+            1260.0,
+            760.0,
+            0
+          ],
+          "yaw": 0
+        },
+        {
+          "id": "f_0116",
+          "equipment": "produce_large",
+          "category": "",
+          "at": [
+            940.0,
+            760.0,
+            0
+          ],
+          "yaw": 0
+        }
+      ],
+      "props": [],
+      "stats": {
+        "shelfFrontM": 217.2,
+        "coolerM": 27.0,
+        "freezerM": 10.0,
+        "produceM2": 12.642,
+        "counters": [
+          "deli"
+        ],
+        "checkouts": 5,
+        "selfCheckouts": 0,
+        "backroomPallets": 24
+      }
+    },
+    {
+      "id": "hiper_01",
+      "format": "hiper",
+      "name": "Geniş koridorlu hipermarket",
+      "theme": "soguk_beyaz",
+      "shell": "/Game/Stores/Shells/SM_Shell_hiper_01",
+      "footprintCm": [
+        8000,
+        5000
+      ],
+      "salesAreaM2": 3600.0,
+      "backroomM2": 400.0,
+      "ceilingCm": 650,
+      "points": {
+        "entrance": {
+          "at": [
+            0,
+            -2500.0,
+            0
+          ],
+          "yaw": 90
+        },
+        "receiving": {
+          "at": [
+            3850.0,
+            2500.0,
+            0
+          ],
+          "yaw": -90
+        },
+        "playerStart": {
+          "at": [
+            0,
+            -2160.0,
+            97
+          ],
+          "yaw": 90
+        },
+        "customerSpawn": [
+          [
+            0,
+            -2700.0,
+            0
+          ]
+        ],
+        "backroom": {
+          "min": [
+            -4000.0,
+            2000.0,
+            0
+          ],
+          "max": [
+            4000.0,
+            2500.0,
+            650
+          ]
+        }
+      },
+      "fixtures": [
+        {
+          "id": "f_0001",
+          "equipment": "gondola_double_1200",
+          "category": "atıştırmalık",
+          "at": [
+            -3040.0,
+            -1650,
+            0
+          ],
+          "yaw": 90
+        },
+        {
+          "id": "f_0002",
+          "equipment": "gondola_double_1200",
+          "category": "atıştırmalık",
+          "at": [
+            -3040.0,
+            -1470,
+            0
+          ],
+          "yaw": 90
+        },
+        {
+          "id": "f_0003",
+          "equipment": "gondola_double_1200",
+          "category": "atıştırmalık",
+          "at": [
+            -3040.0,
+            -1290,
+            0
+          ],
+          "yaw": 90
+        },
+        {
+          "id": "f_0004",
+          "equipment": "gondola_double_1200",
+          "category": "atıştırmalık",
+          "at": [
+            -3040.0,
+            -1110,
+            0
+          ],
+          "yaw": 90
+        },
+        {
+          "id": "f_0005",
+          "equipment": "gondola_double_1200",
+          "category": "atıştırmalık",
+          "at": [
+            -3040.0,
+            -930,
+            0
+          ],
+          "yaw": 90
+        },
+        {
+          "id": "f_0006",
+          "equipment": "gondola_double_1200",
+          "category": "atıştırmalık",
+          "at": [
+            -3040.0,
+            -750,
+            0
+          ],
+          "yaw": 90
+        },
+        {
+          "id": "f_0007",
+          "equipment": "gondola_double_1200",
+          "category": "atıştırmalık",
+          "at": [
+            -3040.0,
+            -570,
+            0
+          ],
+          "yaw": 90
+        },
+        {
+          "id": "f_0008",
+          "equipment": "gondola_double_1200",
+          "category": "atıştırmalık",
+          "at": [
+            -3040.0,
+            -390,
+            0
+          ],
+          "yaw": 90
+        },
+        {
+          "id": "f_0009",
+          "equipment": "gondola_double_1200",
+          "category": "atıştırmalık",
+          "at": [
+            -3040.0,
+            -210,
+            0
+          ],
+          "yaw": 90
+        },
+        {
+          "id": "f_0010",
+          "equipment": "gondola_double_1200",
+          "category": "atıştırmalık",
+          "at": [
+            -3040.0,
+            -30,
+            0
+          ],
+          "yaw": 90
+        },
+        {
+          "id": "f_0011",
+          "equipment": "gondola_double_1200",
+          "category": "atıştırmalık",
+          "at": [
+            -3040.0,
+            150,
+            0
+          ],
+          "yaw": 90
+        },
+        {
+          "id": "f_0012",
+          "equipment": "gondola_double_1200",
+          "category": "atıştırmalık",
+          "at": [
+            -3040.0,
+            330,
+            0
+          ],
+          "yaw": 90
+        },
+        {
+          "id": "f_0013",
+          "equipment": "gondola_double_1200",
+          "category": "atıştırmalık",
+          "at": [
+            -3040.0,
+            510,
+            0
+          ],
+          "yaw": 90
+        },
+        {
+          "id": "f_0014",
+          "equipment": "gondola_double_1200",
+          "category": "atıştırmalık",
+          "at": [
+            -3040.0,
+            690,
+            0
+          ],
+          "yaw": 90
+        },
+        {
+          "id": "f_0015",
+          "equipment": "gondola_double_1200",
+          "category": "atıştırmalık",
+          "at": [
+            -3040.0,
+            870,
+            0
+          ],
+          "yaw": 90
+        },
+        {
+          "id": "f_0016",
+          "equipment": "gondola_double_1200",
+          "category": "atıştırmalık",
+          "at": [
+            -3040.0,
+            1050,
+            0
+          ],
+          "yaw": 90
+        },
+        {
+          "id": "f_0017",
+          "equipment": "gondola_double_1200",
+          "category": "atıştırmalık",
+          "at": [
+            -3040.0,
+            1230,
+            0
+          ],
+          "yaw": 90
+        },
+        {
+          "id": "f_0018",
+          "equipment": "gondola_double_1200",
+          "category": "atıştırmalık",
+          "at": [
+            -3040.0,
+            1410,
+            0
+          ],
+          "yaw": 90
+        },
+        {
+          "id": "f_0019",
+          "equipment": "gondola_double_1200",
+          "category": "atıştırmalık",
+          "at": [
+            -3040.0,
+            1590,
+            0
+          ],
+          "yaw": 90
+        },
+        {
+          "id": "f_0020",
+          "equipment": "gondola_double_1200",
+          "category": "bisküvi-çikolata",
+          "at": [
+            -2660.0,
+            -1650,
+            0
+          ],
+          "yaw": 90
+        },
+        {
+          "id": "f_0021",
+          "equipment": "gondola_double_1200",
+          "category": "bisküvi-çikolata",
+          "at": [
+            -2660.0,
+            -1470,
+            0
+          ],
+          "yaw": 90
+        },
+        {
+          "id": "f_0022",
+          "equipment": "gondola_double_1200",
+          "category": "bisküvi-çikolata",
+          "at": [
+            -2660.0,
+            -1290,
+            0
+          ],
+          "yaw": 90
+        },
+        {
+          "id": "f_0023",
+          "equipment": "gondola_double_1200",
+          "category": "bisküvi-çikolata",
+          "at": [
+            -2660.0,
+            -1110,
+            0
+          ],
+          "yaw": 90
+        },
+        {
+          "id": "f_0024",
+          "equipment": "gondola_double_1200",
+          "category": "bisküvi-çikolata",
+          "at": [
+            -2660.0,
+            -930,
+            0
+          ],
+          "yaw": 90
+        },
+        {
+          "id": "f_0025",
+          "equipment": "gondola_double_1200",
+          "category": "bisküvi-çikolata",
+          "at": [
+            -2660.0,
+            -750,
+            0
+          ],
+          "yaw": 90
+        },
+        {
+          "id": "f_0026",
+          "equipment": "gondola_double_1200",
+          "category": "bisküvi-çikolata",
+          "at": [
+            -2660.0,
+            -570,
+            0
+          ],
+          "yaw": 90
+        },
+        {
+          "id": "f_0027",
+          "equipment": "gondola_double_1200",
+          "category": "bisküvi-çikolata",
+          "at": [
+            -2660.0,
+            -390,
+            0
+          ],
+          "yaw": 90
+        },
+        {
+          "id": "f_0028",
+          "equipment": "gondola_double_1200",
+          "category": "bisküvi-çikolata",
+          "at": [
+            -2660.0,
+            -210,
+            0
+          ],
+          "yaw": 90
+        },
+        {
+          "id": "f_0029",
+          "equipment": "gondola_double_1200",
+          "category": "bisküvi-çikolata",
+          "at": [
+            -2660.0,
+            -30,
+            0
+          ],
+          "yaw": 90
+        },
+        {
+          "id": "f_0030",
+          "equipment": "gondola_double_1200",
+          "category": "bisküvi-çikolata",
+          "at": [
+            -2660.0,
+            150,
+            0
+          ],
+          "yaw": 90
+        },
+        {
+          "id": "f_0031",
+          "equipment": "gondola_double_1200",
+          "category": "bisküvi-çikolata",
+          "at": [
+            -2660.0,
+            330,
+            0
+          ],
+          "yaw": 90
+        },
+        {
+          "id": "f_0032",
+          "equipment": "gondola_double_1200",
+          "category": "bisküvi-çikolata",
+          "at": [
+            -2660.0,
+            510,
+            0
+          ],
+          "yaw": 90
+        },
+        {
+          "id": "f_0033",
+          "equipment": "gondola_double_1200",
+          "category": "bisküvi-çikolata",
+          "at": [
+            -2660.0,
+            690,
+            0
+          ],
+          "yaw": 90
+        },
+        {
+          "id": "f_0034",
+          "equipment": "gondola_double_1200",
+          "category": "bisküvi-çikolata",
+          "at": [
+            -2660.0,
+            870,
+            0
+          ],
+          "yaw": 90
+        },
+        {
+          "id": "f_0035",
+          "equipment": "gondola_double_1200",
+          "category": "bisküvi-çikolata",
+          "at": [
+            -2660.0,
+            1050,
+            0
+          ],
+          "yaw": 90
+        },
+        {
+          "id": "f_0036",
+          "equipment": "gondola_double_1200",
+          "category": "bisküvi-çikolata",
+          "at": [
+            -2660.0,
+            1230,
+            0
+          ],
+          "yaw": 90
+        },
+        {
+          "id": "f_0037",
+          "equipment": "gondola_double_1200",
+          "category": "bisküvi-çikolata",
+          "at": [
+            -2660.0,
+            1410,
+            0
+          ],
+          "yaw": 90
+        },
+        {
+          "id": "f_0038",
+          "equipment": "gondola_double_1200",
+          "category": "bisküvi-çikolata",
+          "at": [
+            -2660.0,
+            1590,
+            0
+          ],
+          "yaw": 90
+        },
+        {
+          "id": "f_0039",
+          "equipment": "gondola_double_1200",
+          "category": "içecek",
+          "at": [
+            -2280.0,
+            -1650,
+            0
+          ],
+          "yaw": 90
+        },
+        {
+          "id": "f_0040",
+          "equipment": "gondola_double_1200",
+          "category": "içecek",
+          "at": [
+            -2280.0,
+            -1470,
+            0
+          ],
+          "yaw": 90
+        },
+        {
+          "id": "f_0041",
+          "equipment": "gondola_double_1200",
+          "category": "içecek",
+          "at": [
+            -2280.0,
+            -1290,
+            0
+          ],
+          "yaw": 90
+        },
+        {
+          "id": "f_0042",
+          "equipment": "gondola_double_1200",
+          "category": "içecek",
+          "at": [
+            -2280.0,
+            -1110,
+            0
+          ],
+          "yaw": 90
+        },
+        {
+          "id": "f_0043",
+          "equipment": "gondola_double_1200",
+          "category": "içecek",
+          "at": [
+            -2280.0,
+            -930,
+            0
+          ],
+          "yaw": 90
+        },
+        {
+          "id": "f_0044",
+          "equipment": "gondola_double_1200",
+          "category": "içecek",
+          "at": [
+            -2280.0,
+            -750,
+            0
+          ],
+          "yaw": 90
+        },
+        {
+          "id": "f_0045",
+          "equipment": "gondola_double_1200",
+          "category": "içecek",
+          "at": [
+            -2280.0,
+            -570,
+            0
+          ],
+          "yaw": 90
+        },
+        {
+          "id": "f_0046",
+          "equipment": "gondola_double_1200",
+          "category": "içecek",
+          "at": [
+            -2280.0,
+            -390,
+            0
+          ],
+          "yaw": 90
+        },
+        {
+          "id": "f_0047",
+          "equipment": "gondola_double_1200",
+          "category": "içecek",
+          "at": [
+            -2280.0,
+            -210,
+            0
+          ],
+          "yaw": 90
+        },
+        {
+          "id": "f_0048",
+          "equipment": "gondola_double_1200",
+          "category": "içecek",
+          "at": [
+            -2280.0,
+            -30,
+            0
+          ],
+          "yaw": 90
+        },
+        {
+          "id": "f_0049",
+          "equipment": "gondola_double_1200",
+          "category": "içecek",
+          "at": [
+            -2280.0,
+            150,
+            0
+          ],
+          "yaw": 90
+        },
+        {
+          "id": "f_0050",
+          "equipment": "gondola_double_1200",
+          "category": "içecek",
+          "at": [
+            -2280.0,
+            330,
+            0
+          ],
+          "yaw": 90
+        },
+        {
+          "id": "f_0051",
+          "equipment": "gondola_double_1200",
+          "category": "içecek",
+          "at": [
+            -2280.0,
+            510,
+            0
+          ],
+          "yaw": 90
+        },
+        {
+          "id": "f_0052",
+          "equipment": "gondola_double_1200",
+          "category": "içecek",
+          "at": [
+            -2280.0,
+            690,
+            0
+          ],
+          "yaw": 90
+        },
+        {
+          "id": "f_0053",
+          "equipment": "gondola_double_1200",
+          "category": "içecek",
+          "at": [
+            -2280.0,
+            870,
+            0
+          ],
+          "yaw": 90
+        },
+        {
+          "id": "f_0054",
+          "equipment": "gondola_double_1200",
+          "category": "içecek",
+          "at": [
+            -2280.0,
+            1050,
+            0
+          ],
+          "yaw": 90
+        },
+        {
+          "id": "f_0055",
+          "equipment": "gondola_double_1200",
+          "category": "içecek",
+          "at": [
+            -2280.0,
+            1230,
+            0
+          ],
+          "yaw": 90
+        },
+        {
+          "id": "f_0056",
+          "equipment": "gondola_double_1200",
+          "category": "içecek",
+          "at": [
+            -2280.0,
+            1410,
+            0
+          ],
+          "yaw": 90
+        },
+        {
+          "id": "f_0057",
+          "equipment": "gondola_double_1200",
+          "category": "içecek",
+          "at": [
+            -2280.0,
+            1590,
+            0
+          ],
+          "yaw": 90
+        },
+        {
+          "id": "f_0058",
+          "equipment": "gondola_double_1200",
+          "category": "kağıt",
+          "at": [
+            -1900.0,
+            -1650,
+            0
+          ],
+          "yaw": 90
+        },
+        {
+          "id": "f_0059",
+          "equipment": "gondola_double_1200",
+          "category": "kağıt",
+          "at": [
+            -1900.0,
+            -1470,
+            0
+          ],
+          "yaw": 90
+        },
+        {
+          "id": "f_0060",
+          "equipment": "gondola_double_1200",
+          "category": "kağıt",
+          "at": [
+            -1900.0,
+            -1290,
+            0
+          ],
+          "yaw": 90
+        },
+        {
+          "id": "f_0061",
+          "equipment": "gondola_double_1200",
+          "category": "kağıt",
+          "at": [
+            -1900.0,
+            -1110,
+            0
+          ],
+          "yaw": 90
+        },
+        {
+          "id": "f_0062",
+          "equipment": "gondola_double_1200",
+          "category": "kağıt",
+          "at": [
+            -1900.0,
+            -930,
+            0
+          ],
+          "yaw": 90
+        },
+        {
+          "id": "f_0063",
+          "equipment": "gondola_double_1200",
+          "category": "kağıt",
+          "at": [
+            -1900.0,
+            -750,
+            0
+          ],
+          "yaw": 90
+        },
+        {
+          "id": "f_0064",
+          "equipment": "gondola_double_1200",
+          "category": "kağıt",
+          "at": [
+            -1900.0,
+            -570,
+            0
+          ],
+          "yaw": 90
+        },
+        {
+          "id": "f_0065",
+          "equipment": "gondola_double_1200",
+          "category": "kağıt",
+          "at": [
+            -1900.0,
+            -390,
+            0
+          ],
+          "yaw": 90
+        },
+        {
+          "id": "f_0066",
+          "equipment": "gondola_double_1200",
+          "category": "kağıt",
+          "at": [
+            -1900.0,
+            -210,
+            0
+          ],
+          "yaw": 90
+        },
+        {
+          "id": "f_0067",
+          "equipment": "gondola_double_1200",
+          "category": "kağıt",
+          "at": [
+            -1900.0,
+            -30,
+            0
+          ],
+          "yaw": 90
+        },
+        {
+          "id": "f_0068",
+          "equipment": "gondola_double_1200",
+          "category": "kağıt",
+          "at": [
+            -1900.0,
+            150,
+            0
+          ],
+          "yaw": 90
+        },
+        {
+          "id": "f_0069",
+          "equipment": "gondola_double_1200",
+          "category": "kağıt",
+          "at": [
+            -1900.0,
+            330,
+            0
+          ],
+          "yaw": 90
+        },
+        {
+          "id": "f_0070",
+          "equipment": "gondola_double_1200",
+          "category": "kağıt",
+          "at": [
+            -1900.0,
+            510,
+            0
+          ],
+          "yaw": 90
+        },
+        {
+          "id": "f_0071",
+          "equipment": "gondola_double_1200",
+          "category": "kağıt",
+          "at": [
+            -1900.0,
+            690,
+            0
+          ],
+          "yaw": 90
+        },
+        {
+          "id": "f_0072",
+          "equipment": "gondola_double_1200",
+          "category": "kağıt",
+          "at": [
+            -1900.0,
+            870,
+            0
+          ],
+          "yaw": 90
+        },
+        {
+          "id": "f_0073",
+          "equipment": "gondola_double_1200",
+          "category": "kağıt",
+          "at": [
+            -1900.0,
+            1050,
+            0
+          ],
+          "yaw": 90
+        },
+        {
+          "id": "f_0074",
+          "equipment": "gondola_double_1200",
+          "category": "kağıt",
+          "at": [
+            -1900.0,
+            1230,
+            0
+          ],
+          "yaw": 90
+        },
+        {
+          "id": "f_0075",
+          "equipment": "gondola_double_1200",
+          "category": "kağıt",
+          "at": [
+            -1900.0,
+            1410,
+            0
+          ],
+          "yaw": 90
+        },
+        {
+          "id": "f_0076",
+          "equipment": "gondola_double_1200",
+          "category": "kağıt",
+          "at": [
+            -1900.0,
+            1590,
+            0
+          ],
+          "yaw": 90
+        },
+        {
+          "id": "f_0077",
+          "equipment": "gondola_double_1200",
+          "category": "kişisel bakım",
+          "at": [
+            -1520.0,
+            -1650,
+            0
+          ],
+          "yaw": 90
+        },
+        {
+          "id": "f_0078",
+          "equipment": "gondola_double_1200",
+          "category": "kişisel bakım",
+          "at": [
+            -1520.0,
+            -1470,
+            0
+          ],
+          "yaw": 90
+        },
+        {
+          "id": "f_0079",
+          "equipment": "gondola_double_1200",
+          "category": "kişisel bakım",
+          "at": [
+            -1520.0,
+            -1290,
+            0
+          ],
+          "yaw": 90
+        },
+        {
+          "id": "f_0080",
+          "equipment": "gondola_double_1200",
+          "category": "kişisel bakım",
+          "at": [
+            -1520.0,
+            -1110,
+            0
+          ],
+          "yaw": 90
+        },
+        {
+          "id": "f_0081",
+          "equipment": "gondola_double_1200",
+          "category": "kişisel bakım",
+          "at": [
+            -1520.0,
+            -930,
+            0
+          ],
+          "yaw": 90
+        },
+        {
+          "id": "f_0082",
+          "equipment": "gondola_double_1200",
+          "category": "kişisel bakım",
+          "at": [
+            -1520.0,
+            -750,
+            0
+          ],
+          "yaw": 90
+        },
+        {
+          "id": "f_0083",
+          "equipment": "gondola_double_1200",
+          "category": "kişisel bakım",
+          "at": [
+            -1520.0,
+            -570,
+            0
+          ],
+          "yaw": 90
+        },
+        {
+          "id": "f_0084",
+          "equipment": "gondola_double_1200",
+          "category": "kişisel bakım",
+          "at": [
+            -1520.0,
+            -390,
+            0
+          ],
+          "yaw": 90
+        },
+        {
+          "id": "f_0085",
+          "equipment": "gondola_double_1200",
+          "category": "kişisel bakım",
+          "at": [
+            -1520.0,
+            -210,
+            0
+          ],
+          "yaw": 90
+        },
+        {
+          "id": "f_0086",
+          "equipment": "gondola_double_1200",
+          "category": "kişisel bakım",
+          "at": [
+            -1520.0,
+            -30,
+            0
+          ],
+          "yaw": 90
+        },
+        {
+          "id": "f_0087",
+          "equipment": "gondola_double_1200",
+          "category": "kişisel bakım",
+          "at": [
+            -1520.0,
+            150,
+            0
+          ],
+          "yaw": 90
+        },
+        {
+          "id": "f_0088",
+          "equipment": "gondola_double_1200",
+          "category": "kişisel bakım",
+          "at": [
+            -1520.0,
+            330,
+            0
+          ],
+          "yaw": 90
+        },
+        {
+          "id": "f_0089",
+          "equipment": "gondola_double_1200",
+          "category": "kişisel bakım",
+          "at": [
+            -1520.0,
+            510,
+            0
+          ],
+          "yaw": 90
+        },
+        {
+          "id": "f_0090",
+          "equipment": "gondola_double_1200",
+          "category": "kişisel bakım",
+          "at": [
+            -1520.0,
+            690,
+            0
+          ],
+          "yaw": 90
+        },
+        {
+          "id": "f_0091",
+          "equipment": "gondola_double_1200",
+          "category": "kişisel bakım",
+          "at": [
+            -1520.0,
+            870,
+            0
+          ],
+          "yaw": 90
+        },
+        {
+          "id": "f_0092",
+          "equipment": "gondola_double_1200",
+          "category": "kişisel bakım",
+          "at": [
+            -1520.0,
+            1050,
+            0
+          ],
+          "yaw": 90
+        },
+        {
+          "id": "f_0093",
+          "equipment": "gondola_double_1200",
+          "category": "kişisel bakım",
+          "at": [
+            -1520.0,
+            1230,
+            0
+          ],
+          "yaw": 90
+        },
+        {
+          "id": "f_0094",
+          "equipment": "gondola_double_1200",
+          "category": "kişisel bakım",
+          "at": [
+            -1520.0,
+            1410,
+            0
+          ],
+          "yaw": 90
+        },
+        {
+          "id": "f_0095",
+          "equipment": "gondola_double_1200",
+          "category": "kişisel bakım",
+          "at": [
+            -1520.0,
+            1590,
+            0
+          ],
+          "yaw": 90
+        },
+        {
+          "id": "f_0096",
+          "equipment": "gondola_double_1200",
+          "category": "makarna-bakliyat",
+          "at": [
+            -1140.0,
+            -1650,
+            0
+          ],
+          "yaw": 90
+        },
+        {
+          "id": "f_0097",
+          "equipment": "gondola_double_1200",
+          "category": "makarna-bakliyat",
+          "at": [
+            -1140.0,
+            -1470,
+            0
+          ],
+          "yaw": 90
+        },
+        {
+          "id": "f_0098",
+          "equipment": "gondola_double_1200",
+          "category": "makarna-bakliyat",
+          "at": [
+            -1140.0,
+            -1290,
+            0
+          ],
+          "yaw": 90
+        },
+        {
+          "id": "f_0099",
+          "equipment": "gondola_double_1200",
+          "category": "makarna-bakliyat",
+          "at": [
+            -1140.0,
+            -1110,
+            0
+          ],
+          "yaw": 90
+        },
+        {
+          "id": "f_0100",
+          "equipment": "gondola_double_1200",
+          "category": "makarna-bakliyat",
+          "at": [
+            -1140.0,
+            -930,
+            0
+          ],
+          "yaw": 90
+        },
+        {
+          "id": "f_0101",
+          "equipment": "gondola_double_1200",
+          "category": "makarna-bakliyat",
+          "at": [
+            -1140.0,
+            -750,
+            0
+          ],
+          "yaw": 90
+        },
+        {
+          "id": "f_0102",
+          "equipment": "gondola_double_1200",
+          "category": "makarna-bakliyat",
+          "at": [
+            -1140.0,
+            -570,
+            0
+          ],
+          "yaw": 90
+        },
+        {
+          "id": "f_0103",
+          "equipment": "gondola_double_1200",
+          "category": "makarna-bakliyat",
+          "at": [
+            -1140.0,
+            -390,
+            0
+          ],
+          "yaw": 90
+        },
+        {
+          "id": "f_0104",
+          "equipment": "gondola_double_1200",
+          "category": "makarna-bakliyat",
+          "at": [
+            -1140.0,
+            -210,
+            0
+          ],
+          "yaw": 90
+        },
+        {
+          "id": "f_0105",
+          "equipment": "gondola_double_1200",
+          "category": "makarna-bakliyat",
+          "at": [
+            -1140.0,
+            -30,
+            0
+          ],
+          "yaw": 90
+        },
+        {
+          "id": "f_0106",
+          "equipment": "gondola_double_1200",
+          "category": "makarna-bakliyat",
+          "at": [
+            -1140.0,
+            150,
+            0
+          ],
+          "yaw": 90
+        },
+        {
+          "id": "f_0107",
+          "equipment": "gondola_double_1200",
+          "category": "makarna-bakliyat",
+          "at": [
+            -1140.0,
+            330,
+            0
+          ],
+          "yaw": 90
+        },
+        {
+          "id": "f_0108",
+          "equipment": "gondola_double_1200",
+          "category": "makarna-bakliyat",
+          "at": [
+            -1140.0,
+            510,
+            0
+          ],
+          "yaw": 90
+        },
+        {
+          "id": "f_0109",
+          "equipment": "gondola_double_1200",
+          "category": "makarna-bakliyat",
+          "at": [
+            -1140.0,
+            690,
+            0
+          ],
+          "yaw": 90
+        },
+        {
+          "id": "f_0110",
+          "equipment": "gondola_double_1200",
+          "category": "makarna-bakliyat",
+          "at": [
+            -1140.0,
+            870,
+            0
+          ],
+          "yaw": 90
+        },
+        {
+          "id": "f_0111",
+          "equipment": "gondola_double_1200",
+          "category": "makarna-bakliyat",
+          "at": [
+            -1140.0,
+            1050,
+            0
+          ],
+          "yaw": 90
+        },
+        {
+          "id": "f_0112",
+          "equipment": "gondola_double_1200",
+          "category": "makarna-bakliyat",
+          "at": [
+            -1140.0,
+            1230,
+            0
+          ],
+          "yaw": 90
+        },
+        {
+          "id": "f_0113",
+          "equipment": "gondola_double_1200",
+          "category": "makarna-bakliyat",
+          "at": [
+            -1140.0,
+            1410,
+            0
+          ],
+          "yaw": 90
+        },
+        {
+          "id": "f_0114",
+          "equipment": "gondola_double_1200",
+          "category": "makarna-bakliyat",
+          "at": [
+            -1140.0,
+            1590,
+            0
+          ],
+          "yaw": 90
+        },
+        {
+          "id": "f_0115",
+          "equipment": "gondola_double_1200",
+          "category": "temizlik",
+          "at": [
+            -760.0,
+            -1650,
+            0
+          ],
+          "yaw": 90
+        },
+        {
+          "id": "f_0116",
+          "equipment": "gondola_double_1200",
+          "category": "temizlik",
+          "at": [
+            -760.0,
+            -1470,
+            0
+          ],
+          "yaw": 90
+        },
+        {
+          "id": "f_0117",
+          "equipment": "gondola_double_1200",
+          "category": "temizlik",
+          "at": [
+            -760.0,
+            -1290,
+            0
+          ],
+          "yaw": 90
+        },
+        {
+          "id": "f_0118",
+          "equipment": "gondola_double_1200",
+          "category": "temizlik",
+          "at": [
+            -760.0,
+            -1110,
+            0
+          ],
+          "yaw": 90
+        },
+        {
+          "id": "f_0119",
+          "equipment": "gondola_double_1200",
+          "category": "temizlik",
+          "at": [
+            -760.0,
+            -930,
+            0
+          ],
+          "yaw": 90
+        },
+        {
+          "id": "f_0120",
+          "equipment": "gondola_double_1200",
+          "category": "temizlik",
+          "at": [
+            -760.0,
+            -750,
+            0
+          ],
+          "yaw": 90
+        },
+        {
+          "id": "f_0121",
+          "equipment": "gondola_double_1200",
+          "category": "temizlik",
+          "at": [
+            -760.0,
+            -570,
+            0
+          ],
+          "yaw": 90
+        },
+        {
+          "id": "f_0122",
+          "equipment": "gondola_double_1200",
+          "category": "temizlik",
+          "at": [
+            -760.0,
+            -390,
+            0
+          ],
+          "yaw": 90
+        },
+        {
+          "id": "f_0123",
+          "equipment": "gondola_double_1200",
+          "category": "temizlik",
+          "at": [
+            -760.0,
+            -210,
+            0
+          ],
+          "yaw": 90
+        },
+        {
+          "id": "f_0124",
+          "equipment": "gondola_double_1200",
+          "category": "temizlik",
+          "at": [
+            -760.0,
+            -30,
+            0
+          ],
+          "yaw": 90
+        },
+        {
+          "id": "f_0125",
+          "equipment": "gondola_double_1200",
+          "category": "temizlik",
+          "at": [
+            -760.0,
+            150,
+            0
+          ],
+          "yaw": 90
+        },
+        {
+          "id": "f_0126",
+          "equipment": "gondola_double_1200",
+          "category": "temizlik",
+          "at": [
+            -760.0,
+            330,
+            0
+          ],
+          "yaw": 90
+        },
+        {
+          "id": "f_0127",
+          "equipment": "gondola_double_1200",
+          "category": "temizlik",
+          "at": [
+            -760.0,
+            510,
+            0
+          ],
+          "yaw": 90
+        },
+        {
+          "id": "f_0128",
+          "equipment": "gondola_double_1200",
+          "category": "temizlik",
+          "at": [
+            -760.0,
+            690,
+            0
+          ],
+          "yaw": 90
+        },
+        {
+          "id": "f_0129",
+          "equipment": "gondola_double_1200",
+          "category": "temizlik",
+          "at": [
+            -760.0,
+            870,
+            0
+          ],
+          "yaw": 90
+        },
+        {
+          "id": "f_0130",
+          "equipment": "gondola_double_1200",
+          "category": "temizlik",
+          "at": [
+            -760.0,
+            1050,
+            0
+          ],
+          "yaw": 90
+        },
+        {
+          "id": "f_0131",
+          "equipment": "gondola_double_1200",
+          "category": "temizlik",
+          "at": [
+            -760.0,
+            1230,
+            0
+          ],
+          "yaw": 90
+        },
+        {
+          "id": "f_0132",
+          "equipment": "gondola_double_1200",
+          "category": "temizlik",
+          "at": [
+            -760.0,
+            1410,
+            0
+          ],
+          "yaw": 90
+        },
+        {
+          "id": "f_0133",
+          "equipment": "gondola_double_1200",
+          "category": "temizlik",
+          "at": [
+            -760.0,
+            1590,
+            0
+          ],
+          "yaw": 90
+        },
+        {
+          "id": "f_0134",
+          "equipment": "gondola_double_1200",
+          "category": "yağ-salça",
+          "at": [
+            -380.0,
+            -1650,
+            0
+          ],
+          "yaw": 90
+        },
+        {
+          "id": "f_0135",
+          "equipment": "gondola_double_1200",
+          "category": "yağ-salça",
+          "at": [
+            -380.0,
+            -1470,
+            0
+          ],
+          "yaw": 90
+        },
+        {
+          "id": "f_0136",
+          "equipment": "gondola_double_1200",
+          "category": "yağ-salça",
+          "at": [
+            -380.0,
+            -1290,
+            0
+          ],
+          "yaw": 90
+        },
+        {
+          "id": "f_0137",
+          "equipment": "gondola_double_1200",
+          "category": "yağ-salça",
+          "at": [
+            -380.0,
+            -1110,
+            0
+          ],
+          "yaw": 90
+        },
+        {
+          "id": "f_0138",
+          "equipment": "gondola_double_1200",
+          "category": "yağ-salça",
+          "at": [
+            -380.0,
+            -930,
+            0
+          ],
+          "yaw": 90
+        },
+        {
+          "id": "f_0139",
+          "equipment": "gondola_double_1200",
+          "category": "yağ-salça",
+          "at": [
+            -380.0,
+            -750,
+            0
+          ],
+          "yaw": 90
+        },
+        {
+          "id": "f_0140",
+          "equipment": "gondola_double_1200",
+          "category": "yağ-salça",
+          "at": [
+            -380.0,
+            -570,
+            0
+          ],
+          "yaw": 90
+        },
+        {
+          "id": "f_0141",
+          "equipment": "gondola_double_1200",
+          "category": "yağ-salça",
+          "at": [
+            -380.0,
+            -390,
+            0
+          ],
+          "yaw": 90
+        },
+        {
+          "id": "f_0142",
+          "equipment": "gondola_double_1200",
+          "category": "yağ-salça",
+          "at": [
+            -380.0,
+            -210,
+            0
+          ],
+          "yaw": 90
+        },
+        {
+          "id": "f_0143",
+          "equipment": "gondola_double_1200",
+          "category": "yağ-salça",
+          "at": [
+            -380.0,
+            -30,
+            0
+          ],
+          "yaw": 90
+        },
+        {
+          "id": "f_0144",
+          "equipment": "gondola_double_1200",
+          "category": "yağ-salça",
+          "at": [
+            -380.0,
+            150,
+            0
+          ],
+          "yaw": 90
+        },
+        {
+          "id": "f_0145",
+          "equipment": "gondola_double_1200",
+          "category": "yağ-salça",
+          "at": [
+            -380.0,
+            330,
+            0
+          ],
+          "yaw": 90
+        },
+        {
+          "id": "f_0146",
+          "equipment": "gondola_double_1200",
+          "category": "yağ-salça",
+          "at": [
+            -380.0,
+            510,
+            0
+          ],
+          "yaw": 90
+        },
+        {
+          "id": "f_0147",
+          "equipment": "gondola_double_1200",
+          "category": "yağ-salça",
+          "at": [
+            -380.0,
+            690,
+            0
+          ],
+          "yaw": 90
+        },
+        {
+          "id": "f_0148",
+          "equipment": "gondola_double_1200",
+          "category": "yağ-salça",
+          "at": [
+            -380.0,
+            870,
+            0
+          ],
+          "yaw": 90
+        },
+        {
+          "id": "f_0149",
+          "equipment": "gondola_double_1200",
+          "category": "yağ-salça",
+          "at": [
+            -380.0,
+            1050,
+            0
+          ],
+          "yaw": 90
+        },
+        {
+          "id": "f_0150",
+          "equipment": "gondola_double_1200",
+          "category": "yağ-salça",
+          "at": [
+            -380.0,
+            1230,
+            0
+          ],
+          "yaw": 90
+        },
+        {
+          "id": "f_0151",
+          "equipment": "gondola_double_1200",
+          "category": "yağ-salça",
+          "at": [
+            -380.0,
+            1410,
+            0
+          ],
+          "yaw": 90
+        },
+        {
+          "id": "f_0152",
+          "equipment": "gondola_double_1200",
+          "category": "yağ-salça",
+          "at": [
+            -380.0,
+            1590,
+            0
+          ],
+          "yaw": 90
+        },
+        {
+          "id": "f_0153",
+          "equipment": "gondola_double_1200",
+          "category": "çay-kahve",
+          "at": [
+            0.0,
+            -1650,
+            0
+          ],
+          "yaw": 90
+        },
+        {
+          "id": "f_0154",
+          "equipment": "gondola_double_1200",
+          "category": "çay-kahve",
+          "at": [
+            0.0,
+            -1470,
+            0
+          ],
+          "yaw": 90
+        },
+        {
+          "id": "f_0155",
+          "equipment": "gondola_double_1200",
+          "category": "çay-kahve",
+          "at": [
+            0.0,
+            -1290,
+            0
+          ],
+          "yaw": 90
+        },
+        {
+          "id": "f_0156",
+          "equipment": "gondola_double_1200",
+          "category": "çay-kahve",
+          "at": [
+            0.0,
+            -1110,
+            0
+          ],
+          "yaw": 90
+        },
+        {
+          "id": "f_0157",
+          "equipment": "gondola_double_1200",
+          "category": "çay-kahve",
+          "at": [
+            0.0,
+            -930,
+            0
+          ],
+          "yaw": 90
+        },
+        {
+          "id": "f_0158",
+          "equipment": "gondola_double_1200",
+          "category": "çay-kahve",
+          "at": [
+            0.0,
+            -750,
+            0
+          ],
+          "yaw": 90
+        },
+        {
+          "id": "f_0159",
+          "equipment": "gondola_double_1200",
+          "category": "çay-kahve",
+          "at": [
+            0.0,
+            -570,
+            0
+          ],
+          "yaw": 90
+        },
+        {
+          "id": "f_0160",
+          "equipment": "gondola_double_1200",
+          "category": "çay-kahve",
+          "at": [
+            0.0,
+            -390,
+            0
+          ],
+          "yaw": 90
+        },
+        {
+          "id": "f_0161",
+          "equipment": "gondola_double_1200",
+          "category": "çay-kahve",
+          "at": [
+            0.0,
+            -210,
+            0
+          ],
+          "yaw": 90
+        },
+        {
+          "id": "f_0162",
+          "equipment": "gondola_double_1200",
+          "category": "çay-kahve",
+          "at": [
+            0.0,
+            -30,
+            0
+          ],
+          "yaw": 90
+        },
+        {
+          "id": "f_0163",
+          "equipment": "gondola_double_1200",
+          "category": "çay-kahve",
+          "at": [
+            0.0,
+            150,
+            0
+          ],
+          "yaw": 90
+        },
+        {
+          "id": "f_0164",
+          "equipment": "gondola_double_1200",
+          "category": "çay-kahve",
+          "at": [
+            0.0,
+            330,
+            0
+          ],
+          "yaw": 90
+        },
+        {
+          "id": "f_0165",
+          "equipment": "gondola_double_1200",
+          "category": "çay-kahve",
+          "at": [
+            0.0,
+            510,
+            0
+          ],
+          "yaw": 90
+        },
+        {
+          "id": "f_0166",
+          "equipment": "gondola_double_1200",
+          "category": "çay-kahve",
+          "at": [
+            0.0,
+            690,
+            0
+          ],
+          "yaw": 90
+        },
+        {
+          "id": "f_0167",
+          "equipment": "gondola_double_1200",
+          "category": "çay-kahve",
+          "at": [
+            0.0,
+            870,
+            0
+          ],
+          "yaw": 90
+        },
+        {
+          "id": "f_0168",
+          "equipment": "gondola_double_1200",
+          "category": "çay-kahve",
+          "at": [
+            0.0,
+            1050,
+            0
+          ],
+          "yaw": 90
+        },
+        {
+          "id": "f_0169",
+          "equipment": "gondola_double_1200",
+          "category": "çay-kahve",
+          "at": [
+            0.0,
+            1230,
+            0
+          ],
+          "yaw": 90
+        },
+        {
+          "id": "f_0170",
+          "equipment": "gondola_double_1200",
+          "category": "çay-kahve",
+          "at": [
+            0.0,
+            1410,
+            0
+          ],
+          "yaw": 90
+        },
+        {
+          "id": "f_0171",
+          "equipment": "gondola_double_1200",
+          "category": "çay-kahve",
+          "at": [
+            0.0,
+            1590,
+            0
+          ],
+          "yaw": 90
+        },
+        {
+          "id": "f_0172",
+          "equipment": "gondola_double_1200",
+          "category": "atıştırmalık",
+          "at": [
+            380.0,
+            -1650,
+            0
+          ],
+          "yaw": 90
+        },
+        {
+          "id": "f_0173",
+          "equipment": "gondola_double_1200",
+          "category": "atıştırmalık",
+          "at": [
+            380.0,
+            -1470,
+            0
+          ],
+          "yaw": 90
+        },
+        {
+          "id": "f_0174",
+          "equipment": "gondola_double_1200",
+          "category": "atıştırmalık",
+          "at": [
+            380.0,
+            -1290,
+            0
+          ],
+          "yaw": 90
+        },
+        {
+          "id": "f_0175",
+          "equipment": "gondola_double_1200",
+          "category": "atıştırmalık",
+          "at": [
+            380.0,
+            -1110,
+            0
+          ],
+          "yaw": 90
+        },
+        {
+          "id": "f_0176",
+          "equipment": "gondola_double_1200",
+          "category": "atıştırmalık",
+          "at": [
+            380.0,
+            -930,
+            0
+          ],
+          "yaw": 90
+        },
+        {
+          "id": "f_0177",
+          "equipment": "gondola_double_1200",
+          "category": "atıştırmalık",
+          "at": [
+            380.0,
+            -750,
+            0
+          ],
+          "yaw": 90
+        },
+        {
+          "id": "f_0178",
+          "equipment": "gondola_double_1200",
+          "category": "atıştırmalık",
+          "at": [
+            380.0,
+            -570,
+            0
+          ],
+          "yaw": 90
+        },
+        {
+          "id": "f_0179",
+          "equipment": "gondola_double_1200",
+          "category": "atıştırmalık",
+          "at": [
+            380.0,
+            -390,
+            0
+          ],
+          "yaw": 90
+        },
+        {
+          "id": "f_0180",
+          "equipment": "gondola_double_1200",
+          "category": "atıştırmalık",
+          "at": [
+            380.0,
+            -210,
+            0
+          ],
+          "yaw": 90
+        },
+        {
+          "id": "f_0181",
+          "equipment": "gondola_double_1200",
+          "category": "atıştırmalık",
+          "at": [
+            380.0,
+            -30,
+            0
+          ],
+          "yaw": 90
+        },
+        {
+          "id": "f_0182",
+          "equipment": "gondola_double_1200",
+          "category": "atıştırmalık",
+          "at": [
+            380.0,
+            150,
+            0
+          ],
+          "yaw": 90
+        },
+        {
+          "id": "f_0183",
+          "equipment": "gondola_double_1200",
+          "category": "atıştırmalık",
+          "at": [
+            380.0,
+            330,
+            0
+          ],
+          "yaw": 90
+        },
+        {
+          "id": "f_0184",
+          "equipment": "gondola_double_1200",
+          "category": "atıştırmalık",
+          "at": [
+            380.0,
+            510,
+            0
+          ],
+          "yaw": 90
+        },
+        {
+          "id": "f_0185",
+          "equipment": "gondola_double_1200",
+          "category": "atıştırmalık",
+          "at": [
+            380.0,
+            690,
+            0
+          ],
+          "yaw": 90
+        },
+        {
+          "id": "f_0186",
+          "equipment": "gondola_double_1200",
+          "category": "atıştırmalık",
+          "at": [
+            380.0,
+            870,
+            0
+          ],
+          "yaw": 90
+        },
+        {
+          "id": "f_0187",
+          "equipment": "gondola_double_1200",
+          "category": "atıştırmalık",
+          "at": [
+            380.0,
+            1050,
+            0
+          ],
+          "yaw": 90
+        },
+        {
+          "id": "f_0188",
+          "equipment": "gondola_double_1200",
+          "category": "atıştırmalık",
+          "at": [
+            380.0,
+            1230,
+            0
+          ],
+          "yaw": 90
+        },
+        {
+          "id": "f_0189",
+          "equipment": "gondola_double_1200",
+          "category": "atıştırmalık",
+          "at": [
+            380.0,
+            1410,
+            0
+          ],
+          "yaw": 90
+        },
+        {
+          "id": "f_0190",
+          "equipment": "gondola_double_1200",
+          "category": "atıştırmalık",
+          "at": [
+            380.0,
+            1590,
+            0
+          ],
+          "yaw": 90
+        },
+        {
+          "id": "f_0191",
+          "equipment": "gondola_double_1200",
+          "category": "bisküvi-çikolata",
+          "at": [
+            760.0,
+            -1650,
+            0
+          ],
+          "yaw": 90
+        },
+        {
+          "id": "f_0192",
+          "equipment": "gondola_double_1200",
+          "category": "bisküvi-çikolata",
+          "at": [
+            760.0,
+            -1470,
+            0
+          ],
+          "yaw": 90
+        },
+        {
+          "id": "f_0193",
+          "equipment": "gondola_double_1200",
+          "category": "bisküvi-çikolata",
+          "at": [
+            760.0,
+            -1290,
+            0
+          ],
+          "yaw": 90
+        },
+        {
+          "id": "f_0194",
+          "equipment": "gondola_double_1200",
+          "category": "bisküvi-çikolata",
+          "at": [
+            760.0,
+            -1110,
+            0
+          ],
+          "yaw": 90
+        },
+        {
+          "id": "f_0195",
+          "equipment": "gondola_double_1200",
+          "category": "bisküvi-çikolata",
+          "at": [
+            760.0,
+            -930,
+            0
+          ],
+          "yaw": 90
+        },
+        {
+          "id": "f_0196",
+          "equipment": "gondola_double_1200",
+          "category": "bisküvi-çikolata",
+          "at": [
+            760.0,
+            -750,
+            0
+          ],
+          "yaw": 90
+        },
+        {
+          "id": "f_0197",
+          "equipment": "gondola_double_1200",
+          "category": "bisküvi-çikolata",
+          "at": [
+            760.0,
+            -570,
+            0
+          ],
+          "yaw": 90
+        },
+        {
+          "id": "f_0198",
+          "equipment": "gondola_double_1200",
+          "category": "bisküvi-çikolata",
+          "at": [
+            760.0,
+            -390,
+            0
+          ],
+          "yaw": 90
+        },
+        {
+          "id": "f_0199",
+          "equipment": "gondola_double_1200",
+          "category": "bisküvi-çikolata",
+          "at": [
+            760.0,
+            -210,
+            0
+          ],
+          "yaw": 90
+        },
+        {
+          "id": "f_0200",
+          "equipment": "gondola_double_1200",
+          "category": "bisküvi-çikolata",
+          "at": [
+            760.0,
+            -30,
+            0
+          ],
+          "yaw": 90
+        },
+        {
+          "id": "f_0201",
+          "equipment": "gondola_double_1200",
+          "category": "bisküvi-çikolata",
+          "at": [
+            760.0,
+            150,
+            0
+          ],
+          "yaw": 90
+        },
+        {
+          "id": "f_0202",
+          "equipment": "gondola_double_1200",
+          "category": "bisküvi-çikolata",
+          "at": [
+            760.0,
+            330,
+            0
+          ],
+          "yaw": 90
+        },
+        {
+          "id": "f_0203",
+          "equipment": "gondola_double_1200",
+          "category": "bisküvi-çikolata",
+          "at": [
+            760.0,
+            510,
+            0
+          ],
+          "yaw": 90
+        },
+        {
+          "id": "f_0204",
+          "equipment": "gondola_double_1200",
+          "category": "bisküvi-çikolata",
+          "at": [
+            760.0,
+            690,
+            0
+          ],
+          "yaw": 90
+        },
+        {
+          "id": "f_0205",
+          "equipment": "gondola_double_1200",
+          "category": "bisküvi-çikolata",
+          "at": [
+            760.0,
+            870,
+            0
+          ],
+          "yaw": 90
+        },
+        {
+          "id": "f_0206",
+          "equipment": "gondola_double_1200",
+          "category": "bisküvi-çikolata",
+          "at": [
+            760.0,
+            1050,
+            0
+          ],
+          "yaw": 90
+        },
+        {
+          "id": "f_0207",
+          "equipment": "gondola_double_1200",
+          "category": "bisküvi-çikolata",
+          "at": [
+            760.0,
+            1230,
+            0
+          ],
+          "yaw": 90
+        },
+        {
+          "id": "f_0208",
+          "equipment": "gondola_double_1200",
+          "category": "bisküvi-çikolata",
+          "at": [
+            760.0,
+            1410,
+            0
+          ],
+          "yaw": 90
+        },
+        {
+          "id": "f_0209",
+          "equipment": "gondola_double_1200",
+          "category": "bisküvi-çikolata",
+          "at": [
+            760.0,
+            1590,
+            0
+          ],
+          "yaw": 90
+        },
+        {
+          "id": "f_0210",
+          "equipment": "gondola_double_1200",
+          "category": "içecek",
+          "at": [
+            1140.0,
+            -1650,
+            0
+          ],
+          "yaw": 90
+        },
+        {
+          "id": "f_0211",
+          "equipment": "gondola_double_1200",
+          "category": "içecek",
+          "at": [
+            1140.0,
+            -1470,
+            0
+          ],
+          "yaw": 90
+        },
+        {
+          "id": "f_0212",
+          "equipment": "gondola_double_1200",
+          "category": "içecek",
+          "at": [
+            1140.0,
+            -1290,
+            0
+          ],
+          "yaw": 90
+        },
+        {
+          "id": "f_0213",
+          "equipment": "gondola_double_1200",
+          "category": "içecek",
+          "at": [
+            1140.0,
+            -1110,
+            0
+          ],
+          "yaw": 90
+        },
+        {
+          "id": "f_0214",
+          "equipment": "gondola_double_1200",
+          "category": "içecek",
+          "at": [
+            1140.0,
+            -930,
+            0
+          ],
+          "yaw": 90
+        },
+        {
+          "id": "f_0215",
+          "equipment": "gondola_double_1200",
+          "category": "içecek",
+          "at": [
+            1140.0,
+            -750,
+            0
+          ],
+          "yaw": 90
+        },
+        {
+          "id": "f_0216",
+          "equipment": "gondola_double_1200",
+          "category": "içecek",
+          "at": [
+            1140.0,
+            -570,
+            0
+          ],
+          "yaw": 90
+        },
+        {
+          "id": "f_0217",
+          "equipment": "gondola_double_1200",
+          "category": "içecek",
+          "at": [
+            1140.0,
+            -390,
+            0
+          ],
+          "yaw": 90
+        },
+        {
+          "id": "f_0218",
+          "equipment": "gondola_double_1200",
+          "category": "içecek",
+          "at": [
+            1140.0,
+            -210,
+            0
+          ],
+          "yaw": 90
+        },
+        {
+          "id": "f_0219",
+          "equipment": "gondola_double_1200",
+          "category": "içecek",
+          "at": [
+            1140.0,
+            -30,
+            0
+          ],
+          "yaw": 90
+        },
+        {
+          "id": "f_0220",
+          "equipment": "gondola_double_1200",
+          "category": "içecek",
+          "at": [
+            1140.0,
+            150,
+            0
+          ],
+          "yaw": 90
+        },
+        {
+          "id": "f_0221",
+          "equipment": "gondola_double_1200",
+          "category": "içecek",
+          "at": [
+            1140.0,
+            330,
+            0
+          ],
+          "yaw": 90
+        },
+        {
+          "id": "f_0222",
+          "equipment": "gondola_double_1200",
+          "category": "içecek",
+          "at": [
+            1140.0,
+            510,
+            0
+          ],
+          "yaw": 90
+        },
+        {
+          "id": "f_0223",
+          "equipment": "gondola_double_1200",
+          "category": "içecek",
+          "at": [
+            1140.0,
+            690,
+            0
+          ],
+          "yaw": 90
+        },
+        {
+          "id": "f_0224",
+          "equipment": "gondola_double_1200",
+          "category": "içecek",
+          "at": [
+            1140.0,
+            870,
+            0
+          ],
+          "yaw": 90
+        },
+        {
+          "id": "f_0225",
+          "equipment": "gondola_double_1200",
+          "category": "içecek",
+          "at": [
+            1140.0,
+            1050,
+            0
+          ],
+          "yaw": 90
+        },
+        {
+          "id": "f_0226",
+          "equipment": "gondola_double_1200",
+          "category": "içecek",
+          "at": [
+            1140.0,
+            1230,
+            0
+          ],
+          "yaw": 90
+        },
+        {
+          "id": "f_0227",
+          "equipment": "gondola_double_1200",
+          "category": "içecek",
+          "at": [
+            1140.0,
+            1410,
+            0
+          ],
+          "yaw": 90
+        },
+        {
+          "id": "f_0228",
+          "equipment": "gondola_double_1200",
+          "category": "içecek",
+          "at": [
+            1140.0,
+            1590,
+            0
+          ],
+          "yaw": 90
+        },
+        {
+          "id": "f_0229",
+          "equipment": "gondola_double_1200",
+          "category": "kağıt",
+          "at": [
+            1520.0,
+            -1650,
+            0
+          ],
+          "yaw": 90
+        },
+        {
+          "id": "f_0230",
+          "equipment": "gondola_double_1200",
+          "category": "kağıt",
+          "at": [
+            1520.0,
+            -1470,
+            0
+          ],
+          "yaw": 90
+        },
+        {
+          "id": "f_0231",
+          "equipment": "gondola_double_1200",
+          "category": "kağıt",
+          "at": [
+            1520.0,
+            -1290,
+            0
+          ],
+          "yaw": 90
+        },
+        {
+          "id": "f_0232",
+          "equipment": "gondola_double_1200",
+          "category": "kağıt",
+          "at": [
+            1520.0,
+            -1110,
+            0
+          ],
+          "yaw": 90
+        },
+        {
+          "id": "f_0233",
+          "equipment": "gondola_double_1200",
+          "category": "kağıt",
+          "at": [
+            1520.0,
+            -930,
+            0
+          ],
+          "yaw": 90
+        },
+        {
+          "id": "f_0234",
+          "equipment": "gondola_double_1200",
+          "category": "kağıt",
+          "at": [
+            1520.0,
+            -750,
+            0
+          ],
+          "yaw": 90
+        },
+        {
+          "id": "f_0235",
+          "equipment": "gondola_double_1200",
+          "category": "kağıt",
+          "at": [
+            1520.0,
+            -570,
+            0
+          ],
+          "yaw": 90
+        },
+        {
+          "id": "f_0236",
+          "equipment": "gondola_double_1200",
+          "category": "kağıt",
+          "at": [
+            1520.0,
+            -390,
+            0
+          ],
+          "yaw": 90
+        },
+        {
+          "id": "f_0237",
+          "equipment": "gondola_double_1200",
+          "category": "kağıt",
+          "at": [
+            1520.0,
+            -210,
+            0
+          ],
+          "yaw": 90
+        },
+        {
+          "id": "f_0238",
+          "equipment": "gondola_double_1200",
+          "category": "kağıt",
+          "at": [
+            1520.0,
+            -30,
+            0
+          ],
+          "yaw": 90
+        },
+        {
+          "id": "f_0239",
+          "equipment": "gondola_double_1200",
+          "category": "kağıt",
+          "at": [
+            1520.0,
+            150,
+            0
+          ],
+          "yaw": 90
+        },
+        {
+          "id": "f_0240",
+          "equipment": "gondola_double_1200",
+          "category": "kağıt",
+          "at": [
+            1520.0,
+            330,
+            0
+          ],
+          "yaw": 90
+        },
+        {
+          "id": "f_0241",
+          "equipment": "gondola_double_1200",
+          "category": "kağıt",
+          "at": [
+            1520.0,
+            510,
+            0
+          ],
+          "yaw": 90
+        },
+        {
+          "id": "f_0242",
+          "equipment": "gondola_double_1200",
+          "category": "kağıt",
+          "at": [
+            1520.0,
+            690,
+            0
+          ],
+          "yaw": 90
+        },
+        {
+          "id": "f_0243",
+          "equipment": "gondola_double_1200",
+          "category": "kağıt",
+          "at": [
+            1520.0,
+            870,
+            0
+          ],
+          "yaw": 90
+        },
+        {
+          "id": "f_0244",
+          "equipment": "gondola_double_1200",
+          "category": "kağıt",
+          "at": [
+            1520.0,
+            1050,
+            0
+          ],
+          "yaw": 90
+        },
+        {
+          "id": "f_0245",
+          "equipment": "gondola_double_1200",
+          "category": "kağıt",
+          "at": [
+            1520.0,
+            1230,
+            0
+          ],
+          "yaw": 90
+        },
+        {
+          "id": "f_0246",
+          "equipment": "gondola_double_1200",
+          "category": "kağıt",
+          "at": [
+            1520.0,
+            1410,
+            0
+          ],
+          "yaw": 90
+        },
+        {
+          "id": "f_0247",
+          "equipment": "gondola_double_1200",
+          "category": "kağıt",
+          "at": [
+            1520.0,
+            1590,
+            0
+          ],
+          "yaw": 90
+        },
+        {
+          "id": "f_0248",
+          "equipment": "gondola_double_1200",
+          "category": "kişisel bakım",
+          "at": [
+            1900.0,
+            -1650,
+            0
+          ],
+          "yaw": 90
+        },
+        {
+          "id": "f_0249",
+          "equipment": "gondola_double_1200",
+          "category": "kişisel bakım",
+          "at": [
+            1900.0,
+            -1470,
+            0
+          ],
+          "yaw": 90
+        },
+        {
+          "id": "f_0250",
+          "equipment": "gondola_double_1200",
+          "category": "kişisel bakım",
+          "at": [
+            1900.0,
+            -1290,
+            0
+          ],
+          "yaw": 90
+        },
+        {
+          "id": "f_0251",
+          "equipment": "gondola_double_1200",
+          "category": "kişisel bakım",
+          "at": [
+            1900.0,
+            -1110,
+            0
+          ],
+          "yaw": 90
+        },
+        {
+          "id": "f_0252",
+          "equipment": "gondola_double_1200",
+          "category": "kişisel bakım",
+          "at": [
+            1900.0,
+            -930,
+            0
+          ],
+          "yaw": 90
+        },
+        {
+          "id": "f_0253",
+          "equipment": "gondola_double_1200",
+          "category": "kişisel bakım",
+          "at": [
+            1900.0,
+            -750,
+            0
+          ],
+          "yaw": 90
+        },
+        {
+          "id": "f_0254",
+          "equipment": "gondola_double_1200",
+          "category": "kişisel bakım",
+          "at": [
+            1900.0,
+            -570,
+            0
+          ],
+          "yaw": 90
+        },
+        {
+          "id": "f_0255",
+          "equipment": "gondola_double_1200",
+          "category": "kişisel bakım",
+          "at": [
+            1900.0,
+            -390,
+            0
+          ],
+          "yaw": 90
+        },
+        {
+          "id": "f_0256",
+          "equipment": "gondola_double_1200",
+          "category": "kişisel bakım",
+          "at": [
+            1900.0,
+            -210,
+            0
+          ],
+          "yaw": 90
+        },
+        {
+          "id": "f_0257",
+          "equipment": "gondola_double_1200",
+          "category": "kişisel bakım",
+          "at": [
+            1900.0,
+            -30,
+            0
+          ],
+          "yaw": 90
+        },
+        {
+          "id": "f_0258",
+          "equipment": "gondola_double_1200",
+          "category": "kişisel bakım",
+          "at": [
+            1900.0,
+            150,
+            0
+          ],
+          "yaw": 90
+        },
+        {
+          "id": "f_0259",
+          "equipment": "gondola_double_1200",
+          "category": "kişisel bakım",
+          "at": [
+            1900.0,
+            330,
+            0
+          ],
+          "yaw": 90
+        },
+        {
+          "id": "f_0260",
+          "equipment": "gondola_double_1200",
+          "category": "kişisel bakım",
+          "at": [
+            1900.0,
+            510,
+            0
+          ],
+          "yaw": 90
+        },
+        {
+          "id": "f_0261",
+          "equipment": "gondola_double_1200",
+          "category": "kişisel bakım",
+          "at": [
+            1900.0,
+            690,
+            0
+          ],
+          "yaw": 90
+        },
+        {
+          "id": "f_0262",
+          "equipment": "gondola_double_1200",
+          "category": "kişisel bakım",
+          "at": [
+            1900.0,
+            870,
+            0
+          ],
+          "yaw": 90
+        },
+        {
+          "id": "f_0263",
+          "equipment": "gondola_double_1200",
+          "category": "kişisel bakım",
+          "at": [
+            1900.0,
+            1050,
+            0
+          ],
+          "yaw": 90
+        },
+        {
+          "id": "f_0264",
+          "equipment": "gondola_double_1200",
+          "category": "kişisel bakım",
+          "at": [
+            1900.0,
+            1230,
+            0
+          ],
+          "yaw": 90
+        },
+        {
+          "id": "f_0265",
+          "equipment": "gondola_double_1200",
+          "category": "kişisel bakım",
+          "at": [
+            1900.0,
+            1410,
+            0
+          ],
+          "yaw": 90
+        },
+        {
+          "id": "f_0266",
+          "equipment": "gondola_double_1200",
+          "category": "kişisel bakım",
+          "at": [
+            1900.0,
+            1590,
+            0
+          ],
+          "yaw": 90
+        },
+        {
+          "id": "f_0267",
+          "equipment": "gondola_double_1200",
+          "category": "makarna-bakliyat",
+          "at": [
+            2280.0,
+            -1650,
+            0
+          ],
+          "yaw": 90
+        },
+        {
+          "id": "f_0268",
+          "equipment": "gondola_double_1200",
+          "category": "makarna-bakliyat",
+          "at": [
+            2280.0,
+            -1470,
+            0
+          ],
+          "yaw": 90
+        },
+        {
+          "id": "f_0269",
+          "equipment": "gondola_double_1200",
+          "category": "makarna-bakliyat",
+          "at": [
+            2280.0,
+            -1290,
+            0
+          ],
+          "yaw": 90
+        },
+        {
+          "id": "f_0270",
+          "equipment": "gondola_double_1200",
+          "category": "makarna-bakliyat",
+          "at": [
+            2280.0,
+            -1110,
+            0
+          ],
+          "yaw": 90
+        },
+        {
+          "id": "f_0271",
+          "equipment": "gondola_double_1200",
+          "category": "makarna-bakliyat",
+          "at": [
+            2280.0,
+            -930,
+            0
+          ],
+          "yaw": 90
+        },
+        {
+          "id": "f_0272",
+          "equipment": "gondola_double_1200",
+          "category": "makarna-bakliyat",
+          "at": [
+            2280.0,
+            -750,
+            0
+          ],
+          "yaw": 90
+        },
+        {
+          "id": "f_0273",
+          "equipment": "gondola_double_1200",
+          "category": "makarna-bakliyat",
+          "at": [
+            2280.0,
+            -570,
+            0
+          ],
+          "yaw": 90
+        },
+        {
+          "id": "f_0274",
+          "equipment": "gondola_double_1200",
+          "category": "makarna-bakliyat",
+          "at": [
+            2280.0,
+            -390,
+            0
+          ],
+          "yaw": 90
+        },
+        {
+          "id": "f_0275",
+          "equipment": "gondola_double_1200",
+          "category": "makarna-bakliyat",
+          "at": [
+            2280.0,
+            -210,
+            0
+          ],
+          "yaw": 90
+        },
+        {
+          "id": "f_0276",
+          "equipment": "gondola_double_1200",
+          "category": "makarna-bakliyat",
+          "at": [
+            2280.0,
+            -30,
+            0
+          ],
+          "yaw": 90
+        },
+        {
+          "id": "f_0277",
+          "equipment": "gondola_double_1200",
+          "category": "makarna-bakliyat",
+          "at": [
+            2280.0,
+            150,
+            0
+          ],
+          "yaw": 90
+        },
+        {
+          "id": "f_0278",
+          "equipment": "gondola_double_1200",
+          "category": "makarna-bakliyat",
+          "at": [
+            2280.0,
+            330,
+            0
+          ],
+          "yaw": 90
+        },
+        {
+          "id": "f_0279",
+          "equipment": "gondola_double_1200",
+          "category": "makarna-bakliyat",
+          "at": [
+            2280.0,
+            510,
+            0
+          ],
+          "yaw": 90
+        },
+        {
+          "id": "f_0280",
+          "equipment": "gondola_double_1200",
+          "category": "makarna-bakliyat",
+          "at": [
+            2280.0,
+            690,
+            0
+          ],
+          "yaw": 90
+        },
+        {
+          "id": "f_0281",
+          "equipment": "gondola_double_1200",
+          "category": "makarna-bakliyat",
+          "at": [
+            2280.0,
+            870,
+            0
+          ],
+          "yaw": 90
+        },
+        {
+          "id": "f_0282",
+          "equipment": "gondola_double_1200",
+          "category": "makarna-bakliyat",
+          "at": [
+            2280.0,
+            1050,
+            0
+          ],
+          "yaw": 90
+        },
+        {
+          "id": "f_0283",
+          "equipment": "gondola_double_1200",
+          "category": "makarna-bakliyat",
+          "at": [
+            2280.0,
+            1230,
+            0
+          ],
+          "yaw": 90
+        },
+        {
+          "id": "f_0284",
+          "equipment": "gondola_double_1200",
+          "category": "makarna-bakliyat",
+          "at": [
+            2280.0,
+            1410,
+            0
+          ],
+          "yaw": 90
+        },
+        {
+          "id": "f_0285",
+          "equipment": "gondola_double_1200",
+          "category": "makarna-bakliyat",
+          "at": [
+            2280.0,
+            1590,
+            0
+          ],
+          "yaw": 90
+        },
+        {
+          "id": "f_0286",
+          "equipment": "gondola_double_1200",
+          "category": "temizlik",
+          "at": [
+            2660.0,
+            -1650,
+            0
+          ],
+          "yaw": 90
+        },
+        {
+          "id": "f_0287",
+          "equipment": "gondola_double_1200",
+          "category": "temizlik",
+          "at": [
+            2660.0,
+            -1470,
+            0
+          ],
+          "yaw": 90
+        },
+        {
+          "id": "f_0288",
+          "equipment": "gondola_double_1200",
+          "category": "temizlik",
+          "at": [
+            2660.0,
+            -1290,
+            0
+          ],
+          "yaw": 90
+        },
+        {
+          "id": "f_0289",
+          "equipment": "gondola_double_1200",
+          "category": "temizlik",
+          "at": [
+            2660.0,
+            -1110,
+            0
+          ],
+          "yaw": 90
+        },
+        {
+          "id": "f_0290",
+          "equipment": "gondola_double_1200",
+          "category": "temizlik",
+          "at": [
+            2660.0,
+            -930,
+            0
+          ],
+          "yaw": 90
+        },
+        {
+          "id": "f_0291",
+          "equipment": "gondola_double_1200",
+          "category": "temizlik",
+          "at": [
+            2660.0,
+            -750,
+            0
+          ],
+          "yaw": 90
+        },
+        {
+          "id": "f_0292",
+          "equipment": "gondola_double_1200",
+          "category": "temizlik",
+          "at": [
+            2660.0,
+            -570,
+            0
+          ],
+          "yaw": 90
+        },
+        {
+          "id": "f_0293",
+          "equipment": "gondola_double_1200",
+          "category": "temizlik",
+          "at": [
+            2660.0,
+            -390,
+            0
+          ],
+          "yaw": 90
+        },
+        {
+          "id": "f_0294",
+          "equipment": "gondola_double_1200",
+          "category": "temizlik",
+          "at": [
+            2660.0,
+            -210,
+            0
+          ],
+          "yaw": 90
+        },
+        {
+          "id": "f_0295",
+          "equipment": "gondola_double_1200",
+          "category": "temizlik",
+          "at": [
+            2660.0,
+            -30,
+            0
+          ],
+          "yaw": 90
+        },
+        {
+          "id": "f_0296",
+          "equipment": "gondola_double_1200",
+          "category": "temizlik",
+          "at": [
+            2660.0,
+            150,
+            0
+          ],
+          "yaw": 90
+        },
+        {
+          "id": "f_0297",
+          "equipment": "gondola_double_1200",
+          "category": "temizlik",
+          "at": [
+            2660.0,
+            330,
+            0
+          ],
+          "yaw": 90
+        },
+        {
+          "id": "f_0298",
+          "equipment": "gondola_double_1200",
+          "category": "temizlik",
+          "at": [
+            2660.0,
+            510,
+            0
+          ],
+          "yaw": 90
+        },
+        {
+          "id": "f_0299",
+          "equipment": "gondola_double_1200",
+          "category": "temizlik",
+          "at": [
+            2660.0,
+            690,
+            0
+          ],
+          "yaw": 90
+        },
+        {
+          "id": "f_0300",
+          "equipment": "gondola_double_1200",
+          "category": "temizlik",
+          "at": [
+            2660.0,
+            870,
+            0
+          ],
+          "yaw": 90
+        },
+        {
+          "id": "f_0301",
+          "equipment": "gondola_double_1200",
+          "category": "temizlik",
+          "at": [
+            2660.0,
+            1050,
+            0
+          ],
+          "yaw": 90
+        },
+        {
+          "id": "f_0302",
+          "equipment": "gondola_double_1200",
+          "category": "temizlik",
+          "at": [
+            2660.0,
+            1230,
+            0
+          ],
+          "yaw": 90
+        },
+        {
+          "id": "f_0303",
+          "equipment": "gondola_double_1200",
+          "category": "temizlik",
+          "at": [
+            2660.0,
+            1410,
+            0
+          ],
+          "yaw": 90
+        },
+        {
+          "id": "f_0304",
+          "equipment": "gondola_double_1200",
+          "category": "temizlik",
+          "at": [
+            2660.0,
+            1590,
+            0
+          ],
+          "yaw": 90
+        },
+        {
+          "id": "f_0305",
+          "equipment": "gondola_double_1200",
+          "category": "yağ-salça",
+          "at": [
+            3040.0,
+            -1650,
+            0
+          ],
+          "yaw": 90
+        },
+        {
+          "id": "f_0306",
+          "equipment": "gondola_double_1200",
+          "category": "yağ-salça",
+          "at": [
+            3040.0,
+            -1470,
+            0
+          ],
+          "yaw": 90
+        },
+        {
+          "id": "f_0307",
+          "equipment": "gondola_double_1200",
+          "category": "yağ-salça",
+          "at": [
+            3040.0,
+            -1290,
+            0
+          ],
+          "yaw": 90
+        },
+        {
+          "id": "f_0308",
+          "equipment": "gondola_double_1200",
+          "category": "yağ-salça",
+          "at": [
+            3040.0,
+            -1110,
+            0
+          ],
+          "yaw": 90
+        },
+        {
+          "id": "f_0309",
+          "equipment": "gondola_double_1200",
+          "category": "yağ-salça",
+          "at": [
+            3040.0,
+            -930,
+            0
+          ],
+          "yaw": 90
+        },
+        {
+          "id": "f_0310",
+          "equipment": "gondola_double_1200",
+          "category": "yağ-salça",
+          "at": [
+            3040.0,
+            -750,
+            0
+          ],
+          "yaw": 90
+        },
+        {
+          "id": "f_0311",
+          "equipment": "gondola_double_1200",
+          "category": "yağ-salça",
+          "at": [
+            3040.0,
+            -570,
+            0
+          ],
+          "yaw": 90
+        },
+        {
+          "id": "f_0312",
+          "equipment": "gondola_double_1200",
+          "category": "yağ-salça",
+          "at": [
+            3040.0,
+            -390,
+            0
+          ],
+          "yaw": 90
+        },
+        {
+          "id": "f_0313",
+          "equipment": "gondola_double_1200",
+          "category": "yağ-salça",
+          "at": [
+            3040.0,
+            -210,
+            0
+          ],
+          "yaw": 90
+        },
+        {
+          "id": "f_0314",
+          "equipment": "gondola_double_1200",
+          "category": "yağ-salça",
+          "at": [
+            3040.0,
+            -30,
+            0
+          ],
+          "yaw": 90
+        },
+        {
+          "id": "f_0315",
+          "equipment": "gondola_double_1200",
+          "category": "yağ-salça",
+          "at": [
+            3040.0,
+            150,
+            0
+          ],
+          "yaw": 90
+        },
+        {
+          "id": "f_0316",
+          "equipment": "gondola_double_1200",
+          "category": "yağ-salça",
+          "at": [
+            3040.0,
+            330,
+            0
+          ],
+          "yaw": 90
+        },
+        {
+          "id": "f_0317",
+          "equipment": "gondola_double_1200",
+          "category": "yağ-salça",
+          "at": [
+            3040.0,
+            510,
+            0
+          ],
+          "yaw": 90
+        },
+        {
+          "id": "f_0318",
+          "equipment": "gondola_double_1200",
+          "category": "yağ-salça",
+          "at": [
+            3040.0,
+            690,
+            0
+          ],
+          "yaw": 90
+        },
+        {
+          "id": "f_0319",
+          "equipment": "gondola_double_1200",
+          "category": "yağ-salça",
+          "at": [
+            3040.0,
+            870,
+            0
+          ],
+          "yaw": 90
+        },
+        {
+          "id": "f_0320",
+          "equipment": "gondola_double_1200",
+          "category": "yağ-salça",
+          "at": [
+            3040.0,
+            1050,
+            0
+          ],
+          "yaw": 90
+        },
+        {
+          "id": "f_0321",
+          "equipment": "gondola_double_1200",
+          "category": "yağ-salça",
+          "at": [
+            3040.0,
+            1230,
+            0
+          ],
+          "yaw": 90
+        },
+        {
+          "id": "f_0322",
+          "equipment": "gondola_double_1200",
+          "category": "yağ-salça",
+          "at": [
+            3040.0,
+            1410,
+            0
+          ],
+          "yaw": 90
+        },
+        {
+          "id": "f_0323",
+          "equipment": "gondola_double_1200",
+          "category": "yağ-salça",
+          "at": [
+            3040.0,
+            1590,
+            0
+          ],
+          "yaw": 90
+        },
+        {
+          "id": "f_0324",
+          "equipment": "wall_shelf_2400",
+          "category": "atıştırmalık",
+          "at": [
+            -3965.0,
+            -1950.0,
+            0
+          ],
+          "yaw": 90
+        },
+        {
+          "id": "f_0325",
+          "equipment": "wall_shelf_2400",
+          "category": "bisküvi-çikolata",
+          "at": [
+            -3965.0,
+            -1700.0,
+            0
+          ],
+          "yaw": 90
+        },
+        {
+          "id": "f_0326",
+          "equipment": "wall_shelf_2400",
+          "category": "içecek",
+          "at": [
+            -3965.0,
+            -1450.0,
+            0
+          ],
+          "yaw": 90
+        },
+        {
+          "id": "f_0327",
+          "equipment": "wall_shelf_2400",
+          "category": "kağıt",
+          "at": [
+            -3965.0,
+            -1200.0,
+            0
+          ],
+          "yaw": 90
+        },
+        {
+          "id": "f_0328",
+          "equipment": "wall_shelf_2400",
+          "category": "kişisel bakım",
+          "at": [
+            -3965.0,
+            -950.0,
+            0
+          ],
+          "yaw": 90
+        },
+        {
+          "id": "f_0329",
+          "equipment": "wall_shelf_2400",
+          "category": "makarna-bakliyat",
+          "at": [
+            -3965.0,
+            -700.0,
+            0
+          ],
+          "yaw": 90
+        },
+        {
+          "id": "f_0330",
+          "equipment": "wall_shelf_2400",
+          "category": "temizlik",
+          "at": [
+            -3965.0,
+            -450.0,
+            0
+          ],
+          "yaw": 90
+        },
+        {
+          "id": "f_0331",
+          "equipment": "wall_shelf_2400",
+          "category": "yağ-salça",
+          "at": [
+            -3965.0,
+            -200.0,
+            0
+          ],
+          "yaw": 90
+        },
+        {
+          "id": "f_0332",
+          "equipment": "wall_shelf_2400",
+          "category": "çay-kahve",
+          "at": [
+            -3965.0,
+            50.0,
+            0
+          ],
+          "yaw": 90
+        },
+        {
+          "id": "f_0333",
+          "equipment": "wall_shelf_2400",
+          "category": "atıştırmalık",
+          "at": [
+            -3965.0,
+            300.0,
+            0
+          ],
+          "yaw": 90
+        },
+        {
+          "id": "f_0334",
+          "equipment": "wall_shelf_2400",
+          "category": "bisküvi-çikolata",
+          "at": [
+            -3965.0,
+            550.0,
+            0
+          ],
+          "yaw": 90
+        },
+        {
+          "id": "f_0335",
+          "equipment": "wall_shelf_2400",
+          "category": "içecek",
+          "at": [
+            -3965.0,
+            800.0,
+            0
+          ],
+          "yaw": 90
+        },
+        {
+          "id": "f_0336",
+          "equipment": "wall_shelf_2400",
+          "category": "kağıt",
+          "at": [
+            -3965.0,
+            1050.0,
+            0
+          ],
+          "yaw": 90
+        },
+        {
+          "id": "f_0337",
+          "equipment": "wall_shelf_2400",
+          "category": "kişisel bakım",
+          "at": [
+            -3965.0,
+            1300.0,
+            0
+          ],
+          "yaw": 90
+        },
+        {
+          "id": "f_0338",
+          "equipment": "wall_shelf_2400",
+          "category": "makarna-bakliyat",
+          "at": [
+            -3965.0,
+            1550.0,
+            0
+          ],
+          "yaw": 90
+        },
+        {
+          "id": "f_0339",
+          "equipment": "wall_shelf_2400",
+          "category": "temizlik",
+          "at": [
+            -3965.0,
+            1800.0,
+            0
+          ],
+          "yaw": 90
+        },
+        {
+          "id": "f_0340",
+          "equipment": "cooler_wall",
+          "category": "süt",
+          "at": [
+            -3750.0,
+            1948.0,
+            0
+          ],
+          "yaw": 0
+        },
+        {
+          "id": "f_0341",
+          "equipment": "cooler_wall",
+          "category": "süt",
+          "at": [
+            -3450.0,
+            1948.0,
+            0
+          ],
+          "yaw": 0
+        },
+        {
+          "id": "f_0342",
+          "equipment": "cooler_wall",
+          "category": "süt",
+          "at": [
+            -3150.0,
+            1948.0,
+            0
+          ],
+          "yaw": 0
+        },
+        {
+          "id": "f_0343",
+          "equipment": "cooler_wall",
+          "category": "süt",
+          "at": [
+            -2850.0,
+            1948.0,
+            0
+          ],
+          "yaw": 0
+        },
+        {
+          "id": "f_0344",
+          "equipment": "cooler_wall",
+          "category": "süt",
+          "at": [
+            -2550.0,
+            1948.0,
+            0
+          ],
+          "yaw": 0
+        },
+        {
+          "id": "f_0345",
+          "equipment": "cooler_wall",
+          "category": "süt",
+          "at": [
+            -2250.0,
+            1948.0,
+            0
+          ],
+          "yaw": 0
+        },
+        {
+          "id": "f_0346",
+          "equipment": "cooler_wall",
+          "category": "süt",
+          "at": [
+            -1950.0,
+            1948.0,
+            0
+          ],
+          "yaw": 0
+        },
+        {
+          "id": "f_0347",
+          "equipment": "cooler_wall",
+          "category": "süt",
+          "at": [
+            -1650.0,
+            1948.0,
+            0
+          ],
+          "yaw": 0
+        },
+        {
+          "id": "f_0348",
+          "equipment": "cooler_wall",
+          "category": "süt",
+          "at": [
+            -1350.0,
+            1948.0,
+            0
+          ],
+          "yaw": 0
+        },
+        {
+          "id": "f_0349",
+          "equipment": "cooler_wall",
+          "category": "süt",
+          "at": [
+            -1050.0,
+            1948.0,
+            0
+          ],
+          "yaw": 0
+        },
+        {
+          "id": "f_0350",
+          "equipment": "cooler_wall",
+          "category": "süt",
+          "at": [
+            -750.0,
+            1948.0,
+            0
+          ],
+          "yaw": 0
+        },
+        {
+          "id": "f_0351",
+          "equipment": "cooler_wall",
+          "category": "süt",
+          "at": [
+            -450.0,
+            1948.0,
+            0
+          ],
+          "yaw": 0
+        },
+        {
+          "id": "f_0352",
+          "equipment": "cooler_wall",
+          "category": "süt",
+          "at": [
+            -150.0,
+            1948.0,
+            0
+          ],
+          "yaw": 0
+        },
+        {
+          "id": "f_0353",
+          "equipment": "cooler_wall",
+          "category": "süt",
+          "at": [
+            150.0,
+            1948.0,
+            0
+          ],
+          "yaw": 0
+        },
+        {
+          "id": "f_0354",
+          "equipment": "cooler_wall",
+          "category": "süt",
+          "at": [
+            450.0,
+            1948.0,
+            0
+          ],
+          "yaw": 0
+        },
+        {
+          "id": "f_0355",
+          "equipment": "cooler_wall",
+          "category": "süt",
+          "at": [
+            750.0,
+            1948.0,
+            0
+          ],
+          "yaw": 0
+        },
+        {
+          "id": "f_0356",
+          "equipment": "cooler_wall",
+          "category": "süt",
+          "at": [
+            1050.0,
+            1948.0,
+            0
+          ],
+          "yaw": 0
+        },
+        {
+          "id": "f_0357",
+          "equipment": "cooler_wall",
+          "category": "süt",
+          "at": [
+            1350.0,
+            1948.0,
+            0
+          ],
+          "yaw": 0
+        },
+        {
+          "id": "f_0358",
+          "equipment": "cooler_wall",
+          "category": "süt",
+          "at": [
+            1650.0,
+            1948.0,
+            0
+          ],
+          "yaw": 0
+        },
+        {
+          "id": "f_0359",
+          "equipment": "cooler_wall",
+          "category": "süt",
+          "at": [
+            1950.0,
+            1948.0,
+            0
+          ],
+          "yaw": 0
+        },
+        {
+          "id": "f_0360",
+          "equipment": "cooler_wall",
+          "category": "süt",
+          "at": [
+            2250.0,
+            1948.0,
+            0
+          ],
+          "yaw": 0
+        },
+        {
+          "id": "f_0361",
+          "equipment": "cooler_wall",
+          "category": "süt",
+          "at": [
+            2550.0,
+            1948.0,
+            0
+          ],
+          "yaw": 0
+        },
+        {
+          "id": "f_0362",
+          "equipment": "cooler_wall",
+          "category": "süt",
+          "at": [
+            2850.0,
+            1948.0,
+            0
+          ],
+          "yaw": 0
+        },
+        {
+          "id": "f_0363",
+          "equipment": "cooler_wall",
+          "category": "süt",
+          "at": [
+            3150.0,
+            1948.0,
+            0
+          ],
+          "yaw": 0
+        },
+        {
+          "id": "f_0364",
+          "equipment": "cooler_wall",
+          "category": "süt",
+          "at": [
+            3948.0,
+            -2020.0,
+            0
+          ],
+          "yaw": -90
+        },
+        {
+          "id": "f_0365",
+          "equipment": "cooler_wall",
+          "category": "süt",
+          "at": [
+            3948.0,
+            -1720.0,
+            0
+          ],
+          "yaw": -90
+        },
+        {
+          "id": "f_0366",
+          "equipment": "cooler_wall",
+          "category": "süt",
+          "at": [
+            3948.0,
+            -1420.0,
+            0
+          ],
+          "yaw": -90
+        },
+        {
+          "id": "f_0367",
+          "equipment": "cooler_wall",
+          "category": "süt",
+          "at": [
+            3948.0,
+            -1120.0,
+            0
+          ],
+          "yaw": -90
+        },
+        {
+          "id": "f_0368",
+          "equipment": "cooler_wall",
+          "category": "süt",
+          "at": [
+            3948.0,
+            -820.0,
+            0
+          ],
+          "yaw": -90
+        },
+        {
+          "id": "f_0369",
+          "equipment": "cooler_wall",
+          "category": "süt",
+          "at": [
+            3948.0,
+            -520.0,
+            0
+          ],
+          "yaw": -90
+        },
+        {
+          "id": "f_0370",
+          "equipment": "freezer_chest",
+          "category": "dondurma",
+          "at": [
+            -3860.0,
+            -1980.0,
+            0
+          ],
+          "yaw": 90
+        },
+        {
+          "id": "f_0371",
+          "equipment": "freezer_chest",
+          "category": "dondurma",
+          "at": [
+            -3740.0,
+            -1980.0,
+            0
+          ],
+          "yaw": 90
+        },
+        {
+          "id": "f_0372",
+          "equipment": "freezer_chest",
+          "category": "dondurma",
+          "at": [
+            -3860.0,
+            -1710.0,
+            0
+          ],
+          "yaw": 90
+        },
+        {
+          "id": "f_0373",
+          "equipment": "freezer_chest",
+          "category": "dondurma",
+          "at": [
+            -3740.0,
+            -1710.0,
+            0
+          ],
+          "yaw": 90
+        },
+        {
+          "id": "f_0374",
+          "equipment": "freezer_chest",
+          "category": "dondurma",
+          "at": [
+            -3860.0,
+            -1440.0,
+            0
+          ],
+          "yaw": 90
+        },
+        {
+          "id": "f_0375",
+          "equipment": "freezer_chest",
+          "category": "dondurma",
+          "at": [
+            -3740.0,
+            -1440.0,
+            0
+          ],
+          "yaw": 90
+        },
+        {
+          "id": "f_0376",
+          "equipment": "freezer_chest",
+          "category": "dondurma",
+          "at": [
+            -3860.0,
+            -1170.0,
+            0
+          ],
+          "yaw": 90
+        },
+        {
+          "id": "f_0377",
+          "equipment": "freezer_chest",
+          "category": "dondurma",
+          "at": [
+            -3740.0,
+            -1170.0,
+            0
+          ],
+          "yaw": 90
+        },
+        {
+          "id": "f_0378",
+          "equipment": "freezer_chest",
+          "category": "dondurma",
+          "at": [
+            -3860.0,
+            -900.0,
+            0
+          ],
+          "yaw": 90
+        },
+        {
+          "id": "f_0379",
+          "equipment": "freezer_chest",
+          "category": "dondurma",
+          "at": [
+            -3740.0,
+            -900.0,
+            0
+          ],
+          "yaw": 90
+        },
+        {
+          "id": "f_0380",
+          "equipment": "freezer_chest",
+          "category": "dondurma",
+          "at": [
+            -3860.0,
+            -630.0,
+            0
+          ],
+          "yaw": 90
+        },
+        {
+          "id": "f_0381",
+          "equipment": "freezer_chest",
+          "category": "dondurma",
+          "at": [
+            -3740.0,
+            -630.0,
+            0
+          ],
+          "yaw": 90
+        },
+        {
+          "id": "f_0382",
+          "equipment": "checkout_single",
+          "category": "",
+          "at": [
+            -3820.0,
+            -2345.0,
+            0
+          ],
+          "yaw": 0
+        },
+        {
+          "id": "f_0383",
+          "equipment": "checkout_single",
+          "category": "",
+          "at": [
+            -3685.0,
+            -2345.0,
+            0
+          ],
+          "yaw": 0
+        },
+        {
+          "id": "f_0384",
+          "equipment": "checkout_single",
+          "category": "",
+          "at": [
+            -3550.0,
+            -2345.0,
+            0
+          ],
+          "yaw": 0
+        },
+        {
+          "id": "f_0385",
+          "equipment": "checkout_single",
+          "category": "",
+          "at": [
+            -3415.0,
+            -2345.0,
+            0
+          ],
+          "yaw": 0
+        },
+        {
+          "id": "f_0386",
+          "equipment": "checkout_single",
+          "category": "",
+          "at": [
+            -3280.0,
+            -2345.0,
+            0
+          ],
+          "yaw": 0
+        },
+        {
+          "id": "f_0387",
+          "equipment": "checkout_single",
+          "category": "",
+          "at": [
+            -3145.0,
+            -2345.0,
+            0
+          ],
+          "yaw": 0
+        },
+        {
+          "id": "f_0388",
+          "equipment": "checkout_single",
+          "category": "",
+          "at": [
+            -3010.0,
+            -2345.0,
+            0
+          ],
+          "yaw": 0
+        },
+        {
+          "id": "f_0389",
+          "equipment": "checkout_single",
+          "category": "",
+          "at": [
+            -2875.0,
+            -2345.0,
+            0
+          ],
+          "yaw": 0
+        },
+        {
+          "id": "f_0390",
+          "equipment": "checkout_single",
+          "category": "",
+          "at": [
+            -2740.0,
+            -2345.0,
+            0
+          ],
+          "yaw": 0
+        },
+        {
+          "id": "f_0391",
+          "equipment": "checkout_single",
+          "category": "",
+          "at": [
+            -2605.0,
+            -2345.0,
+            0
+          ],
+          "yaw": 0
+        },
+        {
+          "id": "f_0392",
+          "equipment": "checkout_single",
+          "category": "",
+          "at": [
+            -2470.0,
+            -2345.0,
+            0
+          ],
+          "yaw": 0
+        },
+        {
+          "id": "f_0393",
+          "equipment": "checkout_single",
+          "category": "",
+          "at": [
+            -2335.0,
+            -2345.0,
+            0
+          ],
+          "yaw": 0
+        },
+        {
+          "id": "f_0394",
+          "equipment": "checkout_single",
+          "category": "",
+          "at": [
+            -2200.0,
+            -2345.0,
+            0
+          ],
+          "yaw": 0
+        },
+        {
+          "id": "f_0395",
+          "equipment": "checkout_single",
+          "category": "",
+          "at": [
+            -2065.0,
+            -2345.0,
+            0
+          ],
+          "yaw": 0
+        },
+        {
+          "id": "f_0396",
+          "equipment": "checkout_single",
+          "category": "",
+          "at": [
+            -1930.0,
+            -2345.0,
+            0
+          ],
+          "yaw": 0
+        },
+        {
+          "id": "f_0397",
+          "equipment": "checkout_single",
+          "category": "",
+          "at": [
+            -1795.0,
+            -2345.0,
+            0
+          ],
+          "yaw": 0
+        },
+        {
+          "id": "f_0398",
+          "equipment": "checkout_single",
+          "category": "",
+          "at": [
+            -1660.0,
+            -2345.0,
+            0
+          ],
+          "yaw": 0
+        },
+        {
+          "id": "f_0399",
+          "equipment": "checkout_single",
+          "category": "",
+          "at": [
+            -1525.0,
+            -2345.0,
+            0
+          ],
+          "yaw": 0
+        },
+        {
+          "id": "f_0400",
+          "equipment": "tobacco_backbar",
+          "category": "",
+          "at": [
+            -3820.0,
+            -2180.0,
+            0
+          ],
+          "yaw": 0
+        },
+        {
+          "id": "f_0401",
+          "equipment": "basket_area",
+          "category": "",
+          "at": [
+            240,
+            -2430.0,
+            0
+          ],
+          "yaw": 0
+        },
+        {
+          "id": "f_0402",
+          "equipment": "pallet_display",
+          "category": "",
+          "at": [
+            3800.0,
+            -2140.0,
+            0
+          ],
+          "yaw": 0
+        },
+        {
+          "id": "f_0403",
+          "equipment": "deli_counter",
+          "category": "",
+          "at": [
+            -3780.0,
+            1840.0,
+            0
+          ],
+          "yaw": 0
+        },
+        {
+          "id": "f_0404",
+          "equipment": "bakery_shelf",
+          "category": "",
+          "at": [
+            -3750.0,
+            1550.0,
+            0
+          ],
+          "yaw": 0
+        },
+        {
+          "id": "f_0405",
+          "equipment": "cart_area",
+          "category": "",
+          "at": [
+            3760.0,
+            -2320.0,
+            0
+          ],
+          "yaw": 0
+        },
+        {
+          "id": "f_0406",
+          "equipment": "produce_large",
+          "category": "",
+          "at": [
+            3780.0,
+            1800.0,
+            0
+          ],
+          "yaw": 0
+        },
+        {
+          "id": "f_0407",
+          "equipment": "produce_large",
+          "category": "",
+          "at": [
+            3460.0,
+            1800.0,
+            0
+          ],
+          "yaw": 0
+        },
+        {
+          "id": "f_0408",
+          "equipment": "produce_large",
+          "category": "",
+          "at": [
+            3140.0,
+            1800.0,
+            0
+          ],
+          "yaw": 0
+        },
+        {
+          "id": "f_0409",
+          "equipment": "butcher_counter",
+          "category": "",
+          "at": [
+            -3100.0,
+            1830.0,
+            0
+          ],
+          "yaw": 0
+        },
+        {
+          "id": "f_0410",
+          "equipment": "fish_counter",
+          "category": "",
+          "at": [
+            -2770.0,
+            1830.0,
+            0
+          ],
+          "yaw": 0
+        },
+        {
+          "id": "f_0411",
+          "equipment": "home_display",
+          "category": "",
+          "at": [
+            -2440.0,
+            1830.0,
+            0
+          ],
+          "yaw": 0
+        },
+        {
+          "id": "f_0412",
+          "equipment": "electronics_display",
+          "category": "",
+          "at": [
+            -2110.0,
+            1830.0,
+            0
+          ],
+          "yaw": 0
+        },
+        {
+          "id": "f_0413",
+          "equipment": "textile_display",
+          "category": "",
+          "at": [
+            -1780.0,
+            1830.0,
+            0
+          ],
+          "yaw": 0
+        },
+        {
+          "id": "f_0414",
+          "equipment": "customer_service",
+          "category": "",
+          "at": [
+            3300.0,
+            -2360.0,
+            0
+          ],
+          "yaw": 0
+        }
+      ],
+      "props": [],
+      "stats": {
+        "shelfFrontM": 817.2,
+        "coolerM": 90.0,
+        "freezerM": 30.0,
+        "produceM2": 12.642,
+        "counters": [
+          "butcher",
+          "deli",
+          "fish",
+          "service"
+        ],
+        "checkouts": 18,
+        "selfCheckouts": 0,
+        "backroomPallets": 114
+      }
+    }
+  ]
+}

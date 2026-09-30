@@ -1,0 +1,16 @@
+{
+  "schemaVersion": 1,
+  "id": "mahalle_01",
+  "mesh": "SM_Shell_mahalle_01.fbx",
+  "origin": "floor_center",
+  "frontAxis": "-Y",
+  "dimensionsMm": {
+    "width": 12000.0,
+    "depth": 10000.0,
+    "height": 3000.0
+  },
+  "collision": {
+    "policy": "custom_ucx",
+    "pieces": 17
+  }
+}

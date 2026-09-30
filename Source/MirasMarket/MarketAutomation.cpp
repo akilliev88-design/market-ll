@@ -3,6 +3,16 @@
 // -MirasCapture (visual review): five 1280x720 screenshots once shaders and exposure have settled.
 
 #include "MarketGame.h"
+#include "MarketStoreKit.h"
+#include "ProductCatalog.h"
+#include "HAL/FileManager.h"
+#include "Engine/GameViewportClient.h"
+#include "Engine/Engine.h"
+#include "Components/TextRenderComponent.h"
+#include "EngineUtils.h"
+#include "Camera/CameraActor.h"
+#include "Engine/RectLight.h"
+#include "Components/RectLightComponent.h"
 #include "GameFramework/PlayerController.h"
 #include "Kismet/GameplayStatics.h"
 #include "Misc/CommandLine.h"
@@ -15,6 +25,73 @@
 
 bool AMarketGameMode::TickAutomation()
 {
+    if (!StorePreviewId.IsEmpty())
+    {
+        const bool Benchmark = FParse::Param(FCommandLine::Get(), TEXT("MirasStoreBenchmark"));
+        const float Now = GetWorld()->GetTimeSeconds();
+        const FStoreTemplate* Store = MarketStoreKit::Find(StorePreviewId);
+        if (CaptureStage == 0)
+        {
+            TArray<FString> Errors;
+            if (!MarketStoreKit::Load(Errors) || !(Store = MarketStoreKit::Find(StorePreviewId)))
+            {
+                for (const auto& Error : Errors) { UE_LOG(LogTemp, Error, TEXT("Store preview: %s"), *Error); }
+                FPlatformMisc::RequestExitWithStatus(false, 1); return false;
+            }
+            Planogram = MarketStoreKit::ToPlanogram(*Store);
+            MarketStoreKit::Fill(Planogram, Products);
+            if (!MarketStoreKit::Build(GetWorld(), *Store, Planogram)) { FPlatformMisc::RequestExitWithStatus(false, 1); return false; }
+            if (APawn* Pawn = UGameplayStatics::GetPlayerPawn(this, 0)) Pawn->SetActorLocation(Store->PlayerStart.At, false, nullptr, ETeleportType::TeleportPhysics);
+            StorePreviewCamera = GetWorld()->SpawnActor<ACameraActor>();
+            // A neutral studio fill lets the fifth view inspect the facade without a surrounding map.
+            auto* FacadeLight = GetWorld()->SpawnActor<ARectLight>(FVector(0,-Store->FootprintCm.Y*.5f-350,Store->CeilingCm*.6f),FRotator(0,90,0));
+            auto* FacadeFill = Cast<URectLightComponent>(FacadeLight->GetLightComponent());
+            FacadeFill->SetMobility(EComponentMobility::Movable);
+            FacadeFill->SetSourceWidth(Store->FootprintCm.X*.7f); FacadeFill->SetSourceHeight(Store->CeilingCm*.7f);
+            FacadeFill->SetIntensity(60000); FacadeFill->SetAttenuationRadius(Store->FootprintCm.X); FacadeFill->SetCastShadows(false);
+            if (auto* PC = UGameplayStatics::GetPlayerController(this, 0)) PC->SetViewTarget(StorePreviewCamera);
+            if (GEngine && GEngine->GameViewport) GEngine->GameViewport->ConsoleCommand(Benchmark ? TEXT("r.SetRes 1920x1080w") : TEXT("r.SetRes 1280x720w"));
+            IFileManager::Get().MakeDirectory(*(FPaths::ProjectSavedDir()/TEXT("Screenshots/Stores")/StorePreviewId), true);
+            CaptureStage = 1; CaptureAt = Now; CaptureReadySince = -1;
+        }
+        if (!Store) return false;
+        if (CaptureStage == 1 && Now > CaptureAt + 3)
+            if (APawn* Pawn = UGameplayStatics::GetPlayerPawn(this, 0))
+                if (Pawn->GetActorLocation().Z < 50) { UE_LOG(LogTemp, Error, TEXT("Store preview floor collision failed: %s, pawn %s"), *StorePreviewId, *Pawn->GetActorLocation().ToString()); FPlatformMisc::RequestExitWithStatus(false, 1); return false; }
+        if (CaptureStage >= 2 && CaptureStage % 2 == 0 && Now > CaptureAt + 1)
+        { StoreFrameSeconds += GetWorld()->GetDeltaSeconds(); ++StoreFrameCount; }
+        auto SetView = [&](int32 Index)
+        {
+            const float W = Store->FootprintCm.X, D = Store->FootprintCm.Y;
+            const float Rear = Store->Backroom.Min.Y;
+            const FVector Views[] = { FVector(W*.18f,-D*.5f+80,220), FVector(-W*.35f,-D*.30f,175), FVector(-W*.40f,Rear-350,210), FVector(W*.30f,-D*.15f,Store->CeilingCm-60), FVector(0,-D*.5f-550,220) };
+            const FVector Targets[] = { FVector(-W*.35f,-D*.5f+155,105), FVector(0,0,135), FVector(0,Rear-60,140), FVector(0,D*.10f,140), FVector(0,-D*.5f,150) };
+            StorePreviewCamera->SetActorLocationAndRotation(Views[Index], (Targets[Index]-Views[Index]).Rotation());
+        };
+        bool ShadersReady = true;
+#if WITH_EDITOR
+        if (GShaderCompilingManager) ShadersReady = GShaderCompilingManager->GetNumRemainingJobs() == 0;
+#endif
+        if (!ShadersReady) CaptureReadySince = -1;
+        else if (CaptureReadySince < 0) CaptureReadySince = Now;
+        if (CaptureStage == 1 && Now - CaptureReadySince > 5 && CaptureReadySince >= 0)
+        { SetView(0); CaptureStage = 2; CaptureAt = Now; }
+        else if (CaptureStage >= 2 && CaptureStage % 2 == 0 && Now > CaptureAt + 4)
+        {
+            const int32 Index = (CaptureStage-2)/2;
+            if (!Benchmark) FScreenshotRequest::RequestScreenshot(FPaths::ProjectSavedDir()/TEXT("Screenshots/Stores")/StorePreviewId/FString::Printf(TEXT("%02d.png"),Index+1),false,false);
+            if (StoreFrameSeconds > 0) { UE_LOG(LogTemp,Display,TEXT("MirasStorePreview FPS %s view %d (%s): %.1f"),*StorePreviewId,Index+1,Benchmark?TEXT("1920x1080"):TEXT("1280x720"),StoreFrameCount/StoreFrameSeconds); }
+            StoreFrameSeconds=0; StoreFrameCount=0;
+            ++CaptureStage; CaptureAt=Now;
+        }
+        else if (CaptureStage >= 3 && CaptureStage % 2 == 1 && Now > CaptureAt + 2)
+        {
+            const int32 Next = (CaptureStage-1)/2;
+            if (Next < 5) { SetView(Next); ++CaptureStage; CaptureAt=Now; }
+            else { UE_LOG(LogTemp,Display,TEXT("MirasStorePreview PASSED: %s, five views"),*StorePreviewId); FPlatformMisc::RequestExitWithStatus(false,0); }
+        }
+        return false; // previews have no family-shop customer/worker simulation
+    }
     if (FParse::Param(FCommandLine::Get(), TEXT("MirasSmoke")))
     {
         const auto Require = [](bool Condition, const TCHAR* Step)

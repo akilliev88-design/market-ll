@@ -173,6 +173,17 @@ public:
     UPROPERTY() TArray<FMarketProduct> Products;
     UPROPERTY() FMarketState State;
     FMarketPlanogram Planogram;
+    UPROPERTY() TArray<TObjectPtr<UTextRenderComponent>> CategorySigns;
+    TArray<FString> CategorySignKeys;
+    TSharedPtr<SWidget> CategoryPicker;
+    int32 CategorySelection = 0;
+    FString CategoryFixture, CategoryFace;
+    TArray<FString> CategoryChoices;
+    int32 CategoryTarget(FString& OutFace) const;
+    bool CategoryCommand(FName Action);
+    void RefreshCategorySigns();
+    void ShowCategoryPicker();
+    void CloseCategoryPicker(bool bAccept);
     UPROPERTY() TArray<FMarketCustomer> Customers;
     // Price text on every shelf tag; ShelfLabelProduct holds the product index of each label.
     UPROPERTY() TArray<TObjectPtr<UTextRenderComponent>> ShelfLabels;
@@ -261,6 +272,13 @@ public:
     AActor* SimplePerson(const FVector& Floor, const FLinearColor& Color);
     // Smoke test / screenshot runs (MarketAutomation.cpp). False = a smoke step failed: skip this tick.
     bool TickAutomation();
+    FString StorePreviewId;
+    UPROPERTY() TObjectPtr<AActor> StorePreviewCamera;
+    double StoreFrameSeconds = 0;
+    int32 StoreFrameCount = 0;
+    FString ActiveStoreKitId;
+    TMap<FString, FString> StoreCategoryOverrides;
+    TFunction<void(const TMap<FString, FString>&)> OnStoreCategoriesChanged;
     // In-game shelf arranging (R while the shop is closed). See MarketArrange.cpp.
     // The player aims at any shelf: a ghost of the product in hand shows where it would go (green = fits);
     // click/E puts it there. The same product can be placed any number of times.

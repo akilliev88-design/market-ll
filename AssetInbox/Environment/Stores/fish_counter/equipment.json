@@ -1,0 +1,53 @@
+{
+  "schemaVersion": 1,
+  "id": "fish_counter",
+  "mesh": "SM_FishCounter.fbx",
+  "unrealMesh": "/Game/Stores/Equipment/SM_FishCounter.SM_FishCounter",
+  "family": "fish",
+  "dimensionsMm": {
+    "width": 3000.0,
+    "depth": 1135.0,
+    "height": 1250.0
+  },
+  "origin": "floor_center",
+  "frontAxis": "-Y",
+  "materials": [
+    "MI_Store_White",
+    "MI_Store_PaintedMetal",
+    "MI_Store_DarkMetal",
+    "MI_Store_Glass",
+    "MI_Store_PriceRail"
+  ],
+  "collision": {
+    "policy": "custom_ucx",
+    "pieces": 1
+  },
+  "zones": [
+    {
+      "id": "front_l00",
+      "face": "front",
+      "level": 0,
+      "centerCm": [
+        0,
+        0,
+        65
+      ],
+      "usableWidthCm": 292,
+      "usableDepthCm": 95,
+      "clearanceHeightCm": 55
+    }
+  ],
+  "checkouts": 0,
+  "planogram": {
+    "doubleSided": false,
+    "widthCm": 292,
+    "depthCm": 95,
+    "frontY": -47.0,
+    "meshYaw": 180
+  },
+  "lod": {
+    "naniteCandidate": true,
+    "lod1TriangleRatio": 0.5,
+    "lod2TriangleRatio": 0.2
+  }
+}

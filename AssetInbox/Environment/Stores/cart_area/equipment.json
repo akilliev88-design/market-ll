@@ -1,0 +1,37 @@
+{
+  "schemaVersion": 1,
+  "id": "cart_area",
+  "mesh": "SM_CartArea.fbx",
+  "unrealMesh": "/Game/Stores/Equipment/SM_CartArea.SM_CartArea",
+  "family": "cart",
+  "dimensionsMm": {
+    "width": 3000.0,
+    "depth": 2000.0,
+    "height": 1007.5
+  },
+  "origin": "floor_center",
+  "frontAxis": "-Y",
+  "materials": [
+    "MI_Store_PaintedMetal",
+    "MI_Store_DarkMetal",
+    "MI_Store_PriceRail"
+  ],
+  "collision": {
+    "policy": "custom_ucx",
+    "pieces": 1
+  },
+  "zones": [],
+  "checkouts": 0,
+  "planogram": {
+    "doubleSided": false,
+    "widthCm": 292,
+    "depthCm": 185,
+    "frontY": -92.0,
+    "meshYaw": 180
+  },
+  "lod": {
+    "naniteCandidate": true,
+    "lod1TriangleRatio": 0.5,
+    "lod2TriangleRatio": 0.2
+  }
+}

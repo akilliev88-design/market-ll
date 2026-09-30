@@ -1,0 +1,37 @@
+{
+  "schemaVersion": 1,
+  "id": "checkout_single",
+  "mesh": "SM_CheckoutSingle.fbx",
+  "unrealMesh": "/Game/Stores/Equipment/SM_CheckoutSingle.SM_CheckoutSingle",
+  "family": "checkout",
+  "dimensionsMm": {
+    "width": 1100.0,
+    "depth": 2500.0,
+    "height": 1120.0
+  },
+  "origin": "floor_center",
+  "frontAxis": "-Y",
+  "materials": [
+    "MI_Store_PaintedMetal",
+    "MI_Store_DarkMetal",
+    "MI_Store_White"
+  ],
+  "collision": {
+    "policy": "custom_ucx",
+    "pieces": 1
+  },
+  "zones": [],
+  "checkouts": 1,
+  "planogram": {
+    "doubleSided": false,
+    "widthCm": 102,
+    "depthCm": 235,
+    "frontY": -117.0,
+    "meshYaw": 180
+  },
+  "lod": {
+    "naniteCandidate": true,
+    "lod1TriangleRatio": 0.5,
+    "lod2TriangleRatio": 0.2
+  }
+}

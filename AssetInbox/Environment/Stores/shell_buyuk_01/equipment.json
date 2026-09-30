@@ -1,0 +1,16 @@
+{
+  "schemaVersion": 1,
+  "id": "buyuk_01",
+  "mesh": "SM_Shell_buyuk_01.fbx",
+  "origin": "floor_center",
+  "frontAxis": "-Y",
+  "dimensionsMm": {
+    "width": 36000.0,
+    "depth": 24000.0,
+    "height": 4200.0
+  },
+  "collision": {
+    "policy": "custom_ucx",
+    "pieces": 17
+  }
+}

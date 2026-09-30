@@ -1,4 +1,21 @@
 #include "ProductCatalog.h"
+
+FString MarketCatalog::UpperTurkish(const FString& Text)
+{
+    FString Result = Text;
+    for (TCHAR& C : Result)
+    {
+        if (C == TEXT('i')) C = 0x0130;
+        else if (C == 0x0131) C = TEXT('I');
+        else if (C == 0x00e7) C = 0x00c7;
+        else if (C == 0x011f) C = 0x011e;
+        else if (C == 0x00f6) C = 0x00d6;
+        else if (C == 0x015f) C = 0x015e;
+        else if (C == 0x00fc) C = 0x00dc;
+        else C = FChar::ToUpper(C);
+    }
+    return Result;
+}
 #include "Misc/FileHelper.h"
 #include "Misc/Paths.h"
 #include "Serialization/JsonReader.h"

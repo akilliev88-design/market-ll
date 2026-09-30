@@ -1,0 +1,90 @@
+{
+  "schemaVersion": 1,
+  "id": "bakery_shelf",
+  "mesh": "SM_BakeryShelf.fbx",
+  "unrealMesh": "/Game/Stores/Equipment/SM_BakeryShelf.SM_BakeryShelf",
+  "family": "bakery",
+  "dimensionsMm": {
+    "width": 2400.0,
+    "depth": 610.0,
+    "height": 2100.0
+  },
+  "origin": "floor_center",
+  "frontAxis": "-Y",
+  "materials": [
+    "MI_Store_WarmWood",
+    "MI_Store_DarkMetal",
+    "MI_Store_PriceRail"
+  ],
+  "collision": {
+    "policy": "custom_ucx",
+    "pieces": 2
+  },
+  "zones": [
+    {
+      "id": "front_l00",
+      "face": "front",
+      "level": 0,
+      "centerCm": [
+        0,
+        0,
+        30
+      ],
+      "usableWidthCm": 232,
+      "usableDepthCm": 45,
+      "clearanceHeightCm": 40
+    },
+    {
+      "id": "front_l01",
+      "face": "front",
+      "level": 1,
+      "centerCm": [
+        0,
+        0,
+        75
+      ],
+      "usableWidthCm": 232,
+      "usableDepthCm": 45,
+      "clearanceHeightCm": 40
+    },
+    {
+      "id": "front_l02",
+      "face": "front",
+      "level": 2,
+      "centerCm": [
+        0,
+        0,
+        120
+      ],
+      "usableWidthCm": 232,
+      "usableDepthCm": 45,
+      "clearanceHeightCm": 40
+    },
+    {
+      "id": "front_l03",
+      "face": "front",
+      "level": 3,
+      "centerCm": [
+        0,
+        0,
+        165
+      ],
+      "usableWidthCm": 232,
+      "usableDepthCm": 45,
+      "clearanceHeightCm": 40
+    }
+  ],
+  "checkouts": 0,
+  "planogram": {
+    "doubleSided": false,
+    "widthCm": 232,
+    "depthCm": 45,
+    "frontY": -22.0,
+    "meshYaw": 180
+  },
+  "lod": {
+    "naniteCandidate": true,
+    "lod1TriangleRatio": 0.5,
+    "lod2TriangleRatio": 0.2
+  }
+}

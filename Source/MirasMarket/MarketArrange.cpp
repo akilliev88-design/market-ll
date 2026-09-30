@@ -477,10 +477,10 @@ void AMarketGameMode::UpdateGhost()
     const FString LabelText = ArrangePlan.bOk
         ? FString::Printf(TEXT("%s  \u00b7  \u00f6nde %d  \u00b7  %d adet"), *ProductName(ProductIndex), Plan.Facings, MarketPlanogram::Capacity(Plan))
         : FString(TEXT("Buraya sigmiyor"));
-    if (!GhostLabel) GhostLabel = Label(LabelWorld, LabelRotation, MarketCatalog::FoldTurkish(LabelText), 2.6f, FColor::White, true);
+    if (!GhostLabel) GhostLabel = Label(LabelWorld, LabelRotation, LabelText, 2.6f, FColor::White, true);
     GhostLabel->SetVisibility(true);
     GhostLabel->SetWorldLocationAndRotation(LabelWorld, LabelRotation);
-    GhostLabel->SetText(FText::FromString(MarketCatalog::FoldTurkish(LabelText)));
+    GhostLabel->SetText(FText::FromString(LabelText));
     GhostLabel->SetTextRenderColor(ArrangePlan.bOk ? FColor(150, 255, 160) : FColor(255, 140, 120));
 }
 

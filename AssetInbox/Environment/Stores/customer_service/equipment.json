@@ -1,0 +1,36 @@
+{
+  "schemaVersion": 1,
+  "id": "customer_service",
+  "mesh": "SM_CustomerService.fbx",
+  "unrealMesh": "/Game/Stores/Equipment/SM_CustomerService.SM_CustomerService",
+  "family": "service",
+  "dimensionsMm": {
+    "width": 3030.0,
+    "depth": 1030.0,
+    "height": 1015.0
+  },
+  "origin": "floor_center",
+  "frontAxis": "-Y",
+  "materials": [
+    "MI_Store_PaintedMetal",
+    "MI_Store_WarmWood"
+  ],
+  "collision": {
+    "policy": "custom_ucx",
+    "pieces": 1
+  },
+  "zones": [],
+  "checkouts": 0,
+  "planogram": {
+    "doubleSided": false,
+    "widthCm": 292,
+    "depthCm": 85,
+    "frontY": -42.0,
+    "meshYaw": 180
+  },
+  "lod": {
+    "naniteCandidate": true,
+    "lod1TriangleRatio": 0.5,
+    "lod2TriangleRatio": 0.2
+  }
+}

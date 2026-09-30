@@ -1,0 +1,39 @@
+{
+  "schemaVersion": 1,
+  "id": "textile_display",
+  "mesh": "SM_TextileDisplay.fbx",
+  "unrealMesh": "/Game/Stores/Equipment/SM_TextileDisplay.SM_TextileDisplay",
+  "family": "textile",
+  "dimensionsMm": {
+    "width": 2400.0,
+    "depth": 660.0,
+    "height": 2100.0
+  },
+  "origin": "floor_center",
+  "frontAxis": "-Y",
+  "materials": [
+    "MI_Store_PaintedMetal",
+    "MI_Store_DarkMetal",
+    "MI_Store_White",
+    "MI_Store_PriceRail",
+    "MI_Store_WarmWood"
+  ],
+  "collision": {
+    "policy": "custom_ucx",
+    "pieces": 1
+  },
+  "zones": [],
+  "checkouts": 0,
+  "planogram": {
+    "doubleSided": false,
+    "widthCm": 232,
+    "depthCm": 50,
+    "frontY": -24.5,
+    "meshYaw": 180
+  },
+  "lod": {
+    "naniteCandidate": true,
+    "lod1TriangleRatio": 0.5,
+    "lod2TriangleRatio": 0.2
+  }
+}
