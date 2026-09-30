@@ -48,6 +48,9 @@ namespace MarketPromotions
 
     // What a shopper pays for one unit when buying Quantity of product Index today (discounts, 3-for-2).
     int64 UnitPrice(const FMarketState& State, const TArray<FMarketProduct>& Products, int32 Index, int32 Quantity);
+    // B1 (#30): the shelf price with the promotions of Day only (no last-day markdown: online orders are picked
+    // from the depot first). Online orders and the day-close reports use it.
+    int64 DealPrice(const FMarketState& State, const TArray<FMarketProduct>& Products, int32 Index, int32 Quantity, int32 Day);
     // Quantity after the 3-for-2: a shopper who wants 2 or more takes 3.
     int32 AdjustQuantity(const FMarketState& State, int32 Index, int32 Quantity);
     // x how often the product is on a shopping list today (1 = no promotion).
@@ -67,6 +70,9 @@ namespace MarketPromotions
 
     // Day close (after FMarketState::CloseDay): counts yesterday's sales of running promotions, reports finished
     // ones, and lets the wholesaler make a funded offer now and then.
+    // B1 (#27): the report of a finished promotion also tells its gross profit and, for the wholesaler's funded
+    // offer, the support actually received (units delivered during the deal x the cost cut); units sold below
+    // their cost on the closed day make one report line (State.Ledger.LastBelowCost*).
     void CloseDay(FMarketState& State, const TArray<FMarketProduct>& Products);
     FString Describe(const FMarketPromotion& Promo, const TArray<FMarketProduct>& Products);
 }

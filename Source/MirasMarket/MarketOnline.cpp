@@ -1,4 +1,5 @@
 #include "MarketOnline.h"
+#include "MarketPromotions.h"
 #include "MarketCountry.h"
 #include "MarketBasket.h"
 #include "MarketCalendar.h"
@@ -428,13 +429,18 @@ void MarketOnline::CloseDay(FMarketState& State, const TArray<FMarketProduct>& P
     if (bStock)
         for (const FMarketProduct& P : Products)
         {
-            const float W = P.bActive ? MarketCalendar::CategoryFactor(Closed, State.RivalSeed, P.Category) * GroupFactor(State, MarketGoods::Classify(P.Category)) : 0.f;
+            // B1 (#30): only what the shop carries (a shelf plan block) is on the web list.
+            const int32 Row = Weights.Num();
+            const bool bCarried = State.Stock.IsValidIndex(Row) && State.Stock[Row].Capacity > 0;
+            const float W = P.bActive && bCarried ? MarketCalendar::CategoryFactor(Closed, State.RivalSeed, P.Category) * GroupFactor(State, MarketGoods::Classify(P.Category)) : 0.f;
             Weights.Add(W);
             Total += W;
         }
 
     int64 Revenue = 0, Cogs = 0;
     int32 Units = 0, Picked = 0, Own = 0;
+    // B1 (#30): online units by catalog row (a promotion's "before" counts the shop only).
+    State.Ledger.OnlineSold.Init(0, State.Stock.Num());
     const int32 PickCap = PickCapacity(State), DeliverCap = DeliveryCapacity(State);
     for (const FOrder& Order : Orders)
     {
@@ -475,7 +481,8 @@ void MarketOnline::CloseDay(FMarketState& State, const TArray<FMarketProduct>& P
             FMarketStock& Row = State.Stock[Index];
             Row.Yesterday.Sold += Wanted;
             ++Row.Yesterday.Buyers;
-            Value += Row.Price * Wanted;
+            Value += MarketPromotions::DealPrice(State, Products, Index, Wanted, Closed) * Wanted; // B1 (#30): the shelf deal
+            State.Ledger.OnlineSold[Index] += Wanted;
             Cogs += State.UnitCost(Index, Products) * Wanted;
             Units += Wanted;
             ++Delivered;

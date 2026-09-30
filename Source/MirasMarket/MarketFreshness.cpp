@@ -31,10 +31,22 @@ int32 MarketFreshness::LastDayUnits(const FMarketState& State, const FString& Pr
     return Units;
 }
 
+int32 MarketFreshness::MarkdownUnitsLeft(const FMarketState& State, int32 Index)
+{
+    if (State.FreshPolicy != static_cast<uint8>(EPolicy::Markdown) || !State.Stock.IsValidIndex(Index)) return 0;
+    return FMath::Max(0, LastDayUnits(State, State.Stock[Index].Id) - State.Stock[Index].Today.Sold);
+}
+
 float MarketFreshness::PriceFactor(const FMarketState& State, int32 Index)
 {
-    if (State.FreshPolicy != static_cast<uint8>(EPolicy::Markdown) || !State.Stock.IsValidIndex(Index)) return 1.f;
-    return LastDayUnits(State, State.Stock[Index].Id) > 0 ? 1.f - MarkdownPercent / 100.f : 1.f;
+    return MarkdownUnitsLeft(State, Index) > 0 ? 1.f - MarkdownPercent / 100.f : 1.f;
+}
+
+double MarketFreshness::PriceFactor(const FMarketState& State, int32 Index, int32 Quantity)
+{
+    const int32 Units = FMath::Max(1, Quantity);
+    const int32 Marked = FMath::Min(Units, MarkdownUnitsLeft(State, Index));
+    return (Marked * (1.0 - MarkdownPercent / 100.0) + (Units - Marked)) / Units;
 }
 
 int32 MarketFreshness::DaysLeft(const FMarketState& State, const FString& ProductId)

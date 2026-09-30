@@ -80,6 +80,10 @@ namespace MarketCountry
         double InflationVol = 0.06;
         double LoanSpread = 0.05;
         float WageFactor = 1.f;
+        // B1 (#45): what a person spends on groceries a day, internal kurus at the start price level ("economy":
+        // "groceryPerPersonDay" in money units, e.g. 0.65). 0 = 65 x wageFactor. Calibrated so that a discounter
+        // of the game (about 900 a day) holds what one store of the country's biggest chain holds in reality.
+        double GroceryPerPersonDay = 0.0;
         float RentFactor = 1.f;
         float WeeklyShopShare = 0.25f;
         bool bSundayClosed = false;

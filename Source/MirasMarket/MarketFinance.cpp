@@ -208,9 +208,10 @@ void MarketFinance::CloseDay(FMarketState& State, const TArray<FMarketProduct>& 
         }
         default:
         {
-            const int64 Mortgage = FMath::RoundToInt64(300000 * Level(State) / 100.0) * 100;
+            const int64 Mortgage = MortgageAmount(State);
             MarketEvents::Offer(State, FinanceDecision(State, TEXT("finance.mortgage"), TEXT("Tapu"),
-                FString::Printf(TEXT("Bir ayd\u0131r kasa eksi. Trakya Bankas\u0131 d\u00fckk\u00e2n\u0131n tapusu kar\u015f\u0131l\u0131\u011f\u0131nda %s kredi \u00f6neriyor (24 ay). \u00d6denmezse d\u00fckk\u00e2n bankan\u0131n olur."), *FinanceTl(Mortgage)),
+                FString::Printf(TEXT("Bir ayd\u0131r kasa eksi. Trakya Bankas\u0131 d\u00fckk\u00e2n\u0131n tapusu kar\u015f\u0131l\u0131\u011f\u0131nda %s kredi \u00f6neriyor (24 ay, y\u0131ll\u0131k %%%.0f faiz, %%%.0f masraf). \u00d6denmezse d\u00fckk\u00e2n bankan\u0131n olur."),
+                    *FinanceTl(Mortgage), (MarketPrices::LoanRate(State.Day) + MortgageRateBonus) * 100.0, MortgageFee * 100.0),
                 { FString(TEXT("Tapuyu ipotek ver")), FString(TEXT("Hay\u0131r, ba\u015fka yol bulurum")) }, 1, 5));
             State.Decisions.Last().Arg = static_cast<int32>(FMath::Min<int64>(Mortgage, MAX_int32));
             break;
@@ -235,6 +236,13 @@ void MarketFinance::CloseDay(FMarketState& State, const TArray<FMarketProduct>& 
             *FinanceTl(MarketSuppliers::OpenBills(State)), *FinanceTl(Debt(State))));
         State.MonthHousehold = 0;
     }
+}
+
+int64 MarketFinance::MortgageAmount(const FMarketState& State)
+{
+    const int64 Need = FMath::RoundToInt64(FMath::Max<int64>(0, -State.Cash) * 1.5);
+    const int64 Amount = FMath::Clamp<int64>(Need, FMath::RoundToInt64(MortgageMin * Level(State)), FMath::RoundToInt64(MortgageMax * Level(State)));
+    return FMath::Max<int64>(100, Amount / 100 * 100);
 }
 
 int64 MarketFinance::HouseholdToday(const FMarketState& State)
@@ -262,8 +270,12 @@ bool MarketFinance::Resolve(FMarketState& State, const TArray<FMarketProduct>& P
     {
         if (Option == 0)
         {
-            AddLoan(State, D.Arg, MarketPrices::LoanRate(State.Day), true, 24);
-            OutMessage = FString::Printf(TEXT("Tapu ipotek edildi; %s kasaya ge\u00e7ti. Aileden kalan d\u00fckk\u00e2n art\u0131k bankaya ba\u011fl\u0131."), *FinanceTl(D.Arg));
+            // B1 (#43): risk premium and the valuation / deed fee (a cost of the day, paid out of the loan).
+            AddLoan(State, D.Arg, MarketPrices::LoanRate(State.Day) + MortgageRateBonus, true, 24);
+            const int64 Fee = FMath::RoundToInt64(D.Arg * static_cast<double>(MortgageFee));
+            State.Cash -= Fee;
+            State.PendingLoss += Fee;
+            OutMessage = FString::Printf(TEXT("Tapu ipotek edildi; masraflar d\u00fc\u015f\u00fcld\u00fckten sonra %s kasaya ge\u00e7ti. Aileden kalan d\u00fckk\u00e2n art\u0131k bankaya ba\u011fl\u0131."), *FinanceTl(D.Arg - Fee));
         }
         else OutMessage = TEXT("Tapuya dokunmad\u0131n.");
         return true;

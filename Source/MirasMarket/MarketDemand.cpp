@@ -1,4 +1,5 @@
 #include "MarketDemand.h"
+#include "MarketCountry.h"
 
 int64 MarketDemand::RivalPrice(const FMarketProduct& Product, float RivalDiscount)
 {
@@ -14,6 +15,29 @@ double MarketDemand::BuyChance(double Ratio, float MarketShare, double PriceTole
 {
     const double Half = HalfBuyRatio + FMath::Clamp(MarketShare, 0.f, 100.f) * ShareBonusPerPercent + PriceTolerance;
     return 1.0 / (1.0 + FMath::Exp((Ratio - Half) / Steepness));
+}
+
+float MarketDemand::ElasticityOf(const FMarketProduct& Product)
+{
+    return Product.Elasticity > 0.f ? FMath::Clamp(Product.Elasticity, 0.5f, 6.f) : DefaultElasticity;
+}
+
+double MarketDemand::BuyChanceFor(double Ratio, float MarketShare, double PriceTolerance, float Elasticity, float Kvi)
+{
+    const double Gain = (1.0 - Ratio) + (FMath::Clamp(MarketShare, 0.f, 100.f) - NeutralShare) * ShareBonusPerPercent + PriceTolerance;
+    const double Known = 1.0 + FMath::Clamp(static_cast<double>(Kvi), 0.0, 1.0);
+    const double Beta = FMath::Clamp(static_cast<double>(Elasticity), 0.5, 6.0) * PriceSensitivity * Known * (Gain < 0.0 ? LossAversion : 1.0);
+    const double Utility = FMath::Loge(ParityChance / (1.0 - ParityChance)) + Beta * Gain;
+    return 1.0 / (1.0 + FMath::Exp(-Utility));
+}
+
+FString MarketDemand::PriceWarning(const FMarketState& State, const TArray<FMarketProduct>& Products, int32 Index)
+{
+    if (!State.Stock.IsValidIndex(Index) || !Products.IsValidIndex(Index)) return FString();
+    const int64 Cost = State.UnitCost(Index, Products);
+    const int64 Loss = Cost - State.Stock[Index].Price;
+    if (Loss <= 0) return FString();
+    return FString::Printf(TEXT("Bu fiyat maliyetin alt\u0131nda: her sat\u0131\u015fta %s zarar."), *MarketCountry::Money(Loss));
 }
 
 int64 MarketDemand::PriceStep(const FMarketProduct& Product)
@@ -55,7 +79,7 @@ MarketDemand::FVisit MarketDemand::Decide(const FMarketState& State, const TArra
     }
     const double Ratio = PriceRatio(OurPrice > 0 ? OurPrice : State.Stock[Wanted].Price, RivalPrice(Products[Wanted], RivalDiscount));
     const float Share = MarketShareOverride >= 0.f ? MarketShareOverride : State.MarketShare;
-    if (RollPrice >= BuyChance(Ratio, Share, PriceTolerance))
+    if (RollPrice >= BuyChanceFor(Ratio, Share, PriceTolerance, ElasticityOf(Products[Wanted]), Products[Wanted].Kvi))
     {
         Visit.Result = EVisit::Expensive;
         return Visit;

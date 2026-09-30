@@ -4,6 +4,7 @@
 #include "MarketPrices.h"
 #include "MarketSuppliers.h"
 #include "MarketFreshness.h"
+#include "MarketDemand.h"
 
 namespace MarketPromotions
 {
@@ -50,7 +51,7 @@ namespace MarketPromotions
     // Price elasticity of a product (catalog value, else a middle value): how strongly a deal moves it.
     float ElasticityOf(const TArray<FMarketProduct>& Products, int32 Index)
     {
-        return Products.IsValidIndex(Index) && Products[Index].Elasticity > 0.f ? Products[Index].Elasticity : 2.5f;
+        return Products.IsValidIndex(Index) ? MarketDemand::ElasticityOf(Products[Index]) : MarketDemand::DefaultElasticity;
     }
 
     // Whether a promotion covers catalog product Index.
@@ -83,13 +84,57 @@ namespace MarketPromotions
         }
     }
 
-    // Yesterday's units of everything the promotion covers (the "before" of the report).
+    // Yesterday's units of everything the promotion covers (the "before" of the report). B1 (#30): shop sales only;
+    // the online orders of the same day are not part of a promotion's "during" either.
     int32 CoveredSold(const FMarketState& State, const FMarketPromotion& Promo, const TArray<FMarketProduct>& Products)
     {
         int32 Units = 0;
+        const TArray<int32>& Online = State.Ledger.OnlineSold;
         for (int32 I = 0; I < State.Stock.Num(); ++I)
-            if (Covers(Promo, Products, I)) Units += State.Stock[I].Yesterday.Sold;
+            if (Covers(Promo, Products, I)) Units += FMath::Max(0, State.Stock[I].Yesterday.Sold - (Online.IsValidIndex(I) ? Online[I] : 0));
         return Units;
+    }
+
+    // x shelf price of the promotions running on Day for Quantity units (1 = none).
+    double PromoFactor(const FMarketState& State, const TArray<FMarketProduct>& Products, int32 Index, int32 Quantity, int32 Day)
+    {
+        double Factor = 1.0;
+        for (const FMarketPromotion& P : State.Promotions)
+        {
+            if (!IsActive(P, Day) || !Covers(P, Products, Index)) continue;
+            switch (KindOf(P))
+            {
+            case EKind::AisleDiscount: Factor = FMath::Min(Factor, 1.0 - FMath::Clamp(P.Percent, 0, 50) / 100.0); break;
+            case EKind::SupplierDeal: Factor = FMath::Min(Factor, 1.0 - DealShelfCut / 100.0); break;
+            case EKind::MultiBuy:
+                // Three for two: every third unit is free.
+                if (Quantity >= 3) Factor = FMath::Min(Factor, static_cast<double>(Quantity - Quantity / 3) / Quantity);
+                break;
+            case EKind::Scoped:
+                switch (MechanicOf(P))
+                {
+                case EMechanic::Percent: Factor = FMath::Min(Factor, 1.0 - FMath::Clamp(P.Percent, 0, 50) / 100.0); break;
+                case EMechanic::ThreeForTwo: if (Quantity >= 3) Factor = FMath::Min(Factor, static_cast<double>(Quantity - Quantity / 3) / Quantity); break;
+                case EMechanic::TwoForOne: if (Quantity >= 2) Factor = FMath::Min(Factor, static_cast<double>(Quantity - Quantity / 2) / Quantity); break;
+                case EMechanic::SecondHalf: if (Quantity >= 2) Factor = FMath::Min(Factor, (Quantity - 0.5 * (Quantity / 2)) / Quantity); break;
+                default: break;
+                }
+                break;
+            default: break;
+            }
+        }
+        return Factor;
+    }
+
+    // B1 (#27): the tally of a running promotion (created on its first counted day).
+    FMarketPromoTally& TallyOf(FMarketState& State, const FMarketPromotion& Promo)
+    {
+        TArray<FMarketPromoTally>& Tallies = State.Ledger.PromoTallies;
+        for (FMarketPromoTally& T : Tallies)
+            if (T.Kind == Promo.Kind && T.Product == Promo.Product && T.StartDay == Promo.StartDay) return T;
+        FMarketPromoTally& New = Tallies.AddDefaulted_GetRef();
+        New.Kind = Promo.Kind; New.Product = Promo.Product; New.StartDay = Promo.StartDay;
+        return New;
     }
 }
 
@@ -124,32 +169,16 @@ int64 MarketPromotions::UnitPrice(const FMarketState& State, const TArray<FMarke
 {
     if (!State.Stock.IsValidIndex(Index)) return 0;
     const int64 Shelf = State.Stock[Index].Price;
-    double Factor = MarketFreshness::PriceFactor(State, Index); // last-day markdown of an old batch
-    for (const FMarketPromotion& P : State.Promotions)
-    {
-        if (!IsActive(P, State.Day) || !Covers(P, Products, Index)) continue;
-        switch (KindOf(P))
-        {
-        case EKind::AisleDiscount: Factor = FMath::Min(Factor, 1.0 - FMath::Clamp(P.Percent, 0, 50) / 100.0); break;
-        case EKind::SupplierDeal: Factor = FMath::Min(Factor, 1.0 - DealShelfCut / 100.0); break;
-        case EKind::MultiBuy:
-            // Three for two: every third unit is free.
-            if (Quantity >= 3) Factor = FMath::Min(Factor, static_cast<double>(Quantity - Quantity / 3) / Quantity);
-            break;
-        case EKind::Scoped:
-            switch (MechanicOf(P))
-            {
-            case EMechanic::Percent: Factor = FMath::Min(Factor, 1.0 - FMath::Clamp(P.Percent, 0, 50) / 100.0); break;
-            case EMechanic::ThreeForTwo: if (Quantity >= 3) Factor = FMath::Min(Factor, static_cast<double>(Quantity - Quantity / 3) / Quantity); break;
-            case EMechanic::TwoForOne: if (Quantity >= 2) Factor = FMath::Min(Factor, static_cast<double>(Quantity - Quantity / 2) / Quantity); break;
-            case EMechanic::SecondHalf: if (Quantity >= 2) Factor = FMath::Min(Factor, (Quantity - 0.5 * (Quantity / 2)) / Quantity); break;
-            default: break;
-            }
-            break;
-        default: break;
-        }
-    }
+    // Last-day markdown of an old batch (B1 #43: only on the units of that batch still on the shelf).
+    const double Fresh = MarketFreshness::PriceFactor(State, Index, Quantity);
+    const double Factor = FMath::Min(Fresh, PromoFactor(State, Products, Index, Quantity, State.Day));
     return FMath::Max<int64>(1, FMath::RoundToInt64(Shelf * Factor));
+}
+
+int64 MarketPromotions::DealPrice(const FMarketState& State, const TArray<FMarketProduct>& Products, int32 Index, int32 Quantity, int32 Day)
+{
+    if (!State.Stock.IsValidIndex(Index)) return 0;
+    return FMath::Max<int64>(1, FMath::RoundToInt64(State.Stock[Index].Price * PromoFactor(State, Products, Index, FMath::Max(1, Quantity), Day)));
 }
 
 float MarketPromotions::Interest(const FMarketState& State, const TArray<FMarketProduct>& Products, int32 Index)
@@ -357,12 +386,14 @@ void MarketPromotions::CloseDay(FMarketState& State, const TArray<FMarketProduct
         FMarketPromotion& P = State.Promotions[I];
         if (IsActive(P, Closed))
         {
+            const bool bTally = KindOf(P) != EKind::Flyer && KindOf(P) != EKind::Endcap;
             for (int32 Index = 0; Index < State.Stock.Num(); ++Index)
             {
                 if (!Covers(P, Products, Index)) continue;
                 const int32 Sold = State.Stock[Index].Yesterday.Sold;
                 P.Sold += Sold;
                 const int64 Price = State.Stock[Index].Price;
+                const int64 LostBefore = P.MarginLost;
                 if (KindOf(P) == EKind::AisleDiscount) P.MarginLost += Price * Sold * P.Percent / 100;
                 else if (KindOf(P) == EKind::Scoped)
                 {
@@ -379,6 +410,14 @@ void MarketPromotions::CloseDay(FMarketState& State, const TArray<FMarketProduct
                 }
                 else if (KindOf(P) == EKind::SupplierDeal) P.MarginLost += Price * Sold * DealShelfCut / 100;
                 else if (KindOf(P) == EKind::MultiBuy) P.MarginLost += Price * (Sold / 3);
+                if (!bTally || Index >= Products.Num()) continue;
+                // B1 (#27): what the covered units brought in and cost; the funded offer's support comes with the
+                // units delivered while it runs (bought at the cut cost; Products hold the closed day's costs).
+                FMarketPromoTally& Tally = TallyOf(State, P);
+                Tally.Revenue += Price * Sold - (P.MarginLost - LostBefore);
+                Tally.CostOfGoods += State.UnitCost(Index, Products) * Sold;
+                if (KindOf(P) == EKind::SupplierDeal && Index == P.Product && State.Stock[Index].Received > 0)
+                    Tally.Support += FMath::RoundToInt64(static_cast<double>(State.Stock[Index].Received) * Products[Index].Cost * DealCostCut / (100.0 - DealCostCut));
             }
         }
         if (P.EndDay < State.Day && P.StartDay > 0)
@@ -393,12 +432,48 @@ void MarketPromotions::CloseDay(FMarketState& State, const TArray<FMarketProduct
             }
             if (P.MarginLost > 0) Line += TEXT(", verilen indirim ") + PromoTl(P.MarginLost);
             if (P.Cost > 0) Line += TEXT(", maliyet ") + PromoTl(P.Cost);
+            // B1 (#27): the real result: the gross profit of the covered sales, and the wholesaler's support.
+            const int32 TallyAt = State.Ledger.PromoTallies.IndexOfByPredicate([&P](const FMarketPromoTally& T)
+                { return T.Kind == P.Kind && T.Product == P.Product && T.StartDay == P.StartDay; });
+            if (TallyAt != INDEX_NONE)
+            {
+                const FMarketPromoTally& Tally = State.Ledger.PromoTallies[TallyAt];
+                if (KindOf(P) == EKind::SupplierDeal) Line += TEXT(", toptanc\u0131 deste\u011fi ") + PromoTl(Tally.Support);
+                Line += TEXT(", sat\u0131\u015flar\u0131n br\u00fct k\u00e2r\u0131 ") + PromoTl(Tally.Revenue - Tally.CostOfGoods - P.Cost);
+                State.Ledger.PromoTallies.RemoveAt(TallyAt);
+            }
             News.Add(Line + TEXT("."));
             State.Promotions.RemoveAt(I);
             continue;
         }
         ++I;
     }
+
+    // B1 (#27): tallies of promotions that no longer exist (stopped saves, removed rows) are dropped.
+    State.Ledger.PromoTallies.RemoveAll([&State](const FMarketPromoTally& T)
+    {
+        return !State.Promotions.ContainsByPredicate([&T](const FMarketPromotion& P) { return P.Kind == T.Kind && P.Product == T.Product && P.StartDay == T.StartDay; });
+    });
+
+    // B1 (#27): units sold below their cost on the closed day (deepest deal price of the day; the last-day markdown
+    // is left out: selling old milk cheap is its purpose).
+    State.Ledger.LastBelowCostUnits = 0;
+    State.Ledger.LastBelowCostLoss = 0;
+    int32 WorstIndex = INDEX_NONE;
+    int64 WorstLoss = 0;
+    for (int32 Index = 0; Index < State.Stock.Num() && Index < Products.Num(); ++Index)
+    {
+        const int32 Sold = State.Stock[Index].Yesterday.Sold;
+        if (Sold <= 0) continue;
+        const int64 Gap = State.UnitCost(Index, Products) - DealPrice(State, Products, Index, 3, Closed);
+        if (Gap <= 0) continue;
+        State.Ledger.LastBelowCostUnits += Sold;
+        State.Ledger.LastBelowCostLoss += Gap * Sold;
+        if (Gap * Sold > WorstLoss) { WorstLoss = Gap * Sold; WorstIndex = Index; }
+    }
+    if (State.Ledger.LastBelowCostLoss > 0 && Products.IsValidIndex(WorstIndex))
+        News.Add(FString::Printf(TEXT("Maliyetin alt\u0131nda sat\u0131\u015f: %d adet, %s zarar (en \u00e7ok %s)."), State.Ledger.LastBelowCostUnits,
+            *PromoTl(State.Ledger.LastBelowCostLoss), *(Products[WorstIndex].RealName.IsEmpty() ? Products[WorstIndex].Id : Products[WorstIndex].RealName)));
 
     // The wholesaler's offer: expires after its deadline; a new one now and then when Selim trusts the shop.
     if (State.Offer.Product != INDEX_NONE && State.Offer.EndDay < State.Day) State.Offer = FMarketPromotion();

@@ -636,7 +636,13 @@ void MarketStaff::CloseDay(FMarketState& State)
         int64 Vat = VatInside - Books.VatCarry;
         Books.VatCarry = 0;
         if (Vat < 0) { Books.VatCarry = -Vat; Vat = 0; }
-        const int64 Income = static_cast<int64>(FMath::RoundToDouble(FMath::Max<int64>(0, Books.PeriodProfit - FMath::Max<int64>(0, VatInside)) * static_cast<double>(IncomeTaxRate)));
+        // B1 (#43): a losing week's loss is carried and taken off the next weeks' profit before the income tax.
+        int64 Taxable = Books.PeriodProfit - FMath::Max<int64>(0, VatInside);
+        int64& Carry = State.Ledger.TaxLossCarry;
+        int64 CarryUsed = 0;
+        if (Taxable < 0) { Carry += -Taxable; Taxable = 0; }
+        else { CarryUsed = FMath::Min(Taxable, Carry); Taxable -= CarryUsed; Carry -= CarryUsed; }
+        const int64 Income = static_cast<int64>(FMath::RoundToDouble(Taxable * static_cast<double>(IncomeTaxRate)));
         int64 Tax = Vat + Income;
         // G-077 (#35): the accountant's lower declaration and audit protection need him on the books all week.
         const FMarketEmployee* Accountant = State.Staff.FindByPredicate([](const FMarketEmployee& E) { return RoleOf(E) == ERole::Accountant; });
@@ -660,11 +666,13 @@ void MarketStaff::CloseDay(FMarketState& State)
             Books.TaxDeclared = bOlderDebt ? Books.TaxDeclared + Tax : Books.TaxDue;
             if (!bOlderDebt) Books.PenaltyThisTax = 0;
             Books.TaxDueDay = Closed + TaxPayDays;
-            News.Add(FString::Printf(TEXT("%d. hafta vergisi: KDV %s + gelir %s = %s%s. Son \u00f6deme %d. g\u00fcn.%s"), Week, *Tl(Vat), *Tl(Income), *Tl(Tax),
+            News.Add(FString::Printf(TEXT("%d. hafta vergisi: KDV %s + gelir %s = %s%s. Son \u00f6deme %d. g\u00fcn.%s%s"), Week, *Tl(Vat), *Tl(Income), *Tl(Tax),
                 bWholeWeek ? TEXT(" (belgeli giderlerle %10 az)") : TEXT(""), Books.TaxDueDay,
-                bAccountant ? TEXT(" Mali m\u00fc\u015favir zaman\u0131nda \u00f6der.") : TEXT(" \u00d6demeyi sen yapmal\u0131s\u0131n.")));
+                bAccountant ? TEXT(" Mali m\u00fc\u015favir zaman\u0131nda \u00f6der.") : TEXT(" \u00d6demeyi sen yapmal\u0131s\u0131n."),
+                CarryUsed > 0 ? *FString::Printf(TEXT(" \u00d6nceki haftalar\u0131n zarar\u0131ndan %s d\u00fc\u015f\u00fcld\u00fc."), *Tl(CarryUsed)) : TEXT("")));
         }
-        else News.Add(FString::Printf(TEXT("%d. hafta vergisi \u00e7\u0131kmad\u0131 (zarar veya devreden KDV %s)."), Week, *Tl(Books.VatCarry)));
+        else News.Add(FString::Printf(TEXT("%d. hafta vergisi \u00e7\u0131kmad\u0131 (zarar veya devreden KDV %s).%s"), Week, *Tl(Books.VatCarry),
+            Carry > 0 ? *FString::Printf(TEXT(" Sonraki k\u00e2rdan d\u00fc\u015f\u00fclecek zarar %s."), *Tl(Carry)) : TEXT("")));
         Books.PeriodSales = Books.PeriodPurchases = Books.PeriodProfit = 0;
     }
     if (bAccountant)

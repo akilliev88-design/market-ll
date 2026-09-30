@@ -262,4 +262,7 @@ void MarketDirector::CloseDay(FMarketState& State, const TArray<FMarketProduct>&
     MarketEvents::CloseDay(State, Products); // decisions past their day, modifiers, snow, a new neighbourhood event (G-066)
     MarketStory::CloseDay(State, Products);  // scenes, milestones, chapters (G-066)
     MarketFinance::CloseDay(State, Products); // loans, the money trouble ladder, month-end report (G-067)
+    // ===== Ak\u0131\u015f B =====
+    MarketCompany::TrackNationalRevenue(State); // B1 (#45): national share by revenue, after every revenue is in
+    // ===== Ak\u0131\u015f B son =====
 }

@@ -23,6 +23,8 @@ namespace MarketStory
     // Karar J02: the campaign's last day (31.12.2040). If the Legacy finale has not come by then, the time-up
     // finale does. Either way it is shown once and the game goes on without new story content.
     constexpr int32 FinalYear = 2040;
+    // B1 (#45): chapter 5 goal, percent of the country's grocery retail by revenue (karar bekliyor: Mustafa).
+    constexpr float NationalShareGoal = 0.1f;
 
     struct FObjective
     {

@@ -32,7 +32,25 @@ namespace MarketDemand
     double PriceRatio(int64 OurPrice, int64 TheirPrice);
     // 0..1: the share of shoppers who accept this price ratio.
     // PriceTolerance: the shopper's segment (MarketCustomers), added to the half-buy ratio.
+    // The v0.1 curve, the same for every product (kept for older callers and tests); shoppers use BuyChanceFor.
     double BuyChance(double Ratio, float MarketShare, double PriceTolerance = 0.0);
+
+    // B1 (#24): the shelf decision depends on the product's price elasticity (catalog "elasticity": 1.5 staples ..
+    // 4 snacks and drinks). At the rival's price 90 % buy whatever the product; cheaper wins a little for a staple
+    // and a lot for a snack; dearer loses more than cheaper wins (loss aversion x1.4). The local share and the
+    // shopper's segment move the point of indifference like before (25 % share = neutral). A product whose price
+    // everybody knows (catalog "kvi" 0..1: bread, milk, tea) is compared harder, both ways (x 1 + kvi).
+    //   U = logit(0.9) + E x K x (1 + kvi) x g (x 1.4 when g < 0),  g = (1 - Ratio) + (Share - 25) / 250 + Tolerance
+    constexpr double ParityChance = 0.90;
+    constexpr double PriceSensitivity = 3.0;    // K
+    constexpr double LossAversion = 1.4;
+    constexpr float DefaultElasticity = 2.5f;   // products without a catalog value (also MarketPromotions)
+    constexpr float NeutralShare = 25.f;
+    // The product's elasticity, or DefaultElasticity.
+    float ElasticityOf(const FMarketProduct& Product);
+    double BuyChanceFor(double Ratio, float MarketShare, double PriceTolerance, float Elasticity, float Kvi = 0.f);
+    // B1 (#27): a warning when the shelf price is below the unit cost ("" when not): one sentence and one number.
+    FString PriceWarning(const FMarketState& State, const TArray<FMarketProduct>& Products, int32 Index);
     // Step of the +/- price keys: about 5 % of the list price in whole 5 kurus, at least 5 kurus.
     int64 PriceStep(const FMarketProduct& Product);
     // Which product a new shopper wants. Rolls are 0..1 (FRandomStream in the game, fixed values in tests).

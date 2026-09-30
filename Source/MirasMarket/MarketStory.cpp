@@ -132,7 +132,8 @@ TArray<MarketStory::FObjective> MarketStory::Objectives(const FMarketState& Stat
         const int32 Stores = MarketCompany::TotalStores(State);
         Add(FString::Printf(TEXT("50 ma\u011faza (\u015fu an %d)"), Stores), Stores >= 50);
         Add(TEXT("\u00d6zel marka \"Miras\""), State.Company.bPrivateLabel);
-        Add(FString::Printf(TEXT("Ulusal pay %%2 (\u015fu an %%%.2f)"), MarketCompany::NationalShare(State)), MarketCompany::NationalShare(State) >= 2.f);
+        // B1 (#45): the share follows revenue now; 0.1 % is about fifty stores of a discounter's size.
+        Add(FString::Printf(TEXT("Ulusal pay %%%.1f (\u015fu an %%%.2f)"), NationalShareGoal, MarketCompany::NationalShare(State)), MarketCompany::NationalShare(State) >= NationalShareGoal);
         break;
     }
     case 6:
