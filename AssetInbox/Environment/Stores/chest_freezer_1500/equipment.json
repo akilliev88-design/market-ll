@@ -1,0 +1,58 @@
+{
+  "schemaVersion": 1,
+  "id": "chest_freezer_1500",
+  "displayName": "Kutu tipi dondurucu",
+  "mesh": "SM_ChestFreezer1500.fbx",
+  "unrealMesh": "/Game/Stores/Equipment/SM_ChestFreezer1500.SM_ChestFreezer1500",
+  "family": "freezer",
+  "dimensionsMm": {
+    "width": 1500.0,
+    "depth": 800.0,
+    "height": 913.0
+  },
+  "origin": "floor_center",
+  "frontAxis": "-Y",
+  "materials": [
+    "MI_Cabinet_Gasket",
+    "MI_Cabinet_Porcelain",
+    "MI_Cabinet_BrushedSteel",
+    "MI_Cabinet_Glass",
+    "MI_Cabinet_Anthracite"
+  ],
+  "collision": {
+    "policy": "custom_ucx",
+    "pieces": 1
+  },
+  "zones": [
+    {
+      "id": "front_l00",
+      "face": "front",
+      "level": 0,
+      "centerCm": [
+        0,
+        0,
+        36.0
+      ],
+      "usableWidthCm": 138.0,
+      "usableDepthCm": 58.0,
+      "clearanceHeightCm": 48.0
+    }
+  ],
+  "checkouts": 0,
+  "planogram": {
+    "doubleSided": false,
+    "widthCm": 138.0,
+    "depthCm": 58.0,
+    "frontY": -29.0,
+    "meshYaw": 180
+  },
+  "reference": {
+    "url": "http://www.buzrefrigeration.com/tr/urunler/kutu-tipi-sogutucular",
+    "accuracy": "Reference-inspired game model; dimensions are authored, not manufacturer specifications"
+  },
+  "lod": {
+    "naniteCandidate": false,
+    "lod1TriangleRatio": 0.5,
+    "lod2TriangleRatio": 0.25
+  }
+}

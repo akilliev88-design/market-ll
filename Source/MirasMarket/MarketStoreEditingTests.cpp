@@ -1,0 +1,41 @@
+#include "MarketStoreEditing.h"
+#include "Misc/AutomationTest.h"
+#include "Misc/Paths.h"
+#include "Misc/FileHelper.h"
+#include "HAL/FileManager.h"
+#include "Serialization/JsonReader.h"
+#include "Serialization/JsonSerializer.h"
+#include "Dom/JsonObject.h"
+
+IMPLEMENT_SIMPLE_AUTOMATION_TEST(FStoreEditPlacementTest,"MirasMarket.Stores.EditorPlacement",EAutomationTestFlags::EditorContext|EAutomationTestFlags::EngineFilter)
+bool FStoreEditPlacementTest::RunTest(const FString&)
+{
+    TArray<FString> Errors;TestTrue(TEXT("Load"),MarketStoreKit::Load(Errors));auto S=*MarketStoreKit::Find(TEXT("buyuk_01"));S.Fixtures.Reset();S.Obstacles.Reset();
+    int32 Index;TestTrue(TEXT("Add in free floor"),MarketStoreEditing::Place(S,TEXT("gondola_double_1200"),TEXT("s\u00fct"),FVector(0,0,0),Index));
+    auto F=S.Fixtures[0];F.Location=FVector(12,0,0);TestFalse(TEXT("Block overlap"),MarketStoreEditing::CanPlace(S,F));
+    F.Location=FVector(0,S.Backroom.Min.Y+10,0);TestFalse(TEXT("Block depot"),MarketStoreEditing::CanPlace(S,F));
+    F.Location=FVector(90000,0,0);TestFalse(TEXT("Block exterior"),MarketStoreEditing::CanPlace(S,F));
+    F.Location=FVector(S.FootprintCm.X/2-65,0,0);auto P=MarketStoreEditing::Snap(S,F,true,false,10);TestEqual(TEXT("Wall snap uses actual footprint and 2cm clearance"),P.X,S.FootprintCm.X/2-62);
+    S.Fixtures[0].Yaw=90;int32 New;TestTrue(TEXT("Duplicate rotated module"),MarketStoreEditing::Duplicate(S,0,2,New));TestEqual(TEXT("Keep angle"),S.Fixtures[New].Yaw,90.f);TestTrue(TEXT("Duplicate fits"),MarketStoreEditing::CanPlace(S,S.Fixtures[New],New));TestNotEqual(TEXT("Unique fixture IDs"),S.Fixtures[0].Id,S.Fixtures[New].Id);
+    return true;
+}
+IMPLEMENT_SIMPLE_AUTOMATION_TEST(FStoreEditResizeTest,"MirasMarket.Stores.EditorArchitecture",EAutomationTestFlags::EditorContext|EAutomationTestFlags::EngineFilter)
+bool FStoreEditResizeTest::RunTest(const FString&)
+{
+    TArray<FString> Errors;MarketStoreKit::Load(Errors);auto S=*MarketStoreKit::Find(TEXT("mahalle_01"));const auto Before=S;FString Error;
+    TestTrue(TEXT("Resize preserves recessed floor"),MarketStoreEditing::Resize(S,1600,1400,1400,220,350,Error));TestTrue(TEXT("Parametric architecture selected"),S.bEditableShell);TestEqual(TEXT("Polygon points preserved"),S.Outline.Num(),Before.Outline.Num());TestEqual(TEXT("Depot square metres computed"),S.BackroomM2,30.8);TestEqual(TEXT("Column height follows ceiling"),S.Obstacles[0].Size.Z,350.);
+    TestFalse(TEXT("Invalid depot rejected"),MarketStoreEditing::Resize(S,1600,1400,2000,220,350,Error));TestEqual(TEXT("Failure leaves store unchanged"),S.FootprintCm.X,1600.);
+    return true;
+}
+IMPLEMENT_SIMPLE_AUTOMATION_TEST(FStoreEditSaveTest,"MirasMarket.Stores.EditorDraftAndPublish",EAutomationTestFlags::EditorContext|EAutomationTestFlags::EngineFilter)
+bool FStoreEditSaveTest::RunTest(const FString&)
+{
+    TArray<FString> Errors;MarketStoreKit::Load(Errors);auto S=*MarketStoreKit::Find(TEXT("mahalle_01"));FString Error;const auto Path=FPaths::ProjectSavedDir()/TEXT("Tests/StoreEditorDraft.json");
+    S.FloorColor=FLinearColor(.24,.37,.49);S.FloorFinish=TEXT("concrete");S.bEditableShell=true;
+    TestTrue(TEXT("Save valid draft"),MarketStoreEditing::Save(S,Path,Error));FStoreTemplate Reload;TestTrue(TEXT("Read draft"),MarketStoreEditing::LoadDraft(Path,Reload,Error));TestEqual(TEXT("Floor finish roundtrip"),Reload.FloorFinish,S.FloorFinish);TestEqual(TEXT("Colour roundtrip"),Reload.FloorColor,S.FloorColor);TestTrue(TEXT("Architecture flag roundtrip"),Reload.bEditableShell);TestEqual(TEXT("Fixture count preserved"),Reload.Fixtures.Num(),S.Fixtures.Num());
+    auto Invalid=S;Invalid.SalesAreaM2=1;const auto Catalogue=FPaths::ProjectConfigDir()/TEXT("magazalar.json");FString Before,After;FFileHelper::LoadFileToString(Before,*Catalogue);
+    TestFalse(TEXT("Invalid published store refused"),MarketStoreEditing::Save(Invalid,Catalogue,Error));FFileHelper::LoadFileToString(After,*Catalogue);TestEqual(TEXT("Catalogue unchanged on rejection"),After,Before);
+    Invalid=S;Invalid.Fixtures[0].Location=Invalid.Fixtures[1].Location;TestFalse(TEXT("Overlapping draft refused"),MarketStoreEditing::Save(Invalid,Path,Error));
+    FFileHelper::LoadFileToString(After,*Path);TestTrue(TEXT("Last good draft retained"),After.Contains(TEXT("concrete")));IFileManager::Get().Delete(*Path);
+    return true;
+}

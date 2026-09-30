@@ -1,0 +1,58 @@
+{
+  "schemaVersion": 1,
+  "id": "deli_display_2500",
+  "displayName": "Şarküteri servis tezgâhı",
+  "mesh": "SM_DeliDisplay2500.fbx",
+  "unrealMesh": "/Game/Stores/Equipment/SM_DeliDisplay2500.SM_DeliDisplay2500",
+  "family": "deli",
+  "dimensionsMm": {
+    "width": 2500.0,
+    "depth": 1212.0,
+    "height": 1232.5
+  },
+  "origin": "floor_center",
+  "frontAxis": "-Y",
+  "materials": [
+    "MI_Cabinet_Gasket",
+    "MI_Cabinet_Oak",
+    "MI_Cabinet_BrushedSteel",
+    "MI_Cabinet_Glass",
+    "MI_Cabinet_Porcelain"
+  ],
+  "collision": {
+    "policy": "custom_ucx",
+    "pieces": 2
+  },
+  "zones": [
+    {
+      "id": "front_l00",
+      "face": "front",
+      "level": 0,
+      "centerCm": [
+        0,
+        0,
+        68.0
+      ],
+      "usableWidthCm": 238.0,
+      "usableDepthCm": 95.99999999999999,
+      "clearanceHeightCm": 47.99999999999999
+    }
+  ],
+  "checkouts": 0,
+  "planogram": {
+    "doubleSided": false,
+    "widthCm": 238.0,
+    "depthCm": 95.99999999999999,
+    "frontY": -47.99999999999999,
+    "meshYaw": 180
+  },
+  "reference": {
+    "url": "http://www.buzrefrigeration.com/tr/urunler/servis-reyonlari",
+    "accuracy": "Reference-inspired game model; dimensions are authored, not manufacturer specifications"
+  },
+  "lod": {
+    "naniteCandidate": false,
+    "lod1TriangleRatio": 0.5,
+    "lod2TriangleRatio": 0.25
+  }
+}

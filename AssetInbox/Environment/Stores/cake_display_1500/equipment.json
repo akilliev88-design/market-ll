@@ -1,0 +1,84 @@
+{
+  "schemaVersion": 1,
+  "id": "cake_display_1500",
+  "displayName": "Pasta teşhir vitrini",
+  "mesh": "SM_CakeDisplay1500.fbx",
+  "unrealMesh": "/Game/Stores/Equipment/SM_CakeDisplay1500.SM_CakeDisplay1500",
+  "family": "service",
+  "dimensionsMm": {
+    "width": 1500.0,
+    "depth": 902.0,
+    "height": 1362.5
+  },
+  "origin": "floor_center",
+  "frontAxis": "-Y",
+  "materials": [
+    "MI_Cabinet_Gasket",
+    "MI_Cabinet_Porcelain",
+    "MI_Cabinet_BrushedSteel",
+    "MI_Cabinet_Glass",
+    "MI_Cabinet_LED"
+  ],
+  "collision": {
+    "policy": "custom_ucx",
+    "pieces": 2
+  },
+  "zones": [
+    {
+      "id": "front_l00",
+      "face": "front",
+      "level": 0,
+      "centerCm": [
+        0,
+        0,
+        56.99999999999999
+      ],
+      "usableWidthCm": 138.0,
+      "usableDepthCm": 65.0,
+      "clearanceHeightCm": 25.000000000000004
+    },
+    {
+      "id": "front_l01",
+      "face": "front",
+      "level": 1,
+      "centerCm": [
+        0,
+        0,
+        86.0
+      ],
+      "usableWidthCm": 138.0,
+      "usableDepthCm": 65.0,
+      "clearanceHeightCm": 24.999999999999993
+    },
+    {
+      "id": "front_l02",
+      "face": "front",
+      "level": 2,
+      "centerCm": [
+        0,
+        0,
+        114.99999999999999
+      ],
+      "usableWidthCm": 138.0,
+      "usableDepthCm": 65.0,
+      "clearanceHeightCm": 15
+    }
+  ],
+  "checkouts": 0,
+  "planogram": {
+    "doubleSided": false,
+    "widthCm": 138.0,
+    "depthCm": 65.0,
+    "frontY": -32.5,
+    "meshYaw": 180
+  },
+  "reference": {
+    "url": "http://www.buzrefrigeration.com/tr/urunler/pasta-ozel-teshir-reyonlari",
+    "accuracy": "Reference-inspired game model; dimensions are authored, not manufacturer specifications"
+  },
+  "lod": {
+    "naniteCandidate": false,
+    "lod1TriangleRatio": 0.5,
+    "lod2TriangleRatio": 0.25
+  }
+}

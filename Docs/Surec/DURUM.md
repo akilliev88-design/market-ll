@@ -1,6 +1,6 @@
 # Güncel durum
 
-Son güncelleme: 30.09.2026 — Codex (G-088 A görsel revizyonu doğrulandı; yeniden onay bekliyor)
+Son güncelleme: 30.09.2026 — Codex (G-088 mağaza editörü ve 15 yeni Blender teşhiri; A/B görsel onay sınırı korunuyor)
 
 ## Kısaca
 
@@ -20,6 +20,7 @@ GitHub ana deposu: `https://github.com/m07tas/market-ll` (`main`). Unreal/Blende
 
 | Kontrol | Sonuç |
 |---|---|
+| G-088 mağaza editörü + dolap kütüphanesi | DERLE GEÇTİ; TEST 69/69; Smoke ve dört mağaza gezi testi GEÇTİ; 15/15 Blender kaynak kontrolü; gerçek editör ekranları incelendi — 30.09.2026 |
 | `DERLE.cmd` (v1) | GEÇTİ — 27.09.2026 |
 | `DERLE.cmd` (v1.1) | GEÇTİ — 27.09.2026 |
 | `TEST.cmd` (9 test) | GEÇTİ 9/9 — 27.09.2026 |
@@ -84,6 +85,13 @@ GitHub ana deposu: `https://github.com/m07tas/market-ll` (`main`). Unreal/Blende
 Görsel ve raf dizme işleri yeterli seviyede; bir süre **donduruldu**. Öncelik **"İlk Hafta" oynanabilir dilimi**: bir oyuncu 7 günü baştan sona oynayabilmeli (sipariş → mal kabul → raf → fiyat → satış → gün raporu → hafta hedefi). Görevler G-051…G-055. Başarı ölçütü: yeni biri ilk 30 dakikada döngüyü anlıyor ve ilk kararının sonucunu görüyor.
 
 ## Devam notu
+
+**30.09.2026 — Codex: G-088 mağaza editörü + BUZ referanslı dolap kütüphanesi.**
+- `MAGAZA_EDITORU.cmd` / Tools > Mağaza Editörü: ekipman seçip plana tıklayarak ekleme, sürükleme, duvara/komşuya yaslama, 10 cm ızgara, döndürme, yan yana kopyalama, silme, 50 adım geri al/yinele. Bina/depo eni-boyu, tavan ve kapı konumları; Kasap/Şarküteri/Manav/Teknoloji hazır bölümleri; zemin renkleri/özel RGB, seramik/beton/parlak seçenekleri ve 3B rastgele raf dolumu.
+- `SStoreStudio.*`; `MarketStoreEditing.*`, `MarketStoreArchitecture.cpp`, `MarketStoreEditingTests.cpp`. Taslaklar `Saved/StoreDrafts`, tarihli yedekler `Saved/StoreBackups`; Oyuna kaydet tam mağaza sözleşmesini doğrular, stats hesaplar ve yalnız seçili mağazayı günceller. Boyut/zemin değişen mağaza `editableShell` ile girintili dış hat, depo, kapı ve kolonlarını çalışma anında kurar. Aile düzeni aynı.
+- 15 yeni gerçek Blender model/render: 12 soğutmalı teşhir tipi, kasap hazırlık tezgâhı, teknoloji masası/duvar ünitesi. Metre kaynak, santimetre FBX, UCX, metadata ve oyun varlıkları hazır. Kaynaklar `Tools/Blender/create_display_cabinets.py`, `check_display_cabinets.py`, `Tools/import_display_cabinets.py`, `create_store_surface.py`. Referans fotoğrafları incelendi; ölçüler oyun için tasarlandı, üretici teknik ölçüsü iddia edilmedi.
+- DERLE GEÇTİ; TEST 69/69 (Claude'un 12 yeni yönetim/atama testi dahil), Smoke GEÇTİ; gezi hem Blender hem düzenlenebilir kabukla dört mağazada yürüyüş/rastgele dolum/para yalıtımı GEÇTİ; Python doğrulayıcı 4/4; Blender 15/15 kaynak ölçüsü/orijin/ölçek/UCX ve 972–8760 üçgen kontrolü GEÇTİ. `StoreEditorReview.ps1` ekle/kopyala/geri al/bölüm/boyut/zemin/taslak kontrolü GEÇTİ; PNG'ler gözle incelendi. Seramik ve alt zemin yüzeylerinin çakışması giderildi; çarpışma sürekli alt zeminden gelir.
+- Kılavuz `Docs/Environment/MAGAZA_EDITORU.md`; galeri `Docs/Images/Stores/Cabinets/index.html`, kolaj `cabinet_library.jpg`; editör ekranları `Saved/Screenshots/StoreEditor/`. Mevcut 4 hazır mağaza değiştirilmedi; kalan 16 görsel onaydan sonra. `MarketStoreAssign` ve oyun kayıt/menü/ekonomi bağlantısı Claude'da; ortak kod derlendi/test edildi, yeni yönetim menüsünün görsel kontrolü bu oturumda yapılmadı.
 
 **30.09.2026 — Codex: G-088 A görsel revizyonu doğrulandı; yeniden Mustafa onayı bekleniyor.**
 - İlk tasarım reddedildi; dört örnek reyonlara göre yeniden kuruldu. Küçüklerde gerçek girinti/kolon/duvar dönüşleri; büyüklerde manav/servis/gıda dışı bölgeler ve geniş kesişen koridorlar. Süpermarket 6 m, hiper 8 m, borulu tesisatlı tavan; ana bakkal düz açık renk tavan, ekipman düzeni aynı.

@@ -1,5 +1,7 @@
 # G-088 — mağaza kitinin kullanımı
 
+Mağaza/depo boyutu, yaslama, hazır bölümler ve zemin düzenleme için `MAGAZA_EDITORU.cmd` açılır. Kullanım ve kaynaklar: [Mağaza editörü](MAGAZA_EDITORU.md). 15 yeni Blender dolabı ve teşhir modeli: `Docs/Images/Stores/Cabinets/index.html`.
+
 Aşama A dört örnek içerir: `mahalle_01`, `kucuk_01`, `buyuk_01`, `hiper_01`. Kalan 16 mağaza Mustafa'nın görsel onayından sonra hazırlanır. Aile dükkânının ekipman yerleşimi değişmedi.
 
 Mustafa'nın ilk görseli reddetmesinden sonra yerleşimler yeniden tasarlandı. Mahalle dükkânı L biçiminde, iki kolon ve duvar dönüşü içerir; ucuzcuda köşe girintisi, kolonlar ve farklı uzunlukta raf grupları vardır. Süpermarketin manav avlusu ve arka servis hattı, hipermarketin üç raf bölgesi, geniş kesişen koridorları ve ayrı gıda dışı bölümü bulunur. Süpermarket tavanı 600 cm, hipermarket tavanı 800 cm; mevcut `CeilingBay_6000` boru/taşıyıcı modülü yalnız bu iki türde instanced kullanılır. Mahalle/ucuzcu 310/360 cm. Aile bakkalında aynı kabuk ve ekipman konumları korunarak açık renk düz tavan ve yüzeye yakın ışık panelleri kullanılır.

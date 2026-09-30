@@ -26,6 +26,10 @@ struct FStoreTemplate
     TArray<FStoreObstacle> Obstacles;
     TArray<FStoreSection> Sections;
     FStoreStats Stats;
+    // Editor-authored architecture; old baked shells keep their original appearance.
+    bool bEditableShell = false;
+    FLinearColor FloorColor = FLinearColor(.62f,.60f,.56f);
+    FString FloorFinish = TEXT("tile");
 };
 namespace MarketStoreKit
 {
@@ -41,6 +45,6 @@ namespace MarketStoreKit
     MIRASMARKET_API void Fill(FMarketPlanogram& Plan, const TArray<FMarketProduct>& Products);
     // Test dressing only: seeded assortment order, original catalogue/prices remain untouched.
     MIRASMARKET_API void FillRandom(FMarketPlanogram& Plan, const TArray<FMarketProduct>& Products, int32 Seed);
-    MIRASMARKET_API bool Build(UWorld* World, const FStoreTemplate& Store, const FMarketPlanogram& Filled);
+    MIRASMARKET_API bool Build(UWorld* World, const FStoreTemplate& Store, const FMarketPlanogram& Filled, bool bDesignPreview = false);
     MIRASMARKET_API void Clear(UWorld* World);
 }

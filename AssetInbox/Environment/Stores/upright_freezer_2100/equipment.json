@@ -1,0 +1,111 @@
+{
+  "schemaVersion": 1,
+  "id": "upright_freezer_2100",
+  "displayName": "Üç kapılı dikey dondurucu",
+  "mesh": "SM_UprightFreezer2100.fbx",
+  "unrealMesh": "/Game/Stores/Equipment/SM_UprightFreezer2100.SM_UprightFreezer2100",
+  "family": "freezer",
+  "dimensionsMm": {
+    "width": 2100.0,
+    "depth": 857.5,
+    "height": 2100.0
+  },
+  "origin": "floor_center",
+  "frontAxis": "-Y",
+  "materials": [
+    "MI_Cabinet_Gasket",
+    "MI_Cabinet_Anthracite",
+    "MI_Cabinet_Porcelain",
+    "MI_Cabinet_LED",
+    "MI_Cabinet_BrushedSteel",
+    "MI_Cabinet_Glass"
+  ],
+  "collision": {
+    "policy": "custom_ucx",
+    "pieces": 2
+  },
+  "zones": [
+    {
+      "id": "front_l00",
+      "face": "front",
+      "level": 0,
+      "centerCm": [
+        0,
+        0,
+        38.0
+      ],
+      "usableWidthCm": 198.0,
+      "usableDepthCm": 65.0,
+      "clearanceHeightCm": 30.0
+    },
+    {
+      "id": "front_l01",
+      "face": "front",
+      "level": 1,
+      "centerCm": [
+        0,
+        0,
+        72.0
+      ],
+      "usableWidthCm": 198.0,
+      "usableDepthCm": 65.0,
+      "clearanceHeightCm": 30.000000000000007
+    },
+    {
+      "id": "front_l02",
+      "face": "front",
+      "level": 2,
+      "centerCm": [
+        0,
+        0,
+        106.0
+      ],
+      "usableWidthCm": 198.0,
+      "usableDepthCm": 65.0,
+      "clearanceHeightCm": 29.999999999999986
+    },
+    {
+      "id": "front_l03",
+      "face": "front",
+      "level": 3,
+      "centerCm": [
+        0,
+        0,
+        140.0
+      ],
+      "usableWidthCm": 198.0,
+      "usableDepthCm": 65.0,
+      "clearanceHeightCm": 30.000000000000007
+    },
+    {
+      "id": "front_l04",
+      "face": "front",
+      "level": 4,
+      "centerCm": [
+        0,
+        0,
+        174.0
+      ],
+      "usableWidthCm": 198.0,
+      "usableDepthCm": 65.0,
+      "clearanceHeightCm": 30.000000000000007
+    }
+  ],
+  "checkouts": 0,
+  "planogram": {
+    "doubleSided": false,
+    "widthCm": 198.0,
+    "depthCm": 65.0,
+    "frontY": -32.5,
+    "meshYaw": 180
+  },
+  "reference": {
+    "url": "http://www.buzrefrigeration.com/tr/urunler/dikey-dondurucular",
+    "accuracy": "Reference-inspired game model; dimensions are authored, not manufacturer specifications"
+  },
+  "lod": {
+    "naniteCandidate": false,
+    "lod1TriangleRatio": 0.5,
+    "lod2TriangleRatio": 0.25
+  }
+}

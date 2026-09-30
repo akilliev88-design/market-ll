@@ -1,0 +1,45 @@
+{
+  "schemaVersion": 1,
+  "id": "tech_table_1800",
+  "displayName": "Teknoloji deneme masası",
+  "mesh": "SM_TechTable1800.fbx",
+  "unrealMesh": "/Game/Stores/Equipment/SM_TechTable1800.SM_TechTable1800",
+  "family": "electronics",
+  "dimensionsMm": {
+    "width": 1800.0,
+    "depth": 900.0,
+    "height": 1170.3
+  },
+  "origin": "floor_center",
+  "frontAxis": "-Y",
+  "materials": [
+    "MI_Cabinet_Gasket",
+    "MI_Cabinet_BrushedSteel",
+    "MI_Cabinet_Oak",
+    "MI_Cabinet_Porcelain",
+    "MI_Cabinet_Anthracite",
+    "MI_Tech_Screen"
+  ],
+  "collision": {
+    "policy": "custom_ucx",
+    "pieces": 1
+  },
+  "zones": [],
+  "checkouts": 0,
+  "planogram": {
+    "doubleSided": false,
+    "widthCm": 168.0,
+    "depthCm": 70.0,
+    "frontY": -35.0,
+    "meshYaw": 180
+  },
+  "reference": {
+    "url": "",
+    "accuracy": "Reference-inspired game model; dimensions are authored, not manufacturer specifications"
+  },
+  "lod": {
+    "naniteCandidate": false,
+    "lod1TriangleRatio": 0.5,
+    "lod2TriangleRatio": 0.25
+  }
+}

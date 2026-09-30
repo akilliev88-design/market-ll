@@ -2,6 +2,16 @@
 
 En yeni giriş en üstte. Biçim: tarih — ajan — başlık, ardından **Yapılan**, **Doğrulama**, **Sıradaki**.
 
+## 30.09.2026 — Codex — G-088 mağaza editörü ve 15 Blender teşhiri
+
+**Yapılan:** Mustafa'nın BUZ bağlantısındaki 11 dolap grubunun fotoğrafları incelendi. 12 soğutmalı teşhir tipi, kasap hazırlık tezgâhı ve iki teknoloji teşhiri üretildi: Blender metre kaynağı, doğru santimetre FBX, UCX, equipment.json, 1024² gerçek render ve UE varlıkları. Fotoğraflardan esinlenildi; ölçüler oyun için seçildi, marka/logo eklenmedi. Galeri `Docs/Images/Stores/Cabinets/`.
+
+`MAGAZA_EDITORU.cmd` / Tools > Mağaza Editörü: ekipman kütüphanesi, üstten sürükle/yerleştir, duvara/komşuya yasla, 10 cm ızgara, 90° döndür, yan yana kopyala, sil, 50 adım geri al/yinele. Mağaza ve depo eni/boyu, tavan, kapı konumu; hazır kasap/şarküteri/manav/teknoloji; zemin hazır/özel renkleri ve seramik/beton/parlak yüzey. 3B açık tavan önizlemesi ve rastgele raf doldurma; aydınlık tasarım/mağaza ışığı görünümü. Taslak/yedek/publish ayrımı; geçersiz düzen katalog üzerine yazılmaz, stats hesaplanır. Aile bakkalı ve ekonomi verisi değiştirilmedi.
+
+**Doğrulama:** DERLE GEÇTİ, TEST 69/69 (54 önceki + Claude'un 12 yeni testi + 3 editör testi), Smoke GEÇTİ; dört mağaza gezi testi GEÇTİ; validate_stores 4/4; Blender 15/15 (972–8760 üçgen, ölçü/orijin/ölçek/UCX). Editörün gerçek ekran kontrolünde plan çokgeni çizimindeki TArray kendi elemanını ekleme hatası düzeltildi; çatı editör görünürlüğü ve kadraj düzeltildi. `StoreEditorReview.ps1` işlem/kayıt kontrolleri GEÇTİ, son ekranlar gözle incelendi. Ortak derleme Claude'un G-086b/G-088 C kaynaklarını da doğruladı; yönetim menüsü görsel incelemesi yapılmadı.
+
+**Sıradaki:** Mustafa `MAGAZA_EDITORU.cmd` ile tasarlasın; kılavuz `Docs/Environment/MAGAZA_EDITORU.md`. Kalan 16 hazır mağaza A görsel onayından sonra. Şube atama/oyun kaydı/menü bağlantıları Claude'da. Taslaklar eksik tür bantlarıyla saklanabilir; oyuna aktarımda sözleşme zorunlu. Depo arkada, kapı düzenleme sağ/sol konumuyla sınırlı; mevcut girintili dış hat boyutla ölçeklenir.
+
 ## 30.09.2026 — Codex — G-088 A görsel revizyonu ve yürüyerek test gezisi
 
 **Yapılan**

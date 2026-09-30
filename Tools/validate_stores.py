@@ -69,7 +69,7 @@ def validate(document,equipment,categories):
             by=abs(math.sin(angle))*ew/2+abs(math.cos(angle))*ed/2
             if any(not inside(x+dx*bx,y+dy*by,outline) for dx in (-1,0,1) for dy in (-1,0,1)) or z!=0: fail('Fixture outside shell '+fid)
             boxes.append((fid,x,y,bx,by))
-            if lo[0]<x<hi[0] and lo[1]<y<hi[1]: fail('Sales fixture in backroom '+fid)
+            if x+bx>lo[0]+.5 and x-bx<hi[0]-.5 and y+by>lo[1]+.5 and y-by<hi[1]-.5: fail('Sales fixture in backroom '+fid)
             if fam in ('shelf','bakery','tobacco'): stats['shelfFrontM']+=e['front']
             if fam=='cooler': stats['coolerM']+=ew/100
             if fam=='freezer': stats['freezerM']+=ew/100

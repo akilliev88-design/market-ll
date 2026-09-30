@@ -1,0 +1,44 @@
+{
+  "schemaVersion": 1,
+  "id": "tech_wall_2400",
+  "displayName": "Teknoloji duvar teşhiri",
+  "mesh": "SM_TechWall2400.fbx",
+  "unrealMesh": "/Game/Stores/Equipment/SM_TechWall2400.SM_TechWall2400",
+  "family": "electronics",
+  "dimensionsMm": {
+    "width": 2400.0,
+    "depth": 550.0,
+    "height": 2000.0
+  },
+  "origin": "floor_center",
+  "frontAxis": "-Y",
+  "materials": [
+    "MI_Cabinet_Gasket",
+    "MI_Cabinet_Oak",
+    "MI_Cabinet_BrushedSteel",
+    "MI_Cabinet_Anthracite",
+    "MI_Tech_Screen"
+  ],
+  "collision": {
+    "policy": "custom_ucx",
+    "pieces": 2
+  },
+  "zones": [],
+  "checkouts": 0,
+  "planogram": {
+    "doubleSided": false,
+    "widthCm": 228.0,
+    "depthCm": 35.00000000000001,
+    "frontY": -17.500000000000004,
+    "meshYaw": 180
+  },
+  "reference": {
+    "url": "",
+    "accuracy": "Reference-inspired game model; dimensions are authored, not manufacturer specifications"
+  },
+  "lod": {
+    "naniteCandidate": false,
+    "lod1TriangleRatio": 0.5,
+    "lod2TriangleRatio": 0.25
+  }
+}

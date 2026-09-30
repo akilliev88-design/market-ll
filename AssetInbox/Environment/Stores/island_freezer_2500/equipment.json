@@ -1,0 +1,58 @@
+{
+  "schemaVersion": 1,
+  "id": "island_freezer_2500",
+  "displayName": "Cam sürgülü havuz dondurucu",
+  "mesh": "SM_IslandFreezer2500.fbx",
+  "unrealMesh": "/Game/Stores/Equipment/SM_IslandFreezer2500.SM_IslandFreezer2500",
+  "family": "freezer",
+  "dimensionsMm": {
+    "width": 2500.0,
+    "depth": 1070.0,
+    "height": 953.0
+  },
+  "origin": "floor_center",
+  "frontAxis": "-Y",
+  "materials": [
+    "MI_Cabinet_Gasket",
+    "MI_Cabinet_Porcelain",
+    "MI_Cabinet_BrushedSteel",
+    "MI_Cabinet_Glass",
+    "MI_Cabinet_Anthracite"
+  ],
+  "collision": {
+    "policy": "custom_ucx",
+    "pieces": 1
+  },
+  "zones": [
+    {
+      "id": "front_l00",
+      "face": "front",
+      "level": 0,
+      "centerCm": [
+        0,
+        0,
+        42.0
+      ],
+      "usableWidthCm": 238.0,
+      "usableDepthCm": 85.0,
+      "clearanceHeightCm": 46.0
+    }
+  ],
+  "checkouts": 0,
+  "planogram": {
+    "doubleSided": false,
+    "widthCm": 238.0,
+    "depthCm": 85.0,
+    "frontY": -42.5,
+    "meshYaw": 180
+  },
+  "reference": {
+    "url": "http://www.buzrefrigeration.com/tr/urunler/havuz-tipi-dondurucular",
+    "accuracy": "Reference-inspired game model; dimensions are authored, not manufacturer specifications"
+  },
+  "lod": {
+    "naniteCandidate": false,
+    "lod1TriangleRatio": 0.5,
+    "lod2TriangleRatio": 0.25
+  }
+}

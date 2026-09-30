@@ -29,6 +29,8 @@ bool AMarketGameMode::StartStoreTour(const FString& Id,bool bRandom)
     TArray<FString> Errors;
     if(!MarketStoreKit::Load(Errors)) return false;
     const auto* Store=MarketStoreKit::Find(Id); if(!Store) return false;
+    FStoreTemplate Editable;
+    if(FParse::Param(FCommandLine::Get(),TEXT("MirasStoreEditableTest"))) {Editable=*Store;Editable.bEditableShell=true;Store=&Editable;}
     const auto Overrides=Id==ActiveStoreKitId?StoreCategoryOverrides:TMap<FString,FString>();
     auto TourPlan=MarketStoreKit::ToPlanogram(*Store,Overrides);
     if(bRandom) MarketStoreKit::FillRandom(TourPlan,Products,StoreTourSeed++);

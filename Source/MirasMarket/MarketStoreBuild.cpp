@@ -1,4 +1,5 @@
 #include "MarketStoreKit.h"
+#include "MarketStoreEditing.h"
 #include "MarketGame.h"
 #include "MarketWorldText.h"
 #include "MarketVisuals.h"
@@ -41,14 +42,14 @@ void MarketStoreKit::Clear(UWorld* World)
     for(TActorIterator<AActor> It(World);It;++It) if(It->ActorHasTag(StoreBuild::Tag)) It->Destroy();
     if(auto* Game=World->GetAuthGameMode<AMarketGameMode>()) { Game->CategorySigns.Reset(); Game->CategorySignKeys.Reset(); Game->ActiveStoreKitId.Empty(); Game->StoreCategoryOverrides.Reset(); }
 }
-bool MarketStoreKit::Build(UWorld* World,const FStoreTemplate& S,const FMarketPlanogram& Filled)
+bool MarketStoreKit::Build(UWorld* World,const FStoreTemplate& S,const FMarketPlanogram& Filled,bool bDesignPreview)
 {
     if(!World) return false;
-    TArray<FString> Errors; if(!Validate(S,Errors)) return false;
-    UStaticMesh* Shell=LoadObject<UStaticMesh>(nullptr,*S.Shell); if(!Shell) { UE_LOG(LogTemp,Error,TEXT("Store shell missing: %s"),*S.Shell); return false; }
-    UStaticMesh* Roof=S.Roof.IsEmpty()?nullptr:LoadObject<UStaticMesh>(nullptr,*S.Roof);
-    if(!S.Roof.IsEmpty()&&!Roof) { UE_LOG(LogTemp,Error,TEXT("Store roof missing: %s"),*S.Roof); return false; }
-    if(auto* Body=Shell->GetBodySetup())
+    TArray<FString> Errors; if(!bDesignPreview&&!Validate(S,Errors)) return false;
+    UStaticMesh* Shell=S.bEditableShell?nullptr:LoadObject<UStaticMesh>(nullptr,*S.Shell); if(!S.bEditableShell&&!Shell) { UE_LOG(LogTemp,Error,TEXT("Store shell missing: %s"),*S.Shell); return false; }
+    UStaticMesh* Roof=S.bEditableShell||S.Roof.IsEmpty()?nullptr:LoadObject<UStaticMesh>(nullptr,*S.Roof);
+    if(!S.bEditableShell&&!S.Roof.IsEmpty()&&!Roof) { UE_LOG(LogTemp,Error,TEXT("Store roof missing: %s"),*S.Roof); return false; }
+    if(Shell) if(auto* Body=Shell->GetBodySetup())
     {
         UE_LOG(LogTemp,Display,TEXT("Store shell collision: %d convex, %d boxes"),Body->AggGeom.ConvexElems.Num(),Body->AggGeom.BoxElems.Num());
         if(!Body->AggGeom.ConvexElems.IsEmpty()) { UE_LOG(LogTemp,Display,TEXT("Store first hull: %s"),*Body->AggGeom.ConvexElems[0].ElemBox.ToString()); }
@@ -62,7 +63,8 @@ bool MarketStoreKit::Build(UWorld* World,const FStoreTemplate& S,const FMarketPl
         EquipmentMeshes.Add(F.EquipmentId,Mesh);
     }
     Clear(World); auto* A=StoreBuild::Holder(World);
-    auto* ShellComponent=NewObject<UStaticMeshComponent>(A); ShellComponent->SetupAttachment(A->GetRootComponent()); ShellComponent->SetStaticMesh(Shell); ShellComponent->SetCollisionProfileName(TEXT("BlockAll")); ShellComponent->RegisterComponent(); ShellComponent->SetRelativeRotation(FRotator(0,180,0));
+    if(S.bEditableShell) MarketStoreEditing::BuildArchitecture(World,S);
+    else {auto* ShellComponent=NewObject<UStaticMeshComponent>(A); ShellComponent->SetupAttachment(A->GetRootComponent()); ShellComponent->SetStaticMesh(Shell); ShellComponent->SetCollisionProfileName(TEXT("BlockAll")); ShellComponent->RegisterComponent(); ShellComponent->SetRelativeRotation(FRotator(0,180,0));}
     if(Roof)
     {
         auto* RoofActor=StoreBuild::Holder(World); RoofActor->Tags.Add(TEXT("MirasStoreRoof"));

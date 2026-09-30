@@ -1,0 +1,44 @@
+{
+  "schemaVersion": 1,
+  "id": "icecream_display_1500",
+  "displayName": "Dondurma servis vitrini",
+  "mesh": "SM_IcecreamDisplay1500.fbx",
+  "unrealMesh": "/Game/Stores/Equipment/SM_IcecreamDisplay1500.SM_IcecreamDisplay1500",
+  "family": "freezer",
+  "dimensionsMm": {
+    "width": 1500.0,
+    "depth": 1052.0,
+    "height": 1262.5
+  },
+  "origin": "floor_center",
+  "frontAxis": "-Y",
+  "materials": [
+    "MI_Cabinet_Gasket",
+    "MI_Cabinet_Porcelain",
+    "MI_Cabinet_BrushedSteel",
+    "MI_Cabinet_Glass",
+    "MI_Cabinet_Anthracite"
+  ],
+  "collision": {
+    "policy": "custom_ucx",
+    "pieces": 2
+  },
+  "zones": [],
+  "checkouts": 0,
+  "planogram": {
+    "doubleSided": false,
+    "widthCm": 138.0,
+    "depthCm": 80.0,
+    "frontY": -40.0,
+    "meshYaw": 180
+  },
+  "reference": {
+    "url": "http://www.buzrefrigeration.com/tr/urunler/dondurma-reyonlari",
+    "accuracy": "Reference-inspired game model; dimensions are authored, not manufacturer specifications"
+  },
+  "lod": {
+    "naniteCandidate": false,
+    "lod1TriangleRatio": 0.5,
+    "lod2TriangleRatio": 0.25
+  }
+}

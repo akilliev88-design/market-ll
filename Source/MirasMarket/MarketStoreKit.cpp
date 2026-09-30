@@ -59,6 +59,10 @@ bool MarketStoreKit::Parse(const FString& Json,TArray<FStoreTemplate>& Out,TArra
         if (!Valid) { Errors.Add(TEXT("Store required fields missing: ")+S.Id); continue; }
         S.FootprintCm=FVector2D((*Footprint)[0]->AsNumber(),(*Footprint)[1]->AsNumber());
         O->TryGetStringField(TEXT("roof"),S.Roof);
+        O->TryGetBoolField(TEXT("editableShell"),S.bEditableShell);
+        O->TryGetStringField(TEXT("floorFinish"),S.FloorFinish);
+        FVector FloorRGB;
+        if(StoreData::Vector(O,TEXT("floorColor"),FloorRGB)) S.FloorColor=FLinearColor(FloorRGB.X,FloorRGB.Y,FloorRGB.Z);
         const TSharedPtr<FJsonObject>* Architecture=nullptr;
         if(O->TryGetObjectField(TEXT("architecture"),Architecture))
         {
@@ -184,7 +188,7 @@ bool MarketStoreKit::Validate(const FStoreTemplate& S,TArray<FString>& Errors)
         Footprints.Add(Bounds);
         const double PlayerDX=FMath::Max(0.0,FMath::Abs(S.PlayerStart.At.X-F.Location.X)-X), PlayerDY=FMath::Max(0.0,FMath::Abs(S.PlayerStart.At.Y-F.Location.Y)-Y);
         if(FMath::Sqrt(PlayerDX*PlayerDX+PlayerDY*PlayerDY)<44) Fail(TEXT("Player starts inside fixture: ")+F.Id);
-        if(F.Location.Y+Y>S.Backroom.Min.Y+.5) Fail(TEXT("Fixture enters backroom: ")+F.Id);
+        if(Bounds.Intersect(FBox2D(FVector2D(S.Backroom.Min.X+.25,S.Backroom.Min.Y+.25),FVector2D(S.Backroom.Max.X-.25,S.Backroom.Max.Y-.25)))) Fail(TEXT("Fixture enters backroom: ")+F.Id);
     }
     const FStoreStats Stats=CalculateStats(S);
     const double* Band=nullptr;
