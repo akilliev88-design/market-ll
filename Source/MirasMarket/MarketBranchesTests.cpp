@@ -116,9 +116,13 @@ bool FMarketBranchesTest::RunTest(const FString& Parameters)
     TestFalse(TEXT("Hypermarket waits for its chapter"), CanOpen(S, Products, TEXT("tr"), TEXT("kirklareli"), TEXT("hiper"), Message));
     TestFalse(TEXT("Unknown province"), CanOpen(S, Products, TEXT("tr"), TEXT("atlantis"), TEXT("mahalle"), Message));
     const int64 Cost = OpeningCost(S, Products, TEXT("tr"), TEXT("kirklareli"), TEXT("mahalle"));
-    TestTrue(TEXT("Opening costs deposit + fit-out + stock"), Cost > 2 * 60000 + 400000);
+    TestTrue(TEXT("Opening cost is positive"), Cost > 0);
     TestTrue(TEXT("Open in the home province"), Open(S, Products, TEXT("tr"), TEXT("kirklareli"), TEXT("mahalle"), Message));
     TestTrue(TEXT("A branch exists"), S.Branches.Num() == 1 && S.bSecondStore && S.Branches[0].Stage == static_cast<uint8>(EStage::Renovation));
+    int64 OpeningStock = 0;
+    for (const FMarketBranchItem& Item : S.Branches[0].Items)
+        for (const FMarketProduct& Product : Products) if (Product.Id == Item.ProductId) OpeningStock += static_cast<int64>(Item.Capacity) * Product.Cost;
+    TestEqual(TEXT("View-specific opening cost is deposit + fit-out + stock"), Cost, 2 * S.Branches[0].Rent + S.OtherCosts + OpeningStock);
     TestEqual(TEXT("In its province"), S.Branches[0].Province, FString(TEXT("kirklareli")));
     TestTrue(TEXT("Named after the province and type"), S.Branches[0].Name.Contains(TEXT("Mahalle 1")));
     TestEqual(TEXT("Family shop + branch"), ShopsIn(S, TEXT("tr"), TEXT("kirklareli")), 2);
