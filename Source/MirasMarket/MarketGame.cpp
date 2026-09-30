@@ -124,7 +124,7 @@ MARKET_ACTION(RandomizeShelves, "RandomFill")
 MARKET_ACTION(NextMood, "Mood")
 MARKET_ACTION(ToggleFullscreen, "Fullscreen")
 #undef MARKET_ACTION
-void AMarketCharacter::Quit() { UKismetSystemLibrary::QuitGame(this, Cast<APlayerController>(GetController()), EQuitPreference::Quit, false); }
+void AMarketCharacter::Quit() { if (auto* Game = GetMarket(this)) if (Game->IsBranchVisit()) { Game->EndBranchVisit(); return; } UKismetSystemLibrary::QuitGame(this, Cast<APlayerController>(GetController()), EQuitPreference::Quit, false); }
 
 AMarketGameMode::AMarketGameMode()
 {
@@ -192,7 +192,7 @@ void AMarketGameMode::BeginPlay()
     Random.Initialize(2011);
     RefreshLabels();
     // G-076: the last used slot comes back by itself, so a forgotten F9 never overwrites a long campaign.
-    const bool bAutomation = FParse::Param(FCommandLine::Get(), TEXT("MirasSmoke")) || FParse::Param(FCommandLine::Get(), TEXT("MirasCapture"));
+    const bool bAutomation = FParse::Param(FCommandLine::Get(), TEXT("MirasSmoke")) || FParse::Param(FCommandLine::Get(), TEXT("MirasCapture")) || FParse::Param(FCommandLine::Get(), TEXT("MirasMenuCapture")) || FParse::Param(FCommandLine::Get(), TEXT("BranchVisitReview"));
     int32 LastSlot = 1;
     if (!bAutomation && GConfig && GConfig->GetInt(TEXT("MirasMarket.Menu"), TEXT("LastSlot"), LastSlot, GGameUserSettingsIni)) ActiveSlot = FMath::Clamp(LastSlot, 1, SlotCount);
     RefreshSlotSummaries();
@@ -953,6 +953,7 @@ void AMarketGameMode::RefreshLabels()
 
 void AMarketGameMode::Command(FName Action)
 {
+    if (IsBranchVisit()) { if (Action == TEXT("ExitVisit")) EndBranchVisit(); return; }
     if (CategoryCommand(Action)) return;
     if (StoreTourCommand(Action)) return;
     if (Action == "Menu") { OpenMenu(MenuPage); return; } // G-059: clickable management menu (MarketMenu.cpp)
@@ -1339,6 +1340,9 @@ void AMarketGameMode::Checkout()
 void AMarketGameMode::Tick(float DeltaTime)
 {
     Super::Tick(DeltaTime);
+    if (!TickMenuCapture()) return;
+    if (!TickBranchVisitReview()) return;
+    if (IsBranchVisit()) return;
     if (bStoreTour) { TickStoreTour(); return; }
     if (bNeedStart && !bMenuOpen) OpenMenu(0); // G-086: the new-game screen waits for a province
     // Notices fade in real seconds, whatever the game speed (G-075).
@@ -1517,6 +1521,7 @@ void AMarketGameMode::CloseShop()
 }
 bool AMarketGameMode::SaveCampaign()
 {
+    if (IsBranchVisit() || FParse::Param(FCommandLine::Get(), TEXT("MirasMenuCapture")) || FParse::Param(FCommandLine::Get(), TEXT("BranchVisitReview"))) return false;
     auto* Save = Cast<UMarketSave>(UGameplayStatics::CreateSaveGameObject(UMarketSave::StaticClass()));
     Save->State = State;
     Save->State.Version = FMarketState::CurrentVersion;
@@ -1567,7 +1572,7 @@ void AMarketGameMode::LoadCampaign(bool bQuiet)
 void AMarketHUD::DrawHUD()
 {
     Super::DrawHUD();
-    if (Overlay.IsValid()) return;
+    if (Overlay.IsValid()) { if (auto* Mode = GetMarket(this)) Overlay->SetVisibility(Mode->IsBranchVisit() ? EVisibility::Collapsed : EVisibility::SelfHitTestInvisible); return; }
     AMarketGameMode* Game = GetMarket(this);
     if (!Game || Game->bStoreTour || Game->Products.Num() == 0 || !GEngine || !GEngine->GameViewport) return;
     // Created lazily: the game mode may begin play after the HUD.

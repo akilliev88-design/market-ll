@@ -1,6 +1,7 @@
 #include "MarketStoreKit.h"
 #include "MarketStoreEditing.h"
 #include "MarketGame.h"
+#include "MarketBranchVisit.h"
 #include "MarketWorldText.h"
 #include "MarketVisuals.h"
 #include "ProductCatalog.h"
@@ -135,7 +136,7 @@ bool MarketStoreKit::Build(UWorld* World,const FStoreTemplate& S,const FMarketPl
         UStaticMesh* Mesh=P.MeshPath.IsEmpty()?nullptr:LoadObject<UStaticMesh>(nullptr,*P.MeshPath);
         const bool Fallback=Mesh==nullptr;
         if(Fallback) Mesh=LoadObject<UStaticMesh>(nullptr,TEXT("/Engine/BasicShapes/Cube.Cube"));
-        auto* C=StoreBuild::Instances(A,Mesh,false);
+        auto* C=StoreBuild::Instances(A,Mesh,false); C->ComponentTags.Add(FName(*(TEXT("MirasProduct:")+P.Id)));
         FVector Scale=Fallback?FVector(MarketPlanogram::NominalDepthCm(P)/100,MarketPlanogram::NominalWidthCm(P)/100,MarketPlanogram::NominalHeightCm(P)/100):FVector(P.VisualScale);
         if(Fallback)
         {
@@ -149,6 +150,21 @@ bool MarketStoreKit::Build(UWorld* World,const FStoreTemplate& S,const FMarketPl
             UMaterialInterface* M=P.Materials.IsValidIndex(Slot)&&!P.Materials[Slot].IsEmpty()?LoadObject<UMaterialInterface>(nullptr,*P.Materials[Slot]):Mesh->GetMaterial(Slot);
             C->SetMaterial(Slot,MarketVisuals::CreatePackageSurface(A,M,Mesh->GetStaticMaterials()[Slot].MaterialSlotName.ToString()));
         }
+        int32 ProductTotal = 0, ProductDrawn = 0;
+        const auto* VisitGame = World->GetAuthGameMode<AMarketGameMode>();
+        const bool Visiting = VisitGame && VisitGame->IsBranchVisit() && VisitGame->State.Branches.IsValidIndex(VisitGame->BranchVisitIndex);
+        if (Visiting) for (const auto* Block : Blocks)
+        {
+            const auto* Fixture = Filled.FindFixture(Block->FixtureId); if (!Fixture) continue;
+            const auto Equipment = MarketPlanogram::Equipment(Fixture->EquipmentId);
+            if (Block->Level < 0 || Block->Level >= Equipment.Levels) continue;
+            const FRotator DisplayRotation = Block->Orientation == 1 ? FRotator(0,90,0) : Block->Orientation == 2 ? FRotator(0,0,90) : FRotator::ZeroRotator;
+            const FQuat ModelRotation = DisplayRotation.Quaternion() * (Fallback ? FQuat::Identity : P.VisualRotation.Quaternion());
+            const FVector ModelSize = Mesh->GetBoundingBox().TransformBy(FTransform(ModelRotation,FVector::ZeroVector,Scale)).GetSize();
+            const int32 VisualDepth = FMath::Min(Block->Depth,FMath::Max(1,FMath::FloorToInt((Equipment.UsableDepthCm+2)/(ModelSize.X+2))));
+            ProductTotal += VisualDepth * Block->Facings * MarketPlanogram::EffectiveStack(Filled,P,*Block);
+        }
+        const int32 ProductLimit = Visiting ? FMath::FloorToInt(ProductTotal * MarketBranchVisit::Fill(VisitGame->State.Branches[VisitGame->BranchVisitIndex],P.Id)) : MAX_int32;
         for(const auto* B:Blocks)
         {
             const auto* F=Filled.FindFixture(B->FixtureId); if(!F) continue;
@@ -165,6 +181,7 @@ bool MarketStoreKit::Build(UWorld* World,const FStoreTemplate& S,const FMarketPl
             const int32 Rows=FMath::Min(B->Depth,FMath::Max(1,FMath::FloorToInt((E.UsableDepthCm+2)/(Size.X+2))));
             for(int32 Row=0;Row<Rows;++Row) for(int32 Col=0;Col<B->Facings;++Col) for(int32 Stack=0;Stack<MarketPlanogram::EffectiveStack(Filled,P,*B);++Stack)
             {
+                if (ProductDrawn++ >= ProductLimit) continue;
                 const FVector Local(Center+(Col-(B->Facings-1)*.5f)*Pitch,-FaceSign*E.FrontY-FaceSign*(Size.X*.5f+Row*(Size.X+2)),E.LevelTopZ[B->Level]+Stack*(Size.Z+.6f));
                 C->AddInstance(FTransform(Facing.Quaternion()*Model,Local-Offset+Facing.RotateVector(P.VisualOffsetCm),Scale)*Xf); ++Count;
             }

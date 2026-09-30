@@ -301,6 +301,13 @@ public:
     int32 StoreTourSeed = 1;
     TSharedPtr<SWidget> StoreTourOverlay;
     FString StoreTourNotice;
+    TSharedPtr<struct FMarketBranchVisitSession> BranchVisit;
+    int32 BranchVisitIndex = INDEX_NONE;
+    bool StartBranchVisit(int32 BranchIndex);
+    void EndBranchVisit();
+    bool IsBranchVisit() const { return BranchVisit.IsValid(); }
+    bool TickBranchVisitReview();
+    bool TickMenuCapture();
     bool StartStoreTour(const FString& Id, bool bRandom = false);
     bool StoreTourCommand(FName Action);
     void TickStoreTour();
