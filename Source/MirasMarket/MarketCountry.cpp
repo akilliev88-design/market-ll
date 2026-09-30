@@ -1,4 +1,5 @@
 #include "MarketCountry.h"
+#include "MarketEras.h"
 #include "MarketPrices.h"
 #include "MarketMap.h"
 #include "Dom/JsonObject.h"
@@ -27,6 +28,8 @@ namespace MarketCountry
         // Turkey keeps the prototype's own curve (karar A06); every other pack gets a generated curve.
         if (P.Id == TEXT("tr")) MarketPrices::ClearEconomy();
         else MarketPrices::SetEconomy(P.InflationMean, P.InflationVol, P.LoanSpread, P.Character == ECharacter::Volatile || P.Character == ECharacter::HighInflation, Seed);
+        // B4: the country's eras without a campaign shift (MarketEras::Activate puts the campaign's plan in).
+        MarketEras::ActivateNominal(static_cast<MarketEras::ECharacter>(static_cast<uint8>(P.Character)));
     }
 }
 

@@ -4,7 +4,7 @@ Sözleşme: `Docs/Kurgu/07_AKIL_ISBOLUMU.md` §4 Akış B. Dal: `claude/miras-ma
 
 ## Kaldığım yer
 
-B1, B2, B3 bitti ve commit edildi. Sıradaki: B4 (dönem olayları).
+B1–B4 bitti ve commit edildi. Sıradaki: B5 (dünya ve son).
 
 ## Yapılanlar
 
@@ -46,13 +46,27 @@ Yeni `MarketLedger.h/.cpp` (`namespace MarketLedger`), durum `FMarketState::Ledg
 - Müdür ve şube çalışanları için aynı kurallar C'ye istek (aşağıda 9).
 - Test: `Staff.WagesAndSocialSecurity`; `Staff.PeopleAndMorale` ve `Staff.TillAndHr` yeni tabana göre güncellendi (asgari ücretin altında "10 TL'lik düşük ücretli" artık yasal değil; en düşük ücretle çok becerili bir görevli aynı şekilde küser; pazarlık testi 30 TL'lik adayla).
 
+### B4 · Dönem olayları
+
+Yeni `MarketEras.h/.cpp` (`namespace MarketEras`), durum `FMarketState::Eras` (`FMarketEras`).
+
+- **Sıra sabit:** kur şoku → durgunluk → büyük salgın → yüksek enflasyon → toparlanma; oynak/yüksek enflasyonlu ekonomide yıllar sonra daha hafif ikinci dalga (kur şoku, yüksek enflasyonlu ülkede bir de enflasyon dalgası).
+- **Zaman kayar:** `MarketEras::Setup(State)` kampanya tohumundan −2..+2 yıl ve −45..+45 gün kaydırma seçer (bütün plan birlikte kayar, sıra bozulmaz). Setup çağrılmamış kampanya (eski kayıt, C bağlamadan önceki yeni oyun) kaymasız planı yaşar.
+- **Sıklık ve şiddet ülke karakterinden** (`ulkeler.json` → `economy.character`, zaten vardı: `istikrarli` / `oynak` / `yuksek_enflasyon`): istikrarlıda yüksek enflasyon ve ikinci dalga yok, kur şoku hafif (0,3); oynakta kur şoku 0,8, enflasyon 0,4, ikinci şok tohuma göre yarı olasılıkla; yüksek enflasyonluda hepsi tam, ikinci dalga 0,6 / 0,5.
+- **Enflasyon eğrisi dönemle kayar:** `MarketPrices::YearlyInflation` ve `LoanRate` dönemlerin enflasyon tepelerini (kur şoku +5/+2 puan, yüksek enflasyon +7/+18/+16/+8 puan × şiddet) aktif plandan alır; yerleşik Türkiye eğrisindeki kaymasız tepeler çıkarılıp kampanyanınkiler eklenir. **Kaymasız plan bugünkü eğriyle birebir aynı** (test). Diğer ülkelerde üretilen eğriye eklenir. Yıl 2030 sonrası TR'de ikinci dalga yeni.
+- **Etkiler** mevcut `MarketEvents` değiştiricileriyle (oyun zaten uyguluyor): kur şoku = ithal ağırlıklı gruplarda (çay-kahve, yağ-salça, temizlik, bakım, bisküvi-çikolata) alış +%8 × şiddet, fiyat hoşgörüsü −0,03, trafik −%3; durgunluk = trafik −%5, hoşgörü −0,05, keyif ürünlerine ilgi −%15, temel gıdaya +%5; yüksek enflasyon = hoşgörü −0,04, trafik −%2; toparlanma = trafik +%4, hoşgörü +0,02, keyif ürünlerine +%6. Sepet bütçesi `BudgetFactor` (durgunluk −%10, enflasyon −%5, toparlanma +%5) — C bağlar.
+- **Salgın:** `MarketOnline`'ın mevcut 2020-21 profili planın yılına taşınır (`PandemicShiftDays`: başlangıç, kapanma, bitiş birlikte); oyuncunun profil anahtarı (`bPandemic`) aynen çalışır; eski kayıtta kayma 0.
+- **Haberler:** başlangıçta ve bitişte bir cümle + bir sayı, adsız ve yılsız ("Kur şoku: döviz birkaç günde fırladı; kahve, yağ ve temizlik ürünlerinin alış fiyatı %8 arttı. …"). Menü satırı `Summary`.
+- Eski kayıt ortasında bir dönemdeyse dönem yeniden oynatılmaz (etki ve haber yok).
+- Testler: `Eras.UnshiftedIsTheBuiltInCurve`, `Eras.OrderShiftAndCharacter`, `Eras.EffectsAndNews`.
+
 ## Doğrulama
 
 Bu oturum Linux bulut kapsayıcısında; Unreal yok, `DERLE.cmd` / `TEST.cmd` çalıştırılamadı. **Derlenmedi (UE).** Yerine:
 
 - Saf modüller ve testleri, Unreal'in kullanılan kısmını taklit eden küçük bir katmanla (sahte `CoreMinimal.h`: FString, TArray, TMap, FMath, FRandomStream UE algoritmasıyla, JSON, otomasyon testi makroları) clang ile `-Wshadow-all -Werror=shadow` derlenip çalıştırıldı. Dünyaya bağlı dosyalar (MarketGame, menü, mağaza kiti) bu katmanda derlenmez.
 - 30.09.2026, B1 sonrası: **77/77 test geçti** (başlangıçta 70/70; +7 `Balance.*`). UE'deki toplam 84 testin dünyaya bağlı 14'ü bu sayıya dahil değil.
-- B2 sonrası: **81/81** (+4 `Ledger.*`). B3 sonrası: **82/82** (+1 `Staff.WagesAndSocialSecurity`).
+- B2 sonrası: **81/81** (+4 `Ledger.*`). B3 sonrası: **82/82** (+1 `Staff.WagesAndSocialSecurity`). B4 sonrası: **85/85** (+3 `Eras.*`).
 - Codex'in `DERLE.cmd /q` + `TEST.cmd /q` koşusu bekleniyor.
 
 ## Yeni açık işlevler
@@ -72,6 +86,7 @@ Bu oturum Linux bulut kapsayıcısında; Unreal yok, `DERLE.cmd` / `TEST.cmd` ç
 - `MarketLedger::AuditOk / AuditText / StatementText / AccountName / IsIncomeStatement`.
 - `MarketStaff::MinimumDailyWage(Gün)`, `EmployerSocialRate()`, `EmployerShare(Ücret)`, `EmployerCost(Ücret)`, `SeniorityPay(Ücret, İşeGirişGünü, Gün)`, `SeverancePay(State, Çalışan)`, `DailySocialSecurity(State)`.
 - `MarketCountry::FProfile::EmployerSocialRate`, `SeveranceDaysPerYear` (`ulkeler.json` → `economy.employerSocialRate`, `economy.severanceDaysPerYear`).
+- `MarketEras::Setup(State)`, `Activate(State)`, `ActivateNominal(Karakter)`, `PlanOf(State)` / `Plan(...)`, `Current(State, Gün, OutEra)`, `BudgetFactor(State)`, `Summary(State)`, `Name(EKind)`, `PandemicShiftDays(State)`, `InflationBump(Yıl)`, `CloseDay(State)` (Director B bloğu, kapanış başında).
 
 ## C'ye istekler
 
@@ -120,6 +135,13 @@ Bu oturum Linux bulut kapsayıcısında; Unreal yok, `DERLE.cmd` / `TEST.cmd` ç
    - `MarketManagers.cpp` `CloseDay`: `const int64 Wages = DailyWages(State);` ardına `const int64 Social = MarketStaff::EmployerShare(Wages);` → kasadan, `LastBranchProfit`/`LastProfit`'ten düş, `P SocialSecurity, -Social, true, MarketLedger::HeadOfficeStore);`. Müdür görevden alınırken (`Dismiss`/`Replace`): `MarketStaff::SeniorityPay(DailyWage, AppointedDay, State.Day) + DailyWage * MarketStaff::SeveranceDays` ödenmeli (`P Severance, ...`).
    - Menü Personel sayfası: çalışan satırında "işverene maliyeti" (`EmployerCost(DailyWage)`), işten çıkar düğmesinin onayında `SeverancePay(State, E)` ("İhbar ve kıdem: X").
 
+10. **Dönemler (B4):**
+   - Yeni kampanyada `MarketStart::Setup` sonunda (ülke ve `RivalSeed` belli olduktan sonra) `MarketEras::Setup(State);`.
+   - Kayıt yüklenince ve yeni oyunda `MarketCountry::SetActive(...)` çağrısının hemen ardından `MarketEras::Activate(State);` (fiyat eğrisi kampanyanınki olsun; gün kapanışı da yapıyor ama ilk gün yüklemeden kapanışa kadar kaymasız kalır).
+   - `MarketDirector::BudgetFactor` sonucu `* MarketEras::BudgetFactor(State)`.
+   - Menü: Finans ya da Rakipler sayfasında (dönem varsa) tek satır `MarketEras::Summary(State)`; "Nasıl işler?": "Ekonomide dönemler sırayla gelir; zamanları her oyunda farklıdır."
+   - Otomatik oyuncu (A): tarz tablosuna "dönem tepkisi" (kur şokunda ithal ürün fiyatını yükselt, durgunlukta ucuz ürün) eklenebilir.
+
 ## Kararlar ve varsayımlar
 
 - **#24 sayıları:** rakip fiyatında alma %90 (eski eğri %97,3); duyarlılık K = 3; kayıptan kaçınma ×1,4; `kvi` ×(1 + kvi); esneklik 0,5–6 aralığına kırpılır. Sonuç: süt (1,5; kvi 1) rakibin %10 üstünde ~%72, kola (4) %15 üstünde ~%40 alır. 400 günlük denemede aile dükkânının cirosu ~%9 düştü (rakip fiyatında %97 → %90). Otomatik oyuncu raporunda izlenmeli; gerekirse `ParityChance` 0,92–0,93'e çekilir.
@@ -131,6 +153,9 @@ Bu oturum Linux bulut kapsayıcısında; Unreal yok, `DERLE.cmd` / `TEST.cmd` ç
 - **B2:** Defter "olay anında" yazar; oyunun `LastProfit`'i bazı kalemleri bir gün sonra gösterir (teslimat eksiği, erken ödeme ücreti) — günlük net kârlar ±bir gün kayabilir, toplam aynı. Defterin net kârı işe alım bedeli, ihbar tazminatı ve vergiyi de gider sayar (oyunun `LastProfit`'i saymıyordu: #37'nin "görünmeyen kayıplar" kısmı). Vergi beyan edilince gider (nakitsiz), ödenince bilanço hareketi. Kart komisyonu satış anında gider yazılır. Şube stoğu bugünkü alış maliyetiyle değerlenir (şube satırı ortalama maliyet tutmuyor).
 
 - **B3:** Sigorta oranları ve kıdem günleri oyun değeri (TR işveren payı ~%22,5; kıdem 30 gün/yıl gerçek kurala yakın; DE/GB/US kaba). İhbar 3 gün kaldı (gerçekte 2–8 hafta); kıdem ilk yıldan sonra devreye girdiği için "moral düşeni çıkar, yenisini al" döngüsü ilk yıl ucuz kalır — bilerek (oyunun ilk yılı zaten zor). Asgari ücret tabanı ülkenin `wageFactor`'ü ile çarpılır (Almanya'da günlük taban ~57 TL karşılığı); `FairWage` ise ülke çarpanını bilmiyor, bu yüzden yurt dışında herkes tabandan çalışır — dünya aşamasında (B5/A7) ücret eğrisi ülkeye göre ayrılmalı.
+
+- **B4:** Dönem tarihleri iç çapa olarak gerçek yakın tarihlerde (2018 kur, 2019 durgunluk, 2020 salgın, 2021–23 enflasyon, 2024 toparlanma); oyuncu yıl görmez. Kaydırma bütün plan için tek (sıra ve aralıklar korunur). Kur şokunun alış artışı dönem boyunca sürer, dönem bitince kalkar (liste fiyatı zaten enflasyonla yükselmiş olur). Fiyat eğrisi süreç içi tek (global) plandan okunur (`MarketPrices` durumsuz); plan her gün kapanışında kampanyadan yeniden kurulur.
+- **B4 sayıları:** şiddetler ve etki yüzdeleri Claude önerisi; bot raporuyla ayarlanmalı.
 
 ## Bilinen sorunlar
 

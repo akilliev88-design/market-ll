@@ -1,4 +1,5 @@
 #include "MarketOnline.h"
+#include "MarketEras.h"
 #include "MarketLedger.h"
 #include "MarketPromotions.h"
 #include "MarketCountry.h"
@@ -35,7 +36,7 @@ namespace MarketOnline
     // long the panic lasts, which weekends are closed and how long the spring closure is come from the seed.
     uint32 Roll(const FMarketState& State, uint32 Salt, int32 Extra = 0) { return OnlineMix(State.RivalSeed, Extra, Salt); }
     int32 PanicEnd(const FMarketState& State) { return PandemicStart(State) + 1 + 8 + static_cast<int32>(Roll(State, 0x9A01u) % 7u); }
-    int32 ClosureStart(const FMarketState& State) { return DateDay(2021, 4, 15) + static_cast<int32>(Roll(State, 0x9A02u) % 21u); }
+    int32 ClosureStart(const FMarketState& State) { return DateDay(2021, 4, 15) + MarketEras::PandemicShiftDays(State) + static_cast<int32>(Roll(State, 0x9A02u) % 21u); }
     int32 ClosureEnd(const FMarketState& State) { return ClosureStart(State) + 10 + static_cast<int32>(Roll(State, 0x9A03u) % 11u); }
 
     bool IsPanic(const FMarketState& State, int32 GameDay)
@@ -231,12 +232,13 @@ float MarketOnline::DistrictOnlineShare(const FMarketState& State, int32 GameDay
 
 int32 MarketOnline::PandemicStart(const FMarketState& State)
 {
-    return DateDay(2020, 3, 1) + static_cast<int32>(Roll(State, 0x9A00u) % 21u);
+    // B4: the epidemic comes when the campaign's eras say (MarketEras; no shift for older saves).
+    return DateDay(2020, 3, 1) + MarketEras::PandemicShiftDays(State) + static_cast<int32>(Roll(State, 0x9A00u) % 21u);
 }
 
 int32 MarketOnline::PandemicEnd(const FMarketState& State)
 {
-    return DateDay(2021, 5, 20) + static_cast<int32>(Roll(State, 0x9A04u) % 50u);
+    return DateDay(2021, 5, 20) + MarketEras::PandemicShiftDays(State) + static_cast<int32>(Roll(State, 0x9A04u) % 50u);
 }
 
 bool MarketOnline::IsPandemic(const FMarketState& State, int32 GameDay)

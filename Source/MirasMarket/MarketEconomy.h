@@ -2,6 +2,7 @@
 #include "CoreMinimal.h"
 // ===== Ak\u0131\u015f B =====
 #include "MarketLedger.h"
+#include "MarketEras.h"
 // ===== Ak\u0131\u015f B son =====
 #include "MarketEconomy.generated.h"
 
@@ -672,6 +673,8 @@ struct FMarketState
     // ===== Ak\u0131\u015f B =====
     // Docs/Surec/akislar/B.md: the books (MarketLedger.h). Older saves load it empty.
     UPROPERTY() FMarketLedger Ledger;
+    // B4: eras of the economy (MarketEras.h). Older saves: the unshifted plan.
+    UPROPERTY() FMarketEras Eras;
     // ===== Ak\u0131\u015f B son =====
 
     // Wages of everyone on the payroll (paid days off included). Staff empty = the v0.1 flags (older saves, tests).

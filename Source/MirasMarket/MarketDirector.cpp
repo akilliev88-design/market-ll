@@ -248,6 +248,7 @@ void MarketDirector::CloseDay(FMarketState& State, const TArray<FMarketProduct>&
     State.DayNews.Reset();
     // ===== Ak\u0131\u015f B =====
     MarketLedger::BeginClose(State, Products); // B2: the family shop's day from FMarketState::CloseDay's counters
+    MarketEras::CloseDay(State);               // B4: this campaign's eras (price curve, effects, news)
     // ===== Ak\u0131\u015f B son =====
     MarketPromotions::CloseDay(State, Products); // running promotions, results, funded offers (G-064)
     MarketFreshness::CloseDay(State, Products);  // batches, waste, donations (G-067) - before the books
