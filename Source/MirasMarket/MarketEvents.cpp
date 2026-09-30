@@ -1,4 +1,5 @@
 #include "MarketEvents.h"
+#include "MarketGoals.h"
 #include "MarketCountry.h"
 #include "MarketCalendar.h"
 #include "MarketPrices.h"
@@ -300,6 +301,19 @@ bool MarketEvents::Trigger(FMarketState& State, const TArray<FMarketProduct>& Pr
         AddModifier(State, EModifier::Interest, static_cast<uint8>(EGroup::Sweets), 1.2f, Tomorrow, Tomorrow, Id);
         News.Add(TEXT("Yar\u0131n ak\u015fam b\u00fcy\u00fck derbi var: i\u00e7ecek ve \u00e7erez \u00e7ok aranacak. Raflar dolu olsun."));
     }
+    else if (Id == TEXT("event.fair"))
+    {
+        // B6 rhythm guard: a pleasant day after a quiet stretch.
+        AddModifier(State, EModifier::Traffic, AllGroups, 1.25f, Tomorrow, Tomorrow, Id);
+        AddModifier(State, EModifier::Interest, static_cast<uint8>(EGroup::Drinks), 1.3f, Tomorrow, Tomorrow, Id);
+        News.Add(TEXT("Yar\u0131n mahallede \u015fenlik var: sokak kalabal\u0131k olacak, %25 daha \u00e7ok m\u00fc\u015fteri beklenir. \u0130\u00e7ecek raf\u0131n\u0131 doldur."));
+    }
+    else if (Id == TEXT("event.newbuilding"))
+    {
+        if (Happened(State, Id, 180)) return false;
+        AddModifier(State, EModifier::Traffic, AllGroups, 1.05f, Tomorrow, Tomorrow + 29, Id);
+        News.Add(TEXT("Soka\u011f\u0131n ba\u015f\u0131ndaki yeni apartmana ta\u015f\u0131nmalar ba\u015flad\u0131: bir ay boyunca %5 daha \u00e7ok m\u00fc\u015fteri gelir."));
+    }
     else if (Id == TEXT("event.truck"))
     {
         // Orders placed during the coming day arrive one day later than usual.
@@ -308,6 +322,10 @@ bool MarketEvents::Trigger(FMarketState& State, const TArray<FMarketProduct>& Pr
     }
     else return false;
     Log(State, Id);
+    // B6 rhythm guard: something happened today; bad ones are counted for the next seven days.
+    const int32 Closed = FMath::Max(1, State.Day - 1);
+    State.Goals.LastLivelyDay = FMath::Max(State.Goals.LastLivelyDay, Closed);
+    if (MarketGoals::IsBadEvent(Id)) State.Goals.BadEventDays.Add(Closed);
     return true;
 }
 
@@ -362,6 +380,8 @@ void MarketEvents::CloseDay(FMarketState& State, const TArray<FMarketProduct>& P
         Roll -= C.Weight;
         if (Roll < 0)
         {
+            // B6 rhythm guard: after a pile of bad luck the next bad event waits.
+            if (MarketGoals::IsBadEvent(C.Id) && MarketGoals::HoldBadEvent(State)) { ++State.Goals.HeldBadEvents; break; }
             if (!Trigger(State, Products, C.Id)) Log(State, C.Id); // conditions not met: skip it for a while
             break;
         }
