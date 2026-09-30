@@ -74,7 +74,7 @@ namespace MarketStaff
         // Most people are honest; about one in eight is not (never visible, see the accountant).
         const int32 Trust = static_cast<int32>((B >> 8) % 100u);
         C.Honesty = Trust < 12 ? 15 + Trust : 55 + Trust % 45;
-        C.DailyWage = Round50(MarketStaff::FairWage(Role, C.Skill, State.Day) * (0.90 + ((B >> 16) % 26u) / 100.0));
+        C.DailyWage = FMath::Max(MarketStaff::MinimumDailyWage(State.Day), Round50(MarketStaff::FairWage(Role, C.Skill, State.Day) * (0.90 + ((B >> 16) % 26u) / 100.0)));
         C.Morale = 70.f;
         return C;
     }
@@ -159,7 +159,50 @@ int64 MarketStaff::FairWage(ERole Role, int32 Skill, int32 GameDay)
 {
     if (Role == ERole::Accountant) return MarketPrices::WageScaled(AccountantDailyFee, GameDay);
     const double Base = Role == ERole::HrManager ? 3500.0 : 2000.0;
-    return Round50(Base * (0.8 + 0.5 * FMath::Clamp(Skill, 0, 100) / 100.0) * MarketPrices::WageIndex(GameDay));
+    // B3 (#39): never below the minimum wage.
+    return FMath::Max(MinimumDailyWage(GameDay), Round50(Base * (0.8 + 0.5 * FMath::Clamp(Skill, 0, 100) / 100.0) * MarketPrices::WageIndex(GameDay)));
+}
+
+int64 MarketStaff::MinimumDailyWage(int32 GameDay)
+{
+    const double Daily = MarketPrices::MinimumWage(FMath::Max(1, GameDay)) * 100.0 / 30.0 * FMath::Max(0.1f, MarketCountry::Active().WageFactor);
+    return FMath::Max<int64>(50, static_cast<int64>(FMath::CeilToDouble(Daily / 50.0 - 1e-9)) * 50);
+}
+
+float MarketStaff::EmployerSocialRate()
+{
+    return FMath::Clamp(MarketCountry::Active().EmployerSocialRate, 0.f, 0.6f);
+}
+
+int64 MarketStaff::EmployerShare(int64 Wage)
+{
+    return FMath::RoundToInt64(static_cast<double>(FMath::Max<int64>(0, Wage)) * EmployerSocialRate());
+}
+
+int64 MarketStaff::EmployerCost(int64 Wage)
+{
+    return FMath::Max<int64>(0, Wage) + EmployerShare(Wage);
+}
+
+int64 MarketStaff::SeniorityPay(int64 DailyWage, int32 HiredDay, int32 GameDay)
+{
+    const int32 Served = GameDay - HiredDay;
+    if (Served < SeniorityAfterDays || DailyWage <= 0) return 0;
+    const int32 PerYear = FMath::Max(0, MarketCountry::Active().SeveranceDaysPerYear);
+    return FMath::RoundToInt64(static_cast<double>(DailyWage) * PerYear * Served / 365.0);
+}
+
+int64 MarketStaff::SeverancePay(const FMarketState& State, const FMarketEmployee& Employee)
+{
+    if (RoleOf(Employee) == ERole::Accountant) return 0;
+    return Employee.DailyWage * SeveranceDays + SeniorityPay(Employee.DailyWage, Employee.HiredDay, State.Day);
+}
+
+int64 MarketStaff::DailySocialSecurity(const FMarketState& State)
+{
+    int64 Wages = 0;
+    for (const FMarketEmployee& E : State.Staff) if (RoleOf(E) != ERole::Accountant) Wages += FMath::Max<int64>(0, E.DailyWage);
+    return EmployerShare(Wages);
 }
 
 bool MarketStaff::OnDuty(const FMarketState& State, const FMarketEmployee& Employee)
@@ -279,7 +322,7 @@ bool MarketStaff::Hire(FMarketState& State, int32 CandidateIndex, FString& OutMe
     const int64 Cost = HireCostOn(Role, State.Day);
     if (State.Cash < Cost) { OutMessage = FString::Printf(TEXT("\u0130\u015fe al\u0131m i\u00e7in kasada %s gerekiyor."), *Tl(Cost)); return false; }
     // The HR manager negotiates the offer.
-    if (HasHr(State)) Hired.DailyWage = Round50(Hired.DailyWage * 0.92);
+    if (HasHr(State)) Hired.DailyWage = FMath::Max(MinimumDailyWage(State.Day), Round50(Hired.DailyWage * 0.92)); // B3: not below the minimum
     State.Cash -= Cost;
     MarketLedger::Post(State, MarketLedger::EAccount::Hiring, -Cost); // B2
     Hired.HiredDay = State.Day;
@@ -345,8 +388,15 @@ bool MarketStaff::Fire(FMarketState& State, int32 EmployeeId, FString& OutMessag
     const int32 Index = IndexOf(State, EmployeeId);
     if (Index == INDEX_NONE) { OutMessage = TEXT("Bu ki\u015fi art\u0131k \u00e7al\u0131\u015fm\u0131yor."); return false; }
     const FMarketEmployee Leaving = State.Staff[Index];
-    const int64 Severance = RoleOf(Leaving) == ERole::Accountant ? 0 : Leaving.DailyWage * SeveranceDays;
-    if (State.Cash < Severance) { OutMessage = FString::Printf(TEXT("\u0130hbar tazminat\u0131 i\u00e7in kasada %s gerekiyor."), *Tl(Severance)); return false; }
+    // B3 (#39): notice pay and, after a year of service, the seniority pay.
+    const int64 Severance = SeverancePay(State, Leaving);
+    const int64 Seniority = RoleOf(Leaving) == ERole::Accountant ? 0 : SeniorityPay(Leaving.DailyWage, Leaving.HiredDay, State.Day);
+    if (State.Cash < Severance)
+    {
+        OutMessage = Seniority > 0 ? FString::Printf(TEXT("\u0130hbar ve k\u0131dem tazminat\u0131 i\u00e7in kasada %s gerekiyor."), *Tl(Severance))
+                                   : FString::Printf(TEXT("\u0130hbar tazminat\u0131 i\u00e7in kasada %s gerekiyor."), *Tl(Severance));
+        return false;
+    }
     State.Cash -= Severance;
     MarketLedger::Post(State, MarketLedger::EAccount::Severance, -Severance); // B2
     State.Staff.RemoveAt(Index);
@@ -354,7 +404,8 @@ bool MarketStaff::Fire(FMarketState& State, int32 EmployeeId, FString& OutMessag
     for (FMarketEmployee& E : State.Staff) if (IsShopRole(RoleOf(E))) E.Morale = FMath::Max(0.f, E.Morale - 3.f);
     SyncCounts(State);
     OutMessage = Severance > 0
-        ? FString::Printf(TEXT("%s i\u015ften \u00e7\u0131kar\u0131ld\u0131. \u0130hbar tazminat\u0131 %s \u00f6dendi."), *Leaving.Name, *Tl(Severance))
+        ? (Seniority > 0 ? FString::Printf(TEXT("%s i\u015ften \u00e7\u0131kar\u0131ld\u0131. \u0130hbar ve k\u0131dem tazminat\u0131 %s \u00f6dendi."), *Leaving.Name, *Tl(Severance))
+                         : FString::Printf(TEXT("%s i\u015ften \u00e7\u0131kar\u0131ld\u0131. \u0130hbar tazminat\u0131 %s \u00f6dendi."), *Leaving.Name, *Tl(Severance)))
         : FString::Printf(TEXT("%s ile s\u00f6zle\u015fme bitti. Vergiyi art\u0131k sen takip edeceksin."), *Leaving.Name);
     return true;
 }
@@ -461,6 +512,22 @@ void MarketStaff::CloseDay(FMarketState& State)
     const FMarketEmployee* HrToday = State.Staff.FindByPredicate([&](const FMarketEmployee& E) { return RoleOf(E) == ERole::HrManager && Worked(E); });
     const bool bHr = HrToday != nullptr;
     const bool bAccountant = HasAccountant(State);
+
+    // 0. B3 (#39): the minimum wage (it rises in January and July) and the employer's social security on the wages
+    // paid at this close (FMarketState::CloseDay paid the wages themselves).
+    int32 Raised = 0;
+    const int64 Minimum = MinimumDailyWage(Closed);
+    for (FMarketEmployee& E : State.Staff)
+        if (RoleOf(E) != ERole::Accountant && E.DailyWage < Minimum) { E.DailyWage = Minimum; ++Raised; }
+    if (Raised > 0) News.Add(FString::Printf(TEXT("Asgari \u00fccret artt\u0131: %d \u00e7al\u0131\u015fan\u0131n g\u00fcnl\u00fck \u00fccreti %s oldu."), Raised, *Tl(Minimum)));
+    const int64 Social = DailySocialSecurity(State);
+    if (Social > 0)
+    {
+        State.Cash -= Social;
+        State.LastOperatingCost += Social;
+        State.LastProfit -= Social;
+        MarketLedger::Post(State, MarketLedger::EAccount::SocialSecurity, -Social);
+    }
 
     // 1. The till: the cashiers on duty share the day's shoppers. When nobody worked the till the player did.
     int32 Cashiers = 0;

@@ -4,7 +4,7 @@ Sözleşme: `Docs/Kurgu/07_AKIL_ISBOLUMU.md` §4 Akış B. Dal: `claude/miras-ma
 
 ## Kaldığım yer
 
-B1, B2 bitti ve commit edildi. Sıradaki: B3 (ücret ve sigorta).
+B1, B2, B3 bitti ve commit edildi. Sıradaki: B4 (dönem olayları).
 
 ## Yapılanlar
 
@@ -38,13 +38,21 @@ Yeni `MarketLedger.h/.cpp` (`namespace MarketLedger`), durum `FMarketState::Ledg
 - Testler: `Ledger.PostAndStatements`, `Ledger.CashAudit` (aile dükkânı 90 gün PlayDay: kart, veresiye, telefon siparişi, kredi, müşavir, vergi — tek fark toptancı vadesi, o da birebir), `Ledger.BalanceSheet`, `Ledger.OlderSaves`.
 - Doğrulama denemesi: aşağıdaki "C'ye istekler 7" satırları yalnız derleme kopyasına uygulanınca, iki şube açıp birini kapatan, vadeli alım yapan 260 günlük oyunda **açıklanamayan fark 0** (tek fark denemenin kendisinin bilerek kasaya koyduğu para).
 
+### B3 · Ücret ve sigorta (#39)
+
+- **Asgari ücret tabanı:** `MarketStaff::MinimumDailyWage(Gün)` = net aylık asgari ücret (`MarketPrices::MinimumWage`) / 30 × ülkenin `wageFactor`'ü, 50 kuruşa yukarı yuvarlı (başlangıçta 22,00 TL/gün). `FairWage`, aday ücretleri ve İK pazarlığı bunun altına inmez; ocak/temmuzda asgari ücret artınca altında kalan ücretler kapanışta yükseltilir ("Asgari ücret arttı: N çalışanın günlük ücreti X oldu."). Mali müşavir ücret değil hizmet bedeli, tabana ve sigortaya girmez.
+- **İşveren sigorta payı:** ülke paketinden (`ulkeler.json` → `economy.employerSocialRate`: TR 0,225, DE 0,21, GB 0,14, US 0,10; oyun değerleri). Her kapanışta ödenen ücretlerin payı kasadan çıkar, günün gideri olur, deftere "Sigorta primi" yazılır (`DailySocialSecurity`, `EmployerShare`, `EmployerCost`).
+- **Kıdem tazminatı:** işten çıkarmada ihbar (3 günlük ücret, eskisi gibi) + ilk tam yıldan sonra yıl başına `severanceDaysPerYear` günlük ücret (TR 30, DE 15, GB 7, US 0), kesirli yıl oranlı (`SeniorityPay`, `SeverancePay`). İstifada ödenmez. Kasada yoksa çıkarılamaz. Deftere "Tazminat".
+- Müdür ve şube çalışanları için aynı kurallar C'ye istek (aşağıda 9).
+- Test: `Staff.WagesAndSocialSecurity`; `Staff.PeopleAndMorale` ve `Staff.TillAndHr` yeni tabana göre güncellendi (asgari ücretin altında "10 TL'lik düşük ücretli" artık yasal değil; en düşük ücretle çok becerili bir görevli aynı şekilde küser; pazarlık testi 30 TL'lik adayla).
+
 ## Doğrulama
 
 Bu oturum Linux bulut kapsayıcısında; Unreal yok, `DERLE.cmd` / `TEST.cmd` çalıştırılamadı. **Derlenmedi (UE).** Yerine:
 
 - Saf modüller ve testleri, Unreal'in kullanılan kısmını taklit eden küçük bir katmanla (sahte `CoreMinimal.h`: FString, TArray, TMap, FMath, FRandomStream UE algoritmasıyla, JSON, otomasyon testi makroları) clang ile `-Wshadow-all -Werror=shadow` derlenip çalıştırıldı. Dünyaya bağlı dosyalar (MarketGame, menü, mağaza kiti) bu katmanda derlenmez.
-- 30.09.2026, B1 sonrası: **78/78 test geçti** (başlangıçta 70/70; +7 `Balance.*` + dosya sayımı). UE'deki toplam 84 testin dünyaya bağlı 14'ü bu sayıya dahil değil.
-- B2 sonrası: **82/82** (+4 `Ledger.*`).
+- 30.09.2026, B1 sonrası: **77/77 test geçti** (başlangıçta 70/70; +7 `Balance.*`). UE'deki toplam 84 testin dünyaya bağlı 14'ü bu sayıya dahil değil.
+- B2 sonrası: **81/81** (+4 `Ledger.*`). B3 sonrası: **82/82** (+1 `Staff.WagesAndSocialSecurity`).
 - Codex'in `DERLE.cmd /q` + `TEST.cmd /q` koşusu bekleniyor.
 
 ## Yeni açık işlevler
@@ -62,6 +70,8 @@ Bu oturum Linux bulut kapsayıcısında; Unreal yok, `DERLE.cmd` / `TEST.cmd` ç
 - `MarketLedger::Statement / DayStatement / WeekStatement / MonthStatement / YearStatement` → `FStatement` (Revenue, GrossProfit, Expenses, NetProfit, CashChange, `At(EAccount)`).
 - `MarketLedger::Balance(State, Products)` → `FBalance` (Assets, Liabilities, Equity).
 - `MarketLedger::AuditOk / AuditText / StatementText / AccountName / IsIncomeStatement`.
+- `MarketStaff::MinimumDailyWage(Gün)`, `EmployerSocialRate()`, `EmployerShare(Ücret)`, `EmployerCost(Ücret)`, `SeniorityPay(Ücret, İşeGirişGünü, Gün)`, `SeverancePay(State, Çalışan)`, `DailySocialSecurity(State)`.
+- `MarketCountry::FProfile::EmployerSocialRate`, `SeveranceDaysPerYear` (`ulkeler.json` → `economy.employerSocialRate`, `economy.severanceDaysPerYear`).
 
 ## C'ye istekler
 
@@ -105,6 +115,11 @@ Bu oturum Linux bulut kapsayıcısında; Unreal yok, `DERLE.cmd` / `TEST.cmd` ç
    - Şube tadilatı ve işe alım bedeli `State.OtherCosts` yoluyla ödeniyor; defterde aile dükkânının "reklam ve diğer" satırında görünür. Şubeye yazılsın istenirse `OtherCosts`'a eklemek yerine doğrudan `State.Cash -=` + `P Investment, -X, true, Index);` yapılmalı (ikisi birden değil).
 8. **Menü (defter):** Finans sayfasına "Gelir tablosu" (dün / bu hafta / bu ay / bu yıl: `DayStatement`, `WeekStatement`, `MonthStatement`, `YearStatement`; kartta `StatementText`, ipucunda hesap hesap `ByAccount` + `AccountName`) ve "Bilanço" (`Balance`: varlıklar, borçlar, özkaynak) kartları; altta tek satır `AuditText`. Mağaza seçilince `Statement(State, Gün1, Gün2, ŞubeIndeksi)`.
 
+9. **Ücret kuralları müdür ve şubelerde (B3):**
+   - `MarketBranches.cpp` şube günü: çalışan ücreti `B.Workers * MarketStaff::FairWage(...)` zaten tabanı izliyor; üstüne sigorta: `Opex`'e `MarketStaff::EmployerShare(B.Workers * FairWage + B.ManagerWage)` eklenmeli (ve defterde `P SocialSecurity, -Pay, true, Index);`).
+   - `MarketManagers.cpp` `CloseDay`: `const int64 Wages = DailyWages(State);` ardına `const int64 Social = MarketStaff::EmployerShare(Wages);` → kasadan, `LastBranchProfit`/`LastProfit`'ten düş, `P SocialSecurity, -Social, true, MarketLedger::HeadOfficeStore);`. Müdür görevden alınırken (`Dismiss`/`Replace`): `MarketStaff::SeniorityPay(DailyWage, AppointedDay, State.Day) + DailyWage * MarketStaff::SeveranceDays` ödenmeli (`P Severance, ...`).
+   - Menü Personel sayfası: çalışan satırında "işverene maliyeti" (`EmployerCost(DailyWage)`), işten çıkar düğmesinin onayında `SeverancePay(State, E)` ("İhbar ve kıdem: X").
+
 ## Kararlar ve varsayımlar
 
 - **#24 sayıları:** rakip fiyatında alma %90 (eski eğri %97,3); duyarlılık K = 3; kayıptan kaçınma ×1,4; `kvi` ×(1 + kvi); esneklik 0,5–6 aralığına kırpılır. Sonuç: süt (1,5; kvi 1) rakibin %10 üstünde ~%72, kola (4) %15 üstünde ~%40 alır. 400 günlük denemede aile dükkânının cirosu ~%9 düştü (rakip fiyatında %97 → %90). Otomatik oyuncu raporunda izlenmeli; gerekirse `ParityChance` 0,92–0,93'e çekilir.
@@ -114,6 +129,8 @@ Bu oturum Linux bulut kapsayıcısında; Unreal yok, `DERLE.cmd` / `TEST.cmd` ç
 - **#45:** Kişi başı günlük gıda harcaması oyun ölçeğinde 0,65 TL (başlangıç fiyat düzeyi; `ulkeler.json` → `economy.groceryPerPersonDay` ile ülke başına verilebilir; yoksa 0,65 × `wageFactor`). Ayar: oyunun ucuzcu şubesi (~900 TL/gün) gerçekteki en büyük zincirin bir mağazası kadar pay tutsun (BİM ≈ 3.500 mağazayla %6,5). Böylece 50 ucuzcu ≈ %0,1. **5. bölüm hedefi %2'den %0,1'e indi** (%2 bu ölçüde ~1.000 mağaza demek). Mustafa'ya soru olarak aşağıda.
 
 - **B2:** Defter "olay anında" yazar; oyunun `LastProfit`'i bazı kalemleri bir gün sonra gösterir (teslimat eksiği, erken ödeme ücreti) — günlük net kârlar ±bir gün kayabilir, toplam aynı. Defterin net kârı işe alım bedeli, ihbar tazminatı ve vergiyi de gider sayar (oyunun `LastProfit`'i saymıyordu: #37'nin "görünmeyen kayıplar" kısmı). Vergi beyan edilince gider (nakitsiz), ödenince bilanço hareketi. Kart komisyonu satış anında gider yazılır. Şube stoğu bugünkü alış maliyetiyle değerlenir (şube satırı ortalama maliyet tutmuyor).
+
+- **B3:** Sigorta oranları ve kıdem günleri oyun değeri (TR işveren payı ~%22,5; kıdem 30 gün/yıl gerçek kurala yakın; DE/GB/US kaba). İhbar 3 gün kaldı (gerçekte 2–8 hafta); kıdem ilk yıldan sonra devreye girdiği için "moral düşeni çıkar, yenisini al" döngüsü ilk yıl ucuz kalır — bilerek (oyunun ilk yılı zaten zor). Asgari ücret tabanı ülkenin `wageFactor`'ü ile çarpılır (Almanya'da günlük taban ~57 TL karşılığı); `FairWage` ise ülke çarpanını bilmiyor, bu yüzden yurt dışında herkes tabandan çalışır — dünya aşamasında (B5/A7) ücret eğrisi ülkeye göre ayrılmalı.
 
 ## Bilinen sorunlar
 

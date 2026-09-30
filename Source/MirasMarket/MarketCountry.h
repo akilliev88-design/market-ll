@@ -84,6 +84,11 @@ namespace MarketCountry
         // "groceryPerPersonDay" in money units, e.g. 0.65). 0 = 65 x wageFactor. Calibrated so that a discounter
         // of the game (about 900 a day) holds what one store of the country's biggest chain holds in reality.
         double GroceryPerPersonDay = 0.0;
+        // B3 (#39): the employer's social security share on wages ("economy": "employerSocialRate"; Turkey 0.225 as
+        // a game value) and the seniority pay per full year of service when a worker is let go ("severanceDaysPerYear";
+        // Turkey 30 days' wage, 0 = none).
+        float EmployerSocialRate = 0.225f;
+        int32 SeveranceDaysPerYear = 30;
         float RentFactor = 1.f;
         float WeeklyShopShare = 0.25f;
         bool bSundayClosed = false;

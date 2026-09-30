@@ -1,5 +1,9 @@
 #include "MarketGame.h"
 #include "MarketStaff.h"
+#include "MarketLedger.h"
+#include "MarketPrices.h"
+#include "MarketCalendar.h"
+#include "MarketCountry.h"
 #include "Kismet/GameplayStatics.h"
 #include "Misc/AutomationTest.h"
 
@@ -82,8 +86,9 @@ bool FMarketStaffPeopleTest::RunTest(const FString& Parameters)
     TestEqual(TEXT("Worked days are counted"), S.Staff[0].DaysWorked, 3);
 
     // An underpaid, exhausted stocker: unhappy for three days -> notice -> leaves two days later.
-    FMarketEmployee Under = Person(S, ERole::Stocker, 80, 80, 1000);
-    Under.Morale = 35.f; Under.Fatigue = 90.f; Under.Stamina = 0;
+    // B3 (#39): the lowest legal wage; a very skilled stocker is worth much more.
+    FMarketEmployee Under = Person(S, ERole::Stocker, 100, 80, MarketStaff::MinimumDailyWage(S.Day));
+    Under.Morale = 28.f; Under.Fatigue = 90.f; Under.Stamina = 0;
     const int32 UnderId = Under.Id;
     S.Staff.Add(Under);
     for (int32 Day = 0; Day < 3; ++Day) PlayDay(S, 20000, 20);
@@ -255,7 +260,7 @@ bool FMarketStaffTillHrTest::RunTest(const FString& Parameters)
     // A tired stocker gets tomorrow off (a colleague covers); a leaver is replaced from the pool.
     S.Staff[0].Fatigue = 95.f;
     S.Staff[1].LeaveDay = S.Day;
-    FMarketEmployee Good = Person(S, ERole::Stocker, 95, 90, 2000); // better than any generated candidate (20..80)
+    FMarketEmployee Good = Person(S, ERole::Stocker, 95, 90, 3000); // better than any generated candidate (20..80)
     S.Candidates.Insert(Good, 0);
     const int32 TiredId = S.Staff[0].Id;
     const int32 GoodId = Good.Id;
@@ -267,7 +272,74 @@ bool FMarketStaffTillHrTest::RunTest(const FString& Parameters)
     TestEqual(TEXT("Still two stockers"), MarketStaff::Count(S, ERole::Stocker), 2);
     TestEqual(TEXT("One of them works tomorrow"), S.Stockers, 1);
     TestTrue(TEXT("HR reports"), AnyNews(S, TEXT("\u0130K:")));
-    TestTrue(TEXT("Negotiated wage"), MarketStaff::FindEmployee(S, GoodId)->DailyWage < 2000);
+    TestTrue(TEXT("Negotiated wage"), MarketStaff::FindEmployee(S, GoodId)->DailyWage < 3000);
+    return true;
+}
+
+IMPLEMENT_SIMPLE_AUTOMATION_TEST(FMarketStaffWagesTest, "MirasMarket.Staff.WagesAndSocialSecurity", EAutomationTestFlags::EditorContext | EAutomationTestFlags::EngineFilter)
+bool FMarketStaffWagesTest::RunTest(const FString& Parameters)
+{
+    // B3 (#39): the minimum wage floor, the employer's social security and the seniority pay.
+    using namespace MarketStaffTest;
+    using MarketStaff::ERole;
+    MarketCountry::SetActiveProfile(MarketCountry::FProfile(), 1);
+    const int32 July = MarketCalendar::GameDayOf(2011, 7, 1);
+    TestEqual(TEXT("Minimum a day at the start (658,95 / 30, up to 50 kurus)"), MarketStaff::MinimumDailyWage(1), int64(2200));
+    TestTrue(TEXT("It rises in July"), MarketStaff::MinimumDailyWage(July) > MarketStaff::MinimumDailyWage(July - 1));
+    TestTrue(TEXT("The lowest fair wage is the minimum"), MarketStaff::FairWage(ERole::Cashier, 0, 1) == MarketStaff::MinimumDailyWage(1));
+    TestEqual(TEXT("The accountant is a fee"), MarketStaff::FairWage(ERole::Accountant, 80, 1), MarketPrices::WageScaled(MarketStaff::AccountantDailyFee, 1));
+
+    FMarketState S; S.Initialize(Catalog()); S.RivalSeed = 5; S.Cash = 1000000;
+    MarketStaff::EnsureCandidates(S);
+    bool bLegal = S.Candidates.Num() > 0;
+    for (const FMarketEmployee& C : S.Candidates) bLegal &= C.DailyWage >= MarketStaff::MinimumDailyWage(S.Day);
+    TestTrue(TEXT("Candidates ask at least the minimum"), bLegal);
+
+    // Social security on the wages paid at the close (not on the accountant's fee), in the books.
+    S.Candidates.Reset();
+    S.Staff.Add(Person(S, ERole::Cashier, 50, 90, 3000));
+    FString Message;
+    TestTrue(TEXT("Accountant"), MarketStaff::HireAccountant(S, Message));
+    TestEqual(TEXT("22.5 % of the wages"), MarketStaff::DailySocialSecurity(S), int64(675));
+    const int64 Before = S.Cash;
+    S.Revenue = 0; S.DayNews.Reset(); S.CloseDay();
+    const int64 AfterEconomy = S.Cash;
+    MarketStaff::CloseDay(S);
+    TestEqual(TEXT("Paid at the close"), AfterEconomy - S.Cash + S.LastTillDifference, int64(675));
+    TestTrue(TEXT("A cost of the day"), S.LastOperatingCost >= 675 && Before > S.Cash);
+    TestEqual(TEXT("Booked"), MarketLedger::Statement(S, 1, S.Day).At(MarketLedger::EAccount::SocialSecurity), int64(-675));
+
+    // A wage below the new minimum is raised at the close.
+    FMarketState Low = S;
+    Low.Staff[0].DailyWage = 1500;
+    Low.Day = July; Low.DayNews.Reset(); Low.CloseDay(); MarketStaff::CloseDay(Low);
+    TestEqual(TEXT("Raised to the minimum"), Low.Staff[0].DailyWage, MarketStaff::MinimumDailyWage(July));
+    TestTrue(TEXT("Told"), AnyNews(Low, TEXT("Asgari \u00fccret artt\u0131")));
+
+    // Seniority pay: nothing in the first year, 30 days' wage a year after it (pro rata).
+    TestEqual(TEXT("Nothing before a year"), MarketStaff::SeniorityPay(3000, 1, 300), int64(0));
+    TestEqual(TEXT("A year: 30 days' wage"), MarketStaff::SeniorityPay(3000, 1, 366), int64(90000));
+    TestEqual(TEXT("A year and a half"), MarketStaff::SeniorityPay(3000, 1, 1 + 365 + 182), FMath::RoundToInt64(3000.0 * 30 * 547 / 365.0));
+    FMarketState Old = S;
+    Old.Day = 1 + 2 * 365;
+    const int32 Id = Old.Staff[0].Id;
+    const int64 Expected = Old.Staff[0].DailyWage * MarketStaff::SeveranceDays + MarketStaff::SeniorityPay(Old.Staff[0].DailyWage, Old.Staff[0].HiredDay, Old.Day);
+    TestEqual(TEXT("Notice + seniority"), MarketStaff::SeverancePay(Old, Old.Staff[0]), Expected);
+    const int64 CashOld = Old.Cash;
+    TestTrue(TEXT("Fire after two years"), MarketStaff::Fire(Old, Id, Message));
+    TestEqual(TEXT("Paid in full"), CashOld - Old.Cash, Expected);
+    TestTrue(TEXT("The message says it"), Message.Contains(TEXT("k\u0131dem")));
+    TestEqual(TEXT("Booked as severance"), MarketLedger::DayStatement(Old, Old.Day).At(MarketLedger::EAccount::Severance), -Expected);
+    FMarketState Poor = S; Poor.Day = 1 + 2 * 365; Poor.Cash = 100;
+    TestFalse(TEXT("Cannot fire without the money"), MarketStaff::Fire(Poor, Id, Message));
+
+    // Another country's rules (pack values).
+    MarketCountry::FProfile Us; Us.Id = TEXT("us"); Us.EmployerSocialRate = 0.1f; Us.SeveranceDaysPerYear = 0; Us.WageFactor = 2.f;
+    MarketCountry::SetActiveProfile(Us, 1);
+    TestEqual(TEXT("Lower share"), MarketStaff::EmployerShare(3000), int64(300));
+    TestEqual(TEXT("No seniority pay"), MarketStaff::SeniorityPay(3000, 1, 1000), int64(0));
+    TestTrue(TEXT("Minimum follows the wage level"), MarketStaff::MinimumDailyWage(1) >= 4350);
+    MarketCountry::SetActiveProfile(MarketCountry::FProfile(), 1);
     return true;
 }
 
