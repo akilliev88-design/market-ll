@@ -1,0 +1,75 @@
+#include "MarketAutoPlayC.h"
+#include "MarketBranches.h"
+#include "MarketDepartments.h"
+#include "MarketBrands.h"
+#include "MarketSourcing.h"
+#include "Misc/AutomationTest.h"
+#if WITH_DEV_AUTOMATION_TESTS
+IMPLEMENT_SIMPLE_AUTOMATION_TEST(FMarketAutoPlaySupplyPolicy,"MirasMarket.AutoPlay.SupplyAndBrands",EAutomationTestFlags::EditorContext|EAutomationTestFlags::EngineFilter)
+bool FMarketAutoPlaySupplyPolicy::RunTest(const FString& Parameters)
+{
+    FMarketState State; State.Day=16; State.Cash=100000000;
+    FMarketBranch Branch;Branch.Stage=static_cast<uint8>(MarketBranches::EStage::Open);Branch.Format=TEXT("mahalle");State.Branches={Branch,Branch};
+    State.Sourcing.LastMonthDay=1;State.Sourcing.MonthBuy.Init(0,4);
+    MarketAutoPlayC::FPolicy Policy;Policy.StartDay=16;Policy.Interval=1;Policy.OpensPerTurn=0;
+    MarketAutoPlayC::FStats Stats;FString Reason;
+    TestTrue(TEXT("Network qualifies for regional supplier"),MarketSourcing::CanSet(State,MarketSourcing::ELine::Drinks,MarketSourcing::ETier::Regional,Reason));
+    MarketAutoPlayC::Decide(State,{},Policy,0,Stats);
+    TestEqual(TEXT("No commitment without buying volume"),static_cast<int32>(MarketSourcing::TierOf(State,MarketSourcing::ELine::Drinks)),0);
+    State.Sourcing.MonthBuy[0]=10000000;
+    MarketAutoPlayC::Decide(State,{},Policy,0,Stats);
+    TestEqual(TEXT("Covered minimum permits player command"),static_cast<int32>(MarketSourcing::TierOf(State,MarketSourcing::ELine::Drinks)),1);
+    State.Sourcing.MonthBuy[0]=0;
+    MarketAutoPlayC::Decide(State,{},Policy,0,Stats);
+    TestEqual(TEXT("Insufficient volume steps back"),static_cast<int32>(MarketSourcing::TierOf(State,MarketSourcing::ELine::Drinks)),0);
+    TestEqual(TEXT("Supplier change does not invent money"),State.Cash,static_cast<int64>(100000000));
+    FMarketBrandOffer Offer;Offer.Kind=static_cast<uint8>(MarketBrands::EKind::Rebate);Offer.Brand=TEXT("test");Offer.Amount=1000;
+    State.Brands.MonthSales.Add(Offer.Brand,500);
+    TestFalse(TEXT("Uncovered sales promise rejected"),MarketAutoPlayC::BrandWorth(State,{},Offer,Policy));
+    State.Brands.MonthSales[Offer.Brand]=2000;
+    TestTrue(TEXT("Covered sales promise accepted"),MarketAutoPlayC::BrandWorth(State,{},Offer,Policy));
+    FMarketProduct Product;Product.Id=TEXT("listing");Offer.ProductId=Product.Id;Offer.Kind=static_cast<uint8>(MarketBrands::EKind::Listing);
+    State.Stock.SetNum(1);State.Stock[0].Capacity=0;
+    TestFalse(TEXT("Listing without shelf rejected"),MarketAutoPlayC::BrandWorth(State,{Product},Offer,Policy));
+    State.Stock[0].Capacity=12;
+    TestTrue(TEXT("Existing listing shelf qualifies"),MarketAutoPlayC::BrandWorth(State,{Product},Offer,Policy));
+    return true;
+}
+IMPLEMENT_SIMPLE_AUTOMATION_TEST(FMarketAutoPlayDeptPolicy,"MirasMarket.AutoPlay.DepartmentLossAndSpace",EAutomationTestFlags::EditorContext|EAutomationTestFlags::EngineFilter)
+bool FMarketAutoPlayDeptPolicy::RunTest(const FString& Parameters)
+{
+    FMarketState State;State.Day=60;State.Cash=100000000;
+    FMarketBranch Branch;Branch.Stage=static_cast<uint8>(MarketBranches::EStage::Open);Branch.Format=TEXT("buyuk");Branch.LastShoppers=100;State.Branches.Add(Branch);
+    MarketAutoPlayC::FPolicy Policy;Policy.StartDay=60;Policy.Interval=1;Policy.SpaceFraction=1;Policy.OpensPerTurn=14;
+    MarketAutoPlayC::FStats Stats;
+    MarketAutoPlayC::Decide(State,{},Policy,0,Stats);
+    TestTrue(TEXT("Actual departments opened with player commands"),State.Branches[0].Depts.Num()>0);
+    TestTrue(TEXT("Supermarket stays within 22 percent"),MarketDepartments::SpaceUsed(State,2)<=22);
+    TestTrue(TEXT("Opening pays fit-out and stock"),State.Cash<100000000);
+    if(State.Branches[0].Depts.IsEmpty())return false;
+    const uint8 Dept=State.Branches[0].Depts[0].Dept;
+    for(auto& Row:State.Branches[0].Depts){Row.OpenedDay=1;Row.Last30Profit=-1000;}
+    Policy.OpensPerTurn=0;
+    MarketAutoPlayC::Decide(State,{},Policy,0,Stats);
+    TestFalse(TEXT("Mature loss-making department closed"),MarketDepartments::IsOn(State,static_cast<MarketDepartments::EDept>(Dept),2));
+    const int64 AfterClose=State.Cash;
+    MarketAutoPlayC::Decide(State,{},Policy,0,Stats);
+    TestEqual(TEXT("Repeated decision cannot refund stock twice"),State.Cash,AfterClose);
+    return true;
+}
+IMPLEMENT_SIMPLE_AUTOMATION_TEST(FMarketAutoPlayCObserver,"MirasMarket.AutoPlay.CObservation",EAutomationTestFlags::EditorContext|EAutomationTestFlags::EngineFilter)
+bool FMarketAutoPlayCObserver::RunTest(const FString& Parameters)
+{
+    FMarketState State;MarketAutoPlayC::FStats Stats;
+    for(int32 Day=1;Day<=32;++Day){State.Day=Day+1;MarketAutoPlayC::Observe(State,Stats);}
+    TestEqual(TEXT("A 31-day quiet period is counted once"),Stats.BoringBase,1);
+    State.Sourcing.Tiers={1,0,0,0};State.Day=34;
+    MarketAutoPlayC::Observe(State,Stats);MarketAutoPlayC::Observe(State,Stats);
+    TestEqual(TEXT("Supplier transition is not double counted"),Stats.Sourcing.Num(),1);
+    State.EventLog.Reset();
+    for(int32 Day=34;Day<=37;++Day){State.Day=Day+1;State.EventLog.Add(FString::Printf(TEXT("event.power@%d"),Day));MarketAutoPlayC::Observe(State,Stats);}
+    TestEqual(TEXT("Four disasters within a week make one cluster"),Stats.PilesBase,1);
+    TestEqual(TEXT("Repeated log entries do not duplicate disasters"),Stats.BaseBadDays.Num(),4);
+    return true;
+}
+#endif

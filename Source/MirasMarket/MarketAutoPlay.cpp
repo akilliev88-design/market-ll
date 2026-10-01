@@ -25,9 +25,9 @@ namespace MarketAutoPlay
     const TArray<FProfile>& Profiles()
     {
         static const TArray<FProfile> Values = {
-            { EStyle::Careful, TEXT("Temkinli"), 30, 2.5, false, 30, 1.05, 12 },
-            { EStyle::Balanced, TEXT("Dengeli"), 14, 1.5, false, 14, 1.0, 8 },
-            { EStyle::Bold, TEXT("Atak"), 7, 1.1, true, 7, 0.95, 4 }
+            { EStyle::Careful, TEXT("Temkinli"), 30, 2.5, false, 30, 1.05, 12, {365,60,1,2,.8f,1.4f,1.15f,false,2.0}, .95,8,30 },
+            { EStyle::Balanced, TEXT("Dengeli"), 14, 1.5, false, 14, 1.0, 8, {180,30,2,1,.95f,1.2f,1.05f,true,1.5}, .88,6,20 },
+            { EStyle::Bold, TEXT("Atak"), 7, 1.1, true, 7, 0.95, 4, {60,15,3,0,1.f,1.f,1.f,true,1.1}, .82,3,12 }
         };
         return Values;
     }
@@ -139,9 +139,9 @@ namespace MarketAutoPlay
         // Investigate one visible site per growth turn. OpeningCost plans shelves and is deliberately not run
         // for every province every week; map rent/income and our crowding choose which site to investigate.
         const auto& Site = Sites[0];
-        const FString Format = Profile.Style == EStyle::Bold ? TEXT("kucuk") : TEXT("mahalle");
+        const FString Format = Stores >= Profile.HyperAt ? TEXT("hiper") : Stores >= Profile.SuperAt ? TEXT("buyuk") : TEXT("mahalle");
         FString Reason;
-        if (!MarketBranches::CanOpen(State, Products, Site.Country, Site.Province, Format, Reason)) return;
+        if (!MarketBranches::CanOpen(State, Products, Site.Country, Site.Province, Format, Reason)) { ++Run.C.Blocked.FindOrAdd(Reason); return; }
         const int64 Cost = MarketBranches::OpeningCost(State, Products, Site.Country, Site.Province, Format);
         if (State.Cash >= FMath::RoundToInt64(Cost * Profile.ExpansionBuffer) + Reserve)
             Command(State, Products, TEXT("OpenBranch"), MarketBranches::EncodeSite(Site.Country, Site.Province, Format), Run);
@@ -177,7 +177,8 @@ namespace MarketAutoPlay
         if (State.Day % 7 != 1) return;
         for (int32 Index = 0; Index < Products.Num(); ++Index)
         {
-            const int64 Target = FMath::RoundToInt64(Products[Index].BasePrice * Profile.PriceFactor);
+            const double Factor = State.Day > 90 && State.MarketShare < 40.f && State.Branches.IsEmpty() ? Profile.GrowthPriceFactor : Profile.PriceFactor;
+            const int64 Target = FMath::Max(FMath::RoundToInt64(Products[Index].Cost * 1.05), FMath::RoundToInt64(Products[Index].BasePrice * Factor));
             for (int32 Step = 0; Step < 20; ++Step)
             {
                 const int64 Previous = State.Stock[Index].Price;
@@ -235,6 +236,7 @@ namespace MarketAutoPlay
         Value.Profit = State.LastProfit; Value.Revenue = State.LastRevenue;
         Value.Stores = MarketCompany::TotalStores(State); Value.Provinces = MarketCompany::Provinces(State);
         Value.Share = MarketCompany::NationalShare(State);
+        Value.NationalRank=State.Rivals.NationalRank; Value.WorldRank=State.Rivals.LeagueRank;
         Value.Workers = State.Staff.Num() + State.Management.Managers.Num();
         for (const FMarketBranch& Branch : State.Branches)
             if (Branch.Stage == static_cast<uint8>(MarketBranches::EStage::Open)) Value.Workers += Branch.Workers + (!Branch.ManagerName.IsEmpty() ? 1 : 0);
@@ -285,6 +287,8 @@ namespace MarketAutoPlay
                     SetPrices(State, Products, Profile);
                     Manage(State, Products, Profile, Trial);
                     Grow(State, Products, Profile, Trial);
+                    MarketAutoPlayC::Decide(State,Products,Profile.C,Buffer(State,Profile),Trial.C);
+                    MarketDirector::ApplyPrices(State,Base,Products);
                     Payroll = State.DailyPayroll(); TaxBefore = State.Books.TotalTaxPaid;
                     Ordered = PlaceOrder(State, Products, Profile, Trial);
                 };
@@ -321,9 +325,10 @@ namespace MarketAutoPlay
                 const FRow Today = Row(State); Trial.Daily.Add(Today);
                 Week.Day = Today.Day; Week.Cash = Today.Cash; Week.Debt = Today.Debt;
                 Week.Profit += Today.Profit; Week.Revenue += Today.Revenue;
-                Week.Stores = Today.Stores; Week.Provinces = Today.Provinces; Week.Workers = Today.Workers; Week.Share = Today.Share;
+                Week.Stores = Today.Stores; Week.Provinces = Today.Provinces; Week.Workers = Today.Workers; Week.Share = Today.Share; Week.NationalRank=Today.NationalRank; Week.WorldRank=Today.WorldRank;
                 if (State.Day % 7 == 1 || DayIndex + 1 == Options.Days) { Trial.Weekly.Add(Week); Week = FRow(); }
                 Milestones(State, Trial);
+                MarketAutoPlayC::Observe(State,Trial.C);
                     ++DayIndex;
                 };
                 const MarketSimulation::FTurn Turn = MarketSimulation::AdvanceTurn(State, Base, Products, MarketSimulation::ETurn::Month, Hooks);
@@ -336,6 +341,7 @@ namespace MarketAutoPlay
                 }
             }
             UE_LOG(LogTemp, Display, TEXT("AutoPlay %s seed %d: %d days, cash %lld, stores %d, audit failures %d"), *Trial.Profile, Trial.Seed, Trial.Daily.Num(), Trial.Daily.Last().Cash, Trial.Daily.Last().Stores, Trial.AuditFailures);
+            Trial.RejectedDecisions+=Trial.C.Rejected;
             if (Options.bKeepFinalStates) Report.FinalStates.Add(State);
             Report.Runs.Add(MoveTemp(Trial));
         }
@@ -345,10 +351,10 @@ namespace MarketAutoPlay
     }
     FString Csv(const TArray<FRun>& Runs, bool bWeekly)
     {
-        FString Output = TEXT("tarz,tohum,gun,kasa_kurus,borc_kurus,net_kar_kurus,ciro_kurus,magaza,il,ulusal_pay_yuzde,calisan\n");
+        FString Output = TEXT("tarz,tohum,gun,kasa_kurus,borc_kurus,net_kar_kurus,ciro_kurus,magaza,il,ulusal_pay_yuzde,calisan,ulusal_sira,dunya_sira\n");
         for (const FRun& Trial : Runs)
             for (const FRow& Value : bWeekly ? Trial.Weekly : Trial.Daily)
-                Output += FString::Printf(TEXT("%s,%d,%d,%lld,%lld,%lld,%lld,%d,%d,%.8f,%d\n"), *Trial.Profile, Trial.Seed, Value.Day, Value.Cash, Value.Debt, Value.Profit, Value.Revenue, Value.Stores, Value.Provinces, Value.Share, Value.Workers);
+                Output += FString::Printf(TEXT("%s,%d,%d,%lld,%lld,%lld,%lld,%d,%d,%.8f,%d,%d,%d\n"), *Trial.Profile, Trial.Seed, Value.Day, Value.Cash, Value.Debt, Value.Profit, Value.Revenue, Value.Stores, Value.Provinces, Value.Share, Value.Workers, Value.NationalRank,Value.WorldRank);
         return Output;
     }
     FString ReportMoney(const FReport& Report, int64 Amount)
@@ -395,9 +401,10 @@ namespace MarketAutoPlay
             Text += TEXT("\nNet sonucun kaynagi (kasaya girisle ayni degildir):\n\n");
             TArray<FString> ResultNames; Trial.Results.GetKeys(ResultNames); ResultNames.Sort();
             for (const FString& Name : ResultNames) Text += FString::Printf(TEXT("- %s: %s.\n"), *Name, *ReportMoney(Report, Trial.Results[Name]));
+            Text += MarketAutoPlayC::Report(Trial.C);
             for (const FString& Problem : Trial.Issues) Text += TEXT("- Kontrol: ") + Problem + TEXT("\n");
         }
-        Text += TEXT("\n## Denetimin kapsami\n\nSatis fisindeki para, siparis bedeli, ana gun kapanisi ve mal kabul aktarimi bagimsiz hesapla kontrol edilir. Negatif stok, gecersiz sayilar ve pay sinirlari her gun denetlenir. Arka planin net kasa hareketi ayrica olculur; tek tek kalemlerin tam korunum denetimi B'nin muhasebe defteri C tarafindan baglandiginda tamamlanacak. Kasa eksisi oyun sonu degildir; sikinti gunleri ayri sayilir. Lig henuz yok: ulusal ilk 3 ve dunya ilk 10 hedefleri bu raporda olculemez.\n\nFiyatlar normal oyuncunun kullandigi adimlarla degisir. Kredi, sube, depo, yonetici ve kararlar normal komutlardan gecer. Aile dukkani PlayDay ile oynar; test modu, bedava mal veya para kullanilmaz. CSV tutarlari kurustur.\n");
+        Text += TEXT("\n## Denetimin kapsami\n\nSatis fisindeki para, siparis bedeli, ana gun kapanisi ve mal kabul aktarimi bagimsiz hesapla kontrol edilir. Negatif stok, gecersiz sayilar ve pay sinirlari her gun denetlenir. Arka planin net kasa hareketi ayrica olculur; tek tek kalemlerin tam korunum denetimi B'nin muhasebe defteri C tarafindan baglandiginda tamamlanacak. Kasa eksisi oyun sonu degildir; sikinti gunleri ayri sayilir. Ligler C bolumunde yillik olculur; B/C3 entegrasyonu oncesi bu kosu tam oyun dengesi degildir.\n\nFiyatlar normal oyuncunun kullandigi adimlarla degisir. Kredi, sube, depo, yonetici ve kararlar normal komutlardan gecer. Aile dukkani PlayDay ile oynar; test modu, bedava mal veya para kullanilmaz. CSV tutarlari kurustur.\n");
         for (const FString& Error : Report.Errors) Text += TEXT("- Hata: ") + Error + TEXT("\n");
         struct FTranslation { const TCHAR* From; const TCHAR* To; };
         const FTranslation Translations[] = {
@@ -420,7 +427,19 @@ namespace MarketAutoPlay
             {TEXT("dustu"), TEXT("d\u00fc\u015ft\u00fc")}, {TEXT("kasa farki"), TEXT("kasa fark\u0131")}
         };
         for (const FTranslation& Translation : Translations) Text.ReplaceInline(Translation.From, Translation.To, ESearchCase::CaseSensitive);
-        return FFileHelper::SaveStringToFile(Text, *(Directory / TEXT("rapor.md")), FFileHelper::EEncodingOptions::ForceUTF8) &&
+        FString DeptCsv=TEXT("tarz,tohum,gun,magaza_turu,reyon,sube,kar30_kurus,ciro30_kurus\n");
+        for(const auto& Trial:Report.Runs)DeptCsv+=MarketAutoPlayC::DeptCsv(Trial.C,Trial.Profile,Trial.Seed);
+        FString LeagueCsv=TEXT("tarz,tohum,yil,gun,ulusal_sira,dunya_sira,magaza,bizim_ortak_ciro,lider_ortak_ciro\n");
+        FString SupplyCsv=TEXT("tarz,tohum,gun,hat,once,sonra\n");
+        for(const auto& Trial:Report.Runs)
+        {
+            for(const auto& Year:Trial.C.Years)LeagueCsv+=FString::Printf(TEXT("%s,%d,%d,%d,%d,%d,%d,%.0f,%.0f\n"),*Trial.Profile,Trial.Seed,Year.Year,Year.Day,Year.National,Year.World,Year.Stores,Year.OurWorld,Year.LeaderWorld);
+            for(const auto& Change:Trial.C.Sourcing)SupplyCsv+=FString::Printf(TEXT("%s,%d,%d,%d,%d,%d\n"),*Trial.Profile,Trial.Seed,Change.Day,Change.Line,Change.From,Change.To);
+        }
+        if(!FFileHelper::SaveStringToFile(LeagueCsv,*(Directory/TEXT("lig.csv")),FFileHelper::EEncodingOptions::ForceUTF8) ||
+            !FFileHelper::SaveStringToFile(SupplyCsv,*(Directory/TEXT("tedarik.csv")),FFileHelper::EEncodingOptions::ForceUTF8))return false;
+        return FFileHelper::SaveStringToFile(DeptCsv,*(Directory/TEXT("reyonlar.csv")),FFileHelper::EEncodingOptions::ForceUTF8) &&
+            FFileHelper::SaveStringToFile(Text, *(Directory / TEXT("rapor.md")), FFileHelper::EEncodingOptions::ForceUTF8) &&
             FFileHelper::SaveStringToFile(Csv(Report.Runs, false), *(Directory / TEXT("gunluk.csv")), FFileHelper::EEncodingOptions::ForceUTF8) &&
             FFileHelper::SaveStringToFile(Csv(Report.Runs, true), *(Directory / TEXT("haftalik.csv")), FFileHelper::EEncodingOptions::ForceUTF8);
     }

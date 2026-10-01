@@ -1,0 +1,211 @@
+#include "MarketAutoPlayC.h"
+#include "MarketDirector.h"
+#include "MarketDepartments.h"
+#include "MarketSourcing.h"
+#include "MarketBrands.h"
+#include "MarketChains.h"
+#include "MarketBranches.h"
+#include "MarketCalendar.h"
+#include "MarketPrices.h"
+namespace MarketAutoPlayC
+{
+    FString Key(int32 Format,int32 Dept) { return FString::Printf(TEXT("%d|%d"),Format,Dept); }
+    bool Send(FMarketState& State,const TArray<FMarketProduct>& Products,FName Action,int32 Arg,FStats& Stats)
+    {
+        FString Message;
+        if(!MarketDirector::Command(State,Products,Action,Arg,Message)) { ++Stats.Rejected; return false; }
+        ++Stats.Commands.FindOrAdd(Action.ToString()); return true;
+    }
+    bool BrandWorth(const FMarketState& State,const TArray<FMarketProduct>& Products,const FMarketBrandOffer& Offer,const FPolicy& Policy)
+    {
+        if(Offer.Kind==static_cast<uint8>(MarketBrands::EKind::ShelfShare))
+            return MarketBrands::ShelfShare(State,Products,Offer.Brand,Offer.Category)+.0001f >= Offer.Target*Policy.BrandCover;
+        if(Offer.Kind==static_cast<uint8>(MarketBrands::EKind::Rebate))
+            return State.Brands.MonthSales.FindRef(Offer.Brand) >= Offer.Amount*Policy.BrandCover;
+        const int32 Index=Products.IndexOfByPredicate([&](const FMarketProduct& Product){return Product.Id==Offer.ProductId;});
+        return State.Stock.IsValidIndex(Index) && State.Stock[Index].Capacity>0;
+    }
+    double PurchaseForecast(const FMarketState& State,int32 Line,const FStats& Stats)
+    {
+        const int32 Age=State.Day-State.Sourcing.LastMonthDay;
+        if(Age>=7 && State.Sourcing.MonthBuy.IsValidIndex(Line)) return State.Sourcing.MonthBuy[Line]*30.0/Age;
+        if(!Stats.DailyBuy.IsValidIndex(Line) || Stats.DailyBuy[Line].Num()<7) return 0;
+        int64 Sum=0; for(int64 Amount:Stats.DailyBuy[Line])Sum+=Amount;
+        // Month-close resets erase the last day's line total. Leaving it out is conservative, never invents buying.
+        return static_cast<double>(Sum)*30/Stats.DailyBuy[Line].Num();
+    }
+    void Decide(FMarketState& State,const TArray<FMarketProduct>& Products,const FPolicy& Policy,int64 Reserve,FStats& Stats)
+    {
+        const TArray<FMarketBrandOffer> Offers=State.Brands.Offers;
+        for(const auto& Offer:Offers) Send(State,Products,BrandWorth(State,Products,Offer,Policy)?TEXT("AcceptBrandOffer"):TEXT("RejectBrandOffer"),Offer.Id,Stats);
+        if(State.Day<Policy.StartDay || (State.Day-Policy.StartDay)%Policy.Interval!=0)return;
+        for(int32 Line=0;Line<MarketSourcing::LineCount;++Line)
+        {
+            const auto L=static_cast<MarketSourcing::ELine>(Line);
+            const int32 Current=static_cast<int32>(MarketSourcing::TierOf(State,L));
+            const double Forecast=PurchaseForecast(State,Line,Stats);
+            const auto Next=static_cast<MarketSourcing::ETier>(FMath::Min(Current+1,MarketSourcing::TierCount-1));
+            const double Minimum=MarketSourcing::TierMinimum(Next)*MarketPrices::ListLevel(State.Day);
+            FString Reason;
+            if(Current>0 && Forecast < MarketSourcing::TierMinimum(static_cast<MarketSourcing::ETier>(Current))*MarketPrices::ListLevel(State.Day)*.8)
+                Send(State,Products,TEXT("SetSourcing"),Line*10+Current-1,Stats);
+            else if(static_cast<int32>(Next)>Current && Forecast>=Minimum*Policy.MinimumCover && MarketSourcing::CanSet(State,L,Next,Reason))
+                Send(State,Products,TEXT("SetSourcing"),Line*10+static_cast<int32>(Next),Stats);
+            else if(static_cast<int32>(Next)>Current && MarketSourcing::CanSet(State,L,Next,Reason)) ++Stats.Blocked.FindOrAdd(TEXT("Tedarik asgarisi"));
+        }
+        for(int32 Format=1;Format<MarketDepartments::FormatCount;++Format)
+        {
+            int32 Count=0;
+            for(const auto& Branch:State.Branches) if(Branch.Stage==static_cast<uint8>(MarketBranches::EStage::Open) && MarketDepartments::FormatIndex(Branch.Format)==Format)++Count;
+            if(Count==0)continue;
+            int32 Opened=0;
+            struct FCandidate { int32 Dept; double Score; };
+            TArray<FCandidate> Candidates;
+            for(int32 Dept=0;Dept<MarketDepartments::DeptCount;++Dept)
+            {
+                const auto D=static_cast<MarketDepartments::EDept>(Dept);
+                const auto& Info=MarketDepartments::Info(D);
+                int64 Profit=0; int32 Mature=0;
+                for(const auto& Branch:State.Branches) if(MarketDepartments::FormatIndex(Branch.Format)==Format && Branch.Stage==static_cast<uint8>(MarketBranches::EStage::Open))
+                    for(const auto& Row:Branch.Depts) if(Row.Dept==Dept && State.Day-Row.OpenedDay>=30){Profit+=Row.Last30Profit;++Mature;}
+                if(MarketDepartments::IsOn(State,D,Format))
+                {
+                    if(Mature>0 && Profit<0)
+                    {
+                        if(Send(State,Products,TEXT("SetDepartment"),MarketDepartments::EncodeSet(D,Format,false),Stats)) Stats.DeptCooldown.Add(Key(Format,Dept),State.Day+Policy.Interval*3);
+                    }
+                    else
+                    {
+                        if(MarketDepartments::Stance(State,D)!=Policy.Stance)Send(State,Products,TEXT("SetDeptStance"),Dept*10+Policy.Stance,Stats);
+                        if(MarketDepartments::WeakMasters(State,D)>0 && State.Cash>Reserve*2)Send(State,Products,TEXT("ReplaceMasters"),Dept,Stats);
+                    }
+                    continue;
+                }
+                if(Format<Info.MinFormat || Stats.DeptCooldown.FindRef(Key(Format,Dept))>State.Day)continue;
+                const int64* Known=Stats.LastDept.Find(Key(Format,Dept));
+                const double Score=Known?static_cast<double>(*Known)/FMath::Max(1,Count):Info.Ratio*(Info.Margin-Info.Waste-Info.Shrink)*100000;
+                Candidates.Add({Dept,Score});
+            }
+            Candidates.Sort([](const FCandidate& Left,const FCandidate& Right){return Left.Score==Right.Score?Left.Dept<Right.Dept:Left.Score>Right.Score;});
+            for(const auto& Candidate:Candidates)
+            {
+                if(Opened>=Policy.OpensPerTurn)break;
+                const auto D=static_cast<MarketDepartments::EDept>(Candidate.Dept); const auto& Info=MarketDepartments::Info(D);
+                if(MarketDepartments::SpaceUsed(State,Format)+Info.Space>FMath::FloorToInt(MarketDepartments::SpaceCap(Format)*Policy.SpaceFraction))continue;
+                int64 Estimate=0;
+                for(const auto& Branch:State.Branches) if(Branch.Stage==static_cast<uint8>(MarketBranches::EStage::Open) && MarketDepartments::FormatIndex(Branch.Format)==Format)
+                    Estimate+=MarketDepartments::FitOutCost(D,Format,State.Day)+FMath::RoundToInt64(FMath::Max(30,Branch.LastShoppers>0?Branch.LastShoppers:MarketBranches::FormatInfo(Branch.Format).Trips/5)*MarketDepartments::Ticket2011*MarketPrices::ListLevel(State.Day)*Info.Ratio*(1.f-Info.Margin)*Info.StockDays);
+                FString Reason;
+                if(State.Cash>=Estimate+Reserve && MarketDepartments::CanSet(State,D,Format,true,Reason) && Send(State,Products,TEXT("SetDepartment"),MarketDepartments::EncodeSet(D,Format,true),Stats))
+                { ++Opened; if(MarketDepartments::Stance(State,D)!=Policy.Stance)Send(State,Products,TEXT("SetDeptStance"),Candidate.Dept*10+Policy.Stance,Stats); }
+            }
+        }
+        if(Policy.bBuyChains)
+        {
+            for(int32 Index=0;Index<State.Rivals.Chains.Num();++Index)
+            {
+                if(!State.Rivals.Chains[Index].bForSale || State.Rivals.Chains[Index].bGone)continue;
+                FString Reason; const int64 Price=MarketChains::Price(State,Index);
+                if(State.Cash>=Price*Policy.BuyBuffer+Reserve && MarketChains::CanBuy(State,Index,Reason))
+                { const FString Id=State.Rivals.Chains[Index].Id; if(Send(State,Products,TEXT("BuyChain"),Index,Stats)){++Stats.Purchases;Stats.Purchased.Add(Id);} break; }
+            }
+        }
+    }
+    bool NewKey(TSet<FString>& Seen,const FString& Value) { if(Seen.Contains(Value))return false;Seen.Add(Value);return true; }
+    void Quiet(bool Interesting,int32& Days,int32& Periods) { Days=Interesting?0:Days+1;if(Days==31)++Periods; }
+    void Pile(TArray<int32>& Days,int32 Day,bool& Active,int32& Count)
+    { Days.RemoveAll([Day](int32 Earlier){return Earlier<Day-6;}); const bool Now=Days.Num()>3; if(Now&&!Active)++Count; Active=Now; }
+    void Observe(const FMarketState& State,FStats& Stats)
+    {
+        const int32 Day=State.Day-1; bool BaseEvent=false,Extra=false;
+        for(const auto& Event:State.EventLog) if(NewKey(Stats.SeenEvents,Event))
+        {
+            BaseEvent=true; FString Id,Date; Event.Split(TEXT("@"),&Id,&Date);
+            if(Id==TEXT("event.fridge")||Id==TEXT("event.power")||Id==TEXT("event.inspection")||Id==TEXT("event.complaint")||Id==TEXT("event.roadworks")||Id==TEXT("event.truck")||Id==TEXT("event.snow"))
+            {Stats.BadDays.Add(Day);Stats.BaseBadDays.Add(Day);}
+        }
+        for(const auto& Decision:State.Decisions) BaseEvent|=NewKey(Stats.SeenDecisions,Decision.Id+TEXT("@")+FString::FromInt(Decision.Deadline));
+        for(const auto& Offer:State.Brands.Offers)Extra|=NewKey(Stats.SeenOffers,FString::FromInt(Offer.Id));
+        int32 Alive=0;
+        for(const auto& Chain:State.Rivals.Chains)
+        {
+            if(!Chain.bGone)++Alive;
+            if(Chain.bGone && NewKey(Stats.SeenGone,Chain.Id)){++Stats.Gone;Extra=true;}
+            if(Chain.bForSale && NewKey(Stats.SeenSale,Chain.Id)){++Stats.Sale;Extra=true;}
+            if(Chain.WarUntil>=Day && !Chain.WarProvince.IsEmpty() && NewKey(Stats.SeenWars,Chain.Id+TEXT("@")+FString::FromInt(Chain.WarUntil)))
+            {++Stats.Wars;Stats.BadDays.Add(Day);Extra=true;}
+        }
+        for(const auto& News:State.DayNews) if(News.Contains(TEXT("kepenk indirdi:")))++Stats.BankruptcyNews;
+        Stats.ChainPeak=FMath::Max(Stats.ChainPeak,Alive); Stats.Nemesis=MarketChains::NemesisLine(State);
+        Stats.BrandMoney=State.Brands.TotalReceived;
+        for(const auto& Share:State.Brands.Shares)if(MarketBrands::CostFactor(State,Share.Brand)>1.f)Stats.CoolBrands.Add(Share.Brand);
+        if(Stats.Tiers.Num()!=MarketSourcing::LineCount)Stats.Tiers.Init(0,MarketSourcing::LineCount);
+        if(Stats.DailyBuy.Num()!=MarketSourcing::LineCount)Stats.DailyBuy.SetNum(MarketSourcing::LineCount);
+        for(int32 Line=0;Line<MarketSourcing::LineCount;++Line)
+        {
+            const int32 Tier=static_cast<int32>(MarketSourcing::TierOf(State,static_cast<MarketSourcing::ELine>(Line)));
+            if(Tier!=Stats.Tiers[Line]){Stats.Sourcing.Add({Day,Line,Stats.Tiers[Line],Tier});Stats.Tiers[Line]=Tier;Extra=true;}
+            const FString Id=FString::FromInt(Line);const int64 Current=State.Sourcing.MonthBuy.IsValidIndex(Line)?State.Sourcing.MonthBuy[Line]:0;
+            Stats.DailyBuy[Line].Add(FMath::Max<int64>(0,Current-Stats.PreviousBuy.FindRef(Id)));Stats.PreviousBuy.Add(Id,Current);
+            if(Stats.DailyBuy[Line].Num()>30)Stats.DailyBuy[Line].RemoveAt(0);
+        }
+        int32 Stores=1;
+        TMap<FString,FDept> Groups;
+        for(const auto& Branch:State.Branches)if(Branch.Stage==static_cast<uint8>(MarketBranches::EStage::Open))
+        {
+            ++Stores;const int32 Format=MarketDepartments::FormatIndex(Branch.Format);
+            for(const auto& Dept:Branch.Depts)
+            {auto& Row=Groups.FindOrAdd(Key(Format,Dept.Dept));Row.Day=Day;Row.Format=Format;Row.Dept=Dept.Dept;++Row.Branches;Row.Profit+=Dept.Last30Profit;Row.Revenue+=Dept.Last30Revenue;}
+        }
+        for(const auto& Pair:Groups)
+        {
+            const auto& Row=Pair.Value; Stats.LastDept.Add(Pair.Key,Row.Profit);
+            if(!Stats.WorstDept.Contains(Pair.Key)) {Stats.WorstDept.Add(Pair.Key,Row.Profit);Stats.BestDept.Add(Pair.Key,Row.Profit);}
+            else {Stats.WorstDept[Pair.Key]=FMath::Min(Stats.WorstDept[Pair.Key],Row.Profit);Stats.BestDept[Pair.Key]=FMath::Max(Stats.BestDept[Pair.Key],Row.Profit);}
+            if(Day%30==0)Stats.Departments.Add(Row);
+        }
+        BaseEvent|=Stores!=Stats.LastStores;Stats.LastStores=Stores;
+        Extra|=State.Rivals.NationalRank!=Stats.LastNational||State.Rivals.LeagueRank!=Stats.LastWorld;
+        Stats.LastNational=State.Rivals.NationalRank;Stats.LastWorld=State.Rivals.LeagueRank;
+        Quiet(BaseEvent,Stats.QuietBase,Stats.BoringBase);Quiet(BaseEvent||Extra,Stats.QuietAll,Stats.BoringAll);
+        Pile(Stats.BaseBadDays,Day,Stats.bPileBase,Stats.PilesBase);Pile(Stats.BadDays,Day,Stats.bPileAll,Stats.PilesAll);
+        const int32 Year=Stats.Years.Num()+1;
+        if(Day==MarketCalendar::GameDayOf(MarketCalendar::StartYear+Year,MarketCalendar::StartMonth,MarketCalendar::StartDayOfMonth)-1)
+        {
+            const auto World=MarketChains::WorldTable(State); const auto National=MarketChains::NationalTable(State,State.CountryId);
+            FYear Row;Row.Year=Year;Row.Day=Day;Row.World=MarketChains::OurRank(World);Row.National=MarketChains::OurRank(National);Row.Stores=Stores;
+            if(!World.IsEmpty())Row.LeaderWorld=World[0].Revenue;
+            for(const auto& Entry:World)if(Entry.bUs)Row.OurWorld=Entry.Revenue;
+            Stats.Years.Add(Row);
+        }
+    }
+    FString DeptCsv(const FStats& Stats,const FString& Style,int32 Seed)
+    {
+        FString Out;
+        for(const auto& Row:Stats.Departments)Out+=FString::Printf(TEXT("%s,%d,%d,%d,%d,%d,%lld,%lld\n"),*Style,Seed,Row.Day,Row.Format,Row.Dept,Row.Branches,Row.Profit,Row.Revenue);
+        return Out;
+    }
+    FString Report(const FStats& Stats)
+    {
+        FString Out=TEXT("\n#### C: yeni sistemlerin sonucu\n\n| Y\u0131l | Ulusal s\u0131ra | D\u00fcnya s\u0131ras\u0131 | Ma\u011faza | Bizim / liderin ortak cirosu |\n|---:|---:|---:|---:|---:|\n");
+        for(const auto& Row:Stats.Years)Out+=FString::Printf(TEXT("| %d | %d | %d | %d | %.0f / %.0f |\n"),Row.Year,Row.National,Row.World,Row.Stores,Row.OurWorld,Row.LeaderWorld);
+        Out+=FString::Printf(TEXT("\nRakipler: en \u00e7ok %d etkin zincir; %d farkl\u0131 sat\u0131l\u0131k zincir; %d piyasadan \u00e7ekilme (iflas veya sat\u0131n al\u0131nma); %d g\u00f6r\u00fcn\u00fcr iflas haberi; bizim %d sat\u0131n almam\u0131z; %d fiyat sava\u015f\u0131.\nEzeli rakip: %s.\nMarkalardan toplam %.2f TL; k\u00fcsen farkl\u0131 marka %d.\n"),Stats.ChainPeak,Stats.Sale,Stats.Gone,Stats.BankruptcyNews,Stats.Purchases,Stats.Wars,Stats.Nemesis.IsEmpty()?TEXT("yok"):*Stats.Nemesis,Stats.BrandMoney/100.,Stats.CoolBrands.Num());
+        Out+=TEXT("\n\u0130flas nedeni i\u00e7in ayr\u0131 durum bayra\u011f\u0131 yok; haber say\u0131s\u0131 haber tavan\u0131 nedeniyle alt s\u0131n\u0131rd\u0131r, b\u00fct\u00fcn kapanmalar iflas say\u0131lmaz.\n");
+        Out+=TEXT("\nTedarik kademe de\u011fi\u015fimleri (hat, g\u00fcn, \u00f6nce, sonra):\n");
+        for(const auto& Row:Stats.Sourcing)Out+=FString::Printf(TEXT("- %s: %d. g\u00fcn %d -> %d.\n"),*MarketSourcing::LineName(static_cast<MarketSourcing::ELine>(Row.Line)),Row.Day,Row.From,Row.To);
+        if(Stats.Sourcing.IsEmpty())Out+=TEXT("- Kademe de\u011fi\u015fmedi.\n");
+        Out+=TEXT("\nReyonlar: her t\u00fcr/ma\u011faza t\u00fcr\u00fc i\u00e7in g\u00f6r\u00fclen en d\u00fc\u015f\u00fck / en y\u00fcksek 30 g\u00fcnl\u00fck k\u00e2r (TL, t\u00fcm o t\u00fcr \u015fubelerin toplam\u0131):\n");
+        TArray<FString> Keys;Stats.WorstDept.GetKeys(Keys);Keys.Sort();
+        for(const auto& Id:Keys){FString F,D;Id.Split(TEXT("|"),&F,&D);Out+=FString::Printf(TEXT("- T\u00fcr %s, %s: %.2f / %.2f%s.\n"),*F,*MarketDepartments::Name(static_cast<MarketDepartments::EDept>(FCString::Atoi(*D))),Stats.WorstDept[Id]/100.,Stats.BestDept[Id]/100.,Stats.WorstDept[Id]<0?TEXT(" (zarar g\u00f6r\u00fcld\u00fc)"):TEXT(""));}
+        if(Keys.IsEmpty())Out+=TEXT("- Reyon i\u015fletilmedi; k\u00e2r s\u0131ralamas\u0131 i\u00e7in veri yok.\n");
+        Out+=FString::Printf(TEXT("\nAk\u0131\u015f: mahalle karar/olay/ma\u011faza e\u015fi\u011fi say\u0131m\u0131yla %d s\u0131k\u0131c\u0131 d\u00f6nem; C'nin teklif/s\u0131ra/sava\u015f/kademe hareketi de say\u0131l\u0131nca %d. Felaket y\u0131\u011f\u0131lmas\u0131 %d / %d. Bu ayn\u0131 kampanyan\u0131n iki g\u00f6zlemidir, eski s\u00fcr\u00fcmle yeniden oynama de\u011fildir.\n"),Stats.BoringBase,Stats.BoringAll,Stats.PilesBase,Stats.PilesAll);
+        TArray<FString> Actions;Stats.Commands.GetKeys(Actions);Actions.Sort();Out+=TEXT("\nBa\u015far\u0131l\u0131 yeni oyuncu komutlar\u0131:\n");
+        for(const auto& Action:Actions)Out+=FString::Printf(TEXT("- %s: %d.\n"),*Action,Stats.Commands[Action]);
+        Out+=FString::Printf(TEXT("- Asgari al\u0131m\u0131 kar\u015f\u0131layamad\u0131\u011f\u0131 i\u00e7in ertelenen tedarik karar\u0131: %d.\n"),Stats.Blocked.FindRef(TEXT("Tedarik asgarisi")));
+        TArray<FString> Reasons;Stats.Blocked.GetKeys(Reasons);Reasons.Sort();
+        Out+=TEXT("\nErtelenen kararlar (oyuncuya d\u00f6nen neden, tekrar say\u0131s\u0131):\n");
+        for(const auto& Reason:Reasons)Out+=FString::Printf(TEXT("- %s: %d.\n"),*Reason,Stats.Blocked[Reason]);
+        Out+=TEXT("\nMa\u011faza t\u00fcr\u00fc: 1 mahalle, 2 s\u00fcpermarket, 3 hipermarket. CSV reyon numaralar\u0131 MarketDepartments::EDept s\u0131ras\u0131d\u0131r.\n");
+        return Out;
+    }
+}

@@ -1,6 +1,7 @@
 #pragma once
 #include "CoreMinimal.h"
 #include "MarketEconomy.h"
+#include "MarketAutoPlayC.h"
 
 namespace MarketAutoPlay
 {
@@ -15,6 +16,9 @@ namespace MarketAutoPlay
         int32 GrowthInterval = 14;
         double PriceFactor = 1.0;
         int32 DepotAt = 8;
+        MarketAutoPlayC::FPolicy C;
+        double GrowthPriceFactor = .88;
+        int32 SuperAt = 6, HyperAt = 20;
     };
     const TArray<FProfile>& Profiles();
     struct FOptions
@@ -32,11 +36,13 @@ namespace MarketAutoPlay
         int64 Cash = 0, Debt = 0, Profit = 0, Revenue = 0;
         int32 Stores = 1, Provinces = 1, Workers = 0;
         float Share = 0;
+        int32 NationalRank = 0, WorldRank = 0;
     };
     struct FRun
     {
         FString Profile;
         int32 Seed = 0;
+        MarketAutoPlayC::FStats C;
         TArray<FRow> Daily;
         TArray<FRow> Weekly;
         int32 NegativeDays = 0, TroubleDays = 0, AuditFailures = 0;
