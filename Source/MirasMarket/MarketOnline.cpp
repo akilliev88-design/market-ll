@@ -232,7 +232,7 @@ float MarketOnline::DistrictOnlineShare(const FMarketState& State, int32 GameDay
 
 int32 MarketOnline::PandemicStart(const FMarketState& State)
 {
-    // B4: the epidemic comes when the campaign's eras say (MarketEras; no shift for older saves).
+    // B4: the epidemic comes when the campaign's eras say (MarketEras; no shift without MarketEras::Setup).
     return DateDay(2020, 3, 1) + MarketEras::PandemicShiftDays(State) + static_cast<int32>(Roll(State, 0x9A00u) % 21u);
 }
 

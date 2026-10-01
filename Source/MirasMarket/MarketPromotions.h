@@ -15,7 +15,7 @@
 //  SupplierDeal   - the wholesaler's funded offer: 15 % off the unit cost for 7 days if the shelf price drops 10 %
 //  Scoped         - G-078 (karar J07): the player's own campaign. Scope = one product, a brand, a subcategory, an
 //                   aisle (category) or the whole store; mechanic = % off, 3 al 2 \u00f6de, 2 al 1 \u00f6de or
-//                   "2. \u00fcr\u00fcn %50"; percent 5-50; 1-14 days. The older kinds stay for saves and the offer.
+//                   "2. \u00fcr\u00fcn %50"; percent 5-50; 1-14 days. The older kinds stay (the wholesaler's offer, flyer, endcap).
 namespace MarketPromotions
 {
     enum class EKind : uint8 { AisleDiscount = 0, MultiBuy, Flyer, Endcap, SupplierDeal, Scoped, Count };

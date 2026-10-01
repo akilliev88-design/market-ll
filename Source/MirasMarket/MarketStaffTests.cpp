@@ -118,16 +118,6 @@ bool FMarketStaffPeopleTest::RunTest(const FString& Parameters)
     MarketStaff::EnsureCandidates(Full);
     TestFalse(TEXT("At most two cashiers"), MarketStaff::HireBest(Full, ERole::Cashier, Message));
 
-    // Older saves: the v0.1 flags become people with the old wages.
-    FMarketState Old; Old.Initialize(Catalog()); Old.bCashier = true; Old.Stockers = 2;
-    const int64 LegacyPayroll = Old.DailyPayroll();
-    MarketStaff::Migrate(Old);
-    TestEqual(TEXT("Three people migrated"), Old.Staff.Num(), 3);
-    TestEqual(TEXT("Same payroll after migration"), Old.DailyPayroll(), LegacyPayroll);
-    TestTrue(TEXT("Flags still right"), Old.bCashier && Old.Stockers == 2);
-    MarketStaff::Migrate(Old);
-    TestEqual(TEXT("Migration runs once"), Old.Staff.Num(), 3);
-
     // The roster and the books survive a save.
     S.Staff.Add(Person(S, ERole::Cashier, 55, 80, 2100)); // someone is surely on the roster for the save check
     auto* Save = NewObject<UMarketSave>();

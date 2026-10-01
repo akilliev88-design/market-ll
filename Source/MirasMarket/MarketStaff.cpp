@@ -1,7 +1,6 @@
 #include "MarketStaff.h"
 #include "MarketLedger.h"
 #include "MarketCountry.h"
-#include "StaffPlanner.h"
 #include "MarketPrices.h"
 
 // Internal rules (not in the header). Inside namespace MarketStaff so the MarketStaff:: definitions below find them
@@ -235,25 +234,6 @@ bool MarketStaff::HasAccountant(const FMarketState& State) { return Count(State,
 bool MarketStaff::HrUnlocked(const FMarketState& State)
 {
     return Count(State, ERole::Cashier) + Count(State, ERole::Stocker) >= HrUnlockStaff || State.bSecondStore;
-}
-
-void MarketStaff::Migrate(FMarketState& State)
-{
-    if (State.Staff.Num() > 0 || (!State.bCashier && State.Stockers <= 0)) return;
-    auto Add = [&State](ERole Role, const FString& Name)
-    {
-        FMarketEmployee E;
-        E.Id = State.NextEmployeeId++;
-        E.Name = Name;
-        E.Role = static_cast<uint8>(Role);
-        E.DailyWage = 2000; // the v0.1 wage
-        E.Morale = 65.f;
-        E.HiredDay = 1;
-        State.Staff.Add(E);
-    };
-    if (State.bCashier) Add(ERole::Cashier, TEXT("Emine Kaya"));
-    for (int32 I = 0; I < FMath::Clamp(State.Stockers, 0, FMarketState::MaxStockers); ++I) Add(ERole::Stocker, StaffPlanner::WorkerName(I));
-    SyncCounts(State);
 }
 
 void MarketStaff::AddStartingStaff(FMarketState& State, int32 Cashiers, int32 Stockers)
@@ -500,7 +480,6 @@ void MarketStaff::RecordWork(FMarketState& State, int32 EmployeeId, int32 Units)
 
 void MarketStaff::CloseDay(FMarketState& State)
 {
-    Migrate(State);
     State.StaffNews.Reset();
     State.LastTillDifference = 0;
     State.LastTaxPaid = 0;

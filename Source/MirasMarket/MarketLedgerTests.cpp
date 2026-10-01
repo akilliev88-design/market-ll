@@ -172,25 +172,6 @@ bool FMarketLedgerBalanceTest::RunTest(const FString& Parameters)
     return true;
 }
 
-IMPLEMENT_SIMPLE_AUTOMATION_TEST(FMarketLedgerOldSaveTest, "MirasMarket.Ledger.OlderSaves", EAutomationTestFlags::EditorContext | EAutomationTestFlags::EngineFilter)
-bool FMarketLedgerOldSaveTest::RunTest(const FString& Parameters)
-{
-    // An older save has no books: the first close opens them without a gap; closing twice changes nothing.
-    using namespace MarketLedgerTest;
-    const TArray<FMarketProduct> Products = Catalog();
-    FMarketState S; S.Initialize(Products); S.Day = 250; S.Cash = 777777;
-    TestFalse(TEXT("Closed books"), S.Ledger.bOpen);
-    TestFalse(TEXT("Audit text before the first close"), MarketLedger::AuditText(S).IsEmpty());
-    S.Cash += 5000; // money moved before the books existed
-    MarketLedger::EndClose(S);
-    TestTrue(TEXT("Opened"), S.Ledger.bOpen && S.Ledger.LastGap == 0 && S.Ledger.CashAtClose == S.Cash);
-    MarketLedger::EndClose(S);
-    TestEqual(TEXT("Twice: no gap, no entries"), S.Ledger.LastGap, int64(0));
-    TestEqual(TEXT("Nothing booked"), S.Ledger.Entries.Num(), 0);
-    TestTrue(TEXT("Audit ok"), MarketLedger::AuditOk(S));
-    return true;
-}
-
 IMPLEMENT_SIMPLE_AUTOMATION_TEST(FMarketLedgerNewSystemsTest, "MirasMarket.Ledger.DepartmentsBrandsChains", EAutomationTestFlags::EditorContext | EAutomationTestFlags::EngineFilter)
 bool FMarketLedgerNewSystemsTest::RunTest(const FString& Parameters)
 {

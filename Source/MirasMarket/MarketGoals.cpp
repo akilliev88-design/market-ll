@@ -464,15 +464,14 @@ namespace MarketGoals
 
     int64 Bit(EFirst First) { return static_cast<int64>(1) << static_cast<int32>(First); }
 
-    // Firsts not yet written: celebrate (or, before the goals started, only mark them).
-    void CheckFirsts(FMarketState& State, int32 Day, bool bQuiet)
+    // Firsts not yet written: celebrate.
+    void CheckFirsts(FMarketState& State, int32 Day)
     {
         FMarketGoals& S = State.Goals;
         for (const FFirstInfo& Info : FirstInfos)
         {
             if ((S.Firsts & Bit(Info.First)) || !Reached(State, Info.First)) continue;
             S.Firsts |= Bit(Info.First);
-            if (bQuiet) continue;
             Celebrate(State, Day, Info.Title, Info.Text, Info.Importance);
             CheerTeam(State, Info.Importance >= 2 ? 5.f : 2.f);
         }
@@ -573,7 +572,7 @@ void MarketGoals::OnLeagueYear(FMarketState& State, int32 Rank, bool bFullYear)
     const bool bMoney = Ebitda > 0 && static_cast<double>(Debt) < 3.0 * static_cast<double>(Ebitda);
     S.LeagueFirstYears = Rank == 1 && bMoney && bFullYear ? S.LeagueFirstYears + 1 : 0;
     S.LastLeagueRank = FMath::Max(0, Rank);
-    if (S.bStarted) CheckFirsts(State, FMath::Max(1, State.Day - 1), false);
+    if (S.bStarted) CheckFirsts(State, FMath::Max(1, State.Day - 1));
     if (Rank == 1 && !bMoney)
         State.DayNews.Add(TEXT("D\u00fcnya liginde birincisin, ama bor\u00e7 y\u0131ll\u0131k faaliyet k\u00e2r\u0131n\u0131n \u00fc\u00e7 kat\u0131n\u0131 a\u015f\u0131yor; birincilik say\u0131lmad\u0131."));
     // Karar J02: two league years in a row as the first, in the last chapter.
@@ -597,13 +596,11 @@ void MarketGoals::CloseDay(FMarketState& State, const TArray<FMarketProduct>& Pr
 
     if (!S.bStarted)
     {
-        // An older save (or the first close of a new campaign): records and firsts start silently.
+        // The campaign's first close: the rhythm starts counting, the first day is the first record.
         S.bStarted = true;
         S.LastLivelyDay = Closed;
-        for (const FMarketDayRecord& R : State.History) S.BestDayRevenue = FMath::Max(S.BestDayRevenue, R.Revenue);
-        S.BestDayRevenue = FMath::Max(S.BestDayRevenue, DayRevenue);
+        S.BestDayRevenue = DayRevenue;
         S.MostStores = MarketCompany::TotalStores(State);
-        CheckFirsts(State, Closed, true);
     }
 
     // The day into the rolling window.
@@ -615,7 +612,7 @@ void MarketGoals::CloseDay(FMarketState& State, const TArray<FMarketProduct>& Pr
     ++S.DaysCounted;
 
     // Firsts.
-    CheckFirsts(State, Closed, false);
+    CheckFirsts(State, Closed);
 
     // Records (from the third week on, at most one told a week; they are always kept).
     const bool bTell = S.DaysCounted > RecordAfterDays && Closed - S.RecordDay >= RecordGapDays;

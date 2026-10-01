@@ -672,11 +672,11 @@ struct FMarketState
     UPROPERTY() TArray<FString> DayNews;
 
     // ===== Ak\u0131\u015f B =====
-    // Docs/Surec/akislar/B.md: the books (MarketLedger.h). Older saves load it empty.
+    // Docs/Surec/akislar/B.md: the books (MarketLedger.h).
     UPROPERTY() FMarketLedger Ledger;
-    // B4: eras of the economy (MarketEras.h). Older saves: the unshifted plan.
+    // B4: eras of the economy (MarketEras.h).
     UPROPERTY() FMarketEras Eras;
-    // B6: goals, firsts, records, celebrations, the rhythm guard (MarketGoals.h). Older saves start silently.
+    // B6: goals, firsts, records, celebrations, the rhythm guard (MarketGoals.h).
     UPROPERTY() FMarketGoals Goals;
     // ===== Ak\u0131\u015f B son =====
 

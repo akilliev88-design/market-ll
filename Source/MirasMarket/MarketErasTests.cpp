@@ -41,11 +41,11 @@ bool FMarketErasCurveTest::RunTest(const FString& Parameters)
     TestTrue(TEXT("The unshifted plan puts its peaks where the built-in curve has them"), bSame);
     TestTrue(TEXT("A second, milder wave later in a high-inflation country"), InflationBump(2031) > 0.0 && InflationBump(2031) < InflationBump(2018));
 
-    // An older save: no Setup, no shift.
-    FMarketState Old; Old.CountryId = TEXT("tr"); Old.RivalSeed = 99; Old.Day = 2000;
-    Activate(Old);
-    TestEqual(TEXT("Older save keeps the curve"), MarketPrices::YearlyInflation(2021), 0.19);
-    TestEqual(TEXT("Older save: epidemic where it was"), PandemicShiftDays(Old), 0);
+    // A campaign without Setup (tests, tools): no shift.
+    FMarketState Plain; Plain.CountryId = TEXT("tr"); Plain.RivalSeed = 99; Plain.Day = 2000;
+    Activate(Plain);
+    TestEqual(TEXT("Without Setup: the built-in curve"), MarketPrices::YearlyInflation(2021), 0.19);
+    TestEqual(TEXT("Without Setup: the epidemic where it was"), PandemicShiftDays(Plain), 0);
     MarketErasTest::Restore();
     return true;
 }
@@ -147,12 +147,6 @@ bool FMarketErasEffectsTest::RunTest(const FString& Parameters)
     S.Online.bPandemic = false;
     TestFalse(TEXT("Switched off"), MarketOnline::IsPandemic(S, MarketOnline::PandemicStart(S) + 5));
 
-    // An older save in the middle of an era: nothing is replayed.
-    FMarketState Old; Old.CountryId = TEXT("tr"); Old.RivalSeed = 12; Old.Day = PlanOf(Old)[3].StartDay + 40; // high inflation
-    MarketEras::CloseDay(Old);
-    TestEqual(TEXT("No news"), Old.DayNews.Num(), 0);
-    TestEqual(TEXT("No effects replayed"), Old.Modifiers.Num(), 0);
-    TestTrue(TEXT("Marked"), Old.Eras.bChecked && (Old.Eras.Started & (1 << 3)) != 0);
     MarketErasTest::Restore();
     return true;
 }

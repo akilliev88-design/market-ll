@@ -95,7 +95,7 @@ void MarketFreshness::CloseDay(FMarketState& State, const TArray<FMarketProduct>
         const int32 Arrived = FMath::Max(0, Item.Received);
         Item.Received = 0;
         const int32 Left = InBatches + Arrived - Now;
-        const int32 Fresh = Arrived + FMath::Max(0, -Left); // units nobody recorded (older saves) count as new too
+        const int32 Fresh = Arrived + FMath::Max(0, -Left); // units no batch recorded (the inherited stock, goods put on a shelf without a delivery) count as new too
         if (Left > 0)
         {
             int32 Gone = FMath::Min(Left, InBatches);

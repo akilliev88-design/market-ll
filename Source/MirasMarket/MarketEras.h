@@ -19,7 +19,7 @@ struct FMarketState;
 // recession and high inflation make shoppers count their money, recovery brings them back (MarketEvents
 // modifiers, which the game already applies). The epidemic is MarketOnline's 2020-2021 profile, moved to the
 // plan's year (MarketOnline::PandemicStart); switching the profile off still switches it off.
-// Older saves and campaigns without Setup keep the unshifted plan (bPlanned false).
+// A campaign without Setup (tests, tools) keeps the unshifted plan (bPlanned false).
 USTRUCT()
 struct FMarketEras
 {
@@ -29,7 +29,6 @@ struct FMarketEras
     UPROPERTY() int32 ShiftDays = 0;     // -45..45: news and effects inside the year
     UPROPERTY() int32 Started = 0;       // bit per era of the plan: its start was told and its effects added
     UPROPERTY() int32 Ended = 0;         // bit per era: its end was told
-    UPROPERTY() bool bChecked = false;   // eras already running when the books first saw this campaign are marked
 };
 
 namespace MarketEras

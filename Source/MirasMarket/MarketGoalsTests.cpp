@@ -171,17 +171,6 @@ bool FMarketGoalsCelebrationTest::RunTest(const FString& Parameters)
     TestTrue(TEXT("Records page"), Records(S).Num() >= 4 && Records(S)[0].Value.Contains(TEXT("800")));
     TestTrue(TEXT("Newest first"), RecentCelebrations(S, 3).Num() > 0 && RecentCelebrations(S, 3)[0].Day >= RecentCelebrations(S, 3).Last().Day);
 
-    // An older save far into the game: its firsts and records start silently (no shower of cards).
-    FMarketState Old = NewShop(); Old.Day = 1500; Old.ProfitableDays = 900; Old.InheritedDebt = 0; Old.DebtClearedDay = 80;
-    for (int32 I = 0; I < 12; ++I) AddBranch(Old, I < 6 ? TEXT("kirklareli") : TEXT("edirne"));
-    for (int32 I = 0; I < 30; ++I) { FMarketDayRecord R; R.Day = 1400 + I; R.Revenue = 900000; Old.History.Add(R); }
-    Close(Old, 500000, 50000);
-    TestEqual(TEXT("Older save: no celebrations for the past"), Old.Goals.Celebrations.Num(), 0);
-    TestTrue(TEXT("... but the firsts are marked"), (Old.Goals.Firsts & (static_cast<int64>(1) << static_cast<int32>(EFirst::Stores10))) != 0);
-    TestEqual(TEXT("... and the best day is known"), Old.Goals.BestDayRevenue, int64(900000));
-    while (MarketCompany::TotalStores(Old) < 25) AddBranch(Old, TEXT("tekirdag"));
-    Close(Old, 500000, 50000);
-    TestEqual(TEXT("A new first after that is told"), Count(Old, TEXT("Kutlama: 25 ma\u011faza!")), 1);
     return true;
 }
 

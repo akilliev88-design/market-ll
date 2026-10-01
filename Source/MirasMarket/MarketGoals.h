@@ -16,7 +16,7 @@ struct FMarketProduct;
 //    fallback), so something is always about to finish.
 //  - Firsts (first branch, 10th shop, debt closed...) and records (best day / week / month, most shops) write a
 //    celebration (title, one sentence, importance 0..2). Rewards are small and meaningful: a memory, the team's
-//    morale, the wholesaler's trust; never a big sum of money. An older save starts its records and firsts silently.
+//    morale, the wholesaler's trust; never a big sum of money.
 //  - Rhythm guard: a long quiet stretch (no event, no decision, no milestone; 15 / 20 / 25 days by difficulty)
 //    brings a pleasant or interesting event; too many bad events in 7 days (2 / 3 / 4 by difficulty) hold the next
 //    bad one back (MarketEvents asks HoldBadEvent).
@@ -51,7 +51,7 @@ USTRUCT()
 struct FMarketGoals
 {
     GENERATED_BODY()
-    UPROPERTY() bool bStarted = false;       // false: an older save (or a new campaign) before its first close
+    UPROPERTY() bool bStarted = false;       // false: a new campaign before its first close
     UPROPERTY() int32 LastClosedDay = 0;     // the same close twice does nothing
     UPROPERTY() TArray<FMarketGoal> Goals;
     UPROPERTY() TArray<uint8> RecentKinds;   // the last goals finished or dropped (no repeat)

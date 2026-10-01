@@ -281,16 +281,6 @@ void MarketEras::CloseDay(FMarketState& State)
     FMarketEras& S = State.Eras;
     const TArray<FEra> Eras = PlanOf(State);
     const int32 Today = State.Day; // the day about to be played
-    if (!S.bChecked)
-    {
-        // An older save (or the first close): eras already under way are not replayed.
-        for (int32 I = 0; I < Eras.Num() && I < 31; ++I)
-        {
-            if (Eras[I].StartDay < Today - 1) S.Started |= 1 << I;
-            if (Eras[I].EndDay < Today - 1) S.Ended |= 1 << I;
-        }
-        S.bChecked = true;
-    }
     for (int32 I = 0; I < Eras.Num() && I < 31; ++I)
     {
         const FEra& E = Eras[I];

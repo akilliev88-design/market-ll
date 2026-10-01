@@ -7,7 +7,7 @@ struct FMarketState;
 struct FMarketProduct;
 
 // Ak\u0131\u015f B (Docs/Kurgu/07_AKIL_ISBOLUMU.md \u00a74, #37, #42): the company's books. One field of FMarketState (Ledger);
-// older saves load it empty and it starts at the next day close. Independent of the world, tested
+// a new campaign opens it at its first day close. Independent of the world, tested
 // (MirasMarket.Ledger.*, MirasMarket.Balance.*).
 //
 // Every money movement is one entry: day, store (family shop -1, head office -2, branch index 0..), account, amount
@@ -76,7 +76,7 @@ struct FMarketLedger
     // B2: entries of the last MarketLedger::KeepDays days (older ones live on in Months).
     UPROPERTY() TArray<FMarketLedgerEntry> Entries;
     UPROPERTY() TArray<FMarketLedgerMonth> Months;
-    // The audit: false until the first day close with the books (older saves, a new campaign).
+    // The audit: false until the campaign's first day close.
     UPROPERTY() bool bOpen = false;
     UPROPERTY() int64 CashAtClose = 0;       // the till after the last audited close
     UPROPERTY() int64 CashPosted = 0;        // cash entries since then
