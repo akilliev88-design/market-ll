@@ -371,3 +371,8 @@ Görüntü kökü `Saved/Screenshots/Menu/`: **S**=`20261001-200405_start` (ger�
 ## C7 — ilk birleşim (01.10.2026)
 - C6 387d7d1 main'e alındı; Claude C7 teslimi 7de1603. Derleme düzeltmesi: MarketManagersTests.cpp:1 eksik MarketStaff.h eklendi (EmployerShare kullanımı); mantık değişmedi. Test.ps1:10 alt sınır 146 + C6 iki test = 148.
 - DERLE başarılı (16,91 sn), TEST 148/148 (147 temiz, bir motor HTTP uyarısı), Smoke geçti; Ledger.CashAudit geçti. Sonraki adım akis-a bot kurtarma engeli/ölçümleri, uzun koşular ve üç dönem menü karşılaştırması. C7 son teslimi değil.
+
+### C7 A botu — 01.10.2026
+- Kurtarma süresinde Grow/finans kredi ve satın alma yolu bekler; command.open kartı reddedilir; süre bitince aynı ağ yedeğiyle açılış yeniden mümkün. finance kararında yeni borç reddedilir. Oyun sabitleri/C menüsü değişmedi.
+- MarketAutoPlayRescue: kurtarma günleri, eski kredi borcu silinmesi (kredi hareketi korunumu; nakit gelir değil), plan kredisi kalan/ödendi/yeni planla değişti, ilk yeni şube, tam oyun yılı toplam borç/aile ciro. Önceden bu gün post edilmiş kredi hareketi iki kez sayılmaz; CSV kurtarma/kurtarma_yillar. Aynı il kart tekrarları mevcut internet_olaylar/komuta_olaylar CSV'den ölçülür; hiper şube başı kâr mevcut reyonlar.csv toplam/sube.
+- İki yeni test RescuePause ve RescueLifecycle; son DERLE 4,49 sn, TEST **150/150** (149 temiz + bir motor HTTP uyarısı), AutoPlay.Short **0,74 sn**, Smoke PASSED. Test.ps1 alt sınır150. Bütün yeni kaynaklar ASCII. Uzun koşular ve üç dönem menü karşılaştırması sürüyor; C7 son teslimi değil.

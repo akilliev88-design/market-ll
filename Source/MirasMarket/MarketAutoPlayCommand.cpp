@@ -8,6 +8,7 @@
 #include "MarketOnline.h"
 #include "MarketStaff.h"
 #include "MarketCast.h"
+#include "MarketAutoPlayRescue.h"
 namespace MarketAutoPlayCommand
 {
     FString Quote(const FString& Value){return TEXT("\"")+Value.Replace(TEXT("\""),TEXT("\"\""))+TEXT("\"");}
@@ -28,6 +29,7 @@ namespace MarketAutoPlayCommand
             return State.Branches.IsValidIndex(Card.Arg) && State.Branches[Card.Arg].LossMonths>3 && State.Branches[Card.Arg].Last30Profit<0?0:1;
         if(Card.Id.StartsWith(TEXT("command.open:")))
         {
+            if(MarketAutoPlayRescue::Blocked(State))return 1;
             FString Country,Province;Card.Id.RightChop(13).Split(TEXT("|"),&Country,&Province);
             const auto& Formats=MarketBranches::FormatIds();
             if(!Formats.IsValidIndex(Card.Arg))return 1;

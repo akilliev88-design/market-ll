@@ -11,6 +11,7 @@
 #include "MarketDepots.h"
 #include "MarketOnline.h"
 #include "MarketAdvertising.h"
+#include "MarketAutoPlayRescue.h"
 
 namespace MarketAutoPlayFinance
 {
@@ -37,7 +38,7 @@ namespace MarketAutoPlayFinance
         return Total;
     }
     bool CanExpand(const FMarketState& State,int64 Opening,int64 NewMonthly,double Buffer)
-    { return State.Cash>=FMath::RoundToInt64(Opening*Buffer)+NetworkReserve(State)+NewMonthly; }
+    { return !MarketAutoPlayRescue::Blocked(State) && State.Cash>=FMath::RoundToInt64(Opening*Buffer)+NetworkReserve(State)+NewMonthly; }
     bool LosingMonth(const FMarketBranch& Branch,int32 Day,int32& RedMonths)
     {
         if(Branch.Stage!=static_cast<uint8>(MarketBranches::EStage::Open) || Day-Branch.OpenedDay<=90)
@@ -61,7 +62,7 @@ namespace MarketAutoPlayFinance
             if(LosingMonth(State.Branches[Index],State.Day,Stats.RedMonths.FindOrAdd(Index)))
                 Send(State,Products,TEXT("CloseBranch"),Index,Stats);
         const int64 Reserve=NetworkReserve(State);
-        if(Careful)return;
+        if(Careful || MarketAutoPlayRescue::Blocked(State))return;
         if(!State.Banking.bLine && MarketBanking::LineLimitFor(State)>0 && Send(State,Products,TEXT("OpenLine"),0,Stats))
             Send(State,Products,TEXT("LineAuto"),1,Stats);
         if(State.Banking.LineDrawn>0 && State.Cash>=Reserve*3+State.Banking.LineDrawn)
