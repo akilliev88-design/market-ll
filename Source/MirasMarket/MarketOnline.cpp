@@ -1,4 +1,5 @@
 #include "MarketOnline.h"
+#include "MarketAdvertising.h"
 #include "MarketEras.h"
 #include "MarketLedger.h"
 #include "MarketPromotions.h"
@@ -90,7 +91,7 @@ namespace MarketOnlineLocal
         static const float Fee[3] = { 1.2f, 1.f, 0.85f };
         static const float Min[3] = { 1.f, 0.92f, 0.8f };
         static const float Gap[3] = { 1.f, 0.9f, 0.78f };
-        return Fee[FMath::Min<int32>(O.Fee, 2)] * Min[FMath::Min<int32>(O.MinBasket, 2)] * Gap[FMath::Min<int32>(O.PriceGap, 2)] * (1.f + 0.12f * FMath::Min<int32>(O.Ads, 3));
+        return Fee[FMath::Min<int32>(O.Fee, 2)] * Min[FMath::Min<int32>(O.MinBasket, 2)] * Gap[FMath::Min<int32>(O.PriceGap, 2)];
     }
 
     FPull PullOf(const FMarketState& State, const FMarketOnlineArea& A, int32 Day)
@@ -107,6 +108,9 @@ namespace MarketOnlineLocal
             if (P.bQuick) { P.Web *= 1.5f; P.App *= 1.5f; }
         }
         if (PlatformWorks(O, A)) P.Platform = 0.9f * FMath::Clamp((MarketOnline::Stars(State) - 3.f) / 1.2f, 0.15f, 1.3f);
+        // M34: social media and search ads bring online customers.
+        const float Ads = MarketAdvertising::OnlineFactor(State, A.Country);
+        P.Web *= Ads; P.App *= Ads; P.Platform *= Ads;
         return P;
     }
 
@@ -382,12 +386,7 @@ namespace MarketOnlineLocal
         O.Fee = OwnOrders > 0 && OwnProfit < 0 ? 2 : 1;
         O.MinBasket = 1;
         O.PriceGap = O.ManagerSkill >= 60 ? 1 : 0;
-        const int64 PerOrder = OwnOrders > 0 ? OwnProfit / OwnOrders : 0;
-        const int64 Acquire = O.PrevNew > 0 ? O.PrevAds / O.PrevNew : MAX_int64;
-        const int32 Top = FMath::Clamp(O.ManagerSkill / 30, 1, 3);
-        if (O.PrevNew > 0 && PerOrder > 0 && Acquire < 4 * PerOrder) O.Ads = static_cast<uint8>(FMath::Min<int32>(O.Ads + 1, Top));
-        else if (O.Ads > 0) O.Ads = static_cast<uint8>(O.Ads - 1);
-        State.DayNews.Add(FString::Printf(TEXT("E-ticaret m\u00fcd\u00fcr\u00fc %s ay\u0131n politikas\u0131n\u0131 ayarlad\u0131 (reklam %d, teslimat \u00fccreti %d)."), *O.ManagerName, O.Ads, O.Fee));
+        State.DayNews.Add(FString::Printf(TEXT("E-ticaret m\u00fcd\u00fcr\u00fc %s ay\u0131n politikas\u0131n\u0131 ayarlad\u0131 (teslimat \u00fccreti %d, fiyat fark\u0131 %d)."), *O.ManagerName, O.Fee, O.PriceGap));
     }
 
     void Grow(TArray<int32>& A) { if (A.Num() != MarketOnline::ChannelCount) A.Init(0, MarketOnline::ChannelCount); }
@@ -787,9 +786,8 @@ bool MarketOnline::SetPriceGap(FMarketState& State, int32 Level, FString& OutMes
 
 bool MarketOnline::SetAds(FMarketState& State, int32 Level, FString& OutMessage)
 {
-    State.Online.Ads = static_cast<uint8>(FMath::Clamp(Level, 0, 3));
-    OutMessage = FString::Printf(TEXT("\u0130nternet reklam\u0131: ayda %s."), *MarketOnlineLocal::Tl(MarketOnlineLocal::AtLevel(AdsMonthly[State.Online.Ads], State.Day)));
-    return true;
+    // M34: online ads are the advertising's search channel of the campaign's country.
+    return MarketAdvertising::SetLevel(State, State.CountryId, MarketAdvertising::EChannel::Search, Level, OutMessage);
 }
 
 bool MarketOnline::SetSubstitute(FMarketState& State, int32 Rule, FString& OutMessage)
@@ -963,9 +961,14 @@ FString MarketOnline::AreaLine(const FMarketState& State, int32 AreaIndex)
 FString MarketOnline::AdsLine(const FMarketState& State)
 {
     const FMarketOnline& O = State.Online;
-    if (O.PrevAds <= 0 && O.PrevNew <= 0) return TEXT("Ge\u00e7en ay reklam yok.");
-    return FString::Printf(TEXT("Ge\u00e7en ay reklam %s, yeni m\u00fc\u015fteri %d%s."), *MarketOnlineLocal::Tl(O.PrevAds), O.PrevNew,
-        O.PrevNew > 0 && O.PrevAds > 0 ? *FString::Printf(TEXT(", birinin maliyeti %s"), *MarketOnlineLocal::Tl(O.PrevAds / O.PrevNew)) : TEXT(""));
+    // M34: the internet's ads are the advertising's social and search channels.
+    int64 Spend = 0;
+    for (const FMarketAdCountry& C : State.Advertising.Countries)
+        for (const int32 I : { static_cast<int32>(MarketAdvertising::EChannel::Social), static_cast<int32>(MarketAdvertising::EChannel::Search) })
+            if (C.PrevChannelSpend.IsValidIndex(I)) Spend += C.PrevChannelSpend[I];
+    if (Spend <= 0 && O.PrevNew <= 0) return TEXT("Ge\u00e7en ay internet reklam\u0131 yok (\u015eirket > Reklam: sosyal medya, arama).");
+    return FString::Printf(TEXT("Ge\u00e7en ay sosyal medya ve arama reklam\u0131 %s, yeni internet m\u00fc\u015fterisi %d%s."), *MarketOnlineLocal::Tl(Spend), O.PrevNew,
+        O.PrevNew > 0 && Spend > 0 ? *FString::Printf(TEXT(", birinin maliyeti %s"), *MarketOnlineLocal::Tl(Spend / O.PrevNew)) : TEXT(""));
 }
 
 FString MarketOnline::Hint(const FMarketState& State)
@@ -1095,9 +1098,6 @@ void MarketOnline::CloseDay(FMarketState& State, const TArray<FMarketProduct>& P
             const MarketCountry::FCity* City = MarketCountry::FindCity(A.Country, A.Province);
             Fixed += FMath::RoundToInt64(DarkStoreMonthly * Level * (City ? FMath::Clamp(City->Rent, 0.4f, 2.5f) : 1.f) / 30.0);
         }
-    const int64 Ads = (O.bWeb || O.bPlatform) ? FMath::RoundToInt64(AdsMonthly[FMath::Min<int32>(O.Ads, 3)] * Level / 30.0) : 0;
-    Fixed += Ads;
-    O.MonthAds += Ads;
     if (!O.ManagerName.IsEmpty()) Fixed += MarketStaff::EmployerCost(O.ManagerWage);
     // The manager's touch: the stars drift to his skill, picking is quicker.
     if (!O.ManagerName.IsEmpty()) O.Reputation += (O.ManagerSkill - 50) / 500.f;
@@ -1254,7 +1254,7 @@ void MarketOnline::CloseDay(FMarketState& State, const TArray<FMarketProduct>& P
             else Costs += FMath::RoundToInt64(Value * Commission);
             if (bLate) { ++O.LastLate; O.Reputation -= 1.5f; }
             else if (Missing == 0) O.Reputation += 0.25f;
-            if (bOwn && Random.FRand() < 0.03f + 0.04f * O.Ads) ++O.MonthNew;
+            if (bOwn && Random.FRand() < 0.03f + 0.4f * (MarketAdvertising::OnlineFactor(State, A.Country) - 1.f)) ++O.MonthNew;
             const int64 Profit = Value - Cogs - Costs;
             const int32 C = static_cast<int32>(Channel);
             ++O.MonthOrders[C]; O.MonthRevenue[C] += Value; O.MonthProfit[C] += Profit;
@@ -1334,9 +1334,9 @@ void MarketOnline::CloseDay(FMarketState& State, const TArray<FMarketProduct>& P
     if (bNewMonth)
     {
         O.PrevOrders = O.MonthOrders; O.PrevRevenue = O.MonthRevenue; O.PrevProfit = O.MonthProfit;
-        O.PrevAds = O.MonthAds; O.PrevNew = O.MonthNew;
+        O.PrevNew = O.MonthNew;
         O.MonthOrders.Init(0, ChannelCount); O.MonthRevenue.Init(0, ChannelCount); O.MonthProfit.Init(0, ChannelCount);
-        O.MonthAds = 0; O.MonthNew = 0;
+        O.MonthNew = 0;
         AutoPolicy(State);
     }
 }

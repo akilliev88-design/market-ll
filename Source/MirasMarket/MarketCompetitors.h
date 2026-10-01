@@ -13,8 +13,9 @@
 //    (RivalPriceFactor), including their campaigns and our local rival's price wars.
 //  - the family market across the street (MarketCast::RivalShop, named from the country): proud and touchy. Loses share to us -> gets angry -> starts a
 //    price war on the aisle we sell most; the war costs him money; when the money is gone he gives up and raises
-//    prices. Real chains only do ordinary business (prices, campaigns, openings): B\u0130M is always cheap, Migros is
-//    dearer with better service, A101 opens on day 15 and pushes hard for a month, \u015eok arrives in summer 2011.
+//    prices. The chains' shops (M35: the real chains of the home province, MarketChains) only do ordinary business
+//    (prices, campaigns, openings): the discounter is always cheap, the supermarket dearer with better service, the
+//    fast-growing discounter opens on day 15 and pushes hard for a month, the third one comes in the fifth month.
 //  - A chain sometimes offers one of our good people a job; a content employee says no, an unhappy one (morale < 45) resigns.
 namespace MarketCompetitors
 {
@@ -37,9 +38,15 @@ namespace MarketCompetitors
         bool bFreshOnly = false;         // sells only fresh goods (dairy now; produce later)
     };
 
-    // The name shown to the player: the real chain name, or its fictional stand-in when Config/zincirler.json says
-    // "useFictional": true (karar A12).
+    // The name shown to the player. M35: the street's chain shops carry the name of the chain of the home province
+    // they belong to (Bind); before that, the country pack's name for the kind of chain.
     FString DisplayName(ECompany Company);
+    // M35: binds the street's four chain shops (a discounter, a fast-growing discounter, a second discounter, a
+    // supermarket) to the country's chains (MarketChains) that have shops in the home province first, then any of
+    // the country; a chain that leaves takes its street shop with it. Ensure and the day close call it.
+    void Bind(FMarketState& State);
+    // Makes the bound names the ones DisplayName shows (after loading a campaign; MarketEras::Activate calls it).
+    void Activate(const FMarketState& State);
     // Whether the company sells this aisle at all (the street market sells only fresh goods).
     bool Sells(ECompany Company, const FString& Category);
     // Open on a given game day (opening day, market day).

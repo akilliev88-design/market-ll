@@ -23,7 +23,7 @@ class SToolTip;
 //   2 Siparis     order list, suggested cases, wholesaler terms and bills
 //   3 Urunler     products with their label image, our price against every rival, the buying chance
 //   4 Kampanya    discounts, 3-for-2, end caps, flyers, the wholesaler's offer, every running promotion
-//   5 Rakipler    local (live shares), national and international retail (MarketRetail)
+//   5 Rakipler    local (live shares), national chains and the world league (MarketChains)
 //   6 Personel    staff, applicants, HR
 //   7 Finans      till, bank loans, credit book, taxes and the accountant, perishables, household money
 //   8 Satis       phone / web / platform orders, couriers, card and meal-card payments
@@ -74,6 +74,7 @@ private:
     int32 LoanTenor = 1;            // 24 / 36 / 60 months
     bool bLoanGrace = false;        // six months of interest only
     int32 LedgerPeriod = 1;         // C3 (B2): Finans \u203a gelir tablosu: 0 d\u00fcn, 1 bu hafta, 2 bu ay, 3 bu y\u0131l
+    int32 AdCountry = 0;     // M34: the advertising card's country (MarketAdvertising::Countries index)
     int32 RivalScope = 0;           // Rakipler: 0 local, 1 national, 2 international
     int32 BranchTab = 0;            // Magazalar: 0 shops, 1 company, 2 management (G-086b)
     int32 MapLayer = 0;             // main map: 0 our shops, 1 rivals, 2 opportunities

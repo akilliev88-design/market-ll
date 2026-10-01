@@ -1,4 +1,5 @@
 #include "MarketRivals.h"
+#include "MarketCompetitors.h"
 
 namespace MarketRivalsRules
 {
@@ -21,12 +22,9 @@ int32 MarketRivals::RivalCount(int32 Day)
 
 FString MarketRivals::RivalName(int32 Rival)
 {
-    switch (Rival)
-    {
-    case 0: return TEXT("B\u0130N"); // C3: fictional names (L12), as MarketChains
-    case 1: return TEXT("Migron");
-    default: return TEXT("A110");
-    }
+    // M35: the street's chain shops (MarketCompetitors, bound to the home province's real chains).
+    using MarketCompetitors::ECompany;
+    return MarketCompetitors::DisplayName(Rival == 0 ? ECompany::Bim : Rival == 1 ? ECompany::Migros : ECompany::A101);
 }
 
 FString MarketRivals::RivalLogoKey(int32 Rival)

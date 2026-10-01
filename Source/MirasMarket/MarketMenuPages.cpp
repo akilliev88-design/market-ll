@@ -13,6 +13,7 @@
 #include "MarketCompetitors.h"
 #include "MarketFinance.h"
 #include "MarketOnline.h"
+#include "MarketAdvertising.h"
 #include "MarketPayments.h"
 #include "MarketCredit.h"
 #include "MarketFreshness.h"
@@ -23,7 +24,6 @@
 #include "MarketStaff.h"
 #include "MarketRivals.h"
 #include "MarketPrices.h"
-#include "MarketRetail.h"
 #include "MarketMap.h"
 #include "MarketTheme.h"
 #include "MarketCountry.h"
@@ -1542,7 +1542,7 @@ TSharedRef<SWidget> SMarketMenu::FinancePage()
             : FString(TEXT("\u00d6denecek vergi yok")); }, 18, [G] { return G() && G()->State.Books.TaxDue > 0 ? ERole::Warn : ERole::Good; }, true) ]
         + SVerticalBox::Slot().AutoHeight()
         [ More([G] { return G() && MarketStaff::HasAccountant(G()->State)
-            ? FString(TEXT("Necati Bey defterleri tutuyor: haftal\u0131k vergiyi zaman\u0131nda \u00f6der, belgeli giderleri d\u00fc\u015fer, kasa farklar\u0131n\u0131 izler."))
+            ? FString::Printf(TEXT("Mali m\u00fc\u015favir %s defterleri tutuyor: haftal\u0131k vergiyi zaman\u0131nda \u00f6der, belgeli giderleri d\u00fc\u015fer, kasa farklar\u0131n\u0131 izler."), *MarketCast::Accountant())
             : FString(TEXT("Vergi her 7. g\u00fcn\u00fcn sonunda \u00e7\u0131kar; 3 g\u00fcn i\u00e7inde \u00f6denmezse ceza i\u015fler. Defter tutulmazsa inceleme gelebilir.")); }) ]
         + SVerticalBox::Slot().AutoHeight().Padding(0.f, 4.f, 0.f, 0.f)
         [ Label([G] { return G() ? FString::Printf(TEXT("\u015eimdiye dek \u00f6denen vergi %s \u00b7 ceza %s \u00b7 inceleme %d"), *MarketMenuUi::Tl(G()->State.Books.TotalTaxPaid), *MarketMenuUi::Tl(G()->State.Books.TotalPenalties), G()->State.Books.Audits) : FString(); }, 10, ERole::Muted, false, true) ]
@@ -1935,15 +1935,7 @@ TSharedRef<SWidget> SMarketMenu::ChannelsPage()
             + SWrapBox::Slot()[ Level(TEXT("+%5"), TEXT("OnlinePriceGap"), 1, &FMarketOnline::PriceGap) ]
             + SWrapBox::Slot()[ Level(TEXT("+%10"), TEXT("OnlinePriceGap"), 2, &FMarketOnline::PriceGap) ]
         ]
-        + SVerticalBox::Slot().AutoHeight().Padding(0.f, 6.f, 0.f, 2.f)[ Fixed(TEXT("Reklam"), 10, ERole::Muted) ]
-        + SVerticalBox::Slot().AutoHeight()
-        [
-            SNew(SWrapBox).UseAllottedSize(true).InnerSlotPadding(FVector2D(6.f, 4.f))
-            + SWrapBox::Slot()[ Level(TEXT("Yok"), TEXT("OnlineAds"), 0, &FMarketOnline::Ads) ]
-            + SWrapBox::Slot()[ Level(TEXT("Az"), TEXT("OnlineAds"), 1, &FMarketOnline::Ads) ]
-            + SWrapBox::Slot()[ Level(TEXT("Orta"), TEXT("OnlineAds"), 2, &FMarketOnline::Ads) ]
-            + SWrapBox::Slot()[ Level(TEXT("\u00c7ok"), TEXT("OnlineAds"), 3, &FMarketOnline::Ads) ]
-        ]
+        + SVerticalBox::Slot().AutoHeight().Padding(0.f, 6.f, 0.f, 0.f)[ Fixed(TEXT("\u0130nternet reklam\u0131 (sosyal medya, arama): \u015eirket > Reklam."), 10, ERole::Muted) ]
         + SVerticalBox::Slot().AutoHeight().Padding(0.f, 6.f, 0.f, 2.f)[ Fixed(TEXT("\u00dcr\u00fcn eksikse"), 10, ERole::Muted) ]
         + SVerticalBox::Slot().AutoHeight()
         [
@@ -3815,6 +3807,86 @@ TSharedRef<SWidget> SMarketMenu::CompanyTab()
         ];
     }
 
+    // M34: the company's advertising, one country at a time.
+    auto AdWhere = [this, G]() -> FString
+    {
+        if (!G()) return FString();
+        const TArray<FString> List = MarketAdvertising::Countries(G()->State);
+        return List.IsValidIndex(AdCountry) ? List[AdCountry] : G()->State.CountryId;
+    };
+    TSharedRef<SVerticalBox> AdRows = SNew(SVerticalBox);
+    for (int32 Ch = 0; Ch < MarketAdvertising::ChannelCount; ++Ch)
+    {
+        const MarketAdvertising::EChannel Channel = static_cast<MarketAdvertising::EChannel>(Ch);
+        auto Level = [G, AdWhere, Channel] { return G() ? MarketAdvertising::LevelOf(G()->State, AdWhere(), Channel) : 0; };
+        auto There = [G, Channel] { return G() && MarketAdvertising::EraFactor(G()->State, Channel, G()->State.Day) > 0.f; };
+        TSharedRef<SHorizontalBox> Steps = SNew(SHorizontalBox);
+        static const TCHAR* StepNames[4] = { TEXT("Yok"), TEXT("Az"), TEXT("Orta"), TEXT("\u00c7ok") };
+        for (int32 L = 0; L <= MarketAdvertising::MaxLevel; ++L)
+            Steps->AddSlot().AutoWidth().Padding(L > 0 ? 4.f : 0.f, 0.f, 0.f, 0.f)
+            [ Choice(StepNames[L], [Level, L] { return Level() == L; }, [this, G, Channel, L] { const int32 Index = G() && MarketAdvertising::Countries(G()->State).IsValidIndex(AdCountry) ? AdCountry : 0; Manage(TEXT("AdLevel"), MarketAdvertising::Encode(Index, Channel, L)); }, [There, L] { return L == 0 || There(); }) ];
+        AdRows->AddSlot().AutoHeight().Padding(0.f, 4.f)
+        [
+            SNew(SHorizontalBox)
+            + SHorizontalBox::Slot().FillWidth(1.f).VAlign(VAlign_Center)
+            [
+                SNew(SVerticalBox)
+                + SVerticalBox::Slot().AutoHeight()[ Fixed(MarketAdvertising::ChannelName(Channel), 11, ERole::Text, true) ]
+                + SVerticalBox::Slot().AutoHeight()[ Fixed(MarketAdvertising::ChannelNote(Channel), 9, ERole::Muted) ]
+                + SVerticalBox::Slot().AutoHeight()[ Label([G, AdWhere, Channel] { return G() ? MarketAdvertising::ChannelLine(G()->State, AdWhere(), Channel) : FString(); }, 9, ERole::Muted, false, true) ]
+            ]
+            + SHorizontalBox::Slot().AutoWidth().VAlign(VAlign_Center).Padding(8.f, 0.f, 0.f, 0.f)[ Steps ]
+        ];
+    }
+    TSharedRef<SHorizontalBox> AdCountries = SNew(SHorizontalBox);
+    for (int32 Slot = 0; Slot < 6; ++Slot)
+        AdCountries->AddSlot().AutoWidth().Padding(Slot > 0 ? 4.f : 0.f, 0.f, 0.f, 0.f)
+        [
+            SNew(SBox).Visibility_Lambda([G, Slot] { return G() && MarketAdvertising::Countries(G()->State).Num() > 1 && MarketAdvertising::Countries(G()->State).IsValidIndex(Slot) ? EVisibility::Visible : EVisibility::Collapsed; })
+            [ Button([G, Slot] { if (!G()) return FString(); const TArray<FString> List = MarketAdvertising::Countries(G()->State);
+                const MarketCountry::FProfile* Pack = List.IsValidIndex(Slot) ? MarketCountry::Find(List[Slot]) : nullptr; return Pack ? Pack->Name : FString(); },
+                [this, Slot] { AdCountry = Slot; }, false) ]
+        ];
+    static const int32 Budgets[4] = { 10, 20, 30, 50 };
+    TSharedRef<SHorizontalBox> BudgetRow = SNew(SHorizontalBox);
+    for (int32 B = 0; B < 4; ++B)
+        BudgetRow->AddSlot().AutoWidth().Padding(B > 0 ? 4.f : 0.f, 0.f, 0.f, 0.f)
+        [ Choice(FString::Printf(TEXT("%%%d"), Budgets[B] / 10), [G, B] { return G() && G()->State.Advertising.BudgetPermille == Budgets[B]; }, [this, B] { Manage(TEXT("AdBudget"), Budgets[B]); }) ];
+    TSharedRef<SWidget> AdCard = Card(SNew(SVerticalBox)
+        + SVerticalBox::Slot().AutoHeight()
+        [
+            SNew(SHorizontalBox)
+            + SHorizontalBox::Slot().FillWidth(1.f).VAlign(VAlign_Center)[ Section(TEXT("REKLAM")) ]
+            + SHorizontalBox::Slot().AutoWidth().VAlign(VAlign_Center)
+            [ More([] { return FString(TEXT("Reklam b\u00fct\u00fcn ma\u011fazalar\u0131n m\u00fc\u015fterisini (en \u00e7ok %12) ve internet sipari\u015fini (en \u00e7ok %25) art\u0131r\u0131r; ilk lira en \u00e7ok i\u015fe yarar. Her kanal\u0131n ak\u0131llarda kalan\u0131 kendi h\u0131z\u0131yla s\u00f6ner: televizyon yava\u015f, bro\u015f\u00fcr ve arama \u00e7abuk. \u00dc\u00e7 ya da daha \u00e7ok kanal birlikte %20, be\u015fi birden %30 daha iyi \u00e7al\u0131\u015f\u0131r. Aile d\u00fckk\u00e2n\u0131n\u0131n mahalle bro\u015f\u00fcr\u00fc Kampanyalar sayfas\u0131nda.")); }) ]
+        ]
+        + SVerticalBox::Slot().AutoHeight().Padding(0.f, 4.f, 0.f, 0.f)[ AdCountries ]
+        + SVerticalBox::Slot().AutoHeight().Padding(0.f, 6.f, 0.f, 4.f)[ Label([G, AdWhere] { return G() ? MarketAdvertising::CountryLine(G()->State, AdWhere()) : FString(); }, 10, ERole::Text, false, true) ]
+        + SVerticalBox::Slot().AutoHeight()[ AdRows ]
+        + SVerticalBox::Slot().AutoHeight().Padding(0.f, 10.f, 0.f, 2.f)
+        [ Label([G]
+        {
+            if (!G()) return FString();
+            const FMarketAdvertising& A = G()->State.Advertising;
+            if (!A.ManagerName.IsEmpty()) return FString::Printf(TEXT("Reklam m\u00fcd\u00fcr\u00fc %s \u00b7 beceri %d \u00b7 g\u00fcnl\u00fck %s%s"), *A.ManagerName, A.ManagerSkill, *MarketMenuUi::Tl(A.ManagerWage),
+                A.bAuto ? *FString::Printf(TEXT(" \u00b7 kar\u0131\u015f\u0131m\u0131 o ayarl\u0131yor (cironun %%%.0f'i)"), A.BudgetPermille / 10.f) : TEXT(""));
+            FString Reason;
+            if (!MarketAdvertising::CanHireManager(G()->State, Reason)) return Reason;
+            FString Name; int32 Skill = 0; int64 Wage = 0;
+            MarketAdvertising::Candidate(G()->State, Name, Skill, Wage);
+            return FString::Printf(TEXT("Bu haftan\u0131n reklam m\u00fcd\u00fcr\u00fc aday\u0131: %s, beceri %d, g\u00fcnl\u00fck %s."), *Name, Skill, *MarketMenuUi::Tl(Wage));
+        }, 10, ERole::Text, false, true) ]
+        + SVerticalBox::Slot().AutoHeight()
+        [
+            SNew(SWrapBox).UseAllottedSize(true).InnerSlotPadding(FVector2D(6.f, 4.f))
+            + SWrapBox::Slot()[ Button([] { return FString(TEXT("\u0130\u015fe al")); }, [this] { Manage(TEXT("AdHire"), 0); }, false, [G] { FString Reason; return G() && MarketAdvertising::CanHireManager(G()->State, Reason); }) ]
+            + SWrapBox::Slot()[ RiskyButton([] { return FString(TEXT("Ayr\u0131lmas\u0131n\u0131 iste")); }, [] { return FString(TEXT("Reklam m\u00fcd\u00fcr\u00fc ayr\u0131ls\u0131n m\u0131? On g\u00fcnl\u00fck \u00fccret ve k\u0131dem tazminat\u0131 \u00f6denir.")); },
+                [this] { Manage(TEXT("AdFire"), 0); }, [G] { return G() && !G()->State.Advertising.ManagerName.IsEmpty(); }) ]
+            + SWrapBox::Slot()[ Choice(TEXT("Kar\u0131\u015f\u0131m onda"), [G] { return G() && G()->State.Advertising.bAuto; }, [this, G] { Manage(TEXT("AdAuto"), G() && G()->State.Advertising.bAuto ? 0 : 1); },
+                [G] { return G() && !G()->State.Advertising.ManagerName.IsEmpty(); }) ]
+            + SWrapBox::Slot()[ BudgetRow ]
+        ]);
+
     return SNew(SScrollBox)
     + SScrollBox::Slot()
     [
@@ -3833,6 +3905,7 @@ TSharedRef<SWidget> SMarketMenu::CompanyTab()
                 [ Fixed(TEXT("\u015eu an sat\u0131l\u0131k zincir ya da ba\u011fl\u0131 \u015firket yok."), 10, ERole::Muted) ] ]
             + SVerticalBox::Slot().AutoHeight()[ Deals ]
             + SVerticalBox::Slot().AutoHeight().Padding(0.f, 6.f, 0.f, 0.f)[ Owned ]) ]
+        + SVerticalBox::Slot().AutoHeight().Padding(0.f, 0.f, 0.f, 12.f)[ AdCard ]
         + SVerticalBox::Slot().AutoHeight()
         [
             Card(SNew(SVerticalBox)

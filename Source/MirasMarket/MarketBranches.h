@@ -85,6 +85,9 @@ namespace MarketBranches
     // C3 (A istek): what the branch costs a month before it sells anything (rent, wages with the manager, the
     // employer's share, running costs); the opening question asks to keep at least this much in the till.
     int64 MonthlyFixedCost(const FMarketState& State, const FString& Country, const FString& Province, const FString& Format);
+    // M33: the store manager's weekly clearance of slow items (the province manager approves deep cuts and takes
+    // back mistakes). Returns the part of the weekly news line ("" nothing).
+    FString Clearance(FMarketState& State, int32 BranchIndex, const TArray<FMarketProduct>& Products);
     bool CanOpen(const FMarketState& State, const TArray<FMarketProduct>& Products, const FString& Country, const FString& Province, const FString& Format, FString& OutReason);
     bool Open(FMarketState& State, const TArray<FMarketProduct>& Products, const FString& Country, const FString& Province, const FString& Format, FString& OutMessage);
     bool Close(FMarketState& State, const TArray<FMarketProduct>& Products, int32 BranchIndex, FString& OutMessage);

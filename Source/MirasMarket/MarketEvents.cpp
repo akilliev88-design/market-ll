@@ -1,5 +1,6 @@
 #include "MarketEvents.h"
 #include "MarketOnline.h"
+#include "MarketCommand.h"
 #include "MarketCast.h"
 #include "MarketGoals.h"
 #include "MarketEras.h"
@@ -211,6 +212,7 @@ bool MarketEvents::Decide(FMarketState& State, const TArray<FMarketProduct>& Pro
         : D.Id.StartsWith(TEXT("finance.")) ? MarketFinance::Resolve(State, Products, D, Option, OutMessage)
         : D.Id.StartsWith(TEXT("rival.")) ? MarketCompetitors::Resolve(State, Products, D, Option, OutMessage)
         : D.Id.StartsWith(TEXT("online.")) ? MarketOnline::Resolve(State, Products, D, Option, OutMessage) // M32
+        : D.Id.StartsWith(TEXT("command.")) ? MarketCommand::Resolve(State, Products, D, Option, OutMessage) // M33
         : ResolveEvent(State, Products, D, Option, OutMessage);
     if (bDone && State.Decisions.Num() > 0 && State.Decisions[0].Id == D.Id) State.Decisions.RemoveAt(0);
     return bDone;
@@ -260,7 +262,7 @@ bool MarketEvents::Trigger(FMarketState& State, const TArray<FMarketProduct>& Pr
         if (State.Day < 6) return false;
         if (MarketStaff::HasAccountant(State))
         {
-            News.Add(TEXT("Zab\u0131ta denetime geldi; Necati Bey'in haz\u0131rlad\u0131\u011f\u0131 evraklar eksiksizdi. Sorun yok."));
+            News.Add(FString::Printf(TEXT("Zab\u0131ta denetime geldi; mali m\u00fc\u015favirin (%s) haz\u0131rlad\u0131\u011f\u0131 evraklar eksiksizdi. Sorun yok."), *MarketCast::Accountant()));
         }
         else
         {

@@ -1,4 +1,5 @@
 #include "MarketEras.h"
+#include "MarketCompetitors.h"
 #include "MarketEconomy.h"
 #include "MarketCalendar.h"
 #include "MarketCountry.h"
@@ -191,6 +192,7 @@ void MarketEras::Setup(FMarketState& State)
 
 void MarketEras::Activate(const FMarketState& State)
 {
+    MarketCompetitors::Activate(State); // M35: the street's chain names of this campaign
     FActive& A = ActivePlan();
     A.Timeline = PlanOf(State);
     A.bSet = true;

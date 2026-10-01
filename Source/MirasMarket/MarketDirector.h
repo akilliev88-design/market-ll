@@ -55,6 +55,7 @@ namespace MarketDirector
     // OnlineArea (Arg = MarketOnline::EncodeArea: area, flags 1 platform / 2 own / 4 quick), OnlineAreaReturn (area),
     // OnlineDefault (flags), DarkStore (area), OnlineFee / OnlineMinBasket / OnlinePriceGap (0..2), OnlineAds (0..3),
     // Substitute (Arg 0 ask / 1 same aisle / 2 leave out), OnlineAutoPolicy (1/0), OnlineHire, OnlineFire,
+    // M34 AdLevel (Arg = MarketAdvertising::Encode), AdHire, AdFire, AdAuto (1/0), AdBudget (per mille 5..60),
     // Card (Arg 1/0), MealCard (Arg 1/0), Difficulty (Arg 0 easy / 1 normal / 2 hard),
     // Build (Arg 0 depot in the home sub-region, 1 truck, 2 central buying, 3 own brand; dark stores: MarketOnline),
     // BuildDepot (Arg = country index * 100 + sub-region index),

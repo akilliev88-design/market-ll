@@ -1,3 +1,11 @@
+## 01.10.2026 — Claude (Cowork) — M33 komuta zinciri, M34 reklam, M35 Türkiye kalıntıları
+
+**Yapılan:** Mustafa'nın istekleri: kritik kararlar hiyerarşiden geçip onaya gelsin, gündelik işler (fiyat, stok eritme) aşağıda kalsın; reklam çeşitleri (TV, radyo, açık hava, broşür, sosyal medya, arama) ve büyüyünce reklam müdürü; eski oyunun Türkiye kalıntıları (sokak rakipleri, iklim, kasap sezonu, mali müşavir adı, `MarketRetail`). Yeni testler: `Advertising.ChannelsAndManager`, `Command.ClearanceAndProposals`, `Competitors.StreetFromProvinceChains`. Test.ps1 alt sınır 143.
+
+**Doğrulama:** Derlenmedi. Ajan okuması: derleme hatası ve kırılan test yok; dört küçük mantık düzeltmesi yapıldı.
+
+**Sıradaki:** Codex C5 bitince birleştirme ve C6 doğrulama.
+
 ## 01.10.2026 — Codex — C5 M32 ilk doğrulama
 
 Claude teslimi 1bf14f5 ile alındı. MarketOnline.cpp:573 eksik MarketOnlineLocal::AtLevel namespace'i düzeltildi; tek derleme düzeltmesi, mantık değişmedi. DERLE + TEST 140/140 (139 temiz + motor HTTP uyarısı) + Smoke PASSED; Ledger.CashAudit geçti. Sonraki iş akis-a worktree'de bot/rapor ve üç dönem menü listesi; ana klasör Claude'un sokak rakipleri/Türkiye işi için bırakılıyor. Final A.md akis-a tarafında olacak.

@@ -1,7 +1,7 @@
 # Akış C — Claude (Cowork)
 
 ## Kaldığım yer
-C3 Codex'te derlendi ve doğrulandı (1fa3806: 126/126, defter farkı 0, derleme düzeltmesi 0). Üstüne **M28–M31 + C3 istekleri** yazıldı, **derlenmedi** (01.10.2026): şirket finansı, rakibe teklif, bağlı şirket ve devlerin çıkışı, ülkeye göre adlar, bankanın kurtarma planı (M31), marka parası yalnız dolu rafa, menü istekleri 1–3, kutlama satırı. Ayrıca **M32 internetten satış** baştan yazıldı (derlenmedi). Sırada: Codex C4 (`Docs/Surec/promptlar/codex_c4_finans_dogrulama.md`): derleme + test (133) + bot yeni komutlarla, şube başına kâr dökümüyle; sonra denge (şube ekonomisi, lig ölçeği).
+C5 (Codex) `akis-a` worktree'sinde: M32 derlendi (140). Ana klasöre **M33 komuta zinciri, M34 reklam, M35 Türkiye kalıntıları** yazıldı, derlenmedi (01.10.2026); test alt sınırı 143. Sırada: Codex C5 bitince birleştirme + C6 doğrulama (derleme, bot reklam/komuta kartları), menü sadeleştirme listesi, denge.
 
 ## Yapılanlar
 - **C1 · Mağaza görünümü şubenin hesabına** (yeni `MarketStoreViews.h/.cpp`): `Config/magazalar.json` bir kez `MarketStoreKit::Parse` ile kendi kopyamıza okunur (kitin yüklü şablonlarına dokunulmaz). Şube imzalanınca (il, tür) için görünüm seçilir (`MarketStoreAssign::Assign`, `FMarketState::StoreViews`'a kaydedilir; yurt dışında ülke + tür başına bir görünüm) ve ölçüleri şubeye kopyalanır (`FMarketBranch::StoreView`, `View*` alanları).
@@ -42,6 +42,9 @@ C3 Codex'te derlendi ve doğrulandı (1fa3806: 126/126, defter farkı 0, derleme
   - Marka: boş raf sayılmaz (`MarketBrands` `Capacities` yalnız mal olan raf; test `Brands.EmptyShelfEarnsNothing`).
   - Menü: gelir tablosu ve bilançoda kısa tutar + alt satırda tam tutar (`MarketMenuUi::TlShort`); harita katman tepsisi zaman hapının altına; şube müdürü satırı kendi satırında; kutlama satırı son 30 gün, tarihli, yıldız yerine nokta.
 - **M32 · İnternetten satış** (`MarketOnline` baştan): telefon siparişi, aile dükkânı kuryesi, şirketin tek karanlık mağazası ve salgın ayarı kalktı. Kanallar (web, uygulama, ülkenin platformu `MarketCast::Platform`, hızlı teslimat) salgına göre açılır; il başına alan (`FMarketOnlineArea`): il müdürü her ay karar verir, yoksa şirket kuralı, oyuncu el koyup bırakabilir; il başına karanlık depo. Siparişler aile dükkânının ve şubelerin stoğundan toplanır; şube yürüyen müşterisi de internete kayan payı kaybeder (`StoreTrafficFactorOn`). E-ticaret müdürü, politika, rakip zincirlerin internete çıkışı (asistan söyler: ana ekran "Kulak misafiri"), dört karar kartı (`online.*`), kanal istatistiği. Testler: `Online.TimelineAndShare`, `FamilyShopOnThePlatform`, `CompanyAndProvinces`, `RivalsAndCards`.
+- **M33 · Komuta zinciri** (`MarketCommand`, `MarketBranches::Clearance`): şube müdürü yavaş malı haftalık indirimle eritir, %20 üstü il müdürü onayı ister; zayıf müdürün yanlış indirimini il müdürü geri alır; il müdürü şube kapatma (3 ay zarar) ve açma (hepsi kâr, ilde yer, kasa 3× açılış) önerir, ülke/bölge müdüründen geçip karar kartı `command.*` olarak gelir.
+- **M34 · Reklam** (`MarketAdvertising`): ülke başına TV, radyo, açık hava, gazete/broşür, sosyal medya, arama; akıllarda kalan stok, azalan getiri, hepsi bir arada bonusu, dönemle sosyal medya güçlenir/broşür zayıflar; 20 mağazadan reklam müdürü (karışımı bütçeyle kendisi kurar). M32'nin internet reklamı arama kanalına taşındı. Menü: Şirket > Reklam kartı.
+- **M35 · Kalıntılar:** sokak rakipleri il zincirlerinden (`MarketCompetitors::Bind`, `Activate` `MarketEras::Activate`'ten), iklim ülkeden, kasap sezonu ülkeden, mali müşavir adı `MarketCast::Accountant`, `MarketRetail` silindi.
 - Özel marka ("Miras") marka yarışına henüz girmedi: katalogda Miras ürünü yok (ürün kararı Mustafa/Codex).
 
 ## Doğrulama

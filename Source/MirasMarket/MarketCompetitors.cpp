@@ -1,4 +1,6 @@
 #include "MarketCompetitors.h"
+#include "MarketStart.h"
+#include "MarketChains.h"
 #include "MarketCast.h"
 #include "MarketCountry.h"
 #include "MarketCalendar.h"
@@ -92,9 +94,90 @@ namespace MarketCompetitors
     }
 }
 
+namespace MarketCompetitorsLocal
+{
+    // M35: the names bound for the campaign that is running (Activate), like the active country.
+    TArray<FString>& StreetNames()
+    {
+        static TArray<FString> Names;
+        if (Names.Num() != static_cast<int32>(MarketCompetitors::ECompany::Count)) Names.Init(FString(), static_cast<int32>(MarketCompetitors::ECompany::Count));
+        return Names;
+    }
+
+    // Kinds of chain a street slot takes, in order of preference.
+    TArray<MarketChains::EArchetype> Wanted(MarketCompetitors::ECompany Company)
+    {
+        using MarketChains::EArchetype;
+        switch (Company)
+        {
+        case MarketCompetitors::ECompany::Bim: return { EArchetype::Discount, EArchetype::FastDiscount, EArchetype::Regional };
+        case MarketCompetitors::ECompany::A101: return { EArchetype::FastDiscount, EArchetype::Discount, EArchetype::Regional };
+        case MarketCompetitors::ECompany::Sok: return { EArchetype::Discount, EArchetype::Regional, EArchetype::FastDiscount, EArchetype::Family };
+        case MarketCompetitors::ECompany::Migros: return { EArchetype::Super, EArchetype::Premium, EArchetype::Hyper, EArchetype::Regional };
+        default: return {};
+        }
+    }
+}
+
+void MarketCompetitors::Activate(const FMarketState& State)
+{
+    TArray<FString>& Names = MarketCompetitorsLocal::StreetNames();
+    for (FString& Name : Names) Name.Reset();
+    for (const FMarketCompetitor& C : State.Competitors)
+        if (Names.IsValidIndex(C.Company) && !C.Name.IsEmpty()) Names[C.Company] = C.Name;
+}
+
+void MarketCompetitors::Bind(FMarketState& State)
+{
+    const FString Home = MarketStart::HomeProvince(State);
+    const ECompany Slots[4] = { ECompany::Bim, ECompany::A101, ECompany::Sok, ECompany::Migros };
+    TArray<FString> Taken;
+    for (const FMarketCompetitor& C : State.Competitors) if (!C.ChainId.IsEmpty() && C.ChainId != TEXT("#gone")) Taken.Add(C.ChainId);
+    for (const ECompany Slot : Slots)
+    {
+        FMarketCompetitor* C = FindMutable(State, Slot);
+        if (!C || C->ChainId == TEXT("#gone")) continue;
+        if (!C->ChainId.IsEmpty())
+        {
+            const FMarketChain* Chain = State.Rivals.Chains.FindByPredicate([C, &State](const FMarketChain& X) { return X.Id == C->ChainId && X.Country == State.CountryId; });
+            if (Chain && !Chain->bGone && !Chain->bOurs) { C->Name = Chain->Name; continue; }
+            if (Chain)
+            {
+                // The chain left: its shop on our street closes.
+                if (IsOpen(State, Slot)) State.DayNews.Add(FString::Printf(TEXT("%s sokakta\u015f\u0131 ma\u011fazas\u0131n\u0131 kapatt\u0131 (zincir %s). M\u00fc\u015fterilerinin bir k\u0131sm\u0131 bize gelecek."),
+                    *C->Name, Chain->bOurs ? TEXT("art\u0131k bizim") : TEXT("piyasadan \u00e7ekildi")));
+                C->ChainId = TEXT("#gone");
+                C->Stores = 0;
+                continue;
+            }
+            C->ChainId.Reset();   // a chain of another campaign: bind again
+        }
+        // The best fitting chain of the country: its kind, a shop in the home province, its size.
+        const TArray<MarketChains::EArchetype> Kinds = MarketCompetitorsLocal::Wanted(Slot);
+        const FMarketChain* Best = nullptr;
+        int32 BestRank = MAX_int32;
+        for (const FMarketChain& X : State.Rivals.Chains)
+        {
+            if (X.bGone || X.bOurs || X.Country != State.CountryId || Taken.Contains(X.Id)) continue;
+            const int32 Kind = Kinds.IndexOfByKey(static_cast<MarketChains::EArchetype>(X.Archetype));
+            if (Kind == INDEX_NONE) continue;
+            const bool bHere = X.Spots.ContainsByPredicate([&Home](const FMarketChainSpot& S) { return S.Province == Home && S.Stores > 0; });
+            const int32 Rank = (bHere ? 0 : 100000000) + Kind * 1000000 - FMath::Min(999999, MarketChains::TotalStores(X));
+            if (Rank < BestRank) { BestRank = Rank; Best = &X; }
+        }
+        if (!Best) continue;
+        C->ChainId = Best->Id;
+        C->Name = Best->Name;
+        Taken.Add(Best->Id);
+    }
+    Activate(State);
+}
+
 FString MarketCompetitors::DisplayName(ECompany Company)
 {
     if (Company == ECompany::Bereket) return MarketCast::RivalShop(); // M30: the family market next door, named from the country
+    const TArray<FString>& Bound = MarketCompetitorsLocal::StreetNames();
+    if (Bound.IsValidIndex(static_cast<int32>(Company)) && !Bound[static_cast<int32>(Company)].IsEmpty()) return Bound[static_cast<int32>(Company)]; // M35
     // Config/zincirler.json is read once: {"useFictional": bool, "chains":[{"id","real","fictional"}]}.
     static TMap<FString, FString> Fictional;
     static bool bLoaded = false, bUseFictional = false;
@@ -145,7 +228,7 @@ bool MarketCompetitors::IsOpenOn(const FMarketState& State, ECompany Company, in
 {
     const FProfile& P = Profile(Company);
     if (GameDay < P.OpenDay) return false;
-    if (const FMarketCompetitor* C = Find(State, Company); C && (C->Told & ToldSold)) return false; // bought and closed
+    if (const FMarketCompetitor* C = Find(State, Company); C && ((C->Told & ToldSold) || C->ChainId == TEXT("#gone"))) return false; // bought and closed; M35: its chain left
     const int32 Weekday = Company == ECompany::Pazar ? MarketCountry::Active().MarketWeekday : P.Weekday; // G-084: the country's market day
     return Weekday < 0 || MarketCalendar::DateOf(GameDay).Weekday == Weekday;
 }
@@ -164,6 +247,7 @@ void MarketCompetitors::Ensure(FMarketState& State)
         New.Stores = FMath::Max(1, P.StartStores);
         State.Competitors.Add(New);
     }
+    Bind(State); // M35
 }
 
 const FMarketCompetitor* MarketCompetitors::Find(const FMarketState& State, ECompany Company)

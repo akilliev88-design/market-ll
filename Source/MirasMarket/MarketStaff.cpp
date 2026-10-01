@@ -1,4 +1,5 @@
 #include "MarketStaff.h"
+#include "MarketCast.h"
 #include "MarketLedger.h"
 #include "MarketCountry.h"
 #include "MarketPrices.h"
@@ -346,20 +347,20 @@ bool MarketStaff::HireAccountant(FMarketState& State, FString& OutMessage)
     if (HasAccountant(State)) { OutMessage = TEXT("Mali m\u00fc\u015favir zaten defterlerini tutuyor."); return false; }
     FMarketEmployee E;
     E.Id = State.NextEmployeeId++;
-    E.Name = TEXT("Necati Bey");
+    E.Name = MarketCast::Accountant(); // M35: from the country's names
     E.Role = static_cast<uint8>(ERole::Accountant);
     E.Skill = 80; E.Speed = 50; E.Stamina = 70; E.Honesty = 90;
     // G-077 (#35, #36): the fee follows wages; taking over the books costs a week's fee up front.
     E.DailyWage = FairWage(ERole::Accountant, 80, State.Day);
     const int64 Engagement = E.DailyWage * 7;
-    if (State.Cash < Engagement) { OutMessage = FString::Printf(TEXT("Necati Bey defterleri devralmak i\u00e7in bir haftal\u0131k \u00fccreti pe\u015fin ister: %s."), *Tl(Engagement)); return false; }
+    if (State.Cash < Engagement) { OutMessage = FString::Printf(TEXT("Mali m\u00fc\u015favir %s defterleri devralmak i\u00e7in bir haftal\u0131k \u00fccreti pe\u015fin ister: %s."), *MarketCast::Accountant(), *Tl(Engagement)); return false; }
     State.Cash -= Engagement;
     MarketLedger::Post(State, MarketLedger::EAccount::Hiring, -Engagement); // B2
     E.Morale = 75.f;
     E.HiredDay = State.Day;
     State.Staff.Add(E);
-    OutMessage = FString::Printf(TEXT("D\u00fckk\u00e2n\u0131n eski mali m\u00fc\u015faviri Necati Bey defterleri devrald\u0131 (%s/g\u00fcn, devir bedeli %s). Haftal\u0131k vergiyi o hesaplar ve zaman\u0131nda \u00f6der, kasa farklar\u0131n\u0131 takip eder. \u0130ndirim ve denetim korumas\u0131 t\u00fcm hafta \u00e7al\u0131\u015ft\u0131\u011f\u0131 haftalarda ge\u00e7erlidir."),
-        *Tl(E.DailyWage), *Tl(Engagement));
+    OutMessage = FString::Printf(TEXT("D\u00fckk\u00e2n\u0131n eski mali m\u00fc\u015faviri %s defterleri devrald\u0131 (%s/g\u00fcn, devir bedeli %s). Haftal\u0131k vergiyi o hesaplar ve zaman\u0131nda \u00f6der, kasa farklar\u0131n\u0131 takip eder. \u0130ndirim ve denetim korumas\u0131 t\u00fcm hafta \u00e7al\u0131\u015ft\u0131\u011f\u0131 haftalarda ge\u00e7erlidir."),
+        *E.Name, *Tl(E.DailyWage), *Tl(Engagement));
     return true;
 }
 

@@ -24,13 +24,16 @@
 #include "MarketSourcing.h"
 #include "MarketDepartments.h"
 #include "MarketBanking.h"
+#include "MarketAdvertising.h"
+#include "MarketCommand.h"
 
 float MarketDirector::TrafficFactor(const FMarketState& State, const TArray<FString>& Aisles)
 {
     return MarketCalendar::TrafficFactor(State.Day, State.RivalSeed) * MarketRivals::TrafficFactor(State.Day, State.RivalSeed, Aisles)
         * MarketPromotions::TrafficFactor(State) * MarketCompetitors::TrafficFactor(State)
         * MarketEvents::Factor(State, MarketEvents::EModifier::Traffic) * MarketBranches::MainShopFactor(State)
-        * MarketOnline::StoreTrafficFactor(State) * MarketPayments::TrafficFactor(State) * MarketSimulation::TrafficFactor(State);
+        * MarketOnline::StoreTrafficFactor(State) * MarketPayments::TrafficFactor(State) * MarketSimulation::TrafficFactor(State)
+        * MarketAdvertising::TrafficFactor(State); // M34: the company's advertising
 }
 
 double MarketDirector::ToleranceBonus(const FMarketState& State, const FMarketProduct& Product)
@@ -226,6 +229,12 @@ bool MarketDirector::Command(FMarketState& State, const TArray<FMarketProduct>& 
     if (Action == TEXT("OnlineAutoPolicy")) return MarketOnline::SetAutoPolicy(State, Arg != 0, OutMessage);
     if (Action == TEXT("OnlineHire")) return MarketOnline::HireManager(State, OutMessage);
     if (Action == TEXT("OnlineFire")) return MarketOnline::FireManager(State, OutMessage);
+    // M34: advertising (AdLevel Arg = MarketAdvertising::Encode: country index x 100 + channel x 10 + level).
+    if (Action == TEXT("AdLevel")) return MarketAdvertising::SetLevelArg(State, Arg, OutMessage);
+    if (Action == TEXT("AdHire")) return MarketAdvertising::HireManager(State, OutMessage);
+    if (Action == TEXT("AdFire")) return MarketAdvertising::FireManager(State, OutMessage);
+    if (Action == TEXT("AdAuto")) return MarketAdvertising::SetAuto(State, Arg != 0, OutMessage);
+    if (Action == TEXT("AdBudget")) return MarketAdvertising::SetBudget(State, Arg, OutMessage);
     if (Action == TEXT("Card")) return MarketPayments::SetCard(State, Arg != 0, OutMessage);
     if (Action == TEXT("MealCard")) return MarketPayments::SetMealCard(State, Arg != 0, OutMessage);
     if (Action == TEXT("Build")) return MarketCompany::Build(State, Arg, OutMessage);
@@ -326,6 +335,7 @@ void MarketDirector::CloseDay(FMarketState& State, const TArray<FMarketProduct>&
     MarketCompetitors::CloseDay(State, Products, MarketRivals::Aisles(Products)); // shares, rivals' moves, poaching (G-065)
     MarketBranches::CloseDay(State, Products);   // opening steps and the simulated day of every branch (G-068)
     MarketManagers::CloseDay(State);             // managers' wages, morale, weekly marks, the player's span (G-086b)
+    MarketCommand::CloseDay(State, Products);    // M33: province managers propose opening or closing a branch (up the line)
     MarketDepots::CloseDay(State);               // depots: a caught depot manager, missing managers, losses (G-089)
     MarketChains::CloseDay(State);               // rival chains of our countries and the world giants (Akis C2b)
     MarketBrands::CloseDay(State, Products);     // brands: sales, deals, trust, offers (karar M25)
@@ -333,6 +343,7 @@ void MarketDirector::CloseDay(FMarketState& State, const TArray<FMarketProduct>&
     MarketCompany::CloseDay(State);              // stores in other cities, depot, trucks, leadership (G-072)
     MarketPayments::CloseDay(State);             // card money arrives, commissions and POS rent (G-069)
     MarketOnline::CloseDay(State, Products);     // M32: online orders of every shop, per province (after the branches)
+    MarketAdvertising::CloseDay(State);          // M34: the company's ads: their cost, what stays in minds, the month's mix
     // Bills are paid after the day's money is in (card payout, branches, cities, online), before the books.
     MarketSuppliers::CloseDay(State); // price list, payment terms, bills due, wholesaler news (G-063)
     MarketStaff::CloseDay(State);     // till, fatigue, morale, notices, HR, accountant and the weekly tax (G-060)

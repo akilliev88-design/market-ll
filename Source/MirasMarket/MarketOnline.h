@@ -63,7 +63,6 @@ namespace MarketOnline
     constexpr int64 PlatformJoinCost = 30000;      // a tablet and the listing, per province
     constexpr int64 DarkStoreCost = 2000000;       // x the province's rent
     constexpr int64 DarkStoreMonthly = 60000;      // x the province's rent
-    const int64 AdsMonthly[4] = { 0, 50000, 150000, 400000 };
     constexpr int64 CourierDailyWage = 1800;       // x wage index; a courier carries OrdersPerCourier a day
     constexpr int32 OrdersPerCourier = 14;
     constexpr float QuickCourierFactor = 1.3f;
@@ -125,7 +124,7 @@ namespace MarketOnline
     bool SetFee(FMarketState& State, int32 Level, FString& OutMessage);
     bool SetMinBasket(FMarketState& State, int32 Level, FString& OutMessage);
     bool SetPriceGap(FMarketState& State, int32 Level, FString& OutMessage);
-    bool SetAds(FMarketState& State, int32 Level, FString& OutMessage);
+    bool SetAds(FMarketState& State, int32 Level, FString& OutMessage);   // M34: the search channel of MarketAdvertising
     bool SetSubstitute(FMarketState& State, int32 Rule, FString& OutMessage);
     bool SetAutoPolicy(FMarketState& State, bool bAuto, FString& OutMessage);
     // This week's candidate (seeded): his name, skill and wage a day.

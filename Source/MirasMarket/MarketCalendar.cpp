@@ -76,7 +76,7 @@ namespace MarketCalendar
         return 1 + (Weekday - FirstWeekday + 7) % 7 + (N - 1) * 7;
     }
 
-    // L\u00fcleburgaz-like monthly mean temperature and chance of rain (percent).
+    // M35: the fallback climate (Thrace) when a country pack gives none (ulkeler.json "climate").
     const int32 MeanTemperature[12] = { 4, 5, 8, 13, 18, 23, 25, 25, 20, 15, 10, 6 };
     const int32 RainChance[12] = { 35, 32, 30, 28, 25, 18, 10, 10, 15, 25, 32, 35 };
 
@@ -230,8 +230,11 @@ MarketCalendar::FDayInfo MarketCalendar::Info(int32 GameDay, int32 Seed)
 
     // Weather: monthly mean + smoothed daily noise; rain by month; snow when it is cold and wet.
     const float Smooth = (Noise(Seed, GameDay - 1, 11u) + 2.f * Noise(Seed, GameDay, 11u) + Noise(Seed, GameDay + 1, 11u)) / 4.f;
-    Out.TemperatureC = MeanTemperature[D.Month - 1] + FMath::RoundToInt32(Smooth * 12.f);
-    const bool bWet = static_cast<int32>(CalendarMix(Seed, GameDay, 12u) % 100u) < RainChance[D.Month - 1];
+    const MarketCountry::FProfile& Pack = MarketCountry::Active(); // M35: the country's own climate
+    const int32 Mean = Pack.ClimateTemperature.Num() == 12 ? Pack.ClimateTemperature[D.Month - 1] : MeanTemperature[D.Month - 1];
+    const int32 Rain = Pack.ClimateRain.Num() == 12 ? Pack.ClimateRain[D.Month - 1] : RainChance[D.Month - 1];
+    Out.TemperatureC = Mean + FMath::RoundToInt32(Smooth * 12.f);
+    const bool bWet = static_cast<int32>(CalendarMix(Seed, GameDay, 12u) % 100u) < Rain;
     if (bWet) Out.Weather = Out.TemperatureC <= 1 ? EWeather::Snow : EWeather::Rain;
     else if (Out.TemperatureC >= 29) Out.Weather = EWeather::Hot;
     else Out.Weather = CalendarMix(Seed, GameDay, 13u) % 3u == 0u ? EWeather::Cloudy : EWeather::Sunny;

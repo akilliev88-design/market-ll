@@ -3,8 +3,8 @@
 #include "MarketEconomy.h"
 
 // Rival shops in the district (G-054, replaces the fixed "rival discount 4 days of 5", G-008).
-// Independent of the world (test: MirasMarket.Rivals.News). The rivals are the real chains that were in
-// Luleburgaz in 2011 (Mustafa's decision: real chains, real history). Every evening the day report brings the
+// Independent of the world (test: MirasMarket.Rivals.News). The rivals are the street's chain shops (M35: the
+// home province's chains, MarketCompetitors::Bind; their names come from there). Every evening the day report brings the
 // news of what a rival does tomorrow: a discount on one aisle, a weekend sale, a price rise, an empty aisle,
 // longer opening hours; from day 15 a new discount store opens in the district. The news changes the rival's
 // price for the products of that aisle (shoppers compare our shelf price with it, MarketDemand) and the number

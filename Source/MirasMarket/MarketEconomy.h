@@ -225,6 +225,10 @@ struct FMarketCompetitor
     // local share the chains watch (they answer a rising shop).
     UPROPERTY() int32 RedDays = 0;
     UPROPERTY() float WatchShare = 0.f;
+    // M35: the street's chain shops are the real chains of the home province (MarketChains): which one and its name.
+    // "#gone": the chain left (closed, sold, or we bought it) and the shop with it.
+    UPROPERTY() FString ChainId;
+    UPROPERTY() FString Name;
 };
 
 // A choice waiting for the player (MarketEvents.h): story scenes and neighbourhood events.
@@ -315,6 +319,10 @@ struct FMarketBranchItem
     UPROPERTY() int32 Incoming = 0;      // ordered by the manager, arrives at the next close
     UPROPERTY() int32 LastSold = 0;
     UPROPERTY() int32 LastEmpty = 0;
+    // M33: the store manager's clearance (a slow item marked down for a week).
+    UPROPERTY() int32 IdleDays = 0;      // days in a row with goods on the shelf and none sold
+    UPROPERTY() uint8 Markdown = 0;      // percent off
+    UPROPERTY() int32 MarkdownUntil = 0;
 };
 
 // A branch of the company, simulated from the same rules without walking customers (MarketBranches.h).
@@ -389,6 +397,8 @@ struct FMarketBranch
     UPROPERTY() int64 Last30Revenue = 0;   // running sum over about 30 days (national table, world league)
     UPROPERTY() TArray<FMarketBranchDept> Depts; // karar M26: its departments (MarketDepartments.h)
     UPROPERTY() int32 VisitedDay = 0;      // C3: the player last walked through it (MarketBranches::Visit)
+    UPROPERTY() int32 LossMonths = 0;      // M33: months in a row in the red after its first three months
+    UPROPERTY() int32 QuietUntil = 0;      // M33: a turned-down closing proposal: none before this day
 };
 
 // G-089 (karar M23): a big depot in a province (MarketDepots.h). It serves our branches of its country within
@@ -462,6 +472,39 @@ struct FMarketManagement
     UPROPERTY() TArray<FString> UsedNames;
 };
 
+// M34 (Mustafa 01.10.2026): the company's advertising in a country (MarketAdvertising.h).
+USTRUCT()
+struct FMarketAdCountry
+{
+    GENERATED_BODY()
+    UPROPERTY() FString Country;
+    UPROPERTY() TArray<uint8> Levels;        // per MarketAdvertising::EChannel: 0 off .. 3 heavy
+    UPROPERTY() TArray<float> Stock;         // what each channel left in people's minds (decays every month)
+    UPROPERTY() int64 MonthSpend = 0;
+    UPROPERTY() int64 PrevSpend = 0;
+    UPROPERTY() int64 MonthUplift = 0;       // the shops' revenue the ads brought (estimate)
+    UPROPERTY() int64 PrevUplift = 0;
+    UPROPERTY() int64 MonthRevenue = 0;      // our shops' revenue in the country (the manager's budget base)
+    UPROPERTY() int64 PrevRevenue = 0;
+    UPROPERTY() TArray<int64> MonthChannelSpend;
+    UPROPERTY() TArray<int64> PrevChannelSpend;
+    UPROPERTY() int32 SeasonUntil = 0;       // the advertising manager's holiday push
+};
+
+USTRUCT()
+struct FMarketAdvertising
+{
+    GENERATED_BODY()
+    UPROPERTY() TArray<FMarketAdCountry> Countries;
+    UPROPERTY() FString ManagerName;
+    UPROPERTY() int32 ManagerSkill = 0;
+    UPROPERTY() int64 ManagerWage = 0;
+    UPROPERTY() int32 ManagerSince = 0;
+    UPROPERTY() bool bAuto = false;          // the manager sets the mix every month
+    UPROPERTY() int32 BudgetPermille = 20;   // his budget: per mille of the country's last month revenue
+    UPROPERTY() int32 Told = 0;
+};
+
 // M32 (Mustafa 01.10.2026): online selling of the whole company, per province (MarketOnline.h).
 USTRUCT()
 struct FMarketOnlineArea
@@ -507,7 +550,6 @@ struct FMarketOnline
     UPROPERTY() uint8 Fee = 1;               // 0 free, 1 below the free basket, 2 always
     UPROPERTY() uint8 MinBasket = 0;         // 0 none, 1 small, 2 big
     UPROPERTY() uint8 PriceGap = 0;          // online prices: 0 as the shelf, 1 +5 %, 2 +10 %
-    UPROPERTY() uint8 Ads = 0;               // 0 none .. 3 heavy
     UPROPERTY() uint8 Substitute = 1;        // 0 call and ask, 1 same aisle, 2 leave it out
     UPROPERTY() bool bAutoPolicy = false;    // the e-commerce manager sets the policy every month
     UPROPERTY() FString ManagerName;
@@ -545,8 +587,6 @@ struct FMarketOnline
     UPROPERTY() TArray<int32> PrevOrders;
     UPROPERTY() TArray<int64> PrevRevenue;
     UPROPERTY() TArray<int64> PrevProfit;
-    UPROPERTY() int64 MonthAds = 0;
-    UPROPERTY() int64 PrevAds = 0;
     UPROPERTY() int32 MonthNew = 0;          // new online customers (ads and word of mouth)
     UPROPERTY() int32 PrevNew = 0;
 };
@@ -936,6 +976,8 @@ struct FMarketState
     UPROPERTY() FMarketBankingState Banking; // karar M28 (MarketBanking.h)
     // Online orders and payment methods (MarketOnline.h, MarketPayments.h).
     UPROPERTY() FMarketOnline Online;
+    UPROPERTY() FMarketAdvertising Advertising; // M34
+    UPROPERTY() TMap<FString, int32> ProposalQuiet; // M33: "country|province" -> no new opening proposal before this day
     UPROPERTY() FMarketPayments Payments;
     // Difficulty (MarketSimulation.h): 0 easy, 1 normal, 2 hard. Days played by the strategic advance.
     UPROPERTY() uint8 Difficulty = 1;

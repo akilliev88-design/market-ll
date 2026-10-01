@@ -72,6 +72,7 @@
       ],
       "banks": ["Esnaf Kredi Bankası", "Anadolu Ticaret Bankası", "Boğaziçi Yatırım Bankası", "Kalkınma ve Yatırım Bankası"],
       "online": { "platform": "Kapıda", "plateau": 0.09 },
+      "climate": { "temperature": [4, 5, 8, 13, 18, 23, 25, 25, 20, 15, 10, 6], "rain": [35, 32, 30, 28, 25, 18, 10, 10, 15, 25, 32, 35] },
       "names": {
         "first": [
           "Ayşe",
@@ -440,6 +441,7 @@
       ],
       "banks": ["Stadtsparkasse Lindenau", "Hansa Handelsbank", "Rheinische Investitionsbank", "Förderbank Mittelland"],
       "online": { "platform": "Flinkly", "plateau": 0.05 },
+      "climate": { "temperature": [1, 2, 5, 9, 13, 16, 18, 18, 14, 10, 5, 2], "rain": [45, 40, 42, 40, 45, 45, 45, 42, 40, 42, 45, 48] },
       "names": {
         "first": [
           "Anna",
@@ -698,6 +700,7 @@
       ],
       "banks": ["Thamesmoor Building Society", "Albion Commercial Bank", "Northgate Investment Bank", "Enterprise Development Bank"],
       "online": { "platform": "Dashby", "plateau": 0.12 },
+      "climate": { "temperature": [5, 5, 7, 9, 12, 15, 17, 17, 14, 11, 8, 5], "rain": [55, 48, 48, 45, 45, 42, 42, 45, 45, 52, 55, 55] },
       "names": {
         "first": [
           "Oliver",
@@ -943,6 +946,7 @@
       ],
       "banks": ["Main Street Savings", "Lakeshore National Bank", "Hudson Capital Bank", "Federal Development Bank"],
       "online": { "platform": "Grabit", "plateau": 0.1 },
+      "climate": { "temperature": [0, 2, 7, 12, 17, 22, 25, 24, 20, 13, 7, 2], "rain": [30, 30, 33, 33, 33, 30, 28, 28, 27, 27, 30, 31] },
       "names": {
         "first": [
           "James",

@@ -28,7 +28,6 @@
 #include "MarketDemand.h"
 #include "MarketOrderAdvice.h"
 #include "MarketPrices.h"
-#include "MarketRetail.h"
 #include "MarketMap.h"
 #include "MarketTheme.h"
 #include "Widgets/Layout/SScaleBox.h"

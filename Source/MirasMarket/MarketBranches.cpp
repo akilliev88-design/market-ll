@@ -12,6 +12,7 @@
 #include "MarketPrices.h"
 #include "MarketStaff.h"
 #include "MarketOnline.h"
+#include "MarketAdvertising.h"
 #include "MarketStart.h"
 #include "MarketStory.h"
 #include "MarketStoreAssign.h"
@@ -531,7 +532,7 @@ void MarketBranches::CloseDay(FMarketState& State, const TArray<FMarketProduct>&
             // G-086b: the province manager knows the town hall.
             B.StageUntil = FMath::Max(State.Day, B.StageUntil - MarketManagers::OpeningDaysSavedIn(State, Where.Country, Where.Province));
             News.Add(FString::Printf(TEXT("%s: tadilat bitti. Ruhsat i\u00e7in belediyeye ba\u015fvuruldu (%d. g\u00fcn).%s"), *B.Name, B.StageUntil,
-                MarketStaff::HasAccountant(State) ? TEXT(" Necati Bey evraklar\u0131 haz\u0131rlad\u0131.") : TEXT(" Evraklar eksik gidince i\u015f uzad\u0131.")));
+                MarketStaff::HasAccountant(State) ? TEXT(" Mali m\u00fc\u015favir evraklar\u0131 haz\u0131rlad\u0131.") : TEXT(" Evraklar eksik gidince i\u015f uzad\u0131.")));
             continue;
         }
         if (Stage == EStage::Permits && Closed >= B.StageUntil)
@@ -594,7 +595,8 @@ void MarketBranches::CloseDay(FMarketState& State, const TArray<FMarketProduct>&
         // Akis C2b: the province's chains against the start, a price war against us on top.
         const float Share = Pull / (Pull + 3.f * Where.Competition * MarketChains::PressureFactor(State, Where.Country, Where.Province, Closed));
         const float Trips = MarketCalendar::ClosedByLaw(Closed) ? 0.f : TripsOf(Where, Kind) * MarketCalendar::TrafficFactor(Closed, State.RivalSeed)
-            * MarketOnline::StoreTrafficFactorOn(State, Closed, Where.Country); // M32: trips gone online, the epidemic's closure days
+            * MarketOnline::StoreTrafficFactorOn(State, Closed, Where.Country) // M32: trips gone online, the epidemic's closure days
+            * MarketAdvertising::TrafficFactor(State, Where.Country); // M34: the company's ads
         const int32 Arrived = FMath::RoundToInt32(Trips * Share * (0.5f + 0.5f * B.Maturity) * Cannibalization(State, Index, Where));
         // G-088 C: the store's tills. Too few lanes lose shoppers in the queue; roomy ones keep a few more.
         const MarketStoreAssign::FStoreMeasures Measures = MarketStoreViews::MeasuresOf(B);
@@ -614,14 +616,17 @@ void MarketBranches::CloseDay(FMarketState& State, const TArray<FMarketProduct>&
             // G-088 C: dairy and ice cream follow the store's cold room (and spoil more when it is crowded).
             const MarketGoods::EGroup Group = MarketGoods::Classify(Products[I].Category);
             const bool bFresh = Group == MarketGoods::EGroup::Dairy || Group == MarketGoods::EGroup::IceCream;
-            const int32 Want = FMath::RoundToInt32(Shoppers * UnitsPerShopper * WishToday[I] * Where.Income * (bFresh ? FreshDemand : 1.f));
+            // M33: a week's clearance makes a slow item move (and earns less on each).
+            const float Cut = Item->MarkdownUntil >= Closed ? Item->Markdown / 100.f : 0.f;
+            const int32 Want = FMath::RoundToInt32(Shoppers * UnitsPerShopper * WishToday[I] * Where.Income * (bFresh ? FreshDemand : 1.f) * (1.f + 2.5f * Cut));
             const int32 Take = Item->Capacity > 0 ? FMath::Min(Want, Item->Units) : 0;
             Item->Units -= Take;
             Item->LastSold = Take;
             Item->LastEmpty = Want - Take;
             DaySold += Take;
             DayEmpty += Want - Take;
-            const int64 Price = FMath::Max<int64>(5, FMath::RoundToInt64(Products[I].BasePrice * B.PriceIndex / 5.0) * 5);
+            const int64 Price = FMath::Max<int64>(5, FMath::RoundToInt64(Products[I].BasePrice * B.PriceIndex * (1.0 - Cut) / 5.0) * 5);
+            Item->IdleDays = Take == 0 && Item->Units > 0 ? Item->IdleDays + 1 : 0;
             Revenue += Price * Take;
             Cogs += Products[I].Cost * Take;
             // G-086b: waste follows the manager's style (a generous one keeps more on hand and throws more away).
@@ -715,12 +720,60 @@ void MarketBranches::CloseDay(FMarketState& State, const TArray<FMarketProduct>&
 
         if (Closed % 7 == 0)
         {
-            News.Add(FString::Printf(TEXT("%s haftas\u0131: net %s, karne %s, d\u00fcn %d m\u00fc\u015fteri, raf dolulu\u011fu %%%.0f.%s%s"), *B.Name, *BranchTl(B.WeekProfit), *Grade(State, Index), Shoppers, DayAvailability * 100.f,
-                Skim > 0 && MarketStaff::HasAccountant(State) && !Rule.bSkimHidden ? TEXT(" Necati Bey: \"\u015eubenin kasas\u0131 sat\u0131\u015flarla tutmuyor.\"") : TEXT(""),
-                *MarketStoreViews::WeeklyHint(B, Arrived))); // G-088 C: tills or cold room too small
+            const FString Cleared = Clearance(State, Index, Products); // M33: the store manager's own clearance
+            News.Add(FString::Printf(TEXT("%s haftas\u0131: net %s, karne %s, d\u00fcn %d m\u00fc\u015fteri, raf dolulu\u011fu %%%.0f.%s%s%s"), *B.Name, *BranchTl(B.WeekProfit), *Grade(State, Index), Shoppers, DayAvailability * 100.f,
+                Skim > 0 && MarketStaff::HasAccountant(State) && !Rule.bSkimHidden ? TEXT(" Mali m\u00fc\u015favir: \"\u015eubenin kasas\u0131 sat\u0131\u015flarla tutmuyor.\"") : TEXT(""),
+                *MarketStoreViews::WeeklyHint(B, Arrived), *Cleared)); // G-088 C: tills or cold room too small
             B.WeekProfit = 0;
         }
     }
+}
+
+FString MarketBranches::Clearance(FMarketState& State, int32 BranchIndex, const TArray<FMarketProduct>& Products)
+{
+    // M33 (Mustafa 01.10.2026: "stok azaltmak i\u00e7in kampanya yaps\u0131nlar; kritik \u015feylerde bir \u00fcst\u00fcnde kim varsa ona sorsunlar").
+    // Up to three slow items a week (ten idle days, at least half a shelf) get a week's markdown: 15 % for a careful
+    // manager, 30 % for a price-minded one, 20 % otherwise. More than 20 % needs the province manager; without one the
+    // store manager stays at 20 %. A weak store manager now and then marks down a selling item by mistake; a capable
+    // province manager (skill 50+) takes it back. Nothing of this comes to the player: it shows in the weekly line.
+    if (!State.Branches.IsValidIndex(BranchIndex)) return FString();
+    FMarketBranch& B = State.Branches[BranchIndex];
+    if (B.ManagerName.IsEmpty()) return FString();
+    const int32 Day = State.Day - 1;
+    const MarketManagers::FBranchRule Rule = MarketManagers::RuleFor(State, BranchIndex);
+    const int32 Boss = MarketManagers::FindManager(State, MarketManagers::ELevel::Province, CountryOf(State, B), B.Province);
+    const int32 BossSkill = Boss == INDEX_NONE ? 0 : MarketManagers::EffectiveManagerSkill(State, Boss);
+    const int32 Wanted = B.ManagerStyle == static_cast<uint8>(MarketManagers::EStyle::PriceMinded) ? 30 : B.ManagerStyle == static_cast<uint8>(MarketManagers::EStyle::Careful) ? 15 : 20;
+    int32 Marked = 0, Approved = 0, TakenBack = 0;
+    for (int32 I = 0; I < B.Items.Num() && Marked < 3; ++I)
+    {
+        FMarketBranchItem& Item = B.Items[I];
+        if (Item.MarkdownUntil >= Day || Item.IdleDays < 10 || Item.Units < FMath::Max(3, Item.Capacity / 2)) continue;
+        int32 Cut = Wanted;
+        if (Cut > 20) { if (Boss != INDEX_NONE) ++Approved; else Cut = 20; }
+        Item.Markdown = static_cast<uint8>(Cut);
+        Item.MarkdownUntil = Day + 7;
+        Item.IdleDays = 0;
+        ++Marked;
+    }
+    // A mistake: a weak manager marks down an item that sells.
+    if (Rule.Skill < 45 && (BranchMix(State.RivalSeed, Day, 0xC1EAu + BranchIndex * 131u) % 100u) < static_cast<uint32>((45 - Rule.Skill) * 2))
+    {
+        int32 Best = INDEX_NONE;
+        for (int32 I = 0; I < B.Items.Num(); ++I)
+            if (B.Items[I].MarkdownUntil < Day && (Best == INDEX_NONE || B.Items[I].LastSold > B.Items[Best].LastSold)) Best = I;
+        if (Best != INDEX_NONE && B.Items[Best].LastSold > 0)
+        {
+            if (Boss != INDEX_NONE && BossSkill >= 50) ++TakenBack;
+            else { B.Items[Best].Markdown = 20; B.Items[Best].MarkdownUntil = Day + 7; ++Marked; }
+        }
+    }
+    (void)Products;
+    if (Marked == 0 && TakenBack == 0) return FString();
+    FString Line = FString::Printf(TEXT(" Stok eritme: %d \u00fcr\u00fcnde bir haftal\u0131k indirim"), Marked);
+    if (Approved > 0) Line += FString::Printf(TEXT(" (%%%d'luk indirimi il m\u00fcd\u00fcr\u00fc %s onaylad\u0131)"), Wanted, *State.Management.Managers[Boss].Name);
+    if (TakenBack > 0) Line += FString::Printf(TEXT("; il m\u00fcd\u00fcr\u00fc %s iyi satan bir \u00fcr\u00fcndeki yanl\u0131\u015f indirimi geri ald\u0131"), *State.Management.Managers[Boss].Name);
+    return Line + TEXT(".");
 }
 
 bool MarketBranches::RecentlyVisited(const FMarketState& State, int32 BranchIndex)

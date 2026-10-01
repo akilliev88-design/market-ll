@@ -63,3 +63,8 @@ FString MarketCast::Platform()
     const FString& Name = MarketCountry::Active().PlatformName;
     return Name.IsEmpty() ? FString(TEXT("H\u0131zl\u0131Sepet")) : Name;
 }
+
+FString MarketCast::Accountant()
+{
+    return Person(ERole::Accountant);
+}
