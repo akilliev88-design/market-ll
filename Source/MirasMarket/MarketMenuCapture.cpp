@@ -27,7 +27,7 @@
 #include "UnrealClient.h"
 namespace MarketMenuCapture
 {
-    struct FTarget { int32 Page; const TCHAR* Id; const TCHAR* Tab; bool bBottom=false; };
+    struct FTarget { int32 Page; const TCHAR* Id; const TCHAR* Tab; bool bBottom=false; const TCHAR* Anchor=TEXT(""); };
     const TArray<FTarget>& Targets()
     {
         static const TArray<FTarget> List = {
@@ -35,6 +35,7 @@ namespace MarketMenuCapture
             {1,TEXT("orders"),TEXT("")}, {2,TEXT("products"),TEXT("")}, {3,TEXT("promotions"),TEXT("")},
             {4,TEXT("rivals_local"),TEXT("")}, {4,TEXT("rivals_national"),TEXT("Ulusal")}, {4,TEXT("rivals_world"),TEXT("Uluslararas\u0131")},
             {5,TEXT("staff"),TEXT("")}, {6,TEXT("finance"),TEXT("")},
+            {6,TEXT("finance_banking"),TEXT(""),false,TEXT("\u015e\u0130RKET F\u0130NANSI")},
             {6,TEXT("finance_day"),TEXT("D\u00fcn"),true}, {6,TEXT("finance_week"),TEXT("Bu hafta"),true},
             {6,TEXT("finance_month"),TEXT("Bu ay"),true}, {6,TEXT("finance_year"),TEXT("Bu y\u0131l"),true}, {7,TEXT("channels"),TEXT("")},
             {8,TEXT("shops"),TEXT("")}, {8,TEXT("management"),TEXT("Y\u00f6netim")}, {8,TEXT("company"),TEXT("\u015eirket")},
@@ -63,6 +64,24 @@ namespace MarketMenuCapture
         if(Widget->GetType()==TEXT("SScrollBox"))StaticCastSharedRef<SScrollBox>(Widget)->ScrollToEnd();
         FChildren* Children=Widget->GetChildren();
         for(int32 Index=0;Index<Children->Num();++Index)ScrollBottom(Children->GetChildAt(Index));
+    }
+    TSharedPtr<SWidget> FindHeading(const TSharedRef<SWidget>& Widget,const FString& Heading)
+    {
+        if(!Widget->GetVisibility().IsVisible())return nullptr;
+        if(Widget->GetType()==TEXT("STextBlock") && TextOf(Widget)==Heading)return Widget;
+        FChildren* Children=Widget->GetChildren();
+        for(int32 Index=0;Index<Children->Num();++Index)
+            if(auto Found=FindHeading(Children->GetChildAt(Index),Heading))return Found;
+        return nullptr;
+    }
+    void ScrollHeading(const TSharedRef<SWidget>& Widget,const FString& Heading)
+    {
+        if(!Widget->GetVisibility().IsVisible())return;
+        if(Widget->GetType()==TEXT("SScrollBox"))
+            if(auto Found=FindHeading(Widget,Heading))
+                StaticCastSharedRef<SScrollBox>(Widget)->ScrollDescendantIntoView(Found,false,EDescendantScrollDestination::TopOrLeft);
+        FChildren* Children=Widget->GetChildren();
+        for(int32 Index=0;Index<Children->Num();++Index)ScrollHeading(Children->GetChildAt(Index),Heading);
     }
     struct FCapture
     {
@@ -175,6 +194,7 @@ bool AMarketGameMode::TickMenuCapture()
         if(Target.Tab[0] && !MarketMenuCapture::Click(R.Widget.ToSharedRef(),Target.Tab))return Fail(TEXT("tab button not found"));
         if(MenuPage!=Target.Page)return Fail(TEXT("tab changed wrong page"));
         if(Target.bBottom)MarketMenuCapture::ScrollBottom(R.Widget.ToSharedRef());
+        if(Target.Anchor[0])MarketMenuCapture::ScrollHeading(R.Widget.ToSharedRef(),Target.Anchor);
         R.Step=3; R.At=Now; return false;
     }
     if(R.Step==3)
