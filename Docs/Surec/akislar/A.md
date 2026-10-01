@@ -232,3 +232,8 @@ Bunlar **kontrollü olarak denenecek ilk adaylar**, doğrulanmış denge ayarı 
 - Son DERLE + TEST 138/138 (tamamı temiz) + Smoke PASSED. 30 yıllık yeniden koşuda gunluk.csv, sube180.csv, banka.csv, c4.csv ve c3.csv önceki sürümle bayt bayt aynı. Süre 159,2 → 54,7 sn (ilk koşu diğer süreçlerle eşzamanlıydı; saf hız kıyası değildir).
 - Genel rapor artık birleşmiş defter denetimini anlatır; son açık mağaza sayısını tüm koşunun büyümesi gibi sunmaz. Finansmanlı alımların C sayacı gerçek OurBuys üzerinden okunur.
 
+
+### C4 yedek hesabının son düzeltmesi
+- MarketAutoPlayFinance.cpp:17: aile personelinin SGK'sı, atanmış yöneticilerin ücreti/SGK'sı, depo kirası, kamyon ve karanlık mağaza sabit gideri de aylık yedeğe katıldı. Şube çalışan/müdür maliyeti MonthlyFixedCost içinde olduğundan ayrıca tekrar sayılmadı. C'nin oyun hesabı değişmedi.
+- NetworkReserve testine aile SGK ve boşta kamyon gideri kontrolü eklendi. DERLE + TEST 138/138 + Smoke PASSED. Önceki 153450/153911 koşuları bu son yedek kuralını içermez; teslim raporları son reserve koşularından üretilecek.
+

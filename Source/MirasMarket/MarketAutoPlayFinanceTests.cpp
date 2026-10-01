@@ -1,6 +1,8 @@
 #include "MarketAutoPlayFinance.h"
 #include "MarketBranches.h"
 #include "MarketLedger.h"
+#include "MarketStaff.h"
+#include "MarketPrices.h"
 #include "Misc/AutomationTest.h"
 #if WITH_DEV_AUTOMATION_TESTS
 IMPLEMENT_SIMPLE_AUTOMATION_TEST(FMarketBotNetworkReserve,"MirasMarket.AutoPlay.NetworkReserve",EAutomationTestFlags::EditorContext|EAutomationTestFlags::EngineFilter)
@@ -16,6 +18,10 @@ bool FMarketBotNetworkReserve::RunTest(const FString& Parameters)
     TestFalse(TEXT("One cent below new network reserve cannot expand"),MarketAutoPlayFinance::CanExpand(State,100000,Monthly,1));
     ++State.Cash;
     TestTrue(TEXT("Exact post-opening network reserve can expand"),MarketAutoPlayFinance::CanExpand(State,100000,Monthly,1));
+    FMarketEmployee Employee; Employee.DailyWage=10000; State.Staff.Add(Employee);
+    TestEqual(TEXT("Family payroll reserves employer insurance too"),MarketAutoPlayFinance::NetworkReserve(State),Family+Monthly+30*(int64(10000)+MarketStaff::EmployerShare(10000)));
+    const int64 BeforeTruck=MarketAutoPlayFinance::NetworkReserve(State); State.Company.Trucks=1;
+    TestEqual(TEXT("Reserve also pays idle fleet overhead"),MarketAutoPlayFinance::NetworkReserve(State),BeforeTruck+30*MarketPrices::Scaled(6000,State.Day));
     return true;
 }
 IMPLEMENT_SIMPLE_AUTOMATION_TEST(FMarketBotCloseLoss,"MirasMarket.AutoPlay.TwoLosingMonths",EAutomationTestFlags::EditorContext|EAutomationTestFlags::EngineFilter)
