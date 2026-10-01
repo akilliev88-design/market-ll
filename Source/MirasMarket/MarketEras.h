@@ -73,6 +73,42 @@ namespace MarketEras
     // One sentence for the menu ("Ekonomi: y\u00fcksek enflasyon d\u00f6nemi; fiyatlar her ay art\u0131yor.") or "" when calm.
     FString Summary(const FMarketState& State);
 
+    // ----- B7: era factors for C's systems (departments, purchase prices, rival chains). Every factor is exactly 1
+    // when no era runs. Country "" = the campaign's country; another country follows its own economy character
+    // (ulkeler.json) on the campaign's timing. Seeded through the plan, no randomness of their own.
+    enum class EGoods : uint8 { Grocery = 0, Fresh, Electronics, Clothing, Toys, Home, Count };
+    // A department's goods from its id or name ("elektronik", "giyim", "oyuncak", "z\u00fcccaciye", "manav", "kasap"...;
+    // English ids too). Anything else is Grocery.
+    EGoods GoodsOf(const FString& DepartmentIdOrName);
+    FString GoodsName(EGoods Goods);
+
+    // x the shoppers of a kind of goods (C: MarketDepartments::Day, each department's demand). Recession: electronics
+    // -25 %, clothing and toys -20 %; recovery: +10..15 %; the epidemic: clothing -30 %, electronics and fresh up.
+    // Grocery is 1: the family shop's groups already get the eras' MarketEvents modifiers.
+    float DemandFactor(const FMarketState& State, EGoods Goods, int32 Day, const FString& Country = FString());
+    // The average of electronics, clothing, toys and home goods; and fresh goods (greengrocer, butcher, bakery).
+    float NonFoodDemand(const FMarketState& State, int32 Day, const FString& Country = FString());
+    float FreshDemand(const FMarketState& State, int32 Day, const FString& Country = FString());
+
+    // The part of a cost that follows the currency: electronics 1, toys 0.7, home goods 0.5, clothing 0.4, branded
+    // tea / coffee / oil 0.35, care and cleaning 0.3, sweets 0.2, snacks 0.15, drinks 0.1, fresh and dairy 0.
+    float ImportShare(EGoods Goods);
+    float GroupImportShare(uint8 Group);   // MarketGoods::EGroup as uint8
+    // x the purchase cost of goods with that import share. A currency shock lifts it over two weeks (peak: share x
+    // 25 % x the era's strength), it holds while the shock lasts and comes down slowly over 300 days after it.
+    // C: MarketDirector::ApplyPrices (department goods) with ImportShare(GoodsOf(department)). The family shop's
+    // groups follow it already (MarketEvents::Factor, CostFactor).
+    float ImportCostFactor(const FMarketState& State, float Share, int32 Day, const FString& Country = FString());
+    float ImportCostFactor(const FMarketState& State, EGoods Goods, int32 Day, const FString& Country = FString());
+
+    // Rival chains (C: MarketChains' monthly turn). x a chain store's month revenue: hard times cut everyone and
+    // the dear ones most (shoppers trade down: PriceIndex 0.9 loses little, 1.15 a lot); recovery lifts them.
+    float ChainRevenueFactor(const FMarketState& State, const FString& Country, float PriceIndex, int32 Day);
+    // x how many stores a chain wants to open this month (recession 0.4, recovery 1.5).
+    float ChainOpeningFactor(const FMarketState& State, const FString& Country, int32 Day);
+    // Monthly turns deep in the red before a chain is put up for sale (3; 2 in a strong recession or shock).
+    int32 ChainRedTurnsToSell(const FMarketState& State, const FString& Country, int32 Day);
+
     // Day close (MarketDirector, Ak\u0131\u015f B block): activates the plan, starts and ends eras (effects, one news line).
     void CloseDay(FMarketState& State);
 }

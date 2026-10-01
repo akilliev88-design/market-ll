@@ -9,6 +9,12 @@
 
 namespace MarketEras
 {
+    // B7: era factors (below).
+    constexpr int32 RampInDays = 14;       // demand and costs move over two weeks
+    constexpr int32 DemandFadeDays = 30;   // shoppers come back over a month
+    constexpr int32 CostFadeDays = 300;    // purchase prices come down slowly
+    constexpr float ShockPeak = 0.25f;     // the currency's jump at full strength, passed on by the import share
+
     uint32 EraMix(int32 Seed, uint32 Salt)
     {
         uint32 Hash = 2166136261u;
@@ -91,8 +97,7 @@ namespace MarketEras
         switch (E.Kind)
         {
         case EKind::CurrencyShock:
-            for (EGroup G : { EGroup::TeaCoffee, EGroup::OilSauce, EGroup::Household, EGroup::PersonalCare, EGroup::Sweets })
-                Add(EModifier::CostFactor, static_cast<uint8>(G), 1.f + 0.08f * S);
+            // Purchase costs follow ImportCostFactor (MarketEvents::Factor asks it): up over two weeks, slowly down.
             Add(EModifier::PriceTolerance, MarketEvents::AllGroups, -0.03f * S);
             Add(EModifier::Traffic, MarketEvents::AllGroups, 1.f - 0.03f * S);
             break;
@@ -123,8 +128,8 @@ namespace MarketEras
         switch (E.Kind)
         {
         case EKind::CurrencyShock:
-            return FString::Printf(TEXT("Kur \u015foku: d\u00f6viz birka\u00e7 g\u00fcnde f\u0131rlad\u0131; kahve, ya\u011f ve temizlik \u00fcr\u00fcnlerinin al\u0131\u015f fiyat\u0131 %%%d artt\u0131. Raf fiyatlar\u0131n\u0131 g\u00f6zden ge\u00e7ir."),
-                FMath::RoundToInt32(8.f * S));
+            return FString::Printf(TEXT("Kur \u015foku: d\u00f6viz birka\u00e7 g\u00fcnde f\u0131rlad\u0131; kahve, ya\u011f ve temizlik \u00fcr\u00fcnlerinin al\u0131\u015f fiyat\u0131 iki hafta i\u00e7inde %%%d kadar artacak. Raf fiyatlar\u0131n\u0131 g\u00f6zden ge\u00e7ir."),
+                FMath::RoundToInt32(ShockPeak * 0.35f * S * 100.f));
         case EKind::Recession:
             return FString::Printf(TEXT("Durgunluk ba\u015flad\u0131: insanlar harcamay\u0131 k\u0131s\u0131yor, sepetler %%%d k\u00fc\u00e7\u00fcl\u00fcyor; ucuz temel \u00fcr\u00fcnler \u00f6ne \u00e7\u0131kar."), FMath::RoundToInt32(10.f * S));
         case EKind::HighInflation:
@@ -140,7 +145,7 @@ namespace MarketEras
     {
         switch (E.Kind)
         {
-        case EKind::CurrencyShock: return TEXT("Kur \u015foku yat\u0131\u015ft\u0131: ithal \u00fcr\u00fcnlerin maliyeti dengelendi.");
+        case EKind::CurrencyShock: return TEXT("Kur \u015foku yat\u0131\u015ft\u0131: ithal \u00fcr\u00fcnlerin al\u0131\u015f fiyat\u0131 bundan sonra yava\u015f yava\u015f inecek.");
         case EKind::Recession: return TEXT("Durgunluk geride kald\u0131: m\u00fc\u015fteriler sepetlerini yeniden dolduruyor.");
         case EKind::HighInflation: return TEXT("Y\u00fcksek enflasyon d\u00f6nemi sona erdi: fiyatlar daha yava\u015f art\u0131yor.");
         case EKind::Recovery: return FString();
@@ -260,7 +265,8 @@ FString MarketEras::Summary(const FMarketState& State)
     if (!Current(State, State.Day, E)) return FString();
     switch (E.Kind)
     {
-    case EKind::CurrencyShock: return FString::Printf(TEXT("Ekonomi: kur \u015foku; ithal \u00fcr\u00fcnler %%%d pahal\u0131."), FMath::RoundToInt32(8.f * E.Strength));
+    case EKind::CurrencyShock: return FString::Printf(TEXT("Ekonomi: kur \u015foku; kahve ve ya\u011f gibi ithal \u00fcr\u00fcnler %%%d pahal\u0131."),
+        FMath::RoundToInt32((ImportCostFactor(State, GroupImportShare(static_cast<uint8>(MarketGoods::EGroup::TeaCoffee)), State.Day) - 1.f) * 100.f));
     case EKind::Recession: return FString::Printf(TEXT("Ekonomi: durgunluk; sepetler %%%d k\u00fc\u00e7\u00fck."), FMath::RoundToInt32(10.f * E.Strength));
     case EKind::Pandemic: return TEXT("Ekonomi: b\u00fcy\u00fck salg\u0131n; insanlar evde, sipari\u015fler art\u0131yor.");
     case EKind::HighInflation: return FString::Printf(TEXT("Ekonomi: y\u00fcksek enflasyon; y\u0131ll\u0131k %%%.0f."), MarketPrices::YearlyInflation(MarketCalendar::DateOf(State.Day).Year) * 100.0);
@@ -305,4 +311,208 @@ void MarketEras::CloseDay(FMarketState& State)
             if (!Line.IsEmpty()) State.DayNews.Add(Line);
         }
     }
+}
+
+// ---------------------------------------------------------------------------------------------------------------
+// B7: era factors for departments, purchase prices and rival chains
+
+namespace MarketEras
+{
+
+    constexpr int32 GoodsCount = static_cast<int32>(EGoods::Count);
+    // Demand change at full strength by era (rows: EKind) and goods (columns: EGoods).
+    const float DemandTable[static_cast<int32>(EKind::Count)][GoodsCount] =
+    {
+        //  Grocery  Fresh   Electr. Cloth.  Toys    Home
+        {   0.f,     0.f,    -0.15f, -0.05f, -0.05f, -0.05f },  // currency shock
+        {   0.f,    -0.03f,  -0.25f, -0.20f, -0.20f, -0.15f },  // recession
+        {   0.f,     0.10f,   0.15f, -0.30f,  0.05f,  0.10f },  // epidemic
+        {   0.f,    -0.03f,  -0.05f, -0.10f, -0.10f, -0.05f },  // high inflation
+        {   0.f,     0.02f,   0.15f,  0.12f,  0.10f,  0.08f },  // recovery
+    };
+    // Rival chains by era: revenue change, its tilt per 0.1 of price index below the list, openings x.
+    struct FChainRow { float Revenue; float TradeDown; float Openings; };
+    const FChainRow ChainTable[static_cast<int32>(EKind::Count)] =
+    {
+        { -0.03f,  0.02f, 0.6f },   // currency shock
+        { -0.08f,  0.06f, 0.4f },   // recession
+        { -0.03f,  0.00f, 0.6f },   // epidemic
+        { -0.03f,  0.04f, 0.8f },   // high inflation
+        {  0.05f, -0.02f, 1.5f },   // recovery
+    };
+
+    uint32 CountryHash(const FString& Country)
+    {
+        uint32 Hash = 2166136261u;
+        for (const TCHAR Char : Country) { Hash ^= static_cast<uint32>(Char) & 0xFFFFu; Hash *= 16777619u; }
+        return Hash;
+    }
+
+    bool IsHome(const FMarketState& State, const FString& Country)
+    {
+        return Country.IsEmpty() || Country == State.CountryId || (State.CountryId.IsEmpty() && Country == TEXT("tr"));
+    }
+
+    // The plan of a country on the campaign's timing.
+    TArray<FEra> PlanFor(const FMarketState& State, const FString& Country)
+    {
+        if (IsHome(State, Country)) return PlanOf(State);
+        const MarketCountry::FProfile* Pack = MarketCountry::Find(Country);
+        const ECharacter Character = static_cast<ECharacter>(Pack ? static_cast<uint8>(Pack->Character) : static_cast<uint8>(ECharacter::Stable));
+        const FMarketEras& E = State.Eras;
+        return Plan(Character, State.RivalSeed ^ static_cast<int32>(CountryHash(Country)), E.bPlanned ? E.ShiftYears : 0, E.bPlanned ? E.ShiftDays : 0);
+    }
+
+    // 0..1: how much of an era is felt on a day (in over RampInDays, out over FadeDays after its end).
+    float EraWeight(const FMarketState& State, const FEra& E, int32 Day, int32 FadeDays, bool bHome)
+    {
+        int32 Start = E.StartDay, End = E.EndDay;
+        if (E.Kind == EKind::Pandemic && bHome)
+        {
+            // The epidemic is MarketOnline's profile: switched off, it never comes.
+            if (!State.Online.bPandemic) return 0.f;
+            Start = MarketOnline::PandemicStart(State);
+            End = MarketOnline::PandemicEnd(State) - 1;
+        }
+        if (Day < Start) return 0.f;
+        if (Day <= End) return FMath::Min(1.f, static_cast<float>(Day - Start + 1) / RampInDays);
+        const float Peak = FMath::Min(1.f, static_cast<float>(End - Start + 1) / RampInDays);
+        const float Left = 1.f - static_cast<float>(Day - End) / FadeDays;
+        return Left > 0.f ? Peak * Left : 0.f;
+    }
+
+    bool Contains(const FString& Text, const TCHAR* Word) { return Text.Contains(Word, ESearchCase::IgnoreCase); }
+}
+
+MarketEras::EGoods MarketEras::GoodsOf(const FString& Id)
+{
+    for (const TCHAR* W : { TEXT("elektron"), TEXT("electron"), TEXT("telefon"), TEXT("phone"), TEXT("beyaz e"), TEXT("bilgisayar"), TEXT("computer"), TEXT("tv") })
+        if (Contains(Id, W)) return EGoods::Electronics;
+    for (const TCHAR* W : { TEXT("giyim"), TEXT("tekstil"), TEXT("ayakkab"), TEXT("cloth"), TEXT("textile"), TEXT("apparel"), TEXT("shoe") })
+        if (Contains(Id, W)) return EGoods::Clothing;
+    for (const TCHAR* W : { TEXT("oyuncak"), TEXT("toy") })
+        if (Contains(Id, W)) return EGoods::Toys;
+    for (const TCHAR* W : { TEXT("manav"), TEXT("kasap"), TEXT("f\u0131r\u0131n"), TEXT("firin"), TEXT("\u015fark\u00fcteri"), TEXT("sarkuteri"), TEXT("bal\u0131k"), TEXT("balik"),
+                            TEXT("meyve"), TEXT("sebze"), TEXT("taze"), TEXT("fresh"), TEXT("produce"), TEXT("butcher"), TEXT("bakery"), TEXT("deli"), TEXT("fish") })
+        if (Contains(Id, W)) return EGoods::Fresh;
+    for (const TCHAR* W : { TEXT("z\u00fccaciye"), TEXT("zuccaciye"), TEXT("mutfak"), TEXT("h\u0131rdavat"), TEXT("hirdavat"), TEXT("bah\u00e7e"), TEXT("bahce"), TEXT("ev "),
+                            TEXT("ev-"), TEXT("ev_"), TEXT("ev."), TEXT("home"), TEXT("kitchen"), TEXT("garden"), TEXT("hardware") })
+        if (Contains(Id, W)) return EGoods::Home;
+    if (Id.Equals(TEXT("ev"), ESearchCase::IgnoreCase)) return EGoods::Home;
+    return EGoods::Grocery;
+}
+
+FString MarketEras::GoodsName(EGoods Goods)
+{
+    switch (Goods)
+    {
+    case EGoods::Fresh: return TEXT("taze \u00fcr\u00fcn");
+    case EGoods::Electronics: return TEXT("elektronik");
+    case EGoods::Clothing: return TEXT("giyim");
+    case EGoods::Toys: return TEXT("oyuncak");
+    case EGoods::Home: return TEXT("ev e\u015fyas\u0131");
+    default: return TEXT("g\u0131da");
+    }
+}
+
+float MarketEras::DemandFactor(const FMarketState& State, EGoods Goods, int32 Day, const FString& Country)
+{
+    const int32 G = static_cast<int32>(Goods);
+    if (G < 0 || G >= GoodsCount) return 1.f;
+    const bool bHome = IsHome(State, Country);
+    float Result = 1.f;
+    for (const FEra& E : PlanFor(State, Country))
+    {
+        const float W = EraWeight(State, E, Day, DemandFadeDays, bHome);
+        if (W > 0.f) Result *= 1.f + DemandTable[static_cast<int32>(E.Kind)][G] * E.Strength * W;
+    }
+    return FMath::Clamp(Result, 0.4f, 1.6f);
+}
+
+float MarketEras::NonFoodDemand(const FMarketState& State, int32 Day, const FString& Country)
+{
+    float Sum = 0.f;
+    for (EGoods G : { EGoods::Electronics, EGoods::Clothing, EGoods::Toys, EGoods::Home }) Sum += DemandFactor(State, G, Day, Country);
+    return Sum / 4.f;
+}
+
+float MarketEras::FreshDemand(const FMarketState& State, int32 Day, const FString& Country)
+{
+    return DemandFactor(State, EGoods::Fresh, Day, Country);
+}
+
+float MarketEras::ImportShare(EGoods Goods)
+{
+    switch (Goods)
+    {
+    case EGoods::Electronics: return 1.f;
+    case EGoods::Toys: return 0.7f;
+    case EGoods::Home: return 0.5f;
+    case EGoods::Clothing: return 0.4f;
+    case EGoods::Grocery: return 0.15f;
+    default: return 0.f;
+    }
+}
+
+float MarketEras::GroupImportShare(uint8 Group)
+{
+    using MarketGoods::EGroup;
+    switch (static_cast<EGroup>(Group))
+    {
+    case EGroup::TeaCoffee: case EGroup::OilSauce: return 0.35f;
+    case EGroup::PersonalCare: case EGroup::Household: return 0.3f;
+    case EGroup::Sweets: return 0.2f;
+    case EGroup::Snacks: return 0.15f;
+    case EGroup::Drinks: return 0.1f;
+    default: return 0.f;
+    }
+}
+
+float MarketEras::ImportCostFactor(const FMarketState& State, float Share, int32 Day, const FString& Country)
+{
+    if (Share <= 0.f) return 1.f;
+    const bool bHome = IsHome(State, Country);
+    float Jump = 0.f;
+    for (const FEra& E : PlanFor(State, Country))
+        if (E.Kind == EKind::CurrencyShock) Jump += ShockPeak * E.Strength * EraWeight(State, E, Day, CostFadeDays, bHome);
+    return 1.f + FMath::Clamp(Share, 0.f, 1.f) * Jump;
+}
+
+float MarketEras::ImportCostFactor(const FMarketState& State, EGoods Goods, int32 Day, const FString& Country)
+{
+    return ImportCostFactor(State, ImportShare(Goods), Day, Country);
+}
+
+float MarketEras::ChainRevenueFactor(const FMarketState& State, const FString& Country, float PriceIndex, int32 Day)
+{
+    const bool bHome = IsHome(State, Country);
+    const float Cheapness = FMath::Clamp((1.f - PriceIndex) / 0.1f, -2.f, 2.f);
+    float Result = 1.f;
+    for (const FEra& E : PlanFor(State, Country))
+    {
+        const float W = EraWeight(State, E, Day, DemandFadeDays, bHome);
+        const FChainRow& Row = ChainTable[static_cast<int32>(E.Kind)];
+        if (W > 0.f) Result *= 1.f + (Row.Revenue + Row.TradeDown * Cheapness) * E.Strength * W;
+    }
+    return FMath::Clamp(Result, 0.6f, 1.4f);
+}
+
+float MarketEras::ChainOpeningFactor(const FMarketState& State, const FString& Country, int32 Day)
+{
+    const bool bHome = IsHome(State, Country);
+    float Result = 1.f;
+    for (const FEra& E : PlanFor(State, Country))
+    {
+        const float W = EraWeight(State, E, Day, DemandFadeDays, bHome);
+        if (W > 0.f) Result *= 1.f + (ChainTable[static_cast<int32>(E.Kind)].Openings - 1.f) * E.Strength * W;
+    }
+    return FMath::Clamp(Result, 0.2f, 2.f);
+}
+
+int32 MarketEras::ChainRedTurnsToSell(const FMarketState& State, const FString& Country, int32 Day)
+{
+    const bool bHome = IsHome(State, Country);
+    for (const FEra& E : PlanFor(State, Country))
+        if ((E.Kind == EKind::Recession || E.Kind == EKind::CurrencyShock) && E.Strength * EraWeight(State, E, Day, DemandFadeDays, bHome) >= 0.5f) return 2;
+    return 3;
 }

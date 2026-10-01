@@ -121,7 +121,7 @@ bool FMarketErasEffectsTest::RunTest(const FString& Parameters)
     TestTrue(TEXT("Calm before"), S.DayNews.Num() == 0 && Summary(S).IsEmpty());
     Close(Shock.StartDay);
     TestTrue(TEXT("The shock is news, no year in it"), MarketErasTest::HasNews(S, TEXT("Kur \u015foku:")) && !S.DayNews[0].Contains(TEXT("20")));
-    TestTrue(TEXT("Imported goods cost more"), MarketEvents::Factor(S, EModifier::CostFactor, EGroup::TeaCoffee) > 1.05f);
+    TestTrue(TEXT("Imported goods start to cost more"), MarketEvents::Factor(S, EModifier::CostFactor, EGroup::TeaCoffee) > 1.f);
     TestTrue(TEXT("Milk does not"), FMath::IsNearlyEqual(MarketEvents::Factor(S, EModifier::CostFactor, EGroup::Dairy), 1.f));
     TestTrue(TEXT("Shoppers compare more"), MarketEvents::Tolerance(S, EGroup::Staples) < 0.0);
     TestFalse(TEXT("Menu line"), Summary(S).IsEmpty());
@@ -153,6 +153,95 @@ bool FMarketErasEffectsTest::RunTest(const FString& Parameters)
     TestEqual(TEXT("No news"), Old.DayNews.Num(), 0);
     TestEqual(TEXT("No effects replayed"), Old.Modifiers.Num(), 0);
     TestTrue(TEXT("Marked"), Old.Eras.bChecked && (Old.Eras.Started & (1 << 3)) != 0);
+    MarketErasTest::Restore();
+    return true;
+}
+
+IMPLEMENT_SIMPLE_AUTOMATION_TEST(FMarketErasFactorsTest, "MirasMarket.Eras.FactorsForDepartmentsAndChains", EAutomationTestFlags::EditorContext | EAutomationTestFlags::EngineFilter)
+bool FMarketErasFactorsTest::RunTest(const FString& Parameters)
+{
+    using namespace MarketEras;
+    using MarketEvents::EModifier;
+    using MarketGoods::EGroup;
+    FMarketState S; S.CountryId = TEXT("tr"); S.RivalSeed = 7;
+    S.Eras.bPlanned = true; S.Eras.ShiftYears = 0; S.Eras.ShiftDays = 0;
+    const TArray<FEra> Timeline = PlanOf(S);
+    FEra Shock, Recession, Recovery;
+    for (const FEra& E : Timeline)
+    {
+        if (E.Wave != 1) continue;
+        if (E.Kind == EKind::CurrencyShock) Shock = E;
+        if (E.Kind == EKind::Recession) Recession = E;
+        if (E.Kind == EKind::Recovery) Recovery = E;
+    }
+    auto AllOne = [&S](int32 Day)
+    {
+        for (int32 G = 0; G < static_cast<int32>(EGoods::Count); ++G)
+            if (DemandFactor(S, static_cast<EGoods>(G), Day) != 1.f || ImportCostFactor(S, static_cast<EGoods>(G), Day) != 1.f) return false;
+        return ChainRevenueFactor(S, TEXT("tr"), 0.9f, Day) == 1.f && ChainRevenueFactor(S, TEXT("tr"), 1.15f, Day) == 1.f
+            && ChainOpeningFactor(S, TEXT("tr"), Day) == 1.f && ChainRedTurnsToSell(S, TEXT("tr"), Day) == 3 && NonFoodDemand(S, Day) == 1.f;
+    };
+
+    // No era: every factor is exactly 1.
+    bool bCalm = true;
+    for (int32 Day = 1; Day < Shock.StartDay; Day += 5) bCalm &= AllOne(Day);
+    TestTrue(TEXT("Calm years: all 1"), bCalm);
+    S.Day = 400;
+    S.Modifiers.Reset();
+    TestTrue(TEXT("Calm: grocery purchase prices untouched"), MarketEvents::Factor(S, EModifier::CostFactor, EGroup::TeaCoffee) == 1.f);
+
+    // Currency shock: imported costs rise over two weeks, hold, then come down slowly.
+    const float Day0 = ImportCostFactor(S, EGoods::Electronics, Shock.StartDay);
+    const float Peak = ImportCostFactor(S, EGoods::Electronics, Shock.StartDay + 20);
+    const float Hold = ImportCostFactor(S, EGoods::Electronics, Shock.EndDay);
+    const float After100 = ImportCostFactor(S, EGoods::Electronics, Shock.EndDay + 100);
+    const float After200 = ImportCostFactor(S, EGoods::Electronics, Shock.EndDay + 200);
+    TestTrue(TEXT("First day: a little"), Day0 > 1.f && Day0 < 1.03f);
+    TestTrue(TEXT("Electronics +25 % at the peak"), FMath::IsNearlyEqual(Peak, 1.25f, 0.001f));
+    TestTrue(TEXT("Holds while the shock lasts"), FMath::IsNearlyEqual(Hold, Peak, 0.001f));
+    TestTrue(TEXT("Comes down slowly"), Hold > After100 && After100 > After200 && After200 > 1.f);
+    TestTrue(TEXT("Back to 1 in the end"), ImportCostFactor(S, EGoods::Electronics, Shock.EndDay + 301) == 1.f);
+    TestTrue(TEXT("Clothing less than electronics"), ImportCostFactor(S, EGoods::Clothing, Shock.StartDay + 20) < Peak);
+    TestTrue(TEXT("Fresh goods untouched"), ImportCostFactor(S, EGoods::Fresh, Shock.StartDay + 20) == 1.f);
+    S.Day = Shock.StartDay + 20;
+    TestTrue(TEXT("The shop's coffee follows (+8.75 %)"), FMath::IsNearlyEqual(MarketEvents::Factor(S, EModifier::CostFactor, EGroup::TeaCoffee), 1.0875f, 0.001f));
+    TestTrue(TEXT("The shop's milk does not"), MarketEvents::Factor(S, EModifier::CostFactor, EGroup::Dairy) == 1.f);
+    S.Day = Shock.EndDay + 100;
+    TestTrue(TEXT("Coffee still a bit dear after the shock"), MarketEvents::Factor(S, EModifier::CostFactor, EGroup::TeaCoffee) > 1.f);
+    TestTrue(TEXT("A stable country feels less"), ImportCostFactor(S, EGoods::Electronics, Shock.StartDay + 20, TEXT("de")) < Peak);
+
+    // Recession: non-food falls, fresh hardly; dear chains lose most, fewer openings, sold sooner.
+    const int32 Mid = Recession.StartDay + 60;
+    const float NonFood = NonFoodDemand(S, Mid);
+    const float Fresh = FreshDemand(S, Mid);
+    TestTrue(TEXT("Recession: non-food down"), NonFood < 0.85f);
+    TestTrue(TEXT("Recession: electronics -25 %"), FMath::IsNearlyEqual(DemandFactor(S, EGoods::Electronics, Mid), 0.75f, 0.001f));
+    TestTrue(TEXT("Recession: fresh barely moves"), Fresh > 0.95f && Fresh - NonFood > 0.1f);
+    TestTrue(TEXT("Recession: grocery 1 (the shop's modifiers do it)"), DemandFactor(S, EGoods::Grocery, Mid) == 1.f);
+    const float Cheap = ChainRevenueFactor(S, TEXT("tr"), 0.9f, Mid);
+    const float Dear = ChainRevenueFactor(S, TEXT("tr"), 1.15f, Mid);
+    TestTrue(TEXT("Recession: everyone sells less, the dear most"), Dear < Cheap && Cheap < 1.f && Dear < 0.85f);
+    TestTrue(TEXT("Recession: fewer openings"), ChainOpeningFactor(S, TEXT("tr"), Mid) < 0.5f);
+    TestEqual(TEXT("Recession: two red months put a chain up for sale"), ChainRedTurnsToSell(S, TEXT("tr"), Mid), 2);
+    TestTrue(TEXT("Recession fades over a month"), NonFoodDemand(S, Recession.EndDay + 15) > NonFood && NonFoodDemand(S, Recession.EndDay + 31) >= NonFood);
+
+    // Recovery: more of everything.
+    const int32 Up = Recovery.StartDay + 60;
+    TestTrue(TEXT("Recovery: non-food up"), NonFoodDemand(S, Up) > 1.05f);
+    TestTrue(TEXT("Recovery: more openings"), ChainOpeningFactor(S, TEXT("tr"), Up) > 1.3f);
+    TestTrue(TEXT("Recovery: chains sell more"), ChainRevenueFactor(S, TEXT("tr"), 1.f, Up) > 1.f);
+
+    // The epidemic: clothing down, electronics and fresh up; switched off, nothing.
+    const int32 Sick = MarketOnline::PandemicStart(S) + 60;
+    TestTrue(TEXT("Epidemic: clothing down, fresh up"), DemandFactor(S, EGoods::Clothing, Sick) < 0.8f && FreshDemand(S, Sick) > 1.05f);
+    S.Online.bPandemic = false;
+    TestTrue(TEXT("Epidemic switched off"), DemandFactor(S, EGoods::Clothing, Sick) == 1.f);
+
+    // Department names.
+    TestTrue(TEXT("Goods of departments"), GoodsOf(TEXT("elektronik")) == EGoods::Electronics && GoodsOf(TEXT("Giyim")) == EGoods::Clothing
+        && GoodsOf(TEXT("oyuncak")) == EGoods::Toys && GoodsOf(TEXT("manav")) == EGoods::Fresh && GoodsOf(TEXT("kasap")) == EGoods::Fresh
+        && GoodsOf(TEXT("z\u00fccaciye")) == EGoods::Home && GoodsOf(TEXT("ev")) == EGoods::Home && GoodsOf(TEXT("bakliyat")) == EGoods::Grocery
+        && GoodsOf(TEXT("dept.electronics")) == EGoods::Electronics);
     MarketErasTest::Restore();
     return true;
 }

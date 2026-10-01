@@ -1,5 +1,6 @@
 #include "MarketEvents.h"
 #include "MarketGoals.h"
+#include "MarketEras.h"
 #include "MarketCountry.h"
 #include "MarketCalendar.h"
 #include "MarketPrices.h"
@@ -175,6 +176,8 @@ float MarketEvents::Factor(const FMarketState& State, EModifier Kind, MarketGood
         if (Kind != EModifier::Traffic && M.Group != AllGroups && M.Group != static_cast<uint8>(Group)) continue;
         Result *= M.Value;
     }
+    // B7: a currency shock's purchase prices (up over two weeks, slowly down after it; MarketEras).
+    if (Kind == EModifier::CostFactor) Result *= MarketEras::ImportCostFactor(State, MarketEras::GroupImportShare(static_cast<uint8>(Group)), State.Day);
     return FMath::Clamp(Result, 0.1f, 5.f);
 }
 
