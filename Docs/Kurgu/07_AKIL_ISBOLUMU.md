@@ -43,9 +43,9 @@ Bir dosyayı yalnız sahibi değiştirir. Başka akışın dosyasında değişik
 ## 3. Ortak kalite kuralları (hepsi zorunlu)
 
 - `AGENTS.md` §5 kod kuralları: para `int64` kuruş; C++ kaynakları ASCII, Türkçe metin `\uXXXX` (`python Tools/escape_unicode.py`); `products.json` şeması geriye uyumlu.
-- **Dünyadan bağımsız ve test edilir mantık:** yeni sistem kendi `namespace`'inde, `FMarketState` üzerinde çalışır, `UWorld`'e ihtiyaç duymaz. Her yeni kural = yeni otomasyon testi (`MirasMarket.<Modül>.<Konu>`). Para ve stok korunumu, iki kez uygulama ve eski kayıt uyumluluğu testleri öncelikli.
+- **Dünyadan bağımsız ve test edilir mantık:** yeni sistem kendi `namespace`'inde, `FMarketState` üzerinde çalışır, `UWorld`'e ihtiyaç duymaz. Her yeni kural = yeni otomasyon testi (`MirasMarket.<Modül>.<Konu>`). Para ve stok korunumu ve iki kez uygulama testleri öncelikli.
 - **Belirlenimci:** rastgelelik yalnız kampanya tohumu + gün + sabit tuzla (`FRandomStream` ya da mevcut `Roll` yardımcıları). `FMath::Rand` ve saat kullanılmaz; aynı tohum aynı sonucu verir.
-- **Eski kayıtlar:** yeni alanlar varsayılanla açılır; gerekiyorsa `Migrate` (tek sefer, iki kez uygulanınca değişmez).
+- **Eski kayıtlar (karar M27, Mustafa 01.10.2026):** oyun yayımlanana kadar eski kayıt uyumu **yok**. Yeni kodda `Migrate`, "older save" dalı ve eski kayıt testi yazılmaz; yeni alanlar varsayılanla açılır, o kadar. Kayıt biçimi değişince kayıt sürümü artar ve eski kayıt yüklenmez (A6). Mevcut çevirme kodu B7 ve C3'te silinir.
 - **Derleme tuzakları:** yerel ad gölgelemesi (C4456–C4459) derlemeyi kırar; unity build yüzünden anonim namespace yerine adlı namespace; başlıkta gereksiz include yok.
 - **M24:** oyuncuya takvim yılı ve gerçek dünya tarihi gösterilmez ("N. yıl"). Koddaki `Kurus2011`, `StartYear` iç çapadır, adları değişmez.
 - **Zevk ve akış** (`06_GIDIS_YOLU.md` §2b, Mustafa): her sistem oyuncuya bir sonraki dakikayı oynatacak bir şey vermeli: yakında bitecek hedef, görünür sonuç, kutlama, anlamlı takas, isimli rakip/karakter, ritim. Sistemin ürettiği hedef, haber ve kutlama cümlelerini işlev olarak sun (C menüye ve "Şimdi ne yapmalı"ya bağlar).
@@ -129,6 +129,24 @@ Kurallar aynı (§2–§3). İlk işler (A0–A3, B1–B5) bitip akış notu yaz
 - **Kilometre taşları ve rekorlar:** ilkler (ilk şube, 10. mağaza, ilk il birinciliği…), rekorlar (en iyi gün/hafta/ay, en çok mağaza). Her biri bir **kutlama** kaydı üretir (başlık, bir cümle, önem); menü bunları kısa kutlama kartı olarak gösterecek (C bağlar). Küçük ve anlamlı ödüller: hatıra (`MarketStory::AddMemory`), ekibe moral, toptancı güveni; para ödülü yok ya da çok küçük.
 - **Ritim koruyucusu:** 20 günden uzun süre ne olay ne karar ne kilometre taşı varsa `MarketEvents`'e olumlu ya da ilginç bir olay önerir; 7 günde 3'ten çok kötü olay yığılırsa yeni kötü olayı erteler. Ölçütler sabit değil, zorluğa bağlı.
 - Metinler sade Türkçe, yılsız (M24). C'ye istekler: hedef şeridi (üst haplar), kutlama kartı, Raporlar'da rekorlar sekmesi, "Şimdi ne yapmalı"ya hedef satırı.
+
+### Üçüncü tur (birleştirmeden önceki son iş; A4–A5 ve B6 bitince)
+
+C'nin kendi işleri bitti ama **hiçbiri derlenmedi** (C1 mağaza görünümü, C2b rakip zincirleri ve dünya ligi, C2c tedarik ağı, M25 markalar, M26 reyonlar, #19, #41; hepsi `main`'de). Üçüncü turun amacı birleştirmeyi (C3) kolaylaştırmak: C'nin kodu derlensin ve botla ölçülsün, B'nin sistemleri C'nin yeni sistemlerine bağlanmaya hazır olsun, eski kayıt yükü kalksın.
+
+**A6 · C'nin işini derle, bota öğret, dengeyi ölç (Codex).**
+- `main`'deki commit edilmemiş C işini commit + push, `akis-a`'ya birleştir, derle + test. C dosyalarındaki derleme/test hatalarında en küçük düzeltme (A0 izni gibi), mantık değişmez; düzeltmeler `main`'e de ayrı commit.
+- Bot C'nin komutlarını tarz tablosuyla kullanır: `SetDepartment` / `SetDeptStance` / `ReplaceMasters` (reyonlar), `SetSourcing` (tedarik kademesi), `AcceptBrandOffer` / `RejectBrandOffer` (markalar), `BuyChain` (satılık zincir). Temkinli az ve geç, atak çok ve erken; dengeli arada.
+- Uzun koşu: 30 yıl × 3 tarz × 1 tohum ve 10 yıl × 3 tarz × 3 tohum. Rapora C bölümü: ulusal sıra ve dünya ligi sırasının yıllara göre seyri (hedef: dengeli bot ulusal ilk 3'e 10–15. yıl, dünya ilk 10'a 20–25. yıl, birinciliğe 30. yıla yakın; temkinli birinci olamaz), reyonların tür ve mağaza türüne göre 30 günlük kârı (zarar edenler), tedarik kademesine çıkış günleri ve düşüşler, marka gelirleri ve küsen markalar, rakip zincir sayısı, iflaslar, satın almalar, savaşlar, ezeli rakip.
+- `A.md`'ye **"C'ye ayar önerileri"**: sayıyla (ör. `MarketChains::LeagueCompression` 0,04 → ?, kasap `Ratio`, tedarik asgari alımları). C dosyasındaki sabitleri A değiştirmez, C uygular.
+- **Kayıt sürümü (M27):** `MarketEconomy.cpp`'deki `CurrentVersion` birleştirmede bir kez artacak ve eski sürüm yüklenmeyecek; A6 bunu `MarketEconomy.cpp` (bu tur için A'ya verildi) ve `MarketGame` yükleme yolunda hazırlar: eski sürüm kayıt reddedilir, oyuncuya "Bu kayıt eski bir sürümden; yeni oyun başlat" (menü metni C'ye istek). Test: eski sürüm reddedilir, güncel sürüm yüklenir.
+
+**B7 · Dönemler ve defter C'nin sistemlerine; eski kayıt temizliği (Claude Code).**
+- **Dönem çarpanları:** `MarketEras` C'nin sistemlerinin okuyacağı işlevleri sunar (dünyadan bağımsız, testli): gıda dışı talep (durgunlukta elektronik/giyim/oyuncak düşer, toparlanmada artar), taze talep, ithal mal maliyeti (kur şokunda markalı ve elektronik maliyeti artar), rakip zincirlerin zorlanması (durgunlukta zayıf zincir daha kolay satılığa çıkar). İmzalar ve C'nin hangi satıra bağlayacağı `B.md`'ye.
+- **Defter hesapları:** `MarketLedger`'a C'nin yeni sistemlerinin hesapları eklenir (reyon satışı, reyon malı, reyon firesi ve tadilatı, marka ödemeleri, zincir satın alma, tedarik); C3'teki bağlama tek satırlık `Post` çağrıları olsun diye her hareket için hazır çağrı listesi `B.md`'ye.
+- **M27 temizliği B'nin dosyalarında:** `MarketStaff::Migrate` ve B dosyalarındaki diğer eski kayıt dalları ile testleri silinir. `FMarketState`'teki ölü alanlar (ör. `bCashier`, `Stockers`) silinmez, liste "C'ye istek" olarak yazılır (ortak dosya, C3'te silinir).
+
+**C3 · Bağlama (Cowork),** üç akış bitince: yukarıdaki §4 C3'e ek olarak A6 ayar önerileri, B7 dönem çarpanları ve defter çağrıları, M27 temizliği (C dosyalarındaki `Migrate`'ler, ölü alanlar, `kucuk` gibi adlar).
 
 ## 5. Akış notu biçimi (`Docs/Surec/akislar/A.md`, `B.md`)
 

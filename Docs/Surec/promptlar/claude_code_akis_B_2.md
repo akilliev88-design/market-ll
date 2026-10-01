@@ -8,7 +8,7 @@ Yeni `MarketGoals.*` (`namespace MarketGoals`, dünyadan bağımsız, tohumlu, t
 2. **Kilometre taşları ve rekorlar:** ilkler ve rekorlar kayda yazılır; her biri bir **kutlama** kaydı üretir (başlık, bir cümle, önem 0–2). Ödüller küçük ve anlamlı: hatıra (`MarketStory::AddMemory`), ekibe moral, toptancı güveni; büyük para ödülü yok.
 3. **Ritim koruyucusu:** 20 günden uzun süre ne olay ne karar ne kilometre taşı varsa `MarketEvents`'e olumlu ya da ilginç bir olay önerir; 7 günde 3'ten çok kötü olay yığılırsa yeni kötü olayı erteler. Eşikler zorluğa bağlı.
 4. Günlük kapanış `MarketDirector.cpp`'deki kendi bloğuna (`// ===== Akış B =====`), durum `FMarketState` sonundaki kendi bloğuna (tek alan, kendi `USTRUCT`'ın).
-5. Testler: hedef hep var ve ulaşılabilir; aynı gün iki kez kapanışta çift kutlama yok; eski kayıtta rekorlar sessizce başlar (geçmiş için kutlama yağmuru olmaz); ritim koruyucusu sıkıcı dönemde olay önerir, felaket yığılmasında erteler.
+5. Testler: hedef hep var ve ulaşılabilir; aynı gün iki kez kapanışta çift kutlama yok; sistem oyunun ortasında devreye girse bile geçmiş için kutlama yağmuru olmaz (eski kayıt uyumu gerekmez: karar M27); ritim koruyucusu sıkıcı dönemde olay önerir, felaket yığılmasında erteler.
 6. B.md'ye "C'ye istekler": üst şeritte hedef şeridi, kısa kutlama kartı, Raporlar'da rekorlar sekmesi, "Şimdi ne yapmalı"ya hedef satırı — hangi işlev, hangi metin.
 
 ## Kurallar

@@ -22,6 +22,7 @@
 #include "MarketChains.h"
 #include "MarketBrands.h"
 #include "MarketSourcing.h"
+#include "MarketDepartments.h"
 
 float MarketDirector::TrafficFactor(const FMarketState& State, const TArray<FString>& Aisles)
 {
@@ -241,6 +242,18 @@ bool MarketDirector::Command(FMarketState& State, const TArray<FMarketProduct>& 
         if (!MarketSourcing::Decode(Arg, Line, Tier)) { OutMessage = TEXT("B\u00f6yle bir se\u00e7enek yok."); return false; }
         return MarketSourcing::Set(State, Line, Tier, OutMessage);
     }
+    if (Action == TEXT("SetDepartment")) // M26: Arg = department x 100 + store type x 10 + on
+    {
+        MarketDepartments::EDept Dept = MarketDepartments::EDept::Produce;
+        int32 Format = 0;
+        bool bOn = false;
+        if (!MarketDepartments::DecodeSet(Arg, Dept, Format, bOn)) { OutMessage = TEXT("B\u00f6yle bir se\u00e7enek yok."); return false; }
+        return MarketDepartments::Set(State, Dept, Format, bOn, OutMessage);
+    }
+    if (Action == TEXT("SetDeptStance")) // M26: Arg = department x 10 + stance (0 cheap, 1 normal, 2 dear)
+        return MarketDepartments::SetStance(State, static_cast<MarketDepartments::EDept>(FMath::Clamp(Arg / 10, 0, MarketDepartments::DeptCount)), Arg % 10, OutMessage);
+    if (Action == TEXT("ReplaceMasters")) // M26: Arg = department
+        return MarketDepartments::ReplaceWeakMasters(State, static_cast<MarketDepartments::EDept>(FMath::Clamp(Arg, 0, MarketDepartments::DeptCount)), OutMessage);
     if (Action == TEXT("BuyChain")) return MarketChains::Buy(State, Products, Arg, OutMessage); // Arg = State.Rivals.Chains index (Akis C2b)
     if (Action == TEXT("VisitBranch")) // Codex A4 calls it when a branch visit starts (what a visit reveals: later, C)
     {
