@@ -11,19 +11,22 @@ namespace MarketDepartmentsLocal
     using MarketDepartments::EDept;
     using MarketDepartments::FInfo;
 
+    // C7 (Codex C5: hyper fish / home / stationery / baby lost money in every mature sample): fish 0.34 -> 0.36
+    // margin and 0.10 -> 0.08 waste, home 0.33 -> 0.36, stationery 0.30 -> 0.33, baby 0.04 -> 0.05 of the sales and
+    // 0.20 -> 0.25 margin. To be checked again with the bot's department rows.
     //                 id            name                   fresh  master fmt space ratio  margin waste  shrink  pull   fit   stock inc   season (Jan..Dec)                                                     clearance
     const FInfo Table[MarketDepartments::DeptCount] = {
         { TEXT("manav"),      TEXT("Manav"),                 true,  false, 1, 8,  0.16f, 0.30f, 0.09f, 0.005f, 0.06f, 0.04f, 2,  0.3f, { 0.9f, 0.9f, 0.95f, 1.f, 1.05f, 1.15f, 1.2f, 1.2f, 1.1f, 1.f, 0.95f, 0.9f }, false },
         { TEXT("kasap"),      TEXT("Kasap"),                 true,  true,  2, 6,  0.20f, 0.26f, 0.03f, 0.005f, 0.07f, 0.10f, 3,  0.6f, { 1.05f, 1.f, 1.f, 1.f, 1.f, 0.95f, 0.95f, 1.f, 1.f, 1.f, 1.05f, 1.1f }, false },
         { TEXT("sarkuteri"),  TEXT("\u015eark\u00fcteri"),   true,  false, 2, 5,  0.12f, 0.28f, 0.04f, 0.01f,  0.03f, 0.06f, 5,  0.6f, { 1.f, 1.f, 1.f, 1.f, 1.f, 1.f, 1.f, 1.f, 1.f, 1.f, 1.05f, 1.15f }, false },
         { TEXT("firin"),      TEXT("F\u0131r\u0131n ve pastane"), true, true, 2, 5, 0.08f, 0.50f, 0.12f, 0.f, 0.07f, 0.12f, 1, 0.1f, { 1.f, 1.f, 1.f, 1.f, 1.f, 1.f, 1.f, 1.f, 1.f, 1.f, 1.f, 1.05f }, false },
-        { TEXT("balik"),      TEXT("Bal\u0131k"),            true,  true,  2, 3,  0.08f, 0.34f, 0.10f, 0.f,    0.02f, 0.08f, 1,  0.8f, { 1.3f, 1.3f, 1.1f, 0.9f, 0.8f, 0.6f, 0.6f, 0.7f, 0.9f, 1.2f, 1.4f, 1.4f }, false },
+        { TEXT("balik"),      TEXT("Bal\u0131k"),            true,  true,  2, 3,  0.08f, 0.36f, 0.08f, 0.f,    0.02f, 0.08f, 1,  0.8f, { 1.3f, 1.3f, 1.1f, 0.9f, 0.8f, 0.6f, 0.6f, 0.7f, 0.9f, 1.2f, 1.4f, 1.4f }, false },
         { TEXT("elektronik"), TEXT("Elektronik ve beyaz e\u015fya"), false, false, 3, 10, 0.24f, 0.20f, 0.f, 0.015f, 0.04f, 0.05f, 60, 1.5f, { 0.9f, 0.8f, 0.9f, 0.9f, 1.f, 1.f, 0.9f, 0.9f, 0.9f, 1.f, 1.8f, 1.4f }, false },
         { TEXT("giyim"),      TEXT("Giyim ve ev tekstili"),  false, false, 3, 10, 0.11f, 0.45f, 0.f,   0.02f,  0.02f, 0.05f, 90, 1.2f, { 0.9f, 0.7f, 1.1f, 1.2f, 1.1f, 0.9f, 0.9f, 0.8f, 1.3f, 1.3f, 1.1f, 1.1f }, true },
-        { TEXT("ev"),         TEXT("Ev ve mutfak"),          false, false, 3, 8,  0.07f, 0.33f, 0.f,   0.01f,  0.01f, 0.03f, 75, 1.0f, { 0.9f, 0.9f, 1.f, 1.f, 1.1f, 1.1f, 1.f, 1.f, 1.1f, 1.f, 1.f, 1.2f }, false },
+        { TEXT("ev"),         TEXT("Ev ve mutfak"),          false, false, 3, 8,  0.07f, 0.36f, 0.f,   0.01f,  0.01f, 0.03f, 75, 1.0f, { 0.9f, 0.9f, 1.f, 1.f, 1.1f, 1.1f, 1.f, 1.f, 1.1f, 1.f, 1.f, 1.2f }, false },
         { TEXT("oyuncak"),    TEXT("Oyuncak"),               false, false, 3, 5,  0.035f, 0.36f, 0.f,  0.015f, 0.01f, 0.03f, 90, 1.0f, { 0.6f, 0.6f, 0.7f, 0.8f, 0.9f, 0.9f, 0.9f, 0.9f, 0.9f, 1.f, 1.3f, 2.6f }, false },
-        { TEXT("kirtasiye"),  TEXT("K\u0131rtasiye ve kitap"), false, false, 3, 4, 0.03f, 0.30f, 0.f,  0.01f,  0.01f, 0.02f, 60, 0.6f, { 0.8f, 0.7f, 0.6f, 0.6f, 0.5f, 0.5f, 0.6f, 2.2f, 2.8f, 0.9f, 0.7f, 0.7f }, false },
-        { TEXT("bebek"),      TEXT("Bebek"),                 false, false, 2, 4,  0.04f, 0.20f, 0.f,   0.005f, 0.02f, 0.02f, 30, 0.5f, { 1.f, 1.f, 1.f, 1.f, 1.f, 1.f, 1.f, 1.f, 1.f, 1.f, 1.f, 1.f }, false },
+        { TEXT("kirtasiye"),  TEXT("K\u0131rtasiye ve kitap"), false, false, 3, 4, 0.03f, 0.33f, 0.f,  0.01f,  0.01f, 0.02f, 60, 0.6f, { 0.8f, 0.7f, 0.6f, 0.6f, 0.5f, 0.5f, 0.6f, 2.2f, 2.8f, 0.9f, 0.7f, 0.7f }, false },
+        { TEXT("bebek"),      TEXT("Bebek"),                 false, false, 2, 4,  0.05f, 0.25f, 0.f,   0.005f, 0.02f, 0.02f, 30, 0.5f, { 1.f, 1.f, 1.f, 1.f, 1.f, 1.f, 1.f, 1.f, 1.f, 1.f, 1.f, 1.f }, false },
         { TEXT("evcil"),      TEXT("Evcil hayvan"),          false, false, 2, 3,  0.02f, 0.28f, 0.f,   0.005f, 0.01f, 0.02f, 45, 1.0f, { 1.f, 1.f, 1.f, 1.f, 1.f, 1.f, 1.f, 1.f, 1.f, 1.f, 1.f, 1.f }, false },
         { TEXT("bahce"),      TEXT("Bah\u00e7e ve oto"),     false, false, 3, 6,  0.035f, 0.30f, 0.f,  0.01f,  0.01f, 0.03f, 90, 1.1f, { 0.6f, 0.6f, 1.f, 1.5f, 1.7f, 1.5f, 1.2f, 1.f, 0.9f, 0.8f, 0.8f, 0.8f }, false },
         { TEXT("mevsimlik"),  TEXT("Mevsimlik"),             false, false, 3, 5,  0.035f, 0.35f, 0.f,  0.01f,  0.02f, 0.03f, 45, 0.8f, { 0.8f, 0.6f, 0.8f, 1.f, 1.2f, 1.5f, 1.5f, 1.2f, 0.9f, 0.8f, 1.f, 1.6f }, true },

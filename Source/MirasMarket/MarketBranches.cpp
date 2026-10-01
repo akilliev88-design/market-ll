@@ -294,6 +294,7 @@ bool MarketBranches::CanOpen(const FMarketState& State, const TArray<FMarketProd
     const FSite Site = SiteOf(State, Country, Province);
     const FFormat& Kind = FormatInfo(Format);
     if (!Site.bValid) { OutReason = TEXT("Bu il bilinmiyor."); return false; }
+    if (State.Day < State.RescueUntil) { OutReason = FString::Printf(TEXT("Kurtarma plan\u0131 s\u00fcr\u00fcyor: %d g\u00fcn daha yeni \u015fube yok."), State.RescueUntil - State.Day); return false; } // C7
     if (ShopsIn(State, Site.Country, Site.Province) >= Room(Site)) { OutReason = FString::Printf(TEXT("%s'de yeni ma\u011faza i\u00e7in yer kalmad\u0131 (en \u00e7ok %d)."), *Site.Name, Room(Site)); return false; }
     if (OpenCount(State) == 0)
     {

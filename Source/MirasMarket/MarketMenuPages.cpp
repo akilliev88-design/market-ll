@@ -566,6 +566,69 @@ namespace MarketMenuPagesUi
     }
 }
 
+// Named namespace (unity build): C5 menu simplification helpers (A's list, Docs/Surec/akislar/A.md).
+namespace MarketMenuSimplifyUi
+{
+    // Our row of a national / world table has a revenue (on day one we are listed with nothing).
+    bool C5UsRanked(const TArray<MarketChains::FStanding>& Table)
+    {
+        for (const MarketChains::FStanding& Row : Table) if (Row.bUs) return Row.Revenue > 0.0;
+        return false;
+    }
+
+    // What we could put on the table for a chain: the till and the most one bank lends for its takeover.
+    int64 C5BidReach(const FMarketState& State, int32 ChainIndex)
+    {
+        const int64 TargetEbitda = MarketChains::YearProfit(State, ChainIndex);
+        int64 Room = 0;
+        for (int32 BankIndex = 0; BankIndex < MarketBanking::BankCount; ++BankIndex)
+            Room = FMath::Max(Room, MarketBanking::AcquisitionRoom(State, BankIndex, TargetEbitda));
+        return FMath::Max<int64>(0, State.Cash) + Room;
+    }
+
+    // A bid is worth showing once the reach is at least a third of the price.
+    bool C5BidPlausible(const FMarketState& State, int32 ChainIndex)
+    {
+        return C5BidReach(State, ChainIndex) * 3 >= MarketChains::BidPrice(State, ChainIndex);
+    }
+
+    // The family shop's loans: the nearest MaxRows installments and one total line (the rest in the tooltip).
+    FString C5FamilyLoans(const FMarketState& State, int32 MaxRows)
+    {
+        const TArray<FMarketLoan>& All = State.Loans;
+        if (All.Num() == 0) return FString();
+        TArray<int32> Order;
+        int64 Left = 0, Monthly = 0;
+        for (int32 I = 0; I < All.Num(); ++I) { Order.Add(I); Left += All[I].Remaining; Monthly += All[I].Installment; }
+        Order.Sort([&All](int32 A, int32 B) { return All[A].NextDueDay < All[B].NextDueDay; });
+        FString Text;
+        const int32 Rows = MaxRows > 0 ? FMath::Min(MaxRows, Order.Num()) : Order.Num();
+        for (int32 I = 0; I < Rows; ++I)
+        {
+            const FMarketLoan& Item = All[Order[I]];
+            Text += FString::Printf(TEXT("\n\u2022 %d. g\u00fcn taksit %s \u00b7 kalan %s%s"), Item.NextDueDay, *MarketMenuUi::Tl(Item.Installment), *MarketMenuUi::Tl(Item.Remaining),
+                Item.bMortgage ? TEXT(" \u00b7 tapu ipotekli") : TEXT(""));
+        }
+        if (Order.Num() > Rows) Text += FString::Printf(TEXT("\n\u2022 %d kredi daha (ayr\u0131nt\u0131 \u00fczerinde)"), Order.Num() - Rows);
+        Text += FString::Printf(TEXT("\nToplam %d kredi \u00b7 kalan %s \u00b7 taksitler %s"), All.Num(), *MarketMenuUi::Tl(Left), *MarketMenuUi::Tl(Monthly));
+        return Text;
+    }
+
+    // One reason when no company bank lends and they all give the same one (empty otherwise).
+    FString C5CommonBankLock(const FMarketState& State)
+    {
+        FString Common;
+        for (int32 BankIndex = 0; BankIndex <= MarketBanking::BondBank; ++BankIndex)
+        {
+            FString Why;
+            if (MarketBanking::CanBorrow(State, BankIndex, Why)) return FString();
+            if (BankIndex == 0) Common = Why;
+            else if (Why != Common) return FString();
+        }
+        return Common.IsEmpty() ? FString(TEXT("\u015eirket kredisi \u015fimdilik kapal\u0131.")) : Common;
+    }
+}
+
 // ---------------------------------------------------------------------------------------------------------------
 // 3 Urunler ve fiyat
 
@@ -1205,7 +1268,9 @@ TSharedRef<SWidget> SMarketMenu::RivalsPage()
                             {
                                 const MarketChains::FStanding* R = Row();
                                 FString Why;
-                                return R && G() && !R->bUs && R->Chain != INDEX_NONE && !ForSale() && MarketChains::CanBid(G()->State, R->Chain, Why, false) ? EVisibility::Visible : EVisibility::Collapsed;
+                                // C5 (A menu list): only a bid we could plausibly fund (till + a bank's takeover loan >= a third of the price).
+                                return R && G() && !R->bUs && R->Chain != INDEX_NONE && !ForSale() && MarketChains::CanBid(G()->State, R->Chain, Why, false)
+                                    && MarketMenuSimplifyUi::C5BidPlausible(G()->State, R->Chain) ? EVisibility::Visible : EVisibility::Collapsed;
                             })
                             [ Button([] { return FString(TEXT("Teklif ver")); }, [this, G, Row]
                             {
@@ -1230,6 +1295,9 @@ TSharedRef<SWidget> SMarketMenu::RivalsPage()
         if (!G()) return FString();
         Fill();
         const int32 Rank = MarketChains::OurRank(bWorld ? Tables->World : Tables->National);
+        // C5 (A menu list): with no revenue yet a rank means nothing ("1. s\u0131radas\u0131n" on day one).
+        if (!MarketMenuSimplifyUi::C5UsRanked(bWorld ? Tables->World : Tables->National))
+            return FString(TEXT("Hen\u00fcz s\u0131ralamaya girmedin: ciro olu\u015ftuk\u00e7a listede yerini al\u0131rs\u0131n."));
         const FMarketChainsState& R = G()->State.Rivals;
         const int32 Best = bWorld ? R.BestLeagueRank : R.BestNationalRank;
         return Rank > 0 ? FString::Printf(TEXT("%d. s\u0131radas\u0131n%s"), Rank, Best > 0 && Best < Rank ? *FString::Printf(TEXT(" \u00b7 en iyi %d."), Best) : TEXT("")) : FString(TEXT("Hen\u00fcz s\u0131ralamada de\u011filsin."));
@@ -1399,7 +1467,10 @@ TSharedRef<SWidget> SMarketMenu::StaffPage()
                     {
                         if (!G()) return FString();
                         if (MarketStaff::HasHr(G()->State)) return FString(TEXT("\u0130K m\u00fcd\u00fcr\u00fc \u00e7al\u0131\u015f\u0131yor"));
-                        return MarketStaff::HrUnlocked(G()->State) ? FString(TEXT("Aday listesinde \u0130K m\u00fcd\u00fcr\u00fc var")) : FString::Printf(TEXT("%d \u00e7al\u0131\u015fandan sonra"), MarketStaff::HrUnlockStaff);
+                        if (!MarketStaff::HrUnlocked(G()->State)) return FString::Printf(TEXT("%d \u00e7al\u0131\u015fandan sonra"), MarketStaff::HrUnlockStaff);
+                        // C5 (A menu list): say it only when the list really has one.
+                        const bool bHrInPool = G()->State.Candidates.ContainsByPredicate([](const FMarketEmployee& C) { return MarketStaff::RoleOf(C) == MarketStaff::ERole::HrManager; });
+                        return bHrInPool ? FString(TEXT("Aday listesinde \u0130K m\u00fcd\u00fcr\u00fc var")) : FString(TEXT("Yeni aday listesini bekle"));
                     }, 18, ERole::Text, true) ]
                     + SVerticalBox::Slot().AutoHeight()
                     [ More([] { return FString(TEXT("Her g\u00fcn en mutsuz ki\u015fiyle konu\u015fur, yorgunlara izin ayarlar, ayr\u0131lan\u0131n yerine aday bulur, \u00fccret pazarl\u0131\u011f\u0131 yapar ve adaylar\u0131n ger\u00e7ek de\u011ferlerini g\u00f6sterir.")); }) ]
@@ -1439,6 +1510,11 @@ TSharedRef<SWidget> SMarketMenu::StaffPage()
                 [ Label([G] { return G() ? FString::Printf(TEXT("\u0130\u015fe alma %s (\u0130K m\u00fcd\u00fcr\u00fc %s). Liste %s yenilenir; son yenileme %d. g\u00fcn."),
                     *MarketMenuUi::Tl(MarketStaff::HireCostOn(MarketStaff::ERole::Cashier, G()->State.Day)), *MarketMenuUi::Tl(MarketStaff::HireCostOn(MarketStaff::ERole::HrManager, G()->State.Day)),
                     MarketStaff::HasHr(G()->State) ? TEXT("3 g\u00fcnde bir") : TEXT("haftada bir"), G()->State.CandidatesDay) : FString(); }, 10, ERole::Muted, false, true) ]
+                + SVerticalBox::Slot().AutoHeight().Padding(0.f, 6.f, 0.f, 0.f)
+                [
+                    SNew(SBox).Visibility_Lambda([G] { return G() && G()->State.Candidates.Num() == 0 ? EVisibility::Visible : EVisibility::Collapsed; })
+                    [ Fixed(TEXT("\u015eu an ba\u015fvuru yok; yeni liste gelince burada g\u00f6r\u00fcn\u00fcr."), 11, ERole::Muted) ]
+                ]
                 + SVerticalBox::Slot().AutoHeight().Padding(0.f, 6.f, 0.f, 0.f)[ Pool ])
         ]
         + SVerticalBox::Slot().AutoHeight().Padding(4.f, 14.f, 0.f, 0.f)
@@ -1494,17 +1570,19 @@ TSharedRef<SWidget> SMarketMenu::FinancePage()
                [G] { return G() ? FString::Printf(TEXT("bu gece \u00b7 bu ay %s"), *MarketMenuUi::Tl(G()->State.MonthHousehold)) : FString(); }) ];
 
     TSharedRef<SWidget> Bank = Card(SNew(SVerticalBox)
-        + SVerticalBox::Slot().AutoHeight()[ Section(TEXT("BANKA KRED\u0130S\u0130")) ]
+        + SVerticalBox::Slot().AutoHeight()[ Section(TEXT("BANKA KRED\u0130S\u0130 \u00b7 A\u0130LE D\u00dcKK\u00c2NI")) ]
         + SVerticalBox::Slot().AutoHeight().Padding(0.f, 6.f, 0.f, 8.f)[ Label([G] { return G() ? MarketFinance::Summary(G()->State) : FString(); }, 11, ERole::Text, false, true) ]
         + SVerticalBox::Slot().AutoHeight().Padding(0.f, 0.f, 0.f, 8.f)
-        [ Label([G]
-        {
-            if (!G()) return FString();
-            FString Text = FString::Printf(TEXT("Bankan\u0131n verebilece\u011fi: %s."), *MarketMenuUi::Tl(FMath::Max<int64>(0, MarketFinance::LoanLimit(G()->State))));
-            for (const FMarketLoan& Loan : G()->State.Loans)
-                Text += FString::Printf(TEXT("\n\u2022 %s kalan \u00b7 taksit %s \u00b7 sonraki %d. g\u00fcn%s"), *MarketMenuUi::Tl(Loan.Remaining), *MarketMenuUi::Tl(Loan.Installment), Loan.NextDueDay, Loan.bMortgage ? TEXT(" \u00b7 tapu ipotekli") : TEXT(""));
-            return Text;
-        }, 10, ERole::Muted, false, true) ]
+        [
+            // C5 (A istek 3): the nearest three installments and a total; every loan in the tooltip.
+            SNew(SBox).ToolTip(Tip([G] { return G() && G()->State.Loans.Num() > 0 ? FString(TEXT("Aile d\u00fckk\u00e2n\u0131n\u0131n b\u00fct\u00fcn kredileri:")) + MarketMenuSimplifyUi::C5FamilyLoans(G()->State, 0) : FString(TEXT("Aile d\u00fckk\u00e2n\u0131n\u0131n kredisi yok.")); }))
+            [ Label([G]
+            {
+                if (!G()) return FString();
+                return FString::Printf(TEXT("Bankan\u0131n verebilece\u011fi: %s."), *MarketMenuUi::Tl(FMath::Max<int64>(0, MarketFinance::LoanLimit(G()->State))))
+                    + MarketMenuSimplifyUi::C5FamilyLoans(G()->State, 3);
+            }, 10, ERole::Muted, false, true) ]
+        ]
         + SVerticalBox::Slot().AutoHeight()
         [
             SNew(SWrapBox).UseAllottedSize(true).InnerSlotPadding(FVector2D(6.f, 6.f))
@@ -1588,6 +1666,8 @@ TSharedRef<SWidget> SMarketMenu::FinancePage()
     [
         SNew(SVerticalBox)
         + SVerticalBox::Slot().AutoHeight()[ Top ]
+        // C5 (A istek 3): the company's rating, banks and limit first; the family shop's loan after it.
+        + SVerticalBox::Slot().AutoHeight().Padding(0.f, 12.f, 0.f, 0.f)[ BankingCard() ]
         + SVerticalBox::Slot().AutoHeight().Padding(0.f, 12.f, 0.f, 0.f)
         [
             SNew(SHorizontalBox)
@@ -1601,7 +1681,6 @@ TSharedRef<SWidget> SMarketMenu::FinancePage()
             + SHorizontalBox::Slot().FillWidth(1.f)[ Fresh ]
         ]
         + SVerticalBox::Slot().AutoHeight().Padding(0.f, 12.f, 0.f, 0.f)[ Trouble ]
-        + SVerticalBox::Slot().AutoHeight().Padding(0.f, 12.f, 0.f, 0.f)[ BankingCard() ]
         + SVerticalBox::Slot().AutoHeight().Padding(0.f, 12.f, 0.f, 0.f)[ LedgerCards() ]
     ];
 }
@@ -1685,12 +1764,19 @@ TSharedRef<SWidget> SMarketMenu::BankingCard()
         ]
         + SVerticalBox::Slot().AutoHeight().Padding(0.f, 6.f, 0.f, 0.f)
         [ LabelBy([G] { return G() ? MarketBanking::Summary(G()->State) : FString(); }, 11, [G] { return G() && MarketBanking::CovenantBroken(G()->State) ? ERole::Bad : ERole::Text; }) ]
-        + SVerticalBox::Slot().AutoHeight().Padding(0.f, 8.f, 0.f, 4.f)[ Shape ]
-        + SVerticalBox::Slot().AutoHeight()[ Banks ]
+        // C5 (A menu list): while no bank lends for the same reason (day one: no branch yet), one lock line instead
+        // of the loan shape and five rows repeating it.
+        + SVerticalBox::Slot().AutoHeight().Padding(0.f, 8.f, 0.f, 0.f)
+        [ Why([G] { return G() ? MarketMenuSimplifyUi::C5CommonBankLock(G()->State) : FString(); }) ]
+        + SVerticalBox::Slot().AutoHeight().Padding(0.f, 8.f, 0.f, 4.f)
+        [ SNew(SBox).Visibility_Lambda([G] { return G() && MarketMenuSimplifyUi::C5CommonBankLock(G()->State).IsEmpty() ? EVisibility::Visible : EVisibility::Collapsed; })[ Shape ] ]
+        + SVerticalBox::Slot().AutoHeight()
+        [ SNew(SBox).Visibility_Lambda([G] { return G() && MarketMenuSimplifyUi::C5CommonBankLock(G()->State).IsEmpty() ? EVisibility::Visible : EVisibility::Collapsed; })[ Banks ] ]
         + SVerticalBox::Slot().AutoHeight().Padding(0.f, 8.f, 0.f, 0.f)[ Loans ]
         + SVerticalBox::Slot().AutoHeight().Padding(0.f, 8.f, 0.f, 0.f)
         [
             SNew(SHorizontalBox)
+            .Visibility_Lambda([G] { return G() && (MarketBanking::IsOpen(G()->State) || G()->State.Banking.bLine) ? EVisibility::Visible : EVisibility::Collapsed; })
             + SHorizontalBox::Slot().FillWidth(1.f).VAlign(VAlign_Center)
             [ Label([G] { return !G() ? FString() : G()->State.Banking.bLine ? FString::Printf(TEXT("Kredi limiti %s \u00b7 kullan\u0131lan %s"), *MarketMenuUi::Tl(G()->State.Banking.LineLimit), *MarketMenuUi::Tl(G()->State.Banking.LineDrawn))
                 : FString::Printf(TEXT("Kredi limiti kapal\u0131 (a\u00e7\u0131labilir: %s)"), *MarketMenuUi::Tl(MarketBanking::LineLimitFor(G()->State))); }, 10, ERole::Text) ]
@@ -1752,11 +1838,20 @@ TSharedRef<SWidget> SMarketMenu::LedgerCards()
         ]
         + SVerticalBox::Slot().AutoHeight().Padding(0.f, 8.f, 0.f, 0.f)
         [
-            SNew(SHorizontalBox)
-            + SHorizontalBox::Slot().FillWidth(1.f)[ Stat(TEXT("Ciro"), [Line] { return Line(0); }, [Full] { return Full(0); }, [] { return ERole::Text; }) ]
-            + SHorizontalBox::Slot().FillWidth(1.f)[ Stat(TEXT("Br\u00fct k\u00e2r"), [Line] { return Line(1); }, [Full] { return Full(1); }, [] { return ERole::Text; }) ]
-            + SHorizontalBox::Slot().FillWidth(1.f)[ Stat(TEXT("Giderler"), [Line] { return Line(2); }, [Full] { return Full(2); }, [] { return ERole::Muted; }) ]
-            + SHorizontalBox::Slot().FillWidth(1.f)[ Stat(TEXT("Net"), [Line] { return Line(3); }, [Full] { return Full(3); }, [Period] { return Period().NetProfit >= 0 ? ERole::Good : ERole::Bad; }) ]
+            // C5 (A istek 2): two by two, so big amounts (and their full sum under them) fit in half the page.
+            SNew(SVerticalBox)
+            + SVerticalBox::Slot().AutoHeight()
+            [
+                SNew(SHorizontalBox)
+                + SHorizontalBox::Slot().FillWidth(1.f).Padding(0.f, 0.f, 8.f, 0.f)[ Stat(TEXT("Ciro"), [Line] { return Line(0); }, [Full] { return Full(0); }, [] { return ERole::Text; }) ]
+                + SHorizontalBox::Slot().FillWidth(1.f)[ Stat(TEXT("Br\u00fct k\u00e2r"), [Line] { return Line(1); }, [Full] { return Full(1); }, [] { return ERole::Text; }) ]
+            ]
+            + SVerticalBox::Slot().AutoHeight().Padding(0.f, 8.f, 0.f, 0.f)
+            [
+                SNew(SHorizontalBox)
+                + SHorizontalBox::Slot().FillWidth(1.f).Padding(0.f, 0.f, 8.f, 0.f)[ Stat(TEXT("Giderler"), [Line] { return Line(2); }, [Full] { return Full(2); }, [] { return ERole::Muted; }) ]
+                + SHorizontalBox::Slot().FillWidth(1.f)[ Stat(TEXT("Net"), [Line] { return Line(3); }, [Full] { return Full(3); }, [Period] { return Period().NetProfit >= 0 ? ERole::Good : ERole::Bad; }) ]
+            ]
         ]
         + SVerticalBox::Slot().AutoHeight().Padding(0.f, 6.f, 0.f, 0.f)
         [ More([Period]
@@ -2072,14 +2167,54 @@ TSharedRef<SWidget> SMarketMenu::HomePage()
         LayerRow->AddSlot().AutoWidth().Padding(Layer > 0 ? 4.f : 0.f, 0.f, 0.f, 0.f)
         [ Chip(LayerNames[Layer], [this, Layer] { return MapLayer == Layer; }, [this, Layer] { MapLayer = Layer; }) ];
 
+    // C5 (A menu list): the colour key of the rivals / opportunities layers, under the chips while that layer is on.
+    // The swatches use the same blends as HomeMap's Fill (Land -> Warn for rivals, Land -> Ours for opportunities).
+    auto LegendSwatch = [this](float Amount) -> TSharedRef<SWidget>
+    {
+        return SNew(SBox).WidthOverride(12.f).HeightOverride(12.f).VAlign(VAlign_Center)
+        [
+            SNew(SBorder).BorderImage(&BadgeBrush).Padding(0.f)
+            .BorderBackgroundColor_Lambda([this, Amount]
+            {
+                const FLinearColor Land = Color(ERole::Land);
+                return FSlateColor(MapLayer == 2 ? FLinearColor::LerpUsingHSV(Land, Color(ERole::Ours), Amount)
+                    : FLinearColor::LerpUsingHSV(Land, Color(ERole::Warn), 0.06f + 0.6f * Amount));
+            })
+        ];
+    };
+    auto LegendWord = [this](bool bHigh) -> TSharedRef<SWidget>
+    {
+        return TextPx([this, bHigh]
+        {
+            if (MapLayer == 2) return FString(bHigh ? TEXT("iyi f\u0131rsat (ma\u011fazam\u0131z yok)") : TEXT("f\u0131rsat az / ma\u011fazam\u0131z var"));
+            return FString(bHigh ? TEXT("rakip yo\u011fun") : TEXT("rakip az"));
+        }, 11.f, [] { return ERole::Muted; });
+    };
+    TSharedRef<SWidget> Legend = SNew(SBox).Padding(FMargin(12.f, 2.f, 12.f, 4.f))
+        .Visibility_Lambda([this] { return MapLayer == 1 || MapLayer == 2 ? EVisibility::Visible : EVisibility::Collapsed; })
+    [
+        SNew(SHorizontalBox)
+        + SHorizontalBox::Slot().AutoWidth().VAlign(VAlign_Center).Padding(0.f, 0.f, 6.f, 0.f)[ LegendSwatch(0.f) ]
+        + SHorizontalBox::Slot().AutoWidth().VAlign(VAlign_Center).Padding(0.f, 0.f, 14.f, 0.f)[ LegendWord(false) ]
+        + SHorizontalBox::Slot().AutoWidth().VAlign(VAlign_Center).Padding(0.f, 0.f, 2.f, 0.f)[ LegendSwatch(0.5f) ]
+        + SHorizontalBox::Slot().AutoWidth().VAlign(VAlign_Center).Padding(0.f, 0.f, 6.f, 0.f)[ LegendSwatch(1.f) ]
+        + SHorizontalBox::Slot().AutoWidth().VAlign(VAlign_Center)[ LegendWord(true) ]
+    ];
+    TSharedRef<SWidget> LayerTray = SNew(SVerticalBox)
+        + SVerticalBox::Slot().AutoHeight().HAlign(HAlign_Center)[ LayerRow ]
+        + SVerticalBox::Slot().AutoHeight().HAlign(HAlign_Center)[ Legend ];
+    // C5 (A istek 1): the dock (BottomNav) is 58 px items + 2 x 8 px padding, 24 px from the bottom; the tray keeps
+    // 14 px clear above it (the same line as the dock's "Diger" card), at every resolution (the menu is scaled).
+    const float LayerTrayBottom = 24.f + 58.f + 2.f * 8.f + 14.f;
+
     // G-086e: the stage never changes its layout. The province panel floats on the right and glides in; the map
     // glides left to make room for it (SMarketMap RightInset).
     auto Ease = [this] { const float T = PanelAnim; return T * T * (3.f - 2.f * T); };
     return SNew(SOverlay)
         + SOverlay::Slot()[ SNew(SBorder).BorderImage(&FlatBrush).BorderBackgroundColor(Col(ERole::Stage)) ]
-        + SOverlay::Slot().Padding(FMargin(70.f, 130.f, 70.f, 120.f))[ HomeMap() ]
-        + SOverlay::Slot().HAlign(HAlign_Center).VAlign(VAlign_Bottom).Padding(0.f, 0.f, 0.f, 82.f) // C3 (A istek 2): above the dock, away from the time pill and the region chips
-        [ SNew(SBox).Visibility_Lambda([HasMap] { return HasMap() ? EVisibility::Visible : EVisibility::Hidden; })[ Tray(LayerRow) ] ]
+        + SOverlay::Slot().Padding(FMargin(70.f, 130.f, 70.f, 160.f))[ HomeMap() ] // C5: clear of the layer tray
+        + SOverlay::Slot().HAlign(HAlign_Center).VAlign(VAlign_Bottom).Padding(0.f, 0.f, 0.f, LayerTrayBottom) // C3 (A istek 2) / C5: above the dock
+        [ SNew(SBox).Visibility_Lambda([HasMap] { return HasMap() ? EVisibility::Visible : EVisibility::Hidden; })[ Tray(LayerTray) ] ]
         + SOverlay::Slot().HAlign(HAlign_Center).VAlign(VAlign_Top).Padding(0.f, 84.f, 0.f, 0.f)[ RegionChips() ]
         + SOverlay::Slot().HAlign(HAlign_Left).VAlign(VAlign_Bottom).Padding(24.f, 0.f, 0.f, 28.f)[ Assistant() ]
         // C3 (B6): the goals at three scales, always in sight on the main screen.
@@ -2983,11 +3118,16 @@ TSharedRef<SWidget> SMarketMenu::ShopsTab()
             + SScrollBox::Slot().Padding(0.f, 0.f, 0.f, 12.f)[ SpanCounter(true) ]
             + SScrollBox::Slot()
             [
-                Card(SNew(SVerticalBox)
-                    + SVerticalBox::Slot().AutoHeight().Padding(0.f, 0.f, 0.f, 8.f)[ Section(TEXT("\u0130LK \u015eUBE \u0130\u00c7\u0130N")) ]
-                    + SVerticalBox::Slot().AutoHeight()[ GoalList() ])
+                // C5 (A menu list): the first branch's conditions only until a branch is open (as in the decisions layer).
+                SNew(SBox).Padding(FMargin(0.f, 0.f, 0.f, 12.f))
+                .Visibility_Lambda([G] { return G() && MarketBranches::OpenCount(G()->State) == 0 ? EVisibility::Visible : EVisibility::Collapsed; })
+                [
+                    Card(SNew(SVerticalBox)
+                        + SVerticalBox::Slot().AutoHeight().Padding(0.f, 0.f, 0.f, 8.f)[ Section(TEXT("\u0130LK \u015eUBE \u0130\u00c7\u0130N")) ]
+                        + SVerticalBox::Slot().AutoHeight()[ GoalList() ])
+                ]
             ]
-            + SScrollBox::Slot().Padding(0.f, 12.f, 0.f, 0.f)
+            + SScrollBox::Slot()
             [
                 Card(SNew(SVerticalBox)
                     + SVerticalBox::Slot().AutoHeight().Padding(0.f, 0.f, 0.f, 6.f)[ Section(TEXT("KARNE NASIL VER\u0130L\u0130R")) ]
@@ -3610,14 +3750,23 @@ TSharedRef<SWidget> SMarketMenu::ManagementTab()
                     + SVerticalBox::Slot().AutoHeight().Padding(0.f, 6.f, 0.f, 0.f)
                     [ Mono([G] { return G() ? FString::Printf(TEXT("%s / g\u00fcn"), *MarketMenuUi::Tl(MarketManagers::DailyWages(G()->State))) : FString(); }, 20.f, [] { return ERole::Text; }) ]
                     + SVerticalBox::Slot().AutoHeight().Padding(0.f, 4.f, 0.f, 0.f)
-                    [ Label([G] { return G() ? FString::Printf(TEXT("D\u00fcn \u00f6denen %s \u00b7 bu hafta %s. Ma\u011faza m\u00fcd\u00fcrlerinin \u00fccreti \u015fube giderinde."),
-                        *MarketMenuUi::Tl(G()->State.Management.LastWages), *MarketMenuUi::Tl(G()->State.Management.WeekWages)) : FString(); }, 10, ERole::Muted, false, true) ])
+                    [ Label([G]
+                    {
+                        if (!G()) return FString();
+                        // C5 (A menu list): one short line while nobody is paid yet.
+                        if (MarketManagers::DailyWages(G()->State) == 0 && G()->State.Management.LastWages == 0 && G()->State.Management.WeekWages == 0)
+                            return FString(TEXT("Hen\u00fcz y\u00f6netici yok."));
+                        return FString::Printf(TEXT("D\u00fcn \u00f6denen %s \u00b7 bu hafta %s. Ma\u011faza m\u00fcd\u00fcrlerinin \u00fccreti \u015fube giderinde."),
+                            *MarketMenuUi::Tl(G()->State.Management.LastWages), *MarketMenuUi::Tl(G()->State.Management.WeekWages));
+                    }, 10, ERole::Muted, false, true) ])
             ]
             + SScrollBox::Slot().Padding(0.f, 12.f, 0.f, 0.f)
             [
                 Card(SNew(SVerticalBox)
                     + SVerticalBox::Slot().AutoHeight().Padding(0.f, 0.f, 0.f, 6.f)[ Section(TEXT("\u00d6NER\u0130LER")) ]
-                    + SVerticalBox::Slot().AutoHeight()[ SNew(SBox).HeightOverride(150.f).VAlign(VAlign_Top)[ Advice ] ])
+                    + SVerticalBox::Slot().AutoHeight()[ SNew(SBox).VAlign(VAlign_Top)
+                        // C5: the fixed height only while there are suggestions (else one short line).
+                        .HeightOverride_Lambda([G]() -> FOptionalSize { return G() && MarketManagers::Suggestions(G()->State).Num() > 0 ? FOptionalSize(150.f) : FOptionalSize(); })[ Advice ] ])
             ]
         ];
 }

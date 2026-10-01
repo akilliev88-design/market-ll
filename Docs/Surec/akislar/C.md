@@ -1,7 +1,7 @@
 # Akış C — Claude (Cowork)
 
 ## Kaldığım yer
-C5 (Codex) `akis-a` worktree'sinde: M32 derlendi (140). Ana klasöre **M33 komuta zinciri, M34 reklam, M35 Türkiye kalıntıları** yazıldı, derlenmedi (01.10.2026); test alt sınırı 143. Sırada: Codex C5 bitince birleştirme + C6 doğrulama (derleme, bot reklam/komuta kartları), menü sadeleştirme listesi, denge.
+C6 ana klasör doğrulaması geçti (145). Ana klasöre **C7 denge ve menü sadeleştirme** yazıldı, derlenmedi (01.10.2026); test alt sınırı 146. Sırada: Codex C6 bitince C7 derleme + uzun koşu (kurtarma sayısı ve borç), sonra kalan denge (internet hacmi, lig ölçeği).
 
 ## Yapılanlar
 - **C1 · Mağaza görünümü şubenin hesabına** (yeni `MarketStoreViews.h/.cpp`): `Config/magazalar.json` bir kez `MarketStoreKit::Parse` ile kendi kopyamıza okunur (kitin yüklü şablonlarına dokunulmaz). Şube imzalanınca (il, tür) için görünüm seçilir (`MarketStoreAssign::Assign`, `FMarketState::StoreViews`'a kaydedilir; yurt dışında ülke + tür başına bir görünüm) ve ölçüleri şubeye kopyalanır (`FMarketBranch::StoreView`, `View*` alanları).
@@ -45,6 +45,8 @@ C5 (Codex) `akis-a` worktree'sinde: M32 derlendi (140). Ana klasöre **M33 komut
 - **M33 · Komuta zinciri** (`MarketCommand`, `MarketBranches::Clearance`): şube müdürü yavaş malı haftalık indirimle eritir, %20 üstü il müdürü onayı ister; zayıf müdürün yanlış indirimini il müdürü geri alır; il müdürü şube kapatma (3 ay zarar) ve açma (hepsi kâr, ilde yer, kasa 3× açılış) önerir, ülke/bölge müdüründen geçip karar kartı `command.*` olarak gelir.
 - **M34 · Reklam** (`MarketAdvertising`): ülke başına TV, radyo, açık hava, gazete/broşür, sosyal medya, arama; akıllarda kalan stok, azalan getiri, hepsi bir arada bonusu, dönemle sosyal medya güçlenir/broşür zayıflar; 20 mağazadan reklam müdürü (karışımı bütçeyle kendisi kurar). M32'nin internet reklamı arama kanalına taşındı. Menü: Şirket > Reklam kartı.
 - **M35 · Kalıntılar:** sokak rakipleri il zincirlerinden (`MarketCompetitors::Bind`, `Activate` `MarketEras::Activate`'ten), iklim ülkeden, kasap sezonu ülkeden, mali müşavir adı `MarketCast::Accountant`, `MarketRetail` silindi.
+- **C7 · Kurtarma sarmalı** (Codex C4/C5: 30 yılda 321 plan, 500 milyon borç, sabit dükkân cirosu ~0): kurtarma artık bütün kredileri (aile, şirket, limit) tek plan kredisine çevirir: kasaya bir aylık gider + rafları dolduracak mal, eski borçtan dükkânın taşıyabileceği kadar (aylık cironun %4'ü taksit, 48 ay), kalanı silinir, ilk taksit 180 gün sonra; iki yıl kredi, şube, acil kredi ve ipotek yok, not D. Şube kalmayınca reklam, uygulama, hızlı teslimat, karanlık depo ve iki müdür de durur. Gecikme faizi her gün değil ayda bir (aile ve şirket kredisi). Test: `Finance.RescueOnePlan`.
+- **C7 · Diğer:** il önerisi döngüsü (zararla kapanan kanal bir yıl geri önerilmez, onaydan sonra 60 gün sessizlik); marka rafı yalnız raftaki malla, yarı doluysa tam sayılır; hiper balık/ev/kırtasiye/bebek marjı; kayıt sürümü 4. Menü sadeleştirme (Codex listesi): harita katman tepsisi alt menünün üstünde + renk anahtarı, hedefte tekrar, gelir tablosu 2×2, finans: şirket kartı üstte, aile kredilerinde en yakın üç + toplam, tek kilit satırı; rakipler: ciro yokken sıra yok, teklif yalnız yetişilebilecekse; personel İK adayı satırı; ilk şube kartı şubeden sonra gizli; raporlarda ilk gün boş ızgara yok; siparişte yapılacak iş yokken düğmeler gizli.
 - Özel marka ("Miras") marka yarışına henüz girmedi: katalogda Miras ürünü yok (ürün kararı Mustafa/Codex).
 
 ## Doğrulama

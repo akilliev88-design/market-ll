@@ -30,12 +30,15 @@ namespace MarketBrandsTest
         MarketBrands::SetTable({ A, B });
     }
 
+    // C7: only a stocked shelf counts (full from half full).
+    void Fill(FMarketState& S) { for (FMarketStock& Item : S.Stock) Item.Shelf = Item.Capacity; }
+
     FMarketState Start(const TArray<FMarketProduct>& Products)
     {
         FMarketState S; S.Initialize(Products);
         S.RivalSeed = 5; S.Day = 1; S.Cash = 10000000; S.CountryId = TEXT("tr"); S.CityId = TEXT("kirklareli");
         S.Stock[0].Capacity = 10; S.Stock[1].Capacity = 0; S.Stock[2].Capacity = 30;
-        for (FMarketStock& Item : S.Stock) Item.Shelf = FMath::Max(Item.Shelf, 5); // C3: only a stocked shelf counts
+        Fill(S);
         return S;
     }
 
@@ -73,6 +76,7 @@ bool FMarketBrandsSharesTest::RunTest(const FString& Parameters)
     const int64 Before = S.Cash;
     S.Stock[1].Capacity = 20;
     S.Stock[0].Capacity = 40; S.Stock[2].Capacity = 5;
+    Fill(S);
     Month(S, Products);
     TestTrue(TEXT("The brand paid"), S.Cash > Before);
     TestTrue(TEXT("Money counted"), S.Brands.TotalReceived > 0);
@@ -80,6 +84,7 @@ bool FMarketBrandsSharesTest::RunTest(const FString& Parameters)
     // Starve it: under half its national share on our shelves, it cools and charges more.
     S.Brands.Deals.Reset(); S.Brands.Offers.Reset();
     S.Stock[0].Capacity = 1; S.Stock[1].Capacity = 0; S.Stock[2].Capacity = 60;
+    Fill(S);
     for (int32 M = 0; M < 6; ++M) Month(S, Products);
     TestTrue(TEXT("A starved brand cools"), MarketBrands::Trust(S, TEXT("Lider")) <= -30.f);
     TestTrue(TEXT("and charges more"), MarketBrands::CostFactor(S, TEXT("Lider")) > 1.f);
@@ -101,6 +106,13 @@ bool FMarketBrandsEmptyShelfTest::RunTest(const FString& Parameters)
     const float Stocked = MarketBrands::ShelfShare(S, Products, TEXT("Lider"), Milk);
     S.Stock[0].Shelf = 0; S.Stock[0].Warehouse = 0;
     TestTrue(TEXT("The empty shelf does not count"), MarketBrands::ShelfShare(S, Products, TEXT("Lider"), Milk) < Stocked);
+    // C7 (Codex C4): goods in the depot are not on the shelf; one unit on a big shelf is not the whole shelf.
+    S.Stock[0].Warehouse = 1;
+    TestTrue(TEXT("The depot does not count"), MarketBrands::ShelfShare(S, Products, TEXT("Lider"), Milk) < Stocked);
+    S.Stock[0].Warehouse = 0; S.Stock[0].Capacity = 100; S.Stock[0].Shelf = 1;
+    const float One = MarketBrands::ShelfShare(S, Products, TEXT("Lider"), Milk);
+    S.Stock[0].Shelf = 50;
+    TestTrue(TEXT("One unit is not a full shelf"), One < MarketBrands::ShelfShare(S, Products, TEXT("Lider"), Milk));
     MarketBrands::ResetTable();
     return true;
 }

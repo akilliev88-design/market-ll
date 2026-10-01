@@ -306,6 +306,7 @@ struct FMarketLoan
     UPROPERTY() int64 Installment = 0;
     UPROPERTY() int32 NextDueDay = 0;
     UPROPERTY() bool bMortgage = false;  // the family shop's deed stands behind it
+    UPROPERTY() int32 LateSince = 0;     // C7: first missed day (0 = on time); a late fee once a month, not every day
 };
 
 // One product in a branch that is not visited (MarketBranches.h).
@@ -527,6 +528,8 @@ struct FMarketOnlineArea
     UPROPERTY() int32 PlatformLossMonths = 0;
     UPROPERTY() int32 OwnLossMonths = 0;
     UPROPERTY() int32 QuietUntil = 0;        // a turned-down proposal: no new one before this day
+    UPROPERTY() int32 PlatformDropDay = 0;   // C7: the platform / own delivery was closed here for losses (no
+    UPROPERTY() int32 OwnDropDay = 0;        // proposal to bring it back for a year)
 };
 
 USTRUCT()
@@ -846,7 +849,7 @@ struct FMarketState
     static constexpr int64 StockerDailyWage = 2000;
 
     // Save format version. 2 (G-076): story finale flags, test-mode mark. Older saves load and are migrated.
-    static constexpr int32 CurrentVersion = 3; // C3 (M27): A, B and C merged; older saves start a new game
+    static constexpr int32 CurrentVersion = 4; // C7 (M27): M28-M35 fields; older saves start a new game
     UPROPERTY() int32 Version = CurrentVersion;
     UPROPERTY() int32 Day = 1;
     UPROPERTY() int64 Cash = 35000;
@@ -958,6 +961,7 @@ struct FMarketState
     UPROPERTY() TArray<FMarketLoan> Loans;
     UPROPERTY() int32 NegativeCashDays = 0;
     UPROPERTY() int32 Rescues = 0;          // M31: the bank's rescue plans so far (MarketFinance::Rescue)
+    UPROPERTY() int32 RescueUntil = 0;      // C7: under the bank's plan until this day (no new loans or branches)
     // The family lives from the shop: money taken home this month (MarketFinance, not a business cost).
     UPROPERTY() int64 MonthHousehold = 0;
     UPROPERTY() int32 TroubleStage = 0;

@@ -11,6 +11,9 @@
 #include "MarketChains.h"
 #include "MarketManagers.h"
 #include "MarketStaff.h"
+#include "MarketBanking.h"
+#include "MarketOnline.h"
+#include "MarketAdvertising.h"
 
 namespace MarketFinance
 {
@@ -67,6 +70,42 @@ namespace MarketFinance
         D.Deadline = State.Day + Days - 1;
         return D;
     }
+
+    // C7: what the family shop needs for a month (its people, the head office left, running costs, the family's
+    // living money) and to fill its shelves again (a shelf and a half of every carried product).
+    int64 FamilyMonthCost(const FMarketState& State)
+    {
+        const int64 Wages = State.DailyPayroll() + MarketManagers::DailyWages(State);
+        const int64 Home = FMath::RoundToInt64(HouseholdDraw * MarketPrices::WageIndex(FMath::Max(1, State.Day - 1)));
+        return 30 * (Wages + MarketStaff::EmployerShare(Wages) + MarketPrices::Scaled(2200, State.Day) + Home);
+    }
+
+    int64 RefillCost(const FMarketState& State, const TArray<FMarketProduct>& Products)
+    {
+        int64 Cost = 0;
+        for (int32 I = 0; I < State.Stock.Num() && I < Products.Num(); ++I)
+        {
+            const FMarketStock& Row = State.Stock[I];
+            const int32 Missing = FMath::Max(0, Row.Capacity * 3 / 2 - Row.Shelf - Row.Warehouse);
+            Cost += static_cast<int64>(Missing) * State.UnitCost(I, Products);
+        }
+        return Cost;
+    }
+
+    // The family shop's revenue in a month: the better of the last 90 days and the last year (a shop with empty
+    // shelves is judged by what it sold before).
+    int64 MonthRevenue(const FMarketState& State)
+    {
+        int64 Quarter = 0, Year = 0;
+        int32 Days = 0;
+        for (int32 I = State.History.Num() - 1; I >= 0 && Days < 365; --I, ++Days)
+        {
+            Year += State.History[I].Revenue;
+            if (Days < 90) Quarter += State.History[I].Revenue;
+        }
+        if (Days <= 0) return 0;
+        return FMath::Max(Quarter * 30 / FMath::Min(Days, 90), Year * 30 / Days);
+    }
 }
 
 int64 MarketFinance::Installment(int64 Principal, double MonthlyRate, int32 Months)
@@ -92,7 +131,7 @@ int64 MarketFinance::LoanLimit(const FMarketState& State)
     const int64 Monthly = Days > 0 ? Profit * 30 / Days : 0;
     // Six months of profit plus the family name, minus what is already owed. Trouble closes the door.
     const int64 Limit = FMath::Max<int64>(0, Monthly) * 6 + FMath::RoundToInt64(50000 * Level(State)) - Debt(State);
-    return State.TroubleStage >= 2 ? 0 : FMath::Max<int64>(0, Limit);
+    return State.TroubleStage >= 2 || State.Day < State.RescueUntil ? 0 : FMath::Max<int64>(0, Limit); // C7: none under the rescue plan
 }
 
 bool MarketFinance::TakeLoan(FMarketState& State, int32 Step, FString& OutMessage)
@@ -160,18 +199,26 @@ void MarketFinance::CloseDay(FMarketState& State, const TArray<FMarketProduct>& 
             L.Remaining = FMath::Max<int64>(0, L.Remaining - (Pay - Interest));
             State.LastProfit -= Interest;
             State.Books.PeriodProfit -= Interest; // the books closed before the bank: interest lowers taxable profit
-            L.NextDueDay += MonthDays;
+            L.NextDueDay = (L.LateSince > 0 ? L.LateSince : L.NextDueDay) + MonthDays;
+            L.LateSince = 0;
             News.Add(FString::Printf(TEXT("%s taksiti \u00f6dendi: %s (faiz %s, kalan %s)."), *MarketCast::Bank(0), *FinanceTl(Pay), *FinanceTl(Interest), *FinanceTl(L.Remaining)));
         }
         else
         {
-            const int64 Fee = FMath::Max<int64>(100, FMath::RoundToInt64(Pay * static_cast<double>(LateFee)));
-            L.Remaining += Fee;
-            State.LastProfit -= Fee;
-            MarketLedger::Post(State, MarketLedger::EAccount::Penalties, -Fee, false); // B2: the loan grows
-            State.Books.PeriodProfit -= Fee;
-            L.NextDueDay = State.Day;
-            News.Add(FString::Printf(TEXT("Banka taksiti \u00f6denemedi (%s): %s gecikme faizi eklendi."), *FinanceTl(Pay), *FinanceTl(Fee)));
+            // C7: the late fee once when missed and once more every month it stays unpaid (it was every day: the
+            // debt exploded); the bank tries again in a week.
+            const bool bFee = L.LateSince == 0 || (Closed - L.LateSince) % MonthDays < 7;
+            if (L.LateSince == 0) L.LateSince = L.NextDueDay;
+            if (bFee)
+            {
+                const int64 Fee = FMath::Max<int64>(100, FMath::RoundToInt64(Pay * static_cast<double>(LateFee)));
+                L.Remaining += Fee;
+                State.LastProfit -= Fee;
+                MarketLedger::Post(State, MarketLedger::EAccount::Penalties, -Fee, false); // B2: the loan grows
+                State.Books.PeriodProfit -= Fee;
+                News.Add(FString::Printf(TEXT("Banka taksiti \u00f6denemedi (%s): %s gecikme faizi eklendi."), *FinanceTl(Pay), *FinanceTl(Fee)));
+            }
+            L.NextDueDay = Closed + 7;
         }
     }
     State.Loans.RemoveAll([](const FMarketLoan& L) { return L.Remaining <= 0; });
@@ -207,6 +254,7 @@ void MarketFinance::CloseDay(FMarketState& State, const TArray<FMarketProduct>& 
             break;
         case 3:
         {
+            if (State.Day < State.RescueUntil) break; // C7: no emergency loan under the rescue plan (the depot is sold at 14 days)
             const int64 Emergency = FMath::RoundToInt64(FMath::Max<int64>(-State.Cash, 20000) * 1.5 / 100.0) * 100;
             MarketEvents::Offer(State, FinanceDecision(State, TEXT("finance.rescue"), TEXT("Nakit s\u0131k\u0131nt\u0131s\u0131"),
                 FString::Printf(TEXT("Bir haftad\u0131r kasa eksi. Banka y\u00fcksek faizle acil kredi verebilir (%s), ya da depodaki mal\u0131 yar\u0131 fiyat\u0131na bir toptanc\u0131ya verebilirsin (%s)."),
@@ -223,6 +271,7 @@ void MarketFinance::CloseDay(FMarketState& State, const TArray<FMarketProduct>& 
         }
         default:
         {
+            if (State.Day < State.RescueUntil) break; // C7: no mortgage under the rescue plan
             const int64 Mortgage = MortgageAmount(State);
             MarketEvents::Offer(State, FinanceDecision(State, TEXT("finance.mortgage"), TEXT("Tapu"),
                 FString::Printf(TEXT("Bir ayd\u0131r kasa eksi. %s d\u00fckk\u00e2n\u0131n tapusu kar\u015f\u0131l\u0131\u011f\u0131nda %s kredi \u00f6neriyor (24 ay, y\u0131ll\u0131k %%%.0f faiz, %%%.0f masraf). \u00d6denmezse d\u00fckk\u00e2n bankan\u0131n olur."),
@@ -277,6 +326,7 @@ bool MarketFinance::Resolve(FMarketState& State, const TArray<FMarketProduct>& P
 {
     if (D.Id == TEXT("finance.rescue"))
     {
+        if (Option == 0 && State.Day < State.RescueUntil) { OutMessage = TEXT("Kurtarma plan\u0131 s\u00fcr\u00fcyor: banka yeni kredi vermiyor."); return true; } // C7
         if (Option == 0)
         {
             AddLoan(State, D.Arg, MarketPrices::LoanRate(State.Day) + EmergencyRateBonus, false);
@@ -288,6 +338,7 @@ bool MarketFinance::Resolve(FMarketState& State, const TArray<FMarketProduct>& P
     }
     if (D.Id == TEXT("finance.mortgage"))
     {
+        if (Option == 0 && State.Day < State.RescueUntil) { OutMessage = TEXT("Kurtarma plan\u0131 s\u00fcr\u00fcyor: banka yeni kredi vermiyor."); return true; } // C7
         if (Option == 0)
         {
             // B1 (#43): risk premium and the valuation / deed fee (a cost of the day, paid out of the loan).
@@ -352,6 +403,20 @@ TArray<FString> MarketFinance::Rescue(FMarketState& State, const TArray<FMarketP
         }
         if (Left > 0) Lines.Add(FString::Printf(TEXT("Maa\u015flar\u0131 \u00f6denemeyen %d y\u00f6netici ayr\u0131ld\u0131."), Left));
 
+        // C7: the head office's other costs stop too: the ads, the app and the fast delivery, the dark stores, the
+        // e-commerce and advertising managers (the web site and the platform stay: they cost little).
+        bool bCut = false;
+        for (FMarketAdCountry& Ad : State.Advertising.Countries)
+            for (uint8& L : Ad.Levels) { bCut |= L > 0; L = 0; }
+        bCut |= !State.Advertising.ManagerName.IsEmpty() || !State.Online.ManagerName.IsEmpty() || State.Online.bApp;
+        State.Advertising.ManagerName.Reset();
+        State.Advertising.bAuto = false;
+        State.Online.ManagerName.Reset();
+        State.Online.bAutoPolicy = false;
+        State.Online.bApp = State.Online.bQuick = false;
+        for (FMarketOnlineArea& Area : State.Online.Areas) { bCut |= Area.DarkStoreDay > 0; Area.DarkStoreDay = 0; Area.bQuick = false; }
+        if (bCut) Lines.Add(TEXT("Reklamlar durdu; uygulama, h\u0131zl\u0131 teslimat ve karanl\u0131k depolar kapand\u0131; reklam ve e-ticaret m\u00fcd\u00fcrleri ayr\u0131ld\u0131."));
+
         // The family shop keeps its best few.
         TArray<int32> Workers;
         for (int32 I = 0; I < State.Staff.Num(); ++I)
@@ -367,16 +432,47 @@ TArray<FString> MarketFinance::Rescue(FMarketState& State, const TArray<FMarketP
         }
     }
 
-    // 4. What is still missing (and money to fill the shelves) becomes a long loan.
-    const int64 Working = FMath::RoundToInt64(RescueWorkingCapital * Level(State));
-    if (State.Cash < Working)
+    // 4. C7: one plan instead of a pile of loans. The bank gives a month of the shop's costs and the goods for its
+    // shelves, folds every loan (family, company, the line) into one long loan the shop can carry (a share of its
+    // monthly revenue), writes off the rest, and waits half a year for the first installment. Under the plan: no
+    // new loan and no new branch for two years. Before C7 the plans piled up and the debt grew without end.
+    const int64 Working = FMath::Max<int64>(FMath::RoundToInt64(RescueWorkingCapital * Level(State)), FamilyMonthCost(State) + RefillCost(State, Products));
+    const int64 Fresh = FMath::Max<int64>(0, (Working - State.Cash + 99) / 100 * 100);
+    int64 Old = Debt(State) + State.Banking.LineDrawn;
+    bool bDeed = false;
+    for (const FMarketLoan& L : State.Loans) bDeed |= L.bMortgage;
+    for (const FMarketCorpLoan& L : State.Banking.Loans) Old += L.Balance;
+    const double Rate = MarketPrices::LoanRate(State.Day) + RescueRateBonus + FMath::Min(RescueRepeatCap, RescueRepeatBonus * FMath::Max(0, State.Rescues - 1));
+    const double Monthly = Rate / 12.0;
+    const int64 Carry = FMath::RoundToInt64(MonthRevenue(State) * static_cast<double>(RescueCarryShare));
+    const double Annuity = Monthly > 0.0 ? (1.0 - FMath::Pow(1.0 + Monthly, -static_cast<double>(RescueMonths))) / Monthly : static_cast<double>(RescueMonths);
+    const int64 Bearable = FMath::RoundToInt64(Carry * Annuity);
+    const int64 Kept = FMath::Clamp<int64>(Bearable - Fresh, 0, Old);
+    const int64 WrittenOff = Old - Kept;
+    State.Loans.Reset();
+    State.Banking.Loans.Reset();
+    State.Banking.LineDrawn = 0;
+    State.Banking.bLine = false;
+    State.Banking.LineLimit = 0;
+    State.Banking.Rating = static_cast<uint8>(MarketBanking::ERating::D);
+    if (Fresh + Kept > 0)
     {
-        const int64 Amount = FMath::Max<int64>(100, (Working - State.Cash + 99) / 100 * 100);
-        const double Rate = MarketPrices::LoanRate(State.Day) + RescueRateBonus + 0.04 * FMath::Max(0, State.Rescues - 1);
-        AddLoan(State, Amount, Rate, false, RescueMonths);
-        Lines.Add(FString::Printf(TEXT("Kalan a\u00e7\u0131k ve raflar\u0131 doldurmaya yetecek para kurtarma kredisine \u00e7evrildi: %s, %d ay, y\u0131ll\u0131k %%%.0f faiz, ayda %s."),
-            *FinanceTl(Amount), RescueMonths, Rate * 100.0, *FinanceTl(State.Loans.Last().Installment)));
+        FMarketLoan Plan;
+        Plan.Principal = Fresh + Kept;
+        Plan.Remaining = Plan.Principal;
+        Plan.MonthlyRate = static_cast<float>(Monthly);
+        Plan.Installment = Installment(Plan.Principal, Plan.MonthlyRate, RescueMonths);
+        Plan.NextDueDay = State.Day + RescueGraceDays;
+        Plan.bMortgage = bDeed;
+        State.Loans.Add(Plan);
+        State.Cash += Fresh;
+        if (Fresh > 0) MarketLedger::Post(State, MarketLedger::EAccount::LoanIn, Fresh); // B2: only the new money is cash
+        Lines.Add(FString::Printf(TEXT("B\u00fct\u00fcn krediler tek plana \u00e7evrildi: %s (kasaya %s, eski bor\u00e7tan %s), %d ay, y\u0131ll\u0131k %%%.0f faiz, ilk taksit %d g\u00fcn sonra, ayda %s."),
+            *FinanceTl(Plan.Principal), *FinanceTl(Fresh), *FinanceTl(Kept), RescueMonths, Rate * 100.0, RescueGraceDays, *FinanceTl(Plan.Installment)));
     }
+    if (WrittenOff > 0)
+        Lines.Add(FString::Printf(TEXT("D\u00fckk\u00e2n\u0131n \u00f6deyemeyece\u011fi %s bor\u00e7 silindi. Bedeli: iki y\u0131l kredi yok, yeni \u015fube yok, kredi notu D."), *FinanceTl(WrittenOff)));
+    State.RescueUntil = State.Day + RescueBlockDays;
     State.NegativeCashDays = 0;
     State.TroubleStage = 0;
     State.Decisions.RemoveAll([](const FMarketDecision& D) { return D.Id.StartsWith(TEXT("finance.")); }); // the ladder's open offers are void now

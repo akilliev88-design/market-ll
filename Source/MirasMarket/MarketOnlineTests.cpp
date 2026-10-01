@@ -188,6 +188,15 @@ bool FMarketOnlineCompanyTest::RunTest(const FString& Parameters)
     TestTrue(TEXT("A proposal, not a change"), Proposal != INDEX_NONE && S.Online.Areas[AreaOf(S, TEXT("tekirdag"))].bPlatform);
     if (Proposal != INDEX_NONE)
         TestTrue(TEXT("Approved: the platform leaves the province"), MarketOnline::Resolve(S, Products, S.Decisions[Proposal], 0, Message) && !S.Online.Areas[AreaOf(S, TEXT("tekirdag"))].bPlatform);
+    // C7: he does not ask it back the next months (a province once asked 33 times).
+    S.Decisions.Reset();
+    for (int32 M = 0; M < 3; ++M)
+    {
+        const MarketCalendar::FDate At = MarketCalendar::DateOf(S.Day + 1);
+        S.Day = MarketCalendar::GameDayOf(At.Month == 12 ? At.Year + 1 : At.Year, At.Month == 12 ? 1 : At.Month + 1, 1) - 1;
+        Close(S, Products);
+    }
+    TestFalse(TEXT("The platform is not asked back within a year"), S.Decisions.ContainsByPredicate([](const FMarketDecision& D) { return D.Id == TEXT("online.area:tr|tekirdag") && (D.Arg & 1); }));
 
     // The e-commerce manager.
     TestTrue(TEXT("Hire"), MarketOnline::HireManager(S, Message) && !S.Online.ManagerName.IsEmpty());

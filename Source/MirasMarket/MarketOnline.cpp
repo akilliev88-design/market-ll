@@ -248,8 +248,9 @@ namespace MarketOnlineLocal
         if (A.PlatformLossMonths >= 3) { Flags &= ~1; Why = FString::Printf(TEXT("%s \u00fc\u00e7 ayd\u0131r bu ilde zarar ettiriyor; komisyon k\u00e2r\u0131 yiyor."), *MarketCast::Platform()); }
         else if (A.OwnLossMonths >= 3) { Flags &= ~6; Why = TEXT("Kendi teslimat\u0131m\u0131z \u00fc\u00e7 ayd\u0131r bu ilde zarar ediyor; sipari\u015f kurye masraf\u0131n\u0131 kar\u015f\u0131lam\u0131yor."); }
         // A channel the company has but this province does not use: a good manager sees the chance.
-        else if (O.bPlatform && !(Flags & 1) && Skill >= 45) { Flags |= 1; Why = FString::Printf(TEXT("Bu ilde %s'dan sipari\u015f gelmiyor; rakipler orada."), *MarketCast::Platform()); }
-        else if (O.bWeb && !(Flags & 2) && Skill >= 50) { Flags |= 2; Why = TEXT("Sitemiz ve uygulamam\u0131z bu ilde \u00e7al\u0131\u015fm\u0131yor; m\u00fc\u015fteri soruyor."); }
+        // C7 (Codex C5: one province asked 33 times): a channel closed here for losses is not asked back for a year.
+        else if (O.bPlatform && !(Flags & 1) && Skill >= 45 && (A.PlatformDropDay == 0 || State.Day >= A.PlatformDropDay + 365)) { Flags |= 1; Why = FString::Printf(TEXT("Bu ilde %s'dan sipari\u015f gelmiyor; rakipler orada."), *MarketCast::Platform()); }
+        else if (O.bWeb && !(Flags & 2) && Skill >= 50 && (A.OwnDropDay == 0 || State.Day >= A.OwnDropDay + 365)) { Flags |= 2; Why = TEXT("Sitemiz ve uygulamam\u0131z bu ilde \u00e7al\u0131\u015fm\u0131yor; m\u00fc\u015fteri soruyor."); }
         else if (O.bQuick && O.bApp && (Flags & 2) && !(Flags & 4) && Skill >= 55 && Shops >= MarketOnline::DarkStoreShops)
         {
             FString Reason;
@@ -1021,6 +1022,9 @@ bool MarketOnline::Resolve(FMarketState& State, const TArray<FMarketProduct>& Pr
             if (!BuildDarkStore(State, Index, Built)) { OutMessage = Built; return true; }
         }
         FMarketOnlineArea& Same = O.Areas[Index];
+        if (Same.bPlatform && !(D.Arg & 1)) Same.PlatformDropDay = State.Day;   // C7
+        if (Same.bOwn && !(D.Arg & 2)) Same.OwnDropDay = State.Day;
+        Same.QuietUntil = State.Day + 60;                                     // C7: let the change show first
         Same.bPlatform = (D.Arg & 1) != 0;
         Same.bOwn = (D.Arg & 2) != 0;
         Same.bQuick = Same.bOwn && (D.Arg & 4) != 0 && Same.DarkStoreDay > 0;

@@ -60,12 +60,15 @@ namespace MarketBrandsLocal
 
     // Shelf capacity of every catalog product over the family shop and the live branches (branch items are in the
     // catalog's order; a changed catalog falls back to a search). C3 (A istek): only a shelf with the goods on it
-    // counts: an empty allocated shelf earns a brand nothing.
+    // counts: an empty allocated shelf earns a brand nothing. C7 (Codex C4): only the goods ON the shelf (not the
+    // depot), and a shelf counts in full from half full; below that, by what is on it.
+    int32 Shown(int32 Capacity, int32 OnShelf) { return FMath::Clamp(2 * OnShelf, 0, FMath::Max(0, Capacity)); }
+
     TArray<int32> Capacities(const FMarketState& State, const TArray<FMarketProduct>& Products)
     {
         TArray<int32> Cap;
         Cap.Init(0, Products.Num());
-        for (int32 I = 0; I < Products.Num(); ++I) if (State.Stock.IsValidIndex(I) && State.Stock[I].Shelf + State.Stock[I].Warehouse > 0) Cap[I] += FMath::Max(0, State.Stock[I].Capacity);
+        for (int32 I = 0; I < Products.Num(); ++I) if (State.Stock.IsValidIndex(I)) Cap[I] += Shown(State.Stock[I].Capacity, State.Stock[I].Shelf);
         for (const FMarketBranch& B : State.Branches)
         {
             if (B.Stage == static_cast<uint8>(MarketBranches::EStage::Closed)) continue;
@@ -73,7 +76,7 @@ namespace MarketBrandsLocal
             {
                 const FMarketBranchItem* Item = B.Items.IsValidIndex(I) && B.Items[I].ProductId == Products[I].Id ? &B.Items[I]
                     : B.Items.FindByPredicate([&Products, I](const FMarketBranchItem& It) { return It.ProductId == Products[I].Id; });
-                if (Item && Item->Units > 0) Cap[I] += FMath::Max(0, Item->Capacity);
+                if (Item) Cap[I] += Shown(Item->Capacity, Item->Units);
             }
         }
         return Cap;

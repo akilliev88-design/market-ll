@@ -1,3 +1,9 @@
+## 01.10.2026 — Claude (Cowork) — C7 denge ve menü sadeleştirme
+
+**Yapılan:** Codex C4/C5 bulguları: kurtarma sarmalı (321 plan, 500 milyon borç) için tek plan kredisi + borç silme + 180 gün ödemesiz + iki yıl kredi/şube yok; gecikme faizi günde bir yerine ayda bir; il önerisi döngüsü; marka rafı; hiper reyon marjları; kayıt sürümü 4; menü sadeleştirme listesinin 9,5 maddesi. Yeni test `Finance.RescueOnePlan`, Test.ps1 alt sınır 146.
+
+**Doğrulama:** Derlenmedi. İki ajan okuması: derleme hatası ve kırılan test yok; iki boşluk kapatıldı (plan sırasında acil kredi/ipotek, not D).
+
 ## 01.10.2026 — Codex — C6 ilk birleşim doğrulaması
 
 **Yapılan:** C5 caf32d2 main'e birleşti/push; Claude M33–M35 37eae48 teslimi alındı. MarketRetail.h/.cpp kullanıcı talimatıyla kaldırıldı, eski bekleyen finans yamaları korunup dışarıda bırakıldı. MarketAutoPlayFinance.cpp:26 kaldırılan AdsMonthly/Ads yerine yeni reklam aylık giderleri/müdür; MarketAutoPlayOnline.cpp:74 Ads yerine Search LevelOf. Test.ps1 alt sınır 145 (C5 iki testi dahil). C kaynak mantığı/sabitleri değişmedi.

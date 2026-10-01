@@ -223,4 +223,42 @@ bool FMarketRescueTest::RunTest(const FString& Parameters)
     return true;
 }
 
+IMPLEMENT_SIMPLE_AUTOMATION_TEST(FMarketRescueOnePlanTest, "MirasMarket.Finance.RescueOnePlan", EAutomationTestFlags::EditorContext | EAutomationTestFlags::EngineFilter)
+bool FMarketRescueOnePlanTest::RunTest(const FString& Parameters)
+{
+    // C7 (Codex C4/C5: 321 plans, 500 million of debt): a missed installment costs its fee once a month, and the
+    // plan folds every loan into one the shop can carry, writes off the rest and closes the doors for two years.
+    using namespace MarketBranchesTest;
+    const TArray<FMarketProduct> Products = Catalog();
+    FMarketState S; S.Initialize(Products); S.RivalSeed = 12; S.Day = 400;
+    S.CountryId = TEXT("tr"); S.CityId = TEXT("kirklareli");
+    FMarketLoan Loan; Loan.Principal = Loan.Remaining = 1000000; Loan.MonthlyRate = 0.02f; Loan.Installment = 100000; Loan.NextDueDay = S.Day - 1;
+    S.Loans.Add(Loan);
+    S.Cash = -50000;
+    for (int32 D = 0; D < 30; ++D)
+    {
+        S.NegativeCashDays = 0; S.TroubleStage = 0; S.Decisions.Reset();
+        MarketFinance::CloseDay(S, Products);
+        ++S.Day;
+    }
+    TestTrue(TEXT("Late fee once or twice a month, not every day"), S.Loans.Num() == 1 && S.Loans[0].Remaining <= 1000000 + 2 * 3000);
+
+    // A pile of debt and a shop that sold little: one plan, most of it written off.
+    for (int32 I = 0; I < 3; ++I) { FMarketLoan Old = Loan; Old.Remaining = 50000000; Old.NextDueDay = S.Day + 5; S.Loans.Add(Old); }
+    FMarketCorpLoan Corp; Corp.Balance = 20000000; Corp.NextDueDay = S.Day + 5; S.Banking.Loans.Add(Corp);
+    S.Banking.bLine = true; S.Banking.LineDrawn = 3000000;
+    S.Cash = -1000000;
+    const TArray<FString> Lines = MarketFinance::Rescue(S, Products);
+    TestEqual(TEXT("One loan left"), S.Loans.Num(), 1);
+    TestTrue(TEXT("Company loans and the line folded in"), S.Banking.Loans.Num() == 0 && S.Banking.LineDrawn == 0 && !S.Banking.bLine);
+    TestTrue(TEXT("Most of it written off"), MarketFinance::Debt(S) < 20000000);
+    TestTrue(TEXT("Money for a month and the shelves"), S.Cash > 0);
+    TestTrue(TEXT("Half a year before the first installment"), S.Loans[0].NextDueDay >= S.Day + MarketFinance::RescueGraceDays);
+    TestEqual(TEXT("No new loan under the plan"), MarketFinance::LoanLimit(S), int64(0));
+    FString Why;
+    TestFalse(TEXT("No new branch under the plan"), MarketBranches::CanOpen(S, Products, TEXT("tr"), TEXT("kirklareli"), TEXT("mahalle"), Why));
+    TestTrue(TEXT("Told what was written off"), Lines.ContainsByPredicate([](const FString& Line) { return Line.Contains(TEXT("silindi")); }));
+    return true;
+}
+
 #endif

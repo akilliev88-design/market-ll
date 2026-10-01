@@ -204,6 +204,7 @@ MarketBanking::FPicture MarketBanking::Picture(const FMarketState& State)
 
 MarketBanking::ERating MarketBanking::Rating(const FMarketState& State)
 {
+    if (State.Day < State.RescueUntil) return ERating::D; // C7: under the bank's rescue plan
     if (State.Banking.LastRatingDay == 0) return MarketBankingLocal::FromScore(MarketBankingLocal::Score(State, nullptr));
     return static_cast<ERating>(FMath::Clamp<int32>(State.Banking.Rating, 0, static_cast<int32>(ERating::Count) - 1));
 }
@@ -262,6 +263,7 @@ bool MarketBanking::CanBorrow(const FMarketState& State, int32 BankIndex, FStrin
 {
     if (BankIndex < 0 || BankIndex > BondBank) { OutReason = TEXT("B\u00f6yle bir banka yok."); return false; }
     if (!IsOpen(State)) { OutReason = TEXT("\u015eirket kredisi ilk \u015fubeden sonra a\u00e7\u0131l\u0131r."); return false; }
+    if (State.Day < State.RescueUntil) { OutReason = FString::Printf(TEXT("Kurtarma plan\u0131 s\u00fcr\u00fcyor: %d g\u00fcn daha kredi yok."), State.RescueUntil - State.Day); return false; } // C7
     const FBank B = Bank(State, BankIndex);
     const ERating R = Rating(State);
     if (R == ERating::D) { OutReason = TEXT("Kredi notun D: bankalar kap\u0131y\u0131 kapatt\u0131."); return false; }
@@ -394,7 +396,7 @@ bool MarketBanking::Restructure(FMarketState& State, int32 BankIndex, FString& O
 
 int64 MarketBanking::LineLimitFor(const FMarketState& State)
 {
-    if (!IsOpen(State) || static_cast<int32>(Rating(State)) < static_cast<int32>(ERating::B)) return 0;
+    if (!IsOpen(State) || State.Day < State.RescueUntil || static_cast<int32>(Rating(State)) < static_cast<int32>(ERating::B)) return 0;
     const int64 Limit = Picture(State).Revenue * 15 / 100;
     return FMath::Max<int64>(0, Limit) / 10000 * 10000;
 }
@@ -489,12 +491,15 @@ void MarketBanking::CloseDay(FMarketState& State)
         const int64 Due = Interest + Principal;
         if (State.Cash + (B.bLineAuto ? LineRoom(State) : 0) < Due)
         {
-            // Missed: a late fee joins the debt, the next try in a week, the rating remembers.
+            // Missed: a late fee joins the debt (C7: once, then once a month while it stays unpaid), the next try in
+            // a week, the rating remembers.
+            const bool bFee = L.LateSince == 0 || (Closed - L.LateSince) % MonthDays < 7;
+            if (L.LateSince == 0) { L.LateSince = Closed; B.LateDays.Add(Closed); }
+            L.NextDueDay = Closed + 7;
+            if (!bFee) continue;
             const int64 Fee = FMath::RoundToInt64(Due * LateFee);
             L.Balance += Fee;
             Book(State, EAccount::Penalties, -Fee, false);
-            if (L.LateSince == 0) { L.LateSince = Closed; B.LateDays.Add(Closed); }
-            L.NextDueDay = Closed + 7;
             News.Add(FString::Printf(TEXT("%s: %s taksit \u00f6denemedi, %s gecikme fark\u0131 borca eklendi. Kredi notu bunu hat\u0131rlar."), *Bank(State, L.Bank).Name, *MarketCountry::Money(Due), *MarketCountry::Money(Fee)));
             continue;
         }

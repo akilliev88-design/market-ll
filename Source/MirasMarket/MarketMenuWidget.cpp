@@ -1414,7 +1414,14 @@ TSharedRef<SWidget> SMarketMenu::GoalsCard()
                 [
                     SNew(SHorizontalBox)
                     + SHorizontalBox::Slot().FillWidth(1.f)
-                    [ Label([GoalAt, Slot] { MarketGoals::FGoalView V; return GoalAt(Slot, V) ? FString::Printf(TEXT("%s: %s"), Scales[FMath::Clamp(static_cast<int32>(V.Scale), 0, 2)], *V.Title) : FString(); }, 10, ERole::Text, true, true) ]
+                    [ Label([GoalAt, Slot]
+                    {
+                        MarketGoals::FGoalView V;
+                        if (!GoalAt(Slot, V)) return FString();
+                        // C5 (A menu list): "Bu hafta: Bu hafta ..." -> the title alone when it already names its scale.
+                        const TCHAR* ScaleName = Scales[FMath::Clamp(static_cast<int32>(V.Scale), 0, 2)];
+                        return V.Title.StartsWith(ScaleName) ? V.Title : FString::Printf(TEXT("%s: %s"), ScaleName, *V.Title);
+                    }, 10, ERole::Text, true, true) ]
                     + SHorizontalBox::Slot().AutoWidth().Padding(8.f, 0.f, 0.f, 0.f)
                     [ Label([GoalAt, Slot] { MarketGoals::FGoalView V; return GoalAt(Slot, V) ? FString::Printf(TEXT("%d g\u00fcn"), V.DaysLeft) : FString(); }, 9, ERole::Muted) ]
                 ]
@@ -1547,14 +1554,23 @@ TSharedRef<SWidget> SMarketMenu::OrdersPage()
                 SNew(SHorizontalBox)
                 + SHorizontalBox::Slot().FillWidth(1.f).VAlign(VAlign_Center)
                 [ Label([G] { return G() ? MarketSuppliers::Summary(G()->State) : FString(); }, 11, ERole::Text, false, true) ]
+                // C5 (A menu list): each button only while it has something to do (day one: none of them).
                 + SHorizontalBox::Slot().AutoWidth().VAlign(VAlign_Center).Padding(8.f, 0.f, 0.f, 0.f)
-                [ Button([G] { return FString(G() && G()->State.Supplier == 0 ? TEXT("Ucuz toptanc\u0131ya ge\u00e7") : TEXT("Eski toptanc\u0131ya d\u00f6n")); },
-                    [Act, G] { if (G()) Act(TEXT("Supplier"), G()->State.Supplier == 0 ? 1 : 0); }, false,
-                    [G] { return G() && (G()->State.Supplier != 0 || MarketSuppliers::Available(G()->State, MarketSuppliers::ESupplier::CashCarry)); }) ]
+                [
+                    SNew(SBox).Visibility_Lambda([G] { return G() && (G()->State.Supplier != 0 || MarketSuppliers::Available(G()->State, MarketSuppliers::ESupplier::CashCarry)) ? EVisibility::Visible : EVisibility::Collapsed; })
+                    [ Button([G] { return FString(G() && G()->State.Supplier == 0 ? TEXT("Ucuz toptanc\u0131ya ge\u00e7") : TEXT("Eski toptanc\u0131ya d\u00f6n")); },
+                        [Act, G] { if (G()) Act(TEXT("Supplier"), G()->State.Supplier == 0 ? 1 : 0); }) ]
+                ]
                 + SHorizontalBox::Slot().AutoWidth().VAlign(VAlign_Center).Padding(8.f, 0.f, 0.f, 0.f)
-                [ Button([] { return FString(TEXT("Faturalar\u0131 \u00f6de")); }, [Act] { Act(TEXT("PayBills"), 0); }, false, [G] { return G() && MarketSuppliers::OpenBills(G()->State) > 0; }) ]
+                [
+                    SNew(SBox).Visibility_Lambda([G] { return G() && MarketSuppliers::OpenBills(G()->State) > 0 ? EVisibility::Visible : EVisibility::Collapsed; })
+                    [ Button([] { return FString(TEXT("Faturalar\u0131 \u00f6de")); }, [Act] { Act(TEXT("PayBills"), 0); }) ]
+                ]
                 + SHorizontalBox::Slot().AutoWidth().VAlign(VAlign_Center).Padding(8.f, 0.f, 0.f, 0.f)
-                [ Button([] { return FString(TEXT("Zamm\u0131 yans\u0131t")); }, [Act] { Act(TEXT("PassOnPriceRise"), 0); }, false, [G] { return G() && MarketSuppliers::PriceGap(G()->State) >= 0.005; }) ],
+                [
+                    SNew(SBox).Visibility_Lambda([G] { return G() && MarketSuppliers::PriceGap(G()->State) >= 0.005 ? EVisibility::Visible : EVisibility::Collapsed; })
+                    [ Button([] { return FString(TEXT("Zamm\u0131 yans\u0131t")); }, [Act] { Act(TEXT("PassOnPriceRise"), 0); }) ]
+                ],
                 ERole::Panel, FMargin(18.f, 10.f))
             ]
         ]
@@ -1666,11 +1682,13 @@ TSharedRef<SWidget> SMarketMenu::DayReport()
         + SVerticalBox::Slot().AutoHeight()[ DecisionCard() ]
         + SVerticalBox::Slot().AutoHeight()
         [
-            Label([G] { return G() && G()->State.Day > 1 ? FString::Printf(TEXT("%d. g\u00fcn kapand\u0131"), G()->State.Day - 1) : FString(TEXT("Hen\u00fcz kapanm\u0131\u015f g\u00fcn yok. O ile a\u00e7\u0131p g\u00fcn\u00fc bitirince rapor burada.")); }, 13, ERole::Muted, true)
+            Label([G] { return G() && G()->State.Day > 1 ? FString::Printf(TEXT("%d. g\u00fcn kapand\u0131"), G()->State.Day - 1) : FString(TEXT("\u0130lk g\u00fcn\u00fc kapat\u0131nca burada g\u00fcn\u00fcn raporu g\u00f6r\u00fcn\u00fcr.")); }, 13, ERole::Muted, true)
         ]
+        // C5 (A menu list): before the first closed day only the line above (no grid of zeros).
         + SVerticalBox::Slot().AutoHeight().Padding(0.f, 10.f, 0.f, 0.f)
         [
             SNew(SHorizontalBox)
+            .Visibility_Lambda([G] { return G() && G()->State.Day > 1 ? EVisibility::Visible : EVisibility::Collapsed; })
             + SHorizontalBox::Slot().FillWidth(1.f).Padding(0.f, 0.f, 12.f, 0.f)
             [ Stat(TEXT("NET SONU\u00c7"), [G] { return G() ? MarketMenuUi::Tl(G()->State.LastProfit) : FString(); },
                    [G] { return G() ? FString::Printf(TEXT("%d k\u00e2rl\u0131 g\u00fcn"), G()->State.ProfitableDays) : FString(); },
@@ -1687,14 +1705,21 @@ TSharedRef<SWidget> SMarketMenu::DayReport()
         + SVerticalBox::Slot().AutoHeight().Padding(0.f, 12.f, 0.f, 0.f)
         [
             SNew(SHorizontalBox)
+            .Visibility_Lambda([G] { return G() && G()->State.Day > 1 ? EVisibility::Visible : EVisibility::Collapsed; })
             + SHorizontalBox::Slot().FillWidth(1.4f).Padding(0.f, 0.f, 12.f, 0.f)
             [
                 Card(SNew(SVerticalBox)
                     + SVerticalBox::Slot().AutoHeight().Padding(0.f, 0.f, 0.f, 6.f)[ Fixed(TEXT("NEREDE M\u00dc\u015eTER\u0130 KAYBETT\u0130N"), 9, ERole::Muted, true) ]
                     + SVerticalBox::Slot().AutoHeight()
                     [
-                        SNew(SBox).Visibility_Lambda([G] { return G() && MarketDemand::TopProblems(G()->State, 1).Num() == 0 ? EVisibility::Visible : EVisibility::Collapsed; })
+                        // C5 (A menu list): "everyone found it" only when there were shoppers.
+                        SNew(SBox).Visibility_Lambda([G] { return G() && G()->State.LastServed > 0 && MarketDemand::TopProblems(G()->State, 1).Num() == 0 ? EVisibility::Visible : EVisibility::Collapsed; })
                         [ Fixed(TEXT("Kay\u0131p m\u00fc\u015fteri yok. Herkes arad\u0131\u011f\u0131n\u0131 buldu."), 11, ERole::Good) ]
+                    ]
+                    + SVerticalBox::Slot().AutoHeight()
+                    [
+                        SNew(SBox).Visibility_Lambda([G] { return G() && G()->State.LastServed <= 0 && MarketDemand::TopProblems(G()->State, 1).Num() == 0 ? EVisibility::Visible : EVisibility::Collapsed; })
+                        [ Fixed(TEXT("D\u00fcn sat\u0131\u015f olmad\u0131."), 11, ERole::Muted) ]
                     ]
                     + SVerticalBox::Slot().AutoHeight()[ Problems ])
             ]
@@ -1775,11 +1800,14 @@ TSharedRef<SWidget> SMarketMenu::WeekReport()
         SNew(SVerticalBox)
         + SVerticalBox::Slot().AutoHeight()
         [
-            Label([G] { return G() && G()->State.LastWeekNumber > 0 ? FString::Printf(TEXT("%d. hafta"), G()->State.LastWeekNumber) : FString(TEXT("\u0130lk hafta raporu 7. g\u00fcn\u00fcn sonunda gelir. Grafik \u015fimdiden son g\u00fcnleri g\u00f6sterir.")); }, 13, ERole::Muted, true)
+            Label([G] { return G() && G()->State.LastWeekNumber > 0 ? FString::Printf(TEXT("%d. hafta"), G()->State.LastWeekNumber) : (G() && G()->State.History.Num() > 0 ? FString(TEXT("\u0130lk hafta raporu 7. g\u00fcn\u00fcn sonunda gelir. Grafik \u015fimdiden son g\u00fcnleri g\u00f6sterir."))
+                : FString(TEXT("\u0130lk g\u00fcn\u00fc kapat\u0131nca burada son g\u00fcnlerin grafi\u011fi g\u00f6r\u00fcn\u00fcr; hafta raporu 7. g\u00fcn\u00fcn sonunda gelir."))); }, 13, ERole::Muted, true, true)
         ]
+        // C5 (A menu list): the week's numbers once a week has closed, the chart once a day has.
         + SVerticalBox::Slot().AutoHeight().Padding(0.f, 10.f, 0.f, 0.f)
         [
             SNew(SHorizontalBox)
+            .Visibility_Lambda([G] { return G() && G()->State.LastWeekNumber > 0 ? EVisibility::Visible : EVisibility::Collapsed; })
             + SHorizontalBox::Slot().FillWidth(1.f).Padding(0.f, 0.f, 12.f, 0.f)
             [ Stat(TEXT("HAFTANIN NET\u0130"), [G] { return G() ? MarketMenuUi::Tl(G()->State.LastWeekProfit) : FString(); }, [G] { return G() ? FString::Printf(TEXT("ciro %s"), *MarketMenuUi::Tl(G()->State.LastWeekRevenue)) : FString(); },
                    [G] { return G() && G()->State.LastWeekProfit < 0 ? ERole::Bad : ERole::Good; }) ]
@@ -1791,6 +1819,8 @@ TSharedRef<SWidget> SMarketMenu::WeekReport()
         ]
         + SVerticalBox::Slot().AutoHeight().Padding(0.f, 12.f, 0.f, 0.f)
         [
+            SNew(SBox).Visibility_Lambda([G] { return G() && G()->State.History.Num() > 0 ? EVisibility::Visible : EVisibility::Collapsed; })
+            [
             Card(SNew(SVerticalBox)
                 + SVerticalBox::Slot().AutoHeight().Padding(0.f, 0.f, 0.f, 10.f)[ Fixed(TEXT("G\u00dcNL\u00dcK NET \u00b7 SON 7 G\u00dcN"), 9, ERole::Muted, true) ]
                 + SVerticalBox::Slot().AutoHeight()[ Bars ]
@@ -1805,6 +1835,7 @@ TSharedRef<SWidget> SMarketMenu::WeekReport()
                         return FString::Printf(TEXT("Yerel pay: ba\u015fta %%%.0f, sonda %%%.0f  \u00b7  kasa: ba\u015fta %s, sonda %s"), First.MarketShare, Last.MarketShare, *MarketMenuUi::Tl(First.Cash), *MarketMenuUi::Tl(Last.Cash));
                     }, 10, ERole::Muted)
                 ])
+            ]
         ]
     ];
 }
