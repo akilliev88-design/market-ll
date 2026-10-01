@@ -1,4 +1,5 @@
 #include "MarketFreshness.h"
+#include "MarketLedger.h"
 #include "MarketCountry.h"
 #include "MarketGoods.h"
 
@@ -31,10 +32,22 @@ int32 MarketFreshness::LastDayUnits(const FMarketState& State, const FString& Pr
     return Units;
 }
 
+int32 MarketFreshness::MarkdownUnitsLeft(const FMarketState& State, int32 Index)
+{
+    if (State.FreshPolicy != static_cast<uint8>(EPolicy::Markdown) || !State.Stock.IsValidIndex(Index)) return 0;
+    return FMath::Max(0, LastDayUnits(State, State.Stock[Index].Id) - State.Stock[Index].Today.Sold);
+}
+
 float MarketFreshness::PriceFactor(const FMarketState& State, int32 Index)
 {
-    if (State.FreshPolicy != static_cast<uint8>(EPolicy::Markdown) || !State.Stock.IsValidIndex(Index)) return 1.f;
-    return LastDayUnits(State, State.Stock[Index].Id) > 0 ? 1.f - MarkdownPercent / 100.f : 1.f;
+    return MarkdownUnitsLeft(State, Index) > 0 ? 1.f - MarkdownPercent / 100.f : 1.f;
+}
+
+double MarketFreshness::PriceFactor(const FMarketState& State, int32 Index, int32 Quantity)
+{
+    const int32 Units = FMath::Max(1, Quantity);
+    const int32 Marked = FMath::Min(Units, MarkdownUnitsLeft(State, Index));
+    return (Marked * (1.0 - MarkdownPercent / 100.0) + (Units - Marked)) / Units;
 }
 
 int32 MarketFreshness::DaysLeft(const FMarketState& State, const FString& ProductId)
@@ -82,7 +95,7 @@ void MarketFreshness::CloseDay(FMarketState& State, const TArray<FMarketProduct>
         const int32 Arrived = FMath::Max(0, Item.Received);
         Item.Received = 0;
         const int32 Left = InBatches + Arrived - Now;
-        const int32 Fresh = Arrived + FMath::Max(0, -Left); // units nobody recorded (older saves) count as new too
+        const int32 Fresh = Arrived + FMath::Max(0, -Left); // units no batch recorded (the inherited stock, goods put on a shelf without a delivery) count as new too
         if (Left > 0)
         {
             int32 Gone = FMath::Min(Left, InBatches);
@@ -130,6 +143,7 @@ void MarketFreshness::CloseDay(FMarketState& State, const TArray<FMarketProduct>
     if (State.LastWasteCost > 0)
     {
         State.LastProfit -= State.LastWasteCost;
+        MarketLedger::Post(State, MarketLedger::EAccount::Waste, -State.LastWasteCost, false); // B2
         if (Spoiled.Num() > 0)
             State.DayNews.Add(FString::Printf(TEXT("Fire: %s tarihi ge\u00e7ti ve at\u0131ld\u0131 (%s zarar). Az sipari\u015f ver ya da son g\u00fcn indirimi yap."),
                 *FString::Join(Spoiled, TEXT(", ")), *FreshTl(State.LastWasteCost)));

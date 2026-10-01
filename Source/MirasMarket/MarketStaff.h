@@ -46,6 +46,25 @@ namespace MarketStaff
     FString RoleName(ERole Role);
     ERole RoleOf(const FMarketEmployee& Employee);
 
+    // B3 (#39): wages, social security and seniority pay (Docs/Surec/akislar/B.md). The same rules are meant for
+    // the branches' workers and the managers (MarketBranches, MarketManagers: Ak\u0131\u015f C wires them).
+    // The lowest daily wage of the day: the net monthly minimum wage (MarketPrices) / 30 x the country's wage
+    // factor, rounded up to 50 kuru\u015f. Nobody on the payroll earns less; the accountant is a fee, not a wage.
+    int64 MinimumDailyWage(int32 GameDay);
+    // The employer's social security share of the active country (MarketCountry: employerSocialRate).
+    float EmployerSocialRate();
+    // Social security the employer pays on a wage, and wage + that share.
+    int64 EmployerShare(int64 Wage);
+    int64 EmployerCost(int64 Wage);
+    // Seniority pay (k\u0131dem tazminat\u0131) when the employer lets someone go: severanceDaysPerYear days' wage per year of
+    // service, from the first full year on (pro rata beyond it). Resignations get none.
+    constexpr int32 SeniorityAfterDays = 365;
+    int64 SeniorityPay(int64 DailyWage, int32 HiredDay, int32 GameDay);
+    // Notice pay (SeveranceDays' wage) + seniority pay of an employee fired today; 0 for the accountant.
+    int64 SeverancePay(const FMarketState& State, const FMarketEmployee& Employee);
+    // Today's social security on the payroll (the accountant's fee excluded).
+    int64 DailySocialSecurity(const FMarketState& State);
+
     // Wage the market pays for this role and skill on a game day (follows the minimum wage, MarketPrices).
     // Morale compares the actual wage with it, so a wage that is never raised slowly becomes a low wage.
     int64 FairWage(ERole Role, int32 Skill, int32 GameDay = 1);
@@ -61,8 +80,9 @@ namespace MarketStaff
     bool HasAccountant(const FMarketState& State);
     bool HrUnlocked(const FMarketState& State);
 
-    // Older saves: turns bCashier/Stockers into people. Does nothing when the roster exists.
-    void Migrate(FMarketState& State);
+    // M27: older saves are not converted any more. This empty call stays only so that MarketMenu.cpp (StaffCommand)
+    // and MarketGame.cpp (Hire, LoadGame) still compile; C3 deletes those three calls and this line (B.md).
+    inline void Migrate(FMarketState&) {}
     // G-084 (karar L03): the people who come with an inherited shop. Ordinary candidates (random skill, fair wage),
     // hired on the current day without a hiring cost.
     void AddStartingStaff(FMarketState& State, int32 Cashiers, int32 Stockers);

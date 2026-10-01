@@ -1,4 +1,7 @@
 #include "MarketOnline.h"
+#include "MarketEras.h"
+#include "MarketLedger.h"
+#include "MarketPromotions.h"
 #include "MarketCountry.h"
 #include "MarketBasket.h"
 #include "MarketCalendar.h"
@@ -33,7 +36,7 @@ namespace MarketOnline
     // long the panic lasts, which weekends are closed and how long the spring closure is come from the seed.
     uint32 Roll(const FMarketState& State, uint32 Salt, int32 Extra = 0) { return OnlineMix(State.RivalSeed, Extra, Salt); }
     int32 PanicEnd(const FMarketState& State) { return PandemicStart(State) + 1 + 8 + static_cast<int32>(Roll(State, 0x9A01u) % 7u); }
-    int32 ClosureStart(const FMarketState& State) { return DateDay(2021, 4, 15) + static_cast<int32>(Roll(State, 0x9A02u) % 21u); }
+    int32 ClosureStart(const FMarketState& State) { return DateDay(2021, 4, 15) + MarketEras::PandemicShiftDays(State) + static_cast<int32>(Roll(State, 0x9A02u) % 21u); }
     int32 ClosureEnd(const FMarketState& State) { return ClosureStart(State) + 10 + static_cast<int32>(Roll(State, 0x9A03u) % 11u); }
 
     bool IsPanic(const FMarketState& State, int32 GameDay)
@@ -229,12 +232,13 @@ float MarketOnline::DistrictOnlineShare(const FMarketState& State, int32 GameDay
 
 int32 MarketOnline::PandemicStart(const FMarketState& State)
 {
-    return DateDay(2020, 3, 1) + static_cast<int32>(Roll(State, 0x9A00u) % 21u);
+    // B4: the epidemic comes when the campaign's eras say (MarketEras; no shift without MarketEras::Setup).
+    return DateDay(2020, 3, 1) + MarketEras::PandemicShiftDays(State) + static_cast<int32>(Roll(State, 0x9A00u) % 21u);
 }
 
 int32 MarketOnline::PandemicEnd(const FMarketState& State)
 {
-    return DateDay(2021, 5, 20) + static_cast<int32>(Roll(State, 0x9A04u) % 50u);
+    return DateDay(2021, 5, 20) + MarketEras::PandemicShiftDays(State) + static_cast<int32>(Roll(State, 0x9A04u) % 50u);
 }
 
 bool MarketOnline::IsPandemic(const FMarketState& State, int32 GameDay)
@@ -428,13 +432,18 @@ void MarketOnline::CloseDay(FMarketState& State, const TArray<FMarketProduct>& P
     if (bStock)
         for (const FMarketProduct& P : Products)
         {
-            const float W = P.bActive ? MarketCalendar::CategoryFactor(Closed, State.RivalSeed, P.Category) * GroupFactor(State, MarketGoods::Classify(P.Category)) : 0.f;
+            // B1 (#30): only what the shop carries (a shelf plan block) is on the web list.
+            const int32 Row = Weights.Num();
+            const bool bCarried = State.Stock.IsValidIndex(Row) && State.Stock[Row].Capacity > 0;
+            const float W = P.bActive && bCarried ? MarketCalendar::CategoryFactor(Closed, State.RivalSeed, P.Category) * GroupFactor(State, MarketGoods::Classify(P.Category)) : 0.f;
             Weights.Add(W);
             Total += W;
         }
 
     int64 Revenue = 0, Cogs = 0;
     int32 Units = 0, Picked = 0, Own = 0;
+    // B1 (#30): online units by catalog row (a promotion's "before" counts the shop only).
+    State.Ledger.OnlineSold.Init(0, State.Stock.Num());
     const int32 PickCap = PickCapacity(State), DeliverCap = DeliveryCapacity(State);
     for (const FOrder& Order : Orders)
     {
@@ -475,7 +484,8 @@ void MarketOnline::CloseDay(FMarketState& State, const TArray<FMarketProduct>& P
             FMarketStock& Row = State.Stock[Index];
             Row.Yesterday.Sold += Wanted;
             ++Row.Yesterday.Buyers;
-            Value += Row.Price * Wanted;
+            Value += MarketPromotions::DealPrice(State, Products, Index, Wanted, Closed) * Wanted; // B1 (#30): the shelf deal
+            State.Ledger.OnlineSold[Index] += Wanted;
             Cogs += State.UnitCost(Index, Products) * Wanted;
             Units += Wanted;
             ++Delivered;
@@ -514,6 +524,9 @@ void MarketOnline::CloseDay(FMarketState& State, const TArray<FMarketProduct>& P
     State.LastOperatingCost += Costs;
     State.LastProfit += O.LastProfit;
     State.Cash += Revenue - Costs;
+    MarketLedger::Post(State, MarketLedger::EAccount::OnlineSales, Revenue); // B2
+    MarketLedger::Post(State, MarketLedger::EAccount::CostOfGoods, -Cogs, false);
+    MarketLedger::Post(State, MarketLedger::EAccount::OnlineCosts, -Costs);
 
     if (O.LastOrders > 0 || O.LastCancelled > 0)
     {

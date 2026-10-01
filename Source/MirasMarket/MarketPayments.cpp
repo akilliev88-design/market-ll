@@ -1,4 +1,5 @@
 #include "MarketPayments.h"
+#include "MarketLedger.h"
 #include "MarketCountry.h"
 #include "MarketCalendar.h"
 #include "MarketPrices.h"
@@ -73,6 +74,8 @@ FString MarketPayments::Settle(FMarketState& State, EMethod Method, int64 Receip
         const bool bMeal = Method == EMethod::MealCard;
         const int64 Fee = FMath::RoundToInt64(Receipt * (bMeal ? MealCommission : CardCommission));
         State.Cash -= Receipt;              // not in the drawer: the bank pays it in tomorrow
+        MarketLedger::Post(State, MarketLedger::EAccount::CardTransfer, -Receipt); // B2
+        MarketLedger::Post(State, MarketLedger::EAccount::BankFees, -Fee, false);  // the bank keeps it from the payout
         P.CardToday += Receipt - Fee;
         P.Commission += Fee;
         ++(bMeal ? P.Meal : P.Card);
@@ -132,6 +135,7 @@ void MarketPayments::CloseDay(FMarketState& State)
     FMarketPayments& P = State.Payments;
     // Yesterday's card money arrives; today's waits for tomorrow's close.
     State.Cash += P.CardTomorrow;
+    MarketLedger::Post(State, MarketLedger::EAccount::CardTransfer, P.CardTomorrow); // B2
     P.CardTomorrow = P.CardToday;
     P.CardToday = 0;
     // Commission and fees are costs of the closed day.
@@ -140,6 +144,7 @@ void MarketPayments::CloseDay(FMarketState& State)
     State.LastOperatingCost += P.Commission + Fees;
     State.LastProfit -= P.Commission + Fees;
     State.Cash -= Fees;
+    MarketLedger::Post(State, MarketLedger::EAccount::BankFees, -Fees); // B2
     P.Commission = 0;
     P.LastCash = P.Cash; P.LastCard = P.Card; P.LastMeal = P.Meal; P.LastNoCard = P.NoCard; P.LastNoCardLost = P.NoCardLost;
     P.Cash = P.Card = P.Meal = P.NoCard = P.NoCardLost = 0;

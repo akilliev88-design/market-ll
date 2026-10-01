@@ -2,6 +2,8 @@
 
 #include "CoreMinimal.h"
 
+struct FMarketState;
+
 // Country packs (G-084, karar L02-L11, Config/ulkeler.json). Independent of the world, tested
 // (MirasMarket.Country.*). The game keeps one internal money unit (the catalog's scale); a country shows it in its
 // own currency (DisplayScale x the internal amount, its symbol and decimal mark) and brings its own economy
@@ -80,6 +82,15 @@ namespace MarketCountry
         double InflationVol = 0.06;
         double LoanSpread = 0.05;
         float WageFactor = 1.f;
+        // B1 (#45): what a person spends on groceries a day, internal kurus at the start price level ("economy":
+        // "groceryPerPersonDay" in money units, e.g. 0.65). 0 = 65 x wageFactor. Calibrated so that a discounter
+        // of the game (about 900 a day) holds what one store of the country's biggest chain holds in reality.
+        double GroceryPerPersonDay = 0.0;
+        // B3 (#39): the employer's social security share on wages ("economy": "employerSocialRate"; Turkey 0.225 as
+        // a game value) and the seniority pay per full year of service when a worker is let go ("severanceDaysPerYear";
+        // Turkey 30 days' wage, 0 = none).
+        float EmployerSocialRate = 0.225f;
+        int32 SeveranceDaysPerYear = 30;
         float RentFactor = 1.f;
         float WeeklyShopShare = 0.25f;
         bool bSundayClosed = false;
@@ -134,4 +145,14 @@ namespace MarketCountry
     FString Decorate(const FString& Number);
     // Chain name for an archetype in the active country ("" = keep the default).
     FString ChainName(const FString& Archetype);
+
+    // B5 (\u00f6neri L08): real currency names, fictional rates. Local money per "world unit" (d\u00fcnya birimi, the common
+    // unit of the world league, MarketChains) in a country on a game day: the pack's fxPerWorld at the start, then
+    // the country's inflation against the world's (2.5 % a year; the campaign's own country uses its price curve
+    // with the eras), a seeded random walk sized by the economy character (stable 0.03, volatile 0.08, high
+    // inflation 0.06 a year) and, in the campaign's own country, about +25 % x strength over ten days in a currency
+    // shock era (MarketEras).
+    double FxRate(const FMarketState& State, const FString& CountryId, int32 GameDay);
+    // An internal amount earned in a country -> world units x 100 (like kurus).
+    int64 ToWorld(const FMarketState& State, const FString& CountryId, int64 Internal, int32 GameDay);
 }

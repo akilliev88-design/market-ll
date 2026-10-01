@@ -1,5 +1,10 @@
 #pragma once
 #include "CoreMinimal.h"
+// ===== Ak\u0131\u015f B =====
+#include "MarketLedger.h"
+#include "MarketEras.h"
+#include "MarketGoals.h"
+// ===== Ak\u0131\u015f B son =====
 #include "MarketEconomy.generated.h"
 
 // Static product definition. Loaded from Config/products.json (see ProductCatalog.h).
@@ -847,6 +852,15 @@ struct FMarketState
     UPROPERTY() float ShareBeforeClose = 25.f;
     // Evening report lines of the background systems (MarketDirector clears it at every day close).
     UPROPERTY() TArray<FString> DayNews;
+
+    // ===== Ak\u0131\u015f B =====
+    // Docs/Surec/akislar/B.md: the books (MarketLedger.h).
+    UPROPERTY() FMarketLedger Ledger;
+    // B4: eras of the economy (MarketEras.h).
+    UPROPERTY() FMarketEras Eras;
+    // B6: goals, firsts, records, celebrations, the rhythm guard (MarketGoals.h).
+    UPROPERTY() FMarketGoals Goals;
+    // ===== Ak\u0131\u015f B son =====
 
     // Wages of everyone on the payroll (paid days off included). Staff empty = the v0.1 flags (older saves, tests).
     int64 DailyPayroll() const;

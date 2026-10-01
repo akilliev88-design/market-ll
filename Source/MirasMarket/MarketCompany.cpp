@@ -1,4 +1,5 @@
 #include "MarketCompany.h"
+#include "MarketLedger.h"
 #include "MarketCountry.h"
 #include "MarketBranches.h"
 #include "MarketCalendar.h"
@@ -60,10 +61,33 @@ int32 MarketCompany::ForeignCountries(const FMarketState& State)
     return Seen.Num();
 }
 
+int64 MarketCompany::CountryMarketDay(const FMarketState& State)
+{
+    const int64 People = static_cast<int64>(FMath::Max(1000, MarketCountry::PopulationK(State.CountryId))) * 1000;
+    const MarketCountry::FProfile* Pack = MarketCountry::Find(State.CountryId);
+    const double PerPerson = Pack && Pack->GroceryPerPersonDay > 0.0 ? Pack->GroceryPerPersonDay : 65.0 * (Pack ? Pack->WageFactor : 1.f);
+    return FMath::Max<int64>(1, FMath::RoundToInt64(People * PerPerson * MarketPrices::ListLevel(FMath::Max(1, State.Day - 1))));
+}
+
+int64 MarketCompany::CountryRevenueToday(const FMarketState& State)
+{
+    int64 Revenue = FMath::Max<int64>(0, State.LastRevenue);
+    for (const FMarketBranch& B : State.Branches)
+        if (IsOpen(B) && MarketBranches::CountryOf(State, B) == State.CountryId) Revenue += FMath::Max<int64>(0, B.LastRevenue);
+    return Revenue;
+}
+
+void MarketCompany::TrackNationalRevenue(FMarketState& State)
+{
+    int64& Smooth = State.Ledger.CountryRevenueDay;
+    const int64 Today = CountryRevenueToday(State);
+    Smooth = Smooth <= 0 ? Today : Smooth + (Today - Smooth) / 30;
+}
+
 float MarketCompany::NationalShare(const FMarketState& State)
 {
-    const int32 People = FMath::Max(1000, MarketCountry::PopulationK(State.CountryId));
-    return CountryStores(State, State.CountryId) * 0.04f * 85000.f / People;
+    const int64 Revenue = State.Ledger.CountryRevenueDay > 0 ? State.Ledger.CountryRevenueDay : CountryRevenueToday(State);
+    return static_cast<float>(100.0 * static_cast<double>(Revenue) / static_cast<double>(CountryMarketDay(State)));
 }
 
 bool MarketCompany::ChapterOpen(const FMarketState& State, int32 Chapter)
@@ -152,6 +176,7 @@ bool MarketCompany::Build(FMarketState& State, int32 What, FString& OutMessage)
         const int64 Cost = Scaled(State, Cost2011);
         if (State.Cash < Cost) { OutMessage = FString::Printf(TEXT("%s %s; kasada yok."), Name, *CompanyTl(Cost)); return false; }
         State.Cash -= Cost;
+        MarketLedger::Post(State, MarketLedger::EAccount::Investment, -Cost, true, MarketLedger::HeadOfficeStore); // B2
         OutMessage = FString::Printf(TEXT("%s tamam (%s)."), Name, *CompanyTl(Cost));
         return true;
     };
@@ -234,6 +259,7 @@ void MarketCompany::CloseDay(FMarketState& State)
     State.LastBranchProfit += Total;
     State.LastProfit += Total;
     State.Cash += Total;
+    MarketLedger::Post(State, MarketLedger::EAccount::HeadOffice, Total, true, MarketLedger::HeadOfficeStore); // B2: depots' rent, trucks, dark store
 
     // Chapter 7: a year of leading on every measure brings the one finale (karar J02; the measure becomes the
     // global retail league in G-082). After the finale the game goes on without new story content.

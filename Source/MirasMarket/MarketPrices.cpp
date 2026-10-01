@@ -1,5 +1,6 @@
 #include "MarketPrices.h"
 #include "MarketCalendar.h"
+#include "MarketEras.h"
 
 namespace MarketPrices
 {
@@ -64,9 +65,17 @@ bool MarketPrices::HasCustomEconomy() { return Economy().bOn; }
 
 double MarketPrices::YearlyInflation(int32 Year)
 {
-    if (Economy().bOn && Year >= 2011) return CustomInflation(Year);
-    if (const FYearRates* R = FindYear(Year)) return R->Inflation;
-    return Year < 2011 ? 0.08 : LaterInflation;
+    // B4: the eras of the campaign (MarketEras) carry the inflation peaks; the built-in curve holds the unshifted
+    // plan's peaks, so they are taken out and the campaign's put in (no shift: the same curve as before).
+    if (Year < 2011) return 0.08;
+    const double Era = MarketEras::InflationBump(Year);
+    if (Economy().bOn) return FMath::Clamp(CustomInflation(Year) + Era, -0.01, 0.9);
+    if (const FYearRates* R = FindYear(Year))
+    {
+        const double BuiltIn = MarketEras::BuiltInBump(Year);
+        return Era == BuiltIn ? R->Inflation : FMath::Clamp(R->Inflation - BuiltIn + Era, -0.01, 0.9);
+    }
+    return LaterInflation + Era;
 }
 
 double MarketPrices::DailyGrowth(int32 GameDay)
@@ -116,9 +125,15 @@ double MarketPrices::WageIndex(int32 GameDay)
 double MarketPrices::LoanRate(int32 GameDay)
 {
     const int32 Year = MarketCalendar::DateOf(GameDay).Year;
-    if (Economy().bOn) return FMath::Max(0.02, CustomInflation(Year) + Economy().Spread);
-    if (const FYearRates* R = FindYear(Year)) return R->LoanRate;
-    return LaterLoanRate;
+    // B4: banks follow the eras' inflation peaks one to one.
+    if (Economy().bOn) return FMath::Max(0.02, YearlyInflation(Year) + Economy().Spread);
+    const double Era = Year >= 2011 ? MarketEras::InflationBump(Year) : 0.0;
+    if (const FYearRates* R = FindYear(Year))
+    {
+        const double BuiltIn = MarketEras::BuiltInBump(Year);
+        return Era == BuiltIn ? R->LoanRate : FMath::Max(0.02, R->LoanRate - BuiltIn + Era);
+    }
+    return LaterLoanRate + Era;
 }
 
 int64 MarketPrices::Scaled(int64 Kurus2011, int32 GameDay)

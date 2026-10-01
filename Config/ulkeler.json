@@ -21,7 +21,9 @@
         "inflationVol": 0.06,
         "loanSpread": 0.05,
         "wageFactor": 1.0,
-        "rentFactor": 1.0
+        "rentFactor": 1.0,
+        "employerSocialRate": 0.225,
+        "severanceDaysPerYear": 30
       },
       "habits": {
         "weeklyShopShare": 0.25,
@@ -379,7 +381,9 @@
         "inflationVol": 0.012,
         "loanSpread": 0.03,
         "wageFactor": 2.6,
-        "rentFactor": 2.2
+        "rentFactor": 2.2,
+        "employerSocialRate": 0.21,
+        "severanceDaysPerYear": 15
       },
       "habits": {
         "weeklyShopShare": 0.55,
@@ -629,7 +633,9 @@
         "inflationVol": 0.02,
         "loanSpread": 0.03,
         "wageFactor": 2.4,
-        "rentFactor": 2.6
+        "rentFactor": 2.6,
+        "employerSocialRate": 0.14,
+        "severanceDaysPerYear": 7
       },
       "habits": {
         "weeklyShopShare": 0.5,
@@ -867,7 +873,9 @@
         "inflationVol": 0.018,
         "loanSpread": 0.035,
         "wageFactor": 2.8,
-        "rentFactor": 2.0
+        "rentFactor": 2.0,
+        "employerSocialRate": 0.1,
+        "severanceDaysPerYear": 0
       },
       "habits": {
         "weeklyShopShare": 0.65,

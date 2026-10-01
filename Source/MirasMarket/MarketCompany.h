@@ -28,8 +28,16 @@ namespace MarketCompany
     int32 Provinces(const FMarketState& State);
     // Foreign countries with an open shop.
     int32 ForeignCountries(const FMarketState& State);
-    // Percent of the campaign country's grocery retail (0.04 % a shop for a country of Turkey's size).
+    // Percent of the campaign country's grocery retail. B1 (#45): by revenue, not by store count: our revenue in the
+    // country a day (smoothed over about a month, State.Ledger.CountryRevenueDay; before the first measured day
+    // the last closed day) / what the country's people spend on groceries a day (CountryMarketDay).
     float NationalShare(const FMarketState& State);
+    // The country's grocery retail a day at today's prices: people x MarketCountry::FProfile::GroceryPerPersonDay.
+    int64 CountryMarketDay(const FMarketState& State);
+    // Our revenue of the last closed day in the campaign country (family shop with its online orders + branches there).
+    int64 CountryRevenueToday(const FMarketState& State);
+    // Day close (after every revenue is booked): moves the smoothed revenue a thirtieth towards the day's.
+    void TrackNationalRevenue(FMarketState& State);
     bool ChapterOpen(const FMarketState& State, int32 Chapter);
 
     // Depots (G-089: MarketDepots, depots in provinces). HasDepot: a depot in a province of the sub-region.

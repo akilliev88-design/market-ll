@@ -23,6 +23,15 @@ namespace MarketFinance
     constexpr float EarlyRepayFee = 0.01f;
     constexpr float LateFee = 0.03f;
     constexpr double EmergencyRateBonus = 0.12;   // yearly, on top of the year's rate
+    // B1 (#43): the mortgage is no reward for a month in the red: a risk premium on the rate, a valuation and deed
+    // fee paid from the loan, and only what the shop needs (1.5 x the hole, at least 500 at the start level, at
+    // most 3 000).
+    constexpr double MortgageRateBonus = 0.06;
+    constexpr float MortgageFee = 0.02f;
+    constexpr int64 MortgageMin = 50000;
+    constexpr int64 MortgageMax = 300000;
+    // The mortgage's size tonight (start-level limits x the price list).
+    int64 MortgageAmount(const FMarketState& State);
     constexpr int64 HouseholdDraw = 3000;         // start-level kurus a day taken home, follows the minimum wage
     const int64 LoanSteps[3] = { 50000, 100000, 250000 };   // 500 / 1.000 / 2.500 TL at the start price level
 

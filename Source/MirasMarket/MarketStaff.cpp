@@ -1,6 +1,6 @@
 #include "MarketStaff.h"
+#include "MarketLedger.h"
 #include "MarketCountry.h"
-#include "StaffPlanner.h"
 #include "MarketPrices.h"
 
 // Internal rules (not in the header). Inside namespace MarketStaff so the MarketStaff:: definitions below find them
@@ -73,7 +73,7 @@ namespace MarketStaff
         // Most people are honest; about one in eight is not (never visible, see the accountant).
         const int32 Trust = static_cast<int32>((B >> 8) % 100u);
         C.Honesty = Trust < 12 ? 15 + Trust : 55 + Trust % 45;
-        C.DailyWage = Round50(MarketStaff::FairWage(Role, C.Skill, State.Day) * (0.90 + ((B >> 16) % 26u) / 100.0));
+        C.DailyWage = FMath::Max(MarketStaff::MinimumDailyWage(State.Day), Round50(MarketStaff::FairWage(Role, C.Skill, State.Day) * (0.90 + ((B >> 16) % 26u) / 100.0)));
         C.Morale = 70.f;
         return C;
     }
@@ -158,7 +158,50 @@ int64 MarketStaff::FairWage(ERole Role, int32 Skill, int32 GameDay)
 {
     if (Role == ERole::Accountant) return MarketPrices::WageScaled(AccountantDailyFee, GameDay);
     const double Base = Role == ERole::HrManager ? 3500.0 : 2000.0;
-    return Round50(Base * (0.8 + 0.5 * FMath::Clamp(Skill, 0, 100) / 100.0) * MarketPrices::WageIndex(GameDay));
+    // B3 (#39): never below the minimum wage.
+    return FMath::Max(MinimumDailyWage(GameDay), Round50(Base * (0.8 + 0.5 * FMath::Clamp(Skill, 0, 100) / 100.0) * MarketPrices::WageIndex(GameDay)));
+}
+
+int64 MarketStaff::MinimumDailyWage(int32 GameDay)
+{
+    const double Daily = MarketPrices::MinimumWage(FMath::Max(1, GameDay)) * 100.0 / 30.0 * FMath::Max(0.1f, MarketCountry::Active().WageFactor);
+    return FMath::Max<int64>(50, static_cast<int64>(FMath::CeilToDouble(Daily / 50.0 - 1e-9)) * 50);
+}
+
+float MarketStaff::EmployerSocialRate()
+{
+    return FMath::Clamp(MarketCountry::Active().EmployerSocialRate, 0.f, 0.6f);
+}
+
+int64 MarketStaff::EmployerShare(int64 Wage)
+{
+    return FMath::RoundToInt64(static_cast<double>(FMath::Max<int64>(0, Wage)) * EmployerSocialRate());
+}
+
+int64 MarketStaff::EmployerCost(int64 Wage)
+{
+    return FMath::Max<int64>(0, Wage) + EmployerShare(Wage);
+}
+
+int64 MarketStaff::SeniorityPay(int64 DailyWage, int32 HiredDay, int32 GameDay)
+{
+    const int32 Served = GameDay - HiredDay;
+    if (Served < SeniorityAfterDays || DailyWage <= 0) return 0;
+    const int32 PerYear = FMath::Max(0, MarketCountry::Active().SeveranceDaysPerYear);
+    return FMath::RoundToInt64(static_cast<double>(DailyWage) * PerYear * Served / 365.0);
+}
+
+int64 MarketStaff::SeverancePay(const FMarketState& State, const FMarketEmployee& Employee)
+{
+    if (RoleOf(Employee) == ERole::Accountant) return 0;
+    return Employee.DailyWage * SeveranceDays + SeniorityPay(Employee.DailyWage, Employee.HiredDay, State.Day);
+}
+
+int64 MarketStaff::DailySocialSecurity(const FMarketState& State)
+{
+    int64 Wages = 0;
+    for (const FMarketEmployee& E : State.Staff) if (RoleOf(E) != ERole::Accountant) Wages += FMath::Max<int64>(0, E.DailyWage);
+    return EmployerShare(Wages);
 }
 
 bool MarketStaff::OnDuty(const FMarketState& State, const FMarketEmployee& Employee)
@@ -191,25 +234,6 @@ bool MarketStaff::HasAccountant(const FMarketState& State) { return Count(State,
 bool MarketStaff::HrUnlocked(const FMarketState& State)
 {
     return Count(State, ERole::Cashier) + Count(State, ERole::Stocker) >= HrUnlockStaff || State.bSecondStore;
-}
-
-void MarketStaff::Migrate(FMarketState& State)
-{
-    if (State.Staff.Num() > 0 || (!State.bCashier && State.Stockers <= 0)) return;
-    auto Add = [&State](ERole Role, const FString& Name)
-    {
-        FMarketEmployee E;
-        E.Id = State.NextEmployeeId++;
-        E.Name = Name;
-        E.Role = static_cast<uint8>(Role);
-        E.DailyWage = 2000; // the v0.1 wage
-        E.Morale = 65.f;
-        E.HiredDay = 1;
-        State.Staff.Add(E);
-    };
-    if (State.bCashier) Add(ERole::Cashier, TEXT("Emine Kaya"));
-    for (int32 I = 0; I < FMath::Clamp(State.Stockers, 0, FMarketState::MaxStockers); ++I) Add(ERole::Stocker, StaffPlanner::WorkerName(I));
-    SyncCounts(State);
 }
 
 void MarketStaff::AddStartingStaff(FMarketState& State, int32 Cashiers, int32 Stockers)
@@ -278,8 +302,9 @@ bool MarketStaff::Hire(FMarketState& State, int32 CandidateIndex, FString& OutMe
     const int64 Cost = HireCostOn(Role, State.Day);
     if (State.Cash < Cost) { OutMessage = FString::Printf(TEXT("\u0130\u015fe al\u0131m i\u00e7in kasada %s gerekiyor."), *Tl(Cost)); return false; }
     // The HR manager negotiates the offer.
-    if (HasHr(State)) Hired.DailyWage = Round50(Hired.DailyWage * 0.92);
+    if (HasHr(State)) Hired.DailyWage = FMath::Max(MinimumDailyWage(State.Day), Round50(Hired.DailyWage * 0.92)); // B3: not below the minimum
     State.Cash -= Cost;
+    MarketLedger::Post(State, MarketLedger::EAccount::Hiring, -Cost); // B2
     Hired.HiredDay = State.Day;
     Hired.Morale = 70.f;
     Hired.Fatigue = 0.f;
@@ -329,6 +354,7 @@ bool MarketStaff::HireAccountant(FMarketState& State, FString& OutMessage)
     const int64 Engagement = E.DailyWage * 7;
     if (State.Cash < Engagement) { OutMessage = FString::Printf(TEXT("Necati Bey defterleri devralmak i\u00e7in bir haftal\u0131k \u00fccreti pe\u015fin ister: %s."), *Tl(Engagement)); return false; }
     State.Cash -= Engagement;
+    MarketLedger::Post(State, MarketLedger::EAccount::Hiring, -Engagement); // B2
     E.Morale = 75.f;
     E.HiredDay = State.Day;
     State.Staff.Add(E);
@@ -342,15 +368,24 @@ bool MarketStaff::Fire(FMarketState& State, int32 EmployeeId, FString& OutMessag
     const int32 Index = IndexOf(State, EmployeeId);
     if (Index == INDEX_NONE) { OutMessage = TEXT("Bu ki\u015fi art\u0131k \u00e7al\u0131\u015fm\u0131yor."); return false; }
     const FMarketEmployee Leaving = State.Staff[Index];
-    const int64 Severance = RoleOf(Leaving) == ERole::Accountant ? 0 : Leaving.DailyWage * SeveranceDays;
-    if (State.Cash < Severance) { OutMessage = FString::Printf(TEXT("\u0130hbar tazminat\u0131 i\u00e7in kasada %s gerekiyor."), *Tl(Severance)); return false; }
+    // B3 (#39): notice pay and, after a year of service, the seniority pay.
+    const int64 Severance = SeverancePay(State, Leaving);
+    const int64 Seniority = RoleOf(Leaving) == ERole::Accountant ? 0 : SeniorityPay(Leaving.DailyWage, Leaving.HiredDay, State.Day);
+    if (State.Cash < Severance)
+    {
+        OutMessage = Seniority > 0 ? FString::Printf(TEXT("\u0130hbar ve k\u0131dem tazminat\u0131 i\u00e7in kasada %s gerekiyor."), *Tl(Severance))
+                                   : FString::Printf(TEXT("\u0130hbar tazminat\u0131 i\u00e7in kasada %s gerekiyor."), *Tl(Severance));
+        return false;
+    }
     State.Cash -= Severance;
+    MarketLedger::Post(State, MarketLedger::EAccount::Severance, -Severance); // B2
     State.Staff.RemoveAt(Index);
     // Colleagues notice.
     for (FMarketEmployee& E : State.Staff) if (IsShopRole(RoleOf(E))) E.Morale = FMath::Max(0.f, E.Morale - 3.f);
     SyncCounts(State);
     OutMessage = Severance > 0
-        ? FString::Printf(TEXT("%s i\u015ften \u00e7\u0131kar\u0131ld\u0131. \u0130hbar tazminat\u0131 %s \u00f6dendi."), *Leaving.Name, *Tl(Severance))
+        ? (Seniority > 0 ? FString::Printf(TEXT("%s i\u015ften \u00e7\u0131kar\u0131ld\u0131. \u0130hbar ve k\u0131dem tazminat\u0131 %s \u00f6dendi."), *Leaving.Name, *Tl(Severance))
+                         : FString::Printf(TEXT("%s i\u015ften \u00e7\u0131kar\u0131ld\u0131. \u0130hbar tazminat\u0131 %s \u00f6dendi."), *Leaving.Name, *Tl(Severance)))
         : FString::Printf(TEXT("%s ile s\u00f6zle\u015fme bitti. Vergiyi art\u0131k sen takip edeceksin."), *Leaving.Name);
     return true;
 }
@@ -408,6 +443,7 @@ int64 MarketStaff::PayTax(FMarketState& State)
     const int64 Paid = FMath::Max<int64>(0, FMath::Min(State.Cash, Books.TaxDue));
     if (Paid <= 0) return 0;
     State.Cash -= Paid;
+    MarketLedger::Post(State, MarketLedger::EAccount::TaxPayment, -Paid); // B2
     Books.TaxDue -= Paid;
     Books.TotalTaxPaid += Paid;
     if (Books.TaxDue == 0) { Books.TaxDeclared = 0; Books.PenaltyThisTax = 0; Books.TaxDueDay = 0; }
@@ -444,7 +480,6 @@ void MarketStaff::RecordWork(FMarketState& State, int32 EmployeeId, int32 Units)
 
 void MarketStaff::CloseDay(FMarketState& State)
 {
-    Migrate(State);
     State.StaffNews.Reset();
     State.LastTillDifference = 0;
     State.LastTaxPaid = 0;
@@ -456,6 +491,22 @@ void MarketStaff::CloseDay(FMarketState& State)
     const FMarketEmployee* HrToday = State.Staff.FindByPredicate([&](const FMarketEmployee& E) { return RoleOf(E) == ERole::HrManager && Worked(E); });
     const bool bHr = HrToday != nullptr;
     const bool bAccountant = HasAccountant(State);
+
+    // 0. B3 (#39): the minimum wage (it rises in January and July) and the employer's social security on the wages
+    // paid at this close (FMarketState::CloseDay paid the wages themselves).
+    int32 Raised = 0;
+    const int64 Minimum = MinimumDailyWage(Closed);
+    for (FMarketEmployee& E : State.Staff)
+        if (RoleOf(E) != ERole::Accountant && E.DailyWage < Minimum) { E.DailyWage = Minimum; ++Raised; }
+    if (Raised > 0) News.Add(FString::Printf(TEXT("Asgari \u00fccret artt\u0131: %d \u00e7al\u0131\u015fan\u0131n g\u00fcnl\u00fck \u00fccreti %s oldu."), Raised, *Tl(Minimum)));
+    const int64 Social = DailySocialSecurity(State);
+    if (Social > 0)
+    {
+        State.Cash -= Social;
+        State.LastOperatingCost += Social;
+        State.LastProfit -= Social;
+        MarketLedger::Post(State, MarketLedger::EAccount::SocialSecurity, -Social);
+    }
 
     // 1. The till: the cashiers on duty share the day's shoppers. When nobody worked the till the player did.
     int32 Cashiers = 0;
@@ -472,6 +523,7 @@ void MarketStaff::CloseDay(FMarketState& State)
         if (bAccountant && Difference != 0) News.Add(FString::Printf(TEXT("Kasa say\u0131m\u0131: %s %s."), *E.Name, *Tl(Difference)));
     }
     State.Cash += State.LastTillDifference;
+    MarketLedger::Post(State, MarketLedger::EAccount::Shrinkage, State.LastTillDifference); // B2
     State.LastProfit += State.LastTillDifference;
     if (!bAccountant && State.LastTillDifference != 0)
         News.Add(FString::Printf(TEXT("Kasa fark\u0131: %s. Kimin kasas\u0131ndan geldi\u011fini mali m\u00fc\u015favir ay\u0131r\u0131r."), *Tl(State.LastTillDifference)));
@@ -620,6 +672,7 @@ void MarketStaff::CloseDay(FMarketState& State)
                 Books.TotalPenalties += Penalty;
                 State.LastPenalty += Penalty;
                 State.LastProfit -= Penalty;
+                MarketLedger::Post(State, MarketLedger::EAccount::Penalties, -Penalty, false); // B2: added to the tax due
                 News.Add(FString::Printf(TEXT("Vergi gecikti: %s gecikme cezas\u0131 eklendi. \u00d6denecek %s."), *Tl(Penalty), *Tl(Books.TaxDue)));
             }
         }
@@ -636,7 +689,13 @@ void MarketStaff::CloseDay(FMarketState& State)
         int64 Vat = VatInside - Books.VatCarry;
         Books.VatCarry = 0;
         if (Vat < 0) { Books.VatCarry = -Vat; Vat = 0; }
-        const int64 Income = static_cast<int64>(FMath::RoundToDouble(FMath::Max<int64>(0, Books.PeriodProfit - FMath::Max<int64>(0, VatInside)) * static_cast<double>(IncomeTaxRate)));
+        // B1 (#43): a losing week's loss is carried and taken off the next weeks' profit before the income tax.
+        int64 Taxable = Books.PeriodProfit - FMath::Max<int64>(0, VatInside);
+        int64& Carry = State.Ledger.TaxLossCarry;
+        int64 CarryUsed = 0;
+        if (Taxable < 0) { Carry += -Taxable; Taxable = 0; }
+        else { CarryUsed = FMath::Min(Taxable, Carry); Taxable -= CarryUsed; Carry -= CarryUsed; }
+        const int64 Income = static_cast<int64>(FMath::RoundToDouble(Taxable * static_cast<double>(IncomeTaxRate)));
         int64 Tax = Vat + Income;
         // G-077 (#35): the accountant's lower declaration and audit protection need him on the books all week.
         const FMarketEmployee* Accountant = State.Staff.FindByPredicate([](const FMarketEmployee& E) { return RoleOf(E) == ERole::Accountant; });
@@ -650,6 +709,7 @@ void MarketStaff::CloseDay(FMarketState& State)
             Books.TotalPenalties += Fine;
             State.LastPenalty += Fine;
             State.LastProfit -= Fine;
+            MarketLedger::Post(State, MarketLedger::EAccount::Penalties, -Fine, false); // B2: added to the tax due
             News.Add(FString::Printf(TEXT("Vergi incelemesi: defterler d\u00fczenli tutulmad\u0131\u011f\u0131 i\u00e7in %s ceza. Mali m\u00fc\u015favirle bu olmaz."), *Tl(Fine)));
         }
         if (Tax > 0 || Books.TaxDue > 0)
@@ -657,14 +717,17 @@ void MarketStaff::CloseDay(FMarketState& State)
             // Unpaid older tax keeps its penalty count and cap; only the new week's tax is added to the base.
             const bool bOlderDebt = Books.TaxDue > 0;
             Books.TaxDue += Tax;
+            MarketLedger::Post(State, MarketLedger::EAccount::Tax, -Tax, false); // B2: declared now, paid by TaxPayment
             Books.TaxDeclared = bOlderDebt ? Books.TaxDeclared + Tax : Books.TaxDue;
             if (!bOlderDebt) Books.PenaltyThisTax = 0;
             Books.TaxDueDay = Closed + TaxPayDays;
-            News.Add(FString::Printf(TEXT("%d. hafta vergisi: KDV %s + gelir %s = %s%s. Son \u00f6deme %d. g\u00fcn.%s"), Week, *Tl(Vat), *Tl(Income), *Tl(Tax),
+            News.Add(FString::Printf(TEXT("%d. hafta vergisi: KDV %s + gelir %s = %s%s. Son \u00f6deme %d. g\u00fcn.%s%s"), Week, *Tl(Vat), *Tl(Income), *Tl(Tax),
                 bWholeWeek ? TEXT(" (belgeli giderlerle %10 az)") : TEXT(""), Books.TaxDueDay,
-                bAccountant ? TEXT(" Mali m\u00fc\u015favir zaman\u0131nda \u00f6der.") : TEXT(" \u00d6demeyi sen yapmal\u0131s\u0131n.")));
+                bAccountant ? TEXT(" Mali m\u00fc\u015favir zaman\u0131nda \u00f6der.") : TEXT(" \u00d6demeyi sen yapmal\u0131s\u0131n."),
+                CarryUsed > 0 ? *FString::Printf(TEXT(" \u00d6nceki haftalar\u0131n zarar\u0131ndan %s d\u00fc\u015f\u00fcld\u00fc."), *Tl(CarryUsed)) : TEXT("")));
         }
-        else News.Add(FString::Printf(TEXT("%d. hafta vergisi \u00e7\u0131kmad\u0131 (zarar veya devreden KDV %s)."), Week, *Tl(Books.VatCarry)));
+        else News.Add(FString::Printf(TEXT("%d. hafta vergisi \u00e7\u0131kmad\u0131 (zarar veya devreden KDV %s).%s"), Week, *Tl(Books.VatCarry),
+            Carry > 0 ? *FString::Printf(TEXT(" Sonraki k\u00e2rdan d\u00fc\u015f\u00fclecek zarar %s."), *Tl(Carry)) : TEXT("")));
         Books.PeriodSales = Books.PeriodPurchases = Books.PeriodProfit = 0;
     }
     if (bAccountant)

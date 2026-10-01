@@ -1,4 +1,6 @@
 #include "MarketCountry.h"
+#include "MarketEras.h"
+#include "MarketEconomy.h"
 #include "MarketPrices.h"
 #include "MarketCalendar.h"
 #include "MarketPayments.h"
@@ -114,6 +116,37 @@ bool FMarketCountryHolidayTest::RunTest(const FString& Parameters)
     // Back to the Turkish prototype for the other tests.
     SetActiveProfile(FProfile(), 1);
     TestTrue(TEXT("Republic day again"), MarketCalendar::Info(MarketCalendar::GameDayOf(2011, 10, 29), 3).Has(ETag::NationalHoliday));
+    return true;
+}
+
+IMPLEMENT_SIMPLE_AUTOMATION_TEST(FMarketCountryFxTest, "MirasMarket.Country.Currencies", EAutomationTestFlags::EditorContext | EAutomationTestFlags::EngineFilter)
+bool FMarketCountryFxTest::RunTest(const FString& Parameters)
+{
+    using MarketCountry::FxRate;
+    using MarketCountry::ToWorld;
+    MarketCountry::SetActiveProfile(MarketCountry::FProfile(), 1);
+    FMarketState S; S.CountryId = TEXT("tr"); S.RivalSeed = 21;
+    const MarketCountry::FProfile* Tr = MarketCountry::Find(TEXT("tr"));
+    const MarketCountry::FProfile* De = MarketCountry::Find(TEXT("de"));
+    if (!TestTrue(TEXT("Packs"), Tr && De)) return false;
+    TestTrue(TEXT("Start rate from the pack"), FMath::IsNearlyEqual(FxRate(S, TEXT("tr"), 1), Tr->FxPerWorld, 1e-9));
+    TestEqual(TEXT("1,50 TL = 1 world unit at the start"), ToWorld(S, TEXT("tr"), 150, 1), int64(100));
+    const int32 TenYears = MarketCalendar::GameDayOf(2021, 3, 7);
+    const double TrMove = FxRate(S, TEXT("tr"), TenYears) / Tr->FxPerWorld;
+    const double DeMove = FxRate(S, TEXT("de"), TenYears) / De->FxPerWorld;
+    TestTrue(TEXT("High inflation: the lira loses value over the years"), TrMove > 1.6);
+    TestTrue(TEXT("Stable economy: the euro stays about where it was"), DeMove > 0.6 && DeMove < 1.5);
+    FMarketState Same = S;
+    TestEqual(TEXT("Same seed, same rate"), FxRate(Same, TEXT("tr"), TenYears), FxRate(S, TEXT("tr"), TenYears));
+    FMarketState Other = S; Other.RivalSeed = 22;
+    TestNotEqual(TEXT("Another campaign, another walk"), FxRate(Other, TEXT("de"), TenYears), FxRate(S, TEXT("de"), TenYears));
+
+    // A currency shock of the campaign's own country makes its money jump.
+    MarketEras::FEra Shock = MarketEras::PlanOf(S)[0];
+    const double Before = FxRate(S, TEXT("tr"), Shock.StartDay);
+    const double After = FxRate(S, TEXT("tr"), Shock.StartDay + 10);
+    TestTrue(TEXT("Currency shock: about a quarter in ten days"), After / Before > 1.2);
+    TestTrue(TEXT("Only the own country's shock"), FxRate(S, TEXT("de"), Shock.StartDay + 10) / FxRate(S, TEXT("de"), Shock.StartDay) < 1.05);
     return true;
 }
 

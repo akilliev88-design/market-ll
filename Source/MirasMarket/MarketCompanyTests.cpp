@@ -25,6 +25,7 @@ namespace MarketCompanyTest
         B.Stage = static_cast<uint8>(MarketBranches::EStage::Open);
         B.OpenedDay = OpenedDay;
         B.Rent = 60000;
+        B.LastRevenue = 90000; // B1 (#45): the national share follows revenue
         S.Branches.Add(B);
     }
 
