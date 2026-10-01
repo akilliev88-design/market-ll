@@ -4,6 +4,8 @@
 #include "MarketDepartments.h"
 #include "MarketBrands.h"
 #include "MarketSourcing.h"
+#include "MarketEras.h"
+#include "MarketLedger.h"
 #include "Misc/AutomationTest.h"
 #if WITH_DEV_AUTOMATION_TESTS
 IMPLEMENT_SIMPLE_AUTOMATION_TEST(FMarketAutoPlaySupplyPolicy,"MirasMarket.AutoPlay.SupplyAndBrands",EAutomationTestFlags::EditorContext|EAutomationTestFlags::EngineFilter)
@@ -94,12 +96,46 @@ bool FMarketAutoPlayGrowingStyles::RunTest(const FString& Parameters)
     MarketAutoPlay::FOptions Options;Options.Days=600;Options.Seeds=1;
     const auto Report=MarketAutoPlay::Run(Options,Products,Capacities);
     if(!TestEqual(TEXT("Three real styles"),Report.Runs.Num(),3))return false;
-    for(const auto& Run:Report.Runs)TestEqual(TEXT("Longer strategy conserves stock and money"),Run.AuditFailures,0);
+    for(const auto& Run:Report.Runs)
+    {
+        TestEqual(TEXT("Longer strategy conserves stock and money"),Run.AuditFailures,0);
+        TestEqual(Run.Profile+TEXT(" every cash movement is posted"),Run.C.GapDays,0);
+    }
     const int32* Careful=Report.Runs[0].Milestones.Find(TEXT("Ilk sube"));
     const int32* Balanced=Report.Runs[1].Milestones.Find(TEXT("Ilk sube"));
     TestNotNull(TEXT("Careful eventually opens a real branch"),Careful);
     TestNotNull(TEXT("Balanced opens a real branch"),Balanced);
     if(Careful && Balanced){TestTrue(TEXT("Careful waits a year and opens later"),*Careful>365 && *Careful>*Balanced);}
+    return true;
+}
+IMPLEMENT_SIMPLE_AUTOMATION_TEST(FMarketAutoPlayC3Metrics,"MirasMarket.AutoPlay.C3Metrics",EAutomationTestFlags::EditorContext|EAutomationTestFlags::EngineFilter)
+bool FMarketAutoPlayC3Metrics::RunTest(const FString& Parameters)
+{
+    FMarketState State;
+    const auto Plan=MarketEras::PlanOf(State);
+    if(!TestTrue(TEXT("An era can be measured"),Plan.Num()>0))return false;
+    const int32 Day=Plan[0].StartDay;
+    State.Day=Day+1;State.Cash=12345;
+    State.Ledger.GapDays=1;State.Ledger.TotalGap=100;State.Ledger.LastGap=100;
+    State.Rivals.Closures=2;State.Rivals.Takeovers=3;State.Rivals.OurBuys=4;
+    State.Goals.bStarted=true;State.Goals.LastLivelyDay=Day;
+    State.Goals.QuietEvents=5;State.Goals.HeldBadEvents=6;
+    FMarketCelebration Celebration;Celebration.Day=Day;Celebration.Title=TEXT("Hedef tamam!");State.Goals.Celebrations.Add(Celebration);
+    FMarketLedgerEntry Entry;Entry.Day=Day;Entry.Account=static_cast<uint8>(MarketLedger::EAccount::Sales);Entry.Amount=700;State.Ledger.Entries.Add(Entry);
+    MarketAutoPlayC::FStats Metrics;
+    MarketAutoPlayC::Observe(State,Metrics);MarketAutoPlayC::Observe(State,Metrics);
+    TestEqual(TEXT("Same close cannot double-count celebrations"),Metrics.Celebrations,1);
+    TestEqual(TEXT("Completed goals counted"),Metrics.GoalsCompleted,1);
+    TestEqual(TEXT("Real closure reasons copied"),Metrics.Closures,2);
+    TestEqual(TEXT("Rival purchases copied"),Metrics.Takeovers,3);
+    TestEqual(TEXT("Our purchases copied"),Metrics.OurBuys,4);
+    TestEqual(TEXT("Era profit uses the ledger"),Metrics.Eras[0].Profit,static_cast<int64>(700));
+    TestEqual(TEXT("Read-only observation keeps cash"),State.Cash,static_cast<int64>(12345));
+    ++State.Day;State.Ledger.GapDays=2;State.Ledger.TotalGap=0;State.Ledger.LastGap=-100;
+    MarketAutoPlayC::Observe(State,Metrics);
+    TestEqual(TEXT("Signed gaps can cancel"),Metrics.GapTotal,static_cast<int64>(0));
+    TestEqual(TEXT("Absolute gaps still reveal both errors"),Metrics.GapAbsolute,static_cast<int64>(200));
+    TestEqual(TEXT("Both gap days retained"),Metrics.GapDays,2);
     return true;
 }
 #endif

@@ -9,6 +9,9 @@
 #include "MarketPrices.h"
 #include "MarketCompany.h"
 #include "MarketDepots.h"
+#include "MarketLedger.h"
+#include "MarketEras.h"
+#include "MarketGoals.h"
 namespace MarketAutoPlayC
 {
     FString Key(int32 Format,int32 Dept) { return FString::Printf(TEXT("%d|%d"),Format,Dept); }
@@ -129,6 +132,30 @@ namespace MarketAutoPlayC
     void Observe(const FMarketState& State,FStats& Stats)
     {
         const int32 Day=State.Day-1; bool BaseEvent=false,Extra=false;
+        // A closed day is measured once; reports must never change the campaign.
+        if(Day<=Stats.ObservedDay)return;
+        Stats.ObservedDay=Day;
+        Stats.GapDays=State.Ledger.GapDays; Stats.GapTotal=State.Ledger.TotalGap;
+        Stats.GapAbsolute+=FMath::Abs(State.Ledger.LastGap);
+        Stats.Closures=State.Rivals.Closures; Stats.Takeovers=State.Rivals.Takeovers; Stats.OurBuys=State.Rivals.OurBuys;
+        Stats.QuietEvents=State.Goals.QuietEvents; Stats.HeldBadEvents=State.Goals.HeldBadEvents;
+        const int32 QuietDays=FMath::Max(0,Day-State.Goals.LastLivelyDay);
+        Stats.RhythmLongest=FMath::Max(Stats.RhythmLongest,QuietDays);
+        const bool Boring=State.Goals.bStarted && QuietDays>=MarketGoals::QuietDays(State);
+        if(Boring && !Stats.bRhythmBoring)++Stats.RhythmBoring;
+        Stats.bRhythmBoring=Boring;
+        for(const auto& Goal:State.Goals.Goals)
+            if(NewKey(Stats.SeenGoals,FString::Printf(TEXT("%d|%d|%d|%d"),Goal.Kind,Goal.Scale,Goal.StartDay,Goal.DueDay)))++Stats.GoalsSeen;
+        for(const auto& Celebration:MarketGoals::CelebrationsOn(State,Day))
+        { ++Stats.Celebrations; if(Celebration.Title==TEXT("Hedef tamam!"))++Stats.GoalsCompleted; }
+        if(Stats.Eras.IsEmpty())for(const auto& Era:MarketEras::PlanOf(State))
+        { FEraResult Row;Row.Kind=static_cast<int32>(Era.Kind);Row.Wave=Era.Wave;Row.Start=Era.StartDay;Row.End=Era.EndDay;Stats.Eras.Add(Row); }
+        const int64 DayProfit=MarketLedger::DayStatement(State,Day).NetProfit;
+        for(auto& Era:Stats.Eras)if(Day>=Era.Start && Day<=Era.End)
+        {
+            if(Era.Days==0){Era.FirstCash=State.Cash;Era.LowestCash=State.Cash;}
+            ++Era.Days;Era.LastCash=State.Cash;Era.LowestCash=FMath::Min(Era.LowestCash,State.Cash);Era.Profit+=DayProfit;
+        }
         for(const auto& Event:State.EventLog) if(NewKey(Stats.SeenEvents,Event))
         {
             BaseEvent=true; FString Id,Date; Event.Split(TEXT("@"),&Id,&Date);
@@ -201,7 +228,10 @@ namespace MarketAutoPlayC
         FString Out=TEXT("\n#### C: yeni sistemlerin sonucu\n\n| Y\u0131l | Ulusal s\u0131ra | D\u00fcnya s\u0131ras\u0131 | Ma\u011faza | Bizim / liderin ortak cirosu |\n|---:|---:|---:|---:|---:|\n");
         for(const auto& Row:Stats.Years)Out+=FString::Printf(TEXT("| %d | %d | %d | %d | %.0f / %.0f |\n"),Row.Year,Row.National,Row.World,Row.Stores,Row.OurWorld,Row.LeaderWorld);
         Out+=FString::Printf(TEXT("\nRakipler: en \u00e7ok %d etkin zincir; %d farkl\u0131 sat\u0131l\u0131k zincir; %d piyasadan \u00e7ekilme (iflas veya sat\u0131n al\u0131nma); %d g\u00f6r\u00fcn\u00fcr iflas haberi; bizim %d sat\u0131n almam\u0131z; %d fiyat sava\u015f\u0131.\nEzeli rakip: %s.\nMarkalardan toplam %.2f TL; k\u00fcsen farkl\u0131 marka %d.\n"),Stats.ChainPeak,Stats.Sale,Stats.Gone,Stats.BankruptcyNews,Stats.Purchases,Stats.Wars,Stats.Nemesis.IsEmpty()?TEXT("yok"):*Stats.Nemesis,Stats.BrandMoney/100.,Stats.CoolBrands.Num());
-        Out+=TEXT("\n\u0130flas nedeni i\u00e7in ayr\u0131 durum bayra\u011f\u0131 yok; haber say\u0131s\u0131 haber tavan\u0131 nedeniyle alt s\u0131n\u0131rd\u0131r, b\u00fct\u00fcn kapanmalar iflas say\u0131lmaz.\n");
+        Out+=FString::Printf(TEXT("\nC3 kapanma nedenleri: %d iflas/kapanma, %d rakip taraf\u0131ndan al\u0131nma, %d bizim al\u0131m\u0131m\u0131z. Haber say\u0131s\u0131 alt s\u0131n\u0131rd\u0131r; nedenler do\u011frudan sistem saya\u00e7lar\u0131ndan gelir.\n"),Stats.Closures,Stats.Takeovers,Stats.OurBuys);
+        Out+=FString::Printf(TEXT("\nDefter denetimi: a\u00e7\u0131klanamayan fark %d g\u00fcn, toplam %.2f TL; mutlak fark toplam\u0131 %.2f TL.\nHedefler: g\u00f6zlenen %d, tamamlanan %d; kutlama %d. Ritim koruyucusu: %d sakin d\u00f6nem olay\u0131, %d ertelenen k\u00f6t\u00fc olay; e\u015fi\u011fi a\u015fan %d s\u0131k\u0131c\u0131 d\u00f6nem, en uzun sessizlik %d g\u00fcn.\n"),Stats.GapDays,Stats.GapTotal/100.,Stats.GapAbsolute/100.,Stats.GoalsSeen,Stats.GoalsCompleted,Stats.Celebrations,Stats.QuietEvents,Stats.HeldBadEvents,Stats.RhythmBoring,Stats.RhythmLongest);
+        Out+=TEXT("\nD\u00f6nemler (g\u00fcnler kampanya ba\u015flang\u0131c\u0131ndan; k\u00e2r defterden; kasalar ilk/son g\u00fcn kapan\u0131\u015f\u0131, TL):\n\n| D\u00f6nem / dalga | Planlanan g\u00fcnler | Oynanan g\u00fcn | \u0130lk kasa | Son kasa | En az kasa | Net k\u00e2r |\n|---|---|---:|---:|---:|---:|---:|\n");
+        for(const auto& Era:Stats.Eras)Out+=FString::Printf(TEXT("| %s / %d | %d\u2013%d | %d | %.2f | %.2f | %.2f | %.2f |\n"),*MarketEras::Name(static_cast<MarketEras::EKind>(Era.Kind)),Era.Wave,Era.Start,Era.End,Era.Days,Era.FirstCash/100.,Era.LastCash/100.,Era.LowestCash/100.,Era.Profit/100.);
         Out+=TEXT("\nTedarik kademe de\u011fi\u015fimleri (hat, g\u00fcn, \u00f6nce, sonra):\n");
         for(const auto& Row:Stats.Sourcing)Out+=FString::Printf(TEXT("- %s: %d. g\u00fcn %d -> %d.\n"),*MarketSourcing::LineName(static_cast<MarketSourcing::ELine>(Row.Line)),Row.Day,Row.From,Row.To);
         if(Stats.Sourcing.IsEmpty())Out+=TEXT("- Kademe de\u011fi\u015fmedi.\n");
@@ -217,6 +247,12 @@ namespace MarketAutoPlayC
         Out+=TEXT("\nErtelenen kararlar (oyuncuya d\u00f6nen neden, tekrar say\u0131s\u0131):\n");
         for(const auto& Reason:Reasons)Out+=FString::Printf(TEXT("- %s: %d.\n"),*Reason,Stats.Blocked[Reason]);
         Out+=TEXT("\nMa\u011faza t\u00fcr\u00fc: 1 mahalle, 2 s\u00fcpermarket, 3 hipermarket. CSV reyon numaralar\u0131 MarketDepartments::EDept s\u0131ras\u0131d\u0131r.\n");
+        return Out;
+    }
+    FString EraCsv(const FStats& Stats,const FString& Style,int32 Seed)
+    {
+        FString Out;
+        for(const auto& Era:Stats.Eras)Out+=FString::Printf(TEXT("%s,%d,%d,%d,%d,%d,%d,%lld,%lld,%lld,%lld\n"),*Style,Seed,Era.Kind,Era.Wave,Era.Start,Era.End,Era.Days,Era.FirstCash,Era.LastCash,Era.LowestCash,Era.Profit);
         return Out;
     }
 }

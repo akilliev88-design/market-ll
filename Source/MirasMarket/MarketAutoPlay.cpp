@@ -434,12 +434,19 @@ namespace MarketAutoPlay
         for(const auto& Trial:Report.Runs)DeptCsv+=MarketAutoPlayC::DeptCsv(Trial.C,Trial.Profile,Trial.Seed);
         FString LeagueCsv=TEXT("tarz,tohum,yil,gun,ulusal_sira,dunya_sira,magaza,bizim_ortak_ciro,lider_ortak_ciro\n");
         FString SupplyCsv=TEXT("tarz,tohum,gun,hat,once,sonra\n");
+        FString EraCsv=TEXT("tarz,tohum,donem,dalga,baslangic,bitis,oynanan_gun,ilk_kasa_kurus,son_kasa_kurus,en_az_kasa_kurus,net_kar_kurus\n");
+        FString C3Csv=TEXT("tarz,tohum,fark_gun,fark_kurus,mutlak_fark_kurus,hedef,tamamlanan,kutlama,sakin_olay,ertelenen_kotu,sikici_donem,en_uzun_sessizlik,kapanma,rakip_alimi,bizim_alim\n");
         for(const auto& Trial:Report.Runs)
         {
+            const auto& Metrics=Trial.C;
+            EraCsv+=MarketAutoPlayC::EraCsv(Metrics,Trial.Profile,Trial.Seed);
+            C3Csv+=FString::Printf(TEXT("%s,%d,%d,%lld,%lld,%d,%d,%d,%d,%d,%d,%d,%d,%d,%d\n"),*Trial.Profile,Trial.Seed,Metrics.GapDays,Metrics.GapTotal,Metrics.GapAbsolute,Metrics.GoalsSeen,Metrics.GoalsCompleted,Metrics.Celebrations,Metrics.QuietEvents,Metrics.HeldBadEvents,Metrics.RhythmBoring,Metrics.RhythmLongest,Metrics.Closures,Metrics.Takeovers,Metrics.OurBuys);
             for(const auto& Year:Trial.C.Years)LeagueCsv+=FString::Printf(TEXT("%s,%d,%d,%d,%d,%d,%d,%.0f,%.0f\n"),*Trial.Profile,Trial.Seed,Year.Year,Year.Day,Year.National,Year.World,Year.Stores,Year.OurWorld,Year.LeaderWorld);
             for(const auto& Change:Trial.C.Sourcing)SupplyCsv+=FString::Printf(TEXT("%s,%d,%d,%d,%d,%d\n"),*Trial.Profile,Trial.Seed,Change.Day,Change.Line,Change.From,Change.To);
         }
-        if(!FFileHelper::SaveStringToFile(LeagueCsv,*(Directory/TEXT("lig.csv")),FFileHelper::EEncodingOptions::ForceUTF8) ||
+        if(!FFileHelper::SaveStringToFile(EraCsv,*(Directory/TEXT("donemler.csv")),FFileHelper::EEncodingOptions::ForceUTF8) ||
+            !FFileHelper::SaveStringToFile(C3Csv,*(Directory/TEXT("c3.csv")),FFileHelper::EEncodingOptions::ForceUTF8) ||
+            !FFileHelper::SaveStringToFile(LeagueCsv,*(Directory/TEXT("lig.csv")),FFileHelper::EEncodingOptions::ForceUTF8) ||
             !FFileHelper::SaveStringToFile(SupplyCsv,*(Directory/TEXT("tedarik.csv")),FFileHelper::EEncodingOptions::ForceUTF8))return false;
         return FFileHelper::SaveStringToFile(DeptCsv,*(Directory/TEXT("reyonlar.csv")),FFileHelper::EEncodingOptions::ForceUTF8) &&
             FFileHelper::SaveStringToFile(Text, *(Directory / TEXT("rapor.md")), FFileHelper::EEncodingOptions::ForceUTF8) &&

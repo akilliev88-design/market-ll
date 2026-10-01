@@ -13,6 +13,11 @@ namespace MarketAutoPlayC
     struct FYear { int32 Year=0, Day=0, National=0, World=0, Stores=0; double OurWorld=0, LeaderWorld=0; };
     struct FDept { int32 Day=0, Format=0, Dept=0, Branches=0; int64 Profit=0, Revenue=0; };
     struct FChange { int32 Day=0, Line=0, From=0, To=0; };
+    struct FEraResult
+    {
+        int32 Kind=0, Wave=1, Start=0, End=0, Days=0;
+        int64 FirstCash=0, LastCash=0, LowestCash=0, Profit=0;
+    };
     struct FStats
     {
         TArray<FYear> Years;
@@ -32,6 +37,13 @@ namespace MarketAutoPlayC
         int32 LastNational=0, LastWorld=0, LastStores=1;
         int64 BrandMoney=0;
         FString Nemesis;
+        TArray<FEraResult> Eras;
+        TSet<FString> SeenGoals;
+        int32 ObservedDay=0, GapDays=0, GoalsSeen=0, GoalsCompleted=0, Celebrations=0;
+        int32 Closures=0, Takeovers=0, OurBuys=0, QuietEvents=0, HeldBadEvents=0;
+        int32 RhythmBoring=0, RhythmLongest=0;
+        bool bRhythmBoring=false;
+        int64 GapTotal=0, GapAbsolute=0;
     };
     bool SiteSuitable(const FMarketState& State,const FString& Country,const FString& Province,const FString& Format);
     bool BrandWorth(const FMarketState& State,const TArray<FMarketProduct>& Products,const FMarketBrandOffer& Offer,const FPolicy& Policy);
@@ -40,4 +52,5 @@ namespace MarketAutoPlayC
     void Observe(const FMarketState& State,FStats& Stats);
     FString Report(const FStats& Stats);
     FString DeptCsv(const FStats& Stats,const FString& Style,int32 Seed);
+    FString EraCsv(const FStats& Stats,const FString& Style,int32 Seed);
 }

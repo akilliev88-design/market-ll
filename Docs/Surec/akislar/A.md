@@ -194,3 +194,5 @@ Bunlar **kontrollü olarak denenecek ilk adaylar**, doğrulanmış denge ayarı 
 
 - main c26372b temiz alındı; git pull güncel. İlk DERLE geçti, TEST 125/125 (123 temiz, 2 uyarılı; başarısız/çalışmamış 0), Ledger.CashAudit fark 0. Smoke geçti. Derleme/test düzeltmesi: 0 dosya, 0 düzeltme.
 - Sıradaki: bot raporuna C3 defter/dönem/hedef/ritim/kapanma ölçümleri; yeni menünün görüntüleri; uzun koşular. Bu ekler henüz doğrulanmadı.
+
+- C3 ölçümleri: defterin fark günleri, imzalı ve mutlak toplamı; dönem planı ve dönem içindeki günlük defter kârı/kasa; hedef ve kutlamalar, gerçek ritim sayaçları; zincir kapanma nedenleri. donemler.csv/c3.csv eklendi. Aynı günü tekrar gözleme testi ve 600 günlük tarzlarda defter sıfır testi geçti. DERLE + TEST 126/126 (125 temiz + 1 motor ağ uyarısı) + Smoke geçti; Short 0,69 sn. Test.ps1 alt sınırı 126.
