@@ -28,15 +28,16 @@
 #include "UnrealClient.h"
 namespace MarketMenuCapture
 {
-    struct FTarget { int32 Page; const TCHAR* Id; const TCHAR* Tab; bool bBottom=false; const TCHAR* Anchor=TEXT(""); };
+    struct FTarget { int32 Page; const TCHAR* Id; const TCHAR* Tab; bool bBottom=false; const TCHAR* Anchor=TEXT(""); float Offset=0.f; };
     const TArray<FTarget>& Targets()
     {
         if(FParse::Param(FCommandLine::Get(),TEXT("MirasMenuC6")))
         {
             static const TArray<FTarget> C6List={
                 {8,TEXT("company_advertising"),TEXT("\u015eirket"),false,TEXT("REKLAM")},
+                {8,TEXT("company_advertising_manager"),TEXT("\u015eirket"),false,TEXT("REKLAM"),300.f},
                 {7,TEXT("channels_advertising"),TEXT(""),false,TEXT("POL\u0130T\u0130KA")},
-                {9,TEXT("branch_clearance"),TEXT(""),false,TEXT("\u0130\u015eLETME: TEDAR\u0130K, PERSONEL, VERG\u0130")}
+                {9,TEXT("branch_clearance"),TEXT(""),true}
             };return C6List;
         }
         static const TArray<FTarget> List = {
@@ -94,6 +95,13 @@ namespace MarketMenuCapture
                 StaticCastSharedRef<SScrollBox>(Widget)->ScrollDescendantIntoView(Found,false,EDescendantScrollDestination::TopOrLeft);
         FChildren* Children=Widget->GetChildren();
         for(int32 Index=0;Index<Children->Num();++Index)ScrollHeading(Children->GetChildAt(Index),Heading);
+    }
+    void ScrollExtra(const TSharedRef<SWidget>& Widget,const FString& Heading,float Offset)
+    {
+        if(!Widget->GetVisibility().IsVisible())return;
+        if(Widget->GetType()==TEXT("SScrollBox") && FindHeading(Widget,Heading).IsValid())
+        {auto Scroll=StaticCastSharedRef<SScrollBox>(Widget);Scroll->SetScrollOffset(Scroll->GetScrollOffset()+Offset);return;}
+        FChildren* Children=Widget->GetChildren();for(int32 Index=0;Index<Children->Num();++Index)ScrollExtra(Children->GetChildAt(Index),Heading,Offset);
     }
     struct FCapture
     {
@@ -223,7 +231,9 @@ bool AMarketGameMode::TickMenuCapture()
         if(Target.Anchor[0])MarketMenuCapture::ScrollHeading(R.Widget.ToSharedRef(),Target.Anchor);
         R.Step=3; R.At=Now; return false;
     }
-    if(R.Step==3)
+    if(R.Step==3 && Target.Offset>0.f)
+    {MarketMenuCapture::ScrollExtra(R.Widget.ToSharedRef(),Target.Anchor,Target.Offset);R.Step=5;R.At=Now;return false;}
+    if(R.Step==3 || R.Step==5)
     {
         R.File=FString::Printf(TEXT("%02d_%s_%s_%dx%d.png"),R.Index/4,Target.Id,bLightTheme?TEXT("light"):TEXT("dark"),Width,Height);
         FScreenshotRequest::RequestScreenshot(R.Directory/R.File,true,false);
