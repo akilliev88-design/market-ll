@@ -313,6 +313,19 @@ struct FMarketBranchItem
 };
 
 // A branch of the company, simulated from the same rules without walking customers (MarketBranches.h).
+// Karar M26: a department running in a branch (MarketDepartments.h).
+USTRUCT()
+struct FMarketBranchDept
+{
+    GENERATED_BODY()
+    UPROPERTY() uint8 Dept = 0;          // MarketDepartments::EDept
+    UPROPERTY() int32 OpenedDay = 0;
+    UPROPERTY() int32 Master = 0;        // the master's skill (0 = the department needs none)
+    UPROPERTY() int64 Stock = 0;         // goods on hand at cost, kurus
+    UPROPERTY() int64 Last30Revenue = 0; // running sums over about 30 days
+    UPROPERTY() int64 Last30Profit = 0;
+};
+
 USTRUCT()
 struct FMarketBranch
 {
@@ -370,6 +383,7 @@ struct FMarketBranch
     UPROPERTY() int32 ViewPallets = 0;
     UPROPERTY() int32 LastQueueLost = 0;   // shoppers the tills lost on the last closed day
     UPROPERTY() int64 Last30Revenue = 0;   // running sum over about 30 days (national table, world league)
+    UPROPERTY() TArray<FMarketBranchDept> Depts; // karar M26: its departments (MarketDepartments.h)
 };
 
 // G-072 aggregate city stores (older saves only). G-086 turns every row into real branches in its province
@@ -657,6 +671,16 @@ struct FMarketBrandsState
 };
 
 // Akis C2c / G-083 (MarketSourcing.h): where each supply line buys from. Older saves: every line local.
+// Karar M26: departments per store type and their price stance (MarketDepartments.h). Older saves: none.
+USTRUCT()
+struct FMarketDepartmentsState
+{
+    GENERATED_BODY()
+    UPROPERTY() TArray<uint8> Policy;    // store type x 14 + department: 1 = runs in every branch of that type
+    UPROPERTY() TArray<uint8> Stance;    // per department: 0 cheap, 1 normal, 2 dear
+    UPROPERTY() int32 LastMonthDay = 0;
+};
+
 USTRUCT()
 struct FMarketSourcingState
 {
@@ -808,6 +832,7 @@ struct FMarketState
     UPROPERTY() FMarketBrandsState Brands;
     // G-083: supply lines and their tiers (MarketSourcing.h).
     UPROPERTY() FMarketSourcingState Sourcing;
+    UPROPERTY() FMarketDepartmentsState Departments; // karar M26 (MarketDepartments.h)
     // Online orders and payment methods (MarketOnline.h, MarketPayments.h).
     UPROPERTY() FMarketOnline Online;
     UPROPERTY() FMarketPayments Payments;

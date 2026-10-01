@@ -1,7 +1,7 @@
 Miras Market, **Akış A — ikinci tur**. Aynı dal (`akis-a`) ve aynı klasörde (`C:\Users\mtass\Desktop\market-ll-A`) devam ediyorsun.
 
 Başlamadan: A1 ve A3 bitmiş, `Docs/Surec/akislar/A.md` güncel, son commit push edilmiş olmalı. Değilse önce onları bitir. Sonra `Docs/Kurgu/07_AKIL_ISBOLUMU.md`'yi yeniden oku (değişti): §4 "Sonraki işler" altındaki **A4** ve **A5** senin işin; kurallar §2–§3 aynen geçerli. `Docs/Kurgu/06_GIDIS_YOLU.md` §2b (zevk ve akış) ile simülasyon ilkesini ("dükkân aklın penceresi: içeride görülen her şey sayılardan gelir") da oku. A4 için `main`'deki Akış C işi (`MarketStoreViews.*`, `FMarketBranch::StoreView`) gerekiyor; bu iş `main` klasöründe **commit edilmemiş** duruyor:
-1. `main` klasöründe (`C:\Users\mtass\Desktop\market-ll`) `git status`; yalnız `Source/`, `Docs/`, `Config/` altındaki değişiklikleri `C1: mağaza görünümü şube hesabına (Akış C, derlenmedi)` mesajıyla commit + push et. Dosya değiştirme, yalnız commit.
+1. `main` klasöründe (`C:\Users\mtass\Desktop\market-ll`) `git status`; yalnız `Source/`, `Docs/`, `Config/` altındaki değişiklikleri `Akış C: C1 mağaza görünümü, C2b rakip zincirleri, C2c tedarik, M25 markalar, M26 reyonlar (derlenmedi)` mesajıyla commit + push et. Dosya değiştirme, yalnız commit.
 2. Kendi klasöründe `git merge main`; `DERLE.cmd /q` + `TEST.cmd /q`.
 3. C'nin dosyalarında derleme/test hatası çıkarsa (C derlenmeden teslim etti) en küçük düzeltmeyi yap, mantığı değiştirme, her düzeltmeyi A.md'ye dosya:satır ile yaz; bu düzeltmeleri ayrı commit olarak `main`'e de uygula (`C1 düzeltme: ...`) ki C aynı hatayı görmesin.
 

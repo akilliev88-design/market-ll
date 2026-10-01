@@ -17,6 +17,7 @@
 #include "MarketStoreViews.h"
 #include "MarketChains.h"
 #include "MarketSourcing.h"
+#include "MarketDepartments.h"
 #include "MarketSuppliers.h"
 
 namespace MarketBranches
@@ -554,7 +555,7 @@ FString MarketBranches::Summary(const FMarketState& State, int32 BranchIndex, co
         Capacity > 0 ? Units * 100 / Capacity : 0, Carried, B.ManagerName.IsEmpty() ? TEXT("yok (senin talimatlar\u0131n)")
             // The skill stays hidden without an HR manager or a province manager (MarketManagers::SkillVisible).
             : *(MarketManagers::SkillVisible(State, BranchIndex) ? FString::Printf(TEXT("%s, beceri %d"), *B.ManagerName, B.ManagerSkill) : B.ManagerName),
-        B.Maturity * 100.f);
+        B.Maturity * 100.f) + (B.Depts.Num() > 0 ? TEXT(" \u00b7 reyonlar: ") + MarketDepartments::BranchLine(B) : FString()); // M26
 }
 
 void MarketBranches::CloseDay(FMarketState& State, const TArray<FMarketProduct>& Products)
@@ -562,6 +563,7 @@ void MarketBranches::CloseDay(FMarketState& State, const TArray<FMarketProduct>&
     Migrate(State, Products);
     MarketManagers::Migrate(State); // G-086b: older saves' store managers get a style and morale
     MarketStoreViews::Migrate(State); // G-088 C: older saves' branches get their store view (rent and shelves stay)
+    MarketDepartments::CloseDay(State); // M26: departments reach new branches, masters learn
     const int32 Closed = State.Day - 1;
     if (Closed < 1) return;
     TArray<FString>& News = State.DayNews;
@@ -642,7 +644,8 @@ void MarketBranches::CloseDay(FMarketState& State, const TArray<FMarketProduct>&
         const float Availability = Sold + Empty > 0 ? FMath::Clamp(static_cast<float>(Sold) / (Sold + Empty), 0.2f, 1.f) : 0.9f;
         const float Service = Kind.Service * (B.ManagerName.IsEmpty() ? 0.9f : 1.f);
         const float Pull = FMath::Exp(-(B.PriceIndex - 1.f) / MarketCompetitors::PriceSensitivity) * Availability * Service *
-            (0.8f + B.Satisfaction / 250.f) * (0.9f + 0.4f * B.Maturity) * (State.Day - B.OpenedDay < 7 ? 1.3f : 1.f) * MarketCompany::TrafficBonus(State);
+            (0.8f + B.Satisfaction / 250.f) * (0.9f + 0.4f * B.Maturity) * (State.Day - B.OpenedDay < 7 ? 1.3f : 1.f) * MarketCompany::TrafficBonus(State)
+            * MarketDepartments::PullFactor(B, Closed); // M26: fresh bread, a good butcher
         // Akis C2b: the province's chains against the start, a price war against us on top.
         const float Share = Pull / (Pull + 3.f * Where.Competition * MarketChains::PressureFactor(State, Where.Country, Where.Province, Closed));
         const float Trips = MarketCalendar::ClosedByLaw(Closed) ? 0.f : TripsOf(Where, Kind) * MarketCalendar::TrafficFactor(Closed, State.RivalSeed);
@@ -692,18 +695,21 @@ void MarketBranches::CloseDay(FMarketState& State, const TArray<FMarketProduct>&
         const int64 Opex = FMath::RoundToInt64(B.Rent * MarketPrices::ListLevel(State.Day) / MarketPrices::ListLevel(FMath::Max(1, B.OpenedDay)) / 30.0)
             + B.Workers * MarketStaff::FairWage(MarketStaff::ERole::Cashier, 50, State.Day) + B.ManagerWage
             + FMath::RoundToInt64(1500 * Level * Kind.Running);
-        const int64 Profit = Revenue - Skim - Cogs - Logistics - Opex - WasteCost - DepotLoss; // waste, depot losses: goods already paid
-        State.Cash += Revenue - Skim - Logistics - Opex; // goods were paid when ordered; the family shop's till stays separate
+        // M26: the branch's departments (their goods bought and paid the same day).
+        const MarketDepartments::FDay Dept = MarketDepartments::Day(State, Index, Shoppers, Where.Income, Closed);
+        const int64 Profit = Revenue - Skim - Cogs - Logistics - Opex - WasteCost - DepotLoss + Dept.Profit; // waste, depot losses: goods already paid
+        State.Cash += Revenue - Skim - Logistics - Opex + Dept.Profit; // goods were paid when ordered; the family shop's till stays separate
+        State.Purchases += Dept.Purchases;
         State.LastBranchProfit += Profit;
         State.LastProfit += Profit;
         // Branch sales carry VAT like the family shop's (their purchases already count in State.Purchases).
-        State.Books.PeriodSales += Revenue;
-        B.LastRevenue = Revenue;
+        State.Books.PeriodSales += Revenue + Dept.Revenue;
+        B.LastRevenue = Revenue + Dept.Revenue;
         B.LastProfit = Profit;
         B.LastShoppers = Shoppers;
         B.WeekProfit += Profit;
         B.Last30Profit = B.Last30Profit * 29 / 30 + Profit;
-        B.Last30Revenue = B.Last30Revenue * 29 / 30 + Revenue;
+        B.Last30Revenue = B.Last30Revenue * 29 / 30 + Revenue + Dept.Revenue;
         const float DayAvailability = DaySold + DayEmpty > 0 ? static_cast<float>(DaySold) / (DaySold + DayEmpty) : 1.f;
         B.Satisfaction = FMath::Clamp(B.Satisfaction + ((50.f + 40.f * DayAvailability - 100.f * (B.PriceIndex - 1.f)) - B.Satisfaction) * 0.1f, 0.f, 100.f);
         B.Maturity = FMath::Min(1.f, B.Maturity + 1.f / MaturityDays);

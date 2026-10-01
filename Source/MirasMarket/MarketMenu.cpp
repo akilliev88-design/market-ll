@@ -18,6 +18,7 @@
 #include "MarketChains.h"
 #include "MarketBrands.h"
 #include "MarketSourcing.h"
+#include "MarketDepartments.h"
 #include "Framework/Application/SlateApplication.h"
 #include "GameFramework/PlayerController.h"
 #include "Kismet/GameplayStatics.h"
@@ -408,6 +409,15 @@ const TArray<FMarketTodo>& AMarketGameMode::Todos() const
                         Best ? *FString::Printf(TEXT(" \u00d6nerilen il: %s."), *Best->Name) : TEXT("")), SMarketMenu::Branches);
             }
         }
+    }
+    // M26: a supermarket or hypermarket running without any department.
+    for (const FMarketBranch& B : State.Branches)
+    {
+        const int32 Format = MarketDepartments::FormatIndex(B.Format);
+        if (Format < 2 || B.Stage != static_cast<uint8>(MarketBranches::EStage::Open) || MarketDepartments::SpaceUsed(State, Format) > 0) continue;
+        Add(0, Format == 3 ? TEXT("Hipermarketinde reyon yok") : TEXT("S\u00fcpermarketinde taze reyon yok"),
+            TEXT("Kasap, f\u0131r\u0131n ve manav her g\u00fcn m\u00fc\u015fteri getirir; hipermarkette elektronik ve giyim de sat\u0131l\u0131r. Ma\u011fazalar \u203a \u015eirket \u203a Reyonlar."), SMarketMenu::Branches);
+        break;
     }
     // G-083: a supply line that could move up a tier.
     for (int32 L = 0; L < MarketSourcing::LineCount; ++L)

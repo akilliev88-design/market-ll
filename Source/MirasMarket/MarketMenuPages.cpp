@@ -34,6 +34,7 @@
 #include "MarketChains.h"
 #include "MarketBrands.h"
 #include "MarketSourcing.h"
+#include "MarketDepartments.h"
 #include "Widgets/Input/SEditableTextBox.h"
 #include "Widgets/Layout/SSpacer.h"
 #include "Widgets/Images/SImage.h"
@@ -3338,6 +3339,56 @@ TSharedRef<SWidget> SMarketMenu::CompanyTab()
         ];
     }
 
+    // M26: departments per store type, price stance, masters.
+    static const TCHAR* FormatShorts[4] = { TEXT("Ucuzcu"), TEXT("Mahalle"), TEXT("S\u00fcper"), TEXT("Hiper") };
+    static const TCHAR* StanceShorts[3] = { TEXT("Ucuz"), TEXT("Normal"), TEXT("Pahal\u0131") };
+    TSharedRef<SVerticalBox> Depts = SNew(SVerticalBox);
+    for (int32 Dx = 0; Dx < MarketDepartments::DeptCount; ++Dx)
+    {
+        const MarketDepartments::EDept Dept = static_cast<MarketDepartments::EDept>(Dx);
+        const MarketDepartments::FInfo& Info = MarketDepartments::Info(Dept);
+        if (Dx == 0 || Dx == static_cast<int32>(MarketDepartments::EDept::Electronics))
+            Depts->AddSlot().AutoHeight().Padding(0.f, Dx == 0 ? 0.f : 8.f, 0.f, 2.f)[ Fixed(Dx == 0 ? TEXT("Taze reyonlar") : TEXT("G\u0131da d\u0131\u015f\u0131"), 10, ERole::Muted, true) ];
+        TSharedRef<SHorizontalBox> Formats = SNew(SHorizontalBox);
+        for (int32 F = Info.MinFormat; F < MarketDepartments::FormatCount; ++F)
+        {
+            Formats->AddSlot().AutoWidth().Padding(0.f, 0.f, 4.f, 0.f)
+            [ Choice(FormatShorts[F],
+                [G, Dept, F] { return G() && MarketDepartments::IsOn(G()->State, Dept, F); },
+                [this, G, Dept, F] { if (G()) Manage(TEXT("SetDepartment"), MarketDepartments::EncodeSet(Dept, F, !MarketDepartments::IsOn(G()->State, Dept, F))); },
+                [G, Dept, F] { FString Why; return G() && (MarketDepartments::IsOn(G()->State, Dept, F) || MarketDepartments::CanSet(G()->State, Dept, F, true, Why)); }) ];
+        }
+        TSharedRef<SHorizontalBox> Stances = SNew(SHorizontalBox);
+        for (int32 S = 0; S < 3; ++S)
+        {
+            Stances->AddSlot().AutoWidth().Padding(0.f, 0.f, 4.f, 0.f)
+            [ Choice(StanceShorts[S], [G, Dept, S] { return G() && MarketDepartments::Stance(G()->State, Dept) == S; },
+                [this, Dx, S] { Manage(TEXT("SetDeptStance"), Dx * 10 + S); }) ];
+        }
+        TSharedRef<SVerticalBox> Right = SNew(SVerticalBox)
+            + SVerticalBox::Slot().AutoHeight().HAlign(HAlign_Right)[ Formats ]
+            + SVerticalBox::Slot().AutoHeight().HAlign(HAlign_Right).Padding(0.f, 3.f, 0.f, 0.f)[ Stances ];
+        if (Info.bMaster)
+            Right->AddSlot().AutoHeight().HAlign(HAlign_Right).Padding(0.f, 3.f, 0.f, 0.f)
+            [ Button([G, Dept] { return FString::Printf(TEXT("Zay\u0131f ustalar\u0131 de\u011fi\u015ftir (%d)"), G() ? MarketDepartments::WeakMasters(G()->State, Dept) : 0); },
+                [this, Dx] { Manage(TEXT("ReplaceMasters"), Dx); }, false, [G, Dept] { return G() && MarketDepartments::WeakMasters(G()->State, Dept) > 0; }) ];
+        Depts->AddSlot().AutoHeight().Padding(0.f, 3.f)
+        [
+            SNew(SBorder).BorderImage(&SmallBrush).BorderBackgroundColor(Col(ERole::Inset)).Padding(FMargin(12.f, 6.f))
+            [
+                SNew(SHorizontalBox)
+                + SHorizontalBox::Slot().FillWidth(1.f).VAlign(VAlign_Center)
+                [
+                    SNew(SVerticalBox)
+                    + SVerticalBox::Slot().AutoHeight()[ Fixed(Info.Name, 11, ERole::Text, true) ]
+                    + SVerticalBox::Slot().AutoHeight()[ Fixed(MarketDepartments::Describe(Dept), 9, ERole::Muted) ]
+                    + SVerticalBox::Slot().AutoHeight()[ Label([G, Dept] { return G() ? MarketDepartments::Results(G()->State, Dept) : FString(); }, 9, ERole::Text) ]
+                ]
+                + SHorizontalBox::Slot().AutoWidth().VAlign(VAlign_Center).Padding(8.f, 0.f, 0.f, 0.f)[ Right ]
+            ]
+        ];
+    }
+
     return SNew(SScrollBox)
     + SScrollBox::Slot()
     [
@@ -3372,6 +3423,20 @@ TSharedRef<SWidget> SMarketMenu::CompanyTab()
                 [ More([] { return FString(TEXT("Her mal grubu bir kaynaktan al\u0131n\u0131r: yerel toptanc\u0131, b\u00f6lge distrib\u00fct\u00f6r\u00fc, ulusal distrib\u00fct\u00f6r ya da \u00fcretici. \u00dcst kaynak ucuzdur ama b\u00fcy\u00fckl\u00fck (ma\u011faza, depo, merkezi sat\u0131n alma) ve ayl\u0131k asgari al\u0131m ister. Al\u0131m g\u00fcc\u00fc son 30 g\u00fcn\u00fcn al\u0131m\u0131yla b\u00fcy\u00fcr: her iki kat\u0131nda %3, en \u00e7ok %12.")); }) ]
             ]
             + SVerticalBox::Slot().AutoHeight().Padding(0.f, 6.f, 0.f, 0.f)[ Supply ]) ]
+        + SVerticalBox::Slot().AutoHeight().Padding(0.f, 12.f, 0.f, 0.f)
+        [ Card(SNew(SVerticalBox)
+            + SVerticalBox::Slot().AutoHeight()
+            [
+                SNew(SHorizontalBox)
+                + SHorizontalBox::Slot().FillWidth(1.f).VAlign(VAlign_Center)[ Section(TEXT("REYONLAR")) ]
+                + SHorizontalBox::Slot().AutoWidth().VAlign(VAlign_Center).Padding(0.f, 0.f, 8.f, 0.f)
+                [ Mono([G] { return G() ? FString::Printf(TEXT("alan: mahalle %%%d/%d \u00b7 s\u00fcper %%%d/%d \u00b7 hiper %%%d/%d"),
+                    MarketDepartments::SpaceUsed(G()->State, 1), MarketDepartments::SpaceCap(1), MarketDepartments::SpaceUsed(G()->State, 2), MarketDepartments::SpaceCap(2),
+                    MarketDepartments::SpaceUsed(G()->State, 3), MarketDepartments::SpaceCap(3)) : FString(); }, 12.f, [] { return ERole::Accent; }) ]
+                + SHorizontalBox::Slot().AutoWidth().VAlign(VAlign_Center)
+                [ More([] { return FString(TEXT("Paketli raflar her ma\u011fazada var; reyonlar onlar\u0131n \u00fcst\u00fcne ayr\u0131 birer i\u015ftir. Hangi ma\u011faza t\u00fcr\u00fcnde hangi reyon olaca\u011f\u0131n\u0131 se\u00e7ersin: o t\u00fcrdeki b\u00fct\u00fcn \u015fubelerde a\u00e7\u0131l\u0131r (tadilat + stok \u015fimdi \u00f6denir), yeni \u015fubeler onunla a\u00e7\u0131l\u0131r. Taze reyonlar m\u00fc\u015fteri \u00e7eker ama fire verir; kasap, f\u0131r\u0131n ve bal\u0131k usta ister. G\u0131da d\u0131\u015f\u0131 aylarca stok ba\u011flar, mevsime g\u00f6re sat\u0131l\u0131r. Alan s\u0131n\u0131rl\u0131: s\u00fcpermarkette hepsi s\u0131\u011fmaz. Kapat\u0131rsan stok %60'\u0131na elden \u00e7\u0131kar.")); }) ]
+            ]
+            + SVerticalBox::Slot().AutoHeight().Padding(0.f, 6.f, 0.f, 0.f)[ Depts ]) ]
     ];
 }
 
