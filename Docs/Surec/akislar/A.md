@@ -190,3 +190,7 @@ Bunlar **kontrollü olarak denenecek ilk adaylar**, doğrulanmış denge ayarı 
 - M27 yalnız tek sürüm artışı; slot kartında uyumsuz kayıt cümlesi. A yükleme yolu hazır, CurrentVersion = 2 kaldı.
 - A4 “Gez” → StartBranchVisit / EndBranchVisit; A3 AdvanceTime gün/hafta/ay; önceki imzalar hazır.
 - A5 gerçek üç yıllık ağ 68/68 tamamlandı; index ve beş menü isteği yukarıda. Son derlenmiş C menüsü gözle incelendi, menü kaynaklarına dokunulmadı.
+## C3 doğrulaması — 01.10.2026
+
+- main c26372b temiz alındı; git pull güncel. İlk DERLE geçti, TEST 125/125 (123 temiz, 2 uyarılı; başarısız/çalışmamış 0), Ledger.CashAudit fark 0. Smoke geçti. Derleme/test düzeltmesi: 0 dosya, 0 düzeltme.
+- Sıradaki: bot raporuna C3 defter/dönem/hedef/ritim/kapanma ölçümleri; yeni menünün görüntüleri; uzun koşular. Bu ekler henüz doğrulanmadı.
