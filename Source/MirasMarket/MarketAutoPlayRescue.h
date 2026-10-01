@@ -14,7 +14,7 @@ namespace MarketAutoPlayRescue
     {
         TArray<FPlan> Plans;
         TArray<FYear> Years;
-        int64 BeforeDebt=0, BeforeMovement=0, Revenue=0;
+        int64 BeforeDebt=0, BeforeMovement=0, BeforeTaxPenalties=0, BeforeBills=0, BeforeSupplierMovement=0, Revenue=0;
         int32 BeforeRescues=0, LastBeginDay=0, LastDay=0, BlockedDays=0;
     };
     bool Blocked(const FMarketState& State);

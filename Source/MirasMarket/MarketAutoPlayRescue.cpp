@@ -16,10 +16,13 @@ namespace MarketAutoPlayRescue
             else if(Account==MarketLedger::EAccount::Penalties && !Entry.bCash)Total-=Entry.Amount;
         }return Total;
     }
+    int64 SupplierMovement(const FMarketState& State,int32 Day)
+    {int64 Total=0;for(const auto& Entry:State.Ledger.Entries)if(Entry.Day==Day && Entry.Account==static_cast<uint8>(MarketLedger::EAccount::SupplierCredit))Total+=Entry.Amount;return Total;}
     void BeginDay(const FMarketState& State,FStats& Stats)
     {
         if(Stats.LastBeginDay==State.Day)return;Stats.LastBeginDay=State.Day;
         Stats.BeforeDebt=MarketFinance::Debt(State)+MarketBanking::Debt(State);Stats.BeforeRescues=State.Rescues;
+        Stats.BeforeTaxPenalties=State.Books.TotalPenalties;Stats.BeforeBills=MarketSuppliers::OpenBills(State);Stats.BeforeSupplierMovement=SupplierMovement(State,State.Day);
         Stats.BeforeMovement=LoanMovement(State,State.Day);if(Blocked(State))++Stats.BlockedDays;
     }
     void Observe(const FMarketState& State,int32 Year,FStats& Stats)
@@ -30,9 +33,11 @@ namespace MarketAutoPlayRescue
             for(auto& Previous:Stats.Plans)if(!Previous.Paid && !Previous.Replaced)Previous.Replaced=Day;
             FPlan Row;Row.Day=Day;Row.Until=State.RescueUntil;Row.Stores=MarketBranches::OpenCount(State)+1;
             if(!State.Loans.IsEmpty()){Row.Principal=State.Loans[0].Principal;Row.Remaining=State.Loans[0].Remaining;Row.Rate=State.Loans[0].MonthlyRate;}
-            const int64 Movement=LoanMovement(State,Day)-Stats.BeforeMovement;
+            const int64 SupplierPenalties=MarketSuppliers::OpenBills(State)-Stats.BeforeBills-(SupplierMovement(State,Day)-Stats.BeforeSupplierMovement);
+            const int64 TaxPenalties=State.Books.TotalPenalties-Stats.BeforeTaxPenalties;
+            const int64 Movement=LoanMovement(State,Day)-Stats.BeforeMovement-SupplierPenalties-TaxPenalties;
             // Loan balance conservation. Write-off is not cash income: all cash borrowing/repayment and
-            // accrued loan penalties are included before subtracting the final consolidated loan.
+            // accrued loan penalties are included; tax/supplier penalties are excluded from loan movement.
             Row.WrittenOff=Stats.BeforeDebt+Movement-MarketFinance::Debt(State)-MarketBanking::Debt(State);
             Stats.Plans.Add(Row);
         }
