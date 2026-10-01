@@ -217,7 +217,7 @@ Bunlar **kontrollü olarak denenecek ilk adaylar**, doğrulanmış denge ayarı 
 
 - Claude teslimi: 9d22338, main'e gönderildi. Eski bekleyen yamalar uygulanmadı.
 - İlk DERLE: başarılı (62,12 sn); TEST: 135/135; Smoke: PASSED, çıkış 0. Claude dosyalarında derleme/test düzeltmesi: 0.
-- Sıradaki: yeni finans komutları, ağın aylık gider yedeği ve iki zararlı ayda kapatma; şube ilk 180 gün defter dökümü; uzun koşular ve menü incelemesi.
+- Bu adımlar tamamlandı; son ölçüm ve açık denge istekleri aşağıdaki C4 teslim bölümünde.
 
 
 ### C4 bot ve ölçüm altyapısı
@@ -246,3 +246,13 @@ Bunlar **kontrollü olarak denenecek ilk adaylar**, doğrulanmış denge ayarı 
 - **C'ye istek 3:** MarketMenuPages.cpp:1504 bütün eski aile kredilerini açıyor; şirket banka kartı ilk Finans görünümünde aşağıda kayboluyor. En yakın üç taksit + toplam/ayrıntı açılımı; şirket notu/limitini üstte göster. Otomasyon özel banka hedefiyle kartı doğruladı; oyuncunun normal girişi hâlâ uzun listeye takılıyor.
 - Ek istek: 18_management_1280x720 aile müdürü yer açıklaması düğmeler altında kesiliyor; ayrı satır/sarma. Harita renk anahtarı eksik. Ana ekranda yakın tarihli kutlamalar ve kutu yerine nokta düzelmiş.
 - Kapsam sınırı: bu gerçek kampanyada bütün uzak şubeler kapanmış ve bağlı şirket alınmamış. Şirket kartının boş durum açıklaması doğru; dolu bağlı şirket satırı ve açık şube müdürü satırının görsel taşması bu galeriyle doğrulanmadı. Para/mağaza ekleyerek sonucu değiştirmedim; C dolu durum incelemesini ayrıca yapmalı.
+
+### C4 teslim — son koşular
+- C4_finans_rapor.md sonuç ve beş gerekçeli öneri; C4_30_yil_rapor.md / C4_10_yil_rapor.md ve 16 ham CSV Docs/Surec/akislar altında. Son kaynak f1b9d75; menü 7f4dd3f. Son reserve koşuları: 155215 (30 yıl, 215,9 sn), 160337 (10 yıl, 906,9 sn). 12 kampanya / 65.751 gün; satış/stok denetimi ve defter farkı 0.
+- Dengeli 21 ulusal 10/20/30: 35/33/31; dünya 25/32/32. Kurtarma 30 yıl temkinli/dengeli/atak 150/165/5 = 320; 10 yıl dokuz koşuda 230. Seriler ilk on yılı tekrar içerir. Dengeli hedefi karşılanmadı; atak 22/23 146/159 mağaza, diğer yedi 10 yıllık koşu bir mağaza.
+- Tam 180 gün mahalle 22 örnek ortalama 7.718,32 TL net, zarar 0; eksik beş mahalle ayrı. Süper 18 örnek 56.119,51 TL, hiper 390 örnek 56.259,59 TL (58 zarar). Nominal/enflasyon ve hayatta kalan örnek seçimi sınırlamaları raporda; ilk 180 gün her şubenin bütün gider kalemleri CSV'de.
+- Gerçek teklifler: atak 22 4/1/3, atak 23 6/2/4 (teklif/kabul/ret). Finansmanlı komut kullanıldı ancak ilave satın alma kredisi 0; dönüştürme/satış ve limit geri ödeme doğal koşulları oluşmadı. Banking/Chains testleri geçti; doğal oyunla dolu bağlı şirket yaşam döngüsü ayrıca sınanmalı.
+- **C'ye ayar önerileri:** rapordaki beş başlık: kurtarma tekrar faizine tavan/eski borcu birleştirme, aile gider+stok bazlı nefes bütçesi/boş merkez yükünü azaltma, kredi notunda aile borcu kapsamı, mahalle manav/hiper bebek personel yükü, gerçek raf doluluğundan marka ödemesi. Hiçbiri kaynakta uygulanmadı.
+- **C'ye mantık isteği:** MarketBrands.cpp:68 depodaki ürün ve bir adet dolu raf bütün kapasiteyi saymaya devam ediyor. EmptyShelfEarnsNothing yalnız raf ve depo ikisi sıfır durumunu koruyor. Depo=1/raf=0 ve kapasite=100/raf=1 ayrı testleri gerekir; C4 marka gelirleri bu sınırlamayla okunmalı.
+- **C'ye kayıt isteği:** MarketEconomy.h:749 CurrentVersion hâlâ C3 sürümü 3; yeni Banking/Rescues alanları için M27 gereği sonraki birleşimde tek artış + C3 kaydını reddetme testi. Eski kayıt dalı yazılmadı; bu tur sabit/kural değiştirilmedi.
+- Son doğrulama DERLE + TEST 138/138 (137 temiz + motor HTTP uyarısı, başarısız/çalışmamış 0) + Smoke PASSED. 92 menü PNG ve kampanya koruma PASSED. Claude kaynaklarında derleme/test düzeltmesi 0; dosya:satır listesi bu yüzden boş. Kendi bot rapor hesabı/aylık gider yedeği düzeltmeleri önceki bölümde.
