@@ -1,8 +1,10 @@
 # Güncel durum
 
-Son güncelleme: 01.10.2026 — Codex, C4 finans doğrulaması
+Son güncelleme: 02.10.2026 — Codex, C8 tanı ve doğrulama
 
 ## Kısaca
+
+**C8/M36–M38 (02.10.2026):** C7 main'e birleşti; Claude teslimi 0ef2363, son bot kaynağı 9c45f93. MarketCredit kaldırıldı; bot maaş/kâr payı, kira/patron yedeği ve tek dükkân tanısı eklendi. DERLE ve Smoke geçti; TEST **150 başarılı / 151** (149 temiz + 1 HTTP uyarısı); tek başarısız `AutoPlay.LateCarefulGrowth`: ilk şube 600 yerine609. gün. Eşik/sabit değiştirilmedi; **tam doğrulama bekliyor**. 8+8+3×10 yıllık tohum21 koşuları: defter/stok farkı0. Büyümesiz sekizinci yıl şirket FAVÖK65.278,75 TL, kurtarma0; normal altıncı yıl zararı fiyat artışıyla hacim düşüşü, İK/müdür gideri ve nakit/boş raf döngüsüyle ilişkili. Rapor/CSV: `Docs/Surec/akislar/C8_aile_dukkani_rapor.md`, `C8_veri/`; A.md C8 ve C7 tablosunun yalnız Kaldı sütunu güncellendi. 312 PNG, boyut hatası0, kampanya korunumu geçti; seçili sayfalar incelendi. **Sırada Claude/Mustafa:** 600 günlük büyüme hedefi ve rapordaki kontrollü fiyat/kadro/nakit deneylerini değerlendirmek. Codex kaynak/rapor teslimi main ve akis-a üzerinden paylaşılır; bekleyen eski finans yamaları alınmadı.
 
 **C7 ilk doğrulama (01.10.2026):** C6 main'e birleşti; C7 7de1603 alındı. Bir eksik test başlığı düzeltildi (MarketManagersTests.cpp:1), DERLE + TEST 148/148 + Smoke geçti. Codex akis-a klasöründe bot/uzun koşu/üç dönem görüntü karşılaştırmasını sürdürecek; son devam notu A.md. C7 henüz tamamlanmadı.
 
@@ -111,6 +113,8 @@ GitHub ana deposu: `https://github.com/m07tas/market-ll` (`main`). Unreal/Blende
 Görsel ve raf dizme işleri yeterli seviyede; bir süre **donduruldu**. Öncelik **"İlk Hafta" oynanabilir dilimi**: bir oyuncu 7 günü baştan sona oynayabilmeli (sipariş → mal kabul → raf → fiyat → satış → gün raporu → hafta hedefi). Görevler G-051…G-055. Başarı ölçütü: yeni biri ilk 30 dakikada döngüyü anlıyor ve ilk kararının sonucunu görüyor.
 
 ## Devam notu
+**02.10.2026 — Codex / C8:** Son kaynak9c45f93 derlendi; DERLE76,00sn ve Smoke geçti, TEST150/151. Tek açık hata `MarketAutoPlayCTests.cpp:96–106` LateCarefulGrowth600 gün hedefi, gerçek açılış609. Test eşiği/sabitler korunur. `C8_aile_dukkani_rapor.md` ilk üç bulgu ve kontrollü deney önerilerinden devam edin; ham koşular A/Saved/AutoPlay/020822,020828,020915, takip edilen veri C8_veri. Tek dükkân8.yıl şirket FAVÖK65.278,75 TL; normal6.yıl zarar. Kaynak/kayıt sürümü5 güncel; aşağıdaki eski sürüm ve derlenmedi notları tarihseldir. GörevG-095 tam doğrulama bekliyor; Claude/Mustafa ekonomik büyüme hedefini değerlendirecek, yeni sabit önerisi uygulanmadı. Menü C7 tablosunun Kaldı sütunu C8'e göre; dünya görevli adı senkronu sonraki Codex adayı. Bekleyen eski finans yamaları alınmadı.
+
 **01.10.2026 — Codex / C4:** C4_finans_rapor.md ve A.md C4 tesliminden devam edin. Kaynak DERLE + TEST 138/138 + Smoke geçti, Test.ps1 alt sınır 138. Son kaynak f1b9d75 yedek hesabı; teslim koşuları 155215/160337, önceki 153450/153911 final değildir. Menü galeri 20261001-154910/index.html, 92 PNG. C4 doğrulaması/rapor işi tamamlandı; C/Mustafa denge ve menü isteklerini uygulayacak. Finansman gerektiren alım/bağlı şirket dönüşüm-satışı doğal koşuda oluşmadı; Banking/Chains testleri geçti ancak dolu yaşam döngüsü ve görsel kapsamı ayrıca açılmalı. CurrentVersion hâlâ 3, kayıt biçimi için sonraki birleşimde tek artış gerekir. Bekleyen eski yamalar uygulanmadı ve yerinde bırakıldı. Tarihsel derlenmedi notları son C4 kaynakları için geçerli değildir.
 
 

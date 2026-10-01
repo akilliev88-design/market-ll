@@ -1,0 +1,143 @@
+{
+  "source": "9c45f93",
+  "paths": {
+    "standard": "C:\\Users\\mtass\\Desktop\\market-ll-A\\Saved\\AutoPlay\\20261002-020822",
+    "single": "C:\\Users\\mtass\\Desktop\\market-ll-A\\Saved\\AutoPlay\\20261002-020828",
+    "ten": "C:\\Users\\mtass\\Desktop\\market-ll-A\\Saved\\AutoPlay\\20261002-020915",
+    "c7": "C:\\Users\\mtass\\Desktop\\market-ll-A\\Saved\\AutoPlay\\20261002-001737"
+  },
+  "normal": {
+    "days": 2922,
+    "months": 97,
+    "rescue": {
+      "Temkinli": {
+        "plan": 1,
+        "ilk": 2093,
+        "yenileme": 0,
+        "ortanca_ara": null,
+        "en_kisa": null,
+        "en_uzun": null,
+        "ilk_yeni_sube": null
+      }
+    },
+    "audit": [
+      {
+        "tarz": "Temkinli",
+        "tohum": "21",
+        "fark_gun": "0",
+        "fark_kurus": "0",
+        "mutlak_fark_kurus": "0",
+        "hedef": "612",
+        "tamamlanan": "272",
+        "kutlama": "297",
+        "sakin_olay": "7",
+        "ertelenen_kotu": "10",
+        "sikici_donem": "0",
+        "en_uzun_sessizlik": "19",
+        "kapanma": "0",
+        "rakip_alimi": "0",
+        "bizim_alim": "0"
+      }
+    ]
+  },
+  "tek_dukkan": {
+    "days": 2922,
+    "months": 97,
+    "rescue": {},
+    "audit": [
+      {
+        "tarz": "Temkinli (buyume kapali)",
+        "tohum": "21",
+        "fark_gun": "0",
+        "fark_kurus": "0",
+        "mutlak_fark_kurus": "0",
+        "hedef": "617",
+        "tamamlanan": "264",
+        "kutlama": "299",
+        "sakin_olay": "8",
+        "ertelenen_kotu": "10",
+        "sikici_donem": "0",
+        "en_uzun_sessizlik": "19",
+        "kapanma": "0",
+        "rakip_alimi": "0",
+        "bizim_alim": "0"
+      }
+    ]
+  },
+  "C8": {
+    "Temkinli": {
+      "plan": 3,
+      "ilk": 2093,
+      "yenileme": 2,
+      "ortanca_ara": 680.0,
+      "en_kisa": 214,
+      "en_uzun": 1146,
+      "ilk_yeni_sube": null
+    },
+    "Dengeli": {
+      "plan": 2,
+      "ilk": 879,
+      "yenileme": 1,
+      "ortanca_ara": 2369,
+      "en_kisa": 2369,
+      "en_uzun": 2369,
+      "ilk_yeni_sube": null
+    },
+    "Atak": {
+      "plan": 32,
+      "ilk": 184,
+      "yenileme": 31,
+      "ortanca_ara": 105,
+      "en_kisa": 82,
+      "en_uzun": 148,
+      "ilk_yeni_sube": null
+    }
+  },
+  "C7": {
+    "Temkinli": {
+      "plan": 10,
+      "ilk": 1664,
+      "yenileme": 9,
+      "ortanca_ara": 220,
+      "en_kisa": 147,
+      "en_uzun": 291,
+      "ilk_yeni_sube": null
+    },
+    "Dengeli": {
+      "plan": 3,
+      "ilk": 584,
+      "yenileme": 1,
+      "ortanca_ara": 1463.5,
+      "en_kisa": 279,
+      "en_uzun": 2648,
+      "ilk_yeni_sube": null
+    },
+    "Atak": {
+      "plan": 33,
+      "ilk": 236,
+      "yenileme": 32,
+      "ortanca_ara": 96.5,
+      "en_kisa": 80,
+      "en_uzun": 150,
+      "ilk_yeni_sube": null
+    }
+  },
+  "reklam": {
+    "Temkinli": {
+      "harcama_kurus": 0,
+      "tahmini_ciro_kurus": 0,
+      "harcama_ciro": null
+    },
+    "Dengeli": {
+      "harcama_kurus": 0,
+      "tahmini_ciro_kurus": 0,
+      "harcama_ciro": null
+    },
+    "Atak": {
+      "harcama_kurus": 0,
+      "tahmini_ciro_kurus": 0,
+      "harcama_ciro": null
+    }
+  },
+  "eslesme": "standard8 == careful10 prefix; both styles same first 366 days; all stock/cash audits zero"
+}

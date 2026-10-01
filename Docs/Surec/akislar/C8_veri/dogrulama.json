@@ -1,0 +1,11 @@
+{
+  "succeeded": 149,
+  "succeededWithWarnings": 1,
+  "failed": 1,
+  "notRun": 0,
+  "source": "9c45f93",
+  "build": "passed 76.00s",
+  "smoke": "passed 2026-10-02 02:11",
+  "failure": "AutoPlay.LateCarefulGrowth: first branch 609, target 600 unchanged",
+  "complete": false
+}
