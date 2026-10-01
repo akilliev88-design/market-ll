@@ -334,6 +334,8 @@ namespace MarketAutoPlay
                 if (State.Day % 7 == 1 || DayIndex + 1 == Options.Days) { Trial.Weekly.Add(Week); Week = FRow(); }
                 Milestones(State, Trial);
                 MarketAutoPlayC::Observe(State,Trial.C);
+                if(Trial.C.Years.Num()>Trial.Finance.Years.Num())
+                    UE_LOG(LogTemp,Display,TEXT("AutoPlay progress %s seed %d year %d: %d stores, %d branches, %d ledger entries"),*Trial.Profile,Trial.Seed,Trial.C.Years.Num(),Today.Stores,State.Branches.Num(),State.Ledger.Entries.Num());
                 MarketAutoPlayFinance::Observe(State,Trial.C.Years.Num(),Trial.Finance);
                     ++DayIndex;
                 };
@@ -388,7 +390,7 @@ namespace MarketAutoPlay
             Highest = FMath::Max(Highest, Last.Cash);
         }
         Text += TEXT("\n## Bulgular ve neye bakmali\n\n");
-        Text += FString::Printf(TEXT("- %d/%d kosuda kasa eksiye dustu.\n- %d/%d kosu birden cok magazaya ulasti.\n- Satis, siparis, stok ve sayi denetimi: %d hata.\n\n"), Broke, Report.Runs.Num(), Expanded, Report.Runs.Num(), Failures);
+        Text += FString::Printf(TEXT("- %d/%d kosuda kasa eksiye dustu.\n- %d/%d kosu sonunda birden cok magaza acik kaldi.\n- Satis, siparis, stok ve sayi denetimi: %d hata.\n\n"), Broke, Report.Runs.Num(), Expanded, Report.Runs.Num(), Failures);
         if (LowestPositive < MAX_int64 && Highest / FMath::Max<int64>(1, LowestPositive) >= 4)
             Text += TEXT("- Istismar suphesi: son kasalar arasinda en az 4 kat fark var; asagidaki giderleri, magaza sayisini ve arka plan netini karsilastir. Bu fark tek basina hile kaniti degildir.\n");
         for (const FRun& Trial : Report.Runs)
@@ -411,7 +413,7 @@ namespace MarketAutoPlay
             Text += MarketAutoPlayFinance::Report(Trial.Finance);
             for (const FString& Problem : Trial.Issues) Text += TEXT("- Kontrol: ") + Problem + TEXT("\n");
         }
-        Text += TEXT("\n## Denetimin kapsami\n\nSatis fisindeki para, siparis bedeli, ana gun kapanisi ve mal kabul aktarimi bagimsiz hesapla kontrol edilir. Negatif stok, gecersiz sayilar ve pay sinirlari her gun denetlenir. Arka planin net kasa hareketi ayrica olculur; tek tek kalemlerin tam korunum denetimi B'nin muhasebe defteri C tarafindan baglandiginda tamamlanacak. Kasa eksisi oyun sonu degildir; sikinti gunleri ayri sayilir. Ligler C bolumunde yillik olculur; B/C3 entegrasyonu oncesi bu kosu tam oyun dengesi degildir.\n\nFiyatlar normal oyuncunun kullandigi adimlarla degisir. Kredi, sube, depo, yonetici ve kararlar normal komutlardan gecer. Aile dukkani PlayDay ile oynar; test modu, bedava mal veya para kullanilmaz. CSV tutarlari kurustur.\n");
+        Text += TEXT("\n## Denetimin kapsami\n\nSatis fisi, siparis bedeli, gun kapanisi ve mal kabul aktarimi bagimsiz hesapla kontrol edilir. Negatif stok, gecersiz sayilar ve pay sinirlari her gun denetlenir. Bagli muhasebe defterinin kasa farki hem isaretli hem mutlak toplamla C bolumunde verilir. Kasa eksisi oyun sonu degildir. Ligler yillik, subeler ilk 180 gunun gercek defter satirlariyla olculur.\n\nFiyatlar normal oyuncunun kullandigi adimlarla degisir. Kredi, sube, depo, yonetici ve kararlar normal komutlardan gecer. Aile dukkani PlayDay ile oynar; test modu, bedava mal veya para kullanilmaz. CSV tutarlari kurustur.\n");
         for (const FString& Error : Report.Errors) Text += TEXT("- Hata: ") + Error + TEXT("\n");
         struct FTranslation { const TCHAR* From; const TCHAR* To; };
         const FTranslation Translations[] = {
@@ -434,6 +436,7 @@ namespace MarketAutoPlay
             {TEXT("dustu"), TEXT("d\u00fc\u015ft\u00fc")}, {TEXT("kasa farki"), TEXT("kasa fark\u0131")}
         };
         for (const FTranslation& Translation : Translations) Text.ReplaceInline(Translation.From, Translation.To, ESearchCase::CaseSensitive);
+        Text.ReplaceInline(TEXT("\u015fube180.csv"),TEXT("sube180.csv"),ESearchCase::CaseSensitive);
         FString DeptCsv=TEXT("tarz,tohum,gun,magaza_turu,reyon,sube,kar30_kurus,ciro30_kurus\n");
         for(const auto& Trial:Report.Runs)DeptCsv+=MarketAutoPlayC::DeptCsv(Trial.C,Trial.Profile,Trial.Seed);
         FString LeagueCsv=TEXT("tarz,tohum,yil,gun,ulusal_sira,dunya_sira,magaza,bizim_ortak_ciro,lider_ortak_ciro\n");

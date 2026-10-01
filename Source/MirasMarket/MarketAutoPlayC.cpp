@@ -128,6 +128,7 @@ namespace MarketAutoPlayC
         Stats.GapDays=State.Ledger.GapDays; Stats.GapTotal=State.Ledger.TotalGap;
         Stats.GapAbsolute+=FMath::Abs(State.Ledger.LastGap);
         Stats.Closures=State.Rivals.Closures; Stats.Takeovers=State.Rivals.Takeovers; Stats.OurBuys=State.Rivals.OurBuys;
+        Stats.Purchases=Stats.OurBuys;
         Stats.QuietEvents=State.Goals.QuietEvents; Stats.HeldBadEvents=State.Goals.HeldBadEvents;
         const int32 QuietDays=FMath::Max(0,Day-State.Goals.LastLivelyDay);
         Stats.RhythmLongest=FMath::Max(Stats.RhythmLongest,QuietDays);

@@ -130,13 +130,24 @@ namespace MarketAutoPlayFinance
             Result.Name=Branch.Name; Result.Format=Branch.Format; Result.Opened=Branch.OpenedDay;
             if(Branch.Stage==static_cast<uint8>(MarketBranches::EStage::Closed)) { ++Stats.Closed; if(Result.Closed==0)Result.Closed=Day; }
             if(Branch.OpenedDay<=0 || Day<Branch.OpenedDay || Day>=Branch.OpenedDay+180 || (Result.Closed>0 && Day>Result.Closed))continue;
-            const auto Books=MarketLedger::Statement(State,Day,Day,Index);
             if(Branch.Stage==static_cast<uint8>(MarketBranches::EStage::Open))++Result.Days;
-            Result.Revenue+=Books.Revenue; Result.Gross+=Books.GrossProfit; Result.Net+=Books.NetProfit;
-            Result.Rent-=Books.At(MarketLedger::EAccount::Rent); Result.Wages-=Books.At(MarketLedger::EAccount::Wages);
-            Result.Sgk-=Books.At(MarketLedger::EAccount::SocialSecurity); Result.Running-=Books.At(MarketLedger::EAccount::Utilities);
-            Result.Logistics-=Books.At(MarketLedger::EAccount::Logistics);
-            Result.Waste-=Books.At(MarketLedger::EAccount::Waste)+Books.At(MarketLedger::EAccount::DepartmentWaste);
+        }
+        // One scan of the retained ledger, not one full scan per branch. Account classification is the books' own.
+        for(const auto& Entry:State.Ledger.Entries)
+        {
+            if(Entry.Day!=Day || Entry.Store<0)continue;
+            auto* Result=Stats.Branches.Find(Entry.Store);
+            if(!Result || Result->Opened<=0 || Day<Result->Opened || Day>=Result->Opened+180 || (Result->Closed>0 && Day>Result->Closed))continue;
+            const auto Account=static_cast<MarketLedger::EAccount>(Entry.Account);
+            if(MarketLedger::IsIncomeStatement(Account))Result->Net+=Entry.Amount;
+            if(MarketLedger::IsRevenue(Account)) { Result->Revenue+=Entry.Amount; Result->Gross+=Entry.Amount; }
+            else if(MarketLedger::IsGoodsCost(Account))Result->Gross+=Entry.Amount;
+            if(Account==MarketLedger::EAccount::Rent)Result->Rent-=Entry.Amount;
+            if(Account==MarketLedger::EAccount::Wages)Result->Wages-=Entry.Amount;
+            if(Account==MarketLedger::EAccount::SocialSecurity)Result->Sgk-=Entry.Amount;
+            if(Account==MarketLedger::EAccount::Utilities)Result->Running-=Entry.Amount;
+            if(Account==MarketLedger::EAccount::Logistics)Result->Logistics-=Entry.Amount;
+            if(Account==MarketLedger::EAccount::Waste || Account==MarketLedger::EAccount::DepartmentWaste)Result->Waste-=Entry.Amount;
         }
         for(const auto& Chain:State.Rivals.Chains)
             if(Chain.bExitSale) { Stats.Exits.Add(Chain.Id); if(Chain.Country!=State.CountryId)Stats.Gates.Add(Chain.Id); }

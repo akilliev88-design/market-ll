@@ -226,3 +226,9 @@ Bunlar **kontrollü olarak denenecek ilk adaylar**, doğrulanmış denge ayarı 
 - sube180.csv gerçek defterden ciro/brüt/kira/ücret/SGK/işletme/lojistik/fire/net; banka.csv yıllık not, şirket borcu/FAVÖK, faiz/limit/bağlı şirket; c4.csv kurtarma, kapanma, teklif, finansman, dönüşüm ve çıkış sayaçları. Aynı gün iki kez sayılmaz; yatırım gideri faaliyet kârı değildir.
 - Üç yeni test: NetworkReserve, TwoLosingMonths, First180Books. DERLE geçti, TEST 138/138 (137 temiz + 1 motor ağ uyarısı), Smoke PASSED. Test.ps1 alt sınırı 138. C kaynaklarında düzeltme 0. Uzun koşular ve PNG incelemesi sürüyor.
 
+
+### C4 büyük ağ ölçümü
+- 22. tohumun atak koşusu büyüdüğü için ilk şube ölçümü (her şubede 120 günlük defteri yeniden tarama) pahalıydı. Yalnız rapor hesabı tek defter geçişine indirildi; yıllık ilerleme satırı eklendi. C oyun mantığı değişmedi.
+- Son DERLE + TEST 138/138 (tamamı temiz) + Smoke PASSED. 30 yıllık yeniden koşuda gunluk.csv, sube180.csv, banka.csv, c4.csv ve c3.csv önceki sürümle bayt bayt aynı. Süre 159,2 → 54,7 sn (ilk koşu diğer süreçlerle eşzamanlıydı; saf hız kıyası değildir).
+- Genel rapor artık birleşmiş defter denetimini anlatır; son açık mağaza sayısını tüm koşunun büyümesi gibi sunmaz. Finansmanlı alımların C sayacı gerçek OurBuys üzerinden okunur.
+
