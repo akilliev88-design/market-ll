@@ -1,6 +1,6 @@
 # Akış A — Codex
 
-Son teslim (01.10.2026): A1/A3 hazır ve push edilmiş; A4 cf5ee8c hazır. A5 görüntü otomasyonu doğrulandı; gerçek botla üç yılda dolu şube/müdür/depo şartı karşılanmadı, aşağıdaki açıkça etiketli inceleme örnekleri kullanıldı. Menüye dokunulmadı.
+Son teslim (01.10.2026): A1/A3/A4 hazır ve push edilmiş. A5 gerçek üç yıllık bot kampanyasıyla 68/68 yeniden doğrulandı (11 şube, 3 müdür, 1 depo; örnek ağ yok). A6 C teslimi, M27 ve bot komutları push edildi; ilk uzun koşunun gösterdiği bot yer seçimi/geç büyüme iyileştirmesi doğrulanıyor, son uzun koşu henüz alınmadı. Menüye dokunulmadı.
 
 ## Yapılanlar
 
@@ -145,3 +145,17 @@ Büyüme de oyuncu yolunda iyileştirildi: 90. günden sonra ilk şubeyi hâlâ 
 Yeni testler: `AutoPlay.SupplyAndBrands` (asgariyi tutturmadan çıkmama, hacimle çıkma/geri inme, para icat etmeme, karşılanabilir marka koşulu); `AutoPlay.DepartmentLossAndSpace` (gerçek komutlarla açılma, %22 sınırı, maliyet, zarar kapanışı ve ikinci kez stok iadesi olmaması); `AutoPlay.CObservation` (sıkıcı dönem/tedarik geçişi/felaketin tekrar sayılmaması). İlk DERLE ve TEST **103/103** geçti; son rapor eklemesi sonrası DERLE geçti, TEST + Smoke sürüyor. Tamamlandı denmedi; uzun koşu ve gerçek ağla A5 yenilemesi sırada.
 
 Son bot doğrulaması: DERLE başarılı, TEST **103/103** (102 temiz + 1 motor HTTP zaman aşımı uyarısıyla başarılı); başarısız/çalışmamış/devam eden 0. AutoPlay.Short **0,693 saniye**. Smoke başarılı, işlem çıkış kodu 0. Uzun koşu raporları henüz alınmadı.
+
+### A5 gerçek ağ şartı kapandı (01.10.2026 08:43)
+
+`Saved/Screenshots/Menu/20261001-083810/index.html`: gerçek 3 yıllık atak bot (tohum 21), 1097. gün, **11 şube / 3 müdür / 1 depo**. Örnek şube/müdür/depo eklenmedi (`review-only network 0`). Menü görüntü otomasyonu **68/68** ve kampanya değişmedi kontrolü geçti, işlem çıkışı 0; tüm PNG boyutları doğru. 17 karşılaştırma sayfasındaki dört PNG'nin hepsi gözle incelendi (`Review/` yalnız inceleme kopyaları). Böylece önceki A5'te açık bırakılan “botla kazanılmış dolu kampanya” şartı karşılandı.
+
+C'ye istek: önceki beş menü bulgusu gerçek kampanyada da var: Fiyat kartındaki Lüleburgaz + eski rakip adları; ulusal ligde büyük cironun para birimi kesilmesi; Finans/Borç ayrıntısı ve mağaza karne açıklaması kesilmesi; 720p sipariş başlıklarının bitişmesi; harita rakip/fırsat renk anahtarı eksikliği. Sayfaların hiçbiri bozuk/boş açılmadı. C'nin yeni reyon/tedarik/marka bölümleri uzun sayfalarda aşağı kaydırılır; bu çekim her sayfa/sekmenin ilk görünümüdür, tüm kaydırma konumlarının taraması değildir. Menü kaynakları değiştirilmedi.
+
+### A6 ilk uzun koşudan bot düzeltmesi
+
+İlk 30 yıl × 3 tarz × 1 tohum ve 10 yıl × 3 tarz × 3 tohum tamamlandı; ikisi de çıkış 0 ve denetim hatası 0. İlk 30 yıl raporu `Saved/AutoPlay/20261001-084043`: dengeli 10/20/30. yılda ulusal 18/18/18, dünya 20/20/20; 61 mağaza. **Bu son denge raporu değildir.** Bot hiper seçtiğinde, sıralamanın başındaki ucuz ama 500 bin altı nüfuslu ile tekrar bakıp takılıyordu (dengeli 703, atak 1517 ret). Bu C'nin hatası değil; oyun kapısını doğru uyguladı. Bot yer listesi artık halka açık nüfus, bölüm ve depo menzilini filtreler; açılış yine `CanOpen` ve normal `OpenBranch` komutuyla. Bölüm kilitliyse süpermarketle büyümeyi sürdürür. `AutoPlay.ExpansionSite` küçük il, büyük il/deposuz, büyük il/depolu, bölüm kilidi için testlidir.
+
+İlk koşuda temkinli 30 yıl tek dükkânda kaldığından “az ve geç” tarzı gerçek büyümeyle sınanamadı. İlk şube fiyat denemesi temkinlide 365. günden sonra %88; dengelide 90. günden sonra %88, atakta 60. günden sonra %82 olarak güncellendi. Temkinlinin 30 günlük karar aralığı, 2,5× açılış yedeği ve borçsuz politikası korunur. `AutoPlay.LateCarefulGrowth` gerçek 600 günlük kampanyada temkinlinin ilk yıldan sonra ve dengeliden geç şube açmasını, para/stok denetimini kontrol eder. İlk tabloyun %95 temkinli fiyatı bu son kararla değiştirilmiştir. C sabitleri yine değişmedi. DERLE/TEST/Smoke ve uzun koşular yeniden çalıştırılıyor.
+
+Bot yer/geç büyüme düzeltmesi doğrulandı: DERLE başarılı; TEST **105/105** (104 temiz + 1 motor HTTP zaman aşımı uyarısıyla başarılı), başarısız/çalışmamış/devam eden 0; Smoke başarılı (disk kayıt/yükleme dahil), işlem çıkışları 0. 600 günlük gerçek strateji testi 4,35 sn: temkinli 8, dengeli 12, atak 15 mağaza; hepsinde denetim hatası 0. Atak kasası -706.405,27 TL: yeni hiper kararının ciddi ekonomik riski uzun raporda incelenecek. Son uzun koşular A6_final_30Years.log / A6_final_10Years.log ile başlatıldı.

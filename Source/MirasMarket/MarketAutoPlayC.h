@@ -33,6 +33,7 @@ namespace MarketAutoPlayC
         int64 BrandMoney=0;
         FString Nemesis;
     };
+    bool SiteSuitable(const FMarketState& State,const FString& Country,const FString& Province,const FString& Format);
     bool BrandWorth(const FMarketState& State,const TArray<FMarketProduct>& Products,const FMarketBrandOffer& Offer,const FPolicy& Policy);
     double PurchaseForecast(const FMarketState& State,int32 Line,const FStats& Stats);
     void Decide(FMarketState& State,const TArray<FMarketProduct>& Products,const FPolicy& Policy,int64 Reserve,FStats& Stats);

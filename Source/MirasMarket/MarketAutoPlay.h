@@ -18,7 +18,7 @@ namespace MarketAutoPlay
         int32 DepotAt = 8;
         MarketAutoPlayC::FPolicy C;
         double GrowthPriceFactor = .88;
-        int32 SuperAt = 6, HyperAt = 20;
+        int32 GrowthPriceAt = 90, SuperAt = 6, HyperAt = 20;
     };
     const TArray<FProfile>& Profiles();
     struct FOptions

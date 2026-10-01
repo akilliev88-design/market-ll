@@ -7,6 +7,8 @@
 #include "MarketBranches.h"
 #include "MarketCalendar.h"
 #include "MarketPrices.h"
+#include "MarketCompany.h"
+#include "MarketDepots.h"
 namespace MarketAutoPlayC
 {
     FString Key(int32 Format,int32 Dept) { return FString::Printf(TEXT("%d|%d"),Format,Dept); }
@@ -15,6 +17,15 @@ namespace MarketAutoPlayC
         FString Message;
         if(!MarketDirector::Command(State,Products,Action,Arg,Message)) { ++Stats.Rejected; return false; }
         ++Stats.Commands.FindOrAdd(Action.ToString()); return true;
+    }
+    bool SiteSuitable(const FMarketState& State,const FString& Country,const FString& Province,const FString& Format)
+    {
+        const auto Site=MarketBranches::SiteOf(State,Country,Province);
+        const auto& Kind=MarketBranches::FormatInfo(Format);
+        if(!Site.bValid || Site.PopulationK<Kind.MinPopulationK)return false;
+        if(Kind.Chapter>0 && !MarketCompany::ChapterOpen(State,Kind.Chapter))return false;
+        float Km=0.f;
+        return !Kind.bNeedsDepot || MarketDepots::Nearest(State,Country,Province,false,Km)!=INDEX_NONE;
     }
     bool BrandWorth(const FMarketState& State,const TArray<FMarketProduct>& Products,const FMarketBrandOffer& Offer,const FPolicy& Policy)
     {

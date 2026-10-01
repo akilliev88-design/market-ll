@@ -1,4 +1,5 @@
 #include "MarketAutoPlayC.h"
+#include "MarketAutoPlay.h"
 #include "MarketBranches.h"
 #include "MarketDepartments.h"
 #include "MarketBrands.h"
@@ -70,6 +71,35 @@ bool FMarketAutoPlayCObserver::RunTest(const FString& Parameters)
     for(int32 Day=34;Day<=37;++Day){State.Day=Day+1;State.EventLog.Add(FString::Printf(TEXT("event.power@%d"),Day));MarketAutoPlayC::Observe(State,Stats);}
     TestEqual(TEXT("Four disasters within a week make one cluster"),Stats.PilesBase,1);
     TestEqual(TEXT("Repeated log entries do not duplicate disasters"),Stats.BaseBadDays.Num(),4);
+    return true;
+}
+IMPLEMENT_SIMPLE_AUTOMATION_TEST(FMarketAutoPlaySitePolicy,"MirasMarket.AutoPlay.ExpansionSite",EAutomationTestFlags::EditorContext|EAutomationTestFlags::EngineFilter)
+bool FMarketAutoPlaySitePolicy::RunTest(const FString& Parameters)
+{
+    FMarketState State;State.CountryId=TEXT("tr");State.Story.Chapter=5;
+    TestTrue(TEXT("Ordinary shop can use small province"),MarketAutoPlayC::SiteSuitable(State,TEXT("tr"),TEXT("kirklareli"),TEXT("mahalle")));
+    TestFalse(TEXT("Hyper cannot use small province"),MarketAutoPlayC::SiteSuitable(State,TEXT("tr"),TEXT("kirklareli"),TEXT("hiper")));
+    TestFalse(TEXT("Big province alone is not enough for hyper"),MarketAutoPlayC::SiteSuitable(State,TEXT("tr"),TEXT("istanbul"),TEXT("hiper")));
+    FMarketDepot Depot;Depot.Country=TEXT("tr");Depot.Province=TEXT("istanbul");State.Company.DepotSites.Add(Depot);
+    TestTrue(TEXT("Suitable big province with depot can be selected"),MarketAutoPlayC::SiteSuitable(State,TEXT("tr"),TEXT("istanbul"),TEXT("hiper")));
+    State.Story.Chapter=4;
+    TestFalse(TEXT("Chapter lock still applies"),MarketAutoPlayC::SiteSuitable(State,TEXT("tr"),TEXT("istanbul"),TEXT("hiper")));
+    return true;
+}
+IMPLEMENT_SIMPLE_AUTOMATION_TEST(FMarketAutoPlayGrowingStyles,"MirasMarket.AutoPlay.LateCarefulGrowth",EAutomationTestFlags::EditorContext|EAutomationTestFlags::EngineFilter)
+bool FMarketAutoPlayGrowingStyles::RunTest(const FString& Parameters)
+{
+    TArray<FMarketProduct> Products;TArray<int32> Capacities;TArray<FString> Errors;
+    if(!MarketAutoPlay::LoadInputs(Products,Capacities,Errors))return false;
+    MarketAutoPlay::FOptions Options;Options.Days=600;Options.Seeds=1;
+    const auto Report=MarketAutoPlay::Run(Options,Products,Capacities);
+    if(!TestEqual(TEXT("Three real styles"),Report.Runs.Num(),3))return false;
+    for(const auto& Run:Report.Runs)TestEqual(TEXT("Longer strategy conserves stock and money"),Run.AuditFailures,0);
+    const int32* Careful=Report.Runs[0].Milestones.Find(TEXT("Ilk sube"));
+    const int32* Balanced=Report.Runs[1].Milestones.Find(TEXT("Ilk sube"));
+    TestNotNull(TEXT("Careful eventually opens a real branch"),Careful);
+    TestNotNull(TEXT("Balanced opens a real branch"),Balanced);
+    if(Careful && Balanced){TestTrue(TEXT("Careful waits a year and opens later"),*Careful>365 && *Careful>*Balanced);}
     return true;
 }
 #endif

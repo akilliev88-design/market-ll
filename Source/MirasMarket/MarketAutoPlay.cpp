@@ -25,9 +25,9 @@ namespace MarketAutoPlay
     const TArray<FProfile>& Profiles()
     {
         static const TArray<FProfile> Values = {
-            { EStyle::Careful, TEXT("Temkinli"), 30, 2.5, false, 30, 1.05, 12, {365,60,1,2,.8f,1.4f,1.15f,false,2.0}, .95,8,30 },
-            { EStyle::Balanced, TEXT("Dengeli"), 14, 1.5, false, 14, 1.0, 8, {180,30,2,1,.95f,1.2f,1.05f,true,1.5}, .88,6,20 },
-            { EStyle::Bold, TEXT("Atak"), 7, 1.1, true, 7, 0.95, 4, {60,15,3,0,1.f,1.f,1.f,true,1.1}, .82,3,12 }
+            { EStyle::Careful, TEXT("Temkinli"), 30, 2.5, false, 30, 1.05, 12, {365,60,1,2,.8f,1.4f,1.15f,false,2.0}, .88,365,8,30 },
+            { EStyle::Balanced, TEXT("Dengeli"), 14, 1.5, false, 14, 1.0, 8, {180,30,2,1,.95f,1.2f,1.05f,true,1.5}, .88,90,6,20 },
+            { EStyle::Bold, TEXT("Atak"), 7, 1.1, true, 7, 0.95, 4, {60,15,3,0,1.f,1.f,1.f,true,1.1}, .82,60,3,12 }
         };
         return Values;
     }
@@ -117,6 +117,8 @@ namespace MarketAutoPlay
         if (Stores >= 8) Command(State, Products, TEXT("Build"), 2, Run);
         if (MarketDepots::Count(State) > 0 && State.Company.Trucks < MarketDepots::TrucksNeeded(State)) Command(State, Products, TEXT("Build"), 1, Run);
         if (Stores >= 20) Command(State, Products, TEXT("Build"), 3, Run);
+        FString Format = Stores >= Profile.HyperAt ? TEXT("hiper") : Stores >= Profile.SuperAt ? TEXT("buyuk") : TEXT("mahalle");
+        if(Format==TEXT("hiper") && !MarketCompany::ChapterOpen(State,MarketBranches::FormatInfo(Format).Chapter))Format=TEXT("buyuk");
         TArray<MarketBranches::FSite> Sites;
         for (const MarketCountry::FProfile& Country : MarketCountry::All())
         {
@@ -126,6 +128,7 @@ namespace MarketAutoPlay
                 const auto Site = MarketBranches::SiteOf(State, Country.Id, Province.Id);
                 if (!Site.bHome && (!MarketStaff::HasHr(State) || !MarketStaff::HasAccountant(State))) continue;
                 if (MarketBranches::ShopsIn(State, Country.Id, Province.Id) >= MarketBranches::Room(Site)) continue;
+                if(!MarketAutoPlayC::SiteSuitable(State,Country.Id,Province.Id,Format))continue;
                 Sites.Add(Site);
             }
         }
@@ -139,7 +142,7 @@ namespace MarketAutoPlay
         // Investigate one visible site per growth turn. OpeningCost plans shelves and is deliberately not run
         // for every province every week; map rent/income and our crowding choose which site to investigate.
         const auto& Site = Sites[0];
-        const FString Format = Stores >= Profile.HyperAt ? TEXT("hiper") : Stores >= Profile.SuperAt ? TEXT("buyuk") : TEXT("mahalle");
+
         FString Reason;
         if (!MarketBranches::CanOpen(State, Products, Site.Country, Site.Province, Format, Reason)) { ++Run.C.Blocked.FindOrAdd(Reason); return; }
         const int64 Cost = MarketBranches::OpeningCost(State, Products, Site.Country, Site.Province, Format);
@@ -177,7 +180,7 @@ namespace MarketAutoPlay
         if (State.Day % 7 != 1) return;
         for (int32 Index = 0; Index < Products.Num(); ++Index)
         {
-            const double Factor = State.Day > 90 && State.MarketShare < 40.f && State.Branches.IsEmpty() ? Profile.GrowthPriceFactor : Profile.PriceFactor;
+            const double Factor = State.Day > Profile.GrowthPriceAt && State.MarketShare < 40.f && State.Branches.IsEmpty() ? Profile.GrowthPriceFactor : Profile.PriceFactor;
             const int64 Target = FMath::Max(FMath::RoundToInt64(Products[Index].Cost * 1.05), FMath::RoundToInt64(Products[Index].BasePrice * Factor));
             for (int32 Step = 0; Step < 20; ++Step)
             {
