@@ -230,7 +230,7 @@ void SStoreStudio::EndDrag(){Invalidate(EInvalidateWidgetReason::Paint);}
 void SStoreStudio::AddAt(FVector At){Remember();if(MarketStoreEditing::Place(Store,ArmedEquipment,Category,At,Selected,bWallSnap,bNeighbourSnap,bGrid?10:0,PlacementYaw,0,FMath::Clamp(14/Map->Scale(Map->GetCachedGeometry()),8.,120.))){Selection.Reset();Selection.Add(Selected);Changed();Message=TEXT("Eklendi. Esc ile se\u00e7im moduna d\u00f6n.");Invalidate(EInvalidateWidgetReason::Paint);}else{UndoStack.Pop();Message=TEXT("Buraya yerle\u015fmez; bo\u015f bir alan se\u00e7.");}}
 void SStoreStudio::AddDepartment(FString Kind)
 {
-    TArray<FString> Parts;if(Kind==TEXT("Kasap"))Parts={TEXT("butcher_display_2500"),TEXT("butcher_workbench_1800")};else if(Kind==TEXT("\u015eark\u00fcteri"))Parts={TEXT("deli_display_2500")};else if(Kind==TEXT("Teknoloji"))Parts={TEXT("tech_table_1800"),TEXT("tech_wall_2400")};else Parts={TEXT("produce_small")};
+    TArray<FString> Parts;if(Kind==TEXT("Kasap"))Parts={TEXT("butcher_display_2500"),TEXT("butcher_workbench_1800")};else if(Kind==TEXT("\u015eark\u00fcteri"))Parts={TEXT("deli_display_2500")};else if(Kind==TEXT("Teknoloji"))Parts={TEXT("tech_table_1800"),TEXT("tv_wall_4800"),TEXT("tv_plinth_2400"),TEXT("tv_island_3000")};else Parts={TEXT("produce_small")};
     const auto Before=Store;Remember();int32 First=INDEX_NONE;
     for(auto Part:Parts)
     {

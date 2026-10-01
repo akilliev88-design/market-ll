@@ -1,4 +1,5 @@
 #include "MarketStoreKit.h"
+#include "MarketTelevisionDisplay.h"
 #include "MarketStoreEditing.h"
 #include "MarketGame.h"
 #include "MarketBranchVisit.h"
@@ -116,12 +117,14 @@ bool MarketStoreKit::Build(UWorld* World,const FStoreTemplate& S,const FMarketPl
         if(!Planned||E.Levels==0) continue;
         const FTransform Xf(FRotator(0,F.Yaw,0),F.Location);
         // Opaque board separates the two gondola faces; the text material itself is two-sided.
-        SignBoards->AddInstance(FTransform(FRotator(0,F.Yaw,0),Xf.TransformPosition(FVector(0,E.bSignOnTop?0:E.SignY,E.SignZ)),FVector(E.SignWidthCm/100,.025f,.22f)));
+        if (E.bSignOnTop) SignBoards->AddInstance(FTransform(FRotator(0,F.Yaw,0),Xf.TransformPosition(FVector(0,0,E.SignZ)),FVector(E.SignWidthCm/100,.025f,.22f)));
         for(int32 Side=0;Side<(E.bDoubleSided?2:1);++Side)
         {
             const FString Face=Side==0?TEXT("front"):TEXT("back"); const auto C=Planned->CategoryForFace(Face);
-            if(C.IsEmpty()) continue;
-            auto* Sign=StoreBuild::Text(World,Xf.TransformPosition(FVector(0,(E.bSignOnTop?0:E.SignY)+(Side==0?-2.f:2.f),E.SignZ)),F.Yaw+(Side==0?-90:90),MarketCatalog::UpperTurkish(C),S.Format==TEXT("hiper")?15:10);
+            if(C.IsEmpty() && !MarketTelevisionDisplay::IsDisplay(F.EquipmentId)) continue;
+            const float FaceY = E.bSignOnTop ? 0.f : (Side == 0 ? E.SignY : -E.SignY);
+            if (!E.bSignOnTop) SignBoards->AddInstance(FTransform(FRotator(0,F.Yaw,0),Xf.TransformPosition(FVector(0,FaceY,E.SignZ)),FVector(E.SignWidthCm/100,.025f,.22f)));
+            auto* Sign=StoreBuild::Text(World,Xf.TransformPosition(FVector(0,FaceY+(Side==0?-2.f:2.f),E.SignZ)),F.Yaw+(Side==0?-90:90),MarketCatalog::UpperTurkish(C.IsEmpty()?TEXT("Kategorisiz"):C),S.Format==TEXT("hiper")?15:10);
             if(auto* Game=World->GetAuthGameMode<AMarketGameMode>()) { Game->CategorySigns.Add(Sign); Game->CategorySignKeys.Add(F.Id+TEXT("/")+Face); }
         }
     }
@@ -129,6 +132,7 @@ bool MarketStoreKit::Build(UWorld* World,const FStoreTemplate& S,const FMarketPl
         if(auto* Mesh=LoadObject<UStaticMesh>(nullptr,*P.Mesh)) StoreBuild::Instances(A,Mesh,true)->AddInstance(FTransform(FRotator(0,P.Yaw,0),P.At));
     TArray<FMarketProduct> Products; MarketCatalog::LoadFile(MarketCatalog::DefaultPath(),Products,Errors);
     int32 Count=0;
+    const auto TVProfiles = MarketTelevisionDisplay::Load();
     for(const auto& P:Products)
     {
         TArray<const FPlanogramPlacement*> Blocks; for(const auto& B:Filled.Placements) if(B.ProductId==P.Id) Blocks.Add(&B);
@@ -169,6 +173,11 @@ bool MarketStoreKit::Build(UWorld* World,const FStoreTemplate& S,const FMarketPl
         {
             const auto* F=Filled.FindFixture(B->FixtureId); if(!F) continue;
             const auto E=MarketPlanogram::Equipment(F->EquipmentId); if(B->Level<0||B->Level>=E.Levels) continue;
+            TArray<AActor*> TVActors;
+            const auto* TVGame = World->GetAuthGameMode<AMarketGameMode>();
+            const FString TVName = TVGame && TVGame->State.bRealBrands ? P.RealName : P.FictionalName;
+            MarketTelevisionDisplay::Decorate(World, Filled, Products, *B, TVName, TVProfiles.Find(P.Id), TVActors);
+            for (auto* TVActor : TVActors) TVActor->Tags.Add(StoreBuild::Tag);
             const FRotator Display=B->Orientation==1?FRotator(0,90,0):B->Orientation==2?FRotator(0,0,90):FRotator::ZeroRotator;
             const FQuat Model=Display.Quaternion()*(Fallback?FQuat::Identity:P.VisualRotation.Quaternion());
             const FBox Bounds=Mesh->GetBoundingBox().TransformBy(FTransform(Model,FVector::ZeroVector,Scale));

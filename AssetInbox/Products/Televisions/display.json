@@ -1,0 +1,25 @@
+{
+  "schemaVersion": 1,
+  "products": [
+    {
+      "id": "tv_32",
+      "inches": 32
+    },
+    {
+      "id": "tv_43",
+      "inches": 43
+    },
+    {
+      "id": "tv_55",
+      "inches": 55
+    },
+    {
+      "id": "tv_65",
+      "inches": 65
+    },
+    {
+      "id": "tv_75",
+      "inches": 75
+    }
+  ]
+}

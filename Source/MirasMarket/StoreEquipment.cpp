@@ -35,6 +35,11 @@ const TMap<FString, FPlanogramEquipment>& StoreEquipment::Registry()
             E.MeshYaw = (*Plan)->GetNumberField(TEXT("meshYaw"));
             E.SignZ = E.DimensionsCm.Z + 12;
             E.SignWidthCm = E.DimensionsCm.X - 10;
+            (*Plan)->TryGetBoolField(TEXT("signOnTop"), E.bSignOnTop);
+            (*Plan)->TryGetNumberField(TEXT("signZ"), E.SignZ);
+            (*Plan)->TryGetNumberField(TEXT("signY"), E.SignY);
+            (*Plan)->TryGetNumberField(TEXT("signWidthCm"), E.SignWidthCm);
+            (*Plan)->TryGetNumberField(TEXT("railAboveTopZ"), E.RailAboveTopZ);
             const auto& Zones = Root->GetArrayField(TEXT("zones"));
             for (const auto& Value : Zones)
             {
@@ -46,6 +51,7 @@ const TMap<FString, FPlanogramEquipment>& StoreEquipment::Registry()
                 E.LevelTopZ[Level] = Zone->GetArrayField(TEXT("centerCm"))[2]->AsNumber();
                 E.LevelClearanceCm[Level] = Zone->GetNumberField(TEXT("clearanceHeightCm"));
                 E.RailFrontY[Level] = FMath::Abs(E.FrontY) + 2;
+                (*Plan)->TryGetNumberField(TEXT("railFrontY"), E.RailFrontY[Level]);
             }
             Root->TryGetNumberField(TEXT("checkouts"), E.CheckoutCount);
             if (Result.Contains(E.Id)) { UE_LOG(LogTemp, Error, TEXT("Duplicate store equipment: %s"), *E.Id); }

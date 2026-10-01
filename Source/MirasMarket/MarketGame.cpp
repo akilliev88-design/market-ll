@@ -1,4 +1,5 @@
 #include "MarketGame.h"
+#include "MarketTelevisionDisplay.h"
 #include "MarketSimulation.h"
 #include "MarketWorldText.h"
 #include "MarketCountry.h"
@@ -473,10 +474,15 @@ void AMarketGameMode::BuildStore()
         }
         else
         {
-            auto* Sign = SurfaceBox(FixtureXf.TransformPosition(FVector(0, Spec.SignY - 0.6f, Spec.SignZ)), FVector(Spec.SignWidthCm, 1.2f, 16), EMarketSurface::SignRed, false);
-            Sign->SetActorRotation(FixtureRotation);
-            auto* Text = Label(FixtureXf.TransformPosition(FVector(0, Spec.SignY - 1.4f, Spec.SignZ)), FixtureRotation + FRotator(0, -90.f, 0), SignText, 10, FColor::White, true);
-            Text->SetCullDistance(2000); CategorySigns.Add(Text); CategorySignKeys.Add(Fixture.Id + TEXT("/front"));
+            for (int32 Side = 0; Side < (Spec.bDoubleSided ? 2 : 1); ++Side)
+            {
+                const float SignY = Side == 0 ? Spec.SignY : -Spec.SignY;
+                const float Direction = Side == 0 ? -1.f : 1.f;
+                auto* Sign = SurfaceBox(FixtureXf.TransformPosition(FVector(0, SignY + Direction * .6f, Spec.SignZ)), FVector(Spec.SignWidthCm, 1.2f, 16), EMarketSurface::SignRed, false);
+                Sign->SetActorRotation(FixtureRotation);
+                auto* Text = Label(FixtureXf.TransformPosition(FVector(0, SignY + Direction * 1.4f, Spec.SignZ)), FixtureRotation + FRotator(0, Direction * 90.f, 0), SignText, 10, FColor::White, true);
+                Text->SetCullDistance(2000); CategorySigns.Add(Text); CategorySignKeys.Add(Fixture.Id + (Side == 0 ? TEXT("/front") : TEXT("/back")));
+            }
         }
     }
     RefreshCategorySigns();
@@ -530,6 +536,7 @@ void AMarketGameMode::BuildStore()
 
 void AMarketGameMode::BuildShelfContents()
 {
+    const auto TVProfiles = MarketTelevisionDisplay::Load();
     // Everything that depends on the planogram (stock meshes, price cards) is tracked in
     // ShelfContentActors so the in-game arrange mode can rebuild it after every change.
     for (int32 I = 0; I < Products.Num(); ++I)
@@ -542,6 +549,9 @@ void AMarketGameMode::BuildShelfContents()
             const FPlanogramFixture* Fixture = Planogram.FindFixture(Placement.FixtureId);
             if (!Fixture) continue;
             const FPlanogramEquipment Spec = MarketPlanogram::Equipment(Fixture->EquipmentId);
+            TArray<AActor*> TVActors;
+            MarketTelevisionDisplay::Decorate(GetWorld(), Planogram, Products, Placement, ProductName(I), TVProfiles.Find(Products[I].Id), TVActors);
+            for (auto* Actor : TVActors) ShelfContentActors.Add(Actor);
             const int32 Level = FMath::Clamp(Placement.Level, 0, Spec.Levels - 1);
             const bool bBack = Placement.Face == TEXT("back");
             const float FaceSign = bBack ? 1.f : -1.f;
@@ -1006,7 +1016,12 @@ void AMarketGameMode::Command(FName Action)
             RefreshLabels();
         }
     }
-    else if (Action == "Brands") { State.bRealBrands = !State.bRealBrands; RefreshLabels(); }
+    else if (Action == "Brands")
+    {
+        State.bRealBrands = !State.bRealBrands;
+        if (Planogram.Fixtures.ContainsByPredicate([](const auto& Fixture) { return MarketTelevisionDisplay::IsDisplay(Fixture.EquipmentId); })) RebuildShelfContents();
+        else RefreshLabels();
+    }
     else if (Action == "ToggleDetails") bShowDetails = !bShowDetails;
     else if (Action == "Fullscreen")
     {

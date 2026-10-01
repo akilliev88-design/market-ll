@@ -1,0 +1,69 @@
+{
+  "schemaVersion": 1,
+  "id": "tv_island_3000",
+  "displayName": "Cift yuz televizyon adasi",
+  "mesh": "SM_TvIsland3000.fbx",
+  "unrealMesh": "/Game/Stores/Equipment/SM_TvIsland3000.SM_TvIsland3000",
+  "family": "electronics",
+  "dimensionsMm": {
+    "width": 3000.0,
+    "depth": 1412.0,
+    "height": 770.0
+  },
+  "origin": "floor_center",
+  "frontAxis": "-Y",
+  "materials": [
+    "MI_TV_Anthracite",
+    "MI_TV_Pearl",
+    "MI_TV_BlankPanel",
+    "MI_TV_BrushedAluminium",
+    "MI_TV_LED"
+  ],
+  "collision": {
+    "policy": "custom_ucx",
+    "pieces": 1
+  },
+  "zones": [
+    {
+      "id": "front_l00",
+      "face": "front",
+      "level": 0,
+      "centerCm": [
+        0,
+        0,
+        65.0
+      ],
+      "usableWidthCm": 284.0,
+      "usableDepthCm": 57.99999999999999,
+      "clearanceHeightCm": 125
+    },
+    {
+      "id": "back_l00",
+      "face": "back",
+      "level": 0,
+      "centerCm": [
+        0,
+        0,
+        65.0
+      ],
+      "usableWidthCm": 284.0,
+      "usableDepthCm": 57.99999999999999,
+      "clearanceHeightCm": 125
+    }
+  ],
+  "checkouts": 0,
+  "planogram": {
+    "doubleSided": true,
+    "widthCm": 284.0,
+    "depthCm": 57.99999999999999,
+    "frontY": -64.0,
+    "meshYaw": 180,
+    "signOnTop": false,
+    "signZ": 17,
+    "signY": -71.0,
+    "signWidthCm": 284.0,
+    "railFrontY": 68.5,
+    "railAboveTopZ": -6.2
+  },
+  "televisionDisplay": true
+}

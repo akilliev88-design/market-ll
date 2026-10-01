@@ -1,0 +1,19 @@
+{
+  "id": "tv_55",
+  "inches": 55,
+  "mesh": "SM_Television55.fbx",
+  "unrealMesh": "/Game/Stores/Televisions/SM_Television55.SM_Television55",
+  "widthMm": 1240,
+  "depthMm": 273,
+  "heightMm": 769,
+  "origin": "bottom_center",
+  "frontAxis": "+X",
+  "materials": [
+    "MI_TV_ProductBezel",
+    "MI_TV_ProductScreen",
+    "MI_TV_ProductBack",
+    "MI_TV_ProductFoot"
+  ],
+  "technology": "unspecified",
+  "note": "Generic authored geometry. Screen diagonal is measured; no branded specifications claimed."
+}

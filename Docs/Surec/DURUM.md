@@ -1,8 +1,10 @@
 # Güncel durum
 
-Son güncelleme: 01.10.2026 — Codex, C3 tam doğrulama
+Son güncelleme: 01.10.2026 — Codex, televizyon teşhir kiti
 
 ## Kısaca
+
+**01.10.2026 — TV teşhir kiti (Codex):** Referans fotoğraflardan ışıklı iki seviyeli TV duvarı, tek yüz alçak podyum ve çift yüz ada; ayrı 32/43/55/65/75 inç TV modelleri. Sekiz Blender kaynak/FBX/önizleme ve Unreal varlığı hazır. Stand FBX'lerinde TV yok; önizleme TV'leri ayrı objeler. Mağaza editörü kütüphanesine/teknoloji bölümüne bağlı. Kategori tabelası mevcut yüz seçimini izler; ürün adı katalogdan, teknoloji/çözünürlük/Hz/arka ışık ID üzerinden `AssetInbox/Products/Televisions/display.json` dosyasından. Bilinmeyen teknoloji yazılmaz. DERLE GEÇTİ, TEST 128/128 (127 temiz + motor bağlantı uyarısı), Smoke GEÇTİ, Blender bağımsız doğrulama 8/8, Unreal aktarım ölçü/UCX kontrolü 8/8. TV'ler ürün modelleridir; satış kataloğuna otomatik eklenmedi. Katalog/ekonomi Claude alanında; Mustafa Ürün Stüdyosu'ndan yayımlayabilir. Galeri `Docs/Images/Stores/Televisions/index.html`; kılavuz `Docs/Environment/TELEVIZYON_TESHIRI.md`.
 
 **01.10.2026 — C3 doğrulandı (Codex, main):** A/B/C birleşimi ve C3 bağlaması DERLE + TEST **126/126** (125 temiz + 1 motor ağ uyarısı) + Smoke ile geçti. Derleme/test düzeltmesi **0**. Bot: 30 yıl × üç tarz × bir tohum ve 10 yıl × üç tarz × üç tohum, toplam 12 kampanya / 65.751 gün; stok-satış denetimi ve açıklanamayan defter farkı **0**. Denge hedefi karşılanmadı: dengeli 10/20/30 ulusal 32/32/33, dünya 20/20/20; üç mağazada kaldı, 141. günde kasa eksiye düştü. Reyon/üst tedarik ayarları bu küçük ağla yeterince sınanamadı. Marka ödemelerinde boş raf kapasitesi istismar adayı; kural değiştirilmedi. B ritim koruyucusu sayısal olarak çalışıyor. Yeni menü **88/88 PNG** (iki tema, 1920×1080/1280×720; boyut hatası 0, kampanya değişmedi), tümü gözle incelendi; Finans rakam kesilmesi, harita/zaman hapı çakışması, 720p şube müdürü satırı C'ye istek. BranchVisitReview üç açı ve kampanya/plan/saat/oyuncu/disk kayıt koruması geçti. Raporlar: `Docs/Surec/akislar/C3_30_yil_rapor.md`, `C3_10_yil_rapor.md`, CSV'ler; ayrıntı `A.md`. Galeri: `Saved/Screenshots/Menu/20261001-101750/index.html`. **Sırada:** C'nin denge/toparlanma ve menü işleri; bekleyen şirket finansı yaması ayrı iş olarak değerlendirilecek.
 
@@ -98,6 +100,8 @@ GitHub ana deposu: `https://github.com/m07tas/market-ll` (`main`). Unreal/Blende
 Görsel ve raf dizme işleri yeterli seviyede; bir süre **donduruldu**. Öncelik **"İlk Hafta" oynanabilir dilimi**: bir oyuncu 7 günü baştan sona oynayabilmeli (sipariş → mal kabul → raf → fiyat → satış → gün raporu → hafta hedefi). Görevler G-051…G-055. Başarı ölçütü: yeni biri ilk 30 dakikada döngüyü anlıyor ve ilk kararının sonucunu görüyor.
 
 ## Devam notu
+
+**01.10.2026 — Codex / G-092:** Model/kod işi derlendi ve doğrulandı. `MarketTelevisionDisplay.*`, iki Blender üreticisi ve `Tools/import_tv_displays.py`; üç stand ve beş ayrı TV. Katalogda henüz TV yok: Ürün Stüdyosu'nda metadata ölçüsü/mesh yoluyla yayımla; ID `AssetInbox/Products/Televisions/display.json` ile aynı olmalı. Teknoloji/Hz bilgisi bilinmediğinden profilde yalnız inç; gerçek ürüne göre girilecek. Claude'un katalog/ekonomi dosyaları değiştirilmedi. Ayrıntı ve kaynak linkleri `Docs/Environment/TELEVIZYON_TESHIRI.md` ve galeri. Genel sıradaki iş yine C3 denge/finans.
 
 **01.10.2026 — Codex / C3:** Doğrulama tamamlandı; A.md'de C3 bölümünden ve C3_30_yil_rapor.md'nin beş önerisinden devam edin. Menü otomasyonuna yeni mali dönemler/Rekorlar eklendi; Test.ps1 alt sınır 126. Source son hâli derlendi/test/smoke geçti, menü ve ziyaret de çalıştırıldı. Aşağıdaki derlenmedi notları tarihsel. Oturum sırasında gelen Docs/Surec/bekleyen/M28_M29_sirket_finansi.patch uygulanmadı; bir sonraki Claude işiyle karıştırılmamalı.
 

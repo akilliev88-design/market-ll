@@ -1,0 +1,19 @@
+{
+  "id": "tv_43",
+  "inches": 43,
+  "mesh": "SM_Television43.fbx",
+  "unrealMesh": "/Game/Stores/Televisions/SM_Television43.SM_Television43",
+  "widthMm": 974,
+  "depthMm": 266,
+  "heightMm": 619,
+  "origin": "bottom_center",
+  "frontAxis": "+X",
+  "materials": [
+    "MI_TV_ProductBezel",
+    "MI_TV_ProductScreen",
+    "MI_TV_ProductBack",
+    "MI_TV_ProductFoot"
+  ],
+  "technology": "unspecified",
+  "note": "Generic authored geometry. Screen diagonal is measured; no branded specifications claimed."
+}

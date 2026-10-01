@@ -1,0 +1,56 @@
+{
+  "schemaVersion": 1,
+  "id": "tv_plinth_2400",
+  "displayName": "Tek yuz televizyon podyumu",
+  "mesh": "SM_TvPlinth2400.fbx",
+  "unrealMesh": "/Game/Stores/Equipment/SM_TvPlinth2400.SM_TvPlinth2400",
+  "family": "electronics",
+  "dimensionsMm": {
+    "width": 2400.0,
+    "depth": 762.0,
+    "height": 600.0
+  },
+  "origin": "floor_center",
+  "frontAxis": "-Y",
+  "materials": [
+    "MI_TV_Anthracite",
+    "MI_TV_Pearl",
+    "MI_TV_BlankPanel",
+    "MI_TV_BrushedAluminium",
+    "MI_TV_LED"
+  ],
+  "collision": {
+    "policy": "custom_ucx",
+    "pieces": 1
+  },
+  "zones": [
+    {
+      "id": "front_l00",
+      "face": "front",
+      "level": 0,
+      "centerCm": [
+        0,
+        0,
+        60.0
+      ],
+      "usableWidthCm": 223.99999999999997,
+      "usableDepthCm": 61.0,
+      "clearanceHeightCm": 125
+    }
+  ],
+  "checkouts": 0,
+  "planogram": {
+    "doubleSided": false,
+    "widthCm": 223.99999999999997,
+    "depthCm": 61.0,
+    "frontY": -31.0,
+    "meshYaw": 180,
+    "signOnTop": false,
+    "signZ": 17,
+    "signY": -38.5,
+    "signWidthCm": 223.99999999999997,
+    "railFrontY": 36.0,
+    "railAboveTopZ": -6.2
+  },
+  "televisionDisplay": true
+}
