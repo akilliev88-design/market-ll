@@ -117,3 +117,12 @@ Bağlama: C “Gez” -> `StartBranchVisit(Index)`, ziyaret kazanımları -> Dir
 ### Son doğrulama — A5
 
 01.10.2026 00:54: DERLE başarılı. TEST **97/97** (96 temiz + 1 motorun google generate_204 HTTP zaman aşımı uyarısıyla başarılı); başarısız/çalışmamış/devam eden 0. MirasMenuCapture **68/68**, State aynı, motor çıkış kodu **0**; bütün PNG boyutları ve HTML/CSV eşleşmesi geçti. Smoke **başarılı**, çıkış kodu 0: oyuncu, raf doldurma, çoklu sipariş, arka kapı kabul, işe alma, 1 satış, gün kapama, disk kayıt/yükleme. A4 ve A5 ayrı commit; akis-a origin dalına gönderildi. Önceki A4 BranchVisitReview üç görüntü ve kayıt/plan/saat/oyuncu/disk korunumu kontrolünden geçti.
+
+## A6 — C teslimi ve M27 kayıt kapısı (01.10.2026)
+
+- Main'deki yalnız Source/Docs/Config değişiklikleri dosyalar değiştirilmeden 545f5dd (`Akış C: C2b, C2c, M25, M26 ve sonrası (derlenmedi)`) commit + push edildi; akis-a'ya birleşti. C1/C2b/C2c/M25 önceki teslimden de vardı; bu teslim M26 ve üçüncü tur sözleşmesini ekledi.
+- Birleşik kaynak: DERLE başarılı, TEST 99/99. **C kaynaklarında derleme/test düzeltmesi: 0.** Main'e geri uygulanacak düzeltme çıkmadı.
+- M27: `MarketEconomy.cpp` IsStructurallyValid yalnız `Version == FMarketState::CurrentVersion` kabul eder. Tek sürüm sabiti hâlâ MarketEconomy.h: `CurrentVersion = 2`; artırılmadı, C3'te bir kez artırılacak.
+- `MarketGame::LoadCampaign` sürüm farklıysa kampanyayı değiştirmeden reddeder ve sessiz otomatik yüklemede de “Bu kayıt oyunun eski bir sürümünden; yeni oyun başlat.” der. Sürümü sessizce yenileme ve bu yükleme yolundaki Staff/Branches Migrate çağrıları kaldırıldı. C/B dosyalarındaki mevcut dönüşüm kodunu C3/B7 kaldıracak.
+- Yeni `MirasMarket.Save.ExactVersion` gerçek SaveGame bellek yazma/yükleme turuyla eski/güncel/gelecek sürümleri denetler. DERLE başarılı, TEST **100/100**, Smoke başarılı (disk kayıt/yükleme dahil). Kayıt uyumu eklenmedi.
+- C'ye istek: menü yuva kartında uyumsuz sürüm için aynı yeni oyun cümlesi; bütün kayıt okuyucuları sürümü tek `FMarketState::CurrentVersion` sabitinden karşılaştırmalı.

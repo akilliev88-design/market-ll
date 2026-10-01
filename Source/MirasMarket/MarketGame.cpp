@@ -1533,18 +1533,16 @@ bool AMarketGameMode::SaveCampaign()
 void AMarketGameMode::LoadCampaign(bool bQuiet)
 {
     auto* Save = Cast<UMarketSave>(UGameplayStatics::LoadGameFromSlot(SlotName(ActiveSlot), 0));
+    if (Save && Save->State.Version != FMarketState::CurrentVersion) { Notify(TEXT("Bu kay\u0131t oyunun eski bir s\u00fcr\u00fcm\u00fcnden; yeni oyun ba\u015flat.")); return; }
     if (!Save || !Save->State.IsStructurallyValid()) { if (!bQuiet) Notify(TEXT("Uyumlu kayit bulunamadi. Mevcut kampanya korunuyor.")); return; }
     if (bArrange) ExitArrange(FString());
     DropCarriedDelivery();
     State = Save->State; Selected = 0; bWeekJustEnded = false; OrderDraftCases.Init(0, Products.Num());
-    State.Version = FMarketState::CurrentVersion; // older formats load with the new fields at their defaults
     MarketCountry::SetActive(State.CountryId, State.RivalSeed); // G-084
     if (bTestMode) State.bUsedTestMode = true;
-    MarketStaff::Migrate(State); // older saves: the cashier/stocker flags become people
     TArray<FString> Added, Removed;
     RefreshPrices(); // today's list before the price range check of ReconcileWith
     State.ReconcileWith(Products, &Added, &Removed);
-    MarketBranches::Migrate(State, Products); // older saves: the aggregate second store becomes a real branch now, not at the next close
     if (!State.PlanogramJson.IsEmpty())
     {
         // G-078 (#5): this campaign's shelf plan. Only the blocks change; the fixtures of the shop stay.
