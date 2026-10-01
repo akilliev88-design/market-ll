@@ -1,3 +1,15 @@
+## 01.10.2026 — Codex — C4 şirket finansı ve kurtarma doğrulaması
+
+**Yapılan:** Claude'un C4 teslimi değiştirilmeden 9d22338 ile commit/push edildi. Yeni MarketAutoPlayFinance oyuncunun Director komutlarını kullanır; ağın aylık şube+aile+merkez/SGK/depo/kamyon giderini yedekte tutar, yatırım için üç aylık yedek planlar, olgun şubeyi iki ardışık zararlı ayda kapatır. İlk 180 günün gerçek defterden faaliyet kalemleri, yıllık banka, kurtarma/teklif/kapı sayaçları eklenmiştir. Büyük ağ rapor hesabı şube başına tarama yerine tek defter geçişine indirildi; aynı sürümde CSV sonuçları değişmedi. Menü otomasyonuna banka başlığına kaydıran hedef eklendi; menü kodu değiştirilmedi.
+
+**Doğrulama:** Claude ilk DERLE + TEST 135/135 + Smoke geçti, kaynak düzeltmesi 0. Üç yeni finans bot testiyle son DERLE + TEST **138/138** (137 temiz, bir motor HTTP bağlantı uyarısı; başarısız/çalışmamış 0) + Smoke PASSED. Kısa bot <60 sn. Son 30 yıl × üç tarz × bir tohum ve 10 yıl × üç tarz × üç tohum: **12 kampanya, 65.751 gün**, stok/satış ve defter farkı 0. Son rapor klasörleri 20261001-155215 ve 160337; önceki aile-only yedek raporları teslim sonucu değildir. 92/92 menü PNG doğru çözünürlükte, tamamı gözle incelendi; kampanya değişmedi. Rapor/16 CSV kopyası birebir doğrulandı. C4_finans_rapor.md sonuç, ham iki rapor ve CSV'ler akislar altında.
+
+**Sonuç:** Dengeli 10/20/30 ulusal 35/33/31, dünya 25/32/32. 30 yıl kurtarma 150/165/5; 10 yıl dokuz koşu 230 (ilk on yıl tekrar oynanır, bağımsız olay toplamı gibi okunmaz). Tam 180 günlük 22 mahalle şubesinde ortalama net 7.718,32 TL; eksik süre ve farklı açılış/enflasyon etkileri raporda. İlk 180 gün kârlılık sonradan aile/borç/merkez gideriyle çöküşü dışlamaz. Atak 22/23 146/159 mağazaya ulaştı; atak 21 ve bütün dengeli/temkinli koşular tek mağazaya döndü. Denge hedefi tamamlanmadı.
+
+**Varsayım ve sınırlar:** Bot gizli teklif çekilişini okumaz; finansmanlı komutun true dönmesi kabul sayılmaz, gerçek OurBuys artışı ölçülür. Ek satın alma kredisi/bağlı şirket çevrimi-satışı doğal koşulda oluşmadı; Banking/Chains testleri geçti ama bu yaşam döngüsünün uzun oyun/görsel kapsamı açık. Menü gerçek üçüncü yıl kampanyasında, para/mağaza eklenmeden çekildi. Tam süreli şube ortalaması erken kapananları dışarıda bırakır; CSV eksik örnekleri de taşır. Defterde indirim/iade nedeniyle negatif lojistik korunur.
+
+**Sıradaki:** C/Mustafa rapordaki beş öneriyi değerlendirir: kurtarmada tekrar faiz tavanı/eski borcu birleştirme, gider+stok bazlı nefes bütçesi ve boş merkez yükü, kredi notunda aile borcu kapsamı, zararlı reyon personel yükü, markayı gerçek raf doluluğuna bağlama. CurrentVersion hâlâ 3: M27 biçim artışı sonraki birleşimde tek sefer yapılmalı. Menü üç ana istek harita alt menü örtüşmesi, gelir tutarı kesilmesi, kredi listesinin banka kartını gizlemesi; A.md'de dosya:satır. Hiçbir C sabiti/mantığı değiştirilmedi. Eski Docs/Surec/bekleyen yamaları uygulanmadı, klasör korunuyor. Commitler ve main push tamamlandı.
+
 # Oturum günlüğü
 
 En yeni giriş en üstte. Biçim: tarih — ajan — başlık, ardından **Yapılan**, **Doğrulama**, **Sıradaki**.

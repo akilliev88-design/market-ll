@@ -1,8 +1,10 @@
 # Güncel durum
 
-Son güncelleme: 01.10.2026 — Codex, TV standlarında yüzey çakışması düzeltmesi
+Son güncelleme: 01.10.2026 — Codex, C4 finans doğrulaması
 
 ## Kısaca
+**01.10.2026 — C4 finans doğrulaması (Codex):** Claude M28–M31 teslimi main'e alındı; DERLE + TEST **138/138** (137 temiz + bir motor HTTP uyarısı) + Smoke geçti. Claude derleme/test düzeltmesi **0**. Yeni finans botu/ağ yedeği/iki zararlı ayda kapatma/ilk 180 gün dökümü tamamlandı. Son 12 kampanya / 65.751 gün: stok/satış ve defter farkı **0**. Dengeli 10/20/30 ulusal **35/33/31**, dünya **25/32/32**; 30 yıl kurtarma **150/165/5**. Tam 180 günlük 22 mahalle şubesinin ortalama neti **7.718,32 TL**. Atak iki tohumda 146/159 mağaza; diğer yedi 10 yıllık koşu tek mağaza. Denge hedefi karşılanmadı. 92 menü PNG incelendi, kampanya değişmedi; üç ana C isteği harita alt menü çakışması, mali tutar kesilmesi, uzun kredi listesi. Rapor **Docs/Surec/akislar/C4_finans_rapor.md**; iki ham rapor ve 16 CSV. Sırada C/Mustafa'nın beş denge önerisi, gerçek marka raf doluluğu, kredi/kurtarma borcu kapsamı, M27 sürüm artışı ve menü isteklerini değerlendirmesi; kaynak sabitleri değiştirilmedi.
+
 
 **01.10.2026 — TV standı yüzey düzeltmesi (Codex):** Mustafa sabit kamerada yeni TV raflarının titrediğini bildirdi. Blender kaynaklarında podyum tabla/gövde üst yüzleri ile TV duvarı gövde/arka panel/yan kolonlarında aynı düzlemde yüz çakışması bulundu. Üç stand yeniden üretildi; tabla altında 4 mm açıklık, duvar parçalarında ayrık yüzler; raylar gövde dışına alındı ve etiket konumları güncellendi. LED/parlama korunuyor; genel Lumen ayarı değiştirilmedi. Yeni `check_tv_surfaces.py --strict`: üç kaynakta çakışma 0; Blender kaynak/FBX 8/8, Unreal üç stand ölçü/UCX aktarımı, DERLE, TEST 128/128 ve Smoke GEÇTİ. Üç sabit kamera PNG gözle incelendi; beş yüzey bölgesinde ortalama ardışık RGB farkı 0,52–1,68/255, büyük yüzey atlaması görülmedi. Ayrı TV ürünleri/katalog/kayıtlar değiştirilmedi. Oyuncunun gördüğü titremenin tamamen bittiği oyun içi tekrar gözlemle teyit edilmeli; geometri hatası giderildi.
 
@@ -102,6 +104,8 @@ GitHub ana deposu: `https://github.com/m07tas/market-ll` (`main`). Unreal/Blende
 Görsel ve raf dizme işleri yeterli seviyede; bir süre **donduruldu**. Öncelik **"İlk Hafta" oynanabilir dilimi**: bir oyuncu 7 günü baştan sona oynayabilmeli (sipariş → mal kabul → raf → fiyat → satış → gün raporu → hafta hedefi). Görevler G-051…G-055. Başarı ölçütü: yeni biri ilk 30 dakikada döngüyü anlıyor ve ilk kararının sonucunu görüyor.
 
 ## Devam notu
+**01.10.2026 — Codex / C4:** C4_finans_rapor.md ve A.md C4 tesliminden devam edin. Kaynak DERLE + TEST 138/138 + Smoke geçti, Test.ps1 alt sınır 138. Son kaynak f1b9d75 yedek hesabı; teslim koşuları 155215/160337, önceki 153450/153911 final değildir. Menü galeri 20261001-154910/index.html, 92 PNG. C4 doğrulaması/rapor işi tamamlandı; C/Mustafa denge ve menü isteklerini uygulayacak. Finansman gerektiren alım/bağlı şirket dönüşüm-satışı doğal koşuda oluşmadı; Banking/Chains testleri geçti ancak dolu yaşam döngüsü ve görsel kapsamı ayrıca açılmalı. CurrentVersion hâlâ 3, kayıt biçimi için sonraki birleşimde tek artış gerekir. Bekleyen eski yamalar uygulanmadı ve yerinde bırakıldı. Tarihsel derlenmedi notları son C4 kaynakları için geçerli değildir.
+
 
 **01.10.2026 — Codex / G-092:** Model/kod işi derlendi ve doğrulandı. `MarketTelevisionDisplay.*`, iki Blender üreticisi ve `Tools/import_tv_displays.py`; üç stand ve beş ayrı TV. Katalogda henüz TV yok: Ürün Stüdyosu'nda metadata ölçüsü/mesh yoluyla yayımla; ID `AssetInbox/Products/Televisions/display.json` ile aynı olmalı. Teknoloji/Hz bilgisi bilinmediğinden profilde yalnız inç; gerçek ürüne göre girilecek. Claude'un katalog/ekonomi dosyaları değiştirilmedi. Ayrıntı ve kaynak linkleri `Docs/Environment/TELEVIZYON_TESHIRI.md` ve galeri. Genel sıradaki iş yine C3 denge/finans.
 
