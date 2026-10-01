@@ -4,7 +4,9 @@ Sözleşme: `Docs/Kurgu/07_AKIL_ISBOLUMU.md` §4 Akış B. Dal: `claude/miras-ma
 
 ## Kaldığım yer
 
-B1–B6 bitti ve commit edildi (UE'de derlenmedi; Linux katmanında 90/90). Açık iş yok; Codex derlemesi ve C bağlaması bekleniyor.
+B1–B7 bitti ve commit edildi (UE'de derlenmedi; Linux katmanında 91/91). Açık iş yok; Codex derlemesi ve C3 bağlaması bekleniyor.
+
+Not: GitHub'daki `main` B7 promptundaki hâlden geride (`MarketDepartments.h`, M26–M27 ve 07'nin B7 bölümü orada yok). B7, promptun tarifine ve `main`'deki `MarketChains.h`, `MarketBrands.h`, `MarketSourcing.h` imzalarına göre yazıldı; reyon tarafı işlev adlarından bağımsız (bkz. C'ye istekler 12–13).
 
 ## Yapılanlar
 
@@ -33,9 +35,9 @@ Yeni `MarketLedger.h/.cpp` (`namespace MarketLedger`), durum `FMarketState::Ledg
 - **Kim yazar:** B dosyalarındaki her para hareketi yerinde `MarketLedger::Post` ile (Campaign, Credit, Finance, Online, Payments, Staff, Company, Freshness). `MarketEconomy.cpp`'nin hareketleri (kasa satışı, SMM, mal alımı, maaş, enerji, reklam/diğer, eski ikinci şube, teslimat eksik/kırık) gün kapanışının başında sayaçlardan okunur (`BeginClose`). Kapanış sırasında yazılan kayıtlar kapanan güne düşer.
 - **Denetim (`EndClose`):** kasa değişimi = nakit kayıtların toplamı. Fark "açıklanamayan fark" hesabına yazılır, `Ledger.LastGap` / `GapDays` / `TotalGap` tutulur; `AuditOk`, `AuditText` ("Defter kasayla tutuyor." ya da farkın tutarı).
 - **Raporlar:** `DayStatement`, `WeekStatement`, `Statement(Gün1, Gün2, Mağaza)` (son 120 günün kayıtlarından), `MonthStatement`, `YearStatement` (ay toplamları bütün kampanya boyunca saklanır): ciro, brüt kâr, giderler, net kâr, nakit değişimi, hesap hesap tutarlar. `Balance`: kasa, stok (maliyetle, yoldaki dahil), şube stoğu, kart alacağı, veresiye, depozitolar; toptancı borcu, banka, vergi, babadan kalan borç; özkaynak.
-- **Eski kayıt:** defter boş başlar; ilk gün kapanışı farksız açar.
+- **Yeni kampanya:** defter boş başlar; ilk gün kapanışı farksız açar.
 - Aynı gün/mağaza/hesap/tür kayıtları tek satırda toplanır (kart ödemeleri sepet sepet gelir); 200 günlük oyunda ~1.700 satır, saklama 120 gün.
-- Testler: `Ledger.PostAndStatements`, `Ledger.CashAudit` (aile dükkânı 90 gün PlayDay: kart, veresiye, telefon siparişi, kredi, müşavir, vergi — tek fark toptancı vadesi, o da birebir), `Ledger.BalanceSheet`, `Ledger.OlderSaves`.
+- Testler: `Ledger.PostAndStatements`, `Ledger.CashAudit` (aile dükkânı 90 gün PlayDay: kart, veresiye, telefon siparişi, kredi, müşavir, vergi — tek fark toptancı vadesi, o da birebir), `Ledger.BalanceSheet`, `Ledger.OlderSaves` (B7.3'te M27 gereği silindi).
 - Doğrulama denemesi: aşağıdaki "C'ye istekler 7" satırları yalnız derleme kopyasına uygulanınca, iki şube açıp birini kapatan, vadeli alım yapan 260 günlük oyunda **açıklanamayan fark 0** (tek fark denemenin kendisinin bilerek kasaya koyduğu para).
 
 ### B3 · Ücret ve sigorta (#39)
@@ -51,13 +53,13 @@ Yeni `MarketLedger.h/.cpp` (`namespace MarketLedger`), durum `FMarketState::Ledg
 Yeni `MarketEras.h/.cpp` (`namespace MarketEras`), durum `FMarketState::Eras` (`FMarketEras`).
 
 - **Sıra sabit:** kur şoku → durgunluk → büyük salgın → yüksek enflasyon → toparlanma; oynak/yüksek enflasyonlu ekonomide yıllar sonra daha hafif ikinci dalga (kur şoku, yüksek enflasyonlu ülkede bir de enflasyon dalgası).
-- **Zaman kayar:** `MarketEras::Setup(State)` kampanya tohumundan −2..+2 yıl ve −45..+45 gün kaydırma seçer (bütün plan birlikte kayar, sıra bozulmaz). Setup çağrılmamış kampanya (eski kayıt, C bağlamadan önceki yeni oyun) kaymasız planı yaşar.
+- **Zaman kayar:** `MarketEras::Setup(State)` kampanya tohumundan −2..+2 yıl ve −45..+45 gün kaydırma seçer (bütün plan birlikte kayar, sıra bozulmaz). Setup çağrılmamış kampanya (C bağlamadan önceki yeni oyun, testler) kaymasız planı yaşar.
 - **Sıklık ve şiddet ülke karakterinden** (`ulkeler.json` → `economy.character`, zaten vardı: `istikrarli` / `oynak` / `yuksek_enflasyon`): istikrarlıda yüksek enflasyon ve ikinci dalga yok, kur şoku hafif (0,3); oynakta kur şoku 0,8, enflasyon 0,4, ikinci şok tohuma göre yarı olasılıkla; yüksek enflasyonluda hepsi tam, ikinci dalga 0,6 / 0,5.
 - **Enflasyon eğrisi dönemle kayar:** `MarketPrices::YearlyInflation` ve `LoanRate` dönemlerin enflasyon tepelerini (kur şoku +5/+2 puan, yüksek enflasyon +7/+18/+16/+8 puan × şiddet) aktif plandan alır; yerleşik Türkiye eğrisindeki kaymasız tepeler çıkarılıp kampanyanınkiler eklenir. **Kaymasız plan bugünkü eğriyle birebir aynı** (test). Diğer ülkelerde üretilen eğriye eklenir. Yıl 2030 sonrası TR'de ikinci dalga yeni.
 - **Etkiler** mevcut `MarketEvents` değiştiricileriyle (oyun zaten uyguluyor): kur şoku = ithal ağırlıklı gruplarda (çay-kahve, yağ-salça, temizlik, bakım, bisküvi-çikolata) alış +%8 × şiddet, fiyat hoşgörüsü −0,03, trafik −%3; durgunluk = trafik −%5, hoşgörü −0,05, keyif ürünlerine ilgi −%15, temel gıdaya +%5; yüksek enflasyon = hoşgörü −0,04, trafik −%2; toparlanma = trafik +%4, hoşgörü +0,02, keyif ürünlerine +%6. Sepet bütçesi `BudgetFactor` (durgunluk −%10, enflasyon −%5, toparlanma +%5) — C bağlar.
-- **Salgın:** `MarketOnline`'ın mevcut 2020-21 profili planın yılına taşınır (`PandemicShiftDays`: başlangıç, kapanma, bitiş birlikte); oyuncunun profil anahtarı (`bPandemic`) aynen çalışır; eski kayıtta kayma 0.
+- **Salgın:** `MarketOnline`'ın mevcut 2020-21 profili planın yılına taşınır (`PandemicShiftDays`: başlangıç, kapanma, bitiş birlikte); oyuncunun profil anahtarı (`bPandemic`) aynen çalışır; Setup yoksa kayma 0.
 - **Haberler:** başlangıçta ve bitişte bir cümle + bir sayı, adsız ve yılsız ("Kur şoku: döviz birkaç günde fırladı; kahve, yağ ve temizlik ürünlerinin alış fiyatı %8 arttı. …"). Menü satırı `Summary`.
-- Eski kayıt ortasında bir dönemdeyse dönem yeniden oynatılmaz (etki ve haber yok).
+- (Eski kayıt ortasındaki dönemi işaretleme dalı B7.3'te M27 gereği silindi.)
 - Testler: `Eras.UnshiftedIsTheBuiltInCurve`, `Eras.OrderShiftAndCharacter`, `Eras.EffectsAndNews`.
 
 ### B5 · Dünya ve son (kurgu kurlar; oyun sonu kancası B6'da)
@@ -76,11 +78,42 @@ Yeni `MarketGoals.h/.cpp` (`namespace MarketGoals`), durum `FMarketState::Goals`
 - **Üç ölçekte hedef, her an üç tane:** kısa (7 gün: bir günde X ciro, bu hafta X net kâr, bu hafta 4 akşam rafları %X dolu kapat, borçtan X öde, bu hafta N müşteri), orta (30 gün: N mağaza, bu ay X kâr, mahallede pay %Y, ilk depo, borcu kapat), uzun (365 gün: bölüm hedefleri, N ilde mağaza, ulusal pay %Z, yurt dışında ilk mağaza, bu yıl X kâr). Aşamaya göre (`Stage`: aile dükkânı → ilk şube → birkaç il → ülke → yurt dışı) ve oyuncunun **kendi son 7/14/30 gününe** göre: hedef ortalamanın biraz üstü (ciro +%8…+%25, kâr +%4), en iyi günün az üstünü geçmez. Aynı ölçekte son iki hedef tekrar verilmez; kapısı kapalı hedef verilmez (borç varken şube, 5 il olmadan yurt dışı…); %95'i hazır hedef verilmez. Kısa hedef hep vardır (yedek: "bu hafta N müşteriye hizmet et").
 - Her hedef: başlık, ilerleme 0–1, kalan gün, tek cümle "neden önemli", ödül. Bitince kutlama + ödül: kısa +3 moral; orta +5 moral ve toptancıya +3 güven; uzun hatıra (`MarketStory::AddMemory`) ve +8 moral. Para ödülü yok. Süresi dolan kısa hedef sessizce yenilenir; ay/yıl hedefi için tek satır ("Hedefin süresi doldu: … (%72 tamamlandı). Yeni hedef geldi.").
 - **İlkler (23 tane):** ilk kârlı gün, borç bitti, ilk şube, 5/10/25/50/100/250/500/1000 mağaza, 2/5/10/20 il, ilk depo, yurt dışı, ilk online sipariş, ulusal pay %0,1 / %1, dünya ilk 10 / 3 / 1. **Rekorlar:** en iyi gün cirosu, en iyi hafta cirosu, en kârlı 30 gün, en çok mağaza (ilk iki hafta rekor söylenmez; haftada en çok bir rekor kutlanır, rekor hep kaydedilir). Her biri `FMarketCelebration` (gün, başlık, bir cümle, önem 0–2) + gün raporunda "Kutlama: …" satırı; son 40 kart saklanır. İlklerde ekibe +2/+5 moral (hatıra zaten `MarketStory`'de).
-- **Eski kayıt:** ilk kapanışta ilkler ve rekorlar (geçmiş gün kayıtlarından en iyi gün) sessizce işaretlenir; geçmiş için kutlama yağmuru olmaz. Aynı gün iki kez kapanış hiçbir şey eklemez (`LastClosedDay`).
+- İlk kapanış sayacı başlatır (eski kayıt için sessiz doldurma B7.3'te M27 gereği silindi). Aynı gün iki kez kapanış hiçbir şey eklemez (`LastClosedDay`).
 - **Ritim koruyucusu:** olay, bekleyen karar ya da ilk/rekor olmadan geçen gün sayısı kolay 15 / normal 20 / zor 25'i bulursa hoş ya da ilginç bir olay (yeni `event.fair` semt şenliği +%25 müşteri bir gün; yeni `event.newbuilding` yeni apartman bir ay +%5; ya da düğün, derbi). Son 7 günde kolay 2 / normal 3 / zor 4 kötü olay (dolap, elektrik, zabıta, şikâyet, kaldırım, kamyon) olduysa yeni kötü olay ertelenir (`MarketEvents::CloseDay` `HoldBadEvent`'e sorar). Yeni iki olay yalnız koruyucu tarafından çağrılır; rastgele havuza girmedi.
 - **J02 oyun sonu kancası:** C'nin dünya ligi bir lig yılını kapatınca `MarketGoals::OnLeagueYear(State, Sıra, bTamYıl)` çağırır; 7. bölümde 2 lig yılı üst üste 1. + o yılın faaliyet sonucu (defterden net kâr + faiz + vergi) artı + borç (banka + toptancı) < 3 × faaliyet sonucu → "Miras". 7. bölüm hedeflerine "Dünya liginde 2 yıl üst üste 1. (son yıl N. sıra)" satırı eklendi; eski yerel liderlik yolu duruyor.
 - 2 yıllık otomatik koşuda (aile dükkânı): hedefsiz gün 0, 77 kutlama, süresi dolan ay/yıl hedefi 15.
 - Testler: `Goals.AlwaysAGoalWithinReach`, `Goals.FirstsRecordsAndCelebrations`, `Goals.RhythmGuard`, `Goals.LeagueFinale`.
+
+### B7 · C'nin yeni sistemleri için dönem çarpanları, defter hesapları, M27 temizliği (üçüncü tur)
+
+**B7.1 Dönem çarpanları** (`MarketEras`, commit `f48f597`). Hepsi dünyadan bağımsız ve tohumlu (dönem planı üzerinden), olay yokken tam 1. Ülke parametresi boşsa kampanyanın ülkesi; başka ülke kendi ekonomi karakteriyle (ulkeler.json) aynı zaman planını izler (istikrarlı ülkede kur şoku 0,3 güçte).
+- **Talep:** `DemandFactor(State, Mal, Gün, Ülke)`; mal türü `EGoods` (gıda, taze, elektronik, giyim, oyuncak, ev eşyası); reyon adı/kimliğinden `GoodsOf("elektronik" / "giyim" / "manav" …)`. Tam güçte: durgunlukta elektronik %75, giyim ve oyuncak %80, ev eşyası %85, taze %97; toparlanmada elektronik %115, giyim %112; salgında giyim %70, elektronik %115, taze %110; kur şokunda elektronik %85. İki haftada girer, bitince bir ayda söner. Gıda 1: aile dükkânının grupları zaten dönemin `MarketEvents` çarpanlarını alıyor. Kısayollar `NonFoodDemand` (dört gıda dışı türün ortalaması; durgunlukta 0,80) ve `FreshDemand`.
+- **İthal maliyet:** `ImportCostFactor(State, İthalPay, Gün, Ülke)` ve `(State, EGoods, …)`. Kur şoku tam güçte maliyetin döviz payını %25 artırır: iki haftada çıkar, şok boyunca kalır, bitince 300 günde yavaş iner. İthal pay: elektronik 1 (→ **+%25**), oyuncak 0,7, ev eşyası 0,5, giyim 0,4; markalı çay/kahve/yağ 0,35 (→ +%8,75), bakım/temizlik 0,3, tatlı 0,2, cips 0,15, içecek 0,1, süt/taze 0. **Aile dükkânının ürünleri bu eğriyi şimdiden izliyor:** `MarketEvents::Factor(CostFactor)` grubun ithal payıyla `ImportCostFactor`'ı çarpar (`MarketSuppliers::UnitCost` bunu zaten okuyor); eski "şok boyunca sabit +%8" çarpanı kaldırıldı. Haber: "…alış fiyatı iki hafta içinde %9 kadar artacak"; bitince "…bundan sonra yavaş yavaş inecek".
+- **Rakip zincir baskısı:** `ChainRevenueFactor(State, Ülke, FiyatEndeksi, Gün)`: zor dönemde herkesin cirosu düşer, pahalı olanınki en çok (müşteri ucuza kayar). Durgunlukta fiyat endeksi 0,9 olan indirimci %98, 1,15 olan pahalı zincir %83. Toparlanmada +%5. `ChainOpeningFactor`: açılış isteği durgunlukta ×0,4, kur şokunda ×0,6, toparlanmada ×1,5. `ChainRedTurnsToSell`: kırmızıda kaç ay sonra satılığa çıkar (3; güçlü durgunluk ya da kur şokunda 2).
+- Test: `Eras.FactorsForDepartmentsAndChains`. Kapsam: sakin yıllarda hepsi 1; kur şokunda ithal maliyet artar, sürer, yavaş iner, 300 gün sonra 1; dükkânın kahvesi aynı eğride, sütü değil; durgunlukta gıda dışı ile taze arasında >0,1 fark; zincirler; salgın kapatılınca etki yok; reyon adları. `Eras.EffectsAndNews` ilk gün beklentisine uyarlandı.
+
+**B7.2 Defter hesapları** (`MarketLedger`, commit `d4254c9`). 13 yeni hesap:
+- Gelir: `DepartmentSales` reyon satışları, `DepartmentClearance` kapanan reyonun mal satışı, `BrandShelfShare` raf payı, `BrandListing` raf parası, `BrandRebate` ciro primi.
+- Malın maliyeti: `DepartmentCostOfGoods` (nakit değil), `DepartmentWaste` reyon firesi (nakit değil).
+- Gider: `DepartmentMaster` usta değişimi, `SourcingFees` tedarik ücretleri.
+- Bilanço hareketi: `DepartmentPurchases` reyon mal alımı, `DepartmentFitOut` reyon tadilatı (kapanınca satılan donanım +), `ChainPurchase` zincir satın alma, `StoreSale` fazla mağaza satışı.
+
+Ciro ve brüt kâr gruplaması artık `IsRevenue` / `IsGoodsCost` ile yapılıyor; bilançoya `DepartmentStock` eklendi (C3 doldurur). Test: `Ledger.DepartmentsBrandsChains` (kasa denetimi her nakit hareketini görür; ciro, brüt kâr ve gider doğru gruplanır; yatırım kâra girmez; her hesabın kendine ait adı var). Hazır `Post` satırları: C'ye istekler 13.
+
+**B7.3 M27 temizliği** (commit `66f7222`). Yalnız B dosyalarında:
+- `MarketStaff::Migrate`'in gövdesi ve `MarketStaff::CloseDay` içindeki çağrısı silindi. A/C dosyalarındaki üç çağrı (`MarketMenu.cpp` StaffCommand, `MarketGame.cpp` Hire ve LoadGame) derlensin diye başlıkta boş bir `inline void Migrate(FMarketState&) {}` duruyor; C3'te üç çağrıyla birlikte silinecek.
+- `FMarketEras::bChecked` alanı ve dalı silindi (eski kayıtta süren dönemi işaretleme).
+- `MarketGoals`: ilk kapanışta geçmişten rekor doldurma ve ilkleri sessizce işaretleme silindi. İlk kapanış artık yalnız sayacı başlatır; `CheckFirsts`'in "sessiz" seçeneği kalktı.
+- Yorumlardaki "older saves" ifadeleri temizlendi (Ledger, Eras, Goals, Online, Freshness, Promotions, `MarketEconomy.h` B bloğu).
+- **Silinen testler:** tam test olarak 1 tane, `MirasMarket.Ledger.OlderSaves`. Ayrıca 3 testin içindeki eski kayıt blokları çıkarıldı:
+  - `Staff.PeopleAndMorale`: v0.1 bayraklarının kişiye dönüşmesi, 4 kontrol.
+  - `Goals.FirstsRecordsAndCelebrations`: eski kayıtta sessiz başlangıç, 4 kontrol.
+  - `Eras.EffectsAndNews`: eski kayıtta süren dönem, 3 kontrol.
+- `Eras.UnshiftedIsTheBuiltInCurve` içindeki "eski kayıt" bloğu silinmedi; "Setup olmadan" diye yeniden adlandırıldı, çünkü C `MarketEras::Setup`'ı bağlayana kadar yeni kampanyalar da böyle çalışıyor.
+- **Test sayısı:** UE'deki toplam 1 azalır. Codex `Test.ps1` alt sınırını buna göre düşürmeli.
+- Dokunulmayanlar ve nedenleri:
+  - `MarketStaff::SyncCounts` içindeki "v0.1 durumu: bayraklar doğru" koruması ve `MarketEconomy.cpp` `DailyPayroll` bayrak yolu hâlâ `MarketTests.cpp` ve otomatik oynanışta kullanılıyor (bkz. C'ye istekler 14).
+  - `MarketFreshness`'teki "partisi olmayan birim yeni sayılır" kuralı eski kayda özel değil; miras kalan başlangıç stoğu için de gerekli.
 
 ## Doğrulama
 
@@ -88,7 +121,7 @@ Bu oturum Linux bulut kapsayıcısında; Unreal yok, `DERLE.cmd` / `TEST.cmd` ç
 
 - Saf modüller ve testleri, Unreal'in kullanılan kısmını taklit eden küçük bir katmanla (sahte `CoreMinimal.h`: FString, TArray, TMap, FMath, FRandomStream UE algoritmasıyla, JSON, otomasyon testi makroları) clang ile `-Wshadow-all -Werror=shadow` derlenip çalıştırıldı. Dünyaya bağlı dosyalar (MarketGame, menü, mağaza kiti) bu katmanda derlenmez.
 - 30.09.2026, B1 sonrası: **77/77 test geçti** (başlangıçta 70/70; +7 `Balance.*`). UE'deki toplam 84 testin dünyaya bağlı 14'ü bu sayıya dahil değil.
-- B2 sonrası: **81/81** (+4 `Ledger.*`). B3 sonrası: **82/82** (+1 `Staff.WagesAndSocialSecurity`). B4 sonrası: **85/85** (+3 `Eras.*`). B5 sonrası: **86/86** (+1 `Country.Currencies`). B6 sonrası: **90/90** (+4 `Goals.*`).
+- B2 sonrası: **81/81** (+4 `Ledger.*`). B3 sonrası: **82/82** (+1 `Staff.WagesAndSocialSecurity`). B4 sonrası: **85/85** (+3 `Eras.*`). B5 sonrası: **86/86** (+1 `Country.Currencies`). B6 sonrası: **90/90** (+4 `Goals.*`). B7.1: **91/91** (+1 `Eras.FactorsForDepartmentsAndChains`); B7.2: **92/92** (+1 `Ledger.DepartmentsBrandsChains`); B7.3: **91/91** (−1 `Ledger.OlderSaves`).
 - Codex'in `DERLE.cmd /q` + `TEST.cmd /q` koşusu bekleniyor.
 
 ## Yeni açık işlevler
@@ -110,6 +143,8 @@ Bu oturum Linux bulut kapsayıcısında; Unreal yok, `DERLE.cmd` / `TEST.cmd` ç
 - `MarketCountry::FProfile::EmployerSocialRate`, `SeveranceDaysPerYear` (`ulkeler.json` → `economy.employerSocialRate`, `economy.severanceDaysPerYear`).
 - `MarketCountry::FxRate(State, Ülke, Gün)`, `MarketCountry::ToWorld(State, Ülke, İçTutar, Gün)` — ortak birim (C'nin dünya ligi bunu kullanmalı).
 - `MarketGoals::Goals(State)` → `FGoalView` (Title, Why, Reward, Progress, DaysLeft, Scale), `NextGoal(State, Out)`, `StripText(State)`, `CelebrationsOn(State, Gün)`, `RecentCelebrations(State, N)`, `Records(State)`, `Stage(State)`, `HoldBadEvent / IsBadEvent / QuietDays / BadLimit`, `OnLeagueYear(State, Sıra, bTamYıl)`, `CloseDay(State, Products)` (Director B bloğu, sonda, `EndClose`'dan sonra).
+- B7 `MarketEras`: `GoodsOf(ReyonAdı)`, `GoodsName`, `DemandFactor(State, EGoods, Gün, Ülke="")`, `NonFoodDemand(State, Gün, Ülke="")`, `FreshDemand(State, Gün, Ülke="")`, `ImportShare(EGoods)`, `GroupImportShare(Grup)`, `ImportCostFactor(State, Pay | EGoods, Gün, Ülke="")`, `ChainRevenueFactor(State, Ülke, FiyatEndeksi, Gün)`, `ChainOpeningFactor(State, Ülke, Gün)`, `ChainRedTurnsToSell(State, Ülke, Gün)`. Hepsi olay yokken 1 (ya da 3).
+- B7 `MarketLedger`: 13 yeni `EAccount` (yukarıda), `IsRevenue`, `IsGoodsCost`, `FBalance::DepartmentStock`.
 - `MarketEras::Setup(State)`, `Activate(State)`, `ActivateNominal(Karakter)`, `PlanOf(State)` / `Plan(...)`, `Current(State, Gün, OutEra)`, `BudgetFactor(State)`, `Summary(State)`, `Name(EKind)`, `PandemicShiftDays(State)`, `InflationBump(Yıl)`, `CloseDay(State)` (Director B bloğu, kapanış başında).
 
 ## C'ye istekler
@@ -174,6 +209,43 @@ Bu oturum Linux bulut kapsayıcısında; Unreal yok, `DERLE.cmd` / `TEST.cmd` ç
    - **Director:** B bloğunun sonunda `MarketGoals::CloseDay(State, Products);` (defter `EndClose`'dan sonra olmalı). C'nin dünya ligi yıl kapanışında `MarketGoals::OnLeagueYear(State, Sıra, bTamYıl);` (ve ortak birim için `MarketCountry::ToWorld`).
    - Otomatik oyuncu (A): "sıkıcı dönem" ölçüsü için `State.Goals.LastLivelyDay`, koruyucunun işleri için `Goals.QuietEvents`, `Goals.HeldBadEvents`.
 
+12. **Dönem çarpanları (B7.1). 5 satır.** Gıda ürünleri için ekleme gerekmez; onlar `MarketSuppliers::UnitCost` → `MarketEvents::Factor` üzerinden zaten eğride. **Reyon malına ikinci kez uygulanmasın diye yalnız gıda dışı reyonlara** konmalı.
+    - `MarketDepartments::Day` (her reyonun günlük talebi): `Talep *= MarketEras::DemandFactor(State, MarketEras::GoodsOf(Reyon.Id), State.Day, Ülke);`. Ülke = mağazanın ülkesi (`MarketBranches::CountryOf(State, B)`; aile dükkânı için `FString()`).
+    - `MarketDirector::ApplyPrices` ya da reyon malının maliyetini kuran yer: `Maliyet = Round(Maliyet * MarketEras::ImportCostFactor(State, MarketEras::GoodsOf(Reyon.Id), State.Day));`. Gıda reyonunda (`EGoods::Grocery`) kullanılmamalı, çünkü katalog ürünü zaten eğride.
+    - `MarketChains.cpp` `MonthlyBooks`: `const double StoreRevenue = … * MarketEras::ChainRevenueFactor(State, Chain.Country, Chain.PriceIndex, Day);`
+    - `MarketChains.cpp` `Turn`, `Want` satırı: `const float Want = … * Mood * MarketEras::ChainOpeningFactor(State, Chain.Country, Day);`
+    - `MarketChains.cpp` `Turn`, satılığa çıkma: `if (Chain.RedTurns >= MarketEras::ChainRedTurnsToSell(State, Chain.Country, Day))` (şimdiki `>= 3` yerine).
+13. **Defter satırları (B7.2). 15 satır.** Her satır ilgili `State.Cash` değişikliğinin hemen ardına konur.
+    - Kısaltmalar: `P(` = `MarketLedger::Post(State, MarketLedger::EAccount::`; `HQ` = `MarketLedger::HeadOfficeStore`; `St` = mağaza (aile dükkânı `MarketLedger::FamilyShop`, şube = şube indeksi).
+    - İşaret kuralı: para girişi +, çıkışı −; `false` = kasa oynamadı.
+    - `MarketChains.cpp` `Buy`, `State.Cash += Back - Cost;` satırından sonra:
+      - `P(ChainPurchase, -Cost, true, HQ);`
+      - `P(StoreSale, Back, true, HQ);`
+    - `MarketBrands.cpp` `CloseDay`:
+      - raf parası, `State.Cash += Deal.Terms.Amount;` sonrası: `P(BrandListing, Deal.Terms.Amount, true, HQ);`
+      - raf payı, `State.Cash += T.Amount;` sonrası: `P(BrandShelfShare, T.Amount, true, HQ);`
+      - ciro primi, `State.Cash += Prim;` sonrası: `P(BrandRebate, Prim, true, HQ);`
+    - `MarketDepartments` (`main`'de henüz yok; para hareketinin türüne göre):
+      - reyon açılışı veya tadilatı: `P(DepartmentFitOut, -Tutar, true, St);`
+      - reyon malı siparişi: `P(DepartmentPurchases, -Fatura, true, St);`. Vadeliyse ayrıca `P(SupplierCredit, +Fatura, true, St);`, ödenince `P(SupplierCredit, -Ödenen, true, St);`.
+      - günlük reyon satışı (`Day`): `P(DepartmentSales, Ciro, true, St);` ve `P(DepartmentCostOfGoods, -SatılanınMaliyeti, false, St);`. Reyon cirosu `State.LastRevenue`'ya da yazılıyorsa bu iki satır konmaz; yoksa çift sayılır, çünkü `BeginClose` dükkân kasasını oradan okuyor.
+      - fire, kırık, son kullanma: `P(DepartmentWaste, -DefterDeğeri, false, St);`
+      - usta değişimi: `P(DepartmentMaster, -Maliyet, true, St);`
+      - reyon kapatma, kalan mal satışı: `P(DepartmentClearance, Alınan, true, St);` ve `P(DepartmentCostOfGoods, -MalınDefterDeğeri, false, St);`
+      - reyon kapatma, donanım satışı: `P(DepartmentFitOut, +Geri, true, St);`
+    - `MarketLedger::Balance` içine: `B.DepartmentStock = MarketDepartments::StockValue(State);` (reyon stoğunun defter değeri; işlev adı C'nin).
+    - `MarketSourcing`: bugün para hareketi yok. Kademe ücreti ya da asgari alım cezası eklenirse `P(SourcingFees, -Tutar, true, HQ);`. Üst kaynaktan alınan mal yine sipariş yolundan geçtiği için `Purchases`'a yazılır.
+14. **M27: eski kayıt kalıntıları (B dışı dosyalar).**
+    - **Migrate çağrıları:** `MarketMenu.cpp` (StaffCommand) ve `MarketGame.cpp` (Hire, LoadGame) içindeki üç `MarketStaff::Migrate(State);` çağrısı silinsin; sonra `MarketStaff.h`'deki boş `Migrate` satırını da C silsin.
+    - **Silinmemesi gereken, ama artık gereksiz `FMarketState` alanları (silmedim, ortak dosya):**
+      - `bCashier`, `Stockers`: ölü değil. Her gün `MarketStaff::SyncCounts` yazıyor; `MarketWorkers.cpp`, `MarketGame.cpp`, `MarketOnline.cpp` (kurye kapasitesi), menü ve `MarketEconomy.cpp` (`DailyPayroll` bayrak yolu, `IsStructurallyValid`) okuyor. Personel varken bunlar `MarketStaff::OnDutyAt` / `Count` ile değiştirilebilir. O zaman `DailyPayroll`'un "Staff boşsa bayraklar" yolu ve `SyncCounts`'un v0.1 koruması da gider. `MarketTests.cpp`'deki `bCashier = true` kurulumları buna göre değişmeli.
+      - `FMarketBranch::District` (G-086'dan beri kullanılmıyor).
+      - `FMarketCompany::Cities` ve `FMarketCityStores` (G-072 toplu şehir mağazaları; `MarketBranches::Migrate`).
+      - `FMarketCompany::bDepot` ve `Depots` (G-072/G-086 depoları; `MarketDepots::Migrate`).
+      - `FMarketState::Version` ile eski biçim kabulü; `bSecondStore` ("en az bir şube var"; `MarketCampaign`, `MarketStory` ve `MarketStaff` okuyor, istenirse `Branches.Num() > 0` ile değişir).
+      - Müdürün beceri tavanında "0 = eski kayıt" (`MarketManagers::Migrate`); `MarketStoreViews::Migrate`.
+    - **Test.ps1:** alt sınır 1 azalır (`Ledger.OlderSaves` silindi). Codex günceller.
+
 ## Kararlar ve varsayımlar
 
 - **#24 sayıları:** rakip fiyatında alma %90 (eski eğri %97,3); duyarlılık K = 3; kayıptan kaçınma ×1,4; `kvi` ×(1 + kvi); esneklik 0,5–6 aralığına kırpılır. Sonuç: süt (1,5; kvi 1) rakibin %10 üstünde ~%72, kola (4) %15 üstünde ~%40 alır. 400 günlük denemede aile dükkânının cirosu ~%9 düştü (rakip fiyatında %97 → %90). Otomatik oyuncu raporunda izlenmeli; gerekirse `ParityChance` 0,92–0,93'e çekilir.
@@ -189,6 +261,8 @@ Bu oturum Linux bulut kapsayıcısında; Unreal yok, `DERLE.cmd` / `TEST.cmd` ç
 - **B4:** Dönem tarihleri iç çapa olarak gerçek yakın tarihlerde (2018 kur, 2019 durgunluk, 2020 salgın, 2021–23 enflasyon, 2024 toparlanma); oyuncu yıl görmez. Kaydırma bütün plan için tek (sıra ve aralıklar korunur). Kur şokunun alış artışı dönem boyunca sürer, dönem bitince kalkar (liste fiyatı zaten enflasyonla yükselmiş olur). Fiyat eğrisi süreç içi tek (global) plandan okunur (`MarketPrices` durumsuz); plan her gün kapanışında kampanyadan yeniden kurulur.
 - **B4 sayıları:** şiddetler ve etki yüzdeleri Claude önerisi; bot raporuyla ayarlanmalı.
 
+- **B7 sayıları:** dönem tabloları (talep, zincir cirosu, açılış), kur şokunun tepe sıçraması %25, iki haftalık giriş, bir aylık talep sönmesi, 300 günlük maliyet inişi, ithal paylar Claude önerisi; bot raporuyla ayarlanmalı. Yabancı ülke aynı zaman planını kendi karakteriyle yaşar (kur şokları aynı yıl gelir); farklı zaman istenirse ülke başına kaydırma eklenir.
+- **B7 hesap yerleşimi:** marka parası ciroya "diğer gelir" gibi girer (alış maliyetinden düşülmedi); reyon tadilatı branch açılışı gibi yatırım sayılır (amortisman yok); kapanış satışı ciro, malın defter değeri maliyet.
 - **B6 sayıları:** ritim eşikleri (sessiz 15/20/25 gün, kötü olay 2/3/4 / 7 gün), hedef katsayıları, ödüller (moral +3/+5/+8, güven +3), ilk ve rekor eşikleri Claude önerisi; bot raporuyla ayarlanmalı.
 - **Denge bulgusu (B1+B3 sonrası, 6 yıllık aile dükkânı otomatik koşusu, `MarketSimulation::PlayDay`):** eski kodda dükkân yılda ~120–140 TL/gün kâr ediyordu, şimdi ~65 TL/gün ve 4.–5. yılda nakit sıkıntısına girip batıyor. Varyantlarla ayrıldı: ciro etkisi küçük (#24: −%3); asıl fark **çalışanlar**: eski kurallarda düşük becerili çalışanlar asgari ücretin altındaki ücrete küsüp birkaç ay içinde istifa ediyordu ve otomatik oyuncu dükkânı çalışansız, maaşsız işletiyordu (bu yüzden kârlıydı). Asgari ücret tabanıyla kimse küsmüyor; 2 çalışanın ücreti + sigortası (~60 TL/gün) otomatik oyuncuda karşılıksız bir gider (simülasyon çalışana hız/doluluk karşılığı vermiyor). Yani sorun ücret kuralında değil, **otomatik oyuncunun ve simülasyonun çalışanı değerlendirmemesinde** (A: rutin gereksiz çalışanı çıkarmıyor; simülasyon kasiyersiz günü cezalandırmıyor). Düzeltme önerisi A/C'ye: `PlayDay`'de kasiyer/reyon görevlisi yokken müşteri kaybı (kuyruk, boş raf) ya da ailenin rutini çalışan sayısını ciroya göre ayarlasın. Batıştan sonraki absürt kasa (10¹⁸) #41 tavansız gecikme faiziydi; C'nin #41 düzeltmesi onu durdurur.
 
