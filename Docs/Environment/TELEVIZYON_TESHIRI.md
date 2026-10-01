@@ -46,3 +46,13 @@ Bu yalnız örnektir; 55 inç olmak OLED veya 120 Hz olmak anlamına gelmez. `re
 ```
 
 Unreal Python: `Tools/import_tv_displays.py` yalnız bu sekiz modeli aktarır; cm ölçülerini ve stand UCX sayılarını doğrular. TV üreticisi var olan `display.json` dosyasının üzerine yazmaz. C++: `MarketTelevisionDisplay.*`; testler `MirasMarket.Visuals.TelevisionDisplay` ve `TelevisionLabels`.
+
+## Yüzey çakışması kontrolü
+
+Standların gövde/tabla ve duvar/kolon yüzleri aynı düzlemde üst üste binmez. Podyum tablasının altında 4 mm açıklık vardır; etiket rayı gövdeden 4 mm dışarıdadır. `railFrontY` görünür ray yüzüne göre hesaplanır. LED/parlama materyali korunur; bu düzeltme oyun genelindeki Lumen ayarlarını değiştirmez.
+
+```powershell
+& 'C:/Program Files/Blender Foundation/Blender 5.2/blender.exe' --background --python Tools/Blender/check_tv_surfaces.py -- 'C:/Users/mtass/Desktop/market-ll' --strict
+```
+
+Kontrol üç Blender kaynak meshindeki aynı yöne bakan, eksene paralel yüzleri tarar; zemine temas eden alt yüzler hariç, çakışma varsa başarısız olur. Genel ışık titremesi testi değildir. Unreal aktarımına `-TVFixturesOnly` verilirse yalnız üç stand yeniden aktarılır; ayrı TV ürünlerine dokunulmaz. `Tools/review_tv_displays.py` için `-TVTemporalReview` aynı kameradan dört saniye arayla üç kare ister; kaydedilmeyen kontrol sahnesi kullanır.

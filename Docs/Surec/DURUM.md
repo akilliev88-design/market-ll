@@ -1,8 +1,10 @@
 # Güncel durum
 
-Son güncelleme: 01.10.2026 — Codex, televizyon teşhir kiti
+Son güncelleme: 01.10.2026 — Codex, TV standlarında yüzey çakışması düzeltmesi
 
 ## Kısaca
+
+**01.10.2026 — TV standı yüzey düzeltmesi (Codex):** Mustafa sabit kamerada yeni TV raflarının titrediğini bildirdi. Blender kaynaklarında podyum tabla/gövde üst yüzleri ile TV duvarı gövde/arka panel/yan kolonlarında aynı düzlemde yüz çakışması bulundu. Üç stand yeniden üretildi; tabla altında 4 mm açıklık, duvar parçalarında ayrık yüzler; raylar gövde dışına alındı ve etiket konumları güncellendi. LED/parlama korunuyor; genel Lumen ayarı değiştirilmedi. Yeni `check_tv_surfaces.py --strict`: üç kaynakta çakışma 0; Blender kaynak/FBX 8/8, Unreal üç stand ölçü/UCX aktarımı, DERLE, TEST 128/128 ve Smoke GEÇTİ. Üç sabit kamera PNG gözle incelendi; beş yüzey bölgesinde ortalama ardışık RGB farkı 0,52–1,68/255, büyük yüzey atlaması görülmedi. Ayrı TV ürünleri/katalog/kayıtlar değiştirilmedi. Oyuncunun gördüğü titremenin tamamen bittiği oyun içi tekrar gözlemle teyit edilmeli; geometri hatası giderildi.
 
 **01.10.2026 — TV teşhir kiti (Codex):** Referans fotoğraflardan ışıklı iki seviyeli TV duvarı, tek yüz alçak podyum ve çift yüz ada; ayrı 32/43/55/65/75 inç TV modelleri. Sekiz Blender kaynak/FBX/önizleme ve Unreal varlığı hazır. Stand FBX'lerinde TV yok; önizleme TV'leri ayrı objeler. Mağaza editörü kütüphanesine/teknoloji bölümüne bağlı. Kategori tabelası mevcut yüz seçimini izler; ürün adı katalogdan, teknoloji/çözünürlük/Hz/arka ışık ID üzerinden `AssetInbox/Products/Televisions/display.json` dosyasından. Bilinmeyen teknoloji yazılmaz. DERLE GEÇTİ, TEST 128/128 (127 temiz + motor bağlantı uyarısı), Smoke GEÇTİ, Blender bağımsız doğrulama 8/8, Unreal aktarım ölçü/UCX kontrolü 8/8. TV'ler ürün modelleridir; satış kataloğuna otomatik eklenmedi. Katalog/ekonomi Claude alanında; Mustafa Ürün Stüdyosu'ndan yayımlayabilir. Galeri `Docs/Images/Stores/Televisions/index.html`; kılavuz `Docs/Environment/TELEVIZYON_TESHIRI.md`.
 

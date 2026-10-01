@@ -115,21 +115,22 @@ for eid, label, w, d, h, levels, double in SPECS:
     front = -.22 if wall else (-.64 if double else -.31)
     depth = .40 if wall else (.58 if double else .61)
     box('RecessedKick', (0, .015, .05), (w - .10, d - .08, .10), dark)
-    box('LowerCabinet', (0, 0, .25 if wall else (h + .10) / 2),
-        (w, d, .40 if wall else h - .10), white, .009)
+    # Keep cabinet and deck surfaces apart; coplanar faces flicker in Unreal.
+    box('LowerCabinet', (0, 0, .25 if wall else (h + .06) / 2),
+        (w - .60 if wall else w, d, .40 if wall else h - .14), white, .009)
     for x in (-w / 2 + .10, w / 2 - .10):
         for y in (-d / 2 + .10, d / 2 - .10):
             box('LevellingFoot', (x, y, .03), (.07, .07, .06), dark)
     if wall:
-        box('BackPanel', (0, .285, h / 2), (w, .08, h), white)
+        box('BackPanel', (0, .285, (h + .454) / 2), (w - .60, .08, h - .454), white)
         for x in (-w / 2 + .15, w / 2 - .15):
             box('SideTower', (x, 0, h / 2), (.30, d, h), steel, .009)
             box('BlankCampaignPanel', (x, -d / 2 - .004, 1.36), (.25, .01, 2.12), panel)
             box('TowerLight', (x - (.137 if x > 0 else -.137), -d / 2 - .008, 1.36),
                 (.009, .008, 2.14), led, .001)
-        box('Header', (0, .01, h - .11), (usable, d - .04, .22), dark)
+        box('Header', (0, .01, h - .114), (usable, d - .04, .216), dark)
         box('HeaderBlankFace', (0, -d / 2 + .01, h - .11), (usable - .04, .01, .17), panel)
-        box('HeaderLight', (0, -d / 2 + .006, h - .218), (usable, .013, .014), led, .001)
+        box('HeaderLight', (0, -d / 2 + .006, h - .218), (usable - .008, .013, .014), led, .001)
         # Perforated service channels and covered cable access behind each TV bay.
         for x in (-1.3, 0, 1.3):
             box('CableChannel', (x, .231, 1.38), (.07, .012, 1.88), dark)
@@ -143,9 +144,9 @@ for eid, label, w, d, h, levels, double in SPECS:
     for z in levels:
         box('DisplayDeck', (0, -.015 if wall else 0, z - .018), (usable, d - .07, .036), steel)
         for sign in (-1, 1) if double else (-1,):
-            y = sign * (d / 2 - .027)
+            y = sign * (d / 2 + .016)
             box('TicketRail', (0, y, z - .062), (usable, .024, .078), dark)
-            box('LEDTrim', (0, y - sign * .006, z - .109), (usable, .014, .012), led, .001)
+            box('LEDTrim', (0, y - sign * .006, z - .109), (usable - .008, .014, .012), led, .001)
     name = 'SM_' + ''.join(word.title() for word in eid.split('_'))
     model = k.join(parts, name, eid, (w * 1000, d * 1000, h * 1000))
     model['preview_spec'] = json.dumps([w, d, h, levels, double])
@@ -162,14 +163,14 @@ for eid, label, w, d, h, levels, double in SPECS:
         zones += [dict(zones[0], id='back_l00', face='back')]
     metadata = dict(schemaVersion=1, id=eid, displayName=label, mesh=name + '.fbx',
                     unrealMesh=f'/Game/Stores/Equipment/{name}.{name}', family='electronics',
-                    dimensionsMm=dict(width=w * 1000, depth=d * 1000 + (14 if wall else 12), height=h * 1000 + (120 if double else 0)),
+                    dimensionsMm=dict(width=model.dimensions.x * 1000, depth=model.dimensions.y * 1000, height=model.dimensions.z * 1000),
                     origin='floor_center', frontAxis='-Y', materials=[m.name for m in model.data.materials],
                     collision=dict(policy='custom_ucx', pieces=len(collisions)), zones=zones, checkouts=0,
                     planogram=dict(doubleSided=double, widthCm=usable * 100, depthCm=depth * 100,
                                    frontY=front * 100, meshYaw=180, signOnTop=False,
                                    signZ=(h - .11) * 100 if wall else 17,
                                    signY=-d * 50 - 1, signWidthCm=usable * 100,
-                                   railFrontY=d * 50 - 1.5, railAboveTopZ=-6.2),
+                                   railFrontY=d * 50 + 2.8, railAboveTopZ=-6.2),
                     televisionDisplay=True)
     camera = (w * .80, -w * 1.28 - 1.5, 3.2 if wall else 2.7)
     k.save_asset(eid, name, model, collisions, metadata, camera, (0, 0, 1.25 if wall else .70))

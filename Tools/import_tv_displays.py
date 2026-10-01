@@ -8,15 +8,18 @@ world = unreal.get_editor_subsystem(unreal.UnrealEditorSubsystem).get_editor_wor
 unreal.SystemLibrary.execute_console_command(world, 'Interchange.FeatureFlags.Import.FBX 0')
 paths = [root / 'AssetInbox/Environment/Stores' / eid / 'equipment.json'
          for eid in ('tv_wall_4800', 'tv_plinth_2400', 'tv_island_3000')]
-paths += sorted((root / 'AssetInbox/Products/Televisions').glob('tv_*/product.json'))
-texture_task = unreal.AssetImportTask()
-for key, value in dict(filename=str(root / 'AssetInbox/Products/Televisions/T_TV_DemoLandscape.png'),
-                       destination_path='/Game/Stores/Televisions', destination_name='T_TV_DemoLandscape',
-                       automated=True, replace_existing=True, save=True).items():
-    texture_task.set_editor_property(key, value)
-unreal.AssetToolsHelpers.get_asset_tools().import_asset_tasks([texture_task])
-texture = unreal.load_asset('/Game/Stores/Televisions/T_TV_DemoLandscape')
-assert texture
+fixtures_only = '-TVFixturesOnly' in unreal.SystemLibrary.get_command_line()
+texture = None
+if not fixtures_only:
+    paths += sorted((root / 'AssetInbox/Products/Televisions').glob('tv_*/product.json'))
+    texture_task = unreal.AssetImportTask()
+    for key, value in dict(filename=str(root / 'AssetInbox/Products/Televisions/T_TV_DemoLandscape.png'),
+                           destination_path='/Game/Stores/Televisions', destination_name='T_TV_DemoLandscape',
+                           automated=True, replace_existing=True, save=True).items():
+        texture_task.set_editor_property(key, value)
+    unreal.AssetToolsHelpers.get_asset_tools().import_asset_tasks([texture_task])
+    texture = unreal.load_asset('/Game/Stores/Televisions/T_TV_DemoLandscape')
+    assert texture
 for path in paths:
     meta = json.loads(path.read_text(encoding='utf-8'))
     fixture = 'planogram' in meta

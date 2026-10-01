@@ -6,9 +6,9 @@
   "unrealMesh": "/Game/Stores/Equipment/SM_TvWall4800.SM_TvWall4800",
   "family": "electronics",
   "dimensionsMm": {
-    "width": 4800.0,
-    "depth": 664.0,
-    "height": 2550.0
+    "width": 4800.000190734863,
+    "depth": 677.9999732971191,
+    "height": 2549.999952316284
   },
   "origin": "floor_center",
   "frontAxis": "-Y",
@@ -62,7 +62,7 @@
     "signZ": 244.0,
     "signY": -33.5,
     "signWidthCm": 416.0,
-    "railFrontY": 31.0,
+    "railFrontY": 35.3,
     "railAboveTopZ": -6.2
   },
   "televisionDisplay": true

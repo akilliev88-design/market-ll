@@ -4,6 +4,8 @@ from pathlib import Path
 import unreal
 
 root = Path(unreal.Paths.project_dir()).resolve()
+performance_class = unreal.load_class(None, '/Script/UnrealEd.EditorPerformanceSettings')
+unreal.get_default_object(performance_class).set_editor_property('bThrottleCPUWhenNotForeground', False)
 world = unreal.EditorLoadingAndSavingUtils.new_blank_map(False)
 subsystem = unreal.get_editor_subsystem(unreal.EditorActorSubsystem)
 
@@ -43,17 +45,27 @@ unreal.SystemLibrary.execute_console_command(world, 'r.BloomQuality 5')
 output = root / 'Saved/Screenshots/Televisions/UnrealShowroom.png'
 output.parent.mkdir(parents=True, exist_ok=True)
 started = time.monotonic()
-captured = False
+captures = 3 if '-TVTemporalReview' in unreal.SystemLibrary.get_command_line() else 1
+captured = 0
+capturing = False
 handle = None
 
 
 def tick(delta):
-    global captured
+    global captured, capturing
+    if capturing: return
     elapsed = time.monotonic() - started
-    if not captured and elapsed > 25:
-        unreal.AutomationLibrary.take_high_res_screenshot(1400, 1000, str(output), camera=camera)
-        captured = True
-    if captured and elapsed > 35:
+    if captured < captures and elapsed > 25 + captured * 4:
+        target = output if captured == 0 else output.with_name(f'UnrealShowroom_{captured + 1}.png')
+        captured += 1
+        unreal.log(f'MIRAS_TV_FRAME_REQUEST={captured}')
+        # Screenshot preparation can re-enter Slate callbacks before returning.
+        capturing = True
+        try:
+            unreal.AutomationLibrary.take_high_res_screenshot(1400, 1000, str(target), camera=camera)
+        finally:
+            capturing = False
+    if captured == captures and elapsed > 25 + captures * 4 + 6:
         unreal.log('MIRAS_TV_RENDER_COMPLETE=' + str(output))
         unreal.unregister_slate_post_tick_callback(handle)
         unreal.SystemLibrary.quit_editor()

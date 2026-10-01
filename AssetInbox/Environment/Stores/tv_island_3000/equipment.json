@@ -7,8 +7,8 @@
   "family": "electronics",
   "dimensionsMm": {
     "width": 3000.0,
-    "depth": 1412.0,
-    "height": 770.0
+    "depth": 1456.0000896453857,
+    "height": 769.9999809265137
   },
   "origin": "floor_center",
   "frontAxis": "-Y",
@@ -62,7 +62,7 @@
     "signZ": 17,
     "signY": -71.0,
     "signWidthCm": 284.0,
-    "railFrontY": 68.5,
+    "railFrontY": 72.8,
     "railAboveTopZ": -6.2
   },
   "televisionDisplay": true
