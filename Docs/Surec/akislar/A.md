@@ -1,6 +1,8 @@
 # Akış A — Codex
 
-Son teslim (01.10.2026): A1/A3/A4/A5/A6 hazır, DERLE + TEST 105/105 + Smoke geçti. A5 gerçek ağla 68/68 (örnek ağ yok). C teslimi, M27 ve bot push edildi; iki son uzun koşu 12 kampanya/65.751 gün/0 denetim hatası. Denge hedefi karşılanmadı: son dengeli 10/20/30. yılda ulusal 74/63/60, dünya 20/20/20. Raporlar ve C ayar önerileri aşağıda; kod sabitleri değiştirilmedi.
+**Son teslim — C3 doğrulaması (01.10.2026, main):** DERLE + TEST 126/126 + Smoke + BranchVisitReview geçti; 88/88 menü PNG'si gözle incelendi. 12 uzun kampanya / 65.751 gün / 0 stok-satış hatası / 0 defter farkı. Derleme/test düzeltmesi 0 (hiçbir dosyada gerekmedi). Dengeli 10/20/30: ulusal 32/32/33, dünya 20/20/20; denge hedefi karşılanmadı. Beş denge bulgusu C3_30_yil_rapor.md'de, üç ana menü isteği aşağıdaki C3 bölümünde. Bu işin açık doğrulama adımı kalmadı; ayar ve menü düzeltmeleri C'ye bırakıldı.
+
+Önceki A6 teslimi (01.10.2026): A1/A3/A4/A5/A6 hazır, DERLE + TEST 105/105 + Smoke geçti. A5 gerçek ağla 68/68 (örnek ağ yok). C teslimi, M27 ve bot push edildi; iki son uzun koşu 12 kampanya/65.751 gün/0 denetim hatası. Denge hedefi karşılanmadı: son dengeli 10/20/30. yılda ulusal 74/63/60, dünya 20/20/20. Raporlar ve C ayar önerileri aşağıda; kod sabitleri değiştirilmedi.
 
 ## Yapılanlar
 
@@ -199,7 +201,7 @@ Bunlar **kontrollü olarak denenecek ilk adaylar**, doğrulanmış denge ayarı 
 
 ### C3 uzun bot — sonuç ve C'ye ayar önerileri
 
-12 kampanya, 65.751 gün; satış/stok denetim hatası 0, defter fark günleri/toplam/mutlak toplam 0. 30 yıl 44,5 sn, 10 yıl × 9 yaklaşık 45,3 sn; her iki commandlet çıkış 0. Dengeli ulusal 10/20/30: 32/32/33; dünya 20/20/20, üç mağaza, ilk kasa eksisi 141. gün. Büyüme hedefi karşılanmadı. C3_30_yil_rapor.md: beş sayılı bulgu/ayar adayı ve ölçüm sınırlamaları; C3_10_yil_rapor.md ve on CSV teslim edildi. Süper/hiper ve üst tedarik kademesi bu gerçek kampanyalarda açılmadı; reyon denge ayarları doğrulanmış sayılmaz. MarketBrands.cpp:67,75,334,365: boş raf kapasitesi de marka ödemesine yetiyor; mantık hatası/istismar adayı, değiştirilmedi. Aynı raporun 3. önerisi gerçek rafta bulunma koşulu. Bot aile rezerviyle büyür, zarar eden şubeyi kapatmaz; insanın toparlanma stratejilerini tüketmez.
+12 kampanya, 65.751 gün; satış/stok denetim hatası 0, defter fark günleri/toplam/mutlak toplam 0. 30 yıl 44,5 sn, 10 yıl × 9 43,9 sn; her iki commandlet çıkış 0. Dengeli ulusal 10/20/30: 32/32/33; dünya 20/20/20, üç mağaza, ilk kasa eksisi 141. gün. Büyüme hedefi karşılanmadı. C3_30_yil_rapor.md: beş sayılı bulgu/ayar adayı ve ölçüm sınırlamaları; C3_10_yil_rapor.md ve on CSV teslim edildi. Süper/hiper ve üst tedarik kademesi bu gerçek kampanyalarda açılmadı; reyon denge ayarları doğrulanmış sayılmaz. MarketBrands.cpp:67,75,334,365: boş raf kapasitesi de marka ödemesine yetiyor; mantık hatası/istismar adayı, değiştirilmedi. Aynı raporun 3. önerisi gerçek rafta bulunma koşulu. Bot aile rezerviyle büyür, zarar eden şubeyi kapatmaz; insanın toparlanma stratejilerini tüketmez.
 
 ### C3 menü ve şube ziyareti — C'ye istek
 

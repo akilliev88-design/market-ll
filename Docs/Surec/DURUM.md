@@ -1,10 +1,10 @@
 # Güncel durum
 
-Son güncelleme: 01.10.2026 — Claude Cowork, C3 bağlama (derlenmedi)
+Son güncelleme: 01.10.2026 — Codex, C3 tam doğrulama
 
 ## Kısaca
 
-**01.10.2026 — C3 bağlama (Claude Cowork, derlenmedi):** A (Codex) ve B (Claude Code) dalları `main`e birleşti (170b1c2). Üstüne C3: Director sırası (defter başta/sonda, dönemler, hedefler), C sistemlerinde defter kayıtları ve sigorta/kıdem, dönem çarpanları reyon ve zincirlere, A6 ayarları (hiper yükü, balık/elektronik/evcil, savaş süresi ve dinlenme, marka teklif tavanı), M27 temizliği (eski kayıt çevirileri ve ölü alanlar silindi, kayıt sürümü 3), menü (gün/hafta/ay düğmeleri, şube "Gez", gelir tablosu ve bilanço, dönem satırı, hedefler kartı, Raporlar › Rekorlar, fiyat uyarısı, A5 menü düzeltmeleri). Ayrıntı: `Docs/Surec/akislar/C.md`. **Sırada:** Codex tam derleme + test + smoke + uzun bot koşusu (`Docs/Surec/promptlar/codex_c3_dogrulama.md`).
+**01.10.2026 — C3 doğrulandı (Codex, main):** A/B/C birleşimi ve C3 bağlaması DERLE + TEST **126/126** (125 temiz + 1 motor ağ uyarısı) + Smoke ile geçti. Derleme/test düzeltmesi **0**. Bot: 30 yıl × üç tarz × bir tohum ve 10 yıl × üç tarz × üç tohum, toplam 12 kampanya / 65.751 gün; stok-satış denetimi ve açıklanamayan defter farkı **0**. Denge hedefi karşılanmadı: dengeli 10/20/30 ulusal 32/32/33, dünya 20/20/20; üç mağazada kaldı, 141. günde kasa eksiye düştü. Reyon/üst tedarik ayarları bu küçük ağla yeterince sınanamadı. Marka ödemelerinde boş raf kapasitesi istismar adayı; kural değiştirilmedi. B ritim koruyucusu sayısal olarak çalışıyor. Yeni menü **88/88 PNG** (iki tema, 1920×1080/1280×720; boyut hatası 0, kampanya değişmedi), tümü gözle incelendi; Finans rakam kesilmesi, harita/zaman hapı çakışması, 720p şube müdürü satırı C'ye istek. BranchVisitReview üç açı ve kampanya/plan/saat/oyuncu/disk kayıt koruması geçti. Raporlar: `Docs/Surec/akislar/C3_30_yil_rapor.md`, `C3_10_yil_rapor.md`, CSV'ler; ayrıntı `A.md`. Galeri: `Saved/Screenshots/Menu/20261001-101750/index.html`. **Sırada:** C'nin denge/toparlanma ve menü işleri; bekleyen şirket finansı yaması ayrı iş olarak değerlendirilecek.
 
 **30.09.2026 gece — gidiş yolu (Mustafa):** Önce oyunun aklı (ana ekrandan tam yönetim, boğmayan tycoon), sonra dükkân içi simülasyon. Oyunu Codex otomatik oyuncuyla oynatır. Aynı anda tek derlenmemiş Claude işi. Tek yol haritası: `Docs/Kurgu/06_GIDIS_YOLU.md`.
 
@@ -98,6 +98,9 @@ GitHub ana deposu: `https://github.com/m07tas/market-ll` (`main`). Unreal/Blende
 Görsel ve raf dizme işleri yeterli seviyede; bir süre **donduruldu**. Öncelik **"İlk Hafta" oynanabilir dilimi**: bir oyuncu 7 günü baştan sona oynayabilmeli (sipariş → mal kabul → raf → fiyat → satış → gün raporu → hafta hedefi). Görevler G-051…G-055. Başarı ölçütü: yeni biri ilk 30 dakikada döngüyü anlıyor ve ilk kararının sonucunu görüyor.
 
 ## Devam notu
+
+**01.10.2026 — Codex / C3:** Doğrulama tamamlandı; A.md'de C3 bölümünden ve C3_30_yil_rapor.md'nin beş önerisinden devam edin. Menü otomasyonuna yeni mali dönemler/Rekorlar eklendi; Test.ps1 alt sınır 126. Source son hâli derlendi/test/smoke geçti, menü ve ziyaret de çalıştırıldı. Aşağıdaki derlenmedi notları tarihsel. Oturum sırasında gelen Docs/Surec/bekleyen/M28_M29_sirket_finansi.patch uygulanmadı; bir sonraki Claude işiyle karıştırılmamalı.
+
 
 **30.09.2026 — Codex / A0:** Main derlemesi GEÇTİ; TEST 84/84 (83 temiz + 1 motor bağlantı uyarısı), Smoke GEÇTİ (1 satış, gün kapama, sipariş/mal kabul, işe alma, disk kayıt/yükleme). Kaynak düzeltmesi gerekmedi. Test.ps1:9–10 alt sınır 46 → 84; uyarıyla başarılı testler toplama dahil. Aşama 0 commit/push sonrası A, akis-a worktree'de otomatik oyuncu ve zamanı yapacak. B/C sözleşmedeki kendi alanlarına başlayabilir. Önceki DERLENMEDİ notları tarihsel; bugünkü kaynaklar doğrulandı.
 

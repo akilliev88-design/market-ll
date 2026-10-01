@@ -2,6 +2,15 @@
 
 En yeni giriş en üstte. Biçim: tarih — ajan — başlık, ardından **Yapılan**, **Doğrulama**, **Sıradaki**.
 
+## 01.10.2026 — Codex — C3 tam doğrulama ve denge raporu
+
+**Yapılan:** main temiz c26372b ile alındı, git pull güncel. İlk birleşim derlemesi/test/smoke geçti; hiçbir dosyada derleme/test düzeltmesi gerekmedi. MarketAutoPlayC/AutoPlay raporuna defter farkı (imzalı/mutlak), dönem içi kâr/kasa, hedef/kutlama/ritim ve zincir kapanma nedenleri; C3Metrics testi ve 600 günlük tarzların defter sıfır denetimi eklendi. Test.ps1 alt sınır 126. MarketMenuCapture: Rekorlar, dört mali dönem ve sayfa sonuna kaydırma. Denge sabitleri/menü kodu değiştirilmedi. Commit/push: 583172d ilk doğrulama, f7f83b4 ölçümler, 04fc50b uzun raporlar, ad5efee görüntü ve ziyaret.
+
+**Doğrulama:** İlk TEST 125/125; son DERLE GEÇTİ, TEST 126/126 (125 temiz + 1 motor HTTP uyarısı; başarısız/çalışmamış 0), Smoke GEÇTİ. AutoPlay.Short 0,69 sn; C3Metrics 0,040 sn, LateCarefulGrowth 2,66 sn. Uzun commandletler çıkış 0: 30 yıl × 3 × 1 (44,5 sn), 10 yıl × 3 × 3 (43,9 sn), 12 kampanya / 65.751 gün / 0 stok-satış hatası / 0 defter farkı. Dengeli 10/20/30 ulusal 32/32/33, dünya 20/20/20. İlk kasa eksisi temkinli 850 / dengeli 141 / atak 93. gün; büyüme 2/3/4 mağazada duruyor. Finans rakamları kesiliyor, üst zaman hapı harita sekmelerini kapatıyor, 720p şube müdürü açıklaması sığmıyor. 88/88 PNG iki tema/iki boyutta, tümü gözle incelendi; kampanya değişmedi, örnek ağ yok. BranchVisitReview üç PNG ve kampanya/plan/saat/oyuncu/disk kaydı koruması GEÇTİ.
+
+**Sıradaki:** C3_30_yil_rapor.md'deki beş denge önerisi ve A.md C3 menü istekleri C'de. İlk büyüme/toparlanma düzelmeden üst reyon/tedarik ve dünya ligi denge ayarları doğrulanmış sayılmaz. MarketBrands.cpp:67,75,334,365 kapasiteyle boş raflara da ödeme yapıyor; istismar/mantık hatası adayı olarak yazıldı, değiştirilmedi. Bekleyen M28_M29_sirket_finansi.patch oturum sırasında başka ajan tarafından geldi; uygulanmadı/commitlere alınmadı.
+
+
 
 ## 01.10.2026 — Claude Cowork / Akış C — C3 bağlama
 
