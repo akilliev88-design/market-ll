@@ -219,3 +219,10 @@ Bunlar **kontrollü olarak denenecek ilk adaylar**, doğrulanmış denge ayarı 
 - İlk DERLE: başarılı (62,12 sn); TEST: 135/135; Smoke: PASSED, çıkış 0. Claude dosyalarında derleme/test düzeltmesi: 0.
 - Sıradaki: yeni finans komutları, ağın aylık gider yedeği ve iki zararlı ayda kapatma; şube ilk 180 gün defter dökümü; uzun koşular ve menü incelemesi.
 
+
+### C4 bot ve ölçüm altyapısı
+- Yeni MarketAutoPlayFinance: normal Director komutlarından şirket kredisi, limit/otomatik kullanım/geri ödeme, yapılandırma, finansmanlı alım/teklif, bağlı şirket çevirme/satışı. Temkinli şirket borcu almaz; dengeli yılda, atak altı ayda teklif değerlendirir; aylık karar bir kez verilir. Gizli teklif kabul çekilişi okunmaz.
+- Açılıştan sonra mevcut ağ + yeni şubenin bir aylık sabit gideri kalır. Yatırım kredisi bir sonraki açılıştan sonra üç aylık gider kalacak tutarla değerlendirilir. 90 günden eski, iki ardışık aylık incelemede zarar eden şube normal CloseBranch ile kapanır.
+- sube180.csv gerçek defterden ciro/brüt/kira/ücret/SGK/işletme/lojistik/fire/net; banka.csv yıllık not, şirket borcu/FAVÖK, faiz/limit/bağlı şirket; c4.csv kurtarma, kapanma, teklif, finansman, dönüşüm ve çıkış sayaçları. Aynı gün iki kez sayılmaz; yatırım gideri faaliyet kârı değildir.
+- Üç yeni test: NetworkReserve, TwoLosingMonths, First180Books. DERLE geçti, TEST 138/138 (137 temiz + 1 motor ağ uyarısı), Smoke PASSED. Test.ps1 alt sınırı 138. C kaynaklarında düzeltme 0. Uzun koşular ve PNG incelemesi sürüyor.
+

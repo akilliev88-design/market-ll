@@ -2,6 +2,7 @@
 #include "CoreMinimal.h"
 #include "MarketEconomy.h"
 #include "MarketAutoPlayC.h"
+#include "MarketAutoPlayFinance.h"
 
 namespace MarketAutoPlay
 {
@@ -43,6 +44,7 @@ namespace MarketAutoPlay
         FString Profile;
         int32 Seed = 0;
         MarketAutoPlayC::FStats C;
+        MarketAutoPlayFinance::FStats Finance;
         TArray<FRow> Daily;
         TArray<FRow> Weekly;
         int32 NegativeDays = 0, TroubleDays = 0, AuditFailures = 0;

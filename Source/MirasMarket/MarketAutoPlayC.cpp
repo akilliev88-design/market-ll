@@ -114,16 +114,6 @@ namespace MarketAutoPlayC
                 { ++Opened; if(MarketDepartments::Stance(State,D)!=Policy.Stance)Send(State,Products,TEXT("SetDeptStance"),Candidate.Dept*10+Policy.Stance,Stats); }
             }
         }
-        if(Policy.bBuyChains)
-        {
-            for(int32 Index=0;Index<State.Rivals.Chains.Num();++Index)
-            {
-                if(!State.Rivals.Chains[Index].bForSale || State.Rivals.Chains[Index].bGone)continue;
-                FString Reason; const int64 Price=MarketChains::Price(State,Index);
-                if(State.Cash>=Price*Policy.BuyBuffer+Reserve && MarketChains::CanBuy(State,Index,Reason))
-                { const FString Id=State.Rivals.Chains[Index].Id; if(Send(State,Products,TEXT("BuyChain"),Index,Stats)){++Stats.Purchases;Stats.Purchased.Add(Id);} break; }
-            }
-        }
     }
     bool NewKey(TSet<FString>& Seen,const FString& Value) { if(Seen.Contains(Value))return false;Seen.Add(Value);return true; }
     void Quiet(bool Interesting,int32& Days,int32& Periods) { Days=Interesting?0:Days+1;if(Days==31)++Periods; }
