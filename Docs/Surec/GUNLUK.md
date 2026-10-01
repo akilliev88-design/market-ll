@@ -1,3 +1,10 @@
+## 01.10.2026 — Codex — C6 ilk birleşim doğrulaması
+
+**Yapılan:** C5 caf32d2 main'e birleşti/push; Claude M33–M35 37eae48 teslimi alındı. MarketRetail.h/.cpp kullanıcı talimatıyla kaldırıldı, eski bekleyen finans yamaları korunup dışarıda bırakıldı. MarketAutoPlayFinance.cpp:26 kaldırılan AdsMonthly/Ads yerine yeni reklam aylık giderleri/müdür; MarketAutoPlayOnline.cpp:74 Ads yerine Search LevelOf. Test.ps1 alt sınır 145 (C5 iki testi dahil). C kaynak mantığı/sabitleri değişmedi.
+
+**Doğrulama:** DERLE geçti (13,59 sn), TEST 145/145 temiz, Smoke PASSED, Ledger.CashAudit geçti. C kaynak düzeltmesi 0; iki A API uyarlaması. İlk test açılışı Zen hizmetini bekledi, sonra tamamlandı.
+
+**Sıradaki:** akis-a'da reklam/komuta kartları, uzun üç tarz koşuları ve Almanya denemesi, C6 menü görüntüleri. C6 bitmedi; final A.md. Ana klasör diğer akışa bırakılıyor.
 ## 01.10.2026 — Claude (Cowork) — M33 komuta zinciri, M34 reklam, M35 Türkiye kalıntıları
 
 **Yapılan:** Mustafa'nın istekleri: kritik kararlar hiyerarşiden geçip onaya gelsin, gündelik işler (fiyat, stok eritme) aşağıda kalsın; reklam çeşitleri (TV, radyo, açık hava, broşür, sosyal medya, arama) ve büyüyünce reklam müdürü; eski oyunun Türkiye kalıntıları (sokak rakipleri, iklim, kasap sezonu, mali müşavir adı, `MarketRetail`). Yeni testler: `Advertising.ChannelsAndManager`, `Command.ClearanceAndProposals`, `Competitors.StreetFromProvinceChains`. Test.ps1 alt sınır 143.
@@ -1444,3 +1451,4 @@ Ayrıntı ve kaldığım yer: DURUM.md devam notunun en üstü. Menü denetimi y
 
 - Unreal 5.8.3 C++ prototip, 4 otomasyon testi, smoke test, görsel kontrol. Ayrıntı: `Docs/DOGRULAMA.md`.
 - `Docs/Planlama/` v0.2 tasarım paketi (kod değişmedi).
+

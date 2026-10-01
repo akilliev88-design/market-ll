@@ -10,6 +10,7 @@
 #include "MarketStaff.h"
 #include "MarketDepots.h"
 #include "MarketOnline.h"
+#include "MarketAdvertising.h"
 
 namespace MarketAutoPlayFinance
 {
@@ -22,7 +23,10 @@ namespace MarketAutoPlayFinance
         Total+=30*MarketPrices::Scaled(State.Company.Trucks*6000,State.Day);
         int64 OnlineMonthly=State.Online.bWeb?MarketPrices::Scaled(MarketOnline::WebMonthly,State.Day):0;
         if(State.Online.bApp)OnlineMonthly+=FMath::RoundToInt64(State.Online.AppCost*MarketOnline::AppUpkeepMonthly);
-        if(State.Online.bWeb || State.Online.bPlatform)OnlineMonthly+=MarketPrices::Scaled(MarketOnline::AdsMonthly[FMath::Min<int32>(State.Online.Ads,3)],State.Day);
+        for(const FString& Country:MarketAdvertising::Countries(State))
+            for(int32 Channel=0;Channel<MarketAdvertising::ChannelCount;++Channel)
+                OnlineMonthly+=MarketAdvertising::MonthCost(State,Country,static_cast<MarketAdvertising::EChannel>(Channel),MarketAdvertising::LevelOf(State,Country,static_cast<MarketAdvertising::EChannel>(Channel)));
+        if(!State.Advertising.ManagerName.IsEmpty())OnlineMonthly+=30*MarketStaff::EmployerCost(State.Advertising.ManagerWage);
         if(!State.Online.ManagerName.IsEmpty())OnlineMonthly+=30*MarketStaff::EmployerCost(State.Online.ManagerWage);
         for(const auto& Area:State.Online.Areas)if(Area.DarkStoreDay>0)
         {const auto* City=MarketCountry::FindCity(Area.Country,Area.Province);OnlineMonthly+=FMath::RoundToInt64(MarketPrices::Scaled(MarketOnline::DarkStoreMonthly,State.Day)*(City?FMath::Clamp(City->Rent,.4f,2.5f):1.f));}

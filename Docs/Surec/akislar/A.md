@@ -318,3 +318,11 @@ Görüntü kökü `Saved/Screenshots/Menu/`: **S**=`20261001-200405_start` (ger�
 - Son kaynakta DERLE başarılı; TEST **142/142** (141 temiz, bir motor HTTP uyarısı; başarısız/çalışmamış 0), Smoke **PASSED**. Claude kaynağında derleme düzeltmesi **1**, test düzeltmesi **0**; oyun sabitleri değiştirilmedi.
 - Üç çekim de **PASSED: 104 PNG, campaign unchanged**: toplam **312 PNG**, boyut hatası **0**. Dört varyantı birlikte gösteren **78 temas görüntüsünün tamamı gözle incelendi**. Başlangıç yalnız ödeme kartı; sonraki dönemler gerçek dolu kampanya. İstatistik kaydırma sınırı yukarıda açıklandı.
 - [Üç dönem karşılaştırma galerisi](../../../Saved/Screenshots/Menu/C5_20261001/index.html), [denge raporu](../../../Saved/AutoPlay/C5_20261001/rapor.md) ve [internetsiz fark CSV](../../../Saved/AutoPlay/C5_20261001/internetsiz_fark.csv). Ham CSV/PNG dosyaları Saved altında yerel çıktıdır, git'e eklenmez; takip edilen teslim ve C'nin uygulayacağı liste bu A.md'dir.
+
+## C6 — ilk birleşim ve doğrulama (01.10.2026)
+- C5 caf32d2 main'e birleştirildi/push edildi. Claude M33–M35 teslimi 37eae48; kullanılmayan MarketRetail.h/.cpp kullanıcı talimatıyla silindi. Bekleyen eski finans yamaları alınmadı.
+- Birleşim derleme düzeltmeleri (A botunun kaldırılan M32 reklam alanları): MarketAutoPlayFinance.cpp:26 eski AdsMonthly/Online.Ads yerine MarketAdvertising aylık kanal gideri ve müdür ücreti; MarketAutoPlayOnline.cpp:74 eski Online.Ads yerine Search LevelOf. C oyun mantığı/sabitleri değişmedi. Test.ps1:10 C5 iki testi dahil alt sınır 145.
+- İlk DERLE bu iki eski alan nedeniyle başarısız; düzeltme sonrası DERLE/TEST/Smoke sürüyor. C6 bitmiş değildir.
+
+- İlk birleşim son doğrulama: DERLE geçti (13,59 sn), TEST **145/145 temiz**, Smoke **PASSED**, Ledger.CashAudit geçti. C kaynak düzeltmesi 0, A'nın eski reklam bağlantısı 2 uyarlama. Bundan sonra akis-a worktree; C6 reklam/komuta botu ve koşular sürüyor.
+

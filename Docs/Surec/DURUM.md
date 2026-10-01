@@ -4,6 +4,8 @@ Son güncelleme: 01.10.2026 — Codex, C4 finans doğrulaması
 
 ## Kısaca
 
+**C6 ilk birleşim (01.10.2026):** C5 akis-a main'e alındı; M33–M35 teslimi 37eae48. Kullanılmayan MarketRetail kaldırıldı. DERLE + TEST **145/145 temiz** + Smoke geçti; defter denetimi 0. C kaynak düzeltmesi 0, C5 botunda kaldırılan reklam alanlarına iki API uyarlaması. Codex C6 bot/uzun koşu/Almanya ve menü incelemesini akis-a ayrı klasörde sürdürür; final notu A.md. C6 henüz tamamlanmadı.
+
 **C5 M32 ilk doğrulama:** DERLE + TEST 140/140 + Smoke geçti; MarketOnline.cpp:573 tek namespace düzeltmesi, mantık değişmedi. Codex bundan sonra akis-a ayrı klasörde internet botu, uzun koşular ve üç dönem menü listesini yapacak; ana klasör Claude'a bırakıldı. Final devam notu akis-a Docs/Surec/akislar/A.md.
 
 **01.10.2026 — C4 finans doğrulaması (Codex):** Claude M28–M31 teslimi main'e alındı; DERLE + TEST **138/138** (137 temiz + bir motor HTTP uyarısı) + Smoke geçti. Claude derleme/test düzeltmesi **0**. Yeni finans botu/ağ yedeği/iki zararlı ayda kapatma/ilk 180 gün dökümü tamamlandı. Son 12 kampanya / 65.751 gün: stok/satış ve defter farkı **0**. Dengeli 10/20/30 ulusal **35/33/31**, dünya **25/32/32**; 30 yıl kurtarma **150/165/5**. Tam 180 günlük 22 mahalle şubesinin ortalama neti **7.718,32 TL**. Atak iki tohumda 146/159 mağaza; diğer yedi 10 yıllık koşu tek mağaza. Denge hedefi karşılanmadı. 92 menü PNG incelendi, kampanya değişmedi; üç ana C isteği harita alt menü çakışması, mali tutar kesilmesi, uzun kredi listesi. Rapor **Docs/Surec/akislar/C4_finans_rapor.md**; iki ham rapor ve 16 CSV. Sırada C/Mustafa'nın beş denge önerisi, gerçek marka raf doluluğu, kredi/kurtarma borcu kapsamı, M27 sürüm artışı ve menü isteklerini değerlendirmesi; kaynak sabitleri değiştirilmedi.
@@ -258,3 +260,4 @@ G-059 doğrulandı: M ile tıklanabilir yönetim menüsü (oyun durur); sipariş
 1. Mustafa: M ile menüyü aç, günü kapat, raporu gör. Sonra G-055 oyun testi: borç, rakip haberleri ve hafta raporu dengesi.
 2. Paralel (Mustafa): İlk Hafta için 20–40 ürünü gerçek ambalajıyla hazırla; 97 ürünün hepsi gerekmiyor.
 3. Dondurulanlar (İlk Hafta bitince): G-021 servis reyonları, G-042 MetaHuman çeşitliliği, FAB paketleri, G-017 ambalaj yönü denemeleri.
+
