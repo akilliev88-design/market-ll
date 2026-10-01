@@ -213,3 +213,9 @@ Bunlar **kontrollü olarak denenecek ilk adaylar**, doğrulanmış denge ayarı 
 - Ek: harita renk anahtarı hâlâ yok; GoalsCard kutlama yıldızı (MarketMenuWidget.cpp:1422, U+2605) fontta bulunmuyor ve kutu görünüyor (log doğruluyor). Kutlama metinleri 1. yıldan kalmışken ekranda 4. yıl gösteriliyor; ya tarih gösterin ya yakın günlerle sınırlayın. Yönetimdeki 'beceri 87/30', mevcut/gereken beceridir; tavan ihlali diye yorumlanmadı.
 - BranchVisitReview çıkış 0: Saved/Screenshots/BranchVisit/20261001-102602, üç PNG gözle incelendi. C3 VisitBranch işaretinden **sonraki** kampanya, plan, saat, oyuncu konum/bakış ve disk kayıtları birebir korundu. Test modu açılmadı. İnsanlar/tabelalar önceki prototip düzeyinde; yeni ekonomi hatası görülmedi. PNG'ler 888×500; ziyaret kontrolünde çözünürlük şartı yok, menüde iki istenen çözünürlük doğrulandı.
 - Oturum sırasında Docs/Surec/bekleyen/M28_M29_sirket_finansi.patch geldi (10:19). Başkasının bekleyen teslimi; okunmadı/uygulanmadı, bu doğrulama veya commitlere dahil edilmedi.
+## C4 doğrulaması — 01.10.2026
+
+- Claude teslimi: 9d22338, main'e gönderildi. Eski bekleyen yamalar uygulanmadı.
+- İlk DERLE: başarılı (62,12 sn); TEST: 135/135; Smoke: PASSED, çıkış 0. Claude dosyalarında derleme/test düzeltmesi: 0.
+- Sıradaki: yeni finans komutları, ağın aylık gider yedeği ve iki zararlı ayda kapatma; şube ilk 180 gün defter dökümü; uzun koşular ve menü incelemesi.
+
