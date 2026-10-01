@@ -6,6 +6,7 @@
 #include "MarketAutoPlayOnline.h"
 #include "MarketAutoPlayCommand.h"
 #include "MarketAutoPlayRescue.h"
+#include "MarketAutoPlayDiagnosis.h"
 
 namespace MarketAutoPlay
 {
@@ -31,6 +32,7 @@ namespace MarketAutoPlay
         int32 Seeds = 3;
         int32 FirstSeed = 21;
         bool bOfflineCareful = false; // paired counterfactual: only Careful, never opens online channels
+        bool bNoGrowth = false; // no voluntary expansion or borrowing; automatic bank rescue remains observable
         int32 StyleIndex = -1; // -1 all, 0 careful, 1 balanced, 2 bold; review capture can select one
         bool bKeepFinalStates = false; // read-only review snapshots; player saves are never written
         FString Country = TEXT("tr");
@@ -53,6 +55,8 @@ namespace MarketAutoPlay
         MarketAutoPlayOnline::FStats Online;
         MarketAutoPlayCommand::FStats CommandStats;
         MarketAutoPlayRescue::FStats RescueStats;
+        MarketAutoPlayDiagnosis::FStats Diagnosis;
+        bool bNoGrowth = false;
         TArray<FRow> Daily;
         TArray<FRow> Weekly;
         int32 NegativeDays = 0, TroubleDays = 0, AuditFailures = 0;

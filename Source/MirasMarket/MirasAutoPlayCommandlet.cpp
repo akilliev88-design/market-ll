@@ -19,6 +19,7 @@ int32 UMirasAutoPlayCommandlet::Main(const FString& Params)
     FParse::Value(*Params, TEXT("Seed="), Options.FirstSeed);
     FParse::Value(*Params, TEXT("Country="), Options.Country);
     FParse::Value(*Params, TEXT("Province="), Options.Province);
+    FParse::Value(*Params, TEXT("Style="), Options.StyleIndex);
     if (Years < 1 || Years > 30) { UE_LOG(LogTemp, Error, TEXT("Years must be 1..30")); return 1; }
     Options.Days = MarketCalendar::GameDayOf(MarketCalendar::StartYear + Years, MarketCalendar::StartMonth, MarketCalendar::StartDayOfMonth) - 1;
     FParse::Value(*Params, TEXT("Days="), Options.Days);
