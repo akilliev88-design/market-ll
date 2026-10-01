@@ -15,6 +15,7 @@
 #include "Widgets/Input/SButton.h"
 #include "Widgets/Text/STextBlock.h"
 #include "Widgets/Layout/SBorder.h"
+#include "Widgets/Layout/SScrollBox.h"
 #include "Widgets/SOverlay.h"
 #include "Styling/CoreStyle.h"
 #include "Framework/Application/SlateApplication.h"
@@ -26,16 +27,18 @@
 #include "UnrealClient.h"
 namespace MarketMenuCapture
 {
-    struct FTarget { int32 Page; const TCHAR* Id; const TCHAR* Tab; };
+    struct FTarget { int32 Page; const TCHAR* Id; const TCHAR* Tab; bool bBottom=false; };
     const TArray<FTarget>& Targets()
     {
         static const TArray<FTarget> List = {
             {0,TEXT("map_shops"),TEXT("")}, {0,TEXT("map_rivals"),TEXT("Rakipler")}, {0,TEXT("map_opportunities"),TEXT("F\u0131rsatlar")},
             {1,TEXT("orders"),TEXT("")}, {2,TEXT("products"),TEXT("")}, {3,TEXT("promotions"),TEXT("")},
             {4,TEXT("rivals_local"),TEXT("")}, {4,TEXT("rivals_national"),TEXT("Ulusal")}, {4,TEXT("rivals_world"),TEXT("Uluslararas\u0131")},
-            {5,TEXT("staff"),TEXT("")}, {6,TEXT("finance"),TEXT("")}, {7,TEXT("channels"),TEXT("")},
+            {5,TEXT("staff"),TEXT("")}, {6,TEXT("finance"),TEXT("")},
+            {6,TEXT("finance_day"),TEXT("D\u00fcn"),true}, {6,TEXT("finance_week"),TEXT("Bu hafta"),true},
+            {6,TEXT("finance_month"),TEXT("Bu ay"),true}, {6,TEXT("finance_year"),TEXT("Bu y\u0131l"),true}, {7,TEXT("channels"),TEXT("")},
             {8,TEXT("shops"),TEXT("")}, {8,TEXT("management"),TEXT("Y\u00f6netim")}, {8,TEXT("company"),TEXT("\u015eirket")},
-            {9,TEXT("reports_day"),TEXT("")}, {9,TEXT("reports_week"),TEXT("Hafta")}
+            {9,TEXT("reports_day"),TEXT("")}, {9,TEXT("reports_week"),TEXT("Hafta")}, {9,TEXT("reports_records"),TEXT("Rekorlar")}
         }; return List;
     }
     FString TextOf(const TSharedRef<SWidget>& Widget)
@@ -53,6 +56,13 @@ namespace MarketMenuCapture
         FChildren* Children = Widget->GetChildren();
         for(int32 Index=0;Index<Children->Num();++Index) if(Click(Children->GetChildAt(Index),Text))return true;
         return false;
+    }
+    void ScrollBottom(const TSharedRef<SWidget>& Widget)
+    {
+        if(!Widget->GetVisibility().IsVisible())return;
+        if(Widget->GetType()==TEXT("SScrollBox"))StaticCastSharedRef<SScrollBox>(Widget)->ScrollToEnd();
+        FChildren* Children=Widget->GetChildren();
+        for(int32 Index=0;Index<Children->Num();++Index)ScrollBottom(Children->GetChildAt(Index));
     }
     struct FCapture
     {
@@ -164,6 +174,7 @@ bool AMarketGameMode::TickMenuCapture()
         if(GEngine->GameViewport->Viewport->GetSizeXY()!=FIntPoint(Width,Height)) { if(Now-R.At>15)return Fail(TEXT("viewport resolution"));return false; }
         if(Target.Tab[0] && !MarketMenuCapture::Click(R.Widget.ToSharedRef(),Target.Tab))return Fail(TEXT("tab button not found"));
         if(MenuPage!=Target.Page)return Fail(TEXT("tab changed wrong page"));
+        if(Target.bBottom)MarketMenuCapture::ScrollBottom(R.Widget.ToSharedRef());
         R.Step=3; R.At=Now; return false;
     }
     if(R.Step==3)
