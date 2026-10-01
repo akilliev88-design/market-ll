@@ -1,6 +1,6 @@
 # Akış A — Codex
 
-Son teslim (01.10.2026): A1/A3/A4 hazır ve push edilmiş. A5 gerçek üç yıllık bot kampanyasıyla 68/68 yeniden doğrulandı (11 şube, 3 müdür, 1 depo; örnek ağ yok). A6 C teslimi, M27 ve bot komutları push edildi; ilk uzun koşunun gösterdiği bot yer seçimi/geç büyüme iyileştirmesi doğrulanıyor, son uzun koşu henüz alınmadı. Menüye dokunulmadı.
+Son teslim (01.10.2026): A1/A3/A4/A5/A6 hazır, DERLE + TEST 105/105 + Smoke geçti. A5 gerçek ağla 68/68 (örnek ağ yok). C teslimi, M27 ve bot push edildi; iki son uzun koşu 12 kampanya/65.751 gün/0 denetim hatası. Denge hedefi karşılanmadı: son dengeli 10/20/30. yılda ulusal 74/63/60, dünya 20/20/20. Raporlar ve C ayar önerileri aşağıda; kod sabitleri değiştirilmedi.
 
 ## Yapılanlar
 
@@ -159,3 +159,34 @@ C'ye istek: önceki beş menü bulgusu gerçek kampanyada da var: Fiyat kartınd
 İlk koşuda temkinli 30 yıl tek dükkânda kaldığından “az ve geç” tarzı gerçek büyümeyle sınanamadı. İlk şube fiyat denemesi temkinlide 365. günden sonra %88; dengelide 90. günden sonra %88, atakta 60. günden sonra %82 olarak güncellendi. Temkinlinin 30 günlük karar aralığı, 2,5× açılış yedeği ve borçsuz politikası korunur. `AutoPlay.LateCarefulGrowth` gerçek 600 günlük kampanyada temkinlinin ilk yıldan sonra ve dengeliden geç şube açmasını, para/stok denetimini kontrol eder. İlk tabloyun %95 temkinli fiyatı bu son kararla değiştirilmiştir. C sabitleri yine değişmedi. DERLE/TEST/Smoke ve uzun koşular yeniden çalıştırılıyor.
 
 Bot yer/geç büyüme düzeltmesi doğrulandı: DERLE başarılı; TEST **105/105** (104 temiz + 1 motor HTTP zaman aşımı uyarısıyla başarılı), başarısız/çalışmamış/devam eden 0; Smoke başarılı (disk kayıt/yükleme dahil), işlem çıkışları 0. 600 günlük gerçek strateji testi 4,35 sn: temkinli 8, dengeli 12, atak 15 mağaza; hepsinde denetim hatası 0. Atak kasası -706.405,27 TL: yeni hiper kararının ciddi ekonomik riski uzun raporda incelenecek. Son uzun koşular A6_final_30Years.log / A6_final_10Years.log ile başlatıldı.
+
+## A6 — Son doğrulama ve teslim (01.10.2026 09:07)
+
+- C kaynaklarında derleme/test düzeltmesi **0**; main'e geri uygulanacak düzeltme yok. Main teslimi 545f5dd, akis-a birleşmesi 37d6669. M27 b84a5ea, C bot kararları 23aa03f, yer/geç büyüme d190bfe; hepsi push edildi. Sürüm 2, artmadı.
+- Son kod DERLE başarılı; TEST **105/105** (104 temiz + 1 motor HTTP zaman aşımı uyarısıyla başarılı), başarısız/çalışmamış/devam eden 0; Smoke başarılı, işlem çıkışları 0. 600 günlük gerçek tarz testi 4,35 sn; kısa bot 60 sn sınırının çok altında. Son koddan sonra yalnız rapor/belge eklendi.
+- **Son 30 yıl × 3 tarz × 1 tohum:** Saved/AutoPlay/20261001-090217, 523,7 sn. **Son 10 yıl × 3 tarz × 3 tohum:** Saved/AutoPlay/20261001-090707, 279,6 sn. İki commandlet çıkışı 0. **12 kampanya / 65.751 gün / 0 para-stok-sayı denetim hatası.** İlk, yer seçiminde takılan koşu son sonuçlara karıştırılmadı.
+- Committe taşınan raporlar: [30 yıl ve değerlendirme](A6_30_yil_rapor.md), [10 yıl / üç tohum](A6_10_yil_rapor.md), yıllık sıralar `A6_lig_30_yil.csv` / `A6_lig_10_yil.csv`, şube başına reyon kontrolü `A6_reyon_ozet.csv`. Tam günlük/haftalık/reyon/tedarik CSV'leri Saved/AutoPlay'daki iki klasörde.
+- Son dengeli, tohum 21: ulusal **74 / 63 / 60**, dünya **20 / 20 / 20** (10/20/30. yıl). İlk kasa açığı 2.640. gün; 30 yılda 151 mağaza ve negatif kasa. Üç tohumlu 10 yılda da dengeli/atak 6/6 nakit açığı; temkinli 3/3 artıda ve ulusal 8. sırada. Temkinli 30 yılda 198 mağazaya, 6.371. günde nakit açığına geldi. **Denge hedefi karşılanmadı.** B/B7/C3 henüz birleşmedi.
+- 30 günlük toplam kâr uçları (aynı mağaza türündeki tüm şubeler, nominal TL, açılış dahil): en büyük zarar hiper **elektronik −1.092.495,88**, **evcil −934.376,36**, **manav −748.669,14**; en yüksek kâr hiper **kasap 5.899.083,07**, **manav 4.117.632,66**, **giyim 1.987.648,33**. Toplamlar şube sayısı/tarih/enflasyondan etkilenir; tek şube ya da kampanya toplamı değildir. C'nin Last30Profit'i 29/30 sönümlü yaklaşık toplamdır. Yapısal olarak balık süper 3/3 ve hiper 15/15, hiper evcil 23/23, hiper elektronik 9/9 aylık örnekte zarar; süper evcil 695 örnekte zarar yok, örnek kâr/ciro %33,35.
+- Tedarik yükseliş/düşüş: temkinli **12/12**, dengeli **12/12**, atak **5/5**; tarih listeleri raporlarda. 30 yıl marka gelirleri **23.291.816,31 / 2.901.902,19 / 2.210.812,64 TL**; küsen marka **11 / 11 / 10**. Son koşuda zincir alımı 0 (satış geldiğinde kasa yetmedi); önceki hatalı yer seçimi pilotundaki 6'şar normal alım son koşu diye sunulmadı.
+- Rakip zincir tepe sayısı **105 / 92 / 49**, ayrı satılık **35 / 29 / 5**, piyasadan çekilme **35 / 27 / 5**, savaş **457 / 468 / 48**; ezeli rakip temkinli/dengelide BİN/Haluk Sezer, atakta yok. **Tam iflas sayısı ölçülemiyor:** C kapanma nedenini saklamıyor ve görünür haber tavanı var; haberden 0 alt sınır, “tüm kapanmalar iflas” denmedi. C'ye istek: kalıcı kapanma nedeni/sayaç.
+- Sıkıcı dönem proxy 0; bu “oyuncu sıkılmaz” kanıtı değil, olaylar 31 gün sessizlik bırakmıyor. 30 yıl felaket kümesi mahalle / C dahil **56/141**, **56/149**, **56/64**. Aynı kampanyanın iki gözlemi; farklı illerdeki eşzamanlı savaşlar şirket düzeyinde sayılır, B dönemleri henüz dahil değildir.
+- Bot sınırları: zararlı reyonu kapatır ama zarar eden şubeyi otomatik tasfiye etmez; yedek kasa aile dükkânı giderlerinden, tüm ağ giderinden hesaplanmıyor; marka için raf karışımını değiştirmez. Nakitsiz şubelerin yıllarca gideri dolayısıyla sonuç iyi bir insan oyuncunun zorunlu kaderi değildir. C3'ten sonra ağ yedeği/şube tasfiyesi ve B7 etkileriyle yeni denge turu gerekir. A6 kodu/ölçüm işi bitti; oyun dengesi bitmiş diye gösterilmedi.
+
+## C'ye ayar önerileri (A6, uygulanmadı)
+
+Bunlar **kontrollü olarak denenecek ilk adaylar**, doğrulanmış denge ayarı değil. C dosyalarındaki hiçbir sabit A tarafından değiştirilmedi. Tam gerekçe ve ölçüler 30 yıllık raporun başında.
+
+1. **Hiper sabit yük:** Workers **20 → 14**, Running **5 → 3**. Dengeli üç tohumda da ilk 10 yılda açık, atak tohum 21 ilk hiper sonrasında 435. günde açık. Önce şube gider/kâr dökümüyle dene; bölüm personeli ek ücretini ve 30 günlük alışmayı birlikte ele al.
+2. **Sürekli zarar eden reyonlar:** balık Ratio **0,04 → 0,08**, Margin **0,28 → 0,34**; elektronik Ratio **0,14 → 0,24**, Margin **0,11 → 0,20**; hiper evcil `Staff` **1 → 0** (kat görevlisiyle paylaşım). İlgili bütün aylık örnekler zarar; süper evcil personel paylaşımıyla %33,35 kâr/ciro. Her reyon ayrı denensin. Manav/kasap marjı artırılmasın; normal örnekleri zaten olumlu.
+3. **Rekabet/lig ölçeği birlikte:** nakit düzeldikten sonra `LeagueCompression` **0,04 → 0,004** ve ulusal roster başlangıç mağazaları **×0,1** (BİN 3.500 → 350, A110 1.900 → 190 vb.; Config ve tablo aynı kaynak). Compression sadece devleri küçültüyor, ulusal zincirlerin dünya satırını küçültmüyor. Dengeli son ortak ciro 0; bu koşudan kesin doğru katsayı çıkarılamaz. Temkinli 10. yıl 68,8 milyon / lider 3,36 milyar; hedef zamanlar için önerilen ilk deneme aralığı, kazanma garantisi değil.
+4. **Savaş dinlenmesi:** WarDays **45 → 21**, WarPressure **1,30 → 1,10**, aynı ilde yeni savaş öncesi **60 gün** dinlenme. Dengelide 468 savaş ve kümeler 56 → 149. B akış bütçesine öncelik/il üzerinden bağla; bütün illeri ayrı acil seçim yapma.
+5. **Marka teklif tavanı:** MaxOpenOffers **3 → 2**. Dengeli 256 kabul / 763 ret (yaklaşık %75 ret); bot raf değiştirmediği için yüksek ret tek başına teklif kuralının hatası değil, ama düşük değerli eşzamanlı kararlar azaltılabilir. Aylık ödeme takvimi sabit kalsın. Tedarik asgarileri şimdilik **15.000 / 60.000 / 200.000 başlangıç TL**: çıkışlar gerçekleşti, nakit çökünce alım 0'a indi; asgariyi indirmek bunu çözmez.
+
+### C3 bağlantıları / açık sınırlar
+
+- B7 defter/dönem etkilerini C3'te bağla; bu rapor B/B7 olmadan ölçüldü.
+- Kalıcı iflas/kapanma nedeni ve olay sayaçları; şu an tam toplam verilemiyor.
+- M27 yalnız tek sürüm artışı; slot kartında uyumsuz kayıt cümlesi. A yükleme yolu hazır, CurrentVersion = 2 kaldı.
+- A4 “Gez” → StartBranchVisit / EndBranchVisit; A3 AdvanceTime gün/hafta/ay; önceki imzalar hazır.
+- A5 gerçek üç yıllık ağ 68/68 tamamlandı; index ve beş menü isteği yukarıda. Son derlenmiş C menüsü gözle incelendi, menü kaynaklarına dokunulmadı.
