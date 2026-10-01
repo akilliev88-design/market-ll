@@ -326,3 +326,12 @@ Görüntü kökü `Saved/Screenshots/Menu/`: **S**=`20261001-200405_start` (ger�
 
 - İlk birleşim son doğrulama: DERLE geçti (13,59 sn), TEST **145/145 temiz**, Smoke **PASSED**, Ledger.CashAudit geçti. C kaynak düzeltmesi 0, A'nın eski reklam bağlantısı 2 uyarlama. Bundan sonra akis-a worktree; C6 reklam/komuta botu ve koşular sürüyor.
 
+
+### C6 A botu ve ölçümleri
+- MarketAutoPlayCommand.*: yalnız Director komutlarıyla AdLevel/AdHire/AdAuto/AdBudget. Temkinli kapalı; dengeli 10 mağazada broşür+sosyal 1, internet varsa arama 1; atak 30 mağazada TV/radyo 1+sosyal 2. 20 mağazada yedek+aylık ücret karşılanabiliyorsa reklam müdürü; karışım onda, bütçe dengeli binde20/atak binde30. Müdür devralınca manuel tarz karışımı uygulanmaz. Online botunun eski arama kararı kaldırıldı; reklam karışımını ezmez.
+- Komuta açma kartı CanOpen + C4 ağ yedeği/aylık yeni şube gideri; kapama prompttaki “3 aydan uzun” gereği LossMonths >3 ve halen zarar. Onay/ret normal Decide. C4 iki zarar ayı kapatma kuralı korundu; bu iki eşik farklıdır.
+- reklam.csv takvim yılı/ülke/kanal harcama ve tahmini ek ciro. C'nin ciro tahmini (internet satışını da içerir) beş marka kanalının akılda kalan payına dağıtılır, yuvarlama toplamı korunur; gerçek kazanç/kâr deneyi değildir. Aramanın ayrı internet ek ciro tahmini C'de yok: 0/ölçülmedi, etkisiz demek değil. Müdür gideri ayrı. İlk/son takvim yılı kısmi; lig yılının sınırıyla karıştırılmamalı.
+- komuta_olaylar.csv açma/kapama öneri ve seçimleri, gerçek yeni stok eritme ürünleri/haftalık metni, sokak adları/kapanışlar, ülke kişi/toptancı/banka/platform adları. İlk açık/kapalı durum ve semt pazarının kurulup toplanması kalıcı kapanış sayılmaz. ilk_yil_hava.csv ilk365 günün hava/sıcaklık/yasal kapanış/tatil kaydı.
+- Yeni iki test: CommandAndAdvertisingChoices (tarz/eşik/müdür/bütçe/aynı gün/yedek), AdvertisingBooksAndClearance (ay devri/katkı dağıtımı/arama kapsamı/stok indirimi/aynı gün/ilk durum-kapanış ayrımı). Son DERLE başarılı, TEST **147/147 temiz**, Smoke **PASSED**. Kısa bot da tam test kümesinde geçti. Test.ps1 alt sınırı 145; 147 yapılması C'ye istek (worktree sahiplik kuralı).
+- Kendi rapor hatası: ilk denemede pazarın haftalık kapanışı sokak kapanışı başlığındaydı; son kaynakta ayrı etiket ve ilk durum ayrımı, test eklendi. Oyun kararı değişmedi. İlk 205802/205853/210217 çıktıları son teslim değildir; son kaynakla koşular tekrar başladı.
+- Uzun koşular ve C6 PNG gözle incelemesi sürüyor; bu alt adım bot/ölçüm altyapısını doğrular, C6 son teslimi değildir.

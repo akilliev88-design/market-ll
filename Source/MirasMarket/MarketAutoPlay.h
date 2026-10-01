@@ -4,6 +4,7 @@
 #include "MarketAutoPlayC.h"
 #include "MarketAutoPlayFinance.h"
 #include "MarketAutoPlayOnline.h"
+#include "MarketAutoPlayCommand.h"
 
 namespace MarketAutoPlay
 {
@@ -49,6 +50,7 @@ namespace MarketAutoPlay
         MarketAutoPlayC::FStats C;
         MarketAutoPlayFinance::FStats Finance;
         MarketAutoPlayOnline::FStats Online;
+        MarketAutoPlayCommand::FStats CommandStats;
         TArray<FRow> Daily;
         TArray<FRow> Weekly;
         int32 NegativeDays = 0, TroubleDays = 0, AuditFailures = 0;

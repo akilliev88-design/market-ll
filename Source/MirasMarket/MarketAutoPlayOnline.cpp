@@ -70,8 +70,6 @@ namespace MarketAutoPlayOnline
                 if(MarketOnline::IsOn(State,static_cast<MarketOnline::EChannel>(Channel)) && State.Online.PrevProfit.IsValidIndex(Channel) && State.Online.PrevProfit[Channel]<0)
                     Send(State,Products,TEXT("OnlineClose"),Channel,Stats);
         if(!State.Online.bWeb && !State.Online.bPlatform)return;
-        const int32 Ads=State.Cash>Reserve*3?FMath::Clamp(Style,0,2):0;
-        if(!State.Advertising.bAuto && MarketAdvertising::LevelOf(State,State.CountryId,MarketAdvertising::EChannel::Search)!=Ads)Send(State,Products,TEXT("OnlineAds"),Ads,Stats);
         if(!State.Online.bAutoPolicy && State.Online.Fee!=1)Send(State,Products,TEXT("OnlineFee"),1,Stats);
         if(State.Online.ManagerName.IsEmpty() && MarketOnline::CanHireManager(State,Reason))
         {

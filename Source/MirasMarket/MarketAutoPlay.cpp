@@ -58,9 +58,11 @@ namespace MarketAutoPlay
             if (Choice.Id == TEXT("story.identity")) Option = static_cast<int32>(Profile.Style);
             if (Choice.Id.StartsWith(TEXT("finance."))) Option = Profile.bBorrow ? 0 : FMath::Min(1, Choice.Options.Num() - 1);
             if(Choice.Id.StartsWith(TEXT("online.")))Option=MarketAutoPlayOnline::Choice(State,Choice,static_cast<int32>(Profile.Style),Run.Online.Offline);
+            if(Choice.Id.StartsWith(TEXT("command.")))Option=MarketAutoPlayCommand::Choice(State,Products,Choice,Profile.ExpansionBuffer);
             Option = FMath::Clamp(Option, 0, FMath::Max(0, Choice.Options.Num() - 1));
             const bool Chosen=Command(State, Products, TEXT("Decide"), Option, Run);
             if(Chosen && Choice.Id.StartsWith(TEXT("online.")))MarketAutoPlayOnline::RecordChoice(State,Choice,Option,Run.Online);
+            if(Chosen && Choice.Id.StartsWith(TEXT("command.")))MarketAutoPlayCommand::RecordChoice(State,Choice,Option,Run.CommandStats);
             if (!Chosen)
             {
                 bool Resolved = false;
@@ -266,6 +268,7 @@ namespace MarketAutoPlay
     FReport Run(const FOptions& Options, const TArray<FMarketProduct>& Base, const TArray<int32>& Capacities, int32 RestoreSeed)
     {
         FReport Report; Report.Options = Options;
+        FParse::Value(FCommandLine::Get(),TEXT("MirasAutoPlayStyle="),Report.Options.StyleIndex);
         Report.Options.bOfflineCareful |= FParse::Param(FCommandLine::Get(),TEXT("MirasNoInternet"));
         const double Started = FPlatformTime::Seconds();
         if (Base.IsEmpty() || Capacities.Num() != Base.Num() || !MarketCountry::FindCity(Options.Country, Options.Province) || Options.Days < 1 || Options.Days > 10958 || Options.Seeds < 1 || Options.Seeds > 100)
@@ -273,7 +276,7 @@ namespace MarketAutoPlay
         const MarketCountry::FProfile PreviousCountry = MarketCountry::Active();
         for (const FProfile& Profile : Profiles()) for (int32 SeedIndex = 0; SeedIndex < Options.Seeds; ++SeedIndex)
         {
-            if((Report.Options.bOfflineCareful && Profile.Style!=EStyle::Careful) || (Options.StyleIndex>=0 && static_cast<int32>(Profile.Style)!=Options.StyleIndex))continue;
+            if((Report.Options.bOfflineCareful && Profile.Style!=EStyle::Careful) || (Report.Options.StyleIndex>=0 && static_cast<int32>(Profile.Style)!=Report.Options.StyleIndex))continue;
             FRun Trial; Trial.Profile = Profile.Name; Trial.Seed = Options.FirstSeed + SeedIndex;
             Trial.Online.Offline=Report.Options.bOfflineCareful;
             if(Trial.Online.Offline)Trial.Profile+=TEXT(" (internetsiz)");
@@ -306,7 +309,9 @@ namespace MarketAutoPlay
                     Payroll = State.DailyPayroll(); TaxBefore = State.Books.TotalTaxPaid;
                     Ordered = PlaceOrder(State, Products, Profile, Trial);
                     MarketAutoPlayOnline::Decide(State,Products,static_cast<int32>(Profile.Style),Trial.Online);
+                    MarketAutoPlayCommand::Decide(State,Products,static_cast<int32>(Profile.Style),Trial.CommandStats);
                     MarketAutoPlayOnline::BeginDay(State,Trial.Online);
+                    MarketAutoPlayCommand::BeginDay(State,Trial.CommandStats);
                 };
                 Hooks.AfterDay = [&](const MarketSimulation::FDay& Raw)
                 {
@@ -349,6 +354,7 @@ namespace MarketAutoPlay
                     UE_LOG(LogTemp,Display,TEXT("AutoPlay progress %s seed %d year %d: %d stores, %d branches, %d ledger entries"),*Trial.Profile,Trial.Seed,Trial.C.Years.Num(),Today.Stores,State.Branches.Num(),State.Ledger.Entries.Num());
                 MarketAutoPlayFinance::Observe(State,Trial.C.Years.Num(),Trial.Finance);
                 MarketAutoPlayOnline::Observe(State,Trial.C.Years.Num(),Raw.Shoppers,Trial.Online);
+                MarketAutoPlayCommand::Observe(State,Trial.C.Years.Num(),Trial.CommandStats);
                 if(Trial.Online.Offline && (State.Online.bWeb || State.Online.bApp || State.Online.bPlatform || State.Online.bQuick))
                 {++Trial.AuditFailures;Trial.Issues.AddUnique(TEXT("Internetsiz denemede kanal acildi."));}
                     ++DayIndex;
@@ -426,6 +432,7 @@ namespace MarketAutoPlay
             Text += MarketAutoPlayC::Report(Trial.C);
             Text += MarketAutoPlayFinance::Report(Trial.Finance);
             Text += MarketAutoPlayOnline::Report(Trial.Online);
+            Text += MarketAutoPlayCommand::Report(Trial.CommandStats);
             for (const FString& Problem : Trial.Issues) Text += TEXT("- Kontrol: ") + Problem + TEXT("\n");
         }
         Text += TEXT("\n## Denetimin kapsami\n\nSatis fisi, siparis bedeli, gun kapanisi ve mal kabul aktarimi bagimsiz hesapla kontrol edilir. Negatif stok, gecersiz sayilar ve pay sinirlari her gun denetlenir. Bagli muhasebe defterinin kasa farki hem isaretli hem mutlak toplamla C bolumunde verilir. Kasa eksisi oyun sonu degildir. Ligler yillik, subeler ilk 180 gunun gercek defter satirlariyla olculur.\n\nFiyatlar normal oyuncunun kullandigi adimlarla degisir. Kredi, sube, depo, yonetici ve kararlar normal komutlardan gecer. Aile dukkani PlayDay ile oynar; test modu, bedava mal veya para kullanilmaz. CSV tutarlari kurustur.\n");
@@ -452,6 +459,12 @@ namespace MarketAutoPlay
         };
         for (const FTranslation& Translation : Translations) Text.ReplaceInline(Translation.From, Translation.To, ESearchCase::CaseSensitive);
         Text.ReplaceInline(TEXT("\u015fube180.csv"),TEXT("sube180.csv"),ESearchCase::CaseSensitive);
+        FString AdsCsv=TEXT("tarz,tohum,takvim_yili,ulke,gun,kanal,harcama_kurus,tahmini_magaza_ek_ciro_kurus\n");
+        FString CommandsCsv=TEXT("tarz,tohum,gun,tur,id,deger\n");
+        FString WeatherCsv=TEXT("tarz,tohum,gun,hava,sicaklik_c,yasal_kapali,tatil\n");
+        for(const auto& Trial:Report.Runs)
+        {AdsCsv+=MarketAutoPlayCommand::YearsCsv(Trial.CommandStats,Trial.Profile,Trial.Seed);CommandsCsv+=MarketAutoPlayCommand::EventsCsv(Trial.CommandStats,Trial.Profile,Trial.Seed);WeatherCsv+=MarketAutoPlayCommand::WeatherCsv(Trial.CommandStats,Trial.Profile,Trial.Seed);}
+        if(!FFileHelper::SaveStringToFile(AdsCsv,*(Directory/TEXT("reklam.csv")),FFileHelper::EEncodingOptions::ForceUTF8) || !FFileHelper::SaveStringToFile(CommandsCsv,*(Directory/TEXT("komuta_olaylar.csv")),FFileHelper::EEncodingOptions::ForceUTF8) || !FFileHelper::SaveStringToFile(WeatherCsv,*(Directory/TEXT("ilk_yil_hava.csv")),FFileHelper::EEncodingOptions::ForceUTF8))return false;
         FString OnlineCsv=TEXT("tarz,tohum,yil,gun,oynanan_gun,kanal,siparis,ciro_kurus,katki_kar_kurus,siparis_basi_katki_tl,ortak_gider_kurus,toplam_net_kurus,magaza_ciro_kurus,ulke_internet_payi,karanlik_depo,salgin_gun,salgin_siparis,salgin_musteri,trafik_carpani\n");
         FString OnlineEvents=TEXT("tarz,tohum,gun,tur,id,secim,arg\n");
         for(const auto& Trial:Report.Runs){OnlineCsv+=MarketAutoPlayOnline::YearsCsv(Trial.Online,Trial.Profile,Trial.Seed);OnlineEvents+=MarketAutoPlayOnline::EventsCsv(Trial.Online,Trial.Profile,Trial.Seed);}
