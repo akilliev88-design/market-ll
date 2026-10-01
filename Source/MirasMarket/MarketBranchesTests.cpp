@@ -258,6 +258,11 @@ bool FMarketRescueOnePlanTest::RunTest(const FString& Parameters)
     FString Why;
     TestFalse(TEXT("No new branch under the plan"), MarketBranches::CanOpen(S, Products, TEXT("tr"), TEXT("kirklareli"), TEXT("mahalle"), Why));
     TestTrue(TEXT("Told what was written off"), Lines.ContainsByPredicate([](const FString& Line) { return Line.Contains(TEXT("silindi")); }));
+    // C8: a second plan inside a running one does not start two more years.
+    const int32 Until = S.RescueUntil;
+    S.Day += 100; S.Cash = -10000;
+    MarketFinance::Rescue(S, Products);
+    TestTrue(TEXT("A plan inside a plan adds a year at most"), S.RescueUntil == FMath::Max(Until, S.Day + 365));
     return true;
 }
 

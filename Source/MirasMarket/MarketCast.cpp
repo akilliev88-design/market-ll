@@ -44,8 +44,20 @@ FString MarketCast::LastName(ERole Role)
 FString MarketCast::Person(ERole Role) { return FirstName(Role) + TEXT(" ") + LastName(Role); }
 
 FString MarketCast::Salesman() { return FirstName(ERole::Salesman); }
-FString MarketCast::Wholesaler() { return LastName(ERole::Wholesaler) + TEXT(" G\u0131da Da\u011f\u0131t\u0131m"); }
-FString MarketCast::CashCarry() { return LastName(ERole::CashCarry) + TEXT(" Toptan"); }
+namespace MarketCastLocal
+{
+    // C8 (Codex C6: "Schmidt G\u0131da Da\u011f\u0131t\u0131m" in Berlin): the firm's word in the country's language.
+    const TCHAR* FirmWord(bool bCashCarry)
+    {
+        const FString& Id = MarketCountry::Active().Id;
+        if (Id == TEXT("de")) return bCashCarry ? TEXT(" Gro\u00dfmarkt") : TEXT(" Lebensmittelhandel");
+        if (Id == TEXT("gb") || Id == TEXT("us")) return bCashCarry ? TEXT(" Cash & Carry") : TEXT(" Food Distribution");
+        return bCashCarry ? TEXT(" Toptan") : TEXT(" G\u0131da Da\u011f\u0131t\u0131m");
+    }
+}
+
+FString MarketCast::Wholesaler() { return LastName(ERole::Wholesaler) + MarketCastLocal::FirmWord(false); }
+FString MarketCast::CashCarry() { return LastName(ERole::CashCarry) + MarketCastLocal::FirmWord(true); }
 FString MarketCast::CashCarryOwner() { return FirstName(ERole::CashCarryOwner) + TEXT(" ") + LastName(ERole::CashCarry); }
 FString MarketCast::RivalShop() { return LastName(ERole::RivalShop) + TEXT(" Market"); }
 FString MarketCast::RivalOwner() { return FirstName(ERole::RivalOwner) + TEXT(" ") + LastName(ERole::RivalShop); }

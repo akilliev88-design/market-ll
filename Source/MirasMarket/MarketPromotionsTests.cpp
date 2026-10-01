@@ -31,11 +31,9 @@ bool FMarketPromotionsTest::RunTest(const FString& Parameters)
     TestEqual(TEXT("One stays one"), AdjustQuantity(S, 2, 1), 1);
     TestEqual(TEXT("Three for the price of two"), UnitPrice(S, Products, 2, 3), int64(183));
 
-    // Flyer: costs money at the day close, brings shoppers.
-    TestTrue(TEXT("Flyer"), Start(S, Products, EKind::Flyer, INDEX_NONE, 0, Message));
-    TestEqual(TEXT("Marketing to pay"), S.Marketing, FlyerCost);
-    TestTrue(TEXT("More shoppers"), TrafficFactor(S) > 1.1f);
-    TestTrue(TEXT("Flyer shows promoted products"), Interest(S, Products, 0) > 1.4f * 1.2f);
+    // M36: no flyer of the shop's own (the company's ads); a third promotion fills the slots.
+    TestFalse(TEXT("No shop flyer"), Start(S, Products, EKind::Flyer, INDEX_NONE, 0, Message));
+    TestTrue(TEXT("3 al 2 \u00f6de on milk B"), Start(S, Products, EKind::MultiBuy, 1, 0, Message));
     TestFalse(TEXT("At most three at once"), Start(S, Products, EKind::MultiBuy, 0, 0, Message));
     // Endcap is outside the limit, one at a time.
     TestTrue(TEXT("Endcap"), Start(S, Products, EKind::Endcap, 0, 0, Message));
@@ -44,15 +42,17 @@ bool FMarketPromotionsTest::RunTest(const FString& Parameters)
     for (const FMarketPromotion* P : Active(S)) if (P->Kind == static_cast<uint8>(EKind::Endcap)) ++Endcaps;
     TestEqual(TEXT("One gondola head"), Endcaps, 1);
 
-    // Day closes: the flyer is paid with the operating costs; finished promotions report.
+    // Day closes: finished promotions report.
     S.Stock[0].Today.Sold = 10;
     S.CloseDay();
-    TestTrue(TEXT("Flyer paid at the close"), S.LastOperatingCost >= 2200 + FlyerCost && S.Marketing == 0);
     S.DayNews.Reset();
     CloseDay(S, Products);
-    for (int32 D = 0; D < 3; ++D) { S.DayNews.Reset(); S.CloseDay(); CloseDay(S, Products); }
     bool bReported = false;
-    for (const FString& Line : S.DayNews) if (Line.StartsWith(TEXT("Kampanya bitti"))) bReported = true;
+    for (int32 D = 0; D < 3; ++D)
+    {
+        S.DayNews.Reset(); S.CloseDay(); CloseDay(S, Products);
+        for (const FString& Line : S.DayNews) bReported |= Line.StartsWith(TEXT("Kampanya bitti"));
+    }
     TestTrue(TEXT("Finished promotions report"), bReported);
     TestEqual(TEXT("Discount over"), UnitPrice(S, Products, 0, 1), int64(250));
     TestFalse(TEXT("Stop needs a running one"), Stop(S, 99, Message));

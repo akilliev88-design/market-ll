@@ -268,7 +268,7 @@ void MarketStaff::EnsureCandidates(FMarketState& State)
 
 FString MarketStaff::DescribeCandidate(const FMarketState& State, const FMarketEmployee& C)
 {
-    const FString Head = FString::Printf(TEXT("%s \u00b7 %s \u00b7 %s/g\u00fcn"), *RoleName(RoleOf(C)), *C.Name, *Tl(C.DailyWage));
+    const FString Head = FString::Printf(TEXT("%s \u00b7 %s \u00b7 ayda %s"), *RoleName(RoleOf(C)), *C.Name, *Tl(C.DailyWage * 30));
     if (!HasHr(State))
         return Head + FString::Printf(TEXT(" \u00b7 deneyim %s \u00b7 h\u0131z %s"), Band(C.Skill), Band(C.Speed));
     return Head + FString::Printf(TEXT(" \u00b7 beceri %d \u00b7 h\u0131z %d \u00b7 dayan\u0131kl\u0131l\u0131k %d \u00b7 referans %s"), C.Skill, C.Speed, C.Stamina, Reference(C));
@@ -276,8 +276,8 @@ FString MarketStaff::DescribeCandidate(const FMarketState& State, const FMarketE
 
 FString MarketStaff::DescribeEmployee(const FMarketState& State, const FMarketEmployee& E)
 {
-    FString Text = FString::Printf(TEXT("%s \u00b7 %s \u00b7 %s/g\u00fcn \u00b7 moral %.0f \u00b7 yorgunluk %.0f"),
-        *E.Name, *RoleName(RoleOf(E)), *Tl(E.DailyWage), E.Morale, E.Fatigue);
+    FString Text = FString::Printf(TEXT("%s \u00b7 %s \u00b7 ayda %s \u00b7 moral %.0f \u00b7 yorgunluk %.0f"),
+        *E.Name, *RoleName(RoleOf(E)), *Tl(E.DailyWage * 30), E.Morale, E.Fatigue);
     if (HasHr(State) && IsShopRole(RoleOf(E))) Text += FString::Printf(TEXT(" \u00b7 beceri %d \u00b7 h\u0131z %d"), E.Skill, E.Speed);
     if (E.OffDay >= State.Day) Text += FString::Printf(TEXT(" \u00b7 %d. g\u00fcn izinli"), E.OffDay);
     if (E.LeaveDay > 0) Text += FString::Printf(TEXT(" \u00b7 %d. g\u00fcn sonunda ayr\u0131l\u0131yor"), E.LeaveDay);
@@ -315,7 +315,7 @@ bool MarketStaff::Hire(FMarketState& State, int32 CandidateIndex, FString& OutMe
     const TCHAR* Duty = Role == ERole::Cashier ? TEXT("Kasada \u00f6deme al\u0131r; yo\u011fun g\u00fcnler onu yorar.")
         : Role == ERole::Stocker ? TEXT("Raflar\u0131 depodan doldurur, rafta olmayan \u00fcr\u00fcn\u00fc reyonuna dizer.")
         : TEXT("Her g\u00fcn en mutsuz \u00e7al\u0131\u015fanla konu\u015fur, yorgunlara izin ayarlar, ayr\u0131lan\u0131n yerine aday bulur.");
-    OutMessage = FString::Printf(TEXT("%s i\u015fe ba\u015flad\u0131 (%s). G\u00fcnl\u00fck \u00fccret %s. %s"), *Hired.Name, *RoleName(Role), *Tl(Hired.DailyWage), Duty);
+    OutMessage = FString::Printf(TEXT("%s i\u015fe ba\u015flad\u0131 (%s). Ayl\u0131k \u00fccret %s. %s"), *Hired.Name, *RoleName(Role), *Tl(Hired.DailyWage * 30), Duty);
     return true;
 }
 
@@ -359,8 +359,8 @@ bool MarketStaff::HireAccountant(FMarketState& State, FString& OutMessage)
     E.Morale = 75.f;
     E.HiredDay = State.Day;
     State.Staff.Add(E);
-    OutMessage = FString::Printf(TEXT("D\u00fckk\u00e2n\u0131n eski mali m\u00fc\u015faviri %s defterleri devrald\u0131 (%s/g\u00fcn, devir bedeli %s). Haftal\u0131k vergiyi o hesaplar ve zaman\u0131nda \u00f6der, kasa farklar\u0131n\u0131 takip eder. \u0130ndirim ve denetim korumas\u0131 t\u00fcm hafta \u00e7al\u0131\u015ft\u0131\u011f\u0131 haftalarda ge\u00e7erlidir."),
-        *E.Name, *Tl(E.DailyWage), *Tl(Engagement));
+    OutMessage = FString::Printf(TEXT("D\u00fckk\u00e2n\u0131n eski mali m\u00fc\u015faviri %s defterleri devrald\u0131 (ayda %s, devir bedeli %s). Haftal\u0131k vergiyi o hesaplar ve zaman\u0131nda \u00f6der, kasa farklar\u0131n\u0131 takip eder. \u0130ndirim ve denetim korumas\u0131 t\u00fcm hafta \u00e7al\u0131\u015ft\u0131\u011f\u0131 haftalarda ge\u00e7erlidir."),
+        *E.Name, *Tl(E.DailyWage * 30), *Tl(Engagement));
     return true;
 }
 
@@ -408,7 +408,7 @@ bool MarketStaff::Raise(FMarketState& State, int32 EmployeeId, FString& OutMessa
     E->LowMoraleDays = 0;
     const bool bStays = E->LeaveDay > 0 && E->Morale >= 35.f;
     if (bStays) E->LeaveDay = 0;
-    OutMessage = FString::Printf(TEXT("%s: yeni \u00fccret %s/g\u00fcn (moral %.0f).%s"), *E->Name, *Tl(E->DailyWage), E->Morale,
+    OutMessage = FString::Printf(TEXT("%s: yeni \u00fccret ayda %s (moral %.0f).%s"), *E->Name, *Tl(E->DailyWage * 30), E->Morale,
         bStays ? TEXT(" \u0130stifas\u0131n\u0131 geri ald\u0131.") : TEXT(""));
     return true;
 }
@@ -499,7 +499,7 @@ void MarketStaff::CloseDay(FMarketState& State)
     const int64 Minimum = MinimumDailyWage(Closed);
     for (FMarketEmployee& E : State.Staff)
         if (RoleOf(E) != ERole::Accountant && E.DailyWage < Minimum) { E.DailyWage = Minimum; ++Raised; }
-    if (Raised > 0) News.Add(FString::Printf(TEXT("Asgari \u00fccret artt\u0131: %d \u00e7al\u0131\u015fan\u0131n g\u00fcnl\u00fck \u00fccreti %s oldu."), Raised, *Tl(Minimum)));
+    if (Raised > 0) News.Add(FString::Printf(TEXT("Asgari \u00fccret artt\u0131: %d \u00e7al\u0131\u015fan\u0131n ayl\u0131k \u00fccreti %s oldu."), Raised, *Tl(Minimum * 30)));
     const int64 Social = DailySocialSecurity(State);
     if (Social > 0)
     {
@@ -617,7 +617,7 @@ void MarketStaff::CloseDay(FMarketState& State)
             const float WageRatio = static_cast<float>(E.DailyWage) / static_cast<float>(FMath::Max<int64>(1, FairWage(Role, E.Skill, State.Day)));
             const TCHAR* Why = WageRatio < 0.95f ? TEXT("\u00fccretini d\u00fc\u015f\u00fck buluyor") : E.Fatigue >= 60.f ? TEXT("\u00e7ok yoruldu") : TEXT("i\u015finden mutsuz");
             News.Add(FString::Printf(TEXT("%s istifa dilek\u00e7esi verdi: %s. %d. g\u00fcn\u00fcn sonunda ayr\u0131lacak. Zam veya izin fikrini de\u011fi\u015ftirebilir."), *E.Name, Why, E.LeaveDay));
-            if (bHr) News.Add(FString::Printf(TEXT("\u0130K: %s i\u00e7in %%10 zam \u00f6nerisi (yeni \u00fccret %s)."), *E.Name, *Tl(Round50(E.DailyWage * 1.10))));
+            if (bHr) News.Add(FString::Printf(TEXT("\u0130K: %s i\u00e7in %%10 zam \u00f6nerisi (yeni \u00fccret ayda %s)."), *E.Name, *Tl(Round50(E.DailyWage * 1.10) * 30)));
         }
         else if (E.LeaveDay > 0 && E.Morale >= 45.f)
         {

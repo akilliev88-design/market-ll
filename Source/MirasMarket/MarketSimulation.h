@@ -7,7 +7,7 @@
 // (MirasMarket.Simulation.*).
 //  - PlayDay plays the family shop's day without walking people, with the same rules the world uses: the same
 //    shoppers (segment, list, budget, price tolerance), the same shelf decisions (MarketDemand), substitutes, the
-//    payment method and the credit book, the till (SellBasket), then the day close of every system. The family
+//    payment method, the till (SellBasket), then the day close of every system. The family
 //    does the routine: passes the monthly price rise on to the shelf, pays the declared tax, pays 50 TL of the
 //    father's debt when the till can bear it, keeps the shelves filled and orders what the order advice suggests.
 //  - Advance plays up to N days and stops early when the player is needed: a decision waits (story, event,

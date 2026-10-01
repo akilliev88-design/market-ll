@@ -16,7 +16,9 @@ namespace MarketAdvertisingLocal
     enum : int32 { TSocial = 1 << 0, TSearch = 1 << 1, TManager = 1 << 2 };
 
     // Per channel: a month's cost at level 1 (start-level kurus), what it leaves in minds a month, what of it stays.
-    const int64 BaseCost[ChannelCount] = { 2000000, 400000, 60000, 25000, 80000, 50000 };
+    // C8 (Codex C6: 35 million spent for ~134 million of estimated revenue, less than its gross profit; the flyers
+    // 9.3 for 3.4): about 40 % cheaper, the flyers 60 %.
+    const int64 BaseCost[ChannelCount] = { 1200000, 250000, 40000, 10000, 50000, 30000 };
     const float Effect[ChannelCount] = { 20.f, 9.f, 7.f, 8.f, 7.f, 10.f };
     const float Keep[ChannelCount] = { 0.85f, 0.75f, 0.8f, 0.4f, 0.6f, 0.3f };
     const float LevelCost[MarketAdvertising::MaxLevel + 1] = { 0.f, 1.f, 2.2f, 4.f };
@@ -269,8 +271,8 @@ bool MarketAdvertising::HireManager(FMarketState& State, FString& OutMessage)
     FMarketAdvertising& A = State.Advertising;
     Candidate(State, A.ManagerName, A.ManagerSkill, A.ManagerWage);
     A.ManagerSince = State.Day;
-    OutMessage = FString::Printf(TEXT("Reklam m\u00fcd\u00fcr\u00fc %s i\u015fe ba\u015flad\u0131 (beceri %d, g\u00fcnl\u00fck %s): her lira daha \u00e7ok i\u015f g\u00f6r\u00fcr; istersen reklam kar\u0131\u015f\u0131m\u0131n\u0131 o ayarlar."),
-        *A.ManagerName, A.ManagerSkill, *MarketAdvertisingLocal::Tl(A.ManagerWage));
+    OutMessage = FString::Printf(TEXT("Reklam m\u00fcd\u00fcr\u00fc %s i\u015fe ba\u015flad\u0131 (beceri %d, ayda %s): her lira daha \u00e7ok i\u015f g\u00f6r\u00fcr; istersen reklam kar\u0131\u015f\u0131m\u0131n\u0131 o ayarlar."),
+        *A.ManagerName, A.ManagerSkill, *MarketAdvertisingLocal::Tl(A.ManagerWage * 30));
     return true;
 }
 
@@ -328,8 +330,11 @@ FString MarketAdvertising::ChannelLine(const FMarketState& State, const FString&
     const FMarketAdCountry* C = MarketAdvertisingLocal::Find(State, Country);
     const int32 I = static_cast<int32>(Channel);
     const float Stock = C && C->Stock.IsValidIndex(I) ? C->Stock[I] : 0.f;
-    return FString::Printf(TEXT("%s \u00b7 seviye 1: ayda %s \u00b7 etkisi %%%.0f \u00b7 ak\u0131llarda %.0f"), Level > 0 ? *FString::Printf(TEXT("seviye %d, ayda %s"), Level, *MarketAdvertisingLocal::Tl(MonthCost(State, Country, Channel, Level))) : TEXT("kapal\u0131"),
-        *MarketAdvertisingLocal::Tl(MonthCost(State, Country, Channel, 1)), Era * 100.f, Stock);
+    // C7 (A menu comparison): the era factor is the channel's strength in this era ("d\u00f6nem g\u00fcc\u00fc"), not a customer
+    // uplift; the level-1 price only when another level is chosen.
+    const FString LevelNowText = Level > 0 ? FString::Printf(TEXT("seviye %d, ayda %s"), Level, *MarketAdvertisingLocal::Tl(MonthCost(State, Country, Channel, Level))) : FString(TEXT("kapal\u0131"));
+    const FString FirstLevelText = Level == 1 ? FString() : FString::Printf(TEXT(" \u00b7 seviye 1: ayda %s"), *MarketAdvertisingLocal::Tl(MonthCost(State, Country, Channel, 1)));
+    return FString::Printf(TEXT("%s%s \u00b7 d\u00f6nem g\u00fcc\u00fc %%%.0f \u00b7 ak\u0131llarda %.0f"), *LevelNowText, *FirstLevelText, Era * 100.f, Stock);
 }
 
 void MarketAdvertising::CloseDay(FMarketState& State)

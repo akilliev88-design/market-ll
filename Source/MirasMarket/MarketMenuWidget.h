@@ -22,10 +22,10 @@ class SToolTip;
 //                 province opens its panel (numbers, our shops, open a shop); one assistant line.
 //   2 Siparis     order list, suggested cases, wholesaler terms and bills
 //   3 Urunler     products with their label image, our price against every rival, the buying chance
-//   4 Kampanya    discounts, 3-for-2, end caps, flyers, the wholesaler's offer, every running promotion
+//   4 Kampanya    discounts, 3-for-2, end caps, the wholesaler's offer, every running promotion
 //   5 Rakipler    local (live shares), national chains and the world league (MarketChains)
 //   6 Personel    staff, applicants, HR
-//   7 Finans      till, bank loans, credit book, taxes and the accountant, perishables, household money
+//   7 Finans      till, bank loans, taxes and the accountant, perishables, the rent to the parents (M36)
 //   8 Satis       phone / web / platform orders, couriers, card and meal-card payments
 //   9 Magazalar   every shop by province (grade, manager and the decisions on him, close), management (the
 //                 player's span, province / regional / country managers, G-086b), the company (depots, trucks)

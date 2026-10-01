@@ -1,6 +1,8 @@
 #include "MarketStart.h"
 #include "MarketCountry.h"
 #include "MarketStaff.h"
+#include "MarketFinance.h"
+#include "MarketOwner.h"
 
 namespace MarketStart
 {
@@ -32,7 +34,9 @@ namespace MarketStart
 
 const TArray<FString>& MarketStart::RelativeKeys()
 {
-    static const TArray<FString> Keys = { TEXT("teyze"), TEXT("dayi"), TEXT("hala"), TEXT("amca"), TEXT("buyukanne") };
+    // M36 (Mustafa 02.10.2026): our own family, not an aunt or an uncle: father and mother retire and leave the shop
+    // to us. The stories speak of the father.
+    static const TArray<FString> Keys = { TEXT("baba") };
     return Keys;
 }
 
@@ -42,14 +46,18 @@ void MarketStart::Setup(FMarketState& State, const FString& CountryId, const FSt
     State.CityId = CityId;
     if (!MarketCountry::FindCity(State.CountryId, State.CityId)) State.CityId = LegacyProvince(State.CountryId);
     State.RivalSeed = Seed;
-    State.RelativeKey = RelativeKeys()[StartMix(Seed, 0x5E1A7u, 1u) % static_cast<uint32>(RelativeKeys().Num())];
+    State.RelativeKey = RelativeKeys()[0];
     // The shop comes with its people: one cashier, two shelf stockers (karar L03).
-    const int32 Before = State.Staff.Num();
     MarketStaff::AddStartingStaff(State, 1, 2);
-    // The till was left with one week of their wages, so the first days are not lost to payroll alone.
-    int64 Payroll = 0;
-    for (int32 I = Before; I < State.Staff.Num(); ++I) Payroll += State.Staff[I].DailyWage;
-    State.Cash += Payroll * StartWageDays;
+    // M37 (Mustafa 02.10.2026: "ba\u015flang\u0131\u00e7taki bor\u00e7, d\u00fckk\u00e2n\u0131n elindeki para ekonomiye g\u00f6re"): the till holds a
+    // month of the shop's fixed costs with our salary (people, running costs, the rent to the parents); the father's
+    // debt to the wholesaler is a month and a half of them. Both follow the country, the province and the year.
+    MarketCountry::SetActive(State.CountryId, Seed); // the country's wages and prices for the numbers below
+    State.Owner.SalaryX10 = MarketOwner::StartSalaryX10;
+    const int64 Month = MarketFinance::CompanyMonthCost(State) + MarketOwner::CompanyCost(State);
+    State.Cash = FMath::Max<int64>(10000, Month / 100 * 100);
+    State.StartDebt = FMath::Max<int64>(10000, FMath::RoundToInt64(Month * StartDebtMonths) / 10000 * 10000);
+    State.InheritedDebt = State.StartDebt;
     MarketEras::Setup(State); // C3 (B4): this campaign's eras, shifted by the seed
 }
 
@@ -101,6 +109,7 @@ FString MarketStart::PlaceText(const FMarketState& State)
 
 FString MarketStart::IntroText(const FMarketState& State)
 {
-    return FString::Printf(TEXT("%s. %s kalan market art\u0131k senin: bir kasiyer, iki reyon g\u00f6revlisi, toptanc\u0131ya %s bor\u00e7 ve kasada bir haftal\u0131k maa\u015f. Raflar yar\u0131 dolu; depoya bak, eksikleri diz ve O ile a\u00e7."),
-        *PlaceText(State), *Relative(State, ECase::Ablative, true), *MarketCountry::Money(State.InheritedDebt));
+    // M36: father and mother retire; the building stays theirs, the rent is their pension.
+    return FString::Printf(TEXT("%s. Annenle baban emekli oldu; marketi art\u0131k sen y\u00f6netiyorsun. Bina onlar\u0131n: her ay kiras\u0131n\u0131 onlara \u00f6dersin. Bir kasiyer, iki reyon g\u00f6revlisi, baban\u0131n toptanc\u0131ya %s borcu ve kasada bir ayl\u0131k gider. Raflar yar\u0131 dolu; depoya bak, eksikleri diz ve O ile a\u00e7."),
+        *PlaceText(State), *MarketCountry::Money(State.InheritedDebt));
 }

@@ -2,6 +2,7 @@
 
 #include "CoreMinimal.h"
 #include "MarketEconomy.h"
+#include "MarketGoods.h"
 
 // The main story (G-066, Docs/Kurgu/00_KURGU_KITABI.md \u00a74-5). Independent of the world, tested
 // (MirasMarket.Story.*). Chapters have goals measured from the game state; scenes with the characters play at day
@@ -36,6 +37,9 @@ namespace MarketStory
     FString ChapterTitle(int32 Chapter);
     TArray<FObjective> Objectives(const FMarketState& State);
     FString IdentityName(EIdentity Identity);
+    // M38 (Mustafa 02.10.2026: the identity is the company's, not a corner shop's): what the chosen identity does
+    // in every branch (the family shop takes it from the modifiers): x wish of a group.
+    float IdentityDemand(const FMarketState& State, MarketGoods::EGroup Group);
     void AddMemory(FMarketState& State, const FString& Text);
     // What the neighbour market offers for the business today (not the building: that stays in the family).
     int64 SaleOffer(const FMarketState& State, const TArray<FMarketProduct>& Products);

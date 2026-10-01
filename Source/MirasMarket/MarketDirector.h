@@ -37,7 +37,7 @@ namespace MarketDirector
     bool LeavesWithoutCard(FMarketState& State, float Roll);
     // x visit budget of a shopper (card shoppers spend a little more where cards are taken).
     float BudgetFactor(const FMarketState& State, uint8 Segment);
-    // After a basket was paid at the till: a known neighbour may write it in the credit book; otherwise the
+    // After a basket was paid at the till (M36: no credit book): the
     // payment method settles (card money arrives tomorrow). Returns a note.
     FString OnCheckout(FMarketState& State, int32 CustomerId, int64 Receipt, float Roll, uint8 Method = 0);
     // After a successful FMarketState::SubmitOrder: wholesaler volume and payment terms. Returns an extra line.
@@ -46,9 +46,9 @@ namespace MarketDirector
     int64 OrderAllowance(const FMarketState& State);
     // Management decisions of the background systems that are not staff decisions. False + message when nothing
     // changed. Actions: Supplier (Arg = MarketSuppliers::ESupplier), PayBills, PassOnPriceRise,
-    // Discount10 / Discount20 / MultiBuy / Endcap (Arg = product), Flyer, StopPromotion (Arg = index), AcceptOffer, DeclineOffer,
+    // Discount10 / Discount20 / MultiBuy / Endcap (Arg = product), StopPromotion (Arg = index), AcceptOffer, DeclineOffer,
     // Decide (Arg = option of the first waiting decision: story scenes and events),
-    // FreshPolicy (Arg 0..2), CreditLimit (Arg step 0..3), CollectCredit, TakeLoan (Arg step 0..2), RepayLoan,
+    // FreshPolicy (Arg 0..2), TakeLoan (Arg step 0..2), RepayLoan, OwnerSalary / Dividend / OwnerCapital (M37, Arg step),
     // OpenBranch (Arg = MarketBranches::EncodeSite: country, province, market type), CloseBranch (Arg = index),
     // Promote (Arg = employee id; runs the newest open branch), PromoteTo (Arg = branch index * 1000000 + employee id),
     // M32 online: OnlineOpen / OnlineClose (Arg = MarketOnline::EChannel: 0 web, 1 app, 2 platform, 3 quick),

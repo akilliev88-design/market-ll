@@ -65,9 +65,9 @@ namespace MarketStory
 
     void OfferIdentity(FMarketState& State)
     {
-        MarketEvents::Offer(State, StoryDecision(State, TEXT("story.identity"), TEXT("D\u00fckk\u00e2n\u0131n kimli\u011fi"),
-            FString::Printf(TEXT("Kom\u015fu marketin (%s) teklifini geri \u00e7evirdin. \u015eimdi d\u00fckk\u00e2n\u0131n ne olaca\u011f\u0131na karar ver. Hi\u00e7biri her ko\u015fulda \u00fcst\u00fcn de\u011fil; rakipler de buna g\u00f6re davranacak."), *MarketCast::RivalShop()),
-            { FString(TEXT("Mahallenin Bakkal\u0131: samimiyet ve sadakat")), FString(TEXT("Kaliteli Yerel: iyi mal, iyi fiyat")), FString(TEXT("H\u0131zl\u0131 \u0130ndirim: ucuz al, ucuz sat, \u00e7ok sat")) },
+        MarketEvents::Offer(State, StoryDecision(State, TEXT("story.identity"), TEXT("Marketin kimli\u011fi"),
+            FString::Printf(TEXT("Kom\u015fu marketin (%s) teklifini geri \u00e7evirdin. \u015eimdi marketinin ne olaca\u011f\u0131na karar ver; a\u00e7aca\u011f\u0131n b\u00fct\u00fcn ma\u011fazalar da bu kimli\u011fi ta\u015f\u0131r. Hi\u00e7biri her ko\u015fulda \u00fcst\u00fcn de\u011fil; rakipler de buna g\u00f6re davranacak."), *MarketCast::RivalShop()),
+            { FString(TEXT("Mahalle Marketi: g\u00fcler y\u00fcz ve sad\u0131k m\u00fc\u015fteri")), FString(TEXT("Kaliteli Market: iyi mal, iyi fiyat")), FString(TEXT("H\u0131zl\u0131 \u0130ndirim: ucuz al, ucuz sat, \u00e7ok sat")) },
             0, 3));
     }
 }
@@ -87,12 +87,23 @@ FString MarketStory::ChapterTitle(int32 Chapter)
     }
 }
 
+float MarketStory::IdentityDemand(const FMarketState& State, MarketGoods::EGroup Group)
+{
+    switch (static_cast<EIdentity>(State.Story.Identity))
+    {
+    case EIdentity::Bakkal: return Group == MarketGoods::EGroup::Staples || Group == MarketGoods::EGroup::Dairy ? 1.1f : 1.02f;
+    case EIdentity::Kaliteli: return 1.035f;
+    case EIdentity::Indirim: return 1.035f;
+    default: return 1.f;
+    }
+}
+
 FString MarketStory::IdentityName(EIdentity Identity)
 {
     switch (Identity)
     {
-    case EIdentity::Bakkal: return TEXT("Mahallenin Bakkal\u0131");
-    case EIdentity::Kaliteli: return TEXT("Kaliteli Yerel");
+    case EIdentity::Bakkal: return TEXT("Mahalle Marketi");
+    case EIdentity::Kaliteli: return TEXT("Kaliteli Market");
     case EIdentity::Indirim: return TEXT("H\u0131zl\u0131 \u0130ndirim");
     default: return TEXT("se\u00e7ilmedi");
     }
@@ -195,12 +206,12 @@ bool MarketStory::ReachFinale(FMarketState& State, EEnding Ending)
     State.Story.bEnded = true;
     State.Story.Ending = static_cast<uint8>(Ending);
     const bool bLegacy = Ending == EEnding::Legacy;
-    AddMemory(State, bLegacy ? TEXT("Miras: aileden kalan d\u00fckk\u00e2n, herkesin bildi\u011fi bir tabela oldu") : TEXT("kampanyan\u0131n son g\u00fcn\u00fc"));
+    AddMemory(State, bLegacy ? TEXT("Miras: babandan devrald\u0131\u011f\u0131n d\u00fckk\u00e2n, herkesin bildi\u011fi bir tabela oldu") : TEXT("kampanyan\u0131n son g\u00fcn\u00fc"));
     // The finale card (karar J02): a short summary, one choice, shown once.
     const FString Summary = FString::Printf(TEXT("%d ma\u011faza \u00b7 %d il \u00b7 kasa %s \u00b7 %d hat\u0131ra."),
         MarketCompany::TotalStores(State), MarketCompany::Provinces(State), *StoryTl(State.Cash), State.Story.Memories.Num());
     const FString Text = bLegacy
-        ? FString::Printf(TEXT("Nermin teyze tabelaya bak\u0131p g\u00fcl\u00fcmsedi: \"%s g\u00f6rseydi...\" Aileden kalan d\u00fckk\u00e2n art\u0131k herkesin bildi\u011fi bir isim. "), *MarketStart::Relative(State, MarketStart::ECase::Plain, true)) + Summary
+        ? FString::Printf(TEXT("Nermin teyze tabelaya bak\u0131p g\u00fcl\u00fcmsedi: \"%s her sabah buradan ge\u00e7ip seninle \u00f6v\u00fcn\u00fcyor.\" Babandan devrald\u0131\u011f\u0131n d\u00fckk\u00e2n art\u0131k herkesin bildi\u011fi bir isim. "), *MarketStart::Relative(State, MarketStart::ECase::Plain, true)) + Summary
         : TEXT("Y\u0131llar ge\u00e7ti; defterin son sayfas\u0131na geldin. ") + Summary;
     MarketEvents::Offer(State, StoryDecision(State, TEXT("story.finale"), bLegacy ? TEXT("Son: Miras") : TEXT("Son: Defterin son sayfas\u0131"), Text,
         { FString(TEXT("Oynamaya devam et")) }, 0, 7));
@@ -249,7 +260,7 @@ void MarketStory::CloseDay(FMarketState& State, const TArray<FMarketProduct>& Pr
         !State.Candidates.ContainsByPredicate([](const FMarketEmployee& E) { return E.Id == CemCandidateId; }))
     {
         Mark(State, BCemGone);
-        News.Add(FString::Printf(TEXT("Cem Babaeski'de bir f\u0131r\u0131nda i\u015fe ba\u015flam\u0131\u015f. \"%s olsa beni al\u0131rd\u0131\" demi\u015f."), *MarketStart::Relative(State, MarketStart::ECase::Plain, true)));
+        News.Add(FString::Printf(TEXT("Cem Babaeski'de bir f\u0131r\u0131nda i\u015fe ba\u015flam\u0131\u015f. \"%s d\u00fckk\u00e2nda olsa beni al\u0131rd\u0131\" demi\u015f."), *MarketStart::Relative(State, MarketStart::ECase::Plain, true)));
     }
     // Nermin teyze notices an empty milk shelf (at most every ten days).
     bool bNoMilk = false;
@@ -376,12 +387,12 @@ bool MarketStory::Resolve(FMarketState& State, const TArray<FMarketProduct>& Pro
             MarketEvents::AddModifier(State, EModifier::PriceTolerance, MarketEvents::AllGroups, 0.04f, State.Day, Forever, Source);
             MarketEvents::AddModifier(State, EModifier::Interest, static_cast<uint8>(MarketGoods::EGroup::Staples), 1.1f, State.Day, Forever, Source);
             MarketEvents::AddModifier(State, EModifier::Interest, static_cast<uint8>(MarketGoods::EGroup::Dairy), 1.1f, State.Day, Forever, Source);
-            OutMessage = TEXT("Mahallenin Bakkal\u0131: m\u00fcdavimler biraz daha ho\u015fg\u00f6r\u00fcl\u00fc, s\u00fct ve temel g\u0131da biraz daha \u00e7ok satar. Veresiye defteri a\u00e7\u0131l\u0131r.");
+            OutMessage = TEXT("Mahalle Marketi: m\u00fcdavimler biraz daha ho\u015fg\u00f6r\u00fcl\u00fc, s\u00fct ve temel g\u0131da biraz daha \u00e7ok satar. B\u00fct\u00fcn ma\u011fazalar\u0131n bu kimli\u011fi ta\u015f\u0131r.");
             break;
         case EIdentity::Kaliteli:
             MarketEvents::AddModifier(State, EModifier::PriceTolerance, MarketEvents::AllGroups, 0.07f, State.Day, Forever, Source);
             MarketEvents::AddModifier(State, EModifier::CostFactor, MarketEvents::AllGroups, 1.04f, State.Day, Forever, Source);
-            OutMessage = TEXT("Kaliteli Yerel: m\u00fc\u015fteri daha y\u00fcksek fiyat\u0131 kabul eder; iyi mal %4 daha pahal\u0131ya gelir.");
+            OutMessage = TEXT("Kaliteli Market: m\u00fc\u015fteri daha y\u00fcksek fiyat\u0131 kabul eder; iyi mal %4 daha pahal\u0131ya gelir. B\u00fct\u00fcn ma\u011fazalar\u0131n bu kimli\u011fi ta\u015f\u0131r.");
             break;
         default:
             MarketEvents::AddModifier(State, EModifier::PriceTolerance, MarketEvents::AllGroups, -0.03f, State.Day, Forever, Source);

@@ -19,8 +19,11 @@ namespace MarketCampaign
     constexpr int32 ExpandProfitableDays = 3;
     constexpr float ExpandShare = 35.f;
 
-    // Pays min(Amount, debt, cash). Returns the amount paid (0 = nothing). Sets DebtClearedDay when it closes.
-    int64 PayDebt(FMarketState& State, int64 Amount = Installment);
+    // M37: one payment is a tenth of the campaign's starting debt (at least Installment).
+    int64 InstallmentOf(const FMarketState& State);
+    // Pays min(Amount, debt, cash); Amount < 0 = one installment. Returns the amount paid (0 = nothing). Sets
+    // DebtClearedDay when it closes.
+    int64 PayDebt(FMarketState& State, int64 Amount = -1);
     bool DebtOpen(const FMarketState& State);
     // 0..1 of the starting debt paid (for the goal bar).
     float DebtProgress(const FMarketState& State);

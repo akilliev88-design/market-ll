@@ -90,7 +90,12 @@ void MarketCommand::CloseDay(FMarketState& State, const TArray<FMarketProduct>& 
         const FString Format = TEXT("mahalle");
         if (!MarketBranches::CanOpen(State, Products, M.Country, M.Area, Format, Reason)) continue;
         const int64 Cost = MarketBranches::OpeningCost(State, Products, M.Country, M.Area, Format);
-        if (State.Cash < 3 * Cost) continue;
+        // C8 (Codex C6: 300 of 401 proposals turned down): he asks only when the till keeps the opening and three
+        // months of the whole network's fixed costs with the new shop.
+        int64 Network = MarketBranches::MonthlyFixedCost(State, M.Country, M.Area, Format);
+        for (const FMarketBranch& Other : State.Branches)
+            if (IsOpen(Other)) Network += MarketBranches::MonthlyFixedCost(State, MarketBranches::CountryOf(State, Other), Other.Province, Other.Format);
+        if (State.Cash < Cost + 3 * Network) continue;
         const int32 FormatIndex = MarketBranches::FormatIds().IndexOfByKey(Format);
         const FString Text = FString::Printf(TEXT("%s il m\u00fcd\u00fcr\u00fc %s: \"%d ma\u011fazam\u0131z\u0131n hepsi k\u00e2rda (son 30 g\u00fcn toplam %s), ilde yer var. Bir mahalle marketi daha a\u00e7al\u0131m: a\u00e7\u0131l\u0131\u015f %s, ayl\u0131k sabit gider %s.\"%s"),
             *Site.Name, *M.Name, Shops, *Tl(Profit), *Tl(Cost), *Tl(MarketBranches::MonthlyFixedCost(State, M.Country, M.Area, Format)), *Via(State, M.Country, M.Area));

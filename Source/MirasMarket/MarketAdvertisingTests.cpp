@@ -42,8 +42,8 @@ bool FMarketAdvertisingTest::RunTest(const FString& Parameters)
     TestEqual(TEXT("No ads, no lift"), TrafficFactor(S), 1.f);
     TestEqual(TEXT("No social media at the start"), EraFactor(S, EChannel::Social, S.Day), 0.f);
     TestFalse(TEXT("No search ads before the internet"), SetLevel(S, TEXT("tr"), EChannel::Search, 1, Message));
-    TestEqual(TEXT("Print costs per shop"), MonthCost(S, TEXT("tr"), EChannel::Print, 1), FMath::RoundToInt64(25000.0 * 6 * MarketPrices::ListLevel(S.Day)));
-    TestEqual(TEXT("Outdoor costs per province"), MonthCost(S, TEXT("tr"), EChannel::Outdoor, 1), FMath::RoundToInt64(60000.0 * 2 * MarketPrices::ListLevel(S.Day)));
+    TestEqual(TEXT("Print costs per shop"), MonthCost(S, TEXT("tr"), EChannel::Print, 1), FMath::RoundToInt64(10000.0 * 6 * MarketPrices::ListLevel(S.Day)));
+    TestEqual(TEXT("Outdoor costs per province"), MonthCost(S, TEXT("tr"), EChannel::Outdoor, 1), FMath::RoundToInt64(40000.0 * 2 * MarketPrices::ListLevel(S.Day)));
     TestTrue(TEXT("TV"), SetLevel(S, TEXT("tr"), EChannel::TV, 1, Message));
     const int64 Cash = S.Cash;
     Days(S, 30);

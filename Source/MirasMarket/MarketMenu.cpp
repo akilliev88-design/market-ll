@@ -308,7 +308,7 @@ const TArray<FMarketTodo>& AMarketGameMode::Todos() const
     if (State.Books.TaxDue > 0 && !MarketStaff::HasAccountant(State) && State.Books.TaxDueDay - State.Day <= 1)
         Add(2, TEXT("Vergi \u00f6deme g\u00fcn\u00fc"), FString::Printf(TEXT("%s, son g\u00fcn %d. Gecikirse ceza i\u015fler."), *MarketCountry::Money(State.Books.TaxDue), State.Books.TaxDueDay), SMarketMenu::Finance);
     if (State.TroubleStage > 0)
-        Add(2, TEXT("Nakit s\u0131k\u0131nt\u0131s\u0131"), TEXT("Kasa eksiye d\u00fc\u015ft\u00fc. Finans sayfas\u0131nda kredi, veresiye tahsilat\u0131 ve giderlere bak."), SMarketMenu::Finance);
+        Add(2, TEXT("Nakit s\u0131k\u0131nt\u0131s\u0131"), TEXT("Kasa eksiye d\u00fc\u015ft\u00fc. Finans sayfas\u0131nda kredi ve giderlere bak."), SMarketMenu::Finance);
     // The product whose price scares most shoppers away (only on shelves).
     int32 Dearest = INDEX_NONE;
     double DearestRatio = 1.10;
@@ -324,7 +324,7 @@ const TArray<FMarketTodo>& AMarketGameMode::Todos() const
             *MarketCountry::Money(State.Stock[Dearest].Price), *MarketCountry::Money(MarketDemand::RivalPrice(Products[Dearest], RivalPriceFactor(Dearest)))), SMarketMenu::Prices, Dearest);
     const TArray<MarketRivals::FEvent> News = MarketRivals::ActiveOn(State.Day, State.RivalSeed, RivalAisles);
     if (News.Num() > 0) Add(0, TEXT("Rakiplerde bug\u00fcn"), MarketRivals::Describe(News[0]), SMarketMenu::Rivals);
-    if (MarketCampaign::DebtOpen(State) && State.Cash >= MarketCampaign::Installment * 3)
+    if (MarketCampaign::DebtOpen(State) && State.Cash >= MarketCampaign::InstallmentOf(State) * 3)
         Add(0, TEXT("\u0130\u015fletmenin borcu"), FString::Printf(TEXT("%s kald\u0131. Kasa yetiyor: bir taksit \u00f6deyebilirsin."), *MarketCountry::Money(State.InheritedDebt)), SMarketMenu::Summary);
     if (!bOpen && OrderDraftCaseCount() > 0)
         Add(0, TEXT("Sipari\u015f listesi onay bekliyor"), FString::Printf(TEXT("%d koli, %s. Onaylanmazsa gelmez."), OrderDraftCaseCount(), *MarketCountry::Money(OrderDraftBill())), SMarketMenu::Orders);

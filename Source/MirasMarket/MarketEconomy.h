@@ -96,6 +96,7 @@ struct FMarketStock
     // deals teach shoppers to wait for the next one) and what they stocked up at home on the last deal (the
     // after-promotion dip).
     UPROPERTY() float PromoHeat = 0.f;
+    UPROPERTY() int32 IdleDays = 0;          // M38: days in a row it was on hand and nobody bought it (the manager's clearance)
     UPROPERTY() float Pantry = 0.f;
 };
 
@@ -203,6 +204,10 @@ struct FMarketPromotion
     UPROPERTY() uint8 Scope = 0;         // MarketPromotions::EScope
     UPROPERTY() FString ScopeKey;        // brand / subcategory / category name the campaign covers
     UPROPERTY() uint8 Mechanic = 0;      // MarketPromotions::EMechanic
+    // M38: every store has the same campaigns. Store: MarketLedger::FamilyShop (-1), a branch index, or
+    // MarketLedger::AllStores (the company's campaign in every store). bManager: the store manager started it.
+    UPROPERTY() int32 Store = -1;
+    UPROPERTY() bool bManager = false;
 };
 
 // A competing company in the district (MarketCompetitors.h). Older saves start without them (created on first use).
@@ -285,14 +290,23 @@ struct FMarketBatch
     UPROPERTY() int32 ExpiresDay = 0;    // last day it may be sold
 };
 
-// A neighbour's page in the credit book (MarketCredit.h).
+// Karar M37: the owner's personal money, apart from the company's (MarketOwner.h).
 USTRUCT()
-struct FMarketCreditAccount
+struct FMarketOwner
 {
     GENERATED_BODY()
-    UPROPERTY() int32 CustomerId = 0;
-    UPROPERTY() int64 Balance = 0;
-    UPROPERTY() int32 SinceDay = 0;      // oldest unpaid day
+    UPROPERTY() int32 SalaryX10 = 15;       // monthly salary: tenths of the minimum wage
+    UPROPERTY() int64 Wealth = 0;           // personal money, kurus
+    UPROPERTY() int64 LastNet = 0;          // last month's net salary (0 = not paid)
+    UPROPERTY() int64 LastLiving = 0;
+    UPROPERTY() int64 YearSalary = 0;       // net, this calendar year
+    UPROPERTY() int64 YearDividends = 0;    // net, this calendar year
+    UPROPERTY() int64 TotalSalary = 0;      // net, the whole campaign
+    UPROPERTY() int64 TotalDividends = 0;
+    UPROPERTY() int64 CapitalIn = 0;        // personal money put into the company
+    UPROPERTY() int32 DividendYear = 0;     // the closed year the dividends below were paid from
+    UPROPERTY() int64 DividendPaid = 0;     // gross, from DividendYear's profit
+    UPROPERTY() int32 MissedSalaries = 0;   // months the till could not pay us
 };
 
 // A bank loan (MarketFinance.h).
@@ -849,7 +863,7 @@ struct FMarketState
     static constexpr int64 StockerDailyWage = 2000;
 
     // Save format version. 2 (G-076): story finale flags, test-mode mark. Older saves load and are migrated.
-    static constexpr int32 CurrentVersion = 4; // C7 (M27): M28-M35 fields; older saves start a new game
+    static constexpr int32 CurrentVersion = 5; // M36-M38 (M27): owner, rent, campaigns per store; older saves start a new game
     UPROPERTY() int32 Version = CurrentVersion;
     UPROPERTY() int32 Day = 1;
     UPROPERTY() int64 Cash = 35000;
@@ -954,16 +968,16 @@ struct FMarketState
     UPROPERTY() uint8 FreshPolicy = 1;         // 0 nothing, 1 last-day markdown, 2 donate the last day
     UPROPERTY() int32 LastWasteUnits = 0;
     UPROPERTY() int64 LastWasteCost = 0;
-    // Credit book (MarketCredit.h).
-    UPROPERTY() TArray<FMarketCreditAccount> Credit;
-    UPROPERTY() int64 CreditLimit = 0;          // per neighbour, kurus (0 = no credit)
     // Bank and the money trouble ladder (MarketFinance.h).
     UPROPERTY() TArray<FMarketLoan> Loans;
     UPROPERTY() int32 NegativeCashDays = 0;
     UPROPERTY() int32 Rescues = 0;          // M31: the bank's rescue plans so far (MarketFinance::Rescue)
     UPROPERTY() int32 RescueUntil = 0;      // C7: under the bank's plan until this day (no new loans or branches)
-    // The family lives from the shop: money taken home this month (MarketFinance, not a business cost).
-    UPROPERTY() int64 MonthHousehold = 0;
+    UPROPERTY() FMarketOwner Owner;         // M37: our salary and personal wealth (MarketOwner)
+    UPROPERTY() int32 PromoStore = -1;      // M38: where the player's next campaign runs (family shop / all stores)
+    UPROPERTY() int64 StartDebt = 30000;    // M37: the father's debt at the start (the goal bar)
+    // M36: the family shop's rent paid to the parents this month (MarketFinance).
+    UPROPERTY() int64 MonthRent = 0;
     UPROPERTY() int32 TroubleStage = 0;
     // Branches (MarketBranches.h). bSecondStore stays true while at least one branch exists (older code and saves).
     UPROPERTY() TArray<FMarketBranch> Branches;

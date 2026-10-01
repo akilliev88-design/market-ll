@@ -231,33 +231,6 @@ bool FMarketBalanceMarkdownTest::RunTest(const FString& Parameters)
     return true;
 }
 
-IMPLEMENT_SIMPLE_AUTOMATION_TEST(FMarketBalanceMortgageTest, "MirasMarket.Balance.Mortgage", EAutomationTestFlags::EditorContext | EAutomationTestFlags::EngineFilter)
-bool FMarketBalanceMortgageTest::RunTest(const FString& Parameters)
-{
-    // #43: the mortgage after a month in the red is no reward: what is needed, a risk premium, a fee.
-    using namespace MarketBalanceTest;
-    const TArray<FMarketProduct> Products = Catalog();
-    FMarketState S; S.Initialize(Products); S.Cash = -20000;
-    const double Level = MarketPrices::ListLevel(S.Day);
-    TestEqual(TEXT("Small hole: the smallest mortgage"), MarketFinance::MortgageAmount(S), FMath::RoundToInt64(MarketFinance::MortgageMin * Level) / 100 * 100);
-    S.Cash = -100000;
-    TestEqual(TEXT("1.5 x the hole"), MarketFinance::MortgageAmount(S), int64(150000));
-    S.Cash = -10000000;
-    TestEqual(TEXT("Capped"), MarketFinance::MortgageAmount(S), FMath::RoundToInt64(MarketFinance::MortgageMax * Level) / 100 * 100);
-
-    S.Cash = -100000;
-    FMarketDecision D; D.Id = TEXT("finance.mortgage"); D.Arg = static_cast<int32>(MarketFinance::MortgageAmount(S));
-    FString Message;
-    const int64 Before = S.Cash;
-    TestTrue(TEXT("Take it"), MarketFinance::Resolve(S, Products, D, 0, Message));
-    const int64 Fee = FMath::RoundToInt64(D.Arg * static_cast<double>(MarketFinance::MortgageFee));
-    TestEqual(TEXT("Cash in minus the fee"), S.Cash - Before, int64(D.Arg) - Fee);
-    TestEqual(TEXT("The fee is a cost"), S.PendingLoss, Fee);
-    TestTrue(TEXT("Dearer than an ordinary loan"), S.Loans.Num() == 1 && S.Loans[0].bMortgage
-        && FMath::IsNearlyEqual(S.Loans[0].MonthlyRate, static_cast<float>((MarketPrices::LoanRate(S.Day) + MarketFinance::MortgageRateBonus) / 12.0), 1e-6f));
-    return true;
-}
-
 IMPLEMENT_SIMPLE_AUTOMATION_TEST(FMarketBalanceNationalShareTest, "MirasMarket.Balance.NationalShareByRevenue", EAutomationTestFlags::EditorContext | EAutomationTestFlags::EngineFilter)
 bool FMarketBalanceNationalShareTest::RunTest(const FString& Parameters)
 {

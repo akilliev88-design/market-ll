@@ -137,7 +137,7 @@ int64 FMarketState::DailyPayroll() const
 
 void FMarketState::CloseDay()
 {
-    // Rent-free family shop: electricity, water, bags and upkeep follow the monthly price list (MarketPrices);
+    // The family shop (its rent to the parents: MarketFinance, M36): electricity, water, bags and upkeep follow the monthly price list (MarketPrices);
     // fridges work harder in summer and the shop is heated in winter.
     const MarketCalendar::ESeason Season = MarketCalendar::SeasonOf(MarketCalendar::DateOf(Day).Month);
     const double Utilities = Season == MarketCalendar::ESeason::Summer ? 1.15 : Season == MarketCalendar::ESeason::Winter ? 1.10 : 1.0;
@@ -186,6 +186,7 @@ void FMarketState::CloseDay()
             Item.Received += Item.Incoming - Missing - Damaged;
             Item.Incoming = 0;
         }
+        Item.IdleDays = Item.Today.Sold == 0 && Item.Shelf + Item.Warehouse > 0 ? Item.IdleDays + 1 : 0; // M38
         Item.Yesterday = Item.Today;
         Item.Today = FMarketDemandStats();
     }

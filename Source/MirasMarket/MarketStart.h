@@ -3,14 +3,14 @@
 #include "CoreMinimal.h"
 #include "MarketEconomy.h"
 
-// A new campaign (G-084, karar L02-L03): the player picks a country and a city; the shop was left by a relative
-// (not the father): a small market with one cashier and two shelf stockers, its own debt to the wholesaler and
-// shelves in order but not full. Independent of the world, tested (MirasMarket.Start.*).
+// A new campaign (G-084, karar L02-L03; M36): the player picks a country and a city; father and mother retire and
+// leave their market to us (the building stays theirs: the shop pays them rent like any other shop): one cashier
+// and two shelf stockers, the father's debt to the wholesaler and shelves in order but not full. Independent of the world, tested (MirasMarket.Start.*).
 namespace MarketStart
 {
     enum class ECase : uint8 { Plain = 0, Genitive, Ablative, With, Mine };
-    // Days of the starting staff's wages found in the till (Claude's balance proposal next to karar L03).
-    constexpr int32 StartWageDays = 7;
+    // M37: the father's debt in months of the shop's fixed costs (the till holds one month).
+    constexpr double StartDebtMonths = 1.5;
 
     // Seeds the campaign: country, city, the relative, the starting staff and the debt. Call after
     // FMarketState::Initialize. Days of the prototype stay as they are (day 1 = the first morning).
@@ -18,8 +18,8 @@ namespace MarketStart
     // After the shelf capacities are known (ApplyShelfCapacities): 40-75 % of every shelf from the warehouse,
     // seeded. Returns the units moved.
     int32 StockShelvesPartly(FMarketState& State, int32 Seed);
-    // The relative who left the shop, in Turkish with the possessive ("teyzen", "teyzenin", "teyzenden",
-    // "teyzenle"; Mine = "teyzemin", as the player says it). Older saves: the father ("baban"...). bCapital: first letter upper case.
+    // The father who left us the shop (M36), in Turkish with the possessive ("baban", "baban\u0131n", "babandan",
+    // "babanla"; Mine = "babam\u0131n", as the player says it). bCapital: first letter upper case.
     FString Relative(const FMarketState& State, ECase Case, bool bCapital = false);
     // There is no default start province (Mustafa, 29.09.2026): the player picks one. This is only the fallback
     // for older saves (no province yet) and automated runs: the pack's reference province (Turkey: Kirklareli,

@@ -16,7 +16,6 @@
 #include "MarketOnline.h"
 #include "MarketPayments.h"
 #include "MarketSimulation.h"
-#include "MarketCredit.h"
 #include "MarketFreshness.h"
 #include "MarketBranches.h"
 #include "MarketCompany.h"
@@ -880,6 +879,9 @@ TSharedRef<SWidget> SMarketMenu::TopBar()
                 SNew(SHorizontalBox)
                 + SHorizontalBox::Slot().AutoWidth().Padding(0.f, 0.f, 22.f, 0.f)
                 [ Column(TEXT("Kasa"), [G] { return G() ? MarketMenuUi::Tl(G()->State.Cash) : FString(); }, [G] { return G() && G()->State.Cash < 0 ? ERole::Bad : ERole::Text; }) ]
+                // M37: our own money next to the company's till (not the company's money).
+                + SHorizontalBox::Slot().AutoWidth().Padding(0.f, 0.f, 22.f, 0.f)
+                [ Column(TEXT("Servet"), [G] { return G() ? MarketMenuUi::Tl(G()->State.Owner.Wealth) : FString(); }, [] { return ERole::Text; }) ]
                 + SHorizontalBox::Slot().AutoWidth().Padding(0.f, 0.f, 22.f, 0.f)
                 [ Column(TEXT("D\u00fcn"), [G]
                 {
@@ -1116,9 +1118,9 @@ TSharedRef<SWidget> SMarketMenu::DecisionsLayer()
             [G] { return G() && !MarketCampaign::DebtOpen(G()->State) ? ERole::Good : ERole::Warn; }, true) ]
         + SVerticalBox::Slot().AutoHeight()[ Bar([G] { return G() ? MarketCampaign::DebtProgress(G()->State) : 0.f; }, ERole::Accent) ]
         + SVerticalBox::Slot().AutoHeight().Padding(0.f, 6.f, 0.f, 10.f)
-        [ More([] { return FString::Printf(TEXT("Toptanc\u0131ya %s bor\u00e7 \u00b7 s\u00fcre yok \u00b7 kapanmadan \u015fube a\u00e7\u0131lmaz"), *MarketMenuUi::Tl(MarketCampaign::StartingDebt)); }) ]
+        [ More([G] { return FString::Printf(TEXT("Baban\u0131n toptanc\u0131ya %s borcu \u00b7 s\u00fcre yok \u00b7 kapanmadan \u015fube a\u00e7\u0131lmaz"), *MarketMenuUi::Tl(G() ? G()->State.StartDebt : MarketCampaign::StartingDebt)); }) ]
         + SVerticalBox::Slot().AutoHeight().HAlign(HAlign_Left)
-        [ Button([] { return FString::Printf(TEXT("%s \u00f6de"), *MarketMenuUi::Tl(MarketCampaign::Installment)); }, [this] { Do(TEXT("PayDebt")); }, true,
+        [ Button([G] { return FString::Printf(TEXT("%s \u00f6de"), *MarketMenuUi::Tl(G() ? MarketCampaign::InstallmentOf(G()->State) : MarketCampaign::Installment)); }, [this] { Do(TEXT("PayDebt")); }, true,
             [G] { return G() && MarketCampaign::DebtOpen(G()->State) && G()->State.Cash > 0; }) ]);
     TSharedRef<SWidget> FirstBranch = SNew(SBox)
         .Visibility_Lambda([G] { return G() && MarketBranches::OpenCount(G()->State) == 0 ? EVisibility::Visible : EVisibility::Collapsed; })
@@ -1454,7 +1456,14 @@ TSharedRef<SWidget> SMarketMenu::RecordsView()
     + SScrollBox::Slot()
     [
         SNew(SVerticalBox)
+        // C7 (A menu comparison): before the first closed day one line instead of two empty cards.
         + SVerticalBox::Slot().AutoHeight()
+        [
+            SNew(SBox).Visibility_Lambda([G] { return G() && G()->State.Day <= 1 ? EVisibility::Visible : EVisibility::Collapsed; })
+            [ Label([] { return FString(TEXT("\u0130lk g\u00fcn\u00fc kapat\u0131nca rekorlar ve kutlamalar burada birikir.")); }, 13, ERole::Muted, true) ]
+        ]
+        + SVerticalBox::Slot().AutoHeight()
+        [ SNew(SBox).Visibility_Lambda([G] { return G() && G()->State.Day > 1 ? EVisibility::Visible : EVisibility::Collapsed; })
         [ Card(SNew(SVerticalBox)
             + SVerticalBox::Slot().AutoHeight()[ Section(TEXT("REKORLAR")) ]
             + SVerticalBox::Slot().AutoHeight().Padding(0.f, 6.f, 0.f, 0.f)
@@ -1464,8 +1473,9 @@ TSharedRef<SWidget> SMarketMenu::RecordsView()
                 TArray<FString> Lines;
                 for (const MarketGoals::FRecordView& R : MarketGoals::Records(G()->State)) Lines.Add(FString::Printf(TEXT("%s: %s"), *R.Name, *R.Value));
                 return Lines.Num() > 0 ? FString::Join(Lines, TEXT("\n")) : FString(TEXT("Hen\u00fcz rekor yok: ilk iki haftadan sonra say\u0131l\u0131r."));
-            }, 11, ERole::Text, false, true) ]) ]
+            }, 11, ERole::Text, false, true) ]) ] ]
         + SVerticalBox::Slot().AutoHeight().Padding(0.f, 12.f, 0.f, 0.f)
+        [ SNew(SBox).Visibility_Lambda([G] { return G() && G()->State.Day > 1 ? EVisibility::Visible : EVisibility::Collapsed; })
         [ Card(SNew(SVerticalBox)
             + SVerticalBox::Slot().AutoHeight()[ Section(TEXT("KUTLAMALAR")) ]
             + SVerticalBox::Slot().AutoHeight().Padding(0.f, 6.f, 0.f, 0.f)
@@ -1476,7 +1486,7 @@ TSharedRef<SWidget> SMarketMenu::RecordsView()
                 for (const FMarketCelebration& C : MarketGoals::RecentCelebrations(G()->State, 10))
                     Lines.Add(FString::Printf(TEXT("%s \u00b7 %s: %s"), *MarketCalendar::DateText(C.Day), *C.Title, *C.Text));
                 return Lines.Num() > 0 ? FString::Join(Lines, TEXT("\n")) : FString(TEXT("Hen\u00fcz kutlama yok."));
-            }, 10, ERole::Text, false, true) ]) ]
+            }, 10, ERole::Text, false, true) ]) ] ]
     ];
 }
 
@@ -1690,14 +1700,15 @@ TSharedRef<SWidget> SMarketMenu::DayReport()
             SNew(SHorizontalBox)
             .Visibility_Lambda([G] { return G() && G()->State.Day > 1 ? EVisibility::Visible : EVisibility::Collapsed; })
             + SHorizontalBox::Slot().FillWidth(1.f).Padding(0.f, 0.f, 12.f, 0.f)
-            [ Stat(TEXT("NET SONU\u00c7"), [G] { return G() ? MarketMenuUi::Tl(G()->State.LastProfit) : FString(); },
+            // C7 (A menu comparison): the net covers the whole network, revenue and goods only the family shop.
+            [ Stat(TEXT("NET SONU\u00c7 \u00b7 A\u011e DAH\u0130L"), [G] { return G() ? MarketMenuUi::Tl(G()->State.LastProfit) : FString(); },
                    [G] { return G() ? FString::Printf(TEXT("%d k\u00e2rl\u0131 g\u00fcn"), G()->State.ProfitableDays) : FString(); },
                    [G] { return G() && G()->State.LastProfit < 0 ? ERole::Bad : ERole::Good; }) ]
             + SHorizontalBox::Slot().FillWidth(1.f).Padding(0.f, 0.f, 12.f, 0.f)
-            [ Stat(TEXT("C\u0130RO"), [G] { return G() ? MarketMenuUi::Tl(G()->State.LastRevenue) : FString(); },
+            [ Stat(TEXT("C\u0130RO \u00b7 A\u0130LE D\u00dcKK\u00c2NI"), [G] { return G() ? MarketMenuUi::Tl(G()->State.LastRevenue) : FString(); },
                    [G] { return G() ? FString::Printf(TEXT("%d sat\u0131\u015f \u00b7 %d kay\u0131p"), G()->State.LastServed, G()->State.LastLost) : FString(); }) ]
             + SHorizontalBox::Slot().FillWidth(1.f).Padding(0.f, 0.f, 12.f, 0.f)
-            [ Stat(TEXT("MAL MAL\u0130YET\u0130"), [G] { return G() ? MarketMenuUi::Tl(G()->State.LastCostOfGoods) : FString(); }, [] { return FString(TEXT("sat\u0131lan \u00fcr\u00fcnlerin al\u0131\u015f\u0131")); }) ]
+            [ Stat(TEXT("MAL MAL\u0130YET\u0130 \u00b7 A\u0130LE"), [G] { return G() ? MarketMenuUi::Tl(G()->State.LastCostOfGoods) : FString(); }, [] { return FString(TEXT("sat\u0131lan \u00fcr\u00fcnlerin al\u0131\u015f\u0131")); }) ]
             + SHorizontalBox::Slot().FillWidth(1.f)
             [ Stat(TEXT("G\u0130DER"), [G] { return G() ? MarketMenuUi::Tl(G()->State.LastOperatingCost) : FString(); },
                    [G] { return G() && (G()->State.bSecondStore || MarketBranches::OpenCount(G()->State) > 0) ? FString::Printf(TEXT("\u015fubeler %s"), *MarketMenuUi::Tl(G()->State.LastBranchProfit)) : FString(TEXT("kira, elektrik, maa\u015f")); }) ]
@@ -1777,7 +1788,7 @@ TSharedRef<SWidget> SMarketMenu::WeekReport()
             SNew(SVerticalBox)
             + SVerticalBox::Slot().AutoHeight().HAlign(HAlign_Center)
             [ Label([DayAt, Slot] { FMarketDayRecord R; return DayAt(Slot, R) ? MarketCatalog::Money(R.Profit) : FString(); }, 9, ERole::Muted) ]
-            + SVerticalBox::Slot().AutoHeight().Padding(0.f, 4.f)
+            + SVerticalBox::Slot().AutoHeight().Padding(0.f, 4.f, 0.f, 0.f)
             [
                 SNew(SBox).HeightOverride(150.f).VAlign(VAlign_Bottom)
                 [
@@ -1789,6 +1800,9 @@ TSharedRef<SWidget> SMarketMenu::WeekReport()
                     ]
                 ]
             ]
+            // C7 (A menu comparison): the zero line under the bars (red bars are losses, drawn by size).
+            + SVerticalBox::Slot().AutoHeight().Padding(0.f, 0.f, 0.f, 4.f)
+            [ SNew(SBox).HeightOverride(2.f)[ SNew(SBorder).BorderImage(&FlatBrush).BorderBackgroundColor(Col(ERole::Line)) ] ]
             + SVerticalBox::Slot().AutoHeight().HAlign(HAlign_Center)
             [ Label([DayAt, Slot] { FMarketDayRecord R; return DayAt(Slot, R) ? FString::Printf(TEXT("%d. g\u00fcn"), R.Day) : FString(TEXT("\u2014")); }, 10, ERole::Text, true) ]
         ];

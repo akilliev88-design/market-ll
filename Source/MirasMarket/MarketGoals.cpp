@@ -320,7 +320,7 @@ namespace MarketGoals
         case EGoal::MonthProfit: return TEXT("\u0130stikrarl\u0131 ay k\u00e2r\u0131 bankan\u0131n ve toptanc\u0131n\u0131n g\u00fcvenini getirir.");
         case EGoal::LocalShare: return TEXT("Mahallede b\u00fcy\u00fck pay, rakibin fiyat sava\u015f\u0131n\u0131 bo\u015fa \u00e7\u0131kar\u0131r.");
         case EGoal::FirstDepot: return TEXT("Depo uzak ma\u011fazalar\u0131n mal\u0131n\u0131 ucuzlat\u0131r.");
-        case EGoal::DebtFree: return TEXT("Bor\u00e7 bitince aileden kalan d\u00fckk\u00e2n ger\u00e7ekten senin olur.");
+        case EGoal::DebtFree: return TEXT("Baban\u0131n borcu kapan\u0131nca d\u00fckk\u00e2n ger\u00e7ekten senin elinde olur.");
         case EGoal::Chapter:
         {
             int32 Done = 0, Total = 0;
@@ -411,7 +411,7 @@ namespace MarketGoals
         { EFirst::Stores10, TEXT("10 ma\u011faza!"), TEXT("On ma\u011fazayla toptanc\u0131lar seni ciddiye al\u0131yor."), 1 },
         { EFirst::Stores25, TEXT("25 ma\u011faza!"), TEXT("Yirmi be\u015f ma\u011fazayla b\u00f6lgenin tan\u0131nan zincirlerindensin."), 1 },
         { EFirst::Stores50, TEXT("50 ma\u011faza!"), TEXT("Elli ma\u011faza: \u00fclke \u00e7ap\u0131nda konu\u015fulan bir isimsin."), 2 },
-        { EFirst::Stores100, TEXT("100 ma\u011faza!"), TEXT("Y\u00fcz\u00fcnc\u00fc tabela as\u0131ld\u0131; aileden kalan d\u00fckk\u00e2n bir zincirin ilk halkas\u0131 oldu."), 2 },
+        { EFirst::Stores100, TEXT("100 ma\u011faza!"), TEXT("Y\u00fcz\u00fcnc\u00fc tabela as\u0131ld\u0131; babandan devrald\u0131\u011f\u0131n d\u00fckk\u00e2n bir zincirin ilk halkas\u0131 oldu."), 2 },
         { EFirst::Stores250, TEXT("250 ma\u011faza!"), TEXT("\u0130ki y\u00fcz elli ma\u011fazayla b\u00fcy\u00fck zincirlerin aras\u0131ndas\u0131n."), 2 },
         { EFirst::Stores500, TEXT("500 ma\u011faza!"), TEXT("Be\u015f y\u00fcz ma\u011faza: \u00fclkenin her yerinde bir Miras tabelas\u0131 var."), 2 },
         { EFirst::Stores1000, TEXT("1000 ma\u011faza!"), TEXT("Bininci ma\u011faza a\u00e7\u0131ld\u0131; d\u00fcnya ligi seni g\u00f6r\u00fcyor."), 2 },

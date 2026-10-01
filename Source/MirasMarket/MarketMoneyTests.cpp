@@ -1,6 +1,5 @@
 #include "MarketCast.h"
 #include "MarketFreshness.h"
-#include "MarketCredit.h"
 #include "MarketFinance.h"
 #include "MarketEvents.h"
 #include "MarketSuppliers.h"
@@ -65,39 +64,6 @@ bool FMarketFreshnessTest::RunTest(const FString& Parameters)
     TestTrue(TEXT("Donate policy"), SetPolicy(D, EPolicy::Donate, Message));
     for (int32 Day = 0; Day < 7; ++Day) { D.DayNews.Reset(); D.CloseDay(); MarketFreshness::CloseDay(D, Products); }
     TestTrue(TEXT("Milk donated"), D.Stock[0].Warehouse == 0 && D.Loyalty[0].Satisfaction > 50.f);
-    return true;
-}
-
-IMPLEMENT_SIMPLE_AUTOMATION_TEST(FMarketCreditTest, "MirasMarket.Credit.Book", EAutomationTestFlags::EditorContext | EAutomationTestFlags::EngineFilter)
-bool FMarketCreditTest::RunTest(const FString& Parameters)
-{
-    using namespace MarketCredit;
-    using namespace MarketMoneyTest;
-    const TArray<FMarketProduct> Products = Catalog();
-    FMarketState S; S.Initialize(Products); S.Cash = 100000; S.RivalSeed = 6;
-    for (int32 Id = 1; Id <= 10; ++Id) { FMarketLoyalty L; L.CustomerId = Id; L.Visits = 5; L.Satisfaction = 70.f; S.Loyalty.Add(L); }
-    FMarketLoyalty Stranger; Stranger.CustomerId = 20; Stranger.Visits = 1; S.Loyalty.Add(Stranger);
-
-    TestTrue(TEXT("Strangers pay cash"), OnCheckout(S, 20, 1000, 0.f).IsEmpty());
-    TestTrue(TEXT("No credit book: refused"), !OnCheckout(S, 1, 1000, 0.f).IsEmpty() && S.Cash == 100000 && S.Loyalty[0].Satisfaction < 70.f);
-    FString Message;
-    TestTrue(TEXT("Open the book at 50 TL"), SetLimit(S, 2, Message));
-    TestTrue(TEXT("Most pay cash anyway"), OnCheckout(S, 2, 1000, 0.9f).IsEmpty());
-    TestFalse(TEXT("Written in the book"), OnCheckout(S, 2, 1000, 0.f).IsEmpty());
-    TestTrue(TEXT("The money waits"), S.Cash == 99000 && Outstanding(S) == 1000);
-    OnCheckout(S, 2, 6000, 0.f);
-    TestEqual(TEXT("Over the limit: refused"), Outstanding(S), int64(1000));
-    for (int32 Id = 3; Id <= 10; ++Id) OnCheckout(S, Id, 3000, 0.f);
-    const int64 Owed = Outstanding(S);
-    TestEqual(TEXT("Nine pages"), S.Credit.Num(), 9);
-
-    // Paydays bring most of it back; old unpaid pages may be lost; the book empties in time.
-    S.Day = MarketCalendar::GameDayOf(2011, 4, 15) + 1;
-    const int64 Cash = S.Cash;
-    S.DayNews.Reset(); CloseDay(S);
-    TestTrue(TEXT("Payday collection"), S.Cash > Cash && Outstanding(S) < Owed);
-    for (int32 Day = 0; Day < 120 && Outstanding(S) > 0; ++Day) { ++S.Day; CloseDay(S); }
-    TestEqual(TEXT("Paid or lost within four months"), Outstanding(S), int64(0));
     return true;
 }
 

@@ -1,3 +1,4 @@
+#include "MarketOwner.h"
 #include "MarketStart.h"
 #include "MarketCountry.h"
 #include "MarketStaff.h"
@@ -33,12 +34,12 @@ bool FMarketStartTest::RunTest(const FString& Parameters)
     TestEqual(TEXT("Old save: father"), Relative(Old, ECase::Plain), FString(TEXT("baban")));
     TestEqual(TEXT("Old save: mine"), Relative(Old, ECase::Mine), FString(TEXT("babam\u0131n")));
 
-    // A new shop: a relative who is not the father, one cashier and two stockers, a week of wages in the till.
+    // A new shop (M36): the father's, one cashier and two stockers, a week of wages in the till.
     FMarketState S; S.Initialize(Products);
     const int64 CashBefore = S.Cash;
     Setup(S, TEXT("tr"), FString(), 4242);
     TestTrue(TEXT("A known relative"), RelativeKeys().Contains(S.RelativeKey));
-    TestNotEqual(TEXT("Not the father"), S.RelativeKey, FString(TEXT("baba")));
+    TestEqual(TEXT("Our own father"), S.RelativeKey, FString(TEXT("baba")));
     TestEqual(TEXT("Three people"), S.Staff.Num(), 3);
     TestEqual(TEXT("One cashier"), MarketStaff::Count(S, MarketStaff::ERole::Cashier), 1);
     TestEqual(TEXT("Two stockers"), MarketStaff::Count(S, MarketStaff::ERole::Stocker), 2);
@@ -47,8 +48,10 @@ bool FMarketStartTest::RunTest(const FString& Parameters)
     int64 Payroll = 0;
     for (const FMarketEmployee& E : S.Staff) Payroll += E.DailyWage;
     TestTrue(TEXT("Wages are paid"), Payroll > 0);
-    TestEqual(TEXT("A week of wages in the till"), S.Cash, CashBefore + Payroll * StartWageDays);
-    TestTrue(TEXT("The shop's own debt"), S.InheritedDebt > 0);
+    // M37: a month of the shop's fixed costs in the till, the father's debt a month and a half.
+    TestTrue(TEXT("A month of costs in the till"), S.Cash > 30 * Payroll && S.Cash != CashBefore);
+    TestTrue(TEXT("The father's debt"), S.InheritedDebt == S.StartDebt && S.InheritedDebt > S.Cash);
+    TestEqual(TEXT("Our salary"), S.Owner.SalaryX10, MarketOwner::StartSalaryX10);
     TestEqual(TEXT("Seed kept"), S.RivalSeed, 4242);
     TestEqual(TEXT("Country"), S.CountryId, FString(TEXT("tr")));
     // No default province for players; automated runs and older saves fall back to the reference province.
@@ -83,10 +86,10 @@ bool FMarketStartTest::RunTest(const FString& Parameters)
     Setup(Lost, TEXT("atlantis"), TEXT("x"), 1);
     TestEqual(TEXT("Unknown country falls back"), Lost.CountryId, FString(TEXT("tr")));
 
-    // Texts: no father in a new campaign.
+    // Texts (M36): the parents retired and left us the shop.
     const FString Intro = IntroText(S);
-    TestTrue(TEXT("Intro names the shop"), Intro.Contains(TEXT("kalan market")));
-    TestFalse(TEXT("Intro has no father"), Intro.Contains(TEXT("Baban")));
+    TestTrue(TEXT("Intro: parents retired"), Intro.Contains(TEXT("emekli")));
+    TestTrue(TEXT("Intro names the father"), Intro.Contains(TEXT("baban")));
     TestTrue(TEXT("Capital first letter"), FChar::IsUpper(Relative(S, ECase::Ablative, true)[0]));
     TestTrue(TEXT("Place text"), PlaceText(S).Contains(TEXT("T\u00fcrkiye")));
 

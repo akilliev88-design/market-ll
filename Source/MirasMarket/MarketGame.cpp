@@ -206,7 +206,7 @@ void AMarketGameMode::BeginPlay()
         // Smoke / capture runs keep the prototype's empty shop and never wait for a choice.
         StartShop();
         SyncWorkers();
-        Notify(FString(TEXT("Aileden kalan market art\u0131k senin. Raflara yakla\u015f: E. Sonra O ile a\u00e7.")));
+        Notify(FString(TEXT("Annenle baban emekli oldu; market art\u0131k senin elinde. Raflara yakla\u015f: E. Sonra O ile a\u00e7.")));
     }
     else bNeedStart = true; // G-086: no save yet; the new-game screen (country and province) opens in Tick
     UE_LOG(LogTemp, Display, TEXT("MirasMarket ready: %d products, %d fixtures, starting cash %lld kurus."), Products.Num(), Planogram.Fixtures.Num(), State.Cash);
@@ -1346,7 +1346,7 @@ void AMarketGameMode::Checkout()
     int32 Units = 0;
     if (State.SellBasket(Lines, Products, &Receipt, &Units))
     {
-        const FString Credit = MarketDirector::OnCheckout(State, C.CustomerId, Receipt, Random.FRand(), Method); // veresiye (G-067), payment (G-069)
+        const FString Credit = MarketDirector::OnCheckout(State, C.CustomerId, Receipt, Random.FRand(), Method); // payment (G-069); M36: no credit book
         Notify(FString::Printf(TEXT("Sepet satildi: %d farkli urun, %d adet  +%s%s"), Lines.Num(), Units, *Money(Receipt), C.bReturning ? TEXT("  \u00b7  sadik musteri") : TEXT(""))
             + (Credit.IsEmpty() ? FString() : TEXT("\n") + Credit));
     }

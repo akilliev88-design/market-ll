@@ -116,7 +116,7 @@ namespace MarketLedger
         Interest,
         Penalties,        // late fees and tax penalties
         Tax,              // VAT and income tax as declared (no cash: TaxPayment pays it)
-        BadDebt,          // credit book money that is gone
+        BadDebt,          // credit book money that is gone (M36: no credit book any more; kept for the order)
         BranchResult,     // a branch's net day when it is not booked line by line (the v0.1 second store)
         // B7: C's new systems (departments, brands, sourcing). Income:
         DepartmentSales,  // a department's till (Store = the store it is in)
@@ -137,9 +137,9 @@ namespace MarketLedger
         Investment,       // deposits, fit-outs, depots, trucks, brands (-)
         Divestment,       // deposits back, goods or assets sold (+)
         CardTransfer,     // card receipts leave the till (-) and come from the bank the next day (+)
-        CreditBook,       // sold on the credit book (-), collected (+)
+        CreditBook,       // sold on the credit book (-), collected (+) (M36: unused)
         TaxPayment,
-        OwnerDraw,        // the family's living money
+        OwnerDraw,        // M37: dividends paid to us (the owner)
         InheritedDebt,    // paying the father's debt
         Capital,          // money put in (start help, a buyer's payment)
         DepartmentPurchases, // goods bought for a department (they become its stock)
@@ -203,7 +203,6 @@ namespace MarketLedger
         int64 Stock = 0;                 // family shop: shelf, depot, rear door, on the way (book cost)
         int64 BranchStock = 0;           // branches' goods (today's cost)
         int64 CardReceivable = 0;        // card money the bank still owes
-        int64 CreditReceivable = 0;      // the credit book
         int64 Deposits = 0;              // rent deposits of open branches
         int64 DepartmentStock = 0;       // B7: departments' goods (book cost; C3 fills it, see B.md)
         // Liabilities
@@ -211,7 +210,7 @@ namespace MarketLedger
         int64 Loans = 0;
         int64 TaxDue = 0;
         int64 InheritedDebt = 0;
-        int64 Assets() const { return Cash + Stock + BranchStock + DepartmentStock + CardReceivable + CreditReceivable + Deposits; }
+        int64 Assets() const { return Cash + Stock + BranchStock + DepartmentStock + CardReceivable + Deposits; }
         int64 Liabilities() const { return Payables + Loans + TaxDue + InheritedDebt; }
         int64 Equity() const { return Assets() - Liabilities(); }
     };

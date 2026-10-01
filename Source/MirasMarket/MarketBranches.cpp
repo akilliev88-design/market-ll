@@ -21,6 +21,7 @@
 #include "MarketSourcing.h"
 #include "MarketDepartments.h"
 #include "MarketSuppliers.h"
+#include "MarketPromotions.h"
 
 namespace MarketBranches
 {
@@ -452,7 +453,7 @@ bool MarketBranches::Promote(FMarketState& State, int32 EmployeeId, int32 Branch
     B.ManagerHonesty = E->Honesty;
     B.ManagerWage = E->DailyWage * 14 / 10;
     MarketManagers::InitStoreManager(State, B, BranchIndex); // G-086b
-    OutMessage = FString::Printf(TEXT("%s art\u0131k %s m\u00fcd\u00fcr\u00fc (g\u00fcnl\u00fck %s)."), *E->Name, *B.Name, *BranchTl(B.ManagerWage));
+    OutMessage = FString::Printf(TEXT("%s art\u0131k %s m\u00fcd\u00fcr\u00fc (ayda %s)."), *E->Name, *B.Name, *BranchTl(B.ManagerWage * 30));
     State.Staff.RemoveAll([EmployeeId](const FMarketEmployee& X) { return X.Id == EmployeeId; });
     MarketStaff::SyncCounts(State);
     return true;
@@ -617,9 +618,13 @@ void MarketBranches::CloseDay(FMarketState& State, const TArray<FMarketProduct>&
             // G-088 C: dairy and ice cream follow the store's cold room (and spoil more when it is crowded).
             const MarketGoods::EGroup Group = MarketGoods::Classify(Products[I].Category);
             const bool bFresh = Group == MarketGoods::EGroup::Dairy || Group == MarketGoods::EGroup::IceCream;
-            // M33: a week's clearance makes a slow item move (and earns less on each).
-            const float Cut = Item->MarkdownUntil >= Closed ? Item->Markdown / 100.f : 0.f;
-            const int32 Want = FMath::RoundToInt32(Shoppers * UnitsPerShopper * WishToday[I] * Where.Income * (bFresh ? FreshDemand : 1.f) * (1.f + 2.5f * Cut));
+            // M33: a week's clearance makes a slow item move (and earns less on each). M38: the store's campaigns (the
+            // player's, the company's in every store) work the same way; a multi-buy or a gondola head adds wish.
+            float PromoCut = 0.f, PromoPull = 1.f;
+            MarketPromotions::StoreEffect(State, Products, Index, I, Closed, PromoCut, PromoPull);
+            const float Cut = FMath::Max(Item->MarkdownUntil >= Closed ? Item->Markdown / 100.f : 0.f, PromoCut);
+            const int32 Want = FMath::RoundToInt32(Shoppers * UnitsPerShopper * WishToday[I] * Where.Income * (bFresh ? FreshDemand : 1.f) * (1.f + 2.5f * Cut)
+                * PromoPull * MarketStory::IdentityDemand(State, Group)); // M38: the company's identity
             const int32 Take = Item->Capacity > 0 ? FMath::Min(Want, Item->Units) : 0;
             Item->Units -= Take;
             Item->LastSold = Take;
@@ -746,6 +751,12 @@ FString MarketBranches::Clearance(FMarketState& State, int32 BranchIndex, const 
     const int32 BossSkill = Boss == INDEX_NONE ? 0 : MarketManagers::EffectiveManagerSkill(State, Boss);
     const int32 Wanted = B.ManagerStyle == static_cast<uint8>(MarketManagers::EStyle::PriceMinded) ? 30 : B.ManagerStyle == static_cast<uint8>(MarketManagers::EStyle::Careful) ? 15 : 20;
     int32 Marked = 0, Approved = 0, TakenBack = 0;
+    TArray<FString> Goods;   // C8 (Codex C6): the line names the goods and the cut
+    auto NameOf = [&Products, &State](const FString& Id) -> FString
+    {
+        const FMarketProduct* P = Products.FindByPredicate([&Id](const FMarketProduct& X) { return X.Id == Id; });
+        return P ? (State.bRealBrands ? P->RealName : P->FictionalName) : Id;
+    };
     for (int32 I = 0; I < B.Items.Num() && Marked < 3; ++I)
     {
         FMarketBranchItem& Item = B.Items[I];
@@ -755,6 +766,7 @@ FString MarketBranches::Clearance(FMarketState& State, int32 BranchIndex, const 
         Item.Markdown = static_cast<uint8>(Cut);
         Item.MarkdownUntil = Day + 7;
         Item.IdleDays = 0;
+        Goods.Add(FString::Printf(TEXT("%s %%%d"), *NameOf(Item.ProductId), Cut));
         ++Marked;
     }
     // A mistake: a weak manager marks down an item that sells.
@@ -766,12 +778,11 @@ FString MarketBranches::Clearance(FMarketState& State, int32 BranchIndex, const 
         if (Best != INDEX_NONE && B.Items[Best].LastSold > 0)
         {
             if (Boss != INDEX_NONE && BossSkill >= 50) ++TakenBack;
-            else { B.Items[Best].Markdown = 20; B.Items[Best].MarkdownUntil = Day + 7; ++Marked; }
+            else { B.Items[Best].Markdown = 20; B.Items[Best].MarkdownUntil = Day + 7; Goods.Add(FString::Printf(TEXT("%s %%20"), *NameOf(B.Items[Best].ProductId))); ++Marked; }
         }
     }
-    (void)Products;
     if (Marked == 0 && TakenBack == 0) return FString();
-    FString Line = FString::Printf(TEXT(" Stok eritme: %d \u00fcr\u00fcnde bir haftal\u0131k indirim"), Marked);
+    FString Line = Marked > 0 ? FString::Printf(TEXT(" Stok eritme: bir haftal\u0131k indirim (%s)"), *FString::Join(Goods, TEXT(", "))) : FString(TEXT(" Stok eritme yok"));
     if (Approved > 0) Line += FString::Printf(TEXT(" (%%%d'luk indirimi il m\u00fcd\u00fcr\u00fc %s onaylad\u0131)"), Wanted, *State.Management.Managers[Boss].Name);
     if (TakenBack > 0) Line += FString::Printf(TEXT("; il m\u00fcd\u00fcr\u00fc %s iyi satan bir \u00fcr\u00fcndeki yanl\u0131\u015f indirimi geri ald\u0131"), *State.Management.Managers[Boss].Name);
     return Line + TEXT(".");

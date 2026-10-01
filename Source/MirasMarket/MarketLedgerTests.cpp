@@ -5,7 +5,6 @@
 #include "MarketSuppliers.h"
 #include "MarketFinance.h"
 #include "MarketStaff.h"
-#include "MarketCredit.h"
 #include "MarketCalendar.h"
 #include "MarketBranches.h"
 #include "Misc/AutomationTest.h"
@@ -84,7 +83,7 @@ bool FMarketLedgerPostTest::RunTest(const FString& Parameters)
 IMPLEMENT_SIMPLE_AUTOMATION_TEST(FMarketLedgerAuditTest, "MirasMarket.Ledger.CashAudit", EAutomationTestFlags::EditorContext | EAutomationTestFlags::EngineFilter)
 bool FMarketLedgerAuditTest::RunTest(const FString& Parameters)
 {
-    // The family shop played without walking people (MarketSimulation::PlayDay: till, card, credit book, online,
+    // The family shop played without walking people (MarketSimulation::PlayDay: till, card, online,
     // orders on terms, staff, tax, bank, family money): every cash movement is in the books (C3 wired the
     // wholesaler's terms), so the gap is zero.
     using namespace MarketLedgerTest;
@@ -95,7 +94,6 @@ bool FMarketLedgerAuditTest::RunTest(const FString& Parameters)
     MarketDirector::ApplyPrices(S, Base, Products);
     FString Message;
     TestTrue(TEXT("POS"), MarketDirector::Command(S, Products, TEXT("Card"), 1, Message));
-    TestTrue(TEXT("Credit book"), MarketDirector::Command(S, Products, TEXT("CreditLimit"), 2, Message));
     bool bBooksAgree = true;
     int32 Days = 0;
     for (int32 D = 1; D <= 90; ++D)
@@ -112,7 +110,7 @@ bool FMarketLedgerAuditTest::RunTest(const FString& Parameters)
     TestTrue(TEXT("Sales booked"), All.At(MarketLedger::EAccount::Sales) > 0 && All.At(MarketLedger::EAccount::Purchases) < 0);
     TestTrue(TEXT("Card money moved"), All.At(MarketLedger::EAccount::CardTransfer) != 0 && All.At(MarketLedger::EAccount::BankFees) < 0);
     TestTrue(TEXT("Bank"), All.At(MarketLedger::EAccount::LoanIn) > 0);
-    TestTrue(TEXT("Family money"), All.At(MarketLedger::EAccount::OwnerDraw) < 0);
+    TestTrue(TEXT("Rent to the parents"), All.At(MarketLedger::EAccount::Rent) < 0);
     TestTrue(TEXT("Tax declared"), All.At(MarketLedger::EAccount::Tax) < 0);
     TestTrue(TEXT("Wages"), All.At(MarketLedger::EAccount::Wages) < 0 && All.At(MarketLedger::EAccount::Hiring) < 0);
 
@@ -140,7 +138,6 @@ bool FMarketLedgerBalanceTest::RunTest(const FString& Parameters)
     for (FMarketStock& Row : S.Stock) { Row.Shelf = 0; Row.Warehouse = 0; }
     S.Stock[0].Shelf = 10; S.Stock[0].Warehouse = 5; S.Stock[0].Incoming = 12;
     S.Payments.CardToday = 700; S.Payments.CardTomorrow = 300;
-    FMarketCreditAccount Credit; Credit.CustomerId = 1; Credit.Balance = 900; S.Credit.Add(Credit);
     FMarketPayable Bill; Bill.Amount = 4000; Bill.DueDay = 9; S.Payables.Add(Bill);
     FMarketLoan Loan; Loan.Principal = 50000; Loan.Remaining = 45000; S.Loans.Add(Loan);
     S.Books.TaxDue = 1200;
@@ -155,13 +152,12 @@ bool FMarketLedgerBalanceTest::RunTest(const FString& Parameters)
     TestEqual(TEXT("Branch goods"), B.BranchStock, int64(20 * 180));
     TestEqual(TEXT("Deposit of the open branch only"), B.Deposits, int64(120000));
     TestEqual(TEXT("Card money owed by the bank"), B.CardReceivable, int64(1000));
-    TestEqual(TEXT("Credit book"), B.CreditReceivable, int64(900));
     TestEqual(TEXT("Wholesaler"), B.Payables, int64(4000));
     TestEqual(TEXT("Bank"), B.Loans, int64(45000));
     TestEqual(TEXT("Tax"), B.TaxDue, int64(1200));
     TestEqual(TEXT("Father's debt"), B.InheritedDebt, int64(30000));
     TestEqual(TEXT("Equity = assets - liabilities"), B.Equity(), B.Assets() - B.Liabilities());
-    TestEqual(TEXT("Assets"), B.Assets(), int64(100000 + 27 * 170 + 20 * 180 + 120000 + 1000 + 900));
+    TestEqual(TEXT("Assets"), B.Assets(), int64(100000 + 27 * 170 + 20 * 180 + 120000 + 1000));
     return true;
 }
 

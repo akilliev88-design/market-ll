@@ -7,8 +7,14 @@ int64 MarketCampaign::ExpandCashOn(int32 GameDay)
     return MarketPrices::Scaled(ExpandCash, GameDay);
 }
 
+int64 MarketCampaign::InstallmentOf(const FMarketState& State)
+{
+    return FMath::Max<int64>(Installment, State.StartDebt / 10 / 100 * 100);
+}
+
 int64 MarketCampaign::PayDebt(FMarketState& State, int64 Amount)
 {
+    if (Amount < 0) Amount = InstallmentOf(State);
     const int64 Paid = FMath::Max<int64>(0, FMath::Min3(Amount, State.InheritedDebt, State.Cash));
     if (Paid <= 0) return 0;
     State.Cash -= Paid;
@@ -26,7 +32,7 @@ bool MarketCampaign::DebtOpen(const FMarketState& State)
 
 float MarketCampaign::DebtProgress(const FMarketState& State)
 {
-    return FMath::Clamp(1.f - static_cast<float>(State.InheritedDebt) / static_cast<float>(StartingDebt), 0.f, 1.f);
+    return FMath::Clamp(1.f - static_cast<float>(State.InheritedDebt) / static_cast<float>(FMath::Max<int64>(1, State.StartDebt)), 0.f, 1.f);
 }
 
 MarketCampaign::EExpandBlock MarketCampaign::ExpandBlock(const FMarketState& State)

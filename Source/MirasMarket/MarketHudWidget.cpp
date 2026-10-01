@@ -307,6 +307,9 @@ TSharedRef<SWidget> SMarketHud::StatusBar()
         SNew(SHorizontalBox)
         + SHorizontalBox::Slot().AutoWidth().VAlign(VAlign_Center)
         [ Column(TEXT("Kasa"), [G] { return G() ? MarketHudUi::HudLira(G()->State.Cash) : FString(); }, [G] { return G() && G()->State.Cash < 0 ? ETone::Bad : ETone::Text; }) ]
+        // M37: our own money next to the company's till.
+        + SHorizontalBox::Slot().AutoWidth().VAlign(VAlign_Center).Padding(22.f, 0.f, 0.f, 0.f)
+        [ Column(TEXT("Servet"), [G] { return G() ? MarketHudUi::HudLira(G()->State.Owner.Wealth) : FString(); }, [] { return ETone::Text; }) ]
         + SHorizontalBox::Slot().AutoWidth().VAlign(VAlign_Center).Padding(22.f, 0.f, 0.f, 0.f)
         [ Column(TEXT("Bug\u00fcn"), [G] { return G() ? MarketHudUi::HudLira(G()->State.Revenue) : FString(); }, [] { return ETone::Accent; }) ]
         + SHorizontalBox::Slot().AutoWidth().VAlign(VAlign_Center).Padding(22.f, 0.f, 0.f, 0.f)

@@ -10,7 +10,7 @@
 #include "MarketStory.h"
 #include "MarketGoods.h"
 #include "MarketFreshness.h"
-#include "MarketCredit.h"
+#include "MarketOwner.h"
 #include "MarketFinance.h"
 #include "MarketBranches.h"
 #include "MarketOnline.h"
@@ -114,12 +114,9 @@ float MarketDirector::BudgetFactor(const FMarketState& State, uint8 Segment)
 
 FString MarketDirector::OnCheckout(FMarketState& State, int32 CustomerId, int64 Receipt, float Roll, uint8 Method)
 {
-    // A basket written in the credit book is not paid now; everything else settles by its payment method.
-    const int64 CashBefore = State.Cash;
-    const FString Credit = MarketCredit::OnCheckout(State, CustomerId, Receipt, Roll);
-    if (State.Cash != CashBefore) return Credit;
-    const FString Paid = MarketPayments::Settle(State, static_cast<MarketPayments::EMethod>(FMath::Min<uint8>(Method, 3)), Receipt);
-    return Credit.IsEmpty() ? Paid : Paid.IsEmpty() ? Credit : Credit + TEXT(" ") + Paid;
+    // M36 (Mustafa 02.10.2026): no credit book; every basket settles by its payment method.
+    (void)CustomerId; (void)Roll;
+    return MarketPayments::Settle(State, static_cast<MarketPayments::EMethod>(FMath::Min<uint8>(Method, 3)), Receipt);
 }
 
 int64 MarketDirector::OrderAllowance(const FMarketState& State)
@@ -156,15 +153,17 @@ bool MarketDirector::Command(FMarketState& State, const TArray<FMarketProduct>& 
     if (Action == TEXT("Discount20")) return MarketPromotions::Start(State, Products, EKind::AisleDiscount, Arg, 20, OutMessage);
     if (Action == TEXT("MultiBuy")) return MarketPromotions::Start(State, Products, EKind::MultiBuy, Arg, 0, OutMessage);
     if (Action == TEXT("Endcap")) return MarketPromotions::Start(State, Products, EKind::Endcap, Arg, 0, OutMessage);
-    if (Action == TEXT("Flyer")) return MarketPromotions::Start(State, Products, EKind::Flyer, INDEX_NONE, 0, OutMessage);
     if (Action == TEXT("PromoScoped")) return MarketPromotions::StartScoped(State, Products, Arg, OutMessage); // G-078 (J07)
     if (Action == TEXT("StopPromotion")) return MarketPromotions::Stop(State, Arg, OutMessage);
     if (Action == TEXT("AcceptOffer")) return MarketPromotions::AcceptOffer(State, Products, OutMessage);
     if (Action == TEXT("Decide")) return MarketEvents::Decide(State, Products, Arg, OutMessage);
     if (Action == TEXT("FreshPolicy")) return MarketFreshness::SetPolicy(State, static_cast<MarketFreshness::EPolicy>(FMath::Clamp(Arg, 0, 2)), OutMessage);
-    if (Action == TEXT("CreditLimit")) return MarketCredit::SetLimit(State, Arg, OutMessage);
-    if (Action == TEXT("CollectCredit")) return MarketCredit::CollectAll(State, OutMessage) > 0;
     if (Action == TEXT("TakeLoan")) return MarketFinance::TakeLoan(State, Arg, OutMessage);
+    if (Action == TEXT("PromoStore")) return MarketPromotions::SetStore(State, Arg, OutMessage); // M38: -1 family shop, -1000 all, a branch
+    // M37: our salary (step), a dividend (step 0..2 = 25/50/100 % of what may be paid), personal money into the company.
+    if (Action == TEXT("OwnerSalary")) return MarketOwner::SetSalary(State, Arg, OutMessage);
+    if (Action == TEXT("Dividend")) return MarketOwner::PayDividend(State, Arg, OutMessage);
+    if (Action == TEXT("OwnerCapital")) return MarketOwner::PutCapital(State, Arg, OutMessage);
     if (Action == TEXT("RepayLoan")) return MarketFinance::RepayAll(State, OutMessage);
     if (Action == TEXT("OpenBranch"))
     {
@@ -330,8 +329,12 @@ void MarketDirector::CloseDay(FMarketState& State, const TArray<FMarketProduct>&
     MarketLedger::BeginClose(State, Products); // B2
     MarketEras::CloseDay(State);               // B4: this campaign's eras (price curve, effects, news)
     MarketPromotions::CloseDay(State, Products); // running promotions, results, funded offers (G-064)
+    if (State.Day % 7 == 1) // M38: the family shop's manager clears slow goods once a week, like every store manager
+    {
+        const FString Cleared = MarketPromotions::ManagerClearance(State, Products);
+        if (!Cleared.IsEmpty()) State.DayNews.Add(Cleared);
+    }
     MarketFreshness::CloseDay(State, Products);  // batches, waste, donations (G-067) - before the books
-    MarketCredit::CloseDay(State);               // paydays of the credit book (G-067)
     MarketCompetitors::CloseDay(State, Products, MarketRivals::Aisles(Products)); // shares, rivals' moves, poaching (G-065)
     MarketBranches::CloseDay(State, Products);   // opening steps and the simulated day of every branch (G-068)
     MarketManagers::CloseDay(State);             // managers' wages, morale, weekly marks, the player's span (G-086b)

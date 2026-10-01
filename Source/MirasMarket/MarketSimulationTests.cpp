@@ -81,15 +81,13 @@ bool FMarketSimulationTest::RunTest(const FString& Parameters)
     for (const FMarketStock& Row : S.Stock) Ordered += Row.Dock + Row.Incoming;
     TestTrue(TEXT("The family keeps ordering"), Ordered > 0 || S.LastPurchases > 0 || S.Purchases > 0);
 
-    // The family lives from the shop: full living money from a healthy till, half when tight, none when empty.
+    // M36: the family shop pays the parents a neighbourhood market's rent, whatever the till holds.
     FMarketState Home = S;
     Home.Cash = 1000000;
-    const int64 Full = MarketFinance::HouseholdToday(Home);
-    TestTrue(TEXT("Living money"), Full >= MarketFinance::HouseholdDraw);
-    Home.Cash = Full + 1;
-    TestEqual(TEXT("Tight month"), MarketFinance::HouseholdToday(Home), Full / 2);
+    const int64 Rent = MarketFinance::RentToday(Home);
+    TestTrue(TEXT("Rent like a neighbourhood market"), Rent > 0);
     Home.Cash = 0;
-    TestEqual(TEXT("Empty till"), MarketFinance::HouseholdToday(Home), static_cast<int64>(0));
+    TestEqual(TEXT("Rent does not depend on the till"), MarketFinance::RentToday(Home), Rent);
 
     // A waiting decision stops the advance before any day is played.
     FMarketDecision Decision; Decision.Id = TEXT("event.test"); Decision.Title = TEXT("Test"); Decision.Options = { TEXT("Evet"), TEXT("Hay\u0131r") };

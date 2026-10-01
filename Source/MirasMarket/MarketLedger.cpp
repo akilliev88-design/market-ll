@@ -3,7 +3,6 @@
 #include "MarketBranches.h"
 #include "MarketCalendar.h"
 #include "MarketCountry.h"
-#include "MarketCredit.h"
 #include "MarketDepartments.h"
 #include "MarketBanking.h"
 #include "MarketFinance.h"
@@ -82,7 +81,7 @@ FString MarketLedger::AccountName(EAccount Account)
     case EAccount::CardTransfer: return TEXT("Kart tahsilat\u0131");
     case EAccount::CreditBook: return TEXT("Veresiye");
     case EAccount::TaxPayment: return TEXT("Vergi \u00f6demesi");
-    case EAccount::OwnerDraw: return TEXT("Eve giden para");
+    case EAccount::OwnerDraw: return TEXT("K\u00e2r pay\u0131 (ortak)");
     case EAccount::InheritedDebt: return TEXT("Babadan kalan bor\u00e7");
     case EAccount::Capital: return TEXT("Sermaye");
     case EAccount::Unexplained: return TEXT("A\u00e7\u0131klanamayan fark");
@@ -298,7 +297,6 @@ MarketLedger::FBalance MarketLedger::Balance(const FMarketState& State, const TA
     }
     B.DepartmentStock = MarketDepartments::StockValue(State); // C3 (M26)
     B.CardReceivable = State.Payments.CardToday + State.Payments.CardTomorrow;
-    B.CreditReceivable = MarketCredit::Outstanding(State);
     B.Payables = MarketSuppliers::OpenBills(State);
     B.Loans = MarketFinance::Debt(State) + MarketBanking::Debt(State); // M28: company loans and the credit line
     B.TaxDue = State.Books.TaxDue;

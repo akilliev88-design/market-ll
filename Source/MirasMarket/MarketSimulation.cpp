@@ -161,14 +161,14 @@ MarketSimulation::FDay MarketSimulation::PlayDay(FMarketState& State, const TArr
     FRandomStream Random(static_cast<int32>(SimMix(State.RivalSeed, State.Day, 0x51A7u)));
     const TArray<FString> Aisles = MarketRivals::Aisles(Products);
     // Morning routine of the family: the month's price rise goes on the shelf tags, the declared tax is paid, and
-    // a spare 50 TL goes to the father's debt when the till can bear it.
+    // a spare installment (a tenth of the starting debt, M37) goes to the father's debt when the till can bear it.
     // G-086b ek (M19): with a manager in the family shop his style and skill run the routine (bManaged false: as before).
     MarketManagers::FFamilyRule Family = MarketManagers::FamilyRule(State);
     Family.ForgetPermille = RoutineForgetPermille(State);
     Family.bManaged = true; // the family also makes occasional mistakes without a hired manager
     if (MarketSuppliers::PriceGap(State) > Family.PriceRiseGap && !DelayPriceRise(State)) MarketSuppliers::PassOnPriceRise(State, Products);
     if (State.Books.TaxDue > 0) MarketStaff::PayTax(State);
-    if (MarketCampaign::DebtOpen(State) && State.Cash > 4 * MarketCampaign::Installment + 20000) MarketCampaign::PayDebt(State);
+    if (MarketCampaign::DebtOpen(State) && State.Cash > 4 * MarketCampaign::InstallmentOf(State) + 20000) MarketCampaign::PayDebt(State);
     // Morning: the rear door is carried in and the shelves are filled.
     for (int32 I = 0; I < State.Stock.Num(); ++I)
     {

@@ -833,8 +833,8 @@ bool MarketOnline::HireManager(FMarketState& State, FString& OutMessage)
     FMarketOnline& O = State.Online;
     Candidate(State, O.ManagerName, O.ManagerSkill, O.ManagerWage);
     O.ManagerSince = State.Day;
-    OutMessage = FString::Printf(TEXT("E-ticaret m\u00fcd\u00fcr\u00fc %s i\u015fe ba\u015flad\u0131 (beceri %d, g\u00fcnl\u00fck %s): y\u0131ld\u0131zlar\u0131 ve toplamay\u0131 iyile\u015ftirir, istersen politikay\u0131 o ayarlar."),
-        *O.ManagerName, O.ManagerSkill, *MarketOnlineLocal::Tl(O.ManagerWage));
+    OutMessage = FString::Printf(TEXT("E-ticaret m\u00fcd\u00fcr\u00fc %s i\u015fe ba\u015flad\u0131 (beceri %d, ayda %s): y\u0131ld\u0131zlar\u0131 ve toplamay\u0131 iyile\u015ftirir, istersen politikay\u0131 o ayarlar."),
+        *O.ManagerName, O.ManagerSkill, *MarketOnlineLocal::Tl(O.ManagerWage * 30));
     return true;
 }
 
@@ -897,6 +897,18 @@ FString MarketOnline::Summary(const FMarketState& State)
     if (O.bQuick) On.Add(ChannelName(EChannel::Quick));
     FString Line = On.Num() ? FString::Join(On, TEXT(", ")) : FString(TEXT("\u0130nternette yokuz"));
     if (O.LastOrders > 0 || O.LastCancelled > 0) Line += FString::Printf(TEXT("  \u00b7  d\u00fcn %d sipari\u015f (%d ge\u00e7, %d iptal), net %s"), O.LastOrders, O.LastLate, O.LastCancelled, *MarketOnlineLocal::Tl(O.LastProfit));
+    // C7 (A menu comparison): the reach behind yesterday's orders (how many of our shops take them, how many deliver fast).
+    if (On.Num() > 0)
+    {
+        int32 ReachShops = 0, FastShops = 0;
+        for (const FMarketOnlineArea& A : O.Areas)
+        {
+            const int32 AreaShops = ShopsIn(State, A.Country, A.Province);
+            if (AreaFlags(A) != 0) ReachShops += AreaShops;
+            if (O.bQuick && A.bQuick && A.DarkStoreDay > 0) FastShops += AreaShops;
+        }
+        Line += FString::Printf(TEXT("  \u00b7  sipari\u015f alan illerde %d ma\u011faza (toplam %d), h\u0131zl\u0131 teslimatl\u0131 %d"), ReachShops, TotalShops(State), FastShops);
+    }
     Line += FString::Printf(TEXT("  \u00b7  \u00fclkede internet pay\u0131 %%%.1f"), OnlineShare(State, State.Day) * 100.f);
     return Line;
 }
@@ -945,7 +957,8 @@ FString MarketOnline::ChannelStats(const FMarketState& State, EChannel Channel)
     const FMarketOnline& O = State.Online;
     const int32 C = static_cast<int32>(Channel);
     if (!O.PrevOrders.IsValidIndex(C) || O.PrevOrders[C] <= 0) return FString::Printf(TEXT("%s: ge\u00e7en ay sipari\u015f yok."), *ChannelName(Channel));
-    return FString::Printf(TEXT("%s: ge\u00e7en ay %d sipari\u015f, ciro %s, k\u00e2r %s (sipari\u015f ba\u015f\u0131 %s)."), *ChannelName(Channel), O.PrevOrders[C],
+    // C7 (A menu comparison): the orders' contribution, before the site, the app, the dark stores and the ads.
+    return FString::Printf(TEXT("%s: ge\u00e7en ay %d sipari\u015f, ciro %s, katk\u0131 k\u00e2r\u0131 %s (sipari\u015f ba\u015f\u0131 %s; ortak giderler hari\u00e7)."), *ChannelName(Channel), O.PrevOrders[C],
         *MarketOnlineLocal::Tl(O.PrevRevenue[C]), *MarketOnlineLocal::Tl(O.PrevProfit[C]), *MarketOnlineLocal::Tl(O.PrevProfit[C] / O.PrevOrders[C]));
 }
 
@@ -954,9 +967,14 @@ FString MarketOnline::AreaLine(const FMarketState& State, int32 AreaIndex)
     if (!State.Online.Areas.IsValidIndex(AreaIndex)) return FString();
     const FMarketOnlineArea& A = State.Online.Areas[AreaIndex];
     const FString Who = AreaDecider(State, AreaIndex);
-    return FString::Printf(TEXT("%s \u00b7 %d ma\u011faza \u00b7 %s%s \u00b7 karar: %s \u00b7 30 g\u00fcn ~%d sipari\u015f, k\u00e2r %s"), *AreaName(A), ShopsIn(State, A.Country, A.Province),
+    // C7 (A menu comparison): Orders30 / Profit30 fade a thirtieth a day, a rolling estimate and not a month's total;
+    // the profit is the orders' contribution (the site, the app and the ads are shared costs).
+    const FString RecentText = A.Orders30 > 0 ? FString::Printf(TEXT("son 30 g\u00fcn (yakla\u015f\u0131k): %d sipari\u015f, katk\u0131 k\u00e2r\u0131 %s"), A.Orders30, *MarketOnlineLocal::Tl(A.Profit30))
+        : A.Profit30 != 0 ? FString::Printf(TEXT("son 30 g\u00fcn (yakla\u015f\u0131k): pek az sipari\u015f, katk\u0131 k\u00e2r\u0131 %s"), *MarketOnlineLocal::Tl(A.Profit30))
+        : FString(TEXT("son 30 g\u00fcn sipari\u015f yok"));
+    return FString::Printf(TEXT("%s \u00b7 %d ma\u011faza \u00b7 %s%s \u00b7 karar: %s \u00b7 %s"), *AreaName(A), ShopsIn(State, A.Country, A.Province),
         *MarketOnlineLocal::FlagText(AreaFlags(A)), A.DarkStoreDay > 0 ? TEXT(" \u00b7 karanl\u0131k depo") : TEXT(""),
-        Who.IsEmpty() ? TEXT("\u015firket kural\u0131") : *Who, A.Orders30, *MarketOnlineLocal::Tl(A.Profit30));
+        Who.IsEmpty() ? TEXT("\u015firket kural\u0131") : *Who, *RecentText);
 }
 
 FString MarketOnline::AdsLine(const FMarketState& State)

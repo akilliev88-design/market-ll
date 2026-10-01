@@ -798,7 +798,7 @@ FString MarketManagers::DescribeCandidate(const FMarketState& State, const FCand
     if (HonestyVisible(State)) Parts.Add(FString::Printf(TEXT("d\u00fcr\u00fcstl\u00fck %d"), Who.Honesty));
     Parts.Add(FString::Printf(TEXT("tarz %s"), *StyleName(Who.Style)));
     Parts.Add(PotentialHint(Who.Skill, Who.Potential));
-    Parts.Add(FString::Printf(TEXT("g\u00fcnl\u00fck %s"), *ManagerTl(Who.Wage)));
+    Parts.Add(FString::Printf(TEXT("ayda %s"), *ManagerTl(Who.Wage * 30)));
     return FString::Join(Parts, TEXT(" \u00b7 "));
 }
 
@@ -936,7 +936,7 @@ bool MarketManagers::Appoint(FMarketState& State, ELevel Level, const FString& C
     const FMarketBranch& After = State.Branches[FromBranch];
     const FString BranchNote = FString::Printf(TEXT(" %s: yeni m\u00fcd\u00fcr %s, bir hafta al\u0131\u015facak."), *After.Name, *After.ManagerName);
     State.Management.Managers.Add(M);
-    OutMessage = FString::Printf(TEXT("%s art\u0131k %s (g\u00fcnl\u00fck %s).%s Sana do\u011frudan ba\u011fl\u0131: %d ki\u015fi."), *M.Name, *TitleOf(M), *ManagerTl(DailyWage(State, M)), *BranchNote, DirectCount(State));
+    OutMessage = FString::Printf(TEXT("%s art\u0131k %s (ayda %s).%s Sana do\u011frudan ba\u011fl\u0131: %d ki\u015fi."), *M.Name, *TitleOf(M), *ManagerTl(DailyWage(State, M) * 30), *BranchNote, DirectCount(State));
     if (bFirstProvince) MarketStory::AddMemory(State, FString::Printf(TEXT("\u0130lk il m\u00fcd\u00fcr\u00fc: %s (%s)"), *M.Name, *AreaName(Level, M.Country, M.Area)));
     return true;
 }
@@ -952,7 +952,7 @@ bool MarketManagers::AppointCandidate(FMarketState& State, ELevel Level, const F
     MarkSeen(State, Pool);
     ++State.Management.Hires;
     State.Management.Managers.Add(M);
-    OutMessage = FString::Printf(TEXT("%s art\u0131k %s (g\u00fcnl\u00fck %s). Sana do\u011frudan ba\u011fl\u0131: %d ki\u015fi."), *M.Name, *TitleOf(M), *ManagerTl(DailyWage(State, M)), DirectCount(State));
+    OutMessage = FString::Printf(TEXT("%s art\u0131k %s (ayda %s). Sana do\u011frudan ba\u011fl\u0131: %d ki\u015fi."), *M.Name, *TitleOf(M), *ManagerTl(DailyWage(State, M) * 30), DirectCount(State));
     if (bFirstProvince) MarketStory::AddMemory(State, FString::Printf(TEXT("\u0130lk il m\u00fcd\u00fcr\u00fc: %s (%s)"), *M.Name, *AreaName(Level, M.Country, M.Area)));
     return true;
 }
@@ -1127,7 +1127,7 @@ FString MarketManagers::DescribeManager(const FMarketState& State, int32 Manager
     Parts.Add(FString::Printf(TEXT("beceri %d (etkin %d, gereken %d)"), M.Skill, EffectiveManagerSkill(State, ManagerIndex), RequiredSkill(State, ManagerIndex)));
     if (M.Level != static_cast<uint8>(ELevel::FamilyShop)) Parts.Add(FString::Printf(TEXT("denetim %%%.0f"), 100.f * Strength(State, ManagerIndex)));
     if (MarketStaff::HasHr(State)) Parts.Add(FString::Printf(TEXT("d\u00fcr\u00fcstl\u00fck %d"), M.Honesty));
-    Parts.Add(FString::Printf(TEXT("g\u00fcnl\u00fck %s"), *ManagerTl(DailyWage(State, M))));
+    Parts.Add(FString::Printf(TEXT("ayda %s"), *ManagerTl(DailyWage(State, M) * 30)));
     Parts.Add(FString::Printf(TEXT("moral %.0f"), M.Morale));
     if (M.Warnings > 0) Parts.Add(FString::Printf(TEXT("%d uyar\u0131"), M.Warnings));
     Parts.Add(FString::Printf(TEXT("%d. g\u00fcn"), FMath::Max(0, State.Day - M.AppointedDay)));

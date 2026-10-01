@@ -1,3 +1,21 @@
+## 02.10.2026 — Claude (Cowork) — M37 patron maaşı ve servet, M38 her mağazada kampanya
+
+**Yapılan:** Mustafa: dükkân kimliği bakkal değil küçük market; kampanyalar bütün mağazalarda, müdürler sebebiyle uygular; bizim de maaşımız ve kişisel servetimiz olsun; maaşlar aylık görünsün; başlangıç borcu ve kasası ekonomiye göre. `MarketOwner` (maaş, kâr payı, sermaye, yaşam gideri), başlangıç parası, mağaza başına kampanya, ilk dükkân müdürünün stok eritmesi, kimlik şirketin, menüde SEN kartı ve aylık maaşlar. İki yeni test (150).
+
+**Doğrulama:** Derlenmedi. Ajan okuması: derleme hatası yok, testler tutuyor; yedi mantık/etiket düzeltmesi yapıldı.
+
+## 02.10.2026 — Claude (Cowork) — M36 aile dükkânı sıradan bir mağaza
+
+**Yapılan:** Mustafa: aile dükkânının diğerlerinden farkı olmasın; annemizle babamız emekli olup dükkânı bize bırakıyor; veresiye ve dükkâna özel broşür kalksın. Kira (annemle babama) eve para çekmenin yerine geçti; tapu ipoteği, veresiye defteri (`MarketCredit`), mahalle broşürü kalktı; hikâye metinleri. İki test silindi (148).
+
+**Doğrulama:** Derlenmedi. Ajan okuması: derleme hatası yok; üç test uyarlaması yapıldı. Risk: `AutoPlay.LateCarefulGrowth` (kira kârı azaltıyor, temkinli botun ilk şubesi gecikebilir).
+
+## 02.10.2026 — Claude (Cowork) — C8 kurtarma ikinci tur, reklam fiyatı, menü ikinci tur
+
+**Yapılan:** Codex C7 raporu: borç 500 milyondan ~1 milyona indi ama planlar 93 günde yenileniyor ve kurtarılan şirket hiç şube açamıyor. Kurtarma faturaları/vergiyi de karşılar, 96 aya uzayabilir, aile ve İK müdürü ayrılır, iç içe plan engeli en çok bir yıl. Komuta açma önerisi ağ yedeğiyle; reklam ucuzladı; Almanya firma adları; stok eritme satırı; menü C7 listesinin beş maddesi ve C6 reklam/kanal istekleri.
+
+**Doğrulama:** Derlenmedi. Ajan okuması: derleme hatası yok, testler tutuyor; iki küçük metin hatası düzeltildi.
+
 ## 01.10.2026 — Codex — C7 ilk doğrulama
 
 C6 387d7d1 main'e alındı/push; Claude C7 7de1603 alındı. MarketManagersTests.cpp:1 eksik MarketStaff.h eklendi, mantık değişmedi. Test.ps1 alt sınır 148. DERLE 16,91 sn, TEST 148/148 (147 temiz + HTTP uyarısı), Smoke PASSED; Ledger.CashAudit geçti. Sonraki iş akis-a bot/ölçüm/koşular ve menü karşılaştırması; C7 tamamlanmadı. Başka ajanların devam eden görevleri alınmadı.
