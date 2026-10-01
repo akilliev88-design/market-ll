@@ -1,7 +1,7 @@
 # Akış C — Claude (Cowork)
 
 ## Kaldığım yer
-C3 Codex'te derlendi ve doğrulandı (1fa3806: 126/126, defter farkı 0, derleme düzeltmesi 0). Üstüne **M28–M31 + C3 istekleri** yazıldı, **derlenmedi** (01.10.2026): şirket finansı, rakibe teklif, bağlı şirket ve devlerin çıkışı, ülkeye göre adlar, bankanın kurtarma planı (M31), marka parası yalnız dolu rafa, menü istekleri 1–3, kutlama satırı. Sırada: Codex C4 (`Docs/Surec/promptlar/codex_c4_finans_dogrulama.md`): derleme + test (133) + bot yeni komutlarla, şube başına kâr dökümüyle; sonra denge (şube ekonomisi, lig ölçeği).
+C3 Codex'te derlendi ve doğrulandı (1fa3806: 126/126, defter farkı 0, derleme düzeltmesi 0). Üstüne **M28–M31 + C3 istekleri** yazıldı, **derlenmedi** (01.10.2026): şirket finansı, rakibe teklif, bağlı şirket ve devlerin çıkışı, ülkeye göre adlar, bankanın kurtarma planı (M31), marka parası yalnız dolu rafa, menü istekleri 1–3, kutlama satırı. Ayrıca **M32 internetten satış** baştan yazıldı (derlenmedi). Sırada: Codex C4 (`Docs/Surec/promptlar/codex_c4_finans_dogrulama.md`): derleme + test (133) + bot yeni komutlarla, şube başına kâr dökümüyle; sonra denge (şube ekonomisi, lig ölçeği).
 
 ## Yapılanlar
 - **C1 · Mağaza görünümü şubenin hesabına** (yeni `MarketStoreViews.h/.cpp`): `Config/magazalar.json` bir kez `MarketStoreKit::Parse` ile kendi kopyamıza okunur (kitin yüklü şablonlarına dokunulmaz). Şube imzalanınca (il, tür) için görünüm seçilir (`MarketStoreAssign::Assign`, `FMarketState::StoreViews`'a kaydedilir; yurt dışında ülke + tür başına bir görünüm) ve ölçüleri şubeye kopyalanır (`FMarketBranch::StoreView`, `View*` alanları).
@@ -41,6 +41,7 @@ C3 Codex'te derlendi ve doğrulandı (1fa3806: 126/126, defter farkı 0, derleme
   - Şube açma sorusunda aylık sabit gider (`MarketBranches::MonthlyFixedCost`).
   - Marka: boş raf sayılmaz (`MarketBrands` `Capacities` yalnız mal olan raf; test `Brands.EmptyShelfEarnsNothing`).
   - Menü: gelir tablosu ve bilançoda kısa tutar + alt satırda tam tutar (`MarketMenuUi::TlShort`); harita katman tepsisi zaman hapının altına; şube müdürü satırı kendi satırında; kutlama satırı son 30 gün, tarihli, yıldız yerine nokta.
+- **M32 · İnternetten satış** (`MarketOnline` baştan): telefon siparişi, aile dükkânı kuryesi, şirketin tek karanlık mağazası ve salgın ayarı kalktı. Kanallar (web, uygulama, ülkenin platformu `MarketCast::Platform`, hızlı teslimat) salgına göre açılır; il başına alan (`FMarketOnlineArea`): il müdürü her ay karar verir, yoksa şirket kuralı, oyuncu el koyup bırakabilir; il başına karanlık depo. Siparişler aile dükkânının ve şubelerin stoğundan toplanır; şube yürüyen müşterisi de internete kayan payı kaybeder (`StoreTrafficFactorOn`). E-ticaret müdürü, politika, rakip zincirlerin internete çıkışı (asistan söyler: ana ekran "Kulak misafiri"), dört karar kartı (`online.*`), kanal istatistiği. Testler: `Online.TimelineAndShare`, `FamilyShopOnThePlatform`, `CompanyAndProvinces`, `RivalsAndCards`.
 - Özel marka ("Miras") marka yarışına henüz girmedi: katalogda Miras ürünü yok (ürün kararı Mustafa/Codex).
 
 ## Doğrulama

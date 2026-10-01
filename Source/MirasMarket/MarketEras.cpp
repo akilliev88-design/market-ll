@@ -359,8 +359,7 @@ namespace MarketEras
         int32 Start = E.StartDay, End = E.EndDay;
         if (E.Kind == EKind::Pandemic && bHome)
         {
-            // The epidemic is MarketOnline's profile: switched off, it never comes.
-            if (!State.Online.bPandemic) return 0.f;
+            // The epidemic is MarketOnline's profile (always part of the game, M32).
             Start = MarketOnline::PandemicStart(State);
             End = MarketOnline::PandemicEnd(State) - 1;
         }

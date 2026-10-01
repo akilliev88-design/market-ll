@@ -137,6 +137,13 @@ bool MarketCountry::Parse(const FString& Json, TArray<FProfile>& OutProfiles, TA
             (*Names)->TryGetStringArrayField(TEXT("last"), P.LastNames);
         }
         O->TryGetStringArrayField(TEXT("banks"), P.Banks); // M30
+        const TSharedPtr<FJsonObject>* Online = nullptr;
+        if (O->TryGetObjectField(TEXT("online"), Online) && Online && Online->IsValid()) // M32
+        {
+            (*Online)->TryGetStringField(TEXT("platform"), P.PlatformName);
+            double Plateau = 0.0;
+            if ((*Online)->TryGetNumberField(TEXT("plateau"), Plateau)) P.OnlinePlateau = FMath::Clamp(static_cast<float>(Plateau), 0.01f, 0.4f);
+        }
         O->TryGetStringArrayField(TEXT("relatives"), P.Relatives);
         const TArray<TSharedPtr<FJsonValue>>* Cities = nullptr;
         if (O->TryGetArrayField(TEXT("provinces"), Cities) || O->TryGetArrayField(TEXT("cities"), Cities))

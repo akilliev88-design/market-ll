@@ -1,24 +1,26 @@
 Miras Market, **C4 doğrulaması (Codex)**: şirket finansı ve kurtarma planı. Bu iş `main` üzerinde, ana klasörde (`C:\Users\mtass\Desktop\market-ll`).
 
-Durum: senin C3 doğrulamanın (1fa3806) üstüne Claude Cowork şunları yazdı, **derlenmedi**: M28 şirket finansı (`MarketBanking`), M29 rakibe teklif + satın alma kredisi, M30 bağlı şirket + devlerin çıkışı + ülkeye göre adlar (`MarketCast`), M31 bankanın kurtarma planı (`MarketFinance::Rescue`), C3 raporundaki istekler (marka parası yalnız dolu rafa, finans kısa tutar, harita katman tepsisi, müdür satırı, kutlama satırı, şube açarken aylık sabit gider). Dosyalar klasörde, commit edilmemiş olabilir. Önce oku: `Docs/Kurgu/01_KARARLAR.md` M28–M31, `Docs/Surec/akislar/C.md` (Kaldığım yer + "C3 doğrulamasından sonra").
+Durum: senin C3 doğrulamanın (1fa3806) üstüne Claude Cowork şunları yazdı, **derlenmedi**: M28 şirket finansı (`MarketBanking`), M29 rakibe teklif + satın alma kredisi, M30 bağlı şirket + devlerin çıkışı + ülkeye göre adlar (`MarketCast`), M31 bankanın kurtarma planı (`MarketFinance::Rescue`), M32 internetten satış (`MarketOnline` baştan; salgın ayarı kalktı), C3 raporundaki istekler (marka parası yalnız dolu rafa, finans kısa tutar, harita katman tepsisi, müdür satırı, kutlama satırı, şube açarken aylık sabit gider). Dosyalar klasörde, commit edilmemiş olabilir. Önce oku: `Docs/Kurgu/01_KARARLAR.md` M28–M32, `Docs/Surec/akislar/C.md` (Kaldığım yer + "C3 doğrulamasından sonra").
 
 ## Yapacakların
 
-1. **Al:** `git status`. Claude'un dosyaları değişmiş görünüyorsa (46 dosya civarı) tek commit yap: `C4: M28-M31 ve C3 istekleri (Claude, derlenmedi)`. Başka beklenmedik değişiklik varsa dur ve yaz. `Docs/Surec/bekleyen/` içindeki eski yamaları **uygulama** (hepsi zaten içeride); klasörü silebilirsin.
-2. **Derle ve test et:** `DERLE.cmd /q`, `TEST.cmd /q` (alt sınır **133**), `SmokeTest.ps1`. Yeni testler: `Banking.*`, `Chains.TakeoverBid`, `Chains.SubsidiaryAndExit`, `Cast.NamesFromTheCountry`, `Finance.RescuePlan`, `Brands.EmptyShelfEarnsNothing`.
+1. **Al:** `git status`. Claude'un dosyaları değişmiş görünüyorsa (60 dosya civarı) tek commit yap: `C4: M28-M32 ve C3 istekleri (Claude, derlenmedi)`. Başka beklenmedik değişiklik varsa dur ve yaz. `Docs/Surec/bekleyen/` içindeki eski yamaları **uygulama** (hepsi zaten içeride); klasörü silebilirsin.
+2. **Derle ve test et:** `DERLE.cmd /q`, `TEST.cmd /q` (alt sınır **135**), `SmokeTest.ps1`. Yeni testler: `Banking.*`, `Chains.TakeoverBid`, `Chains.SubsidiaryAndExit`, `Cast.NamesFromTheCountry`, `Finance.RescuePlan`, `Brands.EmptyShelfEarnsNothing`, `Online.*` (dört test; eski `Online.OrdersAndEras` silindi).
 3. **Hata düzelt:** en küçük düzeltme, mantığı değiştirme; her düzeltme `A.md`'ye dosya:satır + bir cümle. `Ledger.CashAudit` farkı yine **0** olmalı; fark çıkarsa hangi sistemden geldiğini yaz (M28 bankacılık, M30 `OwnedTurn`, M31 kurtarma kredisi en olası yerler).
 4. **Bot (A):**
    - Yeni komutları kullan: `CorpLoan` (arg: `MarketBanking::EncodeLoan`), `OpenLine`, `LineAuto`, `RepayLine`, `Restructure`, `BuyChainFinanced`, `BidChainFinanced`, `ConvertStores` (arg: `MarketChains::EncodeConvert`), `SellSubsidiary`. Tarz başına basit kurallar yeter: dengeli/atak not B olunca limit açar ve `LineAuto` yapar; yatırım kredisini yalnız ağın aylık sabit giderinin 3 katı yedek kalacaksa çeker; satılık/çıkış satışındaki zinciri finansmanla alır; bağlı şirketi ayda bir çevirir.
    - **Yedek kuralı:** yeni şube yalnız açılıştan sonra kasada **bütün ağın** bir aylık sabit gideri kalacaksa (`MarketBranches::MonthlyFixedCost` toplamı + aile dükkânı) açılır.
    - **Zararlı şubeyi kapat:** olgun (90 günden eski) ve `Last30Profit` iki ay üst üste eksi olan şube kapanır (`CloseBranch`).
    - Kurtarma planını (M31) bot tetiklememeye çalışsın ama geldiyse oyuna devam etsin.
+   - **İnternet (M32):** eski `OnlineChannel/HireCourier/FireCourier/FreeDelivery/PandemicProfile` komutları yok; botta varsa kaldır. Yeni: `OnlineOpen` / `OnlineClose` (0 web, 1 uygulama, 2 platform, 3 hızlı), uygulama kartı `online.app` (dengeli 1 = sağlam), `DarkStore` (alan indeksi), `OnlineArea` (`MarketOnline::EncodeArea`), `OnlineAds`, `OnlineFee`, `OnlineHire`, `OnlineAutoPolicy`. Basit kural: platform açılınca gir; web/uygulama koşulu tutunca aç; hızlı teslimatı aç ve 4+ mağazalı ilde nakit 3× bedeli aşıyorsa karanlık depo kur; 10 mağazada e-ticaret müdürü al ve politikayı ona bırak. Kararları il müdürüne bırak (alanlara elle dokunma).
 5. **Koşular:** kısa bot testi, sonra 30 yıl × 3 tarz × 1 tohum ve 10 yıl × 3 tarz × 3 tohum. Rapor C3 başlıklarıyla, artı:
    - **şube başına ilk 180 günün kâr dökümü** (ciro, brüt kâr, kira, ücret, SGK, işletme, lojistik, fire, net; mahalle/süper ayrı) — denge kararı bunun üstüne verilecek,
    - kredi notu yıllık seyri, şirket borcu / FAVÖK, ödenen faiz, limit kullanımı, borç sınırı ihlali ay sayısı,
    - kurtarma planı sayısı ve günleri, kapanan şube sayısı,
    - teklif / kabul / ret, finansmanla alım, bağlı şirket sayısı ve mağazası, çevrilen mağaza, devlerin çıkışı ve "kapı" kolları,
+   - internet: kanal başına sipariş/ciro/kâr (yıllık), ülke internet payı ve şirketin internet ciro payı, karanlık depo sayısı, rakiplerin internete çıkış günleri, kartlar ve seçimler,
    - marka geliri (artık boş raf ödenmiyor) ve dengeli botun 10./20./30. yıl ulusal/dünya sırası.
-6. **Menü görüntüleri:** `-MirasMenuCapture` ile Finans (banka kartı, gelir tablosu kısa tutarlar), Şirket (SATIN ALMA VE BAĞLI ŞİRKETLER), harita katman tepsisi, Mağazalar müdür satırı, ana ekran hedefler/kutlama. Taşan/boş yerleri `A.md`'de "C'ye istek" olarak listele.
+6. **Menü görüntüleri:** `-MirasMenuCapture` ile Finans (banka kartı, gelir tablosu kısa tutarlar), Satış kanalları (başta yalnız ödeme kartı görünmeli; web döneminden sonra kanallar, iller, politika, istatistik), Şirket (SATIN ALMA VE BAĞLI ŞİRKETLER), harita katman tepsisi, Mağazalar müdür satırı, ana ekran hedefler/kutlama. Taşan/boş yerleri `A.md`'de "C'ye istek" olarak listele.
 7. **Teslim:** alt adım başına commit (`C4 doğrulama: ...`) + push; `A.md`'de kısa "C4 doğrulaması" bölümü.
 
 ## Kurallar

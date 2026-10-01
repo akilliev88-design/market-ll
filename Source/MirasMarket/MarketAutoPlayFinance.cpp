@@ -18,7 +18,7 @@ namespace MarketAutoPlayFinance
         int64 Total=30*(Wages+MarketStaff::EmployerShare(Wages)+MarketPrices::Scaled(2200,State.Day));
         // Head-office rent, trucks and a dark store also have to be paid while a new shop matures.
         Total+=30*MarketDepots::DailyRent(State,State.Day);
-        Total+=30*MarketPrices::Scaled(State.Company.Trucks*6000+(State.Company.bDarkStore?30000:0),State.Day);
+        Total+=30*MarketPrices::Scaled(State.Company.Trucks*6000,State.Day);
         for(const auto& Branch:State.Branches)
             if(Branch.Stage!=static_cast<uint8>(MarketBranches::EStage::Closed))
                 Total+=MarketBranches::MonthlyFixedCost(State,Branch.Country,Branch.Province,Branch.Format);

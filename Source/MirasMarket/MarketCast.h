@@ -26,4 +26,6 @@ namespace MarketCast
 
     // The country's banks: 0 local, 1 commercial, 2 investment, 3 development.
     FString Bank(int32 Index);
+    // M32: the fast-delivery platform of the active country (ulkeler.json "online.platform"; a plain name otherwise).
+    FString Platform();
 }

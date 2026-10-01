@@ -211,12 +211,21 @@ bool MarketDirector::Command(FMarketState& State, const TArray<FMarketProduct>& 
     if (Action == TEXT("DismissManager")) return MarketManagers::Dismiss(State, Arg, OutMessage);
     if (Action == TEXT("BonusManager")) return MarketManagers::BonusManager(State, Arg, OutMessage);
     if (Action == TEXT("WarnManager")) return MarketManagers::WarnManager(State, Arg, OutMessage);
-    if (Action == TEXT("OnlineChannel"))
-        return MarketOnline::SetChannel(State, static_cast<MarketOnline::EChannel>(FMath::Clamp(Arg / 10, 0, 2)), Arg % 10 != 0, OutMessage);
-    if (Action == TEXT("HireCourier")) return MarketOnline::HireCourier(State, OutMessage);
-    if (Action == TEXT("FireCourier")) return MarketOnline::FireCourier(State, OutMessage);
+    // M32: online selling (Arg channel = MarketOnline::EChannel; area = MarketOnline::EncodeArea; levels 0..2/3).
+    if (Action == TEXT("OnlineOpen")) return MarketOnline::Open(State, static_cast<MarketOnline::EChannel>(FMath::Clamp(Arg, 0, MarketOnline::ChannelCount - 1)), OutMessage);
+    if (Action == TEXT("OnlineClose")) return MarketOnline::Close(State, static_cast<MarketOnline::EChannel>(FMath::Clamp(Arg, 0, MarketOnline::ChannelCount - 1)), OutMessage);
+    if (Action == TEXT("OnlineArea")) { int32 Area = 0, Flags = 0; return MarketOnline::DecodeArea(Arg, Area, Flags) && MarketOnline::SetArea(State, Area, Flags, OutMessage); }
+    if (Action == TEXT("OnlineAreaReturn")) return MarketOnline::ReturnArea(State, Arg, OutMessage);
+    if (Action == TEXT("OnlineDefault")) return MarketOnline::SetDefault(State, Arg, OutMessage);
+    if (Action == TEXT("DarkStore")) return MarketOnline::BuildDarkStore(State, Arg, OutMessage);
+    if (Action == TEXT("OnlineFee")) return MarketOnline::SetFee(State, Arg, OutMessage);
+    if (Action == TEXT("OnlineMinBasket")) return MarketOnline::SetMinBasket(State, Arg, OutMessage);
+    if (Action == TEXT("OnlinePriceGap")) return MarketOnline::SetPriceGap(State, Arg, OutMessage);
+    if (Action == TEXT("OnlineAds")) return MarketOnline::SetAds(State, Arg, OutMessage);
     if (Action == TEXT("Substitute")) return MarketOnline::SetSubstitute(State, Arg, OutMessage);
-    if (Action == TEXT("FreeDelivery")) return MarketOnline::SetFreeDelivery(State, Arg != 0, OutMessage);
+    if (Action == TEXT("OnlineAutoPolicy")) return MarketOnline::SetAutoPolicy(State, Arg != 0, OutMessage);
+    if (Action == TEXT("OnlineHire")) return MarketOnline::HireManager(State, OutMessage);
+    if (Action == TEXT("OnlineFire")) return MarketOnline::FireManager(State, OutMessage);
     if (Action == TEXT("Card")) return MarketPayments::SetCard(State, Arg != 0, OutMessage);
     if (Action == TEXT("MealCard")) return MarketPayments::SetMealCard(State, Arg != 0, OutMessage);
     if (Action == TEXT("Build")) return MarketCompany::Build(State, Arg, OutMessage);
@@ -291,13 +300,6 @@ bool MarketDirector::Command(FMarketState& State, const TArray<FMarketProduct>& 
     if (Action == TEXT("RepayLine")) return MarketBanking::RepayLine(State, OutMessage);
     if (Action == TEXT("VisitBranch")) return MarketBranches::Visit(State, Products, Arg, OutMessage); // A4 calls it when a visit starts (C3)
     if (Action == TEXT("Difficulty")) return MarketSimulation::SetDifficulty(State, Arg, OutMessage);
-    if (Action == TEXT("PandemicProfile"))
-    {
-        if (State.Online.bPandemic == (Arg != 0)) { OutMessage = TEXT("Salg\u0131n d\u00f6nemi ayar\u0131 zaten b\u00f6yle."); return false; }
-        State.Online.bPandemic = Arg != 0;
-        OutMessage = State.Online.bPandemic ? TEXT("Salg\u0131n d\u00f6nemi (10. ve 11. y\u0131l) oyunda olacak.") : TEXT("Salg\u0131n d\u00f6nemi (10. ve 11. y\u0131l) oyunda olmayacak.");
-        return true;
-    }
     if (Action == TEXT("DeclineOffer")) { MarketPromotions::DeclineOffer(State); OutMessage = TEXT("Toptanc\u0131n\u0131n teklifi geri \u00e7evrildi."); return true; }
     OutMessage = FString::Printf(TEXT("Bilinmeyen karar: %s"), *Action.ToString());
     return false;
@@ -330,7 +332,7 @@ void MarketDirector::CloseDay(FMarketState& State, const TArray<FMarketProduct>&
     MarketSourcing::CloseDay(State, Products);   // supply lines: the month's minimums (G-083)
     MarketCompany::CloseDay(State);              // stores in other cities, depot, trucks, leadership (G-072)
     MarketPayments::CloseDay(State);             // card money arrives, commissions and POS rent (G-069)
-    MarketOnline::CloseDay(State, Products);     // phone, web and platform orders picked from our stock (G-069)
+    MarketOnline::CloseDay(State, Products);     // M32: online orders of every shop, per province (after the branches)
     // Bills are paid after the day's money is in (card payout, branches, cities, online), before the books.
     MarketSuppliers::CloseDay(State); // price list, payment terms, bills due, wholesaler news (G-063)
     MarketStaff::CloseDay(State);     // till, fatigue, morale, notices, HR, accountant and the weekly tax (G-060)

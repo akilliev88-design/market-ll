@@ -417,7 +417,6 @@ struct FMarketCompany
     UPROPERTY() int32 Trucks = 0;
     UPROPERTY() bool bCentralBuying = false;  // buying for all stores at once
     UPROPERTY() bool bPrivateLabel = false;   // "Miras" own brand
-    UPROPERTY() bool bDarkStore = false;      // a depot that only picks online orders
     UPROPERTY() int32 LeadershipDays = 0;     // chapter 7: days leading on every measure in a row
     UPROPERTY() int64 LastProfit = 0;         // all city stores + head office, last closed day
     UPROPERTY() int64 WeekProfit = 0;
@@ -463,32 +462,93 @@ struct FMarketManagement
     UPROPERTY() TArray<FString> UsedNames;
 };
 
-// Online orders (MarketOnline.h): channels by era, the delivery team and what the last closed day did.
-// Older saves load everything off.
+// M32 (Mustafa 01.10.2026): online selling of the whole company, per province (MarketOnline.h).
+USTRUCT()
+struct FMarketOnlineArea
+{
+    GENERATED_BODY()
+    UPROPERTY() FString Country;
+    UPROPERTY() FString Province;
+    UPROPERTY() bool bPlatform = false;      // the platform's couriers take our shops' orders here
+    UPROPERTY() bool bOwn = false;           // our web site / app delivers from our shops here
+    UPROPERTY() bool bQuick = false;         // our 30-minute delivery from the province's dark store
+    UPROPERTY() bool bPlayerSet = false;     // the player decided; else the province manager (or the company default)
+    UPROPERTY() int32 DarkStoreDay = 0;      // 0 = no dark store here
+    UPROPERTY() int32 LastOrders = 0;
+    UPROPERTY() int32 Orders30 = 0;          // x 29/30 a day + today
+    UPROPERTY() int64 Revenue30 = 0;
+    UPROPERTY() int64 Profit30 = 0;
+    // The province manager's month review (MarketOnline): proposals go up the line, we approve.
+    UPROPERTY() int64 MonthPlatformProfit = 0;
+    UPROPERTY() int64 MonthOwnProfit = 0;
+    UPROPERTY() int32 PlatformLossMonths = 0;
+    UPROPERTY() int32 OwnLossMonths = 0;
+    UPROPERTY() int32 QuietUntil = 0;        // a turned-down proposal: no new one before this day
+};
+
 USTRUCT()
 struct FMarketOnline
 {
     GENERATED_BODY()
-    UPROPERTY() bool bPhone = false;          // phone orders + delivery to the street (2011+)
-    UPROPERTY() bool bWeb = false;            // own web shop (2014+)
-    UPROPERTY() bool bPlatform = false;       // fast-delivery platform (2016+), commission
-    UPROPERTY() bool bFreeDelivery = true;    // false = a delivery fee below the free basket
-    UPROPERTY() uint8 Substitute = 1;         // 0 call and ask, 1 same aisle, 2 leave it out
-    UPROPERTY() bool bPandemic = true;        // the 2020-2021 period profile (karar D11, open question)
-    UPROPERTY() int32 Couriers = 0;
-    UPROPERTY() int32 WebOpenedDay = 0;
-    UPROPERTY() float Reputation = 60.f;      // online customers' opinion 0..100 (platform stars follow it)
+    // Company channels (MarketOnline::EChannel).
+    UPROPERTY() bool bWeb = false;
+    UPROPERTY() int32 WebDay = 0;
+    UPROPERTY() bool bApp = false;
+    UPROPERTY() int32 AppDay = 0;
+    UPROPERTY() uint8 AppTier = 1;           // the software house: 0 cheap, 1 solid, 2 premium
+    UPROPERTY() int64 AppCost = 0;           // what the app cost (its upkeep follows it)
+    UPROPERTY() bool bPlatform = false;      // contract with the country's platform
+    UPROPERTY() bool bQuick = false;         // our own fast delivery programme (dark stores per province)
+    // Where no province manager decides: the company's rule for every province.
+    UPROPERTY() bool bDefaultPlatform = true;
+    UPROPERTY() bool bDefaultOwn = true;
+    UPROPERTY() bool bDefaultQuick = true;
+    // Policy (the e-commerce manager can keep it).
+    UPROPERTY() uint8 Fee = 1;               // 0 free, 1 below the free basket, 2 always
+    UPROPERTY() uint8 MinBasket = 0;         // 0 none, 1 small, 2 big
+    UPROPERTY() uint8 PriceGap = 0;          // online prices: 0 as the shelf, 1 +5 %, 2 +10 %
+    UPROPERTY() uint8 Ads = 0;               // 0 none .. 3 heavy
+    UPROPERTY() uint8 Substitute = 1;        // 0 call and ask, 1 same aisle, 2 leave it out
+    UPROPERTY() bool bAutoPolicy = false;    // the e-commerce manager sets the policy every month
+    UPROPERTY() FString ManagerName;
+    UPROPERTY() int32 ManagerSkill = 0;
+    UPROPERTY() int64 ManagerWage = 0;       // a day, at hiring
+    UPROPERTY() int32 ManagerSince = 0;
+    // The platform's terms and our own state.
+    UPROPERTY() float Commission = 0.18f;
+    UPROPERTY() int32 DealUntil = 0;         // exclusive deal with the platform: lower commission, no leaving
+    UPROPERTY() int32 SurgeUntil = 0;        // the epidemic's extra couriers
+    UPROPERTY() int32 NextCommissionDay = 0;
+    UPROPERTY() float Reputation = 60.f;     // online customers' opinion 0..100 (stars follow it)
+    UPROPERTY() int32 Told = 0;              // bits: news and cards already given (MarketOnline)
+    UPROPERTY() TArray<FString> RivalsTold;  // "chain id|stage"
+    UPROPERTY() FString Hint;                // the assistant's last note about online selling
+    UPROPERTY() int32 HintDay = 0;
+    UPROPERTY() TArray<FMarketOnlineArea> Areas;
+    // The closed day.
     UPROPERTY() int32 LastOrders = 0;
     UPROPERTY() int32 LastLate = 0;
     UPROPERTY() int32 LastCancelled = 0;
     UPROPERTY() int32 LastMissing = 0;
     UPROPERTY() int32 LastSubstituted = 0;
     UPROPERTY() int64 LastRevenue = 0;
-    UPROPERTY() int64 LastCosts = 0;          // couriers, packaging, commissions, the site
+    UPROPERTY() int64 LastCosts = 0;         // couriers, packaging, commissions, the site, the app, dark stores, ads
     UPROPERTY() int64 LastProfit = 0;
+    UPROPERTY() int64 LastBranchProfit = 0;  // the part of LastProfit the branches picked (already in their LastProfit)
     UPROPERTY() int32 WeekOrders = 0;
     UPROPERTY() int64 WeekProfit = 0;
     UPROPERTY() int32 TotalOrders = 0;
+    // Per channel (MarketOnline::EChannel): this month and the last closed month.
+    UPROPERTY() TArray<int32> MonthOrders;
+    UPROPERTY() TArray<int64> MonthRevenue;
+    UPROPERTY() TArray<int64> MonthProfit;
+    UPROPERTY() TArray<int32> PrevOrders;
+    UPROPERTY() TArray<int64> PrevRevenue;
+    UPROPERTY() TArray<int64> PrevProfit;
+    UPROPERTY() int64 MonthAds = 0;
+    UPROPERTY() int64 PrevAds = 0;
+    UPROPERTY() int32 MonthNew = 0;          // new online customers (ads and word of mouth)
+    UPROPERTY() int32 PrevNew = 0;
 };
 
 // How shoppers pay (MarketPayments.h). Card money arrives one day later, minus the bank's commission.

@@ -11,7 +11,7 @@
 //    costs 0.6 % per 100 km beyond the first 100; without one a shop outside the home province pays the
 //    wholesaler's van, 3 %), trucks (a load per served shop and per 300 km, 8 loads a truck, else up to 1.5 % more),
 //  - central buying (+2 %, from 8 shops), the "Miras" own brand (+1.5 % and a few more shoppers, from 20 shops),
-//  - a dark store for the web shop (from 20 shops).
+//  - (dark stores moved to MarketOnline: one per province, M32).
 // Abroad: customs and paperwork 1 %, and the first 90 days in a new country cost 3 % while the company learns.
 // Chapter 7 "Miras": a year leading on every measure brings the one finale (karar J02).
 namespace MarketCompany
@@ -53,7 +53,7 @@ namespace MarketCompany
     // x shoppers of every branch ("Miras" brand).
     float TrafficBonus(const FMarketState& State);
 
-    // Arg: 1 truck, 2 central buying, 3 own brand, 4 dark store (0: a depot in the home sub-region).
+    // Arg: 1 truck, 2 central buying, 3 own brand (0: a depot in the home sub-region). Dark stores: MarketOnline (M32).
     bool Build(FMarketState& State, int32 What, FString& OutMessage);
     // The old sub-region button (G-086): a depot in the suggested province of a sub-region where the company has a
     // shop (MarketDepots::SuggestDepotProvince limited to it; one per sub-region here). New menus use

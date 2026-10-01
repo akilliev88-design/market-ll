@@ -103,6 +103,8 @@ namespace MarketCountry
         TArray<FString> FirstNames;
         TArray<FString> LastNames;
         TArray<FString> Banks;          // M30: local, commercial, investment, development (ulkeler.json "banks")
+        FString PlatformName;           // M32: the country's fast-delivery platform (ulkeler.json "online.platform")
+        float OnlinePlateau = 0.08f;    // M32: share of grocery bought online once it settles ("online.plateau")
         TArray<FString> Relatives;      // who left the shop ("teyzen", "aunt"...)
         TArray<FCity> Cities;           // G-086: the provinces (every one a possible start and store place)
         FString CitiesFile;             // province/map file, e.g. "iller.json" ("provinces"/"cities" given as a file name)

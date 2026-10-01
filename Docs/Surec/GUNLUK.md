@@ -1,3 +1,11 @@
+## 01.10.2026 — Claude (Cowork) — M32 internetten satış (C4'ün üstüne)
+
+**Yapılan:** `MarketOnline` baştan (karar M32): telefon siparişi, aile dükkânı kuryesi, şirketin tek karanlık mağazası ve salgın var/yok ayarı kalktı. Kanallar (web, uygulama, ülkenin platformu, hızlı teslimat) salgına bağlı zamanda açılır; il başına alan, il müdürü kanal değiştirmez, öneri yazar ve öneri ülke/bölge müdüründen geçip karar kartıyla onaya gelir; il başına karanlık depo; e-ticaret müdürü ve politika; rakiplerin internete çıkışı asistanla; dört kart. Şube trafiği de internete kayan payı kaybeder. C4 bot dosyasında (`MarketAutoPlayFinance.cpp`) kalkan `bDarkStore` için bir satırlık derleme düzeltmesi. Test.ps1 alt sınır 140.
+
+**Doğrulama:** Derlenmedi. Ajan okuması: derleme hatası yok; 1 test, 2 mantık hatası ve küçükler düzeltildi.
+
+**Sıradaki:** Codex C5 (`Docs/Surec/promptlar/codex_c5_internet_ve_bot.md`). Claude aynı anda ana klasörde sokak rakipleri ve Türkiye kalıntıları.
+
 ## 01.10.2026 — Codex — C4 şirket finansı ve kurtarma doğrulaması
 
 **Yapılan:** Claude'un C4 teslimi değiştirilmeden 9d22338 ile commit/push edildi. Yeni MarketAutoPlayFinance oyuncunun Director komutlarını kullanır; ağın aylık şube+aile+merkez/SGK/depo/kamyon giderini yedekte tutar, yatırım için üç aylık yedek planlar, olgun şubeyi iki ardışık zararlı ayda kapatır. İlk 180 günün gerçek defterden faaliyet kalemleri, yıllık banka, kurtarma/teklif/kapı sayaçları eklenmiştir. Büyük ağ rapor hesabı şube başına tarama yerine tek defter geçişine indirildi; aynı sürümde CSV sonuçları değişmedi. Menü otomasyonuna banka başlığına kaydıran hedef eklendi; menü kodu değiştirilmedi.

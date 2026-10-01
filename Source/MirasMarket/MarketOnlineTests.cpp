@@ -1,6 +1,7 @@
 #include "MarketOnline.h"
-#include "MarketPayments.h"
-#include "MarketDirector.h"
+#include "MarketEvents.h"
+#include "MarketBranches.h"
+#include "MarketManagers.h"
 #include "MarketCalendar.h"
 #include "Misc/AutomationTest.h"
 
@@ -25,168 +26,204 @@ namespace MarketOnlineTest
         };
     }
 
+    FMarketState Start(const TArray<FMarketProduct>& Products, int32 Day)
+    {
+        FMarketState S; S.Initialize(Products);
+        S.RivalSeed = 7; S.Cash = 500000000;
+        S.CountryId = TEXT("tr"); S.CityId = TEXT("kirklareli");
+        S.ApplyShelfCapacities({ 30, 30, 30, 30 });
+        for (FMarketStock& Row : S.Stock) { Row.Warehouse = 100; Row.Shelf = 30; }
+        S.Day = Day;
+        return S;
+    }
+
+    void AddBranch(FMarketState& S, const TArray<FMarketProduct>& Products, const TCHAR* Province)
+    {
+        FMarketBranch B;
+        B.Country = TEXT("tr"); B.Province = Province; B.Format = TEXT("mahalle"); B.Name = Province;
+        B.Stage = static_cast<uint8>(MarketBranches::EStage::Open);
+        B.Workers = 4; B.LastShoppers = 300; B.PriceIndex = 1.f;
+        for (const FMarketProduct& P : Products) { FMarketBranchItem Item; Item.ProductId = P.Id; Item.Capacity = 40; Item.Units = 40; B.Items.Add(Item); }
+        S.Branches.Add(B);
+    }
+
     int32 Units(const FMarketState& S)
     {
         int32 Sum = 0;
         for (const FMarketStock& Row : S.Stock) Sum += Row.Warehouse + Row.Shelf;
+        for (const FMarketBranch& B : S.Branches) for (const FMarketBranchItem& Item : B.Items) Sum += Item.Units;
         return Sum;
     }
 
-    int32 SoldYesterday(const FMarketState& S)
-    {
-        int32 Sum = 0;
-        for (const FMarketStock& Row : S.Stock) Sum += Row.Yesterday.Sold;
-        return Sum;
-    }
-
-    void AddRegulars(FMarketState& S, int32 Count)
-    {
-        for (int32 I = 0; I < Count; ++I)
-        {
-            FMarketLoyalty L; L.CustomerId = I; L.Visits = 5; L.Satisfaction = 80.f;
-            S.Loyalty.Add(L);
-        }
-    }
-
-    // One closed day: the shop's close, then the online orders. True when picked units left the stock and counted
-    // as sold, and the order money reached the till.
-    bool Close(FMarketState& S, const TArray<FMarketProduct>& Products, int32 Served = 0)
+    // One closed day; true when the online money is exactly what reached the till.
+    bool Close(FMarketState& S, const TArray<FMarketProduct>& Products, int32 Served = 300)
     {
         S.Served = Served;
         S.DayNews.Reset();
         S.CloseDay();
-        const int32 Before = Units(S);
-        const int32 SoldBefore = SoldYesterday(S);
         const int64 CashBefore = S.Cash;
         MarketOnline::CloseDay(S, Products);
-        const bool bStock = Before - Units(S) == SoldYesterday(S) - SoldBefore;
-        const bool bMoney = S.Cash - CashBefore == S.Online.LastRevenue - S.Online.LastCosts;
-        return bStock && bMoney;
+        return S.Cash - CashBefore == S.Online.LastRevenue - S.Online.LastCosts;
+    }
+
+    int32 AreaOf(const FMarketState& S, const TCHAR* Province)
+    {
+        return S.Online.Areas.IndexOfByPredicate([Province](const FMarketOnlineArea& A) { return A.Province == Province; });
     }
 }
 
-IMPLEMENT_SIMPLE_AUTOMATION_TEST(FMarketOnlineTest, "MirasMarket.Online.OrdersAndEras", EAutomationTestFlags::EditorContext | EAutomationTestFlags::EngineFilter)
-bool FMarketOnlineTest::RunTest(const FString& Parameters)
+IMPLEMENT_SIMPLE_AUTOMATION_TEST(FMarketOnlineTimelineTest, "MirasMarket.Online.TimelineAndShare", EAutomationTestFlags::EditorContext | EAutomationTestFlags::EngineFilter)
+bool FMarketOnlineTimelineTest::RunTest(const FString& Parameters)
 {
+    // M32: online selling follows the campaign's epidemic, not a calendar year, and is hidden at the start.
     using namespace MarketOnlineTest;
     using MarketOnline::EChannel;
     const TArray<FMarketProduct> Products = Catalog();
-    FMarketState S; S.Initialize(Products); S.RivalSeed = 7; S.Cash = 5000000;
-    for (int32 I = 0; I < S.Stock.Num(); ++I) { S.Stock[I].Price = Products[I].BasePrice; S.Stock[I].Warehouse = 60; S.Stock[I].Shelf = 20; }
-    FString Message;
+    FMarketState S = Start(Products, 2);
+    const int32 Web = MarketOnline::OpenDay(S, EChannel::Web), Platform = MarketOnline::OpenDay(S, EChannel::Platform);
+    const int32 App = MarketOnline::OpenDay(S, EChannel::App), Quick = MarketOnline::OpenDay(S, EChannel::Quick);
+    const int32 Sick = MarketOnline::PandemicStart(S), Well = MarketOnline::PandemicEnd(S);
+    TestTrue(TEXT("Order: web, platform, app, epidemic, quick"), Web < Platform && Platform < App && App < Sick && Sick < Quick);
+    TestTrue(TEXT("The app a year and a half before the epidemic"), Sick - App > 365 && Sick - App < 730);
+    TestFalse(TEXT("Nothing shows at the start"), MarketOnline::Visible(S));
+    FString Reason;
+    TestFalse(TEXT("No web shop at the start"), MarketOnline::CanOpen(S, EChannel::Web, Reason));
+    TestEqual(TEXT("Nobody shops online at the start"), MarketOnline::OnlineShare(S, 2), 0.f);
+    S.Day = Web - MarketOnline::RumourDays + 1;
+    TestTrue(TEXT("The rumour opens the page"), MarketOnline::Visible(S));
 
-    // 2011: only the phone.
-    TestFalse(TEXT("No web shop in 2011"), MarketOnline::SetChannel(S, EChannel::Web, true, Message));
-    TestFalse(TEXT("No platform in 2011"), MarketOnline::SetChannel(S, EChannel::Platform, true, Message));
-    TestEqual(TEXT("Nobody shops online in 2011"), MarketOnline::DistrictOnlineShare(S, S.Day), 0.f);
-    TestTrue(TEXT("Phone orders"), MarketOnline::SetChannel(S, EChannel::Phone, true, Message));
-    AddRegulars(S, 30);
-    int32 Orders = 0;
-    for (int32 D = 0; D < 7; ++D) { TestTrue(TEXT("Stock and money kept"), Close(S, Products)); Orders += S.Online.LastOrders; }
-    TestTrue(TEXT("Regulars ring"), Orders > 0);
-    TestTrue(TEXT("Being served at home counts as a visit"), S.Loyalty[0].Visits >= 5);
-
-    // Too many orders for the owner alone: late and cancelled ones hurt the reputation.
-    FMarketState Busy = S;
-    AddRegulars(Busy, 250);
-    const float RepBefore = Busy.Online.Reputation;
-    TestTrue(TEXT("Stock and money kept"), Close(Busy, Products));
-    TestTrue(TEXT("Without a courier some orders are late or cancelled"), Busy.Online.LastLate + Busy.Online.LastCancelled > 0);
-    TestTrue(TEXT("Reputation drops"), Busy.Online.Reputation < RepBefore);
-    TestTrue(TEXT("A courier"), MarketOnline::HireCourier(Busy, Message));
-    TestEqual(TEXT("A courier carries more"), MarketOnline::DeliveryCapacity(Busy), MarketOnline::OrdersPerCourier);
-
-    // 2017: the district shops online; staying offline costs walk-ins.
-    FMarketState Late = S;
-    Late.Day = MarketCalendar::GameDayOf(2017, 6, 1);
-    TestTrue(TEXT("Online share in 2017"), MarketOnline::DistrictOnlineShare(Late, Late.Day) > 0.01f);
-    TestTrue(TEXT("Walk-ins go online"), MarketOnline::StoreTrafficFactor(Late) < 1.f);
-    TestFalse(TEXT("Web needs a courier"), MarketOnline::SetChannel(Late, EChannel::Web, true, Message));
-    MarketOnline::HireCourier(Late, Message);
-    TestTrue(TEXT("Web shop"), MarketOnline::SetChannel(Late, EChannel::Web, true, Message));
-    TestTrue(TEXT("Set-up is a cost of the day"), Late.OtherCosts > 0);
-    TestTrue(TEXT("Platform"), MarketOnline::SetChannel(Late, EChannel::Platform, true, Message));
-
-    // The 2020 profile: panic buying, curfews, online jump.
-    FMarketState Pandemic = Late;
-    const int32 Start = MarketOnline::PandemicStart(Pandemic);
-    TestTrue(TEXT("Starts in early 2020"), Start >= MarketCalendar::GameDayOf(2020, 3, 1) && Start <= MarketCalendar::GameDayOf(2020, 3, 21));
-    Pandemic.Day = Start + 2;
-    TestEqual(TEXT("Panic buying of staples"), MarketOnline::GroupFactor(Pandemic, MarketGoods::EGroup::Staples), 2.f);
-    int32 Curfew = 0, Curfews = 0;
-    for (int32 D = Start; D < Start + 120; ++D)
-        if (MarketOnline::IsCurfew(Pandemic, D)) { ++Curfews; if (!Curfew) Curfew = D; }
-    TestTrue(TEXT("Some closed weekends, not all days"), Curfews >= 4 && Curfews < 40);
-    Pandemic.Day = Curfew;
-    TestTrue(TEXT("Weekend curfew"), MarketOnline::IsCurfew(Pandemic, Pandemic.Day));
-    FMarketState OtherSeed = Pandemic; OtherSeed.RivalSeed = Pandemic.RivalSeed + 1;
-    bool bDiffers = MarketOnline::PandemicStart(OtherSeed) != Start;
-    for (int32 D = Start; D < Start + 120 && !bDiffers; ++D) bDiffers = MarketOnline::IsCurfew(OtherSeed, D) != MarketOnline::IsCurfew(Pandemic, D);
-    TestTrue(TEXT("Every campaign lives the period differently"), bDiffers);
-    TestTrue(TEXT("Few walk-ins on a curfew day"), MarketOnline::StoreTrafficFactor(Pandemic) < 0.5f);
-    TestTrue(TEXT("Online jumps"), MarketOnline::DistrictOnlineShare(Pandemic, Pandemic.Day) > 2.f * MarketOnline::DistrictOnlineShare(Late, Late.Day));
-    int32 Web = 0;
-    for (int32 D = 0; D < 14; ++D) { TestTrue(TEXT("Stock and money kept"), Close(Pandemic, Products, 150)); Web += Pandemic.Online.LastOrders; }
-    TestTrue(TEXT("Orders come from web and platform"), Web > 10);
-    TestTrue(TEXT("Online revenue is in the day's revenue"), Pandemic.LastRevenue >= Pandemic.Online.LastRevenue);
-    FMarketState Off = Pandemic;
-    TestTrue(TEXT("The profile can be switched off"), MarketDirector::Command(Off, Products, TEXT("PandemicProfile"), 0, Message));
-    TestFalse(TEXT("No curfew without the profile"), MarketOnline::IsCurfew(Off, Curfew));
-
-    // Empty shelves: substitution or missing lines.
-    FMarketState Empty = Pandemic;
-    Empty.Stock[1].Warehouse = Empty.Stock[1].Shelf = 0;
-    Empty.Stock[0].Warehouse = Empty.Stock[0].Shelf = 0;
-    int32 Missing = 0;
-    for (int32 D = 0; D < 7; ++D) { TestTrue(TEXT("Stock and money kept"), Close(Empty, Products, 150)); Missing += Empty.Online.LastMissing + Empty.Online.LastSubstituted; }
-    TestTrue(TEXT("Missing items are noticed"), Missing > 0);
-    TestFalse(TEXT("Summary"), MarketOnline::Summary(Empty).IsEmpty());
+    const float Before = MarketOnline::OnlineShare(S, Sick - 1);
+    TestTrue(TEXT("Grows before the epidemic"), MarketOnline::OnlineShare(S, Web + 30) < Before);
+    TestTrue(TEXT("Jumps in the epidemic"), MarketOnline::OnlineShare(S, Sick + 5) > 2.f * Before);
+    TestTrue(TEXT("Keeps moving online after it"), MarketOnline::OnlineShare(S, Well + 700) > MarketOnline::OnlineShare(S, Well + 5));
+    const float Settled = MarketOnline::OnlineShare(S, Well + 4 * 365 + 100);
+    TestTrue(TEXT("Settles near the country's plateau"), Settled > 0.07f && Settled < 0.13f);
+    TestTrue(TEXT("The shops' own trade grows back after the epidemic"), MarketOnline::StoreTrafficFactorOn(S, Well + 365) > 1.f - MarketOnline::OnlineShare(S, Well + 365));
+    TestTrue(TEXT("Closure days exist"), [&S, Sick, Well] { for (int32 D = Sick; D < Well; ++D) if (MarketOnline::IsCurfew(S, D)) return true; return false; }());
     return true;
 }
 
-IMPLEMENT_SIMPLE_AUTOMATION_TEST(FMarketPaymentsTest, "MirasMarket.Payments.CashAndCards", EAutomationTestFlags::EditorContext | EAutomationTestFlags::EngineFilter)
-bool FMarketPaymentsTest::RunTest(const FString& Parameters)
+IMPLEMENT_SIMPLE_AUTOMATION_TEST(FMarketOnlineFamilyTest, "MirasMarket.Online.FamilyShopOnThePlatform", EAutomationTestFlags::EditorContext | EAutomationTestFlags::EngineFilter)
+bool FMarketOnlineFamilyTest::RunTest(const FString& Parameters)
 {
-    using MarketPayments::EMethod;
-    using MarketCustomers::ESegment;
-    const TArray<FMarketProduct> Products = MarketOnlineTest::Catalog();
-    FMarketState S; S.Initialize(Products); S.RivalSeed = 3;
+    // The family shop has no couriers: alone it can only join the platform.
+    using namespace MarketOnlineTest;
+    using MarketOnline::EChannel;
+    const TArray<FMarketProduct> Products = Catalog();
+    FMarketState S = Start(Products, 2);
+    S.Day = MarketOnline::PandemicStart(S) + 20;
+    S.Online.Reputation = 90.f;
     FString Message;
+    TestFalse(TEXT("No own web shop with one shop"), MarketOnline::CanOpen(S, EChannel::Web, Message));
+    TestTrue(TEXT("The platform"), MarketOnline::Open(S, EChannel::Platform, Message));
+    const int32 UnitsBefore = Units(S);
+    int32 Orders = 0;
+    bool bMoney = true;
+    for (int32 D = 0; D < 10; ++D) { bMoney &= Close(S, Products); Orders += S.Online.LastOrders; }
+    TestTrue(TEXT("Money kept"), bMoney);
+    TestTrue(TEXT("Orders came"), Orders > 0);
+    TestTrue(TEXT("Picked from the stock"), Units(S) < UnitsBefore);
+    TestEqual(TEXT("One area: the home province"), S.Online.Areas.Num(), 1);
+    TestTrue(TEXT("The platform's month counts"), S.Online.MonthOrders.IsValidIndex(static_cast<int32>(EChannel::Platform)));
+    TestFalse(TEXT("The assistant heard of it"), S.Online.Hint.IsEmpty());
+    TestFalse(TEXT("Summary"), MarketOnline::Summary(S).IsEmpty());
+    return true;
+}
 
-    TestTrue(TEXT("Cards spread over the years"), MarketPayments::CardShare(1) < MarketPayments::CardShare(MarketCalendar::GameDayOf(2021, 1, 1)));
-    TestTrue(TEXT("A child pays cash"), MarketPayments::Choose(S, ESegment::Child, 0.f) == EMethod::Cash);
-    TestTrue(TEXT("An office worker wants a card, there is no POS"), MarketPayments::Choose(S, ESegment::Worker, 0.f) == EMethod::NoCard);
-    TestTrue(TEXT("Some leave"), MarketPayments::LeavesWithoutCard(S, 0.1f));
-    TestFalse(TEXT("Others pay cash"), MarketPayments::LeavesWithoutCard(S, 0.9f));
-    TestFalse(TEXT("Meal cards need a POS"), MarketPayments::SetMealCard(S, true, Message));
-    TestTrue(TEXT("POS"), MarketDirector::Command(S, Products, TEXT("Card"), 1, Message));
-    TestTrue(TEXT("Meal cards"), MarketDirector::Command(S, Products, TEXT("MealCard"), 1, Message));
-    TestTrue(TEXT("With a POS the card works"), MarketPayments::Choose(S, ESegment::Worker, 0.35f) == EMethod::Card);
-    TestTrue(TEXT("Meal card first for office workers"), MarketPayments::Choose(S, ESegment::Worker, 0.f) == EMethod::MealCard);
-    TestTrue(TEXT("Card shoppers spend a little more"), MarketPayments::BudgetFactor(S, ESegment::Worker) > 1.f);
+IMPLEMENT_SIMPLE_AUTOMATION_TEST(FMarketOnlineCompanyTest, "MirasMarket.Online.CompanyAndProvinces", EAutomationTestFlags::EditorContext | EAutomationTestFlags::EngineFilter)
+bool FMarketOnlineCompanyTest::RunTest(const FString& Parameters)
+{
+    // Web, the app from a software house, our fast delivery from a dark store, the province decides.
+    using namespace MarketOnlineTest;
+    using MarketOnline::EChannel;
+    const TArray<FMarketProduct> Products = Catalog();
+    FMarketState S = Start(Products, 2);
+    for (int32 I = 0; I < 7; ++I) AddBranch(S, Products, I < 4 ? TEXT("kirklareli") : TEXT("tekirdag"));
+    S.Day = MarketOnline::OpenDay(S, EChannel::App) + 10;
+    FString Message;
+    TestTrue(TEXT("Web with branches"), MarketOnline::Open(S, EChannel::Web, Message));
+    TestTrue(TEXT("The app asks for a software house"), MarketOnline::Open(S, EChannel::App, Message) && S.Decisions.ContainsByPredicate([](const FMarketDecision& D) { return D.Id == TEXT("online.app"); }));
+    const int32 Card = S.Decisions.IndexOfByPredicate([](const FMarketDecision& D) { return D.Id == TEXT("online.app"); });
+    TestTrue(TEXT("The solid one"), MarketOnline::Resolve(S, Products, S.Decisions[Card], 1, Message) && S.Online.bApp && S.Online.AppTier == 1);
+    TestTrue(TEXT("A day in"), Close(S, Products));
+    TestEqual(TEXT("Two areas"), S.Online.Areas.Num(), 2);
 
-    // A card basket: not in the drawer today, in the bank tomorrow, minus 1.8 %.
-    S.Stock[0].Shelf = 10; S.Stock[0].Price = 10000;
-    TArray<FMarketSaleLine> Lines; FMarketSaleLine Line; Line.Product = 0; Line.Quantity = 1; Line.QuotedPrice = 10000; Lines.Add(Line);
-    const int64 Start = S.Cash;
-    int64 Receipt = 0;
-    TestTrue(TEXT("Sold"), S.SellBasket(Lines, Products, &Receipt));
-    MarketDirector::OnCheckout(S, 999, Receipt, 0.99f, static_cast<uint8>(EMethod::Card));
-    TestEqual(TEXT("Not in the drawer"), S.Cash, Start);
-    TestEqual(TEXT("Commission"), S.Payments.Commission, static_cast<int64>(180));
-    S.CloseDay();
-    const int64 ProfitBefore = S.LastProfit;
-    const int64 AfterShop = S.Cash;
-    MarketPayments::CloseDay(S);
-    TestTrue(TEXT("Commission and rent are costs"), S.LastProfit < ProfitBefore - 179);
-    TestEqual(TEXT("Waits for tomorrow"), S.Payments.CardTomorrow, static_cast<int64>(9820));
-    TestTrue(TEXT("Only the rent left the till"), S.Cash < AfterShop && S.Cash > AfterShop - 1000);
-    const int64 Before = S.Cash;
-    S.CloseDay();
-    MarketPayments::CloseDay(S);
-    TestTrue(TEXT("Card money arrived"), S.Cash - Before + S.LastOperatingCost >= 9820);
-    TestEqual(TEXT("Nothing pending"), S.Payments.CardTomorrow, static_cast<int64>(0));
-    TestFalse(TEXT("Summary"), MarketPayments::Summary(S).IsEmpty());
+    S.Day = MarketOnline::OpenDay(S, EChannel::Quick) + 5;
+    TestTrue(TEXT("Fast delivery"), MarketOnline::Open(S, EChannel::Quick, Message));
+    const int32 Home = AreaOf(S, TEXT("kirklareli")), Other = AreaOf(S, TEXT("tekirdag"));
+    TestTrue(TEXT("Both areas"), Home != INDEX_NONE && Other != INDEX_NONE);
+    if (Home == INDEX_NONE || Other == INDEX_NONE) return false;
+    TestTrue(TEXT("Dark store with five shops"), MarketOnline::BuildDarkStore(S, Home, Message));
+    TestFalse(TEXT("No dark store with three"), MarketOnline::CanBuildDarkStore(S, Other, Message));
+    TestTrue(TEXT("The player sets the province"), MarketOnline::SetArea(S, Home, 7, Message) && S.Online.Areas[Home].bPlayerSet);
+    TestFalse(TEXT("No fast delivery without a dark store"), MarketOnline::SetArea(S, Other, 4, Message));
+
+    const int32 UnitsBefore = Units(S);
+    int32 Orders = 0;
+    bool bMoney = true;
+    for (int32 D = 0; D < 10; ++D) { bMoney &= Close(S, Products); Orders += S.Online.LastOrders; }
+    TestTrue(TEXT("Money kept"), bMoney);
+    TestTrue(TEXT("Orders from the company"), Orders > 0);
+    TestTrue(TEXT("Picked from the shops"), Units(S) < UnitsBefore);
+    TestTrue(TEXT("Fast orders counted"), S.Online.MonthOrders[static_cast<int32>(EChannel::Quick)] > 0 || S.Online.PrevOrders[static_cast<int32>(EChannel::Quick)] > 0);
+    TestFalse(TEXT("A province line"), MarketOnline::AreaLine(S, Home).IsEmpty());
+
+    // Without a province manager the company's rule decides again.
+    S.Online.bDefaultPlatform = false;
+    TestTrue(TEXT("Give it back"), MarketOnline::ReturnArea(S, Home, Message) && !S.Online.Areas[Home].bPlayerSet);
+    TestTrue(TEXT("The company's rule"), MarketOnline::AreaDecider(S, Home).IsEmpty() && !S.Online.Areas[Home].bPlatform);
+
+    // A province manager does not flip channels: after three losing months he proposes, we approve.
+    TestTrue(TEXT("The platform for the company"), MarketOnline::Open(S, EChannel::Platform, Message));
+    FMarketManager Boss;
+    Boss.Level = static_cast<uint8>(MarketManagers::ELevel::Province); Boss.Country = TEXT("tr"); Boss.Area = TEXT("tekirdag");
+    Boss.Name = TEXT("Deneme M\u00fcd\u00fcr"); Boss.Skill = 70; Boss.AppointedDay = 1;
+    S.Management.Managers.Add(Boss);
+    FMarketOnlineArea& Far = S.Online.Areas[Other];
+    Far.bPlatform = true; Far.PlatformLossMonths = 2; Far.MonthPlatformProfit = -100;
+    const MarketCalendar::FDate Now = MarketCalendar::DateOf(S.Day);
+    S.Day = MarketCalendar::GameDayOf(Now.Month == 12 ? Now.Year + 1 : Now.Year, Now.Month == 12 ? 1 : Now.Month + 1, 1) - 1;
+    Close(S, Products);
+    const int32 Proposal = S.Decisions.IndexOfByPredicate([](const FMarketDecision& D) { return D.Id == TEXT("online.area:tr|tekirdag"); });
+    TestTrue(TEXT("A proposal, not a change"), Proposal != INDEX_NONE && S.Online.Areas[AreaOf(S, TEXT("tekirdag"))].bPlatform);
+    if (Proposal != INDEX_NONE)
+        TestTrue(TEXT("Approved: the platform leaves the province"), MarketOnline::Resolve(S, Products, S.Decisions[Proposal], 0, Message) && !S.Online.Areas[AreaOf(S, TEXT("tekirdag"))].bPlatform);
+
+    // The e-commerce manager.
+    TestTrue(TEXT("Hire"), MarketOnline::HireManager(S, Message) && !S.Online.ManagerName.IsEmpty());
+    TestTrue(TEXT("He keeps the policy"), MarketOnline::SetAutoPolicy(S, true, Message));
+    TestTrue(TEXT("Closing the web closes the app"), MarketOnline::Close(S, EChannel::Web, Message) && !S.Online.bApp && !S.Online.bQuick);
+    return true;
+}
+
+IMPLEMENT_SIMPLE_AUTOMATION_TEST(FMarketOnlineRivalsTest, "MirasMarket.Online.RivalsAndCards", EAutomationTestFlags::EditorContext | EAutomationTestFlags::EngineFilter)
+bool FMarketOnlineRivalsTest::RunTest(const FString& Parameters)
+{
+    // Rivals go online and the assistant tells; the platform asks for more commission.
+    using namespace MarketOnlineTest;
+    using MarketOnline::EChannel;
+    const TArray<FMarketProduct> Products = Catalog();
+    FMarketState S = Start(Products, 2);
+    FMarketChain Chain;
+    Chain.Id = TEXT("bin"); Chain.Name = TEXT("B\u0130N"); Chain.Country = TEXT("tr");
+    FMarketChainSpot Spot; Spot.Province = TEXT("istanbul"); Spot.Stores = 800; Chain.Spots.Add(Spot);
+    S.Rivals.Chains.Add(Chain);
+    TestEqual(TEXT("Nobody online at the start"), MarketOnline::RivalOnline(S, TEXT("tr"), 2), 0.f);
+    const int32 Late = MarketOnline::OpenDay(S, EChannel::Quick) + 800;
+    TestTrue(TEXT("Rivals online later"), MarketOnline::RivalOnline(S, TEXT("tr"), Late) > 0.5f);
+
+    S.Day = MarketOnline::PandemicStart(S) + MarketOnline::CommissionAfter + 1;
+    FString Message;
+    TestTrue(TEXT("On the platform"), MarketOnline::Open(S, EChannel::Platform, Message));
+    Close(S, Products);
+    TestTrue(TEXT("The rival's news"), S.Online.RivalsTold.Num() > 0);
+    TestTrue(TEXT("RivalLines"), MarketOnline::RivalLines(S).Num() > 0);
+    const int32 Card = S.Decisions.IndexOfByPredicate([](const FMarketDecision& D) { return D.Id == TEXT("online.commission"); });
+    TestTrue(TEXT("Commission card"), Card != INDEX_NONE);
+    if (Card == INDEX_NONE) return false;
+    const float Before = S.Online.Commission;
+    TestTrue(TEXT("Accepted"), MarketOnline::Resolve(S, Products, S.Decisions[Card], 0, Message) && S.Online.Commission > Before);
+    TestTrue(TEXT("The epidemic card came too"), S.Decisions.ContainsByPredicate([](const FMarketDecision& D) { return D.Id == TEXT("online.pandemic"); }));
     return true;
 }
 

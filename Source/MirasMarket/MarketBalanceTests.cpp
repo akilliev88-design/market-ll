@@ -147,14 +147,17 @@ bool FMarketBalanceOnlineTest::RunTest(const FString& Parameters)
     for (FMarketStock& Row : S.Stock) { Row.Warehouse = 80; Row.Shelf = 20; }
     S.Stock[3].Shelf = 0;
     FString Message;
-    TestTrue(TEXT("Phone orders"), MarketOnline::SetChannel(S, MarketOnline::EChannel::Phone, true, Message));
-    for (int32 I = 0; I < 200; ++I) { FMarketLoyalty L; L.CustomerId = I; L.Visits = 5; L.Satisfaction = 90.f; S.Loyalty.Add(L); }
+    // M32: the family shop sells through the platform (the epidemic's months: many orders).
+    S.CountryId = TEXT("tr"); S.CityId = TEXT("kirklareli");
+    S.Day = MarketOnline::PandemicStart(S) + 10;
+    S.Online.Reputation = 90.f;
+    TestTrue(TEXT("Platform"), MarketOnline::Open(S, MarketOnline::EChannel::Platform, Message));
     TestTrue(TEXT("20 % off the milk aisle"), Start(S, Products, EKind::AisleDiscount, 0, 20, Message));
     int32 Detergent = 0, Milk = 0;
     bool bPricesRight = true;
     for (int32 D = 0; D < 3; ++D)
     {
-        S.DayNews.Reset(); S.CloseDay();
+        S.DayNews.Reset(); S.Served = 400; S.CloseDay();
         const int32 Closed = S.Day - 1;
         MarketOnline::CloseDay(S, Products);
         int64 Expected = 0;

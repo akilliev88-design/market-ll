@@ -205,12 +205,6 @@ bool MarketCompany::Build(FMarketState& State, int32 What, FString& OutMessage)
         C.bPrivateLabel = true;
         MarketStory::AddMemory(State, TEXT("\"Miras\" markal\u0131 ilk \u00fcr\u00fcn rafta"));
         return true;
-    case 4:
-        if (C.bDarkStore) { OutMessage = TEXT("Karanl\u0131k ma\u011faza zaten var."); return false; }
-        if (!State.Online.bWeb || Stores < 20) { OutMessage = TEXT("Karanl\u0131k ma\u011faza i\u00e7in web sitesi ve en az 20 ma\u011faza gerekir."); return false; }
-        if (!Pay(1500000, TEXT("Karanl\u0131k ma\u011faza (yaln\u0131z sipari\u015f toplayan depo)"))) return false;
-        C.bDarkStore = true;
-        return true;
     default:
         OutMessage = TEXT("Bilinmeyen yat\u0131r\u0131m.");
         return false;
@@ -235,7 +229,6 @@ FString MarketCompany::Summary(const FMarketState& State)
     if (C.Trucks > 0) Built.Add(FString::Printf(TEXT("%d kamyon"), C.Trucks));
     if (C.bCentralBuying) Built.Add(TEXT("merkezi al\u0131m"));
     if (C.bPrivateLabel) Built.Add(TEXT("Miras markas\u0131"));
-    if (C.bDarkStore) Built.Add(TEXT("karanl\u0131k ma\u011faza"));
     if (Built.Num()) Line += TEXT(" \u00b7 ") + FString::Join(Built, TEXT(", "));
     if (State.Story.Chapter == 7 && !MarketStory::StoryClosed(State)) Line += FString::Printf(TEXT("\nLiderlik: %d / %d g\u00fcn"), C.LeadershipDays, LeadershipGoalDays);
     return Line;
@@ -246,20 +239,19 @@ void MarketCompany::CloseDay(FMarketState& State)
     FMarketCompany& C = State.Company;
     const int32 Closed = State.Day - 1;
     if (Closed < 1) return;
-    // Head office: the depots, trucks, the dark store. The managers above the shops are named people since G-086b
+    // Head office: the depots and trucks (dark stores: MarketOnline). The managers above the shops are named people since G-086b
     // and are paid by MarketManagers::CloseDay (no anonymous area managers here any more).
     const double Level = MarketPrices::ListLevel(Closed);
     const int32 Stores = TotalStores(State);
     int64 Office = MarketDepots::DailyRent(State, Closed); // G-089: each depot's rent (its province, the list level)
     Office += FMath::RoundToInt64(C.Trucks * 6000 * Level);
-    Office += C.bDarkStore ? FMath::RoundToInt64(30000 * Level) : 0;
     const int64 Total = -Office;
     C.LastProfit = Total;
     C.WeekProfit += Total;
     State.LastBranchProfit += Total;
     State.LastProfit += Total;
     State.Cash += Total;
-    MarketLedger::Post(State, MarketLedger::EAccount::HeadOffice, Total, true, MarketLedger::HeadOfficeStore); // B2: depots' rent, trucks, dark store
+    MarketLedger::Post(State, MarketLedger::EAccount::HeadOffice, Total, true, MarketLedger::HeadOfficeStore); // B2: depots' rent, trucks
 
     // Chapter 7: a year of leading on every measure brings the one finale (karar J02; the measure becomes the
     // global retail league in G-082). After the finale the game goes on without new story content.

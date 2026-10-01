@@ -11,6 +11,7 @@
 #include "MarketManagers.h"
 #include "MarketPrices.h"
 #include "MarketStaff.h"
+#include "MarketOnline.h"
 #include "MarketStart.h"
 #include "MarketStory.h"
 #include "MarketStoreAssign.h"
@@ -592,7 +593,8 @@ void MarketBranches::CloseDay(FMarketState& State, const TArray<FMarketProduct>&
             * MarketDepartments::PullFactor(B, Closed); // M26: fresh bread, a good butcher
         // Akis C2b: the province's chains against the start, a price war against us on top.
         const float Share = Pull / (Pull + 3.f * Where.Competition * MarketChains::PressureFactor(State, Where.Country, Where.Province, Closed));
-        const float Trips = MarketCalendar::ClosedByLaw(Closed) ? 0.f : TripsOf(Where, Kind) * MarketCalendar::TrafficFactor(Closed, State.RivalSeed);
+        const float Trips = MarketCalendar::ClosedByLaw(Closed) ? 0.f : TripsOf(Where, Kind) * MarketCalendar::TrafficFactor(Closed, State.RivalSeed)
+            * MarketOnline::StoreTrafficFactorOn(State, Closed, Where.Country); // M32: trips gone online, the epidemic's closure days
         const int32 Arrived = FMath::RoundToInt32(Trips * Share * (0.5f + 0.5f * B.Maturity) * Cannibalization(State, Index, Where));
         // G-088 C: the store's tills. Too few lanes lose shoppers in the queue; roomy ones keep a few more.
         const MarketStoreAssign::FStoreMeasures Measures = MarketStoreViews::MeasuresOf(B);

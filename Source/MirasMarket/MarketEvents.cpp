@@ -1,4 +1,5 @@
 #include "MarketEvents.h"
+#include "MarketOnline.h"
 #include "MarketCast.h"
 #include "MarketGoals.h"
 #include "MarketEras.h"
@@ -209,6 +210,7 @@ bool MarketEvents::Decide(FMarketState& State, const TArray<FMarketProduct>& Pro
     const bool bDone = D.Id.StartsWith(TEXT("story.")) ? MarketStory::Resolve(State, Products, D, Option, OutMessage)
         : D.Id.StartsWith(TEXT("finance.")) ? MarketFinance::Resolve(State, Products, D, Option, OutMessage)
         : D.Id.StartsWith(TEXT("rival.")) ? MarketCompetitors::Resolve(State, Products, D, Option, OutMessage)
+        : D.Id.StartsWith(TEXT("online.")) ? MarketOnline::Resolve(State, Products, D, Option, OutMessage) // M32
         : ResolveEvent(State, Products, D, Option, OutMessage);
     if (bDone && State.Decisions.Num() > 0 && State.Decisions[0].Id == D.Id) State.Decisions.RemoveAt(0);
     return bDone;

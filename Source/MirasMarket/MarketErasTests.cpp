@@ -136,16 +136,13 @@ bool FMarketErasEffectsTest::RunTest(const FString& Parameters)
     FEra Now;
     TestTrue(TEXT("Current era"), Current(S, S.Day, Now) && Now.Kind == EKind::Recession);
 
-    // The epidemic moves with the plan (MarketOnline's profile), and the player can still switch it off.
+    // The epidemic moves with the plan (MarketOnline's profile) and always comes (M32).
     FMarketState Legacy; Legacy.RivalSeed = 12;
     const int32 Shift = PandemicShiftDays(S);
     TestEqual(TEXT("A year and ten days earlier"), Shift, MarketCalendar::GameDayOf(2019, 3, 1) - MarketCalendar::GameDayOf(2020, 3, 1) + 10);
     TestEqual(TEXT("Epidemic start follows"), MarketOnline::PandemicStart(S), MarketOnline::PandemicStart(Legacy) + Shift);
     TestEqual(TEXT("... and its end"), MarketOnline::PandemicEnd(S), MarketOnline::PandemicEnd(Legacy) + Shift);
-    S.Online.bPandemic = true;
     TestTrue(TEXT("Epidemic is an era"), Current(S, MarketOnline::PandemicStart(S) + 5, Now) && Now.Kind == EKind::Pandemic);
-    S.Online.bPandemic = false;
-    TestFalse(TEXT("Switched off"), MarketOnline::IsPandemic(S, MarketOnline::PandemicStart(S) + 5));
 
     MarketErasTest::Restore();
     return true;
@@ -225,11 +222,9 @@ bool FMarketErasFactorsTest::RunTest(const FString& Parameters)
     TestTrue(TEXT("Recovery: more openings"), ChainOpeningFactor(S, TEXT("tr"), Up) > 1.3f);
     TestTrue(TEXT("Recovery: chains sell more"), ChainRevenueFactor(S, TEXT("tr"), 1.f, Up) > 1.f);
 
-    // The epidemic: clothing down, electronics and fresh up; switched off, nothing.
+    // The epidemic: clothing down, electronics and fresh up.
     const int32 Sick = MarketOnline::PandemicStart(S) + 60;
     TestTrue(TEXT("Epidemic: clothing down, fresh up"), DemandFactor(S, EGoods::Clothing, Sick) < 0.8f && FreshDemand(S, Sick) > 1.05f);
-    S.Online.bPandemic = false;
-    TestTrue(TEXT("Epidemic switched off"), DemandFactor(S, EGoods::Clothing, Sick) == 1.f);
 
     // Department names.
     TestTrue(TEXT("Goods of departments"), GoodsOf(TEXT("elektronik")) == EGoods::Electronics && GoodsOf(TEXT("Giyim")) == EGoods::Clothing

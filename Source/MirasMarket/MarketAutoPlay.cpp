@@ -321,10 +321,10 @@ namespace MarketAutoPlay
                     }
                 Trial.Expenses.FindOrAdd(TEXT("Depo ve merkez giderleri")) += FMath::Max<int64>(0, -State.Company.LastProfit);
                 Trial.Results.FindOrAdd(TEXT("Aile dukkani")) += DayResult.FamilyProfit;
-                Trial.Results.FindOrAdd(TEXT("Subeler")) += BranchNet;
+                Trial.Results.FindOrAdd(TEXT("Subeler")) += BranchNet - State.Online.LastBranchProfit; // M32: their online orders count under Internet
                 Trial.Results.FindOrAdd(TEXT("Internet satisi")) += State.Online.LastProfit;
                 Trial.Results.FindOrAdd(TEXT("Depo ve merkez")) += State.Company.LastProfit;
-                Trial.Results.FindOrAdd(TEXT("Diger (yonetim, banka, fire, kasa farki)")) += DayResult.Profit - DayResult.FamilyProfit - BranchNet - State.Online.LastProfit - State.Company.LastProfit;
+                Trial.Results.FindOrAdd(TEXT("Diger (yonetim, banka, fire, kasa farki)")) += DayResult.Profit - DayResult.FamilyProfit - (BranchNet - State.Online.LastBranchProfit) - State.Online.LastProfit - State.Company.LastProfit;
                 if (State.Cash < 0) ++Trial.NegativeDays;
                 if (State.TroubleStage > 0) ++Trial.TroubleDays;
                 const FRow Today = Row(State); Trial.Daily.Add(Today);

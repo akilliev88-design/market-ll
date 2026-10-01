@@ -18,7 +18,7 @@ struct FMarketState;
 // unshifted plan gives exactly the built-in curve), the currency shock makes imported goods dearer for a while,
 // recession and high inflation make shoppers count their money, recovery brings them back (MarketEvents
 // modifiers, which the game already applies). The epidemic is MarketOnline's 2020-2021 profile, moved to the
-// plan's year (MarketOnline::PandemicStart); switching the profile off still switches it off.
+// plan's year (MarketOnline::PandemicStart); it always comes (M32).
 // A campaign without Setup (tests, tools) keeps the unshifted plan (bPlanned false).
 USTRUCT()
 struct FMarketEras

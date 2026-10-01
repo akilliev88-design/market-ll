@@ -93,14 +93,11 @@ bool FMarketCompanyTest::RunTest(const FString& Parameters)
     TestEqual(TEXT("Stores in Germany"), CountryStores(S, TEXT("de")), 1);
     TestEqual(TEXT("Two chapter 6 goals"), MarketStory::Objectives(S).Num(), 2);
 
-    // Dark store helps the web shop.
+    // A big company (dark stores are per province now: MarketOnline, M32).
     FMarketState Online = S;
     Online.Story.Chapter = 5;
-    Online.Online.bWeb = true;
     while (TotalStores(Online) < 20) AddShop(Online, TEXT("tr"), TEXT("istanbul"));
-    const int32 Capacity = MarketOnline::DeliveryCapacity(Online);
-    TestTrue(TEXT("Dark store"), Build(Online, 4, Message));
-    TestTrue(TEXT("More deliveries"), MarketOnline::DeliveryCapacity(Online) > Capacity);
+    TestFalse(TEXT("No dark store among the company builds"), Build(Online, 4, Message));
 
     // Chapter 7: a year in front on every measure ends in "Miras".
     FMarketState Lead = Online;

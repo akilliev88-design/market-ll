@@ -96,8 +96,6 @@ bool FMarketLedgerAuditTest::RunTest(const FString& Parameters)
     FString Message;
     TestTrue(TEXT("POS"), MarketDirector::Command(S, Products, TEXT("Card"), 1, Message));
     TestTrue(TEXT("Credit book"), MarketDirector::Command(S, Products, TEXT("CreditLimit"), 2, Message));
-    TestTrue(TEXT("Phone orders"), MarketDirector::Command(S, Products, TEXT("OnlineChannel"), 1, Message));
-    for (int32 I = 0; I < 40; ++I) { FMarketLoyalty L; L.CustomerId = I; L.Visits = 6; L.Satisfaction = 80.f; S.Loyalty.Add(L); }
     bool bBooksAgree = true;
     int32 Days = 0;
     for (int32 D = 1; D <= 90; ++D)

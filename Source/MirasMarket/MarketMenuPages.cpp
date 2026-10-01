@@ -1808,83 +1808,184 @@ TSharedRef<SWidget> SMarketMenu::LedgerCards()
 
 TSharedRef<SWidget> SMarketMenu::ChannelsPage()
 {
-    // G-069: order channels of the era, couriers, the missing-item rule and payment methods.
+    // M32: online selling of the company (channels, provinces, policy, numbers) and the payment methods. Nothing of
+    // online selling shows before its first rumour.
+    using MarketOnline::EChannel;
     auto G = [this] { return Game.Get(); };
-    auto Era = [G](MarketOnline::EChannel Channel) { return [G, Channel] { return G() && G()->State.Day >= MarketOnline::OpenDay(Channel); }; };
-    auto IsOn = [G](MarketOnline::EChannel Channel) { return G() && MarketOnline::IsOn(G()->State, Channel); };
-    auto ChannelRow = [this, G, Era, IsOn](MarketOnline::EChannel Channel, const FString& Note) -> TSharedRef<SWidget>
+    auto Shown = [G] { return G() && MarketOnline::Visible(G()->State) ? EVisibility::Visible : EVisibility::Collapsed; };
+    auto ChannelRow = [this, G](EChannel Channel, const FString& Note) -> TSharedRef<SWidget>
     {
-        const int32 Code = static_cast<int32>(Channel) * 10;
-        return SNew(SBorder).BorderImage(&SmallBrush).BorderBackgroundColor(Col(ERole::Inset)).Padding(FMargin(12.f, 8.f))
+        const int32 Code = static_cast<int32>(Channel);
+        auto IsOn = [G, Channel] { return G() && MarketOnline::IsOn(G()->State, Channel); };
+        auto Seen = [G, Channel] { return G() && (MarketOnline::IsOn(G()->State, Channel) || G()->State.Day >= MarketOnline::OpenDay(G()->State, Channel) - MarketOnline::RumourDays); };
+        auto Ready = [G, Channel, IsOn] { FString Reason; return IsOn() || (G() && MarketOnline::CanOpen(G()->State, Channel, Reason)); };
+        return SNew(SBox).Visibility_Lambda([Seen] { return Seen() ? EVisibility::Visible : EVisibility::Collapsed; })
         [
-            SNew(SHorizontalBox)
-            + SHorizontalBox::Slot().FillWidth(1.f).VAlign(VAlign_Center)
+            SNew(SBorder).BorderImage(&SmallBrush).BorderBackgroundColor(Col(ERole::Inset)).Padding(FMargin(12.f, 8.f))
             [
-                SNew(SVerticalBox)
-                + SVerticalBox::Slot().AutoHeight()
-                [ LabelBy([Channel, IsOn] { return FString::Printf(TEXT("%s \u00b7 %s"), *MarketOnline::ChannelName(Channel), IsOn(Channel) ? TEXT("a\u00e7\u0131k") : TEXT("kapal\u0131")); }, 12,
-                    [Channel, IsOn] { return IsOn(Channel) ? ERole::Accent : ERole::Text; }, true) ]
-                + SVerticalBox::Slot().AutoHeight()[ Label([Note] { return Note; }, 10, ERole::Muted, false, true) ]
-                + SVerticalBox::Slot().AutoHeight()
-                [ Label([G, Channel, IsOn] { return G() && IsOn(Channel) ? FString::Printf(TEXT("Beklenen: g\u00fcnde ~%.0f sipari\u015f"), MarketOnline::ExpectedOrders(G()->State, Channel)) : FString(); }, 10, ERole::Muted) ]
-                + SVerticalBox::Slot().AutoHeight()
-                [ Why([G, Channel] { return G() && G()->State.Day < MarketOnline::OpenDay(Channel) ? FString::Printf(TEXT("%d. g\u00fcnde a\u00e7\u0131l\u0131r."), MarketOnline::OpenDay(Channel)) : FString(); }) ]
-            ]
-            + SHorizontalBox::Slot().AutoWidth().VAlign(VAlign_Center).Padding(10.f, 0.f, 0.f, 0.f)
-            [
-                RiskyButton([Channel, IsOn] { return FString(IsOn(Channel) ? TEXT("Kapat") : TEXT("A\u00e7")); },
-                    [G, Channel, IsOn]
-                    {
-                        if (IsOn(Channel)) return FString::Printf(TEXT("%s kapans\u0131n m\u0131? Bu kanaldan gelen m\u00fc\u015fteriler ba\u015fka yere al\u0131\u015f\u0131r."), *MarketOnline::ChannelName(Channel));
-                        if (Channel == MarketOnline::EChannel::Web && G())
-                            return FString::Printf(TEXT("Web ma\u011fazas\u0131 kurulsun mu? Kurulum %s, her ay bar\u0131nd\u0131rma; kartla \u00f6deme komisyonu i\u015fler."),
-                                *MarketMenuUi::Tl(MarketMenuPagesUi::Today(G()->State, MarketOnline::WebSetupCost)));
-                        if (Channel == MarketOnline::EChannel::Platform)
-                            return FString::Printf(TEXT("Getirsin'e girilsin mi? Her sipari\u015ften %%%.0f komisyon al\u0131r; y\u0131ld\u0131zlar toplama kalitesine ba\u011fl\u0131."), MarketOnline::PlatformCommission * 100.0);
-                        return FString(TEXT("Telefonla sipari\u015f al\u0131ns\u0131n m\u0131? Kurye yoksa ak\u015famlar\u0131 sen g\u00f6t\u00fcr\u00fcrs\u00fcn."));
-                    },
-                    [this, Code, Channel, IsOn] { Manage(TEXT("OnlineChannel"), Code + (IsOn(Channel) ? 0 : 1)); },
-                    Era(Channel))
+                SNew(SHorizontalBox)
+                + SHorizontalBox::Slot().FillWidth(1.f).VAlign(VAlign_Center)
+                [
+                    SNew(SVerticalBox)
+                    + SVerticalBox::Slot().AutoHeight()
+                    [ LabelBy([Channel, IsOn] { return FString::Printf(TEXT("%s \u00b7 %s"), *MarketOnline::ChannelName(Channel), IsOn() ? TEXT("a\u00e7\u0131k") : TEXT("kapal\u0131")); }, 12,
+                        [IsOn] { return IsOn() ? ERole::Accent : ERole::Text; }, true) ]
+                    + SVerticalBox::Slot().AutoHeight()[ Label([Note] { return Note; }, 10, ERole::Muted, false, true) ]
+                    + SVerticalBox::Slot().AutoHeight()[ Label([G, Channel] { return G() ? MarketOnline::ChannelLine(G()->State, Channel) : FString(); }, 10, ERole::Text, false, true) ]
+                ]
+                + SHorizontalBox::Slot().AutoWidth().VAlign(VAlign_Center).Padding(10.f, 0.f, 0.f, 0.f)
+                [
+                    RiskyButton([IsOn] { return FString(IsOn() ? TEXT("Kapat") : TEXT("A\u00e7")); },
+                        [G, Channel, IsOn]
+                        {
+                            if (!G()) return FString();
+                            if (IsOn()) return FString::Printf(TEXT("%s kapans\u0131n m\u0131? Bu kanal\u0131n m\u00fc\u015fterileri ba\u015fka yere al\u0131\u015f\u0131r."), *MarketOnline::ChannelName(Channel));
+                            return FString::Printf(TEXT("%s a\u00e7\u0131ls\u0131n m\u0131? %s"), *MarketOnline::ChannelName(Channel), *MarketOnline::ChannelLine(G()->State, Channel));
+                        },
+                        [this, Code, IsOn] { Manage(IsOn() ? TEXT("OnlineClose") : TEXT("OnlineOpen"), Code); },
+                        Ready)
+                ]
             ]
         ];
     };
-    auto SubstituteChoice = [this, G](const FString& Text, int32 Rule) -> TSharedRef<SWidget>
-    {
-        return Choice(Text, [G, Rule] { return G() && G()->State.Online.Substitute == Rule; }, [this, Rule] { Manage(TEXT("Substitute"), Rule); });
-    };
 
     TSharedRef<SWidget> ChannelCard = Card(SNew(SVerticalBox)
-        + SVerticalBox::Slot().AutoHeight()[ Section(TEXT("S\u0130PAR\u0130\u015e KANALLARI")) ]
+        + SVerticalBox::Slot().AutoHeight()[ Section(TEXT("\u0130NTERNETTEN SATI\u015e")) ]
         + SVerticalBox::Slot().AutoHeight().Padding(0.f, 6.f, 0.f, 8.f)[ Label([G] { return G() ? MarketOnline::Summary(G()->State) : FString(); }, 11, ERole::Text, false, true) ]
-        + SVerticalBox::Slot().AutoHeight().Padding(0.f, 3.f)[ ChannelRow(MarketOnline::EChannel::Phone, TEXT("Bakkal gelene\u011fi: tan\u0131d\u0131klar arar, kurye po\u015feti g\u00f6t\u00fcr\u00fcr. K\u00fc\u00e7\u00fck sepetler, sad\u0131k m\u00fc\u015fteri.")) ]
-        + SVerticalBox::Slot().AutoHeight().Padding(0.f, 3.f)[ ChannelRow(MarketOnline::EChannel::Web, TEXT("Kendi web ma\u011fazan (4. y\u0131ldan): b\u00fct\u00fcn il\u00e7eden b\u00fcy\u00fck sepetler, yava\u015f ba\u015flang\u0131\u00e7.")) ]
-        + SVerticalBox::Slot().AutoHeight().Padding(0.f, 3.f)[ ChannelRow(MarketOnline::EChannel::Platform, TEXT("H\u0131zl\u0131 teslimat platformu (6. y\u0131ldan): kendi kuryeleri, \u00e7ok sipari\u015f, y\u00fcksek komisyon.")) ]);
-
-    TSharedRef<SWidget> Couriers = Card(SNew(SVerticalBox)
-        + SVerticalBox::Slot().AutoHeight()[ Section(TEXT("KURYE VE TESL\u0130MAT")) ]
-        + SVerticalBox::Slot().AutoHeight().Padding(0.f, 6.f, 0.f, 8.f)
-        [ Label([G] { return G() ? FString::Printf(TEXT("%d kurye \u00b7 g\u00fcnde %d teslimat \u00b7 %d sipari\u015f toplan\u0131r. D\u00fcn %d sipari\u015f, %d ge\u00e7, %d iptal, %d eksik (%d ikame)."),
-            G()->State.Online.Couriers, MarketOnline::DeliveryCapacity(G()->State), MarketOnline::PickCapacity(G()->State), G()->State.Online.LastOrders, G()->State.Online.LastLate,
-            G()->State.Online.LastCancelled, G()->State.Online.LastMissing, G()->State.Online.LastSubstituted) : FString(); }, 11, ERole::Text, false, true) ]
-        + SVerticalBox::Slot().AutoHeight()
-        [
-            SNew(SWrapBox).UseAllottedSize(true).InnerSlotPadding(FVector2D(6.f, 6.f))
-            + SWrapBox::Slot()[ Button([G] { return G() ? FString::Printf(TEXT("Kurye al (%s/g\u00fcn)"), *MarketMenuUi::Tl(MarketMenuPagesUi::Today(G()->State, MarketOnline::CourierDailyWage))) : FString(); },
-                [this] { Manage(TEXT("HireCourier"), 0); }, false, [G] { return G() && G()->State.Online.Couriers < MarketOnline::MaxCouriers; }) ]
-            + SWrapBox::Slot()[ Button([] { return FString(TEXT("Kurye b\u0131rak")); }, [this] { Manage(TEXT("FireCourier"), 0); }, false, [G] { return G() && G()->State.Online.Couriers > 0; }) ]
-            + SWrapBox::Slot()[ Choice(TEXT("Teslimat \u00fccretsiz"), [G] { return G() && G()->State.Online.bFreeDelivery; }, [this] { Manage(TEXT("FreeDelivery"), 1); }) ]
-            + SWrapBox::Slot()[ Choice(TEXT("Teslimat \u00fccretli"), [G] { return G() && !G()->State.Online.bFreeDelivery; }, [this] { Manage(TEXT("FreeDelivery"), 0); }) ]
-        ]
-        + SVerticalBox::Slot().AutoHeight().Padding(0.f, 12.f, 0.f, 4.f)[ Section(TEXT("\u00dcR\u00dcN EKS\u0130KSE")) ]
-        + SVerticalBox::Slot().AutoHeight()
-        [
-            SNew(SHorizontalBox)
-            + SHorizontalBox::Slot().AutoWidth().Padding(0.f, 0.f, 6.f, 0.f)[ SubstituteChoice(TEXT("Aray\u0131p sor"), 0) ]
-            + SHorizontalBox::Slot().AutoWidth().Padding(0.f, 0.f, 6.f, 0.f)[ SubstituteChoice(TEXT("Benzerini koy"), 1) ]
-            + SHorizontalBox::Slot().AutoWidth()[ SubstituteChoice(TEXT("\u00c7\u0131kar"), 2) ]
-        ]
+        + SVerticalBox::Slot().AutoHeight().Padding(0.f, 3.f)[ ChannelRow(EChannel::Web, TEXT("Kendi sitemiz: b\u00fcy\u00fck sepetler, yava\u015f ba\u015flang\u0131\u00e7. Sipari\u015fi ma\u011fazalar toplar, \u015firketin kuryeleri g\u00f6t\u00fcr\u00fcr.")) ]
+        + SVerticalBox::Slot().AutoHeight().Padding(0.f, 3.f)[ ChannelRow(EChannel::App, TEXT("Telefon uygulamas\u0131: en b\u00fcy\u00fck ve en sad\u0131k sepetler, teslimat\u0131 en pahal\u0131. Yaz\u0131l\u0131m firmas\u0131n\u0131 sen se\u00e7ersin.")) ]
+        + SVerticalBox::Slot().AutoHeight().Padding(0.f, 3.f)[ ChannelRow(EChannel::Platform, TEXT("H\u0131zl\u0131 teslimat platformu: onlar\u0131n kuryesi, \u00e7ok sipari\u015f, komisyon; aile d\u00fckk\u00e2n\u0131 da kat\u0131labilir.")) ]
+        + SVerticalBox::Slot().AutoHeight().Padding(0.f, 3.f)[ ChannelRow(EChannel::Quick, TEXT("Kendi 30 dakika teslimat\u0131m\u0131z: ilde karanl\u0131k depo ister, kuryesi pahal\u0131d\u0131r.")) ]
         + SVerticalBox::Slot().AutoHeight().Padding(0.f, 8.f, 0.f, 0.f)
-        [ Label([G] { return G() ? FString::Printf(TEXT("Online itibar %.0f \u00b7 platform y\u0131ld\u0131z\u0131 %.1f"), G()->State.Online.Reputation, MarketOnline::Stars(G()->State)) : FString(); }, 10, ERole::Muted) ]);
+        [ More([G] { if (!G()) return FString(); const TArray<FString> Lines = MarketOnline::RivalLines(G()->State);
+            return Lines.Num() ? TEXT("Rakipler internette:\n") + FString::Join(Lines, TEXT("\n")) : FString(TEXT("Rakiplerden hen\u00fcz internete \u00e7\u0131kan yok.")); }) ]);
+
+    // The provinces: who decides, what runs there, the dark store, the last month.
+    TSharedRef<SVerticalBox> AreaRows = SNew(SVerticalBox);
+    for (int32 Slot = 0; Slot < 30; ++Slot)
+    {
+        auto Has = [G, Slot] { return G() && G()->State.Online.Areas.IsValidIndex(Slot); };
+        auto Flags = [G, Has, Slot] { return Has() ? MarketOnline::AreaFlags(G()->State.Online.Areas[Slot]) : 0; };
+        auto Toggle = [this, Flags, Slot](int32 Bit) { Manage(TEXT("OnlineArea"), MarketOnline::EncodeArea(Slot, Flags() ^ Bit)); };
+        AreaRows->AddSlot().AutoHeight().Padding(0.f, 3.f)
+        [
+            SNew(SBox).Visibility_Lambda([Has] { return Has() ? EVisibility::Visible : EVisibility::Collapsed; })
+            [
+                SNew(SVerticalBox)
+                + SVerticalBox::Slot().AutoHeight()[ Label([G, Has, Slot] { return Has() ? MarketOnline::AreaLine(G()->State, Slot) : FString(); }, 10, ERole::Text, false, true) ]
+                + SVerticalBox::Slot().AutoHeight().Padding(0.f, 3.f, 0.f, 0.f)
+                [
+                    SNew(SWrapBox).UseAllottedSize(true).InnerSlotPadding(FVector2D(6.f, 4.f))
+                    + SWrapBox::Slot()[ Choice(TEXT("Platform"), [Flags] { return (Flags() & 1) != 0; }, [Toggle] { Toggle(1); }) ]
+                    + SWrapBox::Slot()[ Choice(TEXT("Kendi teslimat\u0131m\u0131z"), [Flags] { return (Flags() & 2) != 0; }, [Toggle] { Toggle(2); }) ]
+                    + SWrapBox::Slot()[ Choice(TEXT("H\u0131zl\u0131"), [Flags] { return (Flags() & 4) != 0; }, [Toggle] { Toggle(4); },
+                        [G, Has, Slot] { return Has() && G()->State.Online.Areas[Slot].DarkStoreDay > 0; }) ]
+                    + SWrapBox::Slot()[ RiskyButton([] { return FString(TEXT("Karanl\u0131k depo")); },
+                        [G, Slot] { return G() ? FString::Printf(TEXT("Bu ilde karanl\u0131k depo kurulsun mu? %s; her ay kira."), *MarketMenuUi::Tl(MarketOnline::DarkStorePrice(G()->State, Slot))) : FString(); },
+                        [this, Slot] { Manage(TEXT("DarkStore"), Slot); },
+                        [G, Slot] { FString Reason; return G() && MarketOnline::CanBuildDarkStore(G()->State, Slot, Reason); }) ]
+                    + SWrapBox::Slot()[ Button([] { return FString(TEXT("Karar\u0131 b\u0131rak")); }, [this, Slot] { Manage(TEXT("OnlineAreaReturn"), Slot); }, false,
+                        [G, Has, Slot] { return Has() && G()->State.Online.Areas[Slot].bPlayerSet; }) ]
+                ]
+            ]
+        ];
+    }
+    auto DefaultFlags = [G] { return G() ? (G()->State.Online.bDefaultPlatform ? 1 : 0) | (G()->State.Online.bDefaultOwn ? 2 : 0) | (G()->State.Online.bDefaultQuick ? 4 : 0) : 0; };
+    TSharedRef<SWidget> AreaCard = Card(SNew(SVerticalBox)
+        + SVerticalBox::Slot().AutoHeight()[ Section(TEXT("\u0130LLER")) ]
+        + SVerticalBox::Slot().AutoHeight().Padding(0.f, 4.f, 0.f, 6.f)
+        [ Label([] { return FString(TEXT("\u0130l m\u00fcd\u00fcr\u00fc olan ilde m\u00fcd\u00fcr birka\u00e7 ay\u0131n sonucuna bak\u0131p de\u011fi\u015fiklik \u00f6nerir; \u00f6neri \u00fclke (ya da b\u00f6lge) m\u00fcd\u00fcr\u00fcnden ge\u00e7ip onay\u0131na gelir. Bir se\u00e7ene\u011fe bas\u0131nca karar senin olur. M\u00fcd\u00fcr\u00fc olmayan illerde \u015firket kural\u0131 \u00e7al\u0131\u015f\u0131r:")); }, 10, ERole::Muted, false, true) ]
+        + SVerticalBox::Slot().AutoHeight().Padding(0.f, 0.f, 0.f, 8.f)
+        [
+            SNew(SWrapBox).UseAllottedSize(true).InnerSlotPadding(FVector2D(6.f, 4.f))
+            + SWrapBox::Slot()[ Choice(TEXT("Platform"), [DefaultFlags] { return (DefaultFlags() & 1) != 0; }, [this, DefaultFlags] { Manage(TEXT("OnlineDefault"), DefaultFlags() ^ 1); }) ]
+            + SWrapBox::Slot()[ Choice(TEXT("Kendi teslimat\u0131m\u0131z"), [DefaultFlags] { return (DefaultFlags() & 2) != 0; }, [this, DefaultFlags] { Manage(TEXT("OnlineDefault"), DefaultFlags() ^ 2); }) ]
+            + SWrapBox::Slot()[ Choice(TEXT("Karanl\u0131k deposu olan ilde h\u0131zl\u0131"), [DefaultFlags] { return (DefaultFlags() & 4) != 0; }, [this, DefaultFlags] { Manage(TEXT("OnlineDefault"), DefaultFlags() ^ 4); }) ]
+        ]
+        + SVerticalBox::Slot().AutoHeight()[ AreaRows ]);
+
+    // Policy, the e-commerce manager, the numbers.
+    auto Level = [this, G](const FString& Text, const TCHAR* Action, int32 Value, uint8 FMarketOnline::* Field) -> TSharedRef<SWidget>
+    {
+        return Choice(Text, [G, Value, Field] { return G() && G()->State.Online.*Field == Value; }, [this, Action, Value] { Manage(Action, Value); });
+    };
+    TSharedRef<SWidget> PolicyCard = Card(SNew(SVerticalBox)
+        + SVerticalBox::Slot().AutoHeight()[ Section(TEXT("POL\u0130T\u0130KA")) ]
+        + SVerticalBox::Slot().AutoHeight().Padding(0.f, 6.f, 0.f, 2.f)[ Fixed(TEXT("Teslimat \u00fccreti"), 10, ERole::Muted) ]
+        + SVerticalBox::Slot().AutoHeight()
+        [
+            SNew(SWrapBox).UseAllottedSize(true).InnerSlotPadding(FVector2D(6.f, 4.f))
+            + SWrapBox::Slot()[ Level(TEXT("\u00dccretsiz"), TEXT("OnlineFee"), 0, &FMarketOnline::Fee) ]
+            + SWrapBox::Slot()[ Level(TEXT("K\u00fc\u00e7\u00fck sepete"), TEXT("OnlineFee"), 1, &FMarketOnline::Fee) ]
+            + SWrapBox::Slot()[ Level(TEXT("Her sipari\u015fe"), TEXT("OnlineFee"), 2, &FMarketOnline::Fee) ]
+        ]
+        + SVerticalBox::Slot().AutoHeight().Padding(0.f, 6.f, 0.f, 2.f)[ Fixed(TEXT("En az sepet"), 10, ERole::Muted) ]
+        + SVerticalBox::Slot().AutoHeight()
+        [
+            SNew(SWrapBox).UseAllottedSize(true).InnerSlotPadding(FVector2D(6.f, 4.f))
+            + SWrapBox::Slot()[ Level(TEXT("Yok"), TEXT("OnlineMinBasket"), 0, &FMarketOnline::MinBasket) ]
+            + SWrapBox::Slot()[ Level(TEXT("K\u00fc\u00e7\u00fck"), TEXT("OnlineMinBasket"), 1, &FMarketOnline::MinBasket) ]
+            + SWrapBox::Slot()[ Level(TEXT("B\u00fcy\u00fck"), TEXT("OnlineMinBasket"), 2, &FMarketOnline::MinBasket) ]
+        ]
+        + SVerticalBox::Slot().AutoHeight().Padding(0.f, 6.f, 0.f, 2.f)[ Fixed(TEXT("\u0130nternet fiyat\u0131"), 10, ERole::Muted) ]
+        + SVerticalBox::Slot().AutoHeight()
+        [
+            SNew(SWrapBox).UseAllottedSize(true).InnerSlotPadding(FVector2D(6.f, 4.f))
+            + SWrapBox::Slot()[ Level(TEXT("Rafla ayn\u0131"), TEXT("OnlinePriceGap"), 0, &FMarketOnline::PriceGap) ]
+            + SWrapBox::Slot()[ Level(TEXT("+%5"), TEXT("OnlinePriceGap"), 1, &FMarketOnline::PriceGap) ]
+            + SWrapBox::Slot()[ Level(TEXT("+%10"), TEXT("OnlinePriceGap"), 2, &FMarketOnline::PriceGap) ]
+        ]
+        + SVerticalBox::Slot().AutoHeight().Padding(0.f, 6.f, 0.f, 2.f)[ Fixed(TEXT("Reklam"), 10, ERole::Muted) ]
+        + SVerticalBox::Slot().AutoHeight()
+        [
+            SNew(SWrapBox).UseAllottedSize(true).InnerSlotPadding(FVector2D(6.f, 4.f))
+            + SWrapBox::Slot()[ Level(TEXT("Yok"), TEXT("OnlineAds"), 0, &FMarketOnline::Ads) ]
+            + SWrapBox::Slot()[ Level(TEXT("Az"), TEXT("OnlineAds"), 1, &FMarketOnline::Ads) ]
+            + SWrapBox::Slot()[ Level(TEXT("Orta"), TEXT("OnlineAds"), 2, &FMarketOnline::Ads) ]
+            + SWrapBox::Slot()[ Level(TEXT("\u00c7ok"), TEXT("OnlineAds"), 3, &FMarketOnline::Ads) ]
+        ]
+        + SVerticalBox::Slot().AutoHeight().Padding(0.f, 6.f, 0.f, 2.f)[ Fixed(TEXT("\u00dcr\u00fcn eksikse"), 10, ERole::Muted) ]
+        + SVerticalBox::Slot().AutoHeight()
+        [
+            SNew(SWrapBox).UseAllottedSize(true).InnerSlotPadding(FVector2D(6.f, 4.f))
+            + SWrapBox::Slot()[ Level(TEXT("Aray\u0131p sor"), TEXT("Substitute"), 0, &FMarketOnline::Substitute) ]
+            + SWrapBox::Slot()[ Level(TEXT("Benzerini koy"), TEXT("Substitute"), 1, &FMarketOnline::Substitute) ]
+            + SWrapBox::Slot()[ Level(TEXT("\u00c7\u0131kar"), TEXT("Substitute"), 2, &FMarketOnline::Substitute) ]
+        ]
+        + SVerticalBox::Slot().AutoHeight().Padding(0.f, 12.f, 0.f, 4.f)[ Section(TEXT("E-T\u0130CARET M\u00dcD\u00dcR\u00dc")) ]
+        + SVerticalBox::Slot().AutoHeight()
+        [ Label([G]
+        {
+            if (!G()) return FString();
+            const FMarketOnline& O = G()->State.Online;
+            if (!O.ManagerName.IsEmpty()) return FString::Printf(TEXT("%s \u00b7 beceri %d \u00b7 g\u00fcnl\u00fck %s%s"), *O.ManagerName, O.ManagerSkill, *MarketMenuUi::Tl(O.ManagerWage), O.bAutoPolicy ? TEXT(" \u00b7 politikay\u0131 o ayarl\u0131yor") : TEXT(""));
+            FString Name; int32 Skill = 0; int64 Wage = 0;
+            MarketOnline::Candidate(G()->State, Name, Skill, Wage);
+            FString Reason;
+            return MarketOnline::CanHireManager(G()->State, Reason) ? FString::Printf(TEXT("Bu haftan\u0131n aday\u0131: %s, beceri %d, g\u00fcnl\u00fck %s."), *Name, Skill, *MarketMenuUi::Tl(Wage)) : Reason;
+        }, 10, ERole::Text, false, true) ]
+        + SVerticalBox::Slot().AutoHeight().Padding(0.f, 4.f, 0.f, 0.f)
+        [
+            SNew(SWrapBox).UseAllottedSize(true).InnerSlotPadding(FVector2D(6.f, 4.f))
+            + SWrapBox::Slot()[ Button([] { return FString(TEXT("\u0130\u015fe al")); }, [this] { Manage(TEXT("OnlineHire"), 0); }, false, [G] { FString Reason; return G() && MarketOnline::CanHireManager(G()->State, Reason); }) ]
+            + SWrapBox::Slot()[ RiskyButton([] { return FString(TEXT("Ayr\u0131lmas\u0131n\u0131 iste")); }, [] { return FString(TEXT("E-ticaret m\u00fcd\u00fcr\u00fc ayr\u0131ls\u0131n m\u0131? On g\u00fcnl\u00fck \u00fccret ve k\u0131dem tazminat\u0131 \u00f6denir.")); },
+                [this] { Manage(TEXT("OnlineFire"), 0); }, [G] { return G() && !G()->State.Online.ManagerName.IsEmpty(); }) ]
+            + SWrapBox::Slot()[ Choice(TEXT("Politika onda"), [G] { return G() && G()->State.Online.bAutoPolicy; }, [this, G] { Manage(TEXT("OnlineAutoPolicy"), G() && G()->State.Online.bAutoPolicy ? 0 : 1); },
+                [G] { return G() && !G()->State.Online.ManagerName.IsEmpty(); }) ]
+        ]);
+
+    TSharedRef<SWidget> StatsCard = Card(SNew(SVerticalBox)
+        + SVerticalBox::Slot().AutoHeight()[ Section(TEXT("KANALLARIN GE\u00c7EN AYI")) ]
+        + SVerticalBox::Slot().AutoHeight().Padding(0.f, 6.f, 0.f, 0.f)
+        [ Label([G]
+        {
+            if (!G()) return FString();
+            TArray<FString> Lines;
+            for (int32 C = 0; C < MarketOnline::ChannelCount; ++C) Lines.Add(MarketOnline::ChannelStats(G()->State, static_cast<EChannel>(C)));
+            Lines.Add(MarketOnline::AdsLine(G()->State));
+            Lines.Add(FString::Printf(TEXT("Y\u0131ld\u0131zlar: platform %.1f, uygulama %.1f \u00b7 itibar %.0f"), MarketOnline::Stars(G()->State), MarketOnline::AppStars(G()->State), G()->State.Online.Reputation));
+            return FString::Join(Lines, TEXT("\n"));
+        }, 10, ERole::Text, false, true) ]);
 
     TSharedRef<SWidget> Pay = Card(SNew(SVerticalBox)
         + SVerticalBox::Slot().AutoHeight()[ Section(TEXT("\u00d6DEME")) ]
@@ -1905,13 +2006,22 @@ TSharedRef<SWidget> SMarketMenu::ChannelsPage()
     + SScrollBox::Slot()
     [
         SNew(SVerticalBox)
-        + SVerticalBox::Slot().AutoHeight()[ ChannelCard ]
+        + SVerticalBox::Slot().AutoHeight()[ SNew(SBox).Visibility_Lambda(Shown)[ ChannelCard ] ]
         + SVerticalBox::Slot().AutoHeight().Padding(0.f, 12.f, 0.f, 0.f)
         [
-            SNew(SHorizontalBox)
-            + SHorizontalBox::Slot().FillWidth(1.f).Padding(0.f, 0.f, 12.f, 0.f)[ Couriers ]
-            + SHorizontalBox::Slot().FillWidth(1.f)[ Pay ]
+            SNew(SBox).Visibility_Lambda(Shown)
+            [
+                SNew(SHorizontalBox)
+                + SHorizontalBox::Slot().FillWidth(1.f).Padding(0.f, 0.f, 12.f, 0.f)[ AreaCard ]
+                + SHorizontalBox::Slot().FillWidth(1.f)
+                [
+                    SNew(SVerticalBox)
+                    + SVerticalBox::Slot().AutoHeight()[ PolicyCard ]
+                    + SVerticalBox::Slot().AutoHeight().Padding(0.f, 12.f, 0.f, 0.f)[ StatsCard ]
+                ]
+            ]
         ]
+        + SVerticalBox::Slot().AutoHeight().Padding(0.f, 12.f, 0.f, 0.f)[ Pay ]
     ];
 }
 
@@ -2204,6 +2314,15 @@ TSharedRef<SWidget> SMarketMenu::Assistant()
             Line.Page = Best->Page;
             Line.Product = Best->Product;
             Line.bWarn = true;
+            return Line;
+        }
+        // M32: what the assistant heard about online selling (rumours, rivals going online) comes before the daily notes.
+        const FString Heard = MarketOnline::Hint(G()->State);
+        if (!Heard.IsEmpty())
+        {
+            Line.Title = TEXT("Kulak misafiri");
+            Line.Body = Heard;
+            Line.Page = SMarketMenu::Channels;
             return Line;
         }
         const TArray<MarketMenuPagesUi::FRotCard> Cards = MarketMenuPagesUi::RotCards(*G());
@@ -3515,18 +3634,18 @@ TSharedRef<SWidget> SMarketMenu::CompanyTab()
 {
     // G-086 / G-089: depots in provinces (DepotCard), trucks, central buying, own brand, dark store.
     auto G = [this] { return Game.Get(); };
-    static const TCHAR* BuildNames[4] = { TEXT("Kamyon"), TEXT("Merkezi sat\u0131n alma"), TEXT("\"Miras\" \u00f6zel markas\u0131"), TEXT("Karanl\u0131k ma\u011faza") };
-    static const TCHAR* BuildNotes[4] = {
+    static const TCHAR* BuildNames[3] = { TEXT("Kamyon"), TEXT("Merkezi sat\u0131n alma"), TEXT("\"Miras\" \u00f6zel markas\u0131") }; // M32: dark stores are per province (Sat\u0131\u015f kanallar\u0131)
+    static const TCHAR* BuildNotes[3] = {
         TEXT("Depodan \u015fubelere: kamyon g\u00fcnde 8 y\u00fck ta\u015f\u0131r; eksikse %1,5'e kadar kay\u0131p ve ge\u00e7 teslimat."), TEXT("+%2 marj, bir depo ve 8 ma\u011fazadan sonra."),
-        TEXT("+%1,5 marj ve biraz daha m\u00fc\u015fteri, 20 ma\u011fazadan sonra."), TEXT("Web sipari\u015flerini ayr\u0131 depodan toplar (20 ma\u011faza).") };
+        TEXT("+%1,5 marj ve biraz daha m\u00fc\u015fteri, 20 ma\u011fazadan sonra.") };
     auto Built = [G](int32 What)
     {
         if (!G()) return false;
         const FMarketCompany& C = G()->State.Company;
-        return What == 2 ? C.bCentralBuying : What == 3 ? C.bPrivateLabel : What == 4 ? C.bDarkStore : false;
+        return What == 2 ? C.bCentralBuying : What == 3 ? C.bPrivateLabel : false;
     };
     TSharedRef<SVerticalBox> Builds = SNew(SVerticalBox);
-    for (int32 What = 1; What <= 4; ++What)
+    for (int32 What = 1; What <= 3; ++What)
     {
         Builds->AddSlot().AutoHeight().Padding(0.f, 3.f)
         [

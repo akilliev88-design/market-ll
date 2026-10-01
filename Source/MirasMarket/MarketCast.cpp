@@ -57,3 +57,9 @@ FString MarketCast::Bank(int32 Index)
     static const TCHAR* Generic[4] = { TEXT("Yerel banka"), TEXT("Ticaret bankas\u0131"), TEXT("Yat\u0131r\u0131m bankas\u0131"), TEXT("Kalk\u0131nma bankas\u0131") };
     return Generic[FMath::Clamp(Index, 0, 3)];
 }
+
+FString MarketCast::Platform()
+{
+    const FString& Name = MarketCountry::Active().PlatformName;
+    return Name.IsEmpty() ? FString(TEXT("H\u0131zl\u0131Sepet")) : Name;
+}

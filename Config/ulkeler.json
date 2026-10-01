@@ -71,6 +71,7 @@
         }
       ],
       "banks": ["Esnaf Kredi Bankası", "Anadolu Ticaret Bankası", "Boğaziçi Yatırım Bankası", "Kalkınma ve Yatırım Bankası"],
+      "online": { "platform": "Kapıda", "plateau": 0.09 },
       "names": {
         "first": [
           "Ayşe",
@@ -438,6 +439,7 @@
         }
       ],
       "banks": ["Stadtsparkasse Lindenau", "Hansa Handelsbank", "Rheinische Investitionsbank", "Förderbank Mittelland"],
+      "online": { "platform": "Flinkly", "plateau": 0.05 },
       "names": {
         "first": [
           "Anna",
@@ -695,6 +697,7 @@
         }
       ],
       "banks": ["Thamesmoor Building Society", "Albion Commercial Bank", "Northgate Investment Bank", "Enterprise Development Bank"],
+      "online": { "platform": "Dashby", "plateau": 0.12 },
       "names": {
         "first": [
           "Oliver",
@@ -939,6 +942,7 @@
         }
       ],
       "banks": ["Main Street Savings", "Lakeshore National Bank", "Hudson Capital Bank", "Federal Development Bank"],
+      "online": { "platform": "Grabit", "plateau": 0.1 },
       "names": {
         "first": [
           "James",

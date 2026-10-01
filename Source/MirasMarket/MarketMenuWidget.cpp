@@ -1086,11 +1086,7 @@ TSharedRef<SWidget> SMarketMenu::SettingsLayer()
                         SNew(SHorizontalBox)
                         + SHorizontalBox::Slot().AutoWidth().Padding(0.f, 0.f, 4.f, 0.f)[ Difficulty(TEXT("Rahat"), 0) ]
                         + SHorizontalBox::Slot().AutoWidth().Padding(0.f, 0.f, 4.f, 0.f)[ Difficulty(TEXT("Normal"), 1) ]
-                        + SHorizontalBox::Slot().AutoWidth().Padding(0.f, 0.f, 12.f, 0.f)[ Difficulty(TEXT("Zor"), 2) ]
-                        + SHorizontalBox::Slot().AutoWidth()
-                        [ Button([G] { return FString(G() && G()->State.Online.bPandemic ? TEXT("Salg\u0131n d\u00f6nemi: var") : TEXT("Salg\u0131n d\u00f6nemi: yok")); },
-                            [this, G] { if (G()) Manage(TEXT("PandemicProfile"), G()->State.Online.bPandemic ? 0 : 1); }, false,
-                            [G] { return G() && MarketCalendar::DateOf(G()->State.Day).Year < 2020; }) ]) ]
+                        + SHorizontalBox::Slot().AutoWidth()[ Difficulty(TEXT("Zor"), 2) ]) ] // M32: the epidemic always comes
                     + SVerticalBox::Slot().AutoHeight()
                     [ Row(Section(TEXT("KAYIT YUVASI")),
                         SNew(SHorizontalBox)
