@@ -165,6 +165,14 @@ TArray<int32> MarketCustomers::BuildList(const FMarketState& State, const TArray
         if (Product != INDEX_NONE) Result.AddUnique(Product);
     }
     for (int32 I = 0; Result.Num() < Count && I < Products.Num(); ++I) Result.AddUnique(I);
+    // C3 (B #25): a discounted product on the list sometimes brings one more item, so a promotion grows the basket
+    // instead of only taking from another aisle. The dice are rolled only when the list has such a product.
+    const bool bPromoted = Result.ContainsByPredicate([&State, &Products](int32 Index) { return MarketPromotions::Interest(State, Products, Index) > 1.05f; });
+    if (bPromoted && CarriedTotal > 0.f && Result.Num() < Products.Num() && Random.FRand() < 0.35f)
+    {
+        const int32 Extra = Pick(Carried, CarriedTotal);
+        if (Extra != INDEX_NONE) Result.AddUnique(Extra);
+    }
     return Result;
 }
 

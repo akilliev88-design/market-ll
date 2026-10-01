@@ -116,7 +116,7 @@ bool FMarketChainsWarTest::RunTest(const FString& Parameters)
     const float Before = MarketChains::PressureFactor(S, TEXT("tr"), TEXT("tekirdag"), S.Day);
     Days(S, 1);
     TestEqual(TEXT("A price war where we are"), S.Rivals.Chains[A].WarProvince, FString(TEXT("tekirdag")));
-    TestTrue(TEXT("The war bites our branch"), MarketChains::PressureFactor(S, TEXT("tr"), TEXT("tekirdag"), S.Day) > Before * 1.2f);
+    TestTrue(TEXT("The war bites our branch"), MarketChains::PressureFactor(S, TEXT("tr"), TEXT("tekirdag"), S.Day) > Before * 1.05f); // C3: WarPressure 1.1
     TestEqual(TEXT("The chain that minds us most is the nemesis"), S.Rivals.Nemesis, FString(TEXT("a101")));
     TestFalse(TEXT("Nemesis line"), MarketChains::NemesisLine(S).IsEmpty());
     Days(S, MarketChains::WarDays + 1);

@@ -144,7 +144,7 @@ bool AMarketGameMode::StartBranchVisit(int32 BranchIndex)
     Session->Strip = SNew(SOverlay) + SOverlay::Slot().HAlign(HAlign_Center).VAlign(VAlign_Top).Padding(12) [SNew(SBorder).Padding(10).BorderImage(FCoreStyle::Get().GetBrush(TEXT("WhiteBrush"))).BorderBackgroundColor(FLinearColor(.025f,.035f,.04f,.96f))
         [SNew(STextBlock).ColorAndOpacity(FLinearColor::White).Font(FCoreStyle::GetDefaultFontStyle(TEXT("Regular"),14)).Text(FText::FromString(FString::Printf(TEXT("%s  |  Karne %s  |  %s  |  Esc: cik  |  Zaman duruyor"), *Branch.Name, *Grade, Branch.ManagerName.IsEmpty()?TEXT("Mudur yok"):*Branch.ManagerName)))]];
     GEngine->GameViewport->AddViewportWidgetContent(Session->Strip.ToSharedRef(),60);
-    FString VisitMessage; MarketDirector::Command(State, Products, TEXT("VisitBranch"), BranchIndex, VisitMessage);
+    FString VisitMessage; if (MarketDirector::Command(State, Products, TEXT("VisitBranch"), BranchIndex, VisitMessage) && !VisitMessage.IsEmpty()) Notify(VisitMessage); // C3: what the walk shows
     return true;
 }
 void AMarketGameMode::EndBranchVisit()

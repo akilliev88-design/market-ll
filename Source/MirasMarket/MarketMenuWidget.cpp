@@ -144,7 +144,7 @@ namespace MarketMenuUi
     {
         if (!G.Products.IsValidIndex(Product) || !G.State.Stock.IsValidIndex(Product)) return 0.0;
         const int64 Theirs = MarketDemand::RivalPrice(G.Products[Product], G.RivalPriceFactor(Product));
-        return MarketDemand::BuyChance(MarketDemand::PriceRatio(G.State.Stock[Product].Price, Theirs), G.State.MarketShare);
+        return MarketDemand::BuyChanceFor(MarketDemand::PriceRatio(G.State.Stock[Product].Price, Theirs), G.State.MarketShare, 0.0, MarketDemand::ElasticityOf(G.Products[Product]), G.Products[Product].Kvi); // C3 (B #24)
     }
 
     FString ProblemText(const AMarketGameMode& G, const MarketDemand::FProblem& Problem)
@@ -316,7 +316,7 @@ TSharedRef<SWidget> SMarketMenu::Stat(const FString& Heading, TFunction<FString(
         SNew(SVerticalBox)
         + SVerticalBox::Slot().AutoHeight()[ Fixed(Heading, 9, ERole::Muted, true) ]
         + SVerticalBox::Slot().AutoHeight().Padding(0.f, 6.f, 0.f, 0.f)[ LabelBy(Value, 21, ValueRole ? ValueRole : TFunction<ERole()>([] { return ERole::Text; }), true) ]
-        + SVerticalBox::Slot().AutoHeight().Padding(0.f, 2.f, 0.f, 0.f)[ Label(Sub, 10, ERole::Muted) ]);
+        + SVerticalBox::Slot().AutoHeight().Padding(0.f, 2.f, 0.f, 0.f)[ Label(Sub, 10, ERole::Muted, false, true) ]); // C3 (A5): long sub lines wrap
 }
 
 TSharedRef<SWidget> SMarketMenu::CategoryChips(FString* Chosen)
@@ -1188,6 +1188,15 @@ TSharedRef<SWidget> SMarketMenu::TimeControls()
             + SHorizontalBox::Slot().AutoWidth().VAlign(VAlign_Center).Padding(0.f, 0.f, 2.f, 0.f)[ IconButton(TEXT("play"), 36.f, Speed(1), SetSpeed(1), TEXT("Normal h\u0131z (1x)")) ]
             + SHorizontalBox::Slot().AutoWidth().VAlign(VAlign_Center).Padding(0.f, 0.f, 2.f, 0.f)[ IconButton(TEXT("fast"), 36.f, Speed(2), SetSpeed(2), TEXT("H\u0131zl\u0131 (2x, men\u00fcde +)")) ]
             + SHorizontalBox::Slot().AutoWidth().VAlign(VAlign_Center)[ IconButton(TEXT("faster"), 36.f, Speed(3), SetSpeed(3), TEXT("\u00c7ok h\u0131zl\u0131 (3x)")) ]
+            // C3 (A3): play whole days, a week or a month without walking (the same rules); it stops when you are needed.
+            + SHorizontalBox::Slot().AutoWidth().VAlign(VAlign_Center).Padding(6.f, 0.f)
+            [ SNew(SBox).WidthOverride(1.f).HeightOverride(24.f)[ SNew(SBorder).BorderImage(&FlatBrush).BorderBackgroundColor(Col(ERole::Line)) ] ]
+            + SHorizontalBox::Slot().AutoWidth().VAlign(VAlign_Center).Padding(0.f, 0.f, 4.f, 0.f)
+            [ Button([] { return FString(TEXT("+1 g\u00fcn")); }, [G] { if (G()) G()->AdvanceTime(MarketSimulation::ETurn::Day); }, false, [G] { return G() && !G()->bOpen; }) ]
+            + SHorizontalBox::Slot().AutoWidth().VAlign(VAlign_Center).Padding(0.f, 0.f, 4.f, 0.f)
+            [ Button([] { return FString(TEXT("+1 hafta")); }, [G] { if (G()) G()->AdvanceTime(MarketSimulation::ETurn::Week); }, false, [G] { return G() && !G()->bOpen; }) ]
+            + SHorizontalBox::Slot().AutoWidth().VAlign(VAlign_Center)
+            [ Button([] { return FString(TEXT("+1 ay")); }, [G] { if (G()) G()->AdvanceTime(MarketSimulation::ETurn::Month); }, false, [G] { return G() && !G()->bOpen; }) ]
             + SHorizontalBox::Slot().AutoWidth().VAlign(VAlign_Center).Padding(6.f, 0.f)
             [ SNew(SBox).WidthOverride(1.f).HeightOverride(24.f)[ SNew(SBorder).BorderImage(&FlatBrush).BorderBackgroundColor(Col(ERole::Line)) ] ]
             + SHorizontalBox::Slot().AutoWidth().VAlign(VAlign_Center)
@@ -1366,6 +1375,90 @@ TSharedRef<SWidget> SMarketMenu::TodoList()
         + SVerticalBox::Slot().AutoHeight()[ Rows ]);
 }
 
+TSharedRef<SWidget> SMarketMenu::GoalsCard()
+{
+    // C3 (B6, 06 \u00a72b): always a goal close to done, at three scales; the last celebrations under them.
+    auto G = [this] { return Game.Get(); };
+    auto GoalAt = [G](int32 Slot, MarketGoals::FGoalView& Out)
+    {
+        if (!G()) return false;
+        const TArray<MarketGoals::FGoalView> All = MarketGoals::Goals(G()->State);
+        if (!All.IsValidIndex(Slot)) return false;
+        Out = All[Slot];
+        return true;
+    };
+    static const TCHAR* Scales[3] = { TEXT("Bu hafta"), TEXT("Bu ay"), TEXT("Bu y\u0131l") };
+    TSharedRef<SVerticalBox> Rows = SNew(SVerticalBox);
+    for (int32 Slot = 0; Slot < 3; ++Slot)
+    {
+        Rows->AddSlot().AutoHeight().Padding(0.f, 3.f)
+        [
+            SNew(SBorder).BorderImage(&SmallBrush).BorderBackgroundColor(Col(ERole::Inset)).Padding(FMargin(10.f, 6.f))
+            .Visibility_Lambda([GoalAt, Slot] { MarketGoals::FGoalView V; return GoalAt(Slot, V) ? EVisibility::Visible : EVisibility::Collapsed; })
+            .ToolTipText_Lambda([GoalAt, Slot] { MarketGoals::FGoalView V; return FText::FromString(GoalAt(Slot, V) ? V.Why + TEXT("\nBitince: ") + V.Reward : FString()); })
+            [
+                SNew(SVerticalBox)
+                + SVerticalBox::Slot().AutoHeight()
+                [
+                    SNew(SHorizontalBox)
+                    + SHorizontalBox::Slot().FillWidth(1.f)
+                    [ Label([GoalAt, Slot] { MarketGoals::FGoalView V; return GoalAt(Slot, V) ? FString::Printf(TEXT("%s: %s"), Scales[FMath::Clamp(static_cast<int32>(V.Scale), 0, 2)], *V.Title) : FString(); }, 10, ERole::Text, true, true) ]
+                    + SHorizontalBox::Slot().AutoWidth().Padding(8.f, 0.f, 0.f, 0.f)
+                    [ Label([GoalAt, Slot] { MarketGoals::FGoalView V; return GoalAt(Slot, V) ? FString::Printf(TEXT("%d g\u00fcn"), V.DaysLeft) : FString(); }, 9, ERole::Muted) ]
+                ]
+                + SVerticalBox::Slot().AutoHeight().Padding(0.f, 4.f, 0.f, 0.f)
+                [ Bar([GoalAt, Slot] { MarketGoals::FGoalView V; return GoalAt(Slot, V) ? FMath::Clamp(V.Progress, 0.f, 1.f) : 0.f; }, ERole::Accent) ]
+            ]
+        ];
+    }
+    return Card(SNew(SVerticalBox)
+        + SVerticalBox::Slot().AutoHeight().Padding(0.f, 0.f, 0.f, 4.f)[ Section(TEXT("HEDEFLER")) ]
+        + SVerticalBox::Slot().AutoHeight()[ Rows ]
+        + SVerticalBox::Slot().AutoHeight().Padding(0.f, 6.f, 0.f, 0.f)
+        [ Label([G]
+        {
+            if (!G()) return FString();
+            const TArray<FMarketCelebration> Last = MarketGoals::RecentCelebrations(G()->State, 2);
+            TArray<FString> Lines;
+            for (const FMarketCelebration& C : Last) Lines.Add(FString::Printf(TEXT("\u2605 %s %s"), *C.Title, *C.Text));
+            return FString::Join(Lines, TEXT("\n"));
+        }, 9, ERole::Good, false, true) ]);
+}
+
+TSharedRef<SWidget> SMarketMenu::RecordsView()
+{
+    // C3 (B6): Raporlar \u203a Rekorlar: the records and the last ten celebrations ("N. y\u0131l" dates).
+    auto G = [this] { return Game.Get(); };
+    return SNew(SScrollBox)
+    + SScrollBox::Slot()
+    [
+        SNew(SVerticalBox)
+        + SVerticalBox::Slot().AutoHeight()
+        [ Card(SNew(SVerticalBox)
+            + SVerticalBox::Slot().AutoHeight()[ Section(TEXT("REKORLAR")) ]
+            + SVerticalBox::Slot().AutoHeight().Padding(0.f, 6.f, 0.f, 0.f)
+            [ Label([G]
+            {
+                if (!G()) return FString();
+                TArray<FString> Lines;
+                for (const MarketGoals::FRecordView& R : MarketGoals::Records(G()->State)) Lines.Add(FString::Printf(TEXT("%s: %s"), *R.Name, *R.Value));
+                return Lines.Num() > 0 ? FString::Join(Lines, TEXT("\n")) : FString(TEXT("Hen\u00fcz rekor yok: ilk iki haftadan sonra say\u0131l\u0131r."));
+            }, 11, ERole::Text, false, true) ]) ]
+        + SVerticalBox::Slot().AutoHeight().Padding(0.f, 12.f, 0.f, 0.f)
+        [ Card(SNew(SVerticalBox)
+            + SVerticalBox::Slot().AutoHeight()[ Section(TEXT("KUTLAMALAR")) ]
+            + SVerticalBox::Slot().AutoHeight().Padding(0.f, 6.f, 0.f, 0.f)
+            [ Label([G]
+            {
+                if (!G()) return FString();
+                TArray<FString> Lines;
+                for (const FMarketCelebration& C : MarketGoals::RecentCelebrations(G()->State, 10))
+                    Lines.Add(FString::Printf(TEXT("%s \u00b7 %s: %s"), *MarketCalendar::DateText(C.Day), *C.Title, *C.Text));
+                return Lines.Num() > 0 ? FString::Join(Lines, TEXT("\n")) : FString(TEXT("Hen\u00fcz kutlama yok."));
+            }, 10, ERole::Text, false, true) ]) ]
+    ];
+}
+
 TSharedRef<SWidget> SMarketMenu::OrdersPage()
 {
     auto G = [this] { return Game.Get(); };
@@ -1401,11 +1494,11 @@ TSharedRef<SWidget> SMarketMenu::OrdersPage()
                         [ Label([G, I] { return G() && G()->Products.IsValidIndex(I) ? FString::Printf(TEXT("%s \u00b7 koli %d adet \u00b7 %s/adet"), *MarketMenuUi::Title(G()->Products[I].Category), MarketOrderAdvice::CaseUnits(G()->Products[I]), *MarketMenuUi::Tl(G()->Products[I].Cost)) : FString(); }, 9, ERole::Muted) ]
                     ]
                     + SHorizontalBox::Slot().AutoWidth().VAlign(VAlign_Center)[ Cell([Item] { return Item() ? FString::Printf(TEXT("%d/%d"), Item()->Shelf, Item()->Capacity) : FString(); }, 70.f) ]
-                    + SHorizontalBox::Slot().AutoWidth().VAlign(VAlign_Center)[ Cell([Item] { return Item() ? FString::FromInt(Item()->Warehouse) : FString(); }, 56.f) ]
-                    + SHorizontalBox::Slot().AutoWidth().VAlign(VAlign_Center)[ Cell([Item] { return Item() ? FString::FromInt(Item()->Dock) : FString(); }, 56.f) ]
-                    + SHorizontalBox::Slot().AutoWidth().VAlign(VAlign_Center)[ Cell([Item] { return Item() ? FString::FromInt(Item()->Incoming) : FString(); }, 56.f) ]
-                    + SHorizontalBox::Slot().AutoWidth().VAlign(VAlign_Center)[ Cell([Item] { return Item() ? FString::FromInt(Item()->Yesterday.Sold) : FString(); }, 56.f) ]
-                    + SHorizontalBox::Slot().AutoWidth().VAlign(VAlign_Center)[ Cell([Item] { return Item() ? FString::FromInt(Item()->Yesterday.Empty) : FString(); }, 56.f, ERole::Warn) ]
+                    + SHorizontalBox::Slot().AutoWidth().VAlign(VAlign_Center)[ Cell([Item] { return Item() ? FString::FromInt(Item()->Warehouse) : FString(); }, 66.f) ]
+                    + SHorizontalBox::Slot().AutoWidth().VAlign(VAlign_Center)[ Cell([Item] { return Item() ? FString::FromInt(Item()->Dock) : FString(); }, 66.f) ]
+                    + SHorizontalBox::Slot().AutoWidth().VAlign(VAlign_Center)[ Cell([Item] { return Item() ? FString::FromInt(Item()->Incoming) : FString(); }, 66.f) ]
+                    + SHorizontalBox::Slot().AutoWidth().VAlign(VAlign_Center)[ Cell([Item] { return Item() ? FString::FromInt(Item()->Yesterday.Sold) : FString(); }, 66.f) ]
+                    + SHorizontalBox::Slot().AutoWidth().VAlign(VAlign_Center)[ Cell([Item] { return Item() ? FString::FromInt(Item()->Yesterday.Empty) : FString(); }, 66.f, ERole::Warn) ]
                     + SHorizontalBox::Slot().AutoWidth().VAlign(VAlign_Center)
                     [ Cell([G, I] { if (!G() || !G()->Products.IsValidIndex(I) || !G()->State.Stock.IsValidIndex(I)) return FString(); TArray<float> Scale; Scale.Init(1.f, G()->Products.Num()); Scale[I] = MarketDirector::OrderScale(G()->State, G()->Products[I]);
                         return FString::FromInt(MarketOrderAdvice::SuggestCases(G()->State, G()->Products, I, &Scale)); }, 60.f, ERole::Accent, true) ]
@@ -1457,11 +1550,11 @@ TSharedRef<SWidget> SMarketMenu::OrdersPage()
             SNew(SHorizontalBox)
             + SHorizontalBox::Slot().FillWidth(1.f)[ Fixed(TEXT("\u00dcR\u00dcN"), 9, ERole::Muted, true) ]
             + SHorizontalBox::Slot().AutoWidth()[ Head(TEXT("RAF"), 70.f) ]
-            + SHorizontalBox::Slot().AutoWidth()[ Head(TEXT("DEPO"), 56.f) ]
-            + SHorizontalBox::Slot().AutoWidth()[ Head(TEXT("KABUL"), 56.f) ]
-            + SHorizontalBox::Slot().AutoWidth()[ Head(TEXT("YOLDA"), 56.f) ]
-            + SHorizontalBox::Slot().AutoWidth()[ Head(TEXT("D\u00dcN SAT."), 56.f) ]
-            + SHorizontalBox::Slot().AutoWidth()[ Head(TEXT("BO\u015e RAF"), 56.f) ]
+            + SHorizontalBox::Slot().AutoWidth()[ Head(TEXT("DEPO"), 66.f) ]
+            + SHorizontalBox::Slot().AutoWidth()[ Head(TEXT("KABUL"), 66.f) ]
+            + SHorizontalBox::Slot().AutoWidth()[ Head(TEXT("YOLDA"), 66.f) ]
+            + SHorizontalBox::Slot().AutoWidth()[ Head(TEXT("D\u00dcN SAT."), 66.f) ]
+            + SHorizontalBox::Slot().AutoWidth()[ Head(TEXT("BO\u015e RAF"), 66.f) ]
             + SHorizontalBox::Slot().AutoWidth()[ Head(TEXT("\u00d6NER\u0130"), 60.f) ]
             + SHorizontalBox::Slot().AutoWidth().Padding(18.f, 0.f, 0.f, 0.f)[ Head(TEXT("L\u0130STE"), 150.f) ]
         ]
@@ -1708,11 +1801,11 @@ TSharedRef<SWidget> SMarketMenu::ReportsPage()
     auto Tab = [this](const FString& Text, bool bWeek) -> TSharedRef<SWidget>
     {
         return SNew(SButton).ButtonStyle(&PillStyle).IsFocusable(false).ContentPadding(FMargin(16.f, 6.f))
-            .ButtonColorAndOpacity_Lambda([this, bWeek] { return FSlateColor(Color(bWeekTab == bWeek ? ERole::Primary : ERole::Button)); })
-            .OnClicked_Lambda([this, bWeek] { bWeekTab = bWeek; return FReply::Handled(); })
+            .ButtonColorAndOpacity_Lambda([this, bWeek] { return FSlateColor(Color(!bRecordsTab && bWeekTab == bWeek ? ERole::Primary : ERole::Button)); })
+            .OnClicked_Lambda([this, bWeek] { bWeekTab = bWeek; bRecordsTab = false; return FReply::Handled(); })
             [
                 SNew(STextBlock).Font(MarketMenuUi::MenuFont(true, 11)).Text(FText::FromString(Text))
-                .ColorAndOpacity_Lambda([this, bWeek] { return FSlateColor(Color(bWeekTab == bWeek ? ERole::PrimaryText : ERole::ButtonText)); })
+                .ColorAndOpacity_Lambda([this, bWeek] { return FSlateColor(Color(!bRecordsTab && bWeekTab == bWeek ? ERole::PrimaryText : ERole::ButtonText)); })
             ];
     };
     return SNew(SVerticalBox)
@@ -1720,13 +1813,24 @@ TSharedRef<SWidget> SMarketMenu::ReportsPage()
         [
             SNew(SHorizontalBox)
             + SHorizontalBox::Slot().AutoWidth().Padding(0.f, 0.f, 8.f, 0.f)[ Tab(TEXT("G\u00fcn sonu"), false) ]
-            + SHorizontalBox::Slot().AutoWidth()[ Tab(TEXT("Hafta"), true) ]
+            + SHorizontalBox::Slot().AutoWidth().Padding(0.f, 0.f, 8.f, 0.f)[ Tab(TEXT("Hafta"), true) ]
+            + SHorizontalBox::Slot().AutoWidth()
+            [
+                SNew(SButton).ButtonStyle(&PillStyle).IsFocusable(false).ContentPadding(FMargin(16.f, 6.f))
+                .ButtonColorAndOpacity_Lambda([this] { return FSlateColor(Color(bRecordsTab ? ERole::Primary : ERole::Button)); })
+                .OnClicked_Lambda([this] { bRecordsTab = true; return FReply::Handled(); })
+                [
+                    SNew(STextBlock).Font(MarketMenuUi::MenuFont(true, 11)).Text(FText::FromString(TEXT("Rekorlar")))
+                    .ColorAndOpacity_Lambda([this] { return FSlateColor(Color(bRecordsTab ? ERole::PrimaryText : ERole::ButtonText)); })
+                ]
+            ]
         ]
         + SVerticalBox::Slot().FillHeight(1.f)
         [
-            SNew(SWidgetSwitcher).WidgetIndex_Lambda([this] { return bWeekTab ? 1 : 0; })
+            SNew(SWidgetSwitcher).WidgetIndex_Lambda([this] { return bRecordsTab ? 2 : bWeekTab ? 1 : 0; })
             + SWidgetSwitcher::Slot()[ DayReport() ]
             + SWidgetSwitcher::Slot()[ WeekReport() ]
+            + SWidgetSwitcher::Slot()[ RecordsView() ]
         ]
         + SVerticalBox::Slot().AutoHeight().HAlign(HAlign_Right).Padding(0.f, 10.f, 0.f, 0.f)
         [
@@ -1738,6 +1842,7 @@ TSharedRef<SWidget> SMarketMenu::ReportsPage()
 void SMarketMenu::ShowWeek(bool bWeek)
 {
     bWeekTab = bWeek;
+    bRecordsTab = false;
 }
 
 // ---------------------------------------------------------------------------------------------------------------

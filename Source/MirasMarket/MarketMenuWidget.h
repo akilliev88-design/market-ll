@@ -69,6 +69,8 @@ private:
     int32 PromoPercent = 10;
     int32 PromoDays = 7;
     bool bWeekTab = false;          // Raporlar: false = day report, true = week report
+    bool bRecordsTab = false;       // C3 (B6): Raporlar \u203a Rekorlar
+    int32 LedgerPeriod = 1;         // C3 (B2): Finans \u203a gelir tablosu: 0 d\u00fcn, 1 bu hafta, 2 bu ay, 3 bu y\u0131l
     int32 RivalScope = 0;           // Rakipler: 0 local, 1 national, 2 international
     int32 BranchTab = 0;            // Magazalar: 0 shops, 1 company, 2 management (G-086b)
     int32 MapLayer = 0;             // main map: 0 our shops, 1 rivals, 2 opportunities
@@ -220,6 +222,9 @@ private:
     TSharedRef<SWidget> DecisionCard();   // G-066 waiting choice (story / event)
     TSharedRef<SWidget> StoryCard();      // G-066 chapter goals, identity, last memory
     TSharedRef<SWidget> TodoList();       // G-074 what to do now
+    TSharedRef<SWidget> GoalsCard();      // C3 (B6): three goals and the last celebrations
+    TSharedRef<SWidget> RecordsView();    // C3 (B6): records and celebrations
+    TSharedRef<SWidget> LedgerCards();    // C3 (B2, B4): income statement, balance sheet, the audit, the era
     // Pages (MarketMenuPages.cpp)
     TSharedRef<SWidget> PricesPage();
     TSharedRef<SWidget> PromotionsPage();

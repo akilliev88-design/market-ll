@@ -772,7 +772,8 @@ TSharedRef<SWidget> SMarketMenu::PricesPage()
                 return FString::Printf(TEXT("Al\u0131\u015f %s \u00b7 liste fiyat\u0131 %s \u00b7 k\u00e2r marj\u0131 %%%d"), *MarketMenuUi::Tl(P.Cost), *MarketMenuUi::Tl(P.BasePrice), Margin);
             }, 10, ERole::Muted)
         ]
-        + SVerticalBox::Slot().AutoHeight().Padding(0.f, 18.f, 0.f, 6.f)[ Section(TEXT("RAK\u0130P F\u0130YATLARI \u00b7 L\u00dcLEBURGAZ")) ]
+        + SVerticalBox::Slot().AutoHeight().Padding(0.f, 18.f, 0.f, 6.f)
+        [ Label([G] { return G() ? FString(TEXT("RAK\u0130P F\u0130YATLARI \u00b7 ")) + MarketStart::PlaceText(G()->State) : FString(TEXT("RAK\u0130P F\u0130YATLARI")); }, 10, ERole::Muted, true) ] // C3 (A5): the chosen province
         + SVerticalBox::Slot().AutoHeight()[ RivalRows ]
         + SVerticalBox::Slot().AutoHeight().Padding(0.f, 10.f, 0.f, 0.f)
         [
@@ -1171,7 +1172,11 @@ TSharedRef<SWidget> SMarketMenu::RivalsPage()
                         [
                             SNew(SBox).WidthOverride(130.f).HAlign(HAlign_Right)
                             [ Mono([Row, bWorld] { const MarketChains::FStanding* R = Row(); if (!R) return FString();
-                                return bWorld ? FString::Printf(TEXT("%.2f milyar"), R->Revenue / 1.0e9) : MarketMenuUi::Tl(static_cast<int64>(R->Revenue)); }, 12.f, [] { return ERole::Text; }) ]
+                                if (bWorld) return FString::Printf(TEXT("%.2f milyar"), R->Revenue / 1.0e9);
+                                // C3 (A5): big revenues in short form so the column never cuts them (the full sum is in the tooltip).
+                                const double Lira = R->Revenue / 100.0;
+                                return Lira >= 1.0e9 ? FString::Printf(TEXT("%.2f milyar"), Lira / 1.0e9) : Lira >= 1.0e6 ? FString::Printf(TEXT("%.1f milyon"), Lira / 1.0e6)
+                                    : MarketMenuUi::Tl(static_cast<int64>(R->Revenue)); }, 12.f, [] { return ERole::Text; }) ]
                         ]
                         + SHorizontalBox::Slot().AutoWidth().VAlign(VAlign_Center).Padding(8.f, 0.f, 0.f, 0.f)
                         [
@@ -1313,8 +1318,9 @@ TSharedRef<SWidget> SMarketMenu::StaffPage()
                         if (!E || !G()) return FString();
                         if (RoleAt(Slot) == MarketStaff::ERole::Accountant)
                             return FString::Printf(TEXT("%s ile s\u00f6zle\u015fme bitsin mi? Vergiyi bundan sonra sen \u00f6dersin; defter tutulmazsa inceleme gelebilir."), *E->Name);
-                        return FString::Printf(TEXT("%s i\u015ften \u00e7\u0131kar\u0131ls\u0131n m\u0131? %d g\u00fcnl\u00fck \u00fccret (%s) tazminat \u00f6denir; ekibin morali biraz d\u00fc\u015fer."),
-                            *E->Name, MarketStaff::SeveranceDays, *MarketMenuUi::Tl(E->DailyWage * MarketStaff::SeveranceDays));
+                        // C3 (B3): notice and seniority pay as they will be paid.
+                        return FString::Printf(TEXT("%s i\u015ften \u00e7\u0131kar\u0131ls\u0131n m\u0131? \u0130hbar ve k\u0131dem: %s. Ekibin morali biraz d\u00fc\u015fer."),
+                            *E->Name, *MarketMenuUi::Tl(MarketStaff::SeverancePay(G()->State, *E)));
                     },
                     [this, PersonAt, Slot] { if (const FMarketEmployee* E = PersonAt(Slot)) Manage(TEXT("Fire"), E->Id); },
                     [PersonAt, Slot] { return PersonAt(Slot) != nullptr; }) ]
@@ -1569,7 +1575,97 @@ TSharedRef<SWidget> SMarketMenu::FinancePage()
             + SHorizontalBox::Slot().FillWidth(1.f)[ Fresh ]
         ]
         + SVerticalBox::Slot().AutoHeight().Padding(0.f, 12.f, 0.f, 0.f)[ Trouble ]
+        + SVerticalBox::Slot().AutoHeight().Padding(0.f, 12.f, 0.f, 0.f)[ LedgerCards() ]
     ];
+}
+
+TSharedRef<SWidget> SMarketMenu::LedgerCards()
+{
+    // C3 (B2, B4): the company's books. Income statement for a period, the balance sheet, the audit line and the
+    // era the economy is in.
+    auto G = [this] { return Game.Get(); };
+    auto Period = [this, G]() -> MarketLedger::FStatement
+    {
+        if (!G()) return MarketLedger::FStatement();
+        const FMarketState& S = G()->State;
+        const int32 Closed = FMath::Max(1, S.Day - 1);
+        const MarketCalendar::FDate Date = MarketCalendar::DateOf(Closed);
+        switch (LedgerPeriod)
+        {
+        case 0: return MarketLedger::DayStatement(S, Closed);
+        case 2: return MarketLedger::MonthStatement(S, Date.Year, Date.Month);
+        case 3: return MarketLedger::YearStatement(S, Date.Year);
+        default: return MarketLedger::WeekStatement(S, (Closed - 1) / 7 + 1);
+        }
+    };
+    static const TCHAR* PeriodNames[4] = { TEXT("D\u00fcn"), TEXT("Bu hafta"), TEXT("Bu ay"), TEXT("Bu y\u0131l") };
+    TSharedRef<SHorizontalBox> Periods = SNew(SHorizontalBox);
+    for (int32 P = 0; P < 4; ++P)
+        Periods->AddSlot().AutoWidth().Padding(0.f, 0.f, 4.f, 0.f)[ Choice(PeriodNames[P], [this, P] { return LedgerPeriod == P; }, [this, P] { LedgerPeriod = P; }) ];
+    auto Line = [Period](int32 Which)
+    {
+        const MarketLedger::FStatement S = Period();
+        const int64 Value = Which == 0 ? S.Revenue : Which == 1 ? S.GrossProfit : Which == 2 ? S.Expenses : S.NetProfit;
+        return MarketMenuUi::Tl(Value);
+    };
+    TSharedRef<SWidget> Income = Card(SNew(SVerticalBox)
+        + SVerticalBox::Slot().AutoHeight()
+        [
+            SNew(SHorizontalBox)
+            + SHorizontalBox::Slot().FillWidth(1.f).VAlign(VAlign_Center)[ Section(TEXT("GEL\u0130R TABLOSU")) ]
+            + SHorizontalBox::Slot().AutoWidth().VAlign(VAlign_Center)[ Periods ]
+        ]
+        + SVerticalBox::Slot().AutoHeight().Padding(0.f, 8.f, 0.f, 0.f)
+        [
+            SNew(SHorizontalBox)
+            + SHorizontalBox::Slot().FillWidth(1.f)[ Stat(TEXT("Ciro"), [Line] { return Line(0); }, [] { return FString(); }, [] { return ERole::Text; }) ]
+            + SHorizontalBox::Slot().FillWidth(1.f)[ Stat(TEXT("Br\u00fct k\u00e2r"), [Line] { return Line(1); }, [] { return FString(); }, [] { return ERole::Text; }) ]
+            + SHorizontalBox::Slot().FillWidth(1.f)[ Stat(TEXT("Giderler"), [Line] { return Line(2); }, [] { return FString(); }, [] { return ERole::Muted; }) ]
+            + SHorizontalBox::Slot().FillWidth(1.f)[ Stat(TEXT("Net"), [Line] { return Line(3); }, [] { return FString(); }, [Period] { return Period().NetProfit >= 0 ? ERole::Good : ERole::Bad; }) ]
+        ]
+        + SVerticalBox::Slot().AutoHeight().Padding(0.f, 6.f, 0.f, 0.f)
+        [ More([Period]
+        {
+            const MarketLedger::FStatement S = Period();
+            TArray<FString> Lines;
+            for (int32 A = 0; A < static_cast<int32>(MarketLedger::EAccount::Count); ++A)
+            {
+                const MarketLedger::EAccount Account = static_cast<MarketLedger::EAccount>(A);
+                if (!MarketLedger::IsIncomeStatement(Account) || S.At(Account) == 0) continue;
+                Lines.Add(FString::Printf(TEXT("%s: %s"), *MarketLedger::AccountName(Account), *MarketMenuUi::Tl(S.At(Account))));
+            }
+            return MarketLedger::StatementText(S) + (Lines.Num() > 0 ? TEXT("\n\n") + FString::Join(Lines, TEXT("\n")) : FString());
+        }) ]
+        + SVerticalBox::Slot().AutoHeight().Padding(0.f, 6.f, 0.f, 0.f)
+        [ LabelBy([G] { return G() ? MarketLedger::AuditText(G()->State) : FString(); }, 10, [G] { return G() && MarketLedger::AuditOk(G()->State) ? ERole::Good : ERole::Warn; }) ]);
+
+    auto Bal = [G]() -> MarketLedger::FBalance { return G() ? MarketLedger::Balance(G()->State, G()->Products) : MarketLedger::FBalance(); };
+    TSharedRef<SWidget> Sheet = Card(SNew(SVerticalBox)
+        + SVerticalBox::Slot().AutoHeight()[ Section(TEXT("B\u0130LAN\u00c7O")) ]
+        + SVerticalBox::Slot().AutoHeight().Padding(0.f, 8.f, 0.f, 0.f)
+        [
+            SNew(SHorizontalBox)
+            + SHorizontalBox::Slot().FillWidth(1.f)[ Stat(TEXT("Varl\u0131klar"), [Bal] { return MarketMenuUi::Tl(Bal().Assets()); }, [] { return FString(); }, [] { return ERole::Text; }) ]
+            + SHorizontalBox::Slot().FillWidth(1.f)[ Stat(TEXT("Bor\u00e7lar"), [Bal] { return MarketMenuUi::Tl(Bal().Liabilities()); }, [] { return FString(); }, [] { return ERole::Muted; }) ]
+            + SHorizontalBox::Slot().FillWidth(1.f)[ Stat(TEXT("\u00d6zkaynak"), [Bal] { return MarketMenuUi::Tl(Bal().Equity()); }, [] { return FString(); }, [Bal] { return Bal().Equity() >= 0 ? ERole::Good : ERole::Bad; }) ]
+        ]
+        + SVerticalBox::Slot().AutoHeight().Padding(0.f, 6.f, 0.f, 0.f)
+        [ More([Bal]
+        {
+            const MarketLedger::FBalance B = Bal();
+            return FString::Printf(TEXT("Kasa %s \u00b7 d\u00fckk\u00e2n sto\u011fu %s \u00b7 \u015fube sto\u011fu %s \u00b7 reyon sto\u011fu %s \u00b7 kart alaca\u011f\u0131 %s \u00b7 veresiye %s \u00b7 depozitolar %s\nToptanc\u0131 %s \u00b7 banka %s \u00b7 vergi %s \u00b7 babadan kalan bor\u00e7 %s"),
+                *MarketMenuUi::Tl(B.Cash), *MarketMenuUi::Tl(B.Stock), *MarketMenuUi::Tl(B.BranchStock), *MarketMenuUi::Tl(B.DepartmentStock), *MarketMenuUi::Tl(B.CardReceivable),
+                *MarketMenuUi::Tl(B.CreditReceivable), *MarketMenuUi::Tl(B.Deposits), *MarketMenuUi::Tl(B.Payables), *MarketMenuUi::Tl(B.Loans), *MarketMenuUi::Tl(B.TaxDue), *MarketMenuUi::Tl(B.InheritedDebt));
+        }) ]
+        + SVerticalBox::Slot().AutoHeight().Padding(0.f, 8.f, 0.f, 0.f)
+        [ LabelBy([G] { const FString Era = G() ? MarketEras::Summary(G()->State) : FString(); return Era.IsEmpty() ? FString(TEXT("Ekonomi sakin.")) : Era; }, 10,
+            [G] { return G() && !MarketEras::Summary(G()->State).IsEmpty() ? ERole::Warn : ERole::Muted; }) ]
+        + SVerticalBox::Slot().AutoHeight()
+        [ More([] { return FString(TEXT("Ekonomide d\u00f6nemler s\u0131rayla gelir: kur \u015foku, durgunluk, salg\u0131n, y\u00fcksek enflasyon, toparlanma. Zamanlar\u0131 her oyunda farkl\u0131d\u0131r.")); }) ]);
+
+    return SNew(SHorizontalBox)
+        + SHorizontalBox::Slot().FillWidth(1.f).Padding(0.f, 0.f, 12.f, 0.f)[ Income ]
+        + SHorizontalBox::Slot().FillWidth(1.f)[ Sheet ];
 }
 
 // ---------------------------------------------------------------------------------------------------------------
@@ -1749,6 +1845,9 @@ TSharedRef<SWidget> SMarketMenu::HomePage()
         [ SNew(SBox).Visibility_Lambda([HasMap] { return HasMap() ? EVisibility::Visible : EVisibility::Hidden; })[ Tray(LayerRow) ] ]
         + SOverlay::Slot().HAlign(HAlign_Center).VAlign(VAlign_Top).Padding(0.f, 84.f, 0.f, 0.f)[ RegionChips() ]
         + SOverlay::Slot().HAlign(HAlign_Left).VAlign(VAlign_Bottom).Padding(24.f, 0.f, 0.f, 28.f)[ Assistant() ]
+        // C3 (B6): the goals at three scales, always in sight on the main screen.
+        + SOverlay::Slot().HAlign(HAlign_Left).VAlign(VAlign_Top).Padding(24.f, 128.f, 0.f, 0.f)
+        [ SNew(SBox).WidthOverride(300.f).Visibility_Lambda([this] { return Game.Get() && Game.Get()->State.Day > 1 ? EVisibility::Visible : EVisibility::Collapsed; })[ GoalsCard() ] ]
         + SOverlay::Slot().HAlign(HAlign_Right).VAlign(VAlign_Fill).Padding(0.f, 128.f, 24.f, 112.f)
         [
             SNew(SBox).WidthOverride(PanelWidth)
@@ -2470,6 +2569,9 @@ TSharedRef<SWidget> SMarketMenu::ShopsTab()
                         .ToolTip(Tip([G, Slot] { return G() && G()->State.Branches.IsValidIndex(Slot) ? MarketStoreViews::Describe(G()->State.Branches[Slot]) + TEXT("\n") + MarketDepots::DescribeLink(G()->State, Slot) : FString(); }))
                         [ Mono([Supply, Slot] { return Supply(Slot); }, 11.f, [] { return ERole::Muted; }) ]
                     ]
+                    // C3 (A4): walk through the branch; what you see comes from its numbers, the economy waits.
+                    + SHorizontalBox::Slot().AutoWidth().VAlign(VAlign_Center).Padding(8.f, 0.f, 0.f, 0.f)
+                    [ Button([] { return FString(TEXT("Gez")); }, [G, Slot] { if (G()) G()->StartBranchVisit(Slot); }, false, [ShopOpen, Slot] { return ShopOpen(Slot); }) ]
                     + SHorizontalBox::Slot().AutoWidth().VAlign(VAlign_Center).Padding(8.f, 0.f, 0.f, 0.f)
                     [ RiskyButton([] { return FString(TEXT("Kapat")); },
                         [G, Slot] { return G() && G()->State.Branches.IsValidIndex(Slot)
@@ -2638,7 +2740,7 @@ TSharedRef<SWidget> SMarketMenu::ShopsTab()
                 Card(SNew(SVerticalBox)
                     + SVerticalBox::Slot().AutoHeight().Padding(0.f, 0.f, 0.f, 6.f)[ Section(TEXT("KARNE NASIL VER\u0130L\u0130R")) ]
                     + SVerticalBox::Slot().AutoHeight()
-                    [ Fixed(TEXT("Her hafta: raf dolulu\u011fu (%40), m\u00fc\u015fteri memnuniyeti (%30) ve son 30 g\u00fcn\u00fcn k\u00e2r\u0131 (%30). A en iyi, D en k\u00f6t\u00fc. \u0130lk hafta karne yok."), 10, ERole::Text) ])
+                    [ Label([] { return FString(TEXT("Her hafta: raf dolulu\u011fu (%40), m\u00fc\u015fteri memnuniyeti (%30) ve son 30 g\u00fcn\u00fcn k\u00e2r\u0131 (%30). A en iyi, D en k\u00f6t\u00fc. \u0130lk hafta karne yok.")); }, 10, ERole::Text, false, true) ])
             ]
         ];
 }

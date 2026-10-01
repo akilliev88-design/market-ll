@@ -3,6 +3,15 @@
 En yeni giriş en üstte. Biçim: tarih — ajan — başlık, ardından **Yapılan**, **Doğrulama**, **Sıradaki**.
 
 
+## 01.10.2026 — Claude Cowork / Akış C — C3 bağlama
+
+**Yapılan:** `akis-a` ve `claude/miras-market-akis-b-evw111` `main`e birleşti (Mustafa, 170b1c2; çakışma yok). C3: `MarketDirector` kalıcı sıra (BeginClose → Eras → sistemler → TrackNationalRevenue → EndClose → Goals), `BudgetFactor × MarketEras::BudgetFactor`, `VisitBranch` → `MarketBranches::Visit` (beceri 60 gün görünür, moral, boş raf ve kuyruk cümlesi). Defter `Post`ları: şube günü satır satır, açılış/kapanış/stok, toptancı vadesi ve gecikme farkı, müdür ücretleri, depo, Bereket, zincir alımı, marka ödemeleri, reyonlar (kendi kayıtları; `OtherCosts` çift ödemesi düzeltildi). Sigorta payı şube/müdür/reyon ücretlerinde, kıdem müdür çıkarmada. `MarketEras` çarpanları reyon talebi/ithal maliyet ve zincir ciro/açılış/satılık. `MarketGoals::OnLeagueYear` lig yılında. A6 ayarları uygulandı (lig ölçeği hariç). M27: Branches/Depots/StoreViews/Staff `Migrate` ve ölü alanlar silindi, `CurrentVersion` 3. Menü bağlamaları. Testler: Ledger.CashAudit artık fark 0 bekler; Depots.OldSaves ve iki test bloğu silindi; Managers ve Chains test beklentileri yeni kurallara uyarlandı. Test.ps1 alt sınırı 125.
+
+**Doğrulama:** Derlenmedi (bulut). Betik kontrolleri (ASCII, gölgeleme, argüman sayısı) ve ikinci bir ajanla satır satır derleme okuması: derleme hatası bulunmadı; bulunan iki test beklentisi ve dört mantık açığı düzeltildi.
+
+**Sıradaki:** Codex: DERLE + TEST + Smoke + uzun bot (prompt `codex_c3_dogrulama.md`). Sonra şirket finansı (yatırım kredisi) tasarımı.
+
+
 ## 30.09.2026 — Codex / Akış A — Aşama 0 doğrulaması
 
 **Yapılan:** AGENTS ve 07 iş bölümü sözleşmesi okundu. Main temiz başladı (dfdd266). DERLE başarılı; kaynaklarda düzeltme gerekmedi. Test.ps1:9–10: alt sınır 46'dan 84'e yükseltildi; succeededWithWarnings da başarılı toplamına eklendi. Oyun mantığı değiştirilmedi.

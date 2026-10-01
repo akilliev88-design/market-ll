@@ -36,8 +36,6 @@ namespace MarketBranches
         return MarketCountry::Money(Kurus); // G-084: the active country's currency
     }
 
-    const TCHAR* ManagerNames[] = { TEXT("Levent \u00d6zt\u00fcrk"), TEXT("Sibel Kara"), TEXT("Orhan Yavuz"), TEXT("Nurcan Aksu"), TEXT("Tamer G\u00fcne\u015f"),
-        TEXT("Filiz Er"), TEXT("G\u00f6khan Bulut"), TEXT("Aynur Tekin"), TEXT("Derya K\u0131l\u0131\u00e7"), TEXT("Murat \u015een"), TEXT("Ece Ayd\u0131n"), TEXT("Kemal Ate\u015f") };
 
     // Shoppers of a province by segment (retired, families, workers, students, tradesmen, singles): one mix for
     // every province; the market type decides who comes.
@@ -148,9 +146,6 @@ namespace MarketBranches
         return FString::Printf(TEXT("%s \u00b7 %s %d"), *Site.Name, Kind.Short, Same + 1);
     }
 
-    // G-072 city stores of older saves -> provinces (Kircaali, Filibe and Kostence have no pack: they close).
-    const TCHAR* LegacyCityProvince[15] = { TEXT("kirklareli"), TEXT("kirklareli"), TEXT("tekirdag"), TEXT("tekirdag"), TEXT("edirne"), TEXT("edirne"),
-        TEXT("istanbul"), TEXT("istanbul"), TEXT("bursa"), TEXT("izmir"), TEXT("ankara"), TEXT("kocaeli"), TEXT(""), TEXT(""), TEXT("") };
 }
 
 const TArray<FString>& MarketBranches::FormatIds()
@@ -165,7 +160,7 @@ const MarketBranches::FFormat& MarketBranches::FormatInfo(const FString& Id)
     static const FFormat Discount = { TEXT("kucuk"), TEXT("ucuzcu (indirim marketi)"), TEXT("Ucuzcu"), 250000, 3, 0.9f, 0.94f, 300, 45000, 1.f, 0.7f, 0, false, 0 };
     static const FFormat Neighbourhood = { TEXT("mahalle"), TEXT("mahalle marketi"), TEXT("Mahalle"), 400000, 3, 1.0f, 1.0f, 240, 60000, 1.f, 1.f, 0, false, 0 };
     static const FFormat Super = { TEXT("buyuk"), TEXT("s\u00fcpermarket"), TEXT("S\u00fcpermarket"), 900000, 6, 1.1f, 1.04f, 520, 150000, 1.5f, 2.f, 0, false, 0 };
-    static const FFormat Hyper = { TEXT("hiper"), TEXT("hipermarket"), TEXT("Hipermarket"), 3500000, 20, 1.15f, 0.98f, 1600, 500000, 3.f, 5.f, 500, true, 5 };
+    static const FFormat Hyper = { TEXT("hiper"), TEXT("hipermarket"), TEXT("Hipermarket"), 3500000, 14, 1.15f, 0.98f, 1600, 500000, 3.f, 3.f, 500, true, 5 }; // C3 (A6): 20 -> 14 workers, running 5 -> 3
     return Id == TEXT("kucuk") ? Discount : Id == TEXT("buyuk") ? Super : Id == TEXT("hiper") ? Hyper : Neighbourhood;
 }
 
@@ -327,6 +322,7 @@ bool MarketBranches::Open(FMarketState& State, const TArray<FMarketProduct>& Pro
     // The deposit leaves the till now and comes back when the branch closes; the fit-out is an expense of today
     // (paid at the day close with the other costs).
     State.Cash -= 2 * Branch.Rent;
+    MarketLedger::Post(State, MarketLedger::EAccount::Investment, -2 * Branch.Rent, true, State.Branches.Num()); // C3: the deposit
     State.OtherCosts += FMath::RoundToInt64(Kind.FitOut * Level * MarketStoreAssign::FitOutFactor(Measures, Kind.Id));
     State.Branches.Add(Branch);
     State.bSecondStore = true;
@@ -376,6 +372,7 @@ bool MarketBranches::Close(FMarketState& State, const TArray<FMarketProduct>& Pr
     B.Stage = static_cast<uint8>(EStage::Closed);
     // The deposit comes back; what is left on the shelves goes to the family shop's depot.
     State.Cash += 2 * B.Rent;
+    MarketLedger::Post(State, MarketLedger::EAccount::Divestment, 2 * B.Rent, true, BranchIndex); // C3: the deposit back
     // Shelf units and the paid delivery still on the way come to the family shop's depot as far as it has room;
     // the rest is sold to the wholesaler at half price.
     int32 Moved = 0, Sold = 0;
@@ -387,17 +384,27 @@ bool MarketBranches::Close(FMarketState& State, const TArray<FMarketProduct>& Pr
         FMarketStock* Stock = State.Stock.FindByPredicate([&Item](const FMarketStock& S) { return S.Id == Item.ProductId; });
         const int32 Room = Stock ? FMath::Max(0, FMarketState::StorageCapacity - Stock->Warehouse - Stock->Dock - Stock->Incoming) : 0;
         const int32 Take = FMath::Min(Units, Room);
-        if (Stock) { Stock->Warehouse += Take; Stock->Received += Take; }
+        const FMarketProduct* Product = Products.FindByPredicate([&Item](const FMarketProduct& P) { return P.Id == Item.ProductId; });
+        if (Stock)
+        {
+            Stock->Warehouse += Take;
+            // C3 (B #43): perishable goods come as an old batch (a third of their life left), not as a fresh delivery.
+            const int32 Life = Product ? MarketGoods::ShelfLifeDays(*Product) : 0;
+            if (Life > 0 && Take > 0) { FMarketBatch Old; Old.ProductId = Stock->Id; Old.Units = Take; Old.ExpiresDay = State.Day + FMath::Max(1, Life / 3); State.Batches.Add(Old); }
+            else Stock->Received += Take;
+        }
         Moved += Take;
         const int32 Left = Units - Take;
         if (Left <= 0) continue;
-        const FMarketProduct* Product = Products.FindByPredicate([&Item](const FMarketProduct& P) { return P.Id == Item.ProductId; });
         const int64 Value = Product ? static_cast<int64>(Left) * Product->Cost / 2 : 0;
         Sold += Left;
         SoldValue += Value;
         State.PendingLoss += Value; // half of the cost is lost
     }
     State.Cash += SoldValue;
+    MarketLedger::Post(State, MarketLedger::EAccount::Divestment, SoldValue, true, BranchIndex);
+    MarketLedger::Post(State, MarketLedger::EAccount::Shrinkage, -SoldValue, false, BranchIndex); // the lost half (sold at half the cost)
+    MarketDepartments::CloseAll(State, BranchIndex); // M26: its departments sell their stock off
     B.Items.Reset();
     State.bSecondStore = OpenCount(State) > 0;
     OutMessage = FString::Printf(TEXT("%s kapand\u0131. Depozito geri al\u0131nd\u0131, %d \u00fcr\u00fcn ana depoya ta\u015f\u0131nd\u0131."), *B.Name, Moved);
@@ -428,86 +435,6 @@ bool MarketBranches::Promote(FMarketState& State, int32 EmployeeId, int32 Branch
     State.Staff.RemoveAll([EmployeeId](const FMarketEmployee& X) { return X.Id == EmployeeId; });
     MarketStaff::SyncCounts(State);
     return true;
-}
-
-void MarketBranches::Migrate(FMarketState& State, const TArray<FMarketProduct>& Products)
-{
-    const FString Home = MarketStart::HomeProvince(State);
-    // G-068: the aggregate second shop of the first prototype.
-    if (State.bSecondStore && State.Branches.Num() == 0 && State.Company.Cities.Num() == 0)
-    {
-        FMarketBranch Branch;
-        Branch.Country = State.CountryId;
-        Branch.Province = Home;
-        Branch.Format = TEXT("mahalle");
-        Branch.Name = NameFor(State, SiteOf(State, State.CountryId, Home), FormatInfo(Branch.Format));
-        Branch.Stage = static_cast<uint8>(EStage::Open);
-        Branch.OpenedDay = FMath::Max(1, State.Day - MaturityDays);
-        Branch.Maturity = 1.f;
-        Branch.Rent = MonthlyRent(SiteOf(State, State.CountryId, Home), FormatInfo(Branch.Format), MarketPrices::ListLevel(State.Day));
-        Branch.Workers = FormatInfo(Branch.Format).Workers;
-        Branch.ManagerName = ManagerNames[0];
-        Branch.ManagerSkill = 55;
-        Branch.ManagerWage = MarketStaff::FairWage(MarketStaff::ERole::HrManager, 55, State.Day) * 9 / 10;
-        PlanShelves(State, Branch, Products);
-        for (FMarketBranchItem& Item : Branch.Items) Item.Units = Item.Capacity;
-        State.Branches.Add(Branch);
-    }
-    // G-086: branches of the district era are in the home province now.
-    for (FMarketBranch& B : State.Branches)
-    {
-        if (B.Country.IsEmpty()) B.Country = State.CountryId;
-        if (B.Province.IsEmpty()) B.Province = Home;
-    }
-    // G-072 city stores become real branches in their provinces.
-    if (State.Company.Cities.Num() > 0)
-    {
-        int64 Refund = 0;
-        const double Level = MarketPrices::ListLevel(State.Day);
-        for (const FMarketCityStores& Row : State.Company.Cities)
-        {
-            if (Row.Stores <= 0) continue;
-            const FString Province = Row.City < UE_ARRAY_COUNT(LegacyCityProvince) ? FString(LegacyCityProvince[Row.City]) : FString();
-            const FSite Site = SiteOf(State, State.CountryId, Province);
-            if (Province.IsEmpty() || !Site.bValid)
-            {
-                Refund += Row.DepositsPaid > 0 ? Row.DepositsPaid : FMath::RoundToInt64(2.0 * 150000 * Level) * Row.Stores;
-                continue;
-            }
-            for (int32 K = 0; K < Row.Stores; ++K)
-            {
-                FMarketBranch Branch;
-                Branch.Country = State.CountryId;
-                Branch.Province = Province;
-                Branch.Format = TEXT("mahalle");
-                Branch.Name = NameFor(State, Site, FormatInfo(Branch.Format));
-                Branch.Stage = static_cast<uint8>(EStage::Open);
-                Branch.OpenedDay = FMath::Max(1, Row.FirstDay);
-                Branch.Maturity = FMath::Clamp(Row.Maturity, 0.f, 1.f);
-                Branch.Rent = MonthlyRent(Site, FormatInfo(Branch.Format), Level);
-                Branch.Workers = FormatInfo(Branch.Format).Workers;
-                PlanShelves(State, Branch, Products);
-                for (FMarketBranchItem& Item : Branch.Items) Item.Units = Item.Capacity;
-                const int32 Added = State.Branches.Add(Branch);
-                // G-086b ek (M22): a manager from the province's candidates, a name never used before.
-                MarketManagers::HireStoreManager(State, Added);
-                State.Branches[Added].ManagerSince = 0; // G-086b: an older save's manager already knows the shop
-            }
-        }
-        State.Cash += Refund;
-        if (Refund > 0) State.DayNews.Add(FString::Printf(TEXT("Yurt d\u0131\u015f\u0131 ma\u011fazalar\u0131 kapand\u0131 (o \u00fclkeler d\u00fcnya a\u015famas\u0131nda gelecek); depozito geri geldi: %s."), *BranchTl(Refund)));
-        State.Company.Cities.Reset();
-        State.bSecondStore = OpenCount(State) > 0;
-    }
-    // G-072 single depot: it stood in the home sub-region.
-    if (State.Company.bDepot)
-    {
-        State.Company.bDepot = false;
-        const MarketCountry::FCity* City = MarketCountry::FindCity(State.CountryId, Home);
-        if (City && !City->SubRegion.IsEmpty()) State.Company.Depots.AddUnique(State.CountryId + TEXT(":") + City->SubRegion);
-    }
-    // G-089: sub-region depots move to a province (once; without a manager).
-    MarketDepots::Migrate(State);
 }
 
 float MarketBranches::MainShopFactor(const FMarketState& State)
@@ -560,9 +487,7 @@ FString MarketBranches::Summary(const FMarketState& State, int32 BranchIndex, co
 
 void MarketBranches::CloseDay(FMarketState& State, const TArray<FMarketProduct>& Products)
 {
-    Migrate(State, Products);
-    MarketManagers::Migrate(State); // G-086b: older saves' store managers get a style and morale
-    MarketStoreViews::Migrate(State); // G-088 C: older saves' branches get their store view (rent and shelves stay)
+    MarketManagers::Migrate(State); // seeds a new manager's hidden style, morale and ceiling once; keeps the used names
     MarketDepartments::CloseDay(State); // M26: departments reach new branches, masters learn
     const int32 Closed = State.Day - 1;
     if (Closed < 1) return;
@@ -604,6 +529,7 @@ void MarketBranches::CloseDay(FMarketState& State, const TArray<FMarketProduct>&
             const int64 Bill = StockCost(B, Products);
             State.Cash -= Bill;
             State.Purchases += Bill;
+            MarketLedger::Post(State, MarketLedger::EAccount::Purchases, -Bill, true, Index); // C3: bought during the close
             for (FMarketBranchItem& Item : B.Items) Item.Units = FMath::Max(Item.Units, Item.Capacity);
             B.Stage = static_cast<uint8>(EStage::Open);
             B.OpenedDay = State.Day;
@@ -692,14 +618,30 @@ void MarketBranches::CloseDay(FMarketState& State, const TArray<FMarketProduct>&
         const int64 Logistics = FMath::RoundToInt64(Cogs * (MarketCompany::CostFactor(State, B, Link) - 1.f));
         // A dishonest manager keeps a little of the till.
         const int64 Skim = Revenue * Rule.SkimPermille / 1000;
-        const int64 Opex = FMath::RoundToInt64(B.Rent * MarketPrices::ListLevel(State.Day) / MarketPrices::ListLevel(FMath::Max(1, B.OpenedDay)) / 30.0)
-            + B.Workers * MarketStaff::FairWage(MarketStaff::ERole::Cashier, 50, State.Day) + B.ManagerWage
-            + FMath::RoundToInt64(1500 * Level * Kind.Running);
-        // M26: the branch's departments (their goods bought and paid the same day).
+        const int64 RentDay = FMath::RoundToInt64(B.Rent * MarketPrices::ListLevel(State.Day) / MarketPrices::ListLevel(FMath::Max(1, B.OpenedDay)) / 30.0);
+        const int64 WagesDay = B.Workers * MarketStaff::FairWage(MarketStaff::ERole::Cashier, 50, State.Day) + B.ManagerWage;
+        const int64 SocialDay = MarketStaff::EmployerShare(WagesDay); // C3 (B3): the employer's social security share
+        const int64 RunningDay = FMath::RoundToInt64(1500 * Level * Kind.Running);
+        const int64 Opex = RentDay + WagesDay + SocialDay + RunningDay;
+        // M26: the branch's departments (they book their own lines; their goods are bought and paid the same day).
         const MarketDepartments::FDay Dept = MarketDepartments::Day(State, Index, Shoppers, Where.Income, Closed);
         const int64 Profit = Revenue - Skim - Cogs - Logistics - Opex - WasteCost - DepotLoss + Dept.Profit; // waste, depot losses: goods already paid
-        State.Cash += Revenue - Skim - Logistics - Opex + Dept.Profit; // goods were paid when ordered; the family shop's till stays separate
-        State.Purchases += Dept.Purchases;
+        State.Cash += Revenue - Skim - Logistics - Opex + Dept.Cash; // goods were paid when ordered; the family shop's till stays separate
+        State.Books.PeriodPurchases += Dept.Purchases; // VAT paid on the department goods
+        // C3 (B2): the branch's day line by line (Store = the branch).
+        {
+            using MarketLedger::EAccount;
+            MarketLedger::Post(State, EAccount::Sales, Revenue, true, Index);
+            MarketLedger::Post(State, EAccount::Shrinkage, -Skim, true, Index);
+            MarketLedger::Post(State, EAccount::Logistics, -Logistics, true, Index);
+            MarketLedger::Post(State, EAccount::Rent, -RentDay, true, Index);
+            MarketLedger::Post(State, EAccount::Wages, -WagesDay, true, Index);
+            MarketLedger::Post(State, EAccount::SocialSecurity, -SocialDay, true, Index);
+            MarketLedger::Post(State, EAccount::Utilities, -RunningDay, true, Index);
+            MarketLedger::Post(State, EAccount::CostOfGoods, -Cogs, false, Index);
+            MarketLedger::Post(State, EAccount::Waste, -WasteCost, false, Index);
+            MarketLedger::Post(State, EAccount::Shrinkage, -DepotLoss, false, Index);
+        }
         State.LastBranchProfit += Profit;
         State.LastProfit += Profit;
         // Branch sales carry VAT like the family shop's (their purchases already count in State.Purchases).
@@ -740,6 +682,7 @@ void MarketBranches::CloseDay(FMarketState& State, const TArray<FMarketProduct>&
         }
         State.Cash -= Bill;
         State.Purchases += Bill;
+        MarketLedger::Post(State, MarketLedger::EAccount::Purchases, -Bill, true, Index); // C3: the manager's order, bought during the close
         MarketSuppliers::Account(State, MarketSuppliers::Current(State)).Volume30 += Bill; // more shops, better purchase terms
         if (Rule.bFollowsRivals)
         {
@@ -758,4 +701,48 @@ void MarketBranches::CloseDay(FMarketState& State, const TArray<FMarketProduct>&
             B.WeekProfit = 0;
         }
     }
+}
+
+bool MarketBranches::RecentlyVisited(const FMarketState& State, int32 BranchIndex)
+{
+    return State.Branches.IsValidIndex(BranchIndex) && State.Branches[BranchIndex].VisitedDay > 0 && State.Day - State.Branches[BranchIndex].VisitedDay <= VisitSeenDays;
+}
+
+bool MarketBranches::Visit(FMarketState& State, const TArray<FMarketProduct>& Products, int32 BranchIndex, FString& OutMessage)
+{
+    if (!State.Branches.IsValidIndex(BranchIndex) || State.Branches[BranchIndex].Stage != static_cast<uint8>(EStage::Open))
+    {
+        OutMessage = TEXT("Bu \u015fube \u015fu an gezilemez.");
+        return false;
+    }
+    FMarketBranch& B = State.Branches[BranchIndex];
+    const bool bFresh = B.VisitedDay == 0 || State.Day - B.VisitedDay >= 30;
+    B.VisitedDay = State.Day;
+    TArray<FString> Parts;
+    Parts.Add(FString::Printf(TEXT("%s: karne %s."), *B.Name, *Grade(State, BranchIndex)));
+    if (!B.ManagerName.IsEmpty())
+    {
+        Parts.Add(FString::Printf(TEXT("M\u00fcd\u00fcr %s i\u015fini %s (beceri %d)."), *B.ManagerName,
+            B.ManagerSkill >= 75 ? TEXT("\u00e7ok iyi biliyor") : B.ManagerSkill >= 55 ? TEXT("biliyor") : TEXT("zor y\u00fcr\u00fct\u00fcyor"), B.ManagerSkill));
+        if (bFresh && B.ManagerMorale >= 0.f)
+        {
+            B.ManagerMorale = FMath::Min(100.f, B.ManagerMorale + 5.f);
+            Parts.Add(TEXT("Seni g\u00f6r\u00fcnce ekip toparland\u0131."));
+        }
+        if (B.ManagerHonesty < 50) Parts.Add(TEXT("Kasa defteri biraz kar\u0131\u015f\u0131k duruyor."));
+    }
+    // The emptiest shelf and the queue: what the daily line does not say.
+    int32 Worst = INDEX_NONE;
+    float WorstFill = 1.f;
+    for (int32 I = 0; I < Products.Num(); ++I)
+    {
+        const FMarketBranchItem* Item = B.Items.FindByPredicate([&Products, I](const FMarketBranchItem& It) { return It.ProductId == Products[I].Id; });
+        if (!Item || Item->Capacity <= 0) continue;
+        const float Fill = static_cast<float>(Item->Units) / Item->Capacity;
+        if (Fill < WorstFill) { WorstFill = Fill; Worst = I; }
+    }
+    if (Worst != INDEX_NONE && WorstFill < 0.3f) Parts.Add(FString::Printf(TEXT("%s raf\u0131 neredeyse bo\u015f."), *(State.bRealBrands ? Products[Worst].RealName : Products[Worst].FictionalName)));
+    if (B.LastQueueLost > 0) Parts.Add(FString::Printf(TEXT("D\u00fcn kasa kuyru\u011fundan %d m\u00fc\u015fteri vazge\u00e7mi\u015f."), B.LastQueueLost));
+    OutMessage = FString::Join(Parts, TEXT(" "));
+    return true;
 }

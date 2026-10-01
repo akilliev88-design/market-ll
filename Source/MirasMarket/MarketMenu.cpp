@@ -86,6 +86,8 @@ void AMarketGameMode::RefreshSlotSummaries()
     {
         const UMarketSave* Save = SlotExists(Slot) ? Cast<UMarketSave>(UGameplayStatics::LoadGameFromSlot(SlotName(Slot), 0)) : nullptr;
         if (!Save) { SlotSummaries.Add(TEXT("bo\u015f")); continue; }
+        // C3 (M27): a save from an older version does not load; say so on the slot.
+        if (Save->State.Version != FMarketState::CurrentVersion) { SlotSummaries.Add(TEXT("eski s\u00fcr\u00fcm \u00b7 yeni oyun ba\u015flat")); continue; }
         FString Text = FString::Printf(TEXT("G\u00fcn %d \u00b7 %s"), Save->State.Day, *MarketCalendar::DateText(Save->State.Day));
         if (Save->State.Story.bCampaignOver) Text += TEXT(" \u00b7 bitti");
         else if (Save->State.Story.bEnded) Text += TEXT(" \u00b7 son sonras\u0131");
@@ -101,7 +103,7 @@ void AMarketGameMode::ResetCampaign()
     LoadPlanogram(); ++ArrangeVersion; // G-078 (#5): a new campaign starts from the shop's plan file
     const FString Country = State.CountryId, City = State.CityId; // a new campaign stays in the chosen country
     State.Initialize(CatalogBase); State.RivalSeed = FMath::Rand(); State.CountryId = Country; State.CityId = City;
-    MarketCountry::SetActive(State.CountryId, State.RivalSeed); RefreshPrices(); bWeekJustEnded = false; RebuildShelfContents(); ApplyCapacities();
+    MarketCountry::SetActive(State.CountryId, State.RivalSeed); MarketEras::Activate(State); RefreshPrices(); bWeekJustEnded = false; RebuildShelfContents(); ApplyCapacities();
     StartShop();
     SyncWorkers(); ResetWorkerJobs(); OrderDraftCases.Init(0, Products.Num()); RefreshDeliveryCrates();
     State.bUsedTestMode = bTestMode;
@@ -112,7 +114,7 @@ void AMarketGameMode::StartShop()
 {
     if (MarketMenuGlue::AutomationRun()) return;
     MarketStart::Setup(State, State.CountryId, State.CityId, State.RivalSeed);
-    MarketCountry::SetActive(State.CountryId, State.RivalSeed); // Setup may have fixed an unknown country
+    MarketCountry::SetActive(State.CountryId, State.RivalSeed); MarketEras::Activate(State); // Setup may have fixed an unknown country
     RefreshPrices();
     if (!bTestMode) MarketStart::StockShelvesPartly(State, State.RivalSeed); // test mode starts empty on purpose
     RebuildShelfContents();
@@ -459,6 +461,19 @@ const TArray<FMarketTodo>& AMarketGameMode::Todos() const
             break;
         }
     }
+    // C3 (B6): the goal closest to done, with the page that moves it.
+    MarketGoals::FGoalView Goal;
+    if (MarketGoals::NextGoal(State, Goal))
+    {
+        using EGoal = MarketGoals::EGoal;
+        const EGoal K = Goal.Kind;
+        const int32 GoalPage = K == EGoal::MoreStores || K == EGoal::Provinces || K == EGoal::Abroad || K == EGoal::FirstDepot ? SMarketMenu::Branches
+            : K == EGoal::ShelvesFull ? SMarketMenu::Orders
+            : K == EGoal::PayDebt || K == EGoal::DebtFree ? SMarketMenu::Finance
+            : K == EGoal::LocalShare || K == EGoal::NationalShare ? SMarketMenu::Promotions
+            : K == EGoal::Chapter ? SMarketMenu::Reports : SMarketMenu::Prices;
+        Add(0, FString::Printf(TEXT("Hedef: %s"), *Goal.Title), FString::Printf(TEXT("%%%.0f tamam, %d g\u00fcn kald\u0131. %s"), Goal.Progress * 100.f, Goal.DaysLeft, *Goal.Why), GoalPage);
+    }
     TodoCache.StableSort([](const FMarketTodo& A, const FMarketTodo& B) { return A.Severity > B.Severity; });
     return TodoCache;
 }
@@ -499,7 +514,6 @@ void AMarketGameMode::ClearOrderLine(int32 Product)
 void AMarketGameMode::StaffCommand(FName Action, int32 Id)
 {
     // Personnel and tax decisions (G-060). The rules live in MarketStaff; this only routes and tells the player.
-    MarketStaff::Migrate(State);
     FString Text;
     bool bChanged = false;
     if (Action == TEXT("HireCandidate"))

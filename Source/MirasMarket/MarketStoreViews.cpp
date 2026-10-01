@@ -181,12 +181,3 @@ FString MarketStoreViews::WeeklyHint(const FMarketBranch& Branch, int32 Shoppers
     return FString();
 }
 
-void MarketStoreViews::Migrate(FMarketState& State)
-{
-    if (Catalog().Num() == 0) return;
-    for (FMarketBranch& Branch : State.Branches)
-    {
-        if (HasMeasures(Branch) || Branch.Stage == static_cast<uint8>(MarketBranches::EStage::Closed)) continue;
-        AssignTo(State, Branch);
-    }
-}

@@ -87,10 +87,16 @@ namespace MarketDepartments
     {
         int64 Revenue = 0;
         int64 Profit = 0;
-        int64 Purchases = 0;      // goods bought (sold + spoiled)
+        int64 Purchases = 0;      // goods bought (sold + spoiled + the stock's change)
+        int64 Cash = 0;           // the till's change (revenue - goods bought - wages); booked by Day itself
     };
     // One branch's departments for a closed day (updates their 30-day sums and stock).
     FDay Day(FMarketState& State, int32 BranchIndex, int32 Shoppers, float Income, int32 Closed);
+
+    // A closing branch: every department sells its stock off (RefundShare), booked line by line.
+    void CloseAll(FMarketState& State, int32 BranchIndex);
+    // Department stock of every branch at cost (the balance sheet, MarketLedger::Balance).
+    int64 StockValue(const FMarketState& State);
 
     // Menu: one department's line (margin, space, season) and its company numbers.
     FString Describe(EDept Dept);

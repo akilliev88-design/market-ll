@@ -104,7 +104,8 @@ bool MarketDirector::LeavesWithoutCard(FMarketState& State, float Roll)
 
 float MarketDirector::BudgetFactor(const FMarketState& State, uint8 Segment)
 {
-    return MarketPayments::BudgetFactor(State, static_cast<MarketCustomers::ESegment>(Segment));
+    // B4: a recession or high inflation makes the basket smaller, the recovery larger.
+    return MarketPayments::BudgetFactor(State, static_cast<MarketCustomers::ESegment>(Segment)) * MarketEras::BudgetFactor(State);
 }
 
 FString MarketDirector::OnCheckout(FMarketState& State, int32 CustomerId, int64 Receipt, float Roll, uint8 Method)
@@ -255,12 +256,7 @@ bool MarketDirector::Command(FMarketState& State, const TArray<FMarketProduct>& 
     if (Action == TEXT("ReplaceMasters")) // M26: Arg = department
         return MarketDepartments::ReplaceWeakMasters(State, static_cast<MarketDepartments::EDept>(FMath::Clamp(Arg, 0, MarketDepartments::DeptCount)), OutMessage);
     if (Action == TEXT("BuyChain")) return MarketChains::Buy(State, Products, Arg, OutMessage); // Arg = State.Rivals.Chains index (Akis C2b)
-    if (Action == TEXT("VisitBranch")) // Codex A4 calls it when a branch visit starts (what a visit reveals: later, C)
-    {
-        if (!State.Branches.IsValidIndex(Arg)) { OutMessage = TEXT("B\u00f6yle bir \u015fube yok."); return false; }
-        OutMessage = FString::Printf(TEXT("%s ziyaret ediliyor."), *State.Branches[Arg].Name);
-        return true;
-    }
+    if (Action == TEXT("VisitBranch")) return MarketBranches::Visit(State, Products, Arg, OutMessage); // A4 calls it when a visit starts (C3)
     if (Action == TEXT("Difficulty")) return MarketSimulation::SetDifficulty(State, Arg, OutMessage);
     if (Action == TEXT("PandemicProfile"))
     {
@@ -285,10 +281,10 @@ FString MarketDirector::ReportText(const FMarketState& State)
 void MarketDirector::CloseDay(FMarketState& State, const TArray<FMarketProduct>& Products)
 {
     State.DayNews.Reset();
-    // ===== Ak\u0131\u015f B =====
-    MarketLedger::BeginClose(State, Products); // B2: the family shop's day from FMarketState::CloseDay's counters
+    // C3 order: the books open first (the family shop's day from FMarketState::CloseDay's counters), the eras set
+    // the day's economy, then every system; the books close and the goals look at the finished day last.
+    MarketLedger::BeginClose(State, Products); // B2
     MarketEras::CloseDay(State);               // B4: this campaign's eras (price curve, effects, news)
-    // ===== Ak\u0131\u015f B son =====
     MarketPromotions::CloseDay(State, Products); // running promotions, results, funded offers (G-064)
     MarketFreshness::CloseDay(State, Products);  // batches, waste, donations (G-067) - before the books
     MarketCredit::CloseDay(State);               // paydays of the credit book (G-067)
@@ -308,9 +304,7 @@ void MarketDirector::CloseDay(FMarketState& State, const TArray<FMarketProduct>&
     MarketEvents::CloseDay(State, Products); // decisions past their day, modifiers, snow, a new neighbourhood event (G-066)
     MarketStory::CloseDay(State, Products);  // scenes, milestones, chapters (G-066)
     MarketFinance::CloseDay(State, Products); // loans, the money trouble ladder, month-end report (G-067)
-    // ===== Ak\u0131\u015f B =====
     MarketCompany::TrackNationalRevenue(State); // B1 (#45): national share by revenue, after every revenue is in
     MarketLedger::EndClose(State);              // B2: the audit (till change = cash entries)
     MarketGoals::CloseDay(State, Products);     // B6: goals, firsts, records, celebrations, the rhythm guard
-    // ===== Ak\u0131\u015f B son =====
 }

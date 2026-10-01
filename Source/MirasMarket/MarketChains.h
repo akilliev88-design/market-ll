@@ -29,9 +29,10 @@ namespace MarketChains
     enum class EScope : uint8 { Local = 0, Regional, National, Foreign };
 
     constexpr int32 TurnDays = 30;           // every chain decides once a month
-    constexpr int32 WarDays = 45;
+    constexpr int32 WarDays = 21;            // C3 (A6): shorter wars
+    constexpr int32 WarRestDays = 60;        // C3 (A6): a province rests after a war
     constexpr float WarPrice = 0.92f;        // the war's shelf prices
-    constexpr float WarPressure = 1.3f;      // x competition of our branches in that province during a war
+    constexpr float WarPressure = 1.1f;      // x competition of our branches in that province during a war (C3, A6: 1.3 -> 1.1)
     constexpr float HealthyPer100k = 32.f;   // weighted chain stores a province feeds comfortably
     constexpr float LeagueCompression = 0.04f; // giants' size against the game's economy (tuned with the automatic player)
     constexpr int32 MaxNewsPerDay = 3;

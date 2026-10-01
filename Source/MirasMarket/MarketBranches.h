@@ -90,15 +90,18 @@ namespace MarketBranches
     int32 AddAcquired(FMarketState& State, const TArray<FMarketProduct>& Products, const FString& Country, const FString& Province, const FString& Format);
     // Moves a person from the family shop to run a branch (Cem's road in the story).
     bool Promote(FMarketState& State, int32 EmployeeId, int32 BranchIndex, FString& OutMessage);
-    // Older saves: the aggregate second shop becomes a mature branch; branches without a province get the home
-    // province; the G-072 city stores become branches in their provinces (abroad ones close, deposit back).
-    void Migrate(FMarketState& State, const TArray<FMarketProduct>& Products);
     int32 OpenCount(const FMarketState& State);
     // x shoppers of the family shop: our branches in the home province take some of its customers.
     float MainShopFactor(const FMarketState& State);
     FString Summary(const FMarketState& State, int32 BranchIndex, const TArray<FMarketProduct>& Products);
     // Weekly mark of a branch (A best .. D worst; "-" while it is not open for a week).
     FString Grade(const FMarketState& State, int32 BranchIndex);
+    // C3 (A4 visit): the player walks through an open branch. The manager's skill shows for 60 days, a first visit
+    // in a month lifts the manager a little, and the walk tells what the numbers hide (empty shelves, queue,
+    // the till). No money moves.
+    constexpr int32 VisitSeenDays = 60;
+    bool Visit(FMarketState& State, const TArray<FMarketProduct>& Products, int32 BranchIndex, FString& OutMessage);
+    bool RecentlyVisited(const FMarketState& State, int32 BranchIndex);
 
     // Day close: stages, the simulated day of every open branch, the managers' orders, weekly lines.
     void CloseDay(FMarketState& State, const TArray<FMarketProduct>& Products);

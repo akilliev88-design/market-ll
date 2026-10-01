@@ -117,9 +117,6 @@ namespace MarketDepots
     // A branch's delivery lost at a depot (goods already paid, at cost): short / broken and skimmed.
     void RecordLoss(FMarketState& State, int32 DepotIndex, int64 ShortCost, int64 SkimCost);
 
-    // Older saves: every sub-region depot ("country:subregion") moves to the province of that sub-region with most
-    // of our shops (else its most populous one), without a manager (one line of news). Idempotent.
-    void Migrate(FMarketState& State);
     // Today's rent of all depots (paid in MarketCompany::CloseDay with the head office).
     int64 DailyRent(const FMarketState& State, int32 Day);
     // Day close after the branches and managers: a caught skimmer, weekly warnings for depots without a manager,

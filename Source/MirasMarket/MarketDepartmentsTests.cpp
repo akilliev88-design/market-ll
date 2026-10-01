@@ -16,7 +16,7 @@ namespace MarketDepartmentsTest
         for (const TCHAR* Format : Formats)
         {
             FMarketBranch& B = S.Branches.AddDefaulted_GetRef();
-            B.Name = Format; B.Format = Format; B.Stage = static_cast<uint8>(MarketBranches::EStage::Open); B.OpenedDay = 1; B.LastShoppers = 300;
+            B.Name = Format; B.Format = Format; B.Stage = static_cast<uint8>(MarketBranches::EStage::Open); B.OpenedDay = 1; B.LastShoppers = 1000;
         }
         return S;
     }

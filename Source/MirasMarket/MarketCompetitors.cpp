@@ -63,10 +63,11 @@ const MarketCompetitors::FProfile& MarketCompetitors::Profile(ECompany Company)
     static const FProfile Profiles[static_cast<int32>(ECompany::Count)] =
     {
         { TEXT("Bereket Market"), TEXT("mahalle marketi"), 1.00f, 0.90f, 1.30f, 1, 150000, INDEX_NONE },
-        { TEXT("B\u0130M"), TEXT("indirim marketi"), 0.93f, 0.80f, 1.00f, 1, 50000000, 0 },
-        { TEXT("Migros"), TEXT("s\u00fcpermarket"), 1.03f, 1.10f, 0.80f, 1, 50000000, 1 },
-        { TEXT("A101"), TEXT("indirim marketi"), 0.94f, 0.85f, 1.00f, MarketRivals::ChainOpensDay, 50000000, 2 },
-        { TEXT("\u015eok"), TEXT("indirim marketi"), 0.95f, 0.85f, 0.95f, 131, 50000000, INDEX_NONE }, // 15 July 2011
+        // C3 (L12, A5): the same fictional names as the national roster (MarketChains).
+        { TEXT("B\u0130N"), TEXT("indirim marketi"), 0.93f, 0.80f, 1.00f, 1, 50000000, 0 },
+        { TEXT("Migron"), TEXT("s\u00fcpermarket"), 1.03f, 1.10f, 0.80f, 1, 50000000, 1 },
+        { TEXT("A110"), TEXT("indirim marketi"), 0.94f, 0.85f, 1.00f, MarketRivals::ChainOpensDay, 50000000, 2 },
+        { TEXT("\u015eAK"), TEXT("indirim marketi"), 0.95f, 0.85f, 0.95f, 131, 50000000, INDEX_NONE }, // 15 July 2011
         // G-079: four corner grocers together; a little dearer, very close, credit and cigarettes, open late.
         { TEXT("Mahalle bakkallar\u0131"), TEXT("bakkal ve tekel"), 1.10f, 1.00f, 1.25f, 1, 3000000, INDEX_NONE, 4 },
         // G-079: the Tuesday street market: cheap and fresh, only dairy (and produce later), only on its day.
@@ -431,7 +432,7 @@ void MarketCompetitors::CloseDay(FMarketState& State, const TArray<FMarketProduc
         {
             Chain->Told |= ToldSecondStore;
             Chain->Stores = 2;
-            News.Add(TEXT("A101 senin soka\u011f\u0131na yak\u0131n ikinci bir ma\u011faza a\u00e7t\u0131. Pay\u0131n b\u00fcy\u00fcd\u00fck\u00e7e zincirler de yakla\u015f\u0131yor."));
+            News.Add(TEXT("A110 senin soka\u011f\u0131na yak\u0131n ikinci bir ma\u011faza a\u00e7t\u0131. Pay\u0131n b\u00fcy\u00fcd\u00fck\u00e7e zincirler de yakla\u015f\u0131yor."));
         }
     }
 
@@ -508,6 +509,7 @@ bool MarketCompetitors::Resolve(FMarketState& State, const TArray<FMarketProduct
     const int64 Price = FMath::Max<int64>(0, D.Arg);
     if (State.Cash < Price) { OutMessage = TEXT("Kasada bu kadar para yok. Banka kredisiyle ya da biraz bekleyerek tekrar d\u00fc\u015f\u00fcn."); return false; }
     State.Cash -= Price;
+    MarketLedger::Post(State, MarketLedger::EAccount::Investment, -Price, true, MarketLedger::HeadOfficeStore); // C3 (B2): Bereket bought
     B->Told |= ToldSold;
     B->Share = 0.f;
     MarketStory::AddMemory(State, TEXT("Bereket Market'i sat\u0131n ald\u0131n; sokakta tek bakkal kald\u0131n"));

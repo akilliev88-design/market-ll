@@ -336,7 +336,6 @@ struct FMarketBranch
 {
     GENERATED_BODY()
     UPROPERTY() FString Name;
-    UPROPERTY() uint8 District = 0;      // G-068 prototype district (unused since G-086; older saves)
     // G-086: the province the branch is in (MarketCountry) and its country. Older saves: empty = the home province.
     UPROPERTY() FString Province;
     UPROPERTY() FString Country;
@@ -389,27 +388,12 @@ struct FMarketBranch
     UPROPERTY() int32 LastQueueLost = 0;   // shoppers the tills lost on the last closed day
     UPROPERTY() int64 Last30Revenue = 0;   // running sum over about 30 days (national table, world league)
     UPROPERTY() TArray<FMarketBranchDept> Depts; // karar M26: its departments (MarketDepartments.h)
-};
-
-// G-072 aggregate city stores (older saves only). G-086 turns every row into real branches in its province
-// (MarketBranches::Migrate) and empties the list.
-USTRUCT()
-struct FMarketCityStores
-{
-    GENERATED_BODY()
-    UPROPERTY() uint8 City = 0;             // G-072 city index (MarketBranches::Migrate maps it to a province)
-    UPROPERTY() int32 Stores = 0;
-    UPROPERTY() int32 FirstDay = 0;         // day the first store opened
-    UPROPERTY() float Maturity = 0.f;       // 0..1: shoppers' habit (grows over 60 days, a new store dilutes it)
-    UPROPERTY() int64 LastProfit = 0;       // all stores of the city, last closed day
-    UPROPERTY() int64 Last30Profit = 0;     // running sum over the last 30 days (approximate)
-    // G-077 (#38): deposits actually paid for the open stores (older saves: 0, then the day's value is used once).
-    UPROPERTY() int64 DepositsPaid = 0;
+    UPROPERTY() int32 VisitedDay = 0;      // C3: the player last walked through it (MarketBranches::Visit)
 };
 
 // G-089 (karar M23): a big depot in a province (MarketDepots.h). It serves our branches of its country within
 // 600 km; its manager is an FMarketManager of level MarketManagers::ELevel::Depot with the same country and
-// province. Older saves: none (their sub-region depots move here once, MarketDepots::Migrate).
+// province.
 USTRUCT()
 struct FMarketDepot
 {
@@ -429,9 +413,6 @@ USTRUCT()
 struct FMarketCompany
 {
     GENERATED_BODY()
-    UPROPERTY() TArray<FMarketCityStores> Cities;
-    UPROPERTY() bool bDepot = false;          // G-072 single depot (older saves; G-086 moves it to Depots)
-    UPROPERTY() TArray<FString> Depots;       // G-086: sub-regions with a regional depot (older saves; G-089 moves them to DepotSites)
     UPROPERTY() TArray<FMarketDepot> DepotSites; // G-089: depots in provinces (MarketDepots.h)
     UPROPERTY() int32 Trucks = 0;
     UPROPERTY() bool bCentralBuying = false;  // buying for all stores at once
@@ -583,6 +564,7 @@ struct FMarketChain
     UPROPERTY() FString WarProvince;     // a price war against us in this province until WarUntil
     UPROPERTY() int32 WarUntil = 0;
     UPROPERTY() int32 WarsLost = 0;
+    UPROPERTY() uint8 GoneReason = 0;   // C3: 1 closed (bankrupt), 2 bought by a rival, 3 bought by us
     UPROPERTY() int32 RedTurns = 0;      // monthly turns in a row deep in the red
     UPROPERTY() bool bForSale = false;
     UPROPERTY() int32 ForSaleTurns = 0;
@@ -618,6 +600,11 @@ struct FMarketChainsState
     UPROPERTY() FString Nemesis;                 // chain id
     UPROPERTY() int32 LastYearDay = 0;           // giants' yearly turn
     UPROPERTY() int32 LastLeagueDay = 0;
+    UPROPERTY() int32 LeagueYearDay = 0;  // C3: the last league year closed (MarketGoals::OnLeagueYear, J02)
+    UPROPERTY() TMap<FString, int32> WarRest; // C3: "country|province" -> the day its last price war ended
+    UPROPERTY() int32 Closures = 0;       // C3 counters for the reports: chains closed, bought by rivals, bought by us
+    UPROPERTY() int32 Takeovers = 0;
+    UPROPERTY() int32 OurBuys = 0;
     UPROPERTY() int32 LeagueRank = 0;            // 0 = not ranked yet
     UPROPERTY() int32 BestLeagueRank = 0;
     UPROPERTY() int32 NationalRank = 0;
@@ -712,7 +699,7 @@ struct FMarketState
     static constexpr int64 StockerDailyWage = 2000;
 
     // Save format version. 2 (G-076): story finale flags, test-mode mark. Older saves load and are migrated.
-    static constexpr int32 CurrentVersion = 2;
+    static constexpr int32 CurrentVersion = 3; // C3 (M27): A, B and C merged; older saves start a new game
     UPROPERTY() int32 Version = CurrentVersion;
     UPROPERTY() int32 Day = 1;
     UPROPERTY() int64 Cash = 35000;

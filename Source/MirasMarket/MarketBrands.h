@@ -23,7 +23,7 @@ namespace MarketBrands
 
     constexpr int32 OfferDays = 14;
     constexpr int32 DealMonths = 3;
-    constexpr int32 MaxOpenOffers = 3;
+    constexpr int32 MaxOpenOffers = 2;   // C3 (A6): 3 -> 2
     constexpr int32 MonthDays = 30;
 
     struct FBrandInfo

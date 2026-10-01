@@ -146,7 +146,7 @@ C'nin kendi işleri bitti ama **hiçbiri derlenmedi** (C1 mağaza görünümü, 
 - **Defter hesapları:** `MarketLedger`'a C'nin yeni sistemlerinin hesapları eklenir (reyon satışı, reyon malı, reyon firesi ve tadilatı, marka ödemeleri, zincir satın alma, tedarik); C3'teki bağlama tek satırlık `Post` çağrıları olsun diye her hareket için hazır çağrı listesi `B.md`'ye.
 - **M27 temizliği B'nin dosyalarında:** `MarketStaff::Migrate` ve B dosyalarındaki diğer eski kayıt dalları ile testleri silinir. `FMarketState`'teki ölü alanlar (ör. `bCashier`, `Stockers`) silinmez, liste "C'ye istek" olarak yazılır (ortak dosya, C3'te silinir).
 
-**C3 · Bağlama (Cowork),** üç akış bitince: yukarıdaki §4 C3'e ek olarak A6 ayar önerileri, B7 dönem çarpanları ve defter çağrıları, M27 temizliği (C dosyalarındaki `Migrate`'ler, ölü alanlar, `kucuk` gibi adlar).
+**C3 · Bağlama (Cowork)** — 01.10.2026 yazıldı, derlenmedi (ayrıntı `Docs/Surec/akislar/C.md`; doğrulama `promptlar/codex_c3_dogrulama.md`). Üç akış bitince: yukarıdaki §4 C3'e ek olarak A6 ayar önerileri, B7 dönem çarpanları ve defter çağrıları, M27 temizliği (C dosyalarındaki `Migrate`'ler, ölü alanlar, `kucuk` gibi adlar).
 
 ## 5. Akış notu biçimi (`Docs/Surec/akislar/A.md`, `B.md`)
 

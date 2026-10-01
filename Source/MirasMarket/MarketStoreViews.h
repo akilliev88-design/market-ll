@@ -53,7 +53,4 @@ namespace MarketStoreViews
     // The weekly line when the tills lose shoppers or the fresh room is short ("" = nothing to say).
     FString WeeklyHint(const FMarketBranch& Branch, int32 Shoppers);
 
-    // Older saves: open or opening branches without a view get one (their rent, workers and shelves stay as
-    // signed; tills and fresh room start to count). Idempotent.
-    void Migrate(FMarketState& State);
 }

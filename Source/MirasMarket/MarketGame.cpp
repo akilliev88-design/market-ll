@@ -148,7 +148,7 @@ void AMarketGameMode::BeginPlay()
     LoadPlanogram();
     State.Initialize(Products);
     State.RivalSeed = FMath::Rand();
-    MarketCountry::SetActive(State.CountryId, State.RivalSeed); // G-084: currency and economy of the country pack
+    MarketCountry::SetActive(State.CountryId, State.RivalSeed); MarketEras::Activate(State); // G-084: currency and economy of the country pack
     RefreshPrices();
     RivalAisles = MarketRivals::Aisles(Products);
     OrderDraftCases.Init(0, Products.Num());
@@ -273,6 +273,8 @@ void AMarketGameMode::ApplyCapacities()
     }
     State.Cash += Refund;
     State.PendingLoss += Refund;
+    MarketLedger::Post(State, MarketLedger::EAccount::Divestment, Refund); // C3 (B2)
+    MarketLedger::Post(State, MarketLedger::EAccount::Shrinkage, -Refund, false); // the lost half
     UE_LOG(LogTemp, Warning, TEXT("MirasMarket: %d units did not fit shelf + storage after a planogram change."), Discarded);
     Notify(FString::Printf(TEXT("Rafa ve depoya s\u0131\u011fmayan %d \u00fcr\u00fcn toptanc\u0131ya yar\u0131 fiyat\u0131na geri verildi (%s)."), Discarded, *Money(Refund)));
 }
@@ -817,7 +819,8 @@ FString AMarketGameMode::PriceSummary(int32 Index) const
     if (!Products.IsValidIndex(Index) || !State.Stock.IsValidIndex(Index)) return FString();
     const int64 Ours = State.Stock[Index].Price;
     const int64 Theirs = MarketDemand::RivalPrice(Products[Index], RivalPriceFactor(Index));
-    const double Chance = MarketDemand::BuyChance(MarketDemand::PriceRatio(Ours, Theirs), State.MarketShare);
+    // C3 (B #24): the same curve the shoppers use (the product's elasticity and how well its price is known).
+    const double Chance = MarketDemand::BuyChanceFor(MarketDemand::PriceRatio(Ours, Theirs), State.MarketShare, 0.0, MarketDemand::ElasticityOf(Products[Index]), Products[Index].Kvi);
     return FString::Printf(TEXT("Fiyat %s  \u00b7  rakip %s%s  \u00b7  alan m\u00fc\u015fteri ~%%%d"),
         *Money(Ours), *Money(Theirs), RivalPriceFactor(Index) < 1.f ? TEXT(" (indirimde)") : RivalPriceFactor(Index) > 1.f ? TEXT(" (pahal\u0131/yok)") : TEXT(""), FMath::RoundToInt32(Chance * 100.0));
 }
@@ -1117,13 +1120,13 @@ void AMarketGameMode::Command(FName Action)
         {
             MarketSimulation::AdjustPrice(State, Products, Selected, Action == "PriceUp");
             RefreshLabels();
-            Notify(FString::Printf(TEXT("%s: %s"), *ProductName(Selected), *PriceSummary(Selected)));
+            const FString Warn = MarketDemand::PriceWarning(State, Products, Selected); // C3 (B #27): below cost
+            Notify(FString::Printf(TEXT("%s: %s"), *ProductName(Selected), *PriceSummary(Selected)) + (Warn.IsEmpty() ? FString() : TEXT("\n") + Warn));
         }
         else if (Action == "Hire" || Action == "HireStocker" || Action == "FireStocker")
         {
             // H / J: the best candidate of the pool (MarketStaff). The menu's Personel page picks a person.
             FString Text;
-            MarketStaff::Migrate(State);
             const bool bDone = Action == "FireStocker" ? MarketStaff::FireLast(State, MarketStaff::ERole::Stocker, Text)
                 : MarketStaff::HireBest(State, Action == "Hire" ? MarketStaff::ERole::Cashier : MarketStaff::ERole::Stocker, Text);
             if (bDone) SyncWorkers();
@@ -1538,7 +1541,7 @@ void AMarketGameMode::LoadCampaign(bool bQuiet)
     if (bArrange) ExitArrange(FString());
     DropCarriedDelivery();
     State = Save->State; Selected = 0; bWeekJustEnded = false; OrderDraftCases.Init(0, Products.Num());
-    MarketCountry::SetActive(State.CountryId, State.RivalSeed); // G-084
+    MarketCountry::SetActive(State.CountryId, State.RivalSeed); MarketEras::Activate(State); // G-084
     if (bTestMode) State.bUsedTestMode = true;
     TArray<FString> Added, Removed;
     RefreshPrices(); // today's list before the price range check of ReconcileWith

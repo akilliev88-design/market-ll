@@ -268,36 +268,4 @@ bool FMarketDepotsBuildTest::RunTest(const FString& Parameters)
     return true;
 }
 
-IMPLEMENT_SIMPLE_AUTOMATION_TEST(FMarketDepotsOldSaveTest, "MirasMarket.Depots.OldSaves", EAutomationTestFlags::EditorContext | EAutomationTestFlags::EngineFilter)
-bool FMarketDepotsOldSaveTest::RunTest(const FString& Parameters)
-{
-    using namespace MarketDepots;
-    using namespace MarketDepotsTest;
-    // A G-086 save: a Trakya depot; our shops: the family shop in Kirklareli, two branches in Tekirdag.
-    FMarketState S = MakeState();
-    AddShop(S, TEXT("tekirdag"));
-    AddShop(S, TEXT("tekirdag"));
-    S.Company.Depots.Add(TEXT("tr:trakya"));
-    TestTrue(TEXT("Counts before moving"), Count(S) == 1 && MarketCompany::HasDepot(S, TEXT("tr"), TEXT("trakya")));
-    S.DayNews.Reset();
-    Migrate(S);
-    TestEqual(TEXT("One depot"), S.Company.DepotSites.Num(), 1);
-    TestEqual(TEXT("Where most of our shops are"), S.Company.DepotSites[0].Province, FString(TEXT("tekirdag")));
-    TestEqual(TEXT("Old keys gone"), S.Company.Depots.Num(), 0);
-    TestEqual(TEXT("Without a manager"), ManagerOf(S, 0), static_cast<int32>(INDEX_NONE));
-    TestTrue(TEXT("Told once"), NewsHas(S, TEXT("m\u00fcd\u00fcr ata")));
-    const int32 Lines = S.DayNews.Num();
-    Migrate(S);
-    TestTrue(TEXT("Only once"), S.Company.DepotSites.Num() == 1 && S.DayNews.Num() == Lines);
-
-    // A sub-region without our shops: its most populous province.
-    FMarketState Empty = MakeState();
-    Empty.Company.Depots.Add(TEXT("tr:dicle"));
-    Migrate(Empty);
-    TestTrue(TEXT("Moved inside the sub-region"), Empty.Company.DepotSites.Num() == 1
-        && MarketCountry::FindCity(TEXT("tr"), Empty.Company.DepotSites[0].Province) != nullptr
-        && MarketCountry::FindCity(TEXT("tr"), Empty.Company.DepotSites[0].Province)->SubRegion == TEXT("dicle"));
-    return true;
-}
-
 #endif

@@ -50,6 +50,7 @@ void MarketStart::Setup(FMarketState& State, const FString& CountryId, const FSt
     int64 Payroll = 0;
     for (int32 I = Before; I < State.Staff.Num(); ++I) Payroll += State.Staff[I].DailyWage;
     State.Cash += Payroll * StartWageDays;
+    MarketEras::Setup(State); // C3 (B4): this campaign's eras, shifted by the seed
 }
 
 int32 MarketStart::StockShelvesPartly(FMarketState& State, int32 Seed)

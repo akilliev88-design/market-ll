@@ -75,3 +75,16 @@ Komutlar (`MarketDirector::Command`): `AppointCandidate` (EncodeArea × 10 + ada
 1. Derleme ve oyunda deneme (G-074).
 2. İstatistik merkezi (dönem, kapsam, karşılaştırma seçicileri).
 3. Harita katmanlarında zincirlerin yıla göre büyümesi (şimdilik sabit örnek sayılar).
+
+## C3 bağlama (01.10.2026, derlenmedi)
+
+- **Üst hap (tarih ve hız):** hız düğmelerinin yanında **+1 gün / +1 hafta / +1 ay** (`AMarketGameMode::AdvanceTime`); dükkân açıkken kapalı. Oyuncu gerekince (karar, kasa eksi, rapor, bölüm, önemli olay) durur, nedeni bildirimde.
+- **Ana ekran:** sol üstte **HEDEFLER** kartı (bu hafta / bu ay / bu yıl, ilerleme çubuğu, kalan gün; ipucunda neden ve ödül) ve son iki kutlama.
+- **Şimdi ne yapmalı:** "Hedef: …" satırı (tamamlanmaya en yakın hedef, ilgili sayfaya gider).
+- **Raporlar:** Gün sonu / Hafta / **Rekorlar** (rekorlar ve son on kutlama).
+- **Finans:** altta **GELİR TABLOSU** (Dün / Bu hafta / Bu ay / Bu yıl: ciro, brüt kâr, giderler, net; ipucunda hesap hesap) ve defter denetimi satırı; **BİLANÇO** (varlıklar, borçlar, özkaynak; ipucunda kalemler) ve ekonomideki dönem satırı.
+- **Mağazalar › Mağazalar:** açık şube satırında **Gez** (şube ziyareti; müdürün becerisi 60 gün görünür).
+- **Fiyat:** rakip fiyatları başlığı seçilen il; fiyat değişince maliyet altı uyarısı; "alan müşteri" ürünün esnekliğiyle.
+- **Personel:** çıkarma sorusu ihbar + kıdem tutarını söyler.
+- **Ayarlar › kayıt yuvaları:** eski sürüm kayıt "eski sürüm · yeni oyun başlat".
+

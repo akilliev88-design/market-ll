@@ -332,6 +332,7 @@ void MarketBrands::CloseDay(FMarketState& State, const TArray<FMarketProduct>& P
             if (Cap.IsValidIndex(Product) && Cap[Product] > 0)
             {
                 State.Cash += Deal.Terms.Amount;
+                MarketLedger::Post(State, MarketLedger::EAccount::BrandListing, Deal.Terms.Amount, true, MarketLedger::HeadOfficeStore); // C3 (B7.2)
                 R.TotalReceived += Deal.Terms.Amount;
                 AddTrust(State, Deal.Terms.Brand, 10.f);
                 State.DayNews.Add(FString::Printf(TEXT("%s raf paras\u0131n\u0131 \u00f6dedi: %s."), *NameOf(State, Deal.Terms.Brand), *MarketCountry::Money(Deal.Terms.Amount)));
@@ -362,6 +363,7 @@ void MarketBrands::CloseDay(FMarketState& State, const TArray<FMarketProduct>& P
             if (Share + 0.005f >= T.Target)
             {
                 State.Cash += T.Amount; Deal.Paid += T.Amount; R.TotalReceived += T.Amount;
+                MarketLedger::Post(State, MarketLedger::EAccount::BrandShelfShare, T.Amount, true, MarketLedger::HeadOfficeStore);
                 AddTrust(State, T.Brand, 5.f);
                 State.DayNews.Add(FString::Printf(TEXT("%s ayl\u0131k raf \u00f6demesini yapt\u0131: %s (%s raf\u0131nda pay\u0131 %s)."), *Name, *MarketCountry::Money(T.Amount), *T.Category, *Percent(Share)));
             }
@@ -379,6 +381,7 @@ void MarketBrands::CloseDay(FMarketState& State, const TArray<FMarketProduct>& P
             {
                 const int64 Prim = FMath::RoundToInt64(Sales * T.Target);
                 State.Cash += Prim; Deal.Paid += Prim; R.TotalReceived += Prim;
+                MarketLedger::Post(State, MarketLedger::EAccount::BrandRebate, Prim, true, MarketLedger::HeadOfficeStore);
                 AddTrust(State, T.Brand, 5.f);
                 State.DayNews.Add(FString::Printf(TEXT("%s ciro primi \u00f6dedi: %s."), *Name, *MarketCountry::Money(Prim)));
             }

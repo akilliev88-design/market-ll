@@ -127,26 +127,6 @@ namespace MarketDepots
         return FMath::Clamp(1.f - static_cast<float>(State.Company.Trucks) / static_cast<float>(Needed), 0.f, 1.f);
     }
 
-    // The province of a sub-region an older depot moves to: most of our shops, else the most people.
-    FString MigrationProvince(const FMarketState& State, const FString& Country, const MarketCountry::FRegion& Sub)
-    {
-        FString Best;
-        int32 BestShops = -1, BestPeople = -1;
-        for (const FString& Province : Sub.Provinces)
-        {
-            const MarketCountry::FCity* City = MarketCountry::FindCity(Country, Province);
-            if (!City) continue;
-            const int32 Shops = MarketBranches::ShopsIn(State, Country, Province);
-            if (Shops > BestShops || (Shops == BestShops && City->PopulationK > BestPeople))
-            {
-                Best = Province;
-                BestShops = Shops;
-                BestPeople = City->PopulationK;
-            }
-        }
-        return Best;
-    }
-
     FMarketDepot NewDepot(const FMarketState& State, const FString& Country, const FString& Province)
     {
         FMarketDepot Depot;
@@ -184,7 +164,7 @@ float MarketDepots::DistanceCost(float Km)
 
 int32 MarketDepots::Count(const FMarketState& State)
 {
-    return State.Company.DepotSites.Num() + State.Company.Depots.Num();
+    return State.Company.DepotSites.Num();
 }
 
 int32 MarketDepots::Find(const FMarketState& State, const FString& Country, const FString& Province)
@@ -202,7 +182,6 @@ bool MarketDepots::HasDepotInSubRegion(const FMarketState& State, const FString&
 {
     if (SubRegion.IsEmpty()) return false;
     const FString C = DepotCountry(State, Country);
-    if (State.Company.Depots.Contains(C + TEXT(":") + SubRegion)) return true; // an older save before Migrate
     for (const FMarketDepot& D : State.Company.DepotSites)
     {
         if (D.Country != C) continue;
@@ -352,6 +331,7 @@ bool MarketDepots::Build(FMarketState& State, const FString& Country, const FStr
     if (!CanBuild(State, C, Province, OutMessage)) return false;
     const int64 Cost = BuildCost(State, C, Province);
     State.Cash -= Cost;
+    MarketLedger::Post(State, MarketLedger::EAccount::Investment, -Cost, true, MarketLedger::HeadOfficeStore); // C3 (B2)
     State.Company.DepotSites.Add(NewDepot(State, C, Province));
     const int32 Index = State.Company.DepotSites.Num() - 1;
     const FString Name = DepotName(State, Index);
@@ -497,44 +477,6 @@ void MarketDepots::RecordLoss(FMarketState& State, int32 DepotIndex, int64 Short
     D.WeekSkim += SkimCost;
 }
 
-void MarketDepots::Migrate(FMarketState& State)
-{
-    FMarketCompany& Co = State.Company;
-    if (Co.Depots.Num() == 0) return;
-    TArray<FString> Moved;
-    for (const FString& Key : Co.Depots)
-    {
-        FString Country, Sub;
-        if (!Key.Split(TEXT(":"), &Country, &Sub)) { Country = State.CountryId; Sub = Key; }
-        const MarketCountry::FProfile* Pack = MarketCountry::Find(Country);
-        const MarketCountry::FRegion* Row = Pack ? Pack->SubRegions.FindByPredicate([&Sub](const MarketCountry::FRegion& R) { return R.Id == Sub; }) : nullptr;
-        if (!Row) continue;
-        const FString Province = MigrationProvince(State, Country, *Row);
-        if (Province.IsEmpty() || HasDepotIn(State, Country, Province)) continue;
-        Co.DepotSites.Add(NewDepot(State, Country, Province));
-        Moved.Add(FString::Printf(TEXT("%s \u2192 %s"), *Row->Name, *DepotName(State, Co.DepotSites.Num() - 1)));
-    }
-    Co.Depots.Reset();
-    // A depot manager appointed over an older sub-region depot (G-086b) follows it to its province.
-    for (FMarketManager& M : State.Management.Managers)
-    {
-        if (M.Level != static_cast<uint8>(MarketManagers::ELevel::Depot) || HasDepotIn(State, M.Country, M.Area)) continue;
-        const MarketCountry::FCity* Was = MarketCountry::FindCity(M.Country, M.Area);
-        for (int32 D = 0; D < Co.DepotSites.Num(); ++D)
-        {
-            const MarketCountry::FCity* Site = MarketCountry::FindCity(Co.DepotSites[D].Country, Co.DepotSites[D].Province);
-            if (Was && Site && Co.DepotSites[D].Country == M.Country && Site->SubRegion == Was->SubRegion && ManagerOf(State, D) == INDEX_NONE)
-            {
-                M.Area = Co.DepotSites[D].Province;
-                break;
-            }
-        }
-    }
-    if (Moved.Num() > 0)
-        State.DayNews.Add(FString::Printf(TEXT("B\u00f6lge depolar\u0131 illere ta\u015f\u0131nd\u0131 (%s). Depolar art\u0131k 600 km \u00e7evresindeki \u015fubelere hizmet veriyor. Depona m\u00fcd\u00fcr ata: m\u00fcd\u00fcrs\u00fcz depo yar\u0131 verimle \u00e7al\u0131\u015f\u0131r."),
-            *FString::Join(Moved, TEXT(", "))));
-}
-
 int64 MarketDepots::DailyRent(const FMarketState& State, int32 Day)
 {
     const double Level = MarketPrices::ListLevel(FMath::Max(1, Day));
@@ -545,7 +487,6 @@ int64 MarketDepots::DailyRent(const FMarketState& State, int32 Day)
 
 void MarketDepots::CloseDay(FMarketState& State)
 {
-    Migrate(State);
     const int32 Closed = State.Day - 1;
     if (Closed < 1 || Closed % 7 != 0) return;
     TArray<FString>& News = State.DayNews;

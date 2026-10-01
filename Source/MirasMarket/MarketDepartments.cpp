@@ -17,8 +17,8 @@ namespace MarketDepartmentsLocal
         { TEXT("kasap"),      TEXT("Kasap"),                 true,  true,  2, 6,  0.20f, 0.26f, 0.03f, 0.005f, 0.07f, 0.10f, 3,  0.6f, { 1.05f, 1.f, 1.f, 1.f, 1.f, 0.95f, 0.95f, 1.f, 1.f, 1.f, 1.05f, 1.1f }, false },
         { TEXT("sarkuteri"),  TEXT("\u015eark\u00fcteri"),   true,  false, 2, 5,  0.12f, 0.28f, 0.04f, 0.01f,  0.03f, 0.06f, 5,  0.6f, { 1.f, 1.f, 1.f, 1.f, 1.f, 1.f, 1.f, 1.f, 1.f, 1.f, 1.05f, 1.15f }, false },
         { TEXT("firin"),      TEXT("F\u0131r\u0131n ve pastane"), true, true, 2, 5, 0.08f, 0.50f, 0.12f, 0.f, 0.07f, 0.12f, 1, 0.1f, { 1.f, 1.f, 1.f, 1.f, 1.f, 1.f, 1.f, 1.f, 1.f, 1.f, 1.f, 1.05f }, false },
-        { TEXT("balik"),      TEXT("Bal\u0131k"),            true,  true,  2, 3,  0.04f, 0.28f, 0.10f, 0.f,    0.02f, 0.08f, 1,  0.8f, { 1.3f, 1.3f, 1.1f, 0.9f, 0.8f, 0.6f, 0.6f, 0.7f, 0.9f, 1.2f, 1.4f, 1.4f }, false },
-        { TEXT("elektronik"), TEXT("Elektronik ve beyaz e\u015fya"), false, false, 3, 10, 0.14f, 0.11f, 0.f, 0.015f, 0.04f, 0.05f, 60, 1.5f, { 0.9f, 0.8f, 0.9f, 0.9f, 1.f, 1.f, 0.9f, 0.9f, 0.9f, 1.f, 1.8f, 1.4f }, false },
+        { TEXT("balik"),      TEXT("Bal\u0131k"),            true,  true,  2, 3,  0.08f, 0.34f, 0.10f, 0.f,    0.02f, 0.08f, 1,  0.8f, { 1.3f, 1.3f, 1.1f, 0.9f, 0.8f, 0.6f, 0.6f, 0.7f, 0.9f, 1.2f, 1.4f, 1.4f }, false },
+        { TEXT("elektronik"), TEXT("Elektronik ve beyaz e\u015fya"), false, false, 3, 10, 0.24f, 0.20f, 0.f, 0.015f, 0.04f, 0.05f, 60, 1.5f, { 0.9f, 0.8f, 0.9f, 0.9f, 1.f, 1.f, 0.9f, 0.9f, 0.9f, 1.f, 1.8f, 1.4f }, false },
         { TEXT("giyim"),      TEXT("Giyim ve ev tekstili"),  false, false, 3, 10, 0.11f, 0.45f, 0.f,   0.02f,  0.02f, 0.05f, 90, 1.2f, { 0.9f, 0.7f, 1.1f, 1.2f, 1.1f, 0.9f, 0.9f, 0.8f, 1.3f, 1.3f, 1.1f, 1.1f }, true },
         { TEXT("ev"),         TEXT("Ev ve mutfak"),          false, false, 3, 8,  0.07f, 0.33f, 0.f,   0.01f,  0.01f, 0.03f, 75, 1.0f, { 0.9f, 0.9f, 1.f, 1.f, 1.1f, 1.1f, 1.f, 1.f, 1.1f, 1.f, 1.f, 1.2f }, false },
         { TEXT("oyuncak"),    TEXT("Oyuncak"),               false, false, 3, 5,  0.035f, 0.36f, 0.f,  0.015f, 0.01f, 0.03f, 90, 1.0f, { 0.6f, 0.6f, 0.7f, 0.8f, 0.9f, 0.9f, 0.9f, 0.9f, 0.9f, 1.f, 1.3f, 2.6f }, false },
@@ -58,6 +58,7 @@ namespace MarketDepartmentsLocal
     int32 Staff(EDept Dept, int32 Format)
     {
         // Small non-food aisles share the floor staff in a supermarket and need one hand in a hypermarket.
+        if (Dept == EDept::Pets) return 0; // C3 (A6): the pet aisle shares the floor staff everywhere
         if (!MarketDepartments::Info(Dept).bFresh && MarketDepartments::Info(Dept).Ratio < 0.05f) return Format >= 3 ? 1 : 0;
         if (Format >= 3) return Dept == EDept::Electronics || Dept == EDept::Clothing ? 3 : 2;
         return 1;
@@ -101,9 +102,11 @@ namespace MarketDepartmentsLocal
         D.OpenedDay = State.Day;
         D.Master = MarketDepartments::Info(Dept).bMaster ? RollMaster(State, Index, Dept, 35, 80) : 0;
         D.Stock = Stock;
+        // C3: paid now and booked line by line (not through the family shop's counters).
         State.Cash -= FitOut + Stock;
-        State.OtherCosts += FitOut;
-        State.Purchases += Stock;
+        State.Books.PeriodPurchases += Stock; // VAT paid on the goods
+        MarketLedger::Post(State, MarketLedger::EAccount::DepartmentFitOut, -FitOut, true, Index);
+        MarketLedger::Post(State, MarketLedger::EAccount::DepartmentPurchases, -Stock, true, Index);
         return FitOut + Stock;
     }
 
@@ -111,6 +114,9 @@ namespace MarketDepartmentsLocal
     {
         const int64 Refund = FMath::RoundToInt64(B.Depts[At].Stock * MarketDepartments::RefundShare);
         State.Cash += Refund;
+        const int32 Store = static_cast<int32>(&B - State.Branches.GetData());
+        MarketLedger::Post(State, MarketLedger::EAccount::DepartmentClearance, Refund, true, Store);
+        MarketLedger::Post(State, MarketLedger::EAccount::DepartmentCostOfGoods, -B.Depts[At].Stock, false, Store);
         B.Depts.RemoveAt(At);
         return Refund;
     }
@@ -256,7 +262,7 @@ bool MarketDepartments::ReplaceWeakMasters(FMarketState& State, EDept Dept, FStr
             if (D.Master >= 60) ++Better;
         }
     State.Cash -= Cost;
-    State.OtherCosts += Cost;
+    MarketLedger::Post(State, MarketLedger::EAccount::DepartmentMaster, -Cost, true, MarketLedger::HeadOfficeStore);
     OutMessage = FString::Printf(TEXT("%s: %d usta de\u011fi\u015fti (%s). Yenilerin %d tanesi i\u015fini iyi biliyor."), Info(Dept).Name, Weak, *MarketCountry::Money(Cost), Better);
     return true;
 }
@@ -309,18 +315,23 @@ MarketDepartments::FDay MarketDepartments::Day(FMarketState& State, int32 Branch
     const double Ticket = Ticket2011 * MarketPrices::ListLevel(Closed);
     const float Buying = 1.f - MarketSourcing::VolumeDiscount(State);
     const int32 Month = MarketCalendar::DateOf(Closed).Month;
+    const FString Country = MarketBranches::CountryOf(State, B);
     for (FMarketBranchDept& D : B.Depts)
     {
         const EDept Dept = static_cast<EDept>(D.Dept);
         const FInfo& I = Info(Dept);
         const int32 S = Stance(State, Dept);
         const float Quality = MarketDepartmentsLocal::Quality(D);
+        // C3 (B7): the era moves non-food and fresh demand; a currency shock makes imported goods dearer.
+        const MarketEras::EGoods Goods = MarketEras::GoodsOf(I.Id);
+        const float Era = MarketEras::DemandFactor(State, Goods, Closed, Country);
+        const float Import = Goods == MarketEras::EGoods::Grocery || Goods == MarketEras::EGoods::Fresh ? 1.f : MarketEras::ImportCostFactor(State, Goods, Closed, Country);
         const float Demand = Shoppers * I.Ratio * SeasonFactor(Dept, Closed) * FMath::Pow(FMath::Max(0.3f, Income), I.IncomeElastic)
-            * MarketDepartmentsLocal::StanceDemand[S] * Quality * MarketDepartmentsLocal::Ramp(D, Closed);
+            * MarketDepartmentsLocal::StanceDemand[S] * Quality * MarketDepartmentsLocal::Ramp(D, Closed) * Era;
         const int64 Revenue = FMath::RoundToInt64(Demand * Ticket);
         const bool bClearance = I.bClearance && (Month == 1 || Month == 7);
         const float Margin = FMath::Clamp((I.Margin + MarketDepartmentsLocal::StanceMargin[S]) * (bClearance ? 0.6f : 1.f), 0.02f, 0.8f);
-        const int64 Cogs = FMath::RoundToInt64(Revenue * (1.f - Margin) * Buying);
+        const int64 Cogs = FMath::RoundToInt64(Revenue * (1.f - Margin) * Buying * Import);
         // A master keeps waste down: a middling one (60) at the table's rate.
         const float WasteRate = I.Waste * (I.bMaster ? FMath::Clamp(1.9f - 1.5f * D.Master / 100.f, 0.5f, 1.6f) : 1.f);
         const int64 Waste = FMath::RoundToInt64(Revenue * WasteRate * (1.f - Margin));
@@ -328,14 +339,26 @@ MarketDepartments::FDay MarketDepartments::Day(FMarketState& State, int32 Branch
         const int32 Staff = MarketDepartmentsLocal::Staff(Dept, Format);
         const int64 Wages = I.bMaster ? MarketDepartmentsLocal::MasterWage(D.Master, Closed) + (Staff - 1) * MarketStaff::FairWage(MarketStaff::ERole::Cashier, 50, Closed)
             : Staff * MarketStaff::FairWage(MarketStaff::ERole::Cashier, 50, Closed);
-        const int64 Profit = Revenue - Cogs - Waste - Shrink - Wages;
+        const int64 Social = MarketStaff::EmployerShare(Wages); // B3: the employer's social security share
+        const int64 Profit = Revenue - Cogs - Waste - Shrink - Wages - Social;
         D.Last30Revenue = D.Last30Revenue * 29 / 30 + Revenue;
         D.Last30Profit = D.Last30Profit * 29 / 30 + Profit;
-        // The stock follows the season's pace (restocked at cost every day).
-        D.Stock = FMath::Max<int64>(0, FMath::RoundToInt64(FMath::Lerp(static_cast<double>(D.Stock), static_cast<double>(Cogs) * I.StockDays, 0.05)));
+        // The stock follows the season's pace: what was sold, spoiled or taken is bought again, plus the change of
+        // the stock held (a sell-down buys less).
+        const int64 NewStock = FMath::Max<int64>(0, FMath::RoundToInt64(FMath::Lerp(static_cast<double>(D.Stock), static_cast<double>(Cogs) * I.StockDays, 0.05)));
+        const int64 Bought = FMath::Max<int64>(0, Cogs + Waste + Shrink + NewStock - D.Stock);
+        D.Stock = NewStock;
+        // C3 (B7.2): the department's day line by line; the cash moves once with the branch's day.
+        MarketLedger::Post(State, MarketLedger::EAccount::DepartmentSales, Revenue, true, BranchIndex);
+        MarketLedger::Post(State, MarketLedger::EAccount::DepartmentPurchases, -Bought, true, BranchIndex);
+        MarketLedger::Post(State, MarketLedger::EAccount::Wages, -Wages, true, BranchIndex);
+        MarketLedger::Post(State, MarketLedger::EAccount::SocialSecurity, -Social, true, BranchIndex);
+        MarketLedger::Post(State, MarketLedger::EAccount::DepartmentCostOfGoods, -Cogs, false, BranchIndex);
+        MarketLedger::Post(State, MarketLedger::EAccount::DepartmentWaste, -(Waste + Shrink), false, BranchIndex);
         Out.Revenue += Revenue;
         Out.Profit += Profit;
-        Out.Purchases += Cogs + Waste + Shrink;
+        Out.Cash += Revenue - Bought - Wages - Social;
+        Out.Purchases += Bought;
     }
     return Out;
 }
@@ -416,4 +439,18 @@ void MarketDepartments::CloseDay(FMarketState& State)
     }
     if (R.Short > 0)
         State.DayNews.Add(FString::Printf(TEXT("Reyonlar: %d \u015fubede kasa yetmedi\u011fi i\u00e7in reyon a\u00e7\u0131lamad\u0131."), R.Short));
+}
+
+int64 MarketDepartments::StockValue(const FMarketState& State)
+{
+    int64 Value = 0;
+    for (const FMarketBranch& B : State.Branches) for (const FMarketBranchDept& D : B.Depts) Value += D.Stock;
+    return Value;
+}
+
+void MarketDepartments::CloseAll(FMarketState& State, int32 BranchIndex)
+{
+    if (!State.Branches.IsValidIndex(BranchIndex)) return;
+    FMarketBranch& B = State.Branches[BranchIndex];
+    for (int32 At = B.Depts.Num() - 1; At >= 0; --At) MarketDepartmentsLocal::CloseIn(State, B, At);
 }

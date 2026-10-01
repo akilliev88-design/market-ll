@@ -635,8 +635,12 @@ bool MarketChains::Buy(FMarketState& State, const TArray<FMarketProduct>& Produc
     // The stores we cannot take are sold on (a third of what opening one costs).
     const int64 Back = FMath::RoundToInt64(Sold * OpenCost(static_cast<EArchetype>(Chain.Archetype)) / 3.0 * MarketPrices::ListLevel(State.Day));
     State.Cash += Back - Cost;
+    MarketLedger::Post(State, MarketLedger::EAccount::ChainPurchase, -Cost, true, MarketLedger::HeadOfficeStore); // C3 (B7.2)
+    MarketLedger::Post(State, MarketLedger::EAccount::StoreSale, Back, true, MarketLedger::HeadOfficeStore);
     FMarketChain& Gone = State.Rivals.Chains[ChainIndex];
     Gone.bGone = true;
+    Gone.GoneReason = 3;
+    ++State.Rivals.OurBuys;
     Gone.bForSale = false;
     Gone.Spots.Reset();
     if (State.Rivals.Nemesis == Gone.Id) State.Rivals.Nemesis.Reset();
@@ -668,7 +672,8 @@ namespace MarketChainsLocal
             // Its everyday prices are already in its character's margin; a war cuts them further for its days.
             const float Cut = bWar ? 1.f - MarketChains::WarPrice : 0.f;
             const float Boost = 1.f + 2.f * Cut;
-            const double StoreRevenue = A.RevDay * 30.0 * Income * Sat * Boost * Level;
+            // C3 (B7.1): a hard era cuts everyone's revenue, the dear ones' most.
+            const double StoreRevenue = A.RevDay * 30.0 * Income * Sat * Boost * Level * MarketEras::ChainRevenueFactor(State, Chain.Country, Chain.PriceIndex, Day);
             Revenue += StoreRevenue * Spot.Stores;
             Profit += Spot.Stores * (StoreRevenue * (A.Gross - Cut) - FixedMonth(static_cast<EArchetype>(Chain.Archetype), Rent) * Level);
         }
@@ -731,21 +736,21 @@ namespace MarketChainsLocal
                     for (const FMarketChainSpot& S : Chain.Spots) SpotOf(B, S.Province).Stores += S.Stores;
                     News.Add(FString::Printf(TEXT("%s, sat\u0131l\u0131k %s zincirini sat\u0131n ald\u0131 (%d ma\u011faza)."), *B.Name, *Chain.Name, Stores));
                     FMarketChain& Sold = State.Rivals.Chains[Index];
-                    Sold.bGone = true; Sold.bForSale = false; Sold.Spots.Reset();
+                    Sold.bGone = true; Sold.bForSale = false; Sold.Spots.Reset(); Sold.GoneReason = 2; ++State.Rivals.Takeovers;
                     return;
                 }
                 if (Chain.ForSaleTurns >= 6)
                 {
                     const FString Where = Chain.Spots.Num() > 0 ? CityName(Chain.Country, Chain.Spots[0].Province) : FString();
                     if (bVisible) News.Add(FString::Printf(TEXT("%s kepenk indirdi: %d ma\u011faza kapand\u0131. %s'da m\u00fc\u015fteri yeni adres ar\u0131yor."), *Chain.Name, Stores, *Where));
-                    Chain.bGone = true; Chain.bForSale = false; Chain.Spots.Reset();
+                    Chain.bGone = true; Chain.bForSale = false; Chain.Spots.Reset(); Chain.GoneReason = 1; ++State.Rivals.Closures;
                 }
             }
             return;
         }
         // Money trouble.
         if (Chain.Cash < -FixedAll * 2.0) ++Chain.RedTurns; else Chain.RedTurns = FMath::Max(0, Chain.RedTurns - 1);
-        if (Chain.RedTurns >= 3)
+        if (Chain.RedTurns >= MarketEras::ChainRedTurnsToSell(State, Chain.Country, Day)) // C3 (B7.1): 3 months, 2 in a hard era
         {
             Chain.bForSale = true;
             Chain.ForSaleTurns = 0;
@@ -770,7 +775,7 @@ namespace MarketChainsLocal
         for (const FMarketChainSpot& S : Chain.Spots) { SatAvg += MarketChains::Saturation(State, Chain.Country, S.Province); ++SatN; }
         SatAvg = SatN > 0 ? SatAvg / SatN : 1.1f;
         const float Mood = FMath::Clamp((SatAvg - 0.85f) / 0.3f, 0.f, 1.2f);
-        const float Want = FMath::Max(1, Stores) * A.Growth * (Chain.Ambition * 2.f) / 12.f * Mood;
+        const float Want = FMath::Max(1, Stores) * A.Growth * (Chain.Ambition * 2.f) / 12.f * Mood * MarketEras::ChainOpeningFactor(State, Chain.Country, Day); // C3 (B7.1)
         int32 Openings = FMath::FloorToInt32(Want) + (Roll(State, Salt, 11u) < FMath::Frac(Want) ? 1 : 0);
         const double Capex = OpenCost(Kind) * Level;
         if (Chain.Cash <= 0) Openings = 0;
@@ -848,7 +853,9 @@ namespace MarketChainsLocal
                 {
                     const int32 Ours = MarketBranches::ShopsIn(State, Chain.Country, S.Province);
                     const int32 Need = Chain.Scope == static_cast<uint8>(EScope::Local) ? 1 : 3;
-                    if (Ours > 0 && S.Stores >= Need && S.Stores > Strength && MarketChains::WarIn(State, Chain.Country, S.Province, Day) == INDEX_NONE) { Strength = S.Stores; Target = S.Province; }
+                    const int32* Rest = State.Rivals.WarRest.Find(Chain.Country + TEXT("|") + S.Province);
+                    const bool bResting = Rest && Day - *Rest < MarketChains::WarRestDays; // C3 (A6)
+                    if (Ours > 0 && !bResting && S.Stores >= Need && S.Stores > Strength && MarketChains::WarIn(State, Chain.Country, S.Province, Day) == INDEX_NONE) { Strength = S.Stores; Target = S.Province; }
                 }
                 if (!Target.IsEmpty())
                 {
@@ -874,7 +881,7 @@ namespace MarketChainsLocal
                 Chain.Cash -= Cost;
                 for (const FMarketChainSpot& S : Other.Spots) SpotOf(Chain, S.Province).Stores += S.Stores;
                 News.Add(FString::Printf(TEXT("%s, %s zincirini sat\u0131n ald\u0131 (%d ma\u011faza)."), *Chain.Name, *Other.Name, MarketChains::TotalStores(Other)));
-                Other.bGone = true; Other.bForSale = false; Other.Spots.Reset();
+                Other.bGone = true; Other.bForSale = false; Other.Spots.Reset(); Other.GoneReason = 2; ++State.Rivals.Takeovers;
                 break;
             }
         }
@@ -902,6 +909,7 @@ namespace MarketChainsLocal
                 News.Add(FString::Printf(TEXT("%s, %s'daki fiyat sava\u015f\u0131ndan \u00e7ekildi. Ma\u011fazan ayakta kald\u0131."), *Chain.Name, *CityName(Chain.Country, Chain.WarProvince)));
             }
             else News.Add(FString::Printf(TEXT("%s'daki fiyat sava\u015f\u0131 bitti; %s fiyatlar\u0131 eski d\u00fczeyine d\u00f6nd\u00fc."), *CityName(Chain.Country, Chain.WarProvince), *Chain.Name));
+            State.Rivals.WarRest.Add(Chain.Country + TEXT("|") + Chain.WarProvince, Day);
             Chain.WarProvince.Reset();
         }
     }
@@ -991,6 +999,12 @@ namespace MarketChainsLocal
         Mark(World, R.BestLeagueRank, TEXT("D\u00fcnya liginde"));
         R.NationalRank = National;
         R.LeagueRank = World;
+        // C3 (J02): a league year closes every 365 days; two first places in a row in chapter 7 end the game.
+        if (Day - R.LeagueYearDay >= 365)
+        {
+            R.LeagueYearDay = Day;
+            MarketGoals::OnLeagueYear(State, World, true); // rank 0 (not ranked) ends a streak
+        }
     }
 }
 

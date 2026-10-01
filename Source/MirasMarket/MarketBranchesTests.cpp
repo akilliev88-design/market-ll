@@ -188,29 +188,6 @@ bool FMarketBranchesTest::RunTest(const FString& Parameters)
     TestTrue(TEXT("Close"), MarketBranches::Close(S, Products, 0, Message));
     TestTrue(TEXT("Deposit back"), S.Cash > CashBefore && !S.bSecondStore);
 
-    // Older saves: the aggregate second shop becomes a mature branch in the home province.
-    FMarketState Old; Old.Initialize(Products); Old.bSecondStore = true; Old.Cash = 1000000;
-    Close(Old, Products);
-    TestTrue(TEXT("Migrated"), Old.Branches.Num() == 1 && Old.Branches[0].Stage == static_cast<uint8>(EStage::Open) && Old.Branches[0].Maturity >= 1.f);
-    TestEqual(TEXT("Older saves live in Kirklareli"), Old.Branches[0].Province, FString(TEXT("kirklareli")));
-
-    // G-072 city stores: Corlu -> Tekirdag branches, Kircaali closes with its deposit back, the depot moves.
-    FMarketState Cities; Cities.Initialize(Products); Cities.Cash = 1000000; Cities.Day = 40;
-    FMarketCityStores Corlu; Corlu.City = 2; Corlu.Stores = 2; Corlu.FirstDay = 5; Corlu.Maturity = 0.8f; Cities.Company.Cities.Add(Corlu);
-    FMarketCityStores Kircaali; Kircaali.City = 12; Kircaali.Stores = 1; Kircaali.DepositsPaid = 300000; Cities.Company.Cities.Add(Kircaali);
-    Cities.Company.bDepot = true;
-    const int64 CitiesCash = Cities.Cash;
-    Migrate(Cities, Products);
-    TestEqual(TEXT("Two Tekirdag branches"), Cities.Branches.FilterByPredicate([](const FMarketBranch& B) { return B.Province == TEXT("tekirdag"); }).Num(), 2);
-    // G-086b ek (M22): every migrated branch gets its own manager from the candidates, never the same name twice.
-    const TArray<FMarketBranch> TekirdagRows = Cities.Branches.FilterByPredicate([](const FMarketBranch& B) { return B.Province == TEXT("tekirdag"); });
-    TestTrue(TEXT("Different managers"), TekirdagRows.Num() == 2 && !TekirdagRows[0].ManagerName.IsEmpty() && TekirdagRows[0].ManagerName != TekirdagRows[1].ManagerName
-        && TekirdagRows[0].ManagerSince == 0 && Cities.Management.UsedNames.Contains(TekirdagRows[1].ManagerName));
-    TestEqual(TEXT("City rows gone"), Cities.Company.Cities.Num(), 0);
-    TestEqual(TEXT("Abroad deposit back"), Cities.Cash - CitiesCash, static_cast<int64>(300000));
-    // G-089: the Trakya depot moved to the province of Trakya with most of our shops (Tekirdag: two branches).
-    TestTrue(TEXT("The depot is in Trakya"), Cities.Company.DepotSites.Num() == 1 && Cities.Company.DepotSites[0].Province == TEXT("tekirdag")
-        && Cities.Company.Depots.Num() == 0 && !Cities.Company.bDepot);
     return true;
 }
 

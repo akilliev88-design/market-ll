@@ -80,9 +80,6 @@ namespace MarketStaff
     bool HasAccountant(const FMarketState& State);
     bool HrUnlocked(const FMarketState& State);
 
-    // M27: older saves are not converted any more. This empty call stays only so that MarketMenu.cpp (StaffCommand)
-    // and MarketGame.cpp (Hire, LoadGame) still compile; C3 deletes those three calls and this line (B.md).
-    inline void Migrate(FMarketState&) {}
     // G-084 (karar L03): the people who come with an inherited shop. Ordinary candidates (random skill, fair wage),
     // hired on the current day without a hiring cost.
     void AddStartingStaff(FMarketState& State, int32 Cashiers, int32 Stockers);

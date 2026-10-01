@@ -1,8 +1,10 @@
 # Güncel durum
 
-Son güncelleme: 30.09.2026 — Codex, Akış A / Aşama 0 doğrulaması
+Son güncelleme: 01.10.2026 — Claude Cowork, C3 bağlama (derlenmedi)
 
 ## Kısaca
+
+**01.10.2026 — C3 bağlama (Claude Cowork, derlenmedi):** A (Codex) ve B (Claude Code) dalları `main`e birleşti (170b1c2). Üstüne C3: Director sırası (defter başta/sonda, dönemler, hedefler), C sistemlerinde defter kayıtları ve sigorta/kıdem, dönem çarpanları reyon ve zincirlere, A6 ayarları (hiper yükü, balık/elektronik/evcil, savaş süresi ve dinlenme, marka teklif tavanı), M27 temizliği (eski kayıt çevirileri ve ölü alanlar silindi, kayıt sürümü 3), menü (gün/hafta/ay düğmeleri, şube "Gez", gelir tablosu ve bilanço, dönem satırı, hedefler kartı, Raporlar › Rekorlar, fiyat uyarısı, A5 menü düzeltmeleri). Ayrıntı: `Docs/Surec/akislar/C.md`. **Sırada:** Codex tam derleme + test + smoke + uzun bot koşusu (`Docs/Surec/promptlar/codex_c3_dogrulama.md`).
 
 **30.09.2026 gece — gidiş yolu (Mustafa):** Önce oyunun aklı (ana ekrandan tam yönetim, boğmayan tycoon), sonra dükkân içi simülasyon. Oyunu Codex otomatik oyuncuyla oynatır. Aynı anda tek derlenmemiş Claude işi. Tek yol haritası: `Docs/Kurgu/06_GIDIS_YOLU.md`.
 

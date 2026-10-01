@@ -51,6 +51,9 @@ Limit aniden biterse sonraki ajan GUNLUK/DURUM ile dosyaların son hâlini karş
 | `Source/MirasMarket/MarketMotion.*` | İnsan hareketi zekâsı (dünyadan bağımsız, test edilir): kişiye sabit yürüme tarzı ve hızı, alışveriş listesinin yürüme sırası, raf önü süresi, kuyruktan vazgeçme, kalabalıkta yol verme (sağdan geçme, arkada yavaşlama), tanıdık sohbeti. `MarketPeople` animasyonu bununla sürer. |
 | `Source/MirasMarket/MarketSimulation.*` | Stratejik ilerletme ve zorluk: aile dükkânının gününü yürüyen insan olmadan aynı kurallarla oynatır (müşteri, raf kararı, ikame, ödeme, kasa, gün kapanışı); ailenin rutini (zammı rafa yansıt, vergi, borç taksiti, raf doldurma, önerilen sipariş); karar bekleyince/kasa eksiye düşünce/hafta bitince durur. Rahat/Normal/Zor. |
 | `Source/MirasMarket/MarketCompany.*` | Şirket büyümesi (dünyadan bağımsız, test edilir): Lüleburgaz dışı şehir mağazaları toplu modelle (Trakya, Türkiye, Kırcaali/Filibe/Köstence), bölge deposu, kamyon, merkezi satın alma, "Miras" özel markası, karanlık mağaza, ulusal pay, 4–7. bölüm hedefleri, liderlik yılı ve "Miras" sonu. |
+| `Source/MirasMarket/MarketChains.*`, `MarketBrands.*`, `MarketSourcing.*`, `MarketDepartments.*`, `MarketStoreViews.*` | Akış C: rakip zincirleri ve dünya ligi (il/bölge/ülke/dünya kadrosu, aylık kararlar, fiyat savaşı, ezeli rakip, satın alma), markaların reyon yarışı (M25), tedarik ağı (G-083: hat kademeleri, alım gücü), reyonlar (M26: taze ve gıda dışı, mağaza türü başına), şube mağaza görünümü ölçüleri. |
+| `Source/MirasMarket/MarketLedger.*`, `MarketEras.*`, `MarketGoals.*` | Akış B: muhasebe defteri (her para hareketi `Post`, gelir tablosu, bilanço, kasa denetimi), dönem olayları ve çarpanları (kur şoku, durgunluk, salgın, enflasyon, toparlanma), hedefler/ilkler/rekorlar/kutlamalar ve ritim koruyucusu. |
+| `Source/MirasMarket/MarketAutoPlay*.*`, `MirasAutoPlayCommandlet.*`, `MarketBranchVisit.*`, `MarketMenuCapture.cpp` | Akış A: otomatik oyuncu ve denge raporu (`AUTOPLAY.cmd`), şube ziyareti, menü ekran görüntüsü otomasyonu. |
 | `Docs/Kurgu/` | Claude'un kurgu kitabı (`00_KURGU_KITABI.md`) ve bütün konuların karar tablosu (`01_KARARLAR.md`). Yeni konu önce kararlar tablosuna yazılır. |
 | `Source/MirasMarket/MarketManagers.*` | G-086b yönetim kademeleri (dünyadan bağımsız, test edilir): mağaza müdürü tarzı/morali/kararları, il/bölge/direktör/ülke müdürleri, doğrudan bağlı sayımı ve 5 kişi sınırı, denetim etkileri, ücretler. Menüde Mağazalar › Yönetim. |
 | `Source/MirasMarket/MarketStoreAssign.*` | G-088 Claude tarafı: (ülke, il, tür) → gezilebilir mağaza seçimi, raf kategorisi yardımcıları, mağaza ölçülerinden oyun çarpanları (`FStoreMeasures`). Görünüm/kurulum Codex'in `MarketStoreKit`'inde. |
@@ -96,7 +99,8 @@ Motor yolu: `C:\Program Files\Epic Games\UE_5.8` (UE 5.8.3). Farklıysa betikler
 - `products.json` şema değişikliği geriye uyumlu olmalı (yeni alanlar isteğe bağlı). Şemayı değiştiren, `MarketCatalog::Parse/Serialize`, testleri ve `Docs/URUN_STUDYOSU.md` dosyasını birlikte günceller.
 - C++ kaynakları ASCII kalır. Türkçe metni yaz, sonra `python Tools/escape_unicode.py` çalıştır. Oyun HUD metinleri şimdilik ASCII Türkçedir.
 - `.uasset` dosyalarını metin gibi düzenleme. Varlıkları stüdyo veya editör Python betikleri üretir.
-- Yeni oyun kuralı = yeni test. Para/stok korunumu, iki kez uygulama ve kayıt uyumluluğu testleri öncelikli.
+- Yeni oyun kuralı = yeni test. Para/stok korunumu ve iki kez uygulama testleri öncelikli.
+- **Karar M27:** yayına kadar eski kayıt uyumu yok. `Migrate` ya da eski kayıt dalı yazılmaz; kayıt biçimi değişince `FMarketState::CurrentVersion` artar, eski kayıt yüklenmez.
 - Kutu ambalajında yüz ↔ UV eşlemesi yalnızca `FBoxPackageLayout` üzerinden yapılır; başka yerde koordinat kopyalama.
 
 ## 6. "Bitti" demenin şartı

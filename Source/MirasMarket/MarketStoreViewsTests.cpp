@@ -140,21 +140,6 @@ bool FMarketStoreViewsDayTest::RunTest(const FString& Parameters)
     TestTrue(TEXT("Fewer tills, fewer shoppers served"), T.LastShoppers < R.LastShoppers);
     TestTrue(TEXT("Fewer tills, fewer people"), T.Workers < R.Workers);
 
-    // An older save: the branch has no view; Migrate gives it one and keeps its rent. Twice changes nothing.
-    FMarketState Old = Roomy;
-    FMarketBranch& B = Old.Branches[RoomyIndex];
-    const int64 Rent = B.Rent;
-    B.StoreView.Reset(); B.ViewCheckouts = 0; B.ViewShelfM = 0.f; B.ViewAreaM2 = 0.f;
-    Old.StoreViews.Reset();
-    MarketStoreViews::SetCatalog({ View(TEXT("buyuk_92"), TEXT("buyuk"), 1.2f) });
-    MarketStoreViews::Migrate(Old);
-    TestEqual(TEXT("Older save gets a view"), Old.Branches[RoomyIndex].StoreView, FString(TEXT("buyuk_92")));
-    TestEqual(TEXT("Its rent stays as signed"), Old.Branches[RoomyIndex].Rent, Rent);
-    const FMarketState Once = Old;
-    MarketStoreViews::Migrate(Old);
-    TestEqual(TEXT("Migrate twice: same view"), Old.Branches[RoomyIndex].StoreView, Once.Branches[RoomyIndex].StoreView);
-    TestEqual(TEXT("Migrate twice: same saved map"), Old.StoreViews.Num(), Once.StoreViews.Num());
-
     MarketStoreViews::ResetCatalog();
     return true;
 }

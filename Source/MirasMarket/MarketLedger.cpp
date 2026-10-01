@@ -4,6 +4,7 @@
 #include "MarketCalendar.h"
 #include "MarketCountry.h"
 #include "MarketCredit.h"
+#include "MarketDepartments.h"
 #include "MarketFinance.h"
 #include "MarketPrices.h"
 #include "MarketSuppliers.h"
@@ -294,6 +295,7 @@ MarketLedger::FBalance MarketLedger::Balance(const FMarketState& State, const TA
             if (P) B.BranchStock += static_cast<int64>(FMath::Max(0, Item.Units + Item.Incoming)) * P->Cost;
         }
     }
+    B.DepartmentStock = MarketDepartments::StockValue(State); // C3 (M26)
     B.CardReceivable = State.Payments.CardToday + State.Payments.CardTomorrow;
     B.CreditReceivable = MarketCredit::Outstanding(State);
     B.Payables = MarketSuppliers::OpenBills(State);

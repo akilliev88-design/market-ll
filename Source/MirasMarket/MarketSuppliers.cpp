@@ -140,6 +140,7 @@ FString MarketSuppliers::OnOrder(FMarketState& State, int64 Bill)
     if (Terms <= 0) return FString();
     // Bought on terms: the cash SubmitOrder took goes back; the bill waits.
     State.Cash += Bill;
+    MarketLedger::Post(State, MarketLedger::EAccount::SupplierCredit, Bill); // C3 (B2): bought on terms
     FMarketPayable Payable;
     Payable.Supplier = static_cast<uint8>(Supplier);
     Payable.Amount = Bill;
@@ -170,6 +171,7 @@ int64 MarketSuppliers::PayBills(FMarketState& State)
         FMarketPayable& Bill = State.Payables[I];
         if (State.Cash < Bill.Amount) { ++I; continue; }
         State.Cash -= Bill.Amount;
+        MarketLedger::Post(State, MarketLedger::EAccount::SupplierCredit, -Bill.Amount);
         Paid += Bill.Amount;
         FMarketSupplierAccount& A = Account(State, static_cast<ESupplier>(Bill.Supplier));
         if (Bill.LateSince == 0) { ++A.OnTime; if (BuildsTrust(State, Bill.Amount)) A.Trust = FMath::Min(100, A.Trust + 5); }
@@ -245,6 +247,7 @@ void MarketSuppliers::CloseDay(FMarketState& State)
         if (State.Cash >= Bill.Amount)
         {
             State.Cash -= Bill.Amount;
+            MarketLedger::Post(State, MarketLedger::EAccount::SupplierCredit, -Bill.Amount);
             if (Bill.LateSince == 0) { ++A.OnTime; if (BuildsTrust(State, Bill.Amount)) A.Trust = FMath::Min(100, A.Trust + 5); }
             News.Add(FString::Printf(TEXT("%s: vadeli fatura \u00f6dendi (%s)."), Who.Name, *SupplierTl(Bill.Amount)));
             State.Payables.RemoveAt(I);
@@ -266,6 +269,7 @@ void MarketSuppliers::CloseDay(FMarketState& State)
             continue;
         }
         Bill.Amount += Fee;
+        MarketLedger::Post(State, MarketLedger::EAccount::Penalties, -Fee, false); // C3 (B2): the debt grows, no cash
         if (bFirstDay) { Bill.LateSince = Closed; ++A.Late; A.Trust = FMath::Max(0, A.Trust - 25); }
         State.LastProfit -= Fee;
         News.Add(FString::Printf(TEXT("%s: fatura \u00f6denemedi, %s gecikme fark\u0131 eklendi (bor\u00e7 %s). %s"), Who.Name, *SupplierTl(Fee), *SupplierTl(Bill.Amount),

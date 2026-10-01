@@ -123,7 +123,7 @@ bool AMarketGameMode::TickMenuCapture()
         MarketAutoPlay::FOptions Options; Options.Days=MarketCalendar::GameDayOf(MarketCalendar::StartYear+3,MarketCalendar::StartMonth,MarketCalendar::StartDayOfMonth)-1; Options.Seeds=1; Options.bKeepFinalStates=true;
         auto Report=MarketAutoPlay::Run(Options,Base,Capacities,State.RivalSeed);
         if(Report.FinalStates.Num()!=3)return Fail(TEXT("three-year campaign"));
-        State=MoveTemp(Report.FinalStates.Last()); CatalogBase=Base; Products=Base; MarketCountry::SetActive(State.CountryId,State.RivalSeed); MarketDirector::ApplyPrices(State,Base,Products);
+        State=MoveTemp(Report.FinalStates.Last()); CatalogBase=Base; Products=Base; MarketCountry::SetActive(State.CountryId,State.RivalSeed); MarketEras::Activate(State); MarketDirector::ApplyPrices(State,Base,Products);
         if(State.Branches.IsEmpty()) { MarketMenuCapture::AddNetworkFixture(State,Products); R.bNetworkFixture=true; }
         Message.Empty(); MessageTime=0.f; ReportTime=0.f; SyncWorkers();
         R.Before=MarketBranchVisit::StateBytes(State);

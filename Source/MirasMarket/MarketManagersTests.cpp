@@ -209,10 +209,10 @@ bool FMarketManagersCountryTest::RunTest(const FString& Parameters)
     const int64 Result = S.LastBranchProfit;
     ++S.Day;
     MarketManagers::CloseDay(S);
-    const int64 Paid = DailyWages(S);
+    const int64 Paid = DailyWages(S) + MarketStaff::EmployerShare(DailyWages(S)); // C3 (B3): with the employer's social security
     TestEqual(TEXT("Paid from the till"), Cash - S.Cash, Paid);
     TestEqual(TEXT("In the day's result"), Result - S.LastBranchProfit, Paid);
-    TestEqual(TEXT("Recorded"), S.Management.LastWages, Paid);
+    TestEqual(TEXT("Recorded"), S.Management.LastWages, DailyWages(S));
     TestEqual(TEXT("No longer missing"), S.Management.MissingCountryDays, 0);
     return true;
 }

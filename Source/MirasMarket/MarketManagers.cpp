@@ -705,6 +705,7 @@ bool MarketManagers::SkillVisible(const FMarketState& State, int32 BranchIndex)
 {
     if (MarketStaff::HasHr(State)) return true;
     if (!State.Branches.IsValidIndex(BranchIndex)) return false;
+    if (MarketBranches::RecentlyVisited(State, BranchIndex)) return true; // C3: the player saw the manager at work
     const FChain Chain = ChainOfBranch(State, State.Branches[BranchIndex]);
     return FindManager(State, ELevel::Province, Chain.Country, Chain.Province) != INDEX_NONE;
 }
@@ -960,7 +961,8 @@ bool MarketManagers::Dismiss(FMarketState& State, int32 ManagerIndex, FString& O
 {
     if (!State.Management.Managers.IsValidIndex(ManagerIndex)) { OutMessage = TEXT("B\u00f6yle bir y\u00f6netici yok."); return false; }
     const FMarketManager Leaving = State.Management.Managers[ManagerIndex];
-    const int64 Severance = DailyWage(State, Leaving) * SeveranceDays;
+    // C3 (B3): notice pay and seniority pay after the first full year.
+    const int64 Severance = DailyWage(State, Leaving) * SeveranceDays + MarketStaff::SeniorityPay(DailyWage(State, Leaving), Leaving.AppointedDay, State.Day);
     if (State.Cash < Severance + State.OtherCosts) { OutMessage = FString::Printf(TEXT("Tazminat i\u00e7in kasada %s gerekiyor."), *ManagerTl(Severance)); return false; }
     State.OtherCosts += Severance;
     State.Management.UsedNames.AddUnique(Leaving.Name); // M22: he does not come back as a candidate
@@ -1046,7 +1048,7 @@ bool MarketManagers::ReplaceWithCandidate(FMarketState& State, int32 BranchIndex
     if (Before.ManagerName.IsEmpty() && !IsOpenBranch(Before)) { OutMessage = TEXT("M\u00fcd\u00fcr i\u015fe al\u0131m a\u015famas\u0131nda gelir."); return false; }
     const TArray<FCandidate> Pool = BranchCandidates(State, BranchIndex);
     if (!Pool.IsValidIndex(CandidateIndex)) { OutMessage = TEXT("B\u00f6yle bir aday yok."); return false; }
-    const int64 Severance = Before.ManagerName.IsEmpty() ? 0 : Before.ManagerWage * SeveranceDays;
+    const int64 Severance = Before.ManagerName.IsEmpty() ? 0 : Before.ManagerWage * SeveranceDays + MarketStaff::SeniorityPay(Before.ManagerWage, Before.ManagerSince, State.Day); // C3 (B3)
     if (Severance > 0 && State.Cash < Severance + State.OtherCosts) { OutMessage = FString::Printf(TEXT("Tazminat i\u00e7in kasada %s gerekiyor."), *ManagerTl(Severance)); return false; }
     State.OtherCosts += Severance;
     if (!Before.ManagerName.IsEmpty()) State.Management.UsedNames.AddUnique(Before.ManagerName);
@@ -1372,9 +1374,12 @@ void MarketManagers::CloseDay(FMarketState& State)
 
     // Wages of the appointed managers: the same way as the branches' costs (store managers are paid there).
     const int64 Wages = DailyWages(State);
-    State.Cash -= Wages;
-    State.LastBranchProfit -= Wages;
-    State.LastProfit -= Wages;
+    const int64 Social = MarketStaff::EmployerShare(Wages); // C3 (B3): the employer's share
+    State.Cash -= Wages + Social;
+    State.LastBranchProfit -= Wages + Social;
+    State.LastProfit -= Wages + Social;
+    MarketLedger::Post(State, MarketLedger::EAccount::Wages, -Wages, true, MarketLedger::HeadOfficeStore);
+    MarketLedger::Post(State, MarketLedger::EAccount::SocialSecurity, -Social, true, MarketLedger::HeadOfficeStore);
     Team.LastWages = Wages;
     Team.WeekWages += Wages;
 

@@ -23,9 +23,9 @@ FString MarketRivals::RivalName(int32 Rival)
 {
     switch (Rival)
     {
-    case 0: return TEXT("B\u0130M");
-    case 1: return TEXT("Migros");
-    default: return TEXT("A101");
+    case 0: return TEXT("B\u0130N"); // C3: fictional names (L12), as MarketChains
+    case 1: return TEXT("Migron");
+    default: return TEXT("A110");
     }
 }
 

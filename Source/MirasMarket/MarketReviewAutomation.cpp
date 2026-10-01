@@ -61,6 +61,7 @@ bool AMarketGameMode::TickBranchVisitReview()
         R.Directory = FPaths::ProjectSavedDir()/TEXT("Screenshots/BranchVisit")/FDateTime::Now().ToString(TEXT("%Y%m%d-%H%M%S"));
         IFileManager::Get().MakeDirectory(*R.Directory,true);
         if (!StartBranchVisit(State.Branches.Num()-1)) return Fail(TEXT("visit did not open"));
+        R.Before = MarketBranchVisit::StateBytes(State); // C3: the visit itself marks the branch seen (VisitBranch); nothing may change after it
         R.Camera = GetWorld()->SpawnActor<ACameraActor>(); PC->SetViewTarget(R.Camera.Get());
         R.Step = 1; R.At = Now; return false;
     }

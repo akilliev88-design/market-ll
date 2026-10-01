@@ -85,8 +85,8 @@ IMPLEMENT_SIMPLE_AUTOMATION_TEST(FMarketLedgerAuditTest, "MirasMarket.Ledger.Cas
 bool FMarketLedgerAuditTest::RunTest(const FString& Parameters)
 {
     // The family shop played without walking people (MarketSimulation::PlayDay: till, card, credit book, online,
-    // orders, staff, tax, bank, family money): every cash movement is in the books. The one flow not posted yet
-    // is the wholesaler's payment terms (MarketSuppliers, Ak\u0131\u015f C wires it): the gap is exactly that.
+    // orders on terms, staff, tax, bank, family money): every cash movement is in the books (C3 wired the
+    // wholesaler's terms), so the gap is zero.
     using namespace MarketLedgerTest;
     const TArray<FMarketProduct> Base = Catalog();
     TArray<FMarketProduct> Products = Base;
@@ -100,19 +100,16 @@ bool FMarketLedgerAuditTest::RunTest(const FString& Parameters)
     for (int32 I = 0; I < 40; ++I) { FMarketLoyalty L; L.CustomerId = I; L.Visits = 6; L.Satisfaction = 80.f; S.Loyalty.Add(L); }
     bool bBooksAgree = true;
     int32 Days = 0;
-    int64 Bills = MarketSuppliers::OpenBills(S);
     for (int32 D = 1; D <= 90; ++D)
     {
         if (D == 10) TestTrue(TEXT("A loan"), MarketFinance::TakeLoan(S, 0, Message));
         if (D == 12) TestTrue(TEXT("An accountant"), MarketStaff::HireAccountant(S, Message));
         if (D == 30) MarketStaff::PayTax(S);
         MarketSimulation::PlayDay(S, Base, Products);
-        const int64 Terms = MarketSuppliers::OpenBills(S) - Bills;
-        Bills = MarketSuppliers::OpenBills(S);
-        if (D > 1) { ++Days; bBooksAgree &= S.Ledger.LastGap == Terms; }
+        if (D > 1) { ++Days; bBooksAgree &= S.Ledger.LastGap == 0; }
     }
     TestTrue(TEXT("Books opened"), S.Ledger.bOpen && Days == 89);
-    TestTrue(TEXT("Till change = cash entries (+ the wholesaler's terms, not wired yet)"), bBooksAgree);
+    TestTrue(TEXT("Till change = cash entries"), bBooksAgree);
     const MarketLedger::FStatement All = MarketLedger::Statement(S, 1, 90);
     TestTrue(TEXT("Sales booked"), All.At(MarketLedger::EAccount::Sales) > 0 && All.At(MarketLedger::EAccount::Purchases) < 0);
     TestTrue(TEXT("Card money moved"), All.At(MarketLedger::EAccount::CardTransfer) != 0 && All.At(MarketLedger::EAccount::BankFees) < 0);
@@ -125,13 +122,11 @@ bool FMarketLedgerAuditTest::RunTest(const FString& Parameters)
     FMarketState Leak = S;
     Leak.Cash += 12345;
     Leak.DayNews.Reset(); Leak.CloseDay(); MarketDirector::CloseDay(Leak, Products);
-    const int64 LeakTerms = MarketSuppliers::OpenBills(Leak) - Bills;
-    TestEqual(TEXT("Gap found"), Leak.Ledger.LastGap - LeakTerms, int64(12345));
+    TestEqual(TEXT("Gap found"), Leak.Ledger.LastGap, int64(12345));
     TestFalse(TEXT("Audit reports it"), MarketLedger::AuditOk(Leak) || MarketLedger::AuditText(Leak).Contains(TEXT("tutuyor")));
     TestTrue(TEXT("Booked as unexplained"), MarketLedger::DayStatement(Leak, Leak.Day - 1).At(MarketLedger::EAccount::Unexplained) == Leak.Ledger.LastGap);
-    const int64 BillsAfter = MarketSuppliers::OpenBills(Leak);
     Leak.DayNews.Reset(); Leak.CloseDay(); MarketDirector::CloseDay(Leak, Products);
-    TestEqual(TEXT("Next day clean again"), Leak.Ledger.LastGap, MarketSuppliers::OpenBills(Leak) - BillsAfter);
+    TestEqual(TEXT("Next day clean again"), Leak.Ledger.LastGap, int64(0));
 
     // Kept days: entries older than KeepDays drop, month totals stay.
     TestTrue(TEXT("Entries kept"), S.Ledger.Entries.Num() > 0 && S.Ledger.Entries[0].Day >= S.Day - MarketLedger::KeepDays);

@@ -269,7 +269,7 @@ namespace MarketAutoPlay
             FRun Trial; Trial.Profile = Profile.Name; Trial.Seed = Options.FirstSeed + SeedIndex;
             FMarketState State; State.Initialize(Base);
             MarketStart::Setup(State, Options.Country, Options.Province, Trial.Seed);
-            MarketCountry::SetActive(State.CountryId, State.RivalSeed);
+            MarketCountry::SetActive(State.CountryId, State.RivalSeed); MarketEras::Activate(State);
             TArray<FMarketProduct> Products = Base;
             MarketDirector::ApplyPrices(State, Base, Products);
             State.ApplyShelfCapacities(Capacities);
