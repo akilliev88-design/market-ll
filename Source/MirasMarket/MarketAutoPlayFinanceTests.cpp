@@ -4,6 +4,8 @@
 #include "MarketStaff.h"
 #include "MarketPrices.h"
 #include "MarketOnline.h"
+#include "MarketAutoPlayRescue.h"
+#include "MarketAutoPlayCommand.h"
 #include "Misc/AutomationTest.h"
 #if WITH_DEV_AUTOMATION_TESTS
 IMPLEMENT_SIMPLE_AUTOMATION_TEST(FMarketBotNetworkReserve,"MirasMarket.AutoPlay.NetworkReserve",EAutomationTestFlags::EditorContext|EAutomationTestFlags::EngineFilter)
@@ -60,6 +62,54 @@ bool FMarketBotFirst180::RunTest(const FString& Parameters)
     State.Day=191; State.Ledger.ClosingDay=190; MarketLedger::Post(State,MarketLedger::EAccount::Sales,10000,true,0);
     MarketAutoPlayFinance::Observe(State,0,Stats);
     TestEqual(TEXT("Day 181 outside first 180"),Stats.Branches[0].Revenue,int64(10000));
+    return true;
+}
+
+IMPLEMENT_SIMPLE_AUTOMATION_TEST(FMarketBotRescuePause,"MirasMarket.AutoPlay.RescuePause",EAutomationTestFlags::EditorContext|EAutomationTestFlags::EngineFilter)
+bool FMarketBotRescuePause::RunTest(const FString& Parameters)
+{
+    FMarketState State;State.Day=121;State.RescueUntil=122;State.Cash=1000000000;
+    TestTrue(TEXT("Rescue blocks before its exact end"),MarketAutoPlayRescue::Blocked(State));
+    TestFalse(TEXT("Rich cash does not bypass plan"),MarketAutoPlayFinance::CanExpand(State,1,1,1));
+    MarketAutoPlayFinance::FStats Stats;TArray<FMarketProduct> Products;
+    MarketAutoPlayFinance::Decide(State,Products,true,false,Stats);
+    TestEqual(TEXT("No banking attempt under plan"),Stats.Attempts.Num(),0);
+    FMarketDecision Card;Card.Id=TEXT("command.open:tr|kirklareli");
+    TestEqual(TEXT("Open proposal rejected without probing site"),MarketAutoPlayCommand::Choice(State,Products,Card,1),1);
+    ++State.Day;TestFalse(TEXT("Exact end releases bot"),MarketAutoPlayRescue::Blocked(State));
+    TestTrue(TEXT("Expansion resumes with reserve"),MarketAutoPlayFinance::CanExpand(State,1,1,1));
+    return true;
+}
+IMPLEMENT_SIMPLE_AUTOMATION_TEST(FMarketBotRescueBooks,"MirasMarket.AutoPlay.RescueLifecycle",EAutomationTestFlags::EditorContext|EAutomationTestFlags::EngineFilter)
+bool FMarketBotRescueBooks::RunTest(const FString& Parameters)
+{
+    FMarketState State;State.Day=10;State.RescueUntil=20;
+    FMarketLoan Old;Old.Principal=10000;Old.Remaining=10000;State.Loans.Add(Old);
+    State.Ledger.bClosing=true;State.Ledger.ClosingDay=10;
+    FMarketPayable Payable;Payable.Amount=1000;State.Payables.Add(Payable);State.Books.TotalPenalties=100;
+    MarketLedger::Post(State,MarketLedger::EAccount::LoanIn,4000);
+    MarketAutoPlayRescue::FStats Stats;MarketAutoPlayRescue::BeginDay(State,Stats);MarketAutoPlayRescue::BeginDay(State,Stats);
+    TestEqual(TEXT("Blocked day once"),Stats.BlockedDays,1);
+    MarketLedger::Post(State,MarketLedger::EAccount::LoanRepayment,-1000);
+    MarketLedger::Post(State,MarketLedger::EAccount::Penalties,-200,false);
+    MarketLedger::Post(State,MarketLedger::EAccount::Penalties,-500,false);State.Books.TotalPenalties+=500;
+    MarketLedger::Post(State,MarketLedger::EAccount::Penalties,-200,false);State.Payables[0].Amount+=200;
+    MarketLedger::Post(State,MarketLedger::EAccount::LoanIn,3000);
+    State.Loans[0].Principal=5000;State.Loans[0].Remaining=5000;State.Rescues=1;State.LastRevenue=100;++State.Day;
+    MarketAutoPlayRescue::Observe(State,0,Stats);MarketAutoPlayRescue::Observe(State,0,Stats);
+    TestEqual(TEXT("Write-off excludes tax and supplier penalties"),Stats.Plans[0].WrittenOff,int64(7200));
+    TestEqual(TEXT("One rescue record"),Stats.Plans.Num(),1);
+    MarketAutoPlayRescue::BeginDay(State,Stats);State.Loans.Reset();State.LastRevenue=300;++State.Day;
+    FMarketBranch Branch;Branch.OpenedDay=11;State.Branches.Add(Branch);
+    MarketAutoPlayRescue::Observe(State,1,Stats);
+    TestEqual(TEXT("Repaid is explicit"),Stats.Plans[0].Paid,11);
+    TestEqual(TEXT("Family year cash revenue counted once"),Stats.Years[0].FamilyRevenue,int64(400));
+    // A replaced outstanding plan is never reported as paid.
+    State.Loans.Add(Old);State.Rescues=2;MarketAutoPlayRescue::BeginDay(State,Stats);State.Rescues=3;++State.Day;
+    MarketAutoPlayRescue::Observe(State,1,Stats);MarketAutoPlayRescue::BeginDay(State,Stats);State.Rescues=4;++State.Day;
+    MarketAutoPlayRescue::Observe(State,1,Stats);
+    TestEqual(TEXT("Replaced outstanding plan"),Stats.Plans[1].Replaced,13);
+    TestEqual(TEXT("Replacement not repayment"),Stats.Plans[1].Paid,0);
     return true;
 }
 #endif
