@@ -196,3 +196,7 @@ Bunlar **kontrollü olarak denenecek ilk adaylar**, doğrulanmış denge ayarı 
 - Sıradaki: bot raporuna C3 defter/dönem/hedef/ritim/kapanma ölçümleri; yeni menünün görüntüleri; uzun koşular. Bu ekler henüz doğrulanmadı.
 
 - C3 ölçümleri: defterin fark günleri, imzalı ve mutlak toplamı; dönem planı ve dönem içindeki günlük defter kârı/kasa; hedef ve kutlamalar, gerçek ritim sayaçları; zincir kapanma nedenleri. donemler.csv/c3.csv eklendi. Aynı günü tekrar gözleme testi ve 600 günlük tarzlarda defter sıfır testi geçti. DERLE + TEST 126/126 (125 temiz + 1 motor ağ uyarısı) + Smoke geçti; Short 0,69 sn. Test.ps1 alt sınırı 126.
+
+### C3 uzun bot — sonuç ve C'ye ayar önerileri
+
+12 kampanya, 65.751 gün; satış/stok denetim hatası 0, defter fark günleri/toplam/mutlak toplam 0. 30 yıl 44,5 sn, 10 yıl × 9 yaklaşık 45,3 sn; her iki commandlet çıkış 0. Dengeli ulusal 10/20/30: 32/32/33; dünya 20/20/20, üç mağaza, ilk kasa eksisi 141. gün. Büyüme hedefi karşılanmadı. C3_30_yil_rapor.md: beş sayılı bulgu/ayar adayı ve ölçüm sınırlamaları; C3_10_yil_rapor.md ve on CSV teslim edildi. Süper/hiper ve üst tedarik kademesi bu gerçek kampanyalarda açılmadı; reyon denge ayarları doğrulanmış sayılmaz. MarketBrands.cpp:67,75,334,365: boş raf kapasitesi de marka ödemesine yetiyor; mantık hatası/istismar adayı, değiştirilmedi. Aynı raporun 3. önerisi gerçek rafta bulunma koşulu. Bot aile rezerviyle büyür, zarar eden şubeyi kapatmaz; insanın toparlanma stratejilerini tüketmez.
