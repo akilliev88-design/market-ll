@@ -31,6 +31,14 @@ namespace MarketMenuCapture
     struct FTarget { int32 Page; const TCHAR* Id; const TCHAR* Tab; bool bBottom=false; const TCHAR* Anchor=TEXT(""); };
     const TArray<FTarget>& Targets()
     {
+        if(FParse::Param(FCommandLine::Get(),TEXT("MirasMenuC6")))
+        {
+            static const TArray<FTarget> C6List={
+                {8,TEXT("company_advertising"),TEXT("\u015eirket"),false,TEXT("REKLAM")},
+                {7,TEXT("channels_advertising"),TEXT(""),false,TEXT("POL\u0130T\u0130KA")},
+                {9,TEXT("branch_clearance"),TEXT(""),false,TEXT("\u0130\u015eLETME: TEDAR\u0130K, PERSONEL, VERG\u0130")}
+            };return C6List;
+        }
         static const TArray<FTarget> List = {
             {0,TEXT("map_shops"),TEXT("")}, {0,TEXT("map_rivals"),TEXT("Rakipler")}, {0,TEXT("map_opportunities"),TEXT("F\u0131rsatlar")},
             {1,TEXT("orders"),TEXT("")}, {2,TEXT("products"),TEXT("")}, {3,TEXT("promotions"),TEXT("")},
@@ -163,6 +171,7 @@ bool AMarketGameMode::TickMenuCapture()
         if(R.Phase==TEXT("start"))Options.Days=1;
         if(R.Phase==TEXT("before"))Options.Days=FMath::Max(1,Anchor-365-1);
         if(R.Phase==TEXT("after"))Options.Days=FMath::Max(1,Anchor+1095-1);
+        FParse::Value(FCommandLine::Get(),TEXT("MirasMenuDays="),Options.Days);
         R.Description=FString::Printf(TEXT("%s | gercek atak bot, tohum %d, hedef gun %d, salgin %d | oyuncu kaydina yazilmaz"),*R.Phase,Options.FirstSeed,R.Phase==TEXT("start")?1:Options.Days+1,Anchor);
         MarketAutoPlay::FReport Report;
         if(R.Phase==TEXT("start"))
