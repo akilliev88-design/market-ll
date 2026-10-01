@@ -109,11 +109,43 @@ namespace MarketChains
     TArray<FStanding> WorldTable(const FMarketState& State);
     int32 OurRank(const TArray<FStanding>& Table);
 
-    // Buying a chain that is for sale: its stores become our branches (as many as the provinces have room for;
-    // the rest are sold on). Price: 8 months of its revenue.
+    // Buying a chain that is for sale (M30: whole, see below). Price: 8 months of its revenue; a giant leaving the
+    // country (bExitSale) sells for 6 months, even where we have no store yet: a way into a new country.
     int64 Price(const FMarketState& State, int32 ChainIndex);
-    bool CanBuy(const FMarketState& State, int32 ChainIndex, FString& OutReason);
+    bool CanBuy(const FMarketState& State, int32 ChainIndex, FString& OutReason, bool bCheckCash = true);
     bool Buy(FMarketState& State, const TArray<FMarketProduct>& Products, int32 ChainIndex, FString& OutMessage);
+
+    // Karar M29: a takeover bid for a chain that is not for sale. Price: a year of its revenue, a fifth more for a
+    // healthy one. Its owner says yes or no from its health, its pride (scope) and how much it minds us; a nemesis
+    // never sells. A refused bid costs the advisers' fee (0.5 %), angers it and waits 180 days.
+    constexpr int32 BidWaitDays = 180;
+    constexpr float BidFee = 0.005f;
+    int64 BidPrice(const FMarketState& State, int32 ChainIndex);
+    float AcceptChance(const FMarketState& State, int32 ChainIndex);
+    bool WouldAccept(const FMarketState& State, int32 ChainIndex);
+    bool CanBid(const FMarketState& State, int32 ChainIndex, FString& OutReason, bool bCheckCash = true);
+    bool Bid(FMarketState& State, const TArray<FMarketProduct>& Products, int32 ChainIndex, FString& OutMessage);
+    // The chain's yearly operating result (what an acquisition loan can lean on).
+    int64 YearProfit(const FMarketState& State, int32 ChainIndex);
+
+    // Karar M30: what we buy is ours whole. A small chain (up to SmallChain stores) becomes our branches as far as
+    // the provinces have room; anything bigger (and what does not fit) runs as our subsidiary under its own name:
+    // its month is reckoned like a rival's (no war, no openings, it closes stores where the province starves),
+    // its result comes to our till, its stores and revenue count as ours in the tables. Every month up to
+    // ConvertPerMonth of its stores can take our name (a refit each) and become full branches; or the whole
+    // subsidiary is sold (8 months of its revenue) and goes back to being a rival.
+    constexpr int32 SmallChain = 20;
+    constexpr int32 ConvertPerMonth = 20;
+    constexpr float ConvertCostShare = 0.5f;   // x the store type's fit-out
+    int32 Subsidiaries(const FMarketState& State);
+    int32 SubsidiaryStores(const FMarketState& State, const FString& Country = FString());
+    int64 ConvertCost(const FMarketState& State, int32 ChainIndex, int32 Count);
+    int32 ConvertRoom(const FMarketState& State, int32 ChainIndex);   // stores convertible now (room, monthly cap)
+    bool Convert(FMarketState& State, const TArray<FMarketProduct>& Products, int32 ChainIndex, int32 Count, FString& OutMessage);
+    int64 SalePrice(const FMarketState& State, int32 ChainIndex);
+    bool SellSubsidiary(FMarketState& State, int32 ChainIndex, FString& OutMessage);
+    // Menu argument for Convert: chain index x 100 + count.
+    int32 EncodeConvert(int32 ChainIndex, int32 Count);
 
     // Menu lines.
     FString Describe(const FMarketState& State, int32 ChainIndex);

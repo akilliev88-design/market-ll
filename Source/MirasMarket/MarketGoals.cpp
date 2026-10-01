@@ -6,6 +6,7 @@
 #include "MarketDepots.h"
 #include "MarketEvents.h"
 #include "MarketFinance.h"
+#include "MarketBanking.h"
 #include "MarketLedger.h"
 #include "MarketStaff.h"
 #include "MarketStory.h"
@@ -568,7 +569,7 @@ void MarketGoals::OnLeagueYear(FMarketState& State, int32 Rank, bool bFullYear)
     FMarketGoals& S = State.Goals;
     const int64 Ebitda = S.LeagueYearEbitda;
     S.LeagueYearEbitda = 0;
-    const int64 Debt = MarketFinance::Debt(State) + MarketSuppliers::OpenBills(State);
+    const int64 Debt = MarketFinance::Debt(State) + MarketBanking::Debt(State) + MarketSuppliers::OpenBills(State); // M28
     const bool bMoney = Ebitda > 0 && static_cast<double>(Debt) < 3.0 * static_cast<double>(Ebitda);
     S.LeagueFirstYears = Rank == 1 && bMoney && bFullYear ? S.LeagueFirstYears + 1 : 0;
     S.LastLeagueRank = FMath::Max(0, Rank);

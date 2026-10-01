@@ -141,8 +141,105 @@ bool FMarketChainsWarTest::RunTest(const FString& Parameters)
     TestTrue(TEXT("The new branch is open and stocked"), S.Branches.Last().Stage == static_cast<uint8>(MarketBranches::EStage::Open)
         && S.Branches.Last().Items.ContainsByPredicate([](const FMarketBranchItem& I) { return I.Units > 0; }));
     TestTrue(TEXT("It cost money"), S.Cash < Cash);
-    TestTrue(TEXT("The chain is gone"), S.Rivals.Chains[Local].bGone);
+    TestTrue(TEXT("The chain is ours (merged, or what did not fit runs as our subsidiary)"), S.Rivals.Chains[Local].bGone || S.Rivals.Chains[Local].bOurs);
     TestFalse(TEXT("Not twice"), MarketChains::CanBuy(S, Local, Why));
+    return true;
+}
+
+IMPLEMENT_SIMPLE_AUTOMATION_TEST(FMarketChainsBidTest, "MirasMarket.Chains.TakeoverBid", EAutomationTestFlags::EditorContext | EAutomationTestFlags::EngineFilter)
+bool FMarketChainsBidTest::RunTest(const FString& Parameters)
+{
+    using namespace MarketChainsTest;
+    FMarketState S = Start(13);
+    OurBranch(S, TEXT("kirklareli"));
+    MarketChains::Ensure(S);
+    FString Message;
+    // A struggling local chain that does not mind us says yes on most days; a bid that is accepted buys it.
+    const int32 Local = S.Rivals.Chains.IndexOfByPredicate([](const FMarketChain& C) { return C.Id.StartsWith(TEXT("yerel.kirklareli")); });
+    TestTrue(TEXT("A local chain"), Local != INDEX_NONE);
+    if (Local == INDEX_NONE) return false;
+    S.Rivals.Chains[Local].Cash = -1000; S.Rivals.Chains[Local].RedTurns = 2; S.Rivals.Chains[Local].Rivalry = 0.f;
+    TestTrue(TEXT("Not for sale, can bid"), MarketChains::CanBid(S, Local, Message, false));
+    TestTrue(TEXT("Likely yes"), MarketChains::AcceptChance(S, Local) >= 0.8f);
+    int32 Tries = 0;
+    while (!MarketChains::WouldAccept(S, Local) && Tries < 40) { ++S.Day; ++Tries; }
+    TestTrue(TEXT("A day it says yes"), MarketChains::WouldAccept(S, Local));
+    S.Cash = MarketChains::BidPrice(S, Local) + 100000000;
+    const int32 Branches = S.Branches.Num();
+    TestTrue(TEXT("Bought"), MarketChains::Bid(S, Catalog(), Local, Message));
+    TestTrue(TEXT("Its stores are ours"), (S.Rivals.Chains[Local].bGone || S.Rivals.Chains[Local].bOurs) && S.Branches.Num() > Branches);
+
+    // A national chain that minds us says no: the advisers are paid, it is angrier and waits.
+    const int32 Bin = Index(S, TEXT("bim"));
+    TestTrue(TEXT("BIN"), Bin != INDEX_NONE);
+    if (Bin == INDEX_NONE) return false;
+    S.Rivals.Chains[Bin].Rivalry = 90.f;
+    Tries = 0;
+    while (MarketChains::WouldAccept(S, Bin) && Tries < 40) { ++S.Day; ++Tries; }
+    const int64 Cash = S.Cash;
+    const float Rivalry = S.Rivals.Chains[Bin].Rivalry;
+    S.Cash = MarketChains::BidPrice(S, Bin) + 1000000;
+    const int64 Before = S.Cash;
+    TestTrue(TEXT("Bid made"), MarketChains::Bid(S, Catalog(), Bin, Message));
+    TestFalse(TEXT("Refused"), S.Rivals.Chains[Bin].bGone);
+    TestTrue(TEXT("Advisers paid"), S.Cash < Before && Before - S.Cash <= MarketChains::BidPrice(S, Bin) / 100);
+    TestTrue(TEXT("Angrier"), S.Rivals.Chains[Bin].Rivalry > Rivalry);
+    TestFalse(TEXT("Waits"), MarketChains::CanBid(S, Bin, Message));
+    S.Cash = Cash;
+    // The nemesis never sells.
+    S.Rivals.Nemesis = S.Rivals.Chains[Bin].Id;
+    TestEqual(TEXT("Nemesis: no"), MarketChains::AcceptChance(S, Bin), 0.f);
+    return true;
+}
+
+IMPLEMENT_SIMPLE_AUTOMATION_TEST(FMarketChainsSubsidiaryTest, "MirasMarket.Chains.SubsidiaryAndExit", EAutomationTestFlags::EditorContext | EAutomationTestFlags::EngineFilter)
+bool FMarketChainsSubsidiaryTest::RunTest(const FString& Parameters)
+{
+    using namespace MarketChainsTest;
+    FMarketState S = Start(17);
+    OurBranch(S, TEXT("kirklareli"));
+    MarketChains::Ensure(S);
+    FString Message;
+    // A big chain for sale: all of it is ours, as a subsidiary under its own name.
+    const int32 Sok = Index(S, TEXT("sok"));
+    TestTrue(TEXT("A national chain"), Sok != INDEX_NONE);
+    if (Sok == INDEX_NONE) return false;
+    FMarketChain& C = S.Rivals.Chains[Sok];
+    C.bForSale = true;
+    const int32 Stores = MarketChains::TotalStores(C);
+    TestTrue(TEXT("Big"), Stores > MarketChains::SmallChain);
+    S.Cash = MarketChains::Price(S, Sok) + 100000000;
+    const int32 Branches = S.Branches.Num();
+    TestTrue(TEXT("Bought"), MarketChains::Buy(S, Catalog(), Sok, Message));
+    TestTrue(TEXT("A subsidiary"), S.Rivals.Chains[Sok].bOurs && !S.Rivals.Chains[Sok].bGone);
+    TestEqual(TEXT("Every store kept"), MarketChains::SubsidiaryStores(S), Stores);
+    TestEqual(TEXT("No branch yet"), S.Branches.Num(), Branches);
+    TestTrue(TEXT("Counts as ours in the country"), MarketChains::NationalTable(S, TEXT("tr")).ContainsByPredicate([](const MarketChains::FStanding& R) { return R.bUs && R.Stores > MarketChains::SmallChain; }));
+    TestFalse(TEXT("Not in the table as a rival"), MarketChains::NationalTable(S, TEXT("tr")).ContainsByPredicate([Sok](const MarketChains::FStanding& R) { return R.Chain == Sok; }));
+
+    // Its month comes to our till.
+    const int64 Before = S.Cash;
+    Days(S, MarketChains::TurnDays + 1);
+    TestTrue(TEXT("Its result moved our cash"), S.Cash != Before);
+
+    // Some of its stores take our name.
+    const int32 Room = MarketChains::ConvertRoom(S, Sok);
+    TestTrue(TEXT("Room to convert"), Room > 0 && Room <= MarketChains::ConvertPerMonth);
+    S.Cash += MarketChains::ConvertCost(S, Sok, Room);
+    TestTrue(TEXT("Converted"), MarketChains::Convert(S, Catalog(), Sok, Room, Message));
+    TestTrue(TEXT("Branches now"), S.Branches.Num() > Branches);
+    TestTrue(TEXT("Monthly cap"), MarketChains::ConvertRoom(S, Sok) <= MarketChains::ConvertPerMonth - Room);
+
+    // Sold: a rival again.
+    TestTrue(TEXT("Sold"), MarketChains::SellSubsidiary(S, Sok, Message));
+    TestFalse(TEXT("A rival again"), S.Rivals.Chains[Sok].bOurs);
+
+    // A giant leaving sells for six months of revenue instead of eight.
+    const int32 Bin = Index(S, TEXT("bim"));
+    S.Rivals.Chains[Bin].bForSale = true;
+    const int64 Eight = MarketChains::Price(S, Bin);
+    S.Rivals.Chains[Bin].bExitSale = true;
+    TestTrue(TEXT("Exit sale is cheaper"), FMath::Abs(MarketChains::Price(S, Bin) - Eight * 6 / 8) <= 1);
     return true;
 }
 

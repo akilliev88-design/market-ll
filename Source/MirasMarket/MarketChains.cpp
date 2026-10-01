@@ -4,6 +4,7 @@
 #include "MarketPrices.h"
 #include "MarketStart.h"
 #include "MarketStory.h"
+#include "MarketCompany.h"
 #include "MarketStoreAssign.h"
 
 namespace MarketChainsLocal
@@ -40,6 +41,8 @@ namespace MarketChainsLocal
         };
         return Table[FMath::Clamp(static_cast<int32>(Archetype), 0, static_cast<int32>(EArchetype::Count) - 1)];
     }
+
+    int32 StoresOf(const FMarketChain& Chain, const FString& Province);
 
     // Our own shops weigh like the chains' of the same size.
     float FormatWeight(const FString& Format)
@@ -84,6 +87,8 @@ namespace MarketChainsLocal
             Sum += FormatWeight(B.Format);
         }
         if (Country == State.CountryId && Province == MarketStart::HomeProvince(State)) Sum += 0.8f; // the family shop
+        for (const FMarketChain& C : State.Rivals.Chains) // M30: our subsidiaries' stores
+            if (!C.bGone && C.bOurs && C.Country == Country) Sum += StoresOf(C, Province) * Arch(static_cast<EArchetype>(C.Archetype)).Weight;
         return Sum;
     }
 
@@ -443,7 +448,7 @@ float MarketChains::WeightedIn(const FMarketState& State, const FString& Country
 {
     float Sum = 0.f;
     for (const FMarketChain& C : State.Rivals.Chains)
-        if (!C.bGone && C.Country == Country) Sum += MarketChainsLocal::StoresOf(C, Province) * MarketChainsLocal::Arch(static_cast<EArchetype>(C.Archetype)).Weight;
+        if (!C.bGone && !C.bOurs && C.Country == Country) Sum += MarketChainsLocal::StoresOf(C, Province) * MarketChainsLocal::Arch(static_cast<EArchetype>(C.Archetype)).Weight;
     return Sum;
 }
 
@@ -501,6 +506,8 @@ int64 MarketChains::OurYearRevenue(const FMarketState& State, const FString& InC
         for (int32 I = State.History.Num() - 1; I >= 0 && Days < 30; --I, ++Days) Family += State.History[I].Revenue;
         if (Days > 0) Sum += Family * 365 / Days;
     }
+    for (int32 I = 0; I < State.Rivals.Chains.Num(); ++I) // M30: subsidiaries
+        if (!State.Rivals.Chains[I].bGone && State.Rivals.Chains[I].bOurs && State.Rivals.Chains[I].Country == Country) Sum += YearRevenue(State, I);
     return Sum;
 }
 
@@ -521,7 +528,7 @@ TArray<MarketChains::FStanding> MarketChains::NationalTable(const FMarketState& 
     for (int32 I = 0; I < Chains.Num(); ++I)
     {
         const FMarketChain& C = Chains[I];
-        if (C.bGone || C.Country != Country || TotalStores(C) < 3) continue;
+        if (C.bGone || C.bOurs || C.Country != Country || TotalStores(C) < 3) continue;
         FStanding Row;
         Row.Name = C.Name;
         Row.Stores = TotalStores(C);
@@ -537,7 +544,9 @@ TArray<MarketChains::FStanding> MarketChains::NationalTable(const FMarketState& 
     for (const FMarketBranch& B : State.Branches)
         if (B.Stage == static_cast<uint8>(MarketBranches::EStage::Open) && MarketBranches::CountryOf(State, B) == Country) ++Us.Stores;
     if (Country == State.CountryId) ++Us.Stores;
-    Us.Detail = FString::Printf(TEXT("biz \u00b7 %d ma\u011faza"), Us.Stores);
+    const int32 Subsidiary = SubsidiaryStores(State, Country);
+    Us.Stores += Subsidiary;
+    Us.Detail = Subsidiary > 0 ? FString::Printf(TEXT("biz \u00b7 %d ma\u011faza (%d ba\u011fl\u0131 \u015firkette)"), Us.Stores, Subsidiary) : FString::Printf(TEXT("biz \u00b7 %d ma\u011faza"), Us.Stores);
     Us.Revenue = static_cast<double>(OurYearRevenue(State, Country));
     if (Us.Stores > 0) Table.Add(Us);
     Table.StableSort([](const FStanding& A, const FStanding& B) { return A.Revenue > B.Revenue; });
@@ -561,7 +570,7 @@ TArray<MarketChains::FStanding> MarketChains::WorldTable(const FMarketState& Sta
     for (int32 I = 0; I < Chains.Num(); ++I)
     {
         const FMarketChain& C = Chains[I];
-        if (C.bGone || C.Scope != static_cast<uint8>(EScope::National) || MarketChainsLocal::IsGiantArm(State, C)) continue;
+        if (C.bGone || C.bOurs || C.Scope != static_cast<uint8>(EScope::National) || MarketChainsLocal::IsGiantArm(State, C)) continue;
         const MarketCountry::FProfile* Pack = MarketCountry::Find(C.Country);
         FStanding Row;
         Row.Name = C.Name;
@@ -577,6 +586,7 @@ TArray<MarketChains::FStanding> MarketChains::WorldTable(const FMarketState& Sta
     TArray<FString> Ours;
     Ours.Add(State.CountryId);
     for (const FMarketBranch& B : State.Branches) if (B.Stage == static_cast<uint8>(MarketBranches::EStage::Open)) Ours.AddUnique(MarketBranches::CountryOf(State, B));
+    for (const FMarketChain& C : Chains) if (!C.bGone && C.bOurs) Ours.AddUnique(C.Country); // M30
     for (const FString& Country : Ours) Us.Revenue += ToWorld(State, Country, OurYearRevenue(State, Country));
     Us.Detail = Ours.Num() > 1 ? FString::Printf(TEXT("%d \u00fclke"), Ours.Num()) : FString(TEXT("biz"));
     Table.Add(Us);
@@ -593,61 +603,264 @@ int32 MarketChains::OurRank(const TArray<FStanding>& Table)
 // ---------------------------------------------------------------------------------------------------------------
 // Buying a chain
 
-int64 MarketChains::Price(const FMarketState& State, int32 ChainIndex)
+namespace MarketChainsLocal
 {
-    return YearRevenue(State, ChainIndex) * 8 / 12;
+    // Our purchase of a chain at a cost: its stores become branches (as far as the provinces have room).
+    bool Take(FMarketState& State, const TArray<FMarketProduct>& Products, int32 ChainIndex, int64 Cost, FString& OutMessage);
 }
 
-bool MarketChains::CanBuy(const FMarketState& State, int32 ChainIndex, FString& OutReason)
+int64 MarketChains::YearProfit(const FMarketState& State, int32 ChainIndex)
+{
+    return State.Rivals.Chains.IsValidIndex(ChainIndex) ? State.Rivals.Chains[ChainIndex].MonthProfit * 12 : 0;
+}
+
+int64 MarketChains::BidPrice(const FMarketState& State, int32 ChainIndex)
+{
+    if (!State.Rivals.Chains.IsValidIndex(ChainIndex)) return 0;
+    const FMarketChain& C = State.Rivals.Chains[ChainIndex];
+    const double Health = FMath::Clamp(1.0 - C.RedTurns / 3.0, 0.0, 1.0) * (C.Cash > 0 ? 1.0 : 0.5);
+    return FMath::RoundToInt64(YearRevenue(State, ChainIndex) * (1.0 + 0.2 * Health));
+}
+
+float MarketChains::AcceptChance(const FMarketState& State, int32 ChainIndex)
+{
+    if (!State.Rivals.Chains.IsValidIndex(ChainIndex)) return 0.f;
+    const FMarketChain& C = State.Rivals.Chains[ChainIndex];
+    if (C.Id == State.Rivals.Nemesis) return 0.f;
+    const EScope Scope = static_cast<EScope>(C.Scope);
+    float Chance = Scope == EScope::Local ? 0.55f : Scope == EScope::Regional ? 0.4f : 0.2f;
+    if (C.Cash < 0) Chance += 0.25f;
+    Chance += 0.1f * C.RedTurns - C.Rivalry / 150.f;
+    return FMath::Clamp(Chance, 0.02f, 0.9f);
+}
+
+bool MarketChains::WouldAccept(const FMarketState& State, int32 ChainIndex)
+{
+    if (!State.Rivals.Chains.IsValidIndex(ChainIndex)) return false;
+    // The owner's answer is decided by the day and the chain: asking again the same day gives the same answer.
+    return MarketChainsLocal::Roll(State, MarketChainsLocal::Hash(State.Rivals.Chains[ChainIndex].Id), static_cast<uint32>(State.Day) * 7919u + 0xB1Du) < AcceptChance(State, ChainIndex);
+}
+
+bool MarketChains::CanBid(const FMarketState& State, int32 ChainIndex, FString& OutReason, bool bCheckCash)
 {
     if (!State.Rivals.Chains.IsValidIndex(ChainIndex)) { OutReason = TEXT("B\u00f6yle bir zincir yok."); return false; }
     const FMarketChain& C = State.Rivals.Chains[ChainIndex];
     if (C.bGone) { OutReason = FString::Printf(TEXT("%s art\u0131k yok."), *C.Name); return false; }
-    if (!C.bForSale) { OutReason = FString::Printf(TEXT("%s sat\u0131l\u0131k de\u011fil."), *C.Name); return false; }
+    if (C.bOurs) { OutReason = FString::Printf(TEXT("%s zaten bizim."), *C.Name); return false; }
+    if (C.bForSale) { OutReason = FString::Printf(TEXT("%s zaten sat\u0131l\u0131k: do\u011frudan sat\u0131n al."), *C.Name); return false; }
+    if (static_cast<EScope>(C.Scope) == EScope::Foreign) { OutReason = TEXT("Yabanc\u0131 devlerin kollar\u0131 sat\u0131lmaz."); return false; }
     if (C.Country != State.CountryId && !State.Branches.ContainsByPredicate([&State, &C](const FMarketBranch& B) { return MarketBranches::CountryOf(State, B) == C.Country; }))
     {
         OutReason = TEXT("Bu \u00fclkede hen\u00fcz ma\u011fazan yok.");
         return false;
     }
+    if (C.BidDay > 0 && State.Day - C.BidDay < BidWaitDays) { OutReason = FString::Printf(TEXT("%s teklifini reddetti; %d g\u00fcn sonra yeniden konu\u015fur."), *C.Name, BidWaitDays - (State.Day - C.BidDay)); return false; }
+    if (bCheckCash && State.Cash < BidPrice(State, ChainIndex)) { OutReason = FString::Printf(TEXT("Teklif i\u00e7in %s gerekiyor (bankadan sat\u0131n alma kredisi al\u0131nabilir)."), *MarketCountry::Money(BidPrice(State, ChainIndex))); return false; }
+    return true;
+}
+
+bool MarketChains::Bid(FMarketState& State, const TArray<FMarketProduct>& Products, int32 ChainIndex, FString& OutMessage)
+{
+    if (!CanBid(State, ChainIndex, OutMessage, false)) return false;
+    const int64 Cost = BidPrice(State, ChainIndex);
+    if (WouldAccept(State, ChainIndex) && State.Cash < Cost)
+    {
+        OutMessage = FString::Printf(TEXT("Teklif i\u00e7in %s gerekiyor (bankadan sat\u0131n alma kredisi al\u0131nabilir)."), *MarketCountry::Money(Cost));
+        return false;
+    }
+    if (!WouldAccept(State, ChainIndex))
+    {
+        FMarketChain& C = State.Rivals.Chains[ChainIndex];
+        const int64 Fee = FMath::RoundToInt64(Cost * BidFee);
+        State.Cash -= Fee;
+        MarketLedger::Post(State, MarketLedger::EAccount::HeadOffice, -Fee, true, MarketLedger::HeadOfficeStore);
+        C.BidDay = State.Day;
+        C.Rivalry = FMath::Min(100.f, C.Rivalry + 10.f);
+        OutMessage = FString::Printf(TEXT("%s patronu %s teklifini (%s) geri \u00e7evirdi: \"Buras\u0131 sat\u0131l\u0131k de\u011fil.\" Dan\u0131\u015fmanlar %s ald\u0131; zincir sana daha \u00e7ok k\u0131z\u0131yor."),
+            *C.Name, *C.Boss, *MarketCountry::Money(Cost), *MarketCountry::Money(Fee));
+        return true; // the bid was made (and refused): a decision with a result
+    }
+    return MarketChainsLocal::Take(State, Products, ChainIndex, Cost, OutMessage);
+}
+
+int64 MarketChains::Price(const FMarketState& State, int32 ChainIndex)
+{
+    const bool bExit = State.Rivals.Chains.IsValidIndex(ChainIndex) && State.Rivals.Chains[ChainIndex].bExitSale;
+    return YearRevenue(State, ChainIndex) * (bExit ? 6 : 8) / 12; // M30: a giant leaving sells cheap
+}
+
+bool MarketChains::CanBuy(const FMarketState& State, int32 ChainIndex, FString& OutReason, bool bCheckCash)
+{
+    if (!State.Rivals.Chains.IsValidIndex(ChainIndex)) { OutReason = TEXT("B\u00f6yle bir zincir yok."); return false; }
+    const FMarketChain& C = State.Rivals.Chains[ChainIndex];
+    if (C.bGone) { OutReason = FString::Printf(TEXT("%s art\u0131k yok."), *C.Name); return false; }
+    if (!C.bForSale) { OutReason = FString::Printf(TEXT("%s sat\u0131l\u0131k de\u011fil."), *C.Name); return false; }
+    if (C.bExitSale && C.Country != State.CountryId)
+    {
+        // M30: a giant's arm leaving the country is a door into it, from the world chapter on.
+        if (!MarketCompany::ChapterOpen(State, 6)) { OutReason = FString::Printf(TEXT("Yurt d\u0131\u015f\u0131 i\u00e7in \"%s\" b\u00f6l\u00fcm\u00fc a\u00e7\u0131lmal\u0131."), *MarketStory::ChapterTitle(6)); return false; }
+    }
+    else if (C.Country != State.CountryId && !State.Branches.ContainsByPredicate([&State, &C](const FMarketBranch& B) { return MarketBranches::CountryOf(State, B) == C.Country; }))
+    {
+        OutReason = TEXT("Bu \u00fclkede hen\u00fcz ma\u011fazan yok.");
+        return false;
+    }
     const int64 Cost = Price(State, ChainIndex);
-    if (State.Cash < Cost) { OutReason = FString::Printf(TEXT("Sat\u0131n almak i\u00e7in %s gerekiyor."), *MarketCountry::Money(Cost)); return false; }
+    if (bCheckCash && State.Cash < Cost) { OutReason = FString::Printf(TEXT("Sat\u0131n almak i\u00e7in %s gerekiyor (bankadan sat\u0131n alma kredisi al\u0131nabilir)."), *MarketCountry::Money(Cost)); return false; }
     return true;
 }
 
 bool MarketChains::Buy(FMarketState& State, const TArray<FMarketProduct>& Products, int32 ChainIndex, FString& OutMessage)
 {
-    using namespace MarketChainsLocal;
     if (!CanBuy(State, ChainIndex, OutMessage)) return false;
-    const int64 Cost = Price(State, ChainIndex);
-    FMarketChain Chain = State.Rivals.Chains[ChainIndex]; // a copy: the branches below may grow arrays
-    const FString Format = FormatOf(static_cast<EArchetype>(Chain.Archetype));
-    constexpr int32 MaxTaken = 60;
-    int32 Taken = 0, Sold = 0;
-    for (const FMarketChainSpot& Spot : Chain.Spots)
-    {
-        const MarketBranches::FSite Site = MarketBranches::SiteOf(State, Chain.Country, Spot.Province);
-        const int32 Free = FMath::Max(0, MarketBranches::Room(Site) - MarketBranches::ShopsIn(State, Chain.Country, Spot.Province));
-        const int32 Take = FMath::Min3(Spot.Stores, Free, MaxTaken - Taken);
-        for (int32 N = 0; N < Take; ++N)
-            if (MarketBranches::AddAcquired(State, Products, Chain.Country, Spot.Province, Format) != INDEX_NONE) ++Taken;
-        Sold += Spot.Stores - Take;
-    }
-    // The stores we cannot take are sold on (a third of what opening one costs).
-    const int64 Back = FMath::RoundToInt64(Sold * OpenCost(static_cast<EArchetype>(Chain.Archetype)) / 3.0 * MarketPrices::ListLevel(State.Day));
-    State.Cash += Back - Cost;
+    return MarketChainsLocal::Take(State, Products, ChainIndex, Price(State, ChainIndex), OutMessage);
+}
+
+bool MarketChainsLocal::Take(FMarketState& State, const TArray<FMarketProduct>& Products, int32 ChainIndex, int64 Cost, FString& OutMessage)
+{
+    using namespace MarketChains;
+    // M30: the whole chain is ours. A small one becomes branches as far as the provinces have room; the rest (and
+    // any bigger chain) stays as our subsidiary under its own name.
+    State.Cash -= Cost;
     MarketLedger::Post(State, MarketLedger::EAccount::ChainPurchase, -Cost, true, MarketLedger::HeadOfficeStore); // C3 (B7.2)
-    MarketLedger::Post(State, MarketLedger::EAccount::StoreSale, Back, true, MarketLedger::HeadOfficeStore);
-    FMarketChain& Gone = State.Rivals.Chains[ChainIndex];
-    Gone.bGone = true;
-    Gone.GoneReason = 3;
+    const FMarketChain Was = State.Rivals.Chains[ChainIndex]; // a copy: the branches below may grow arrays
+    const int32 Total = TotalStores(Was);
+    int32 Taken = 0;
+    if (Total <= SmallChain)
+    {
+        const FString Format = FormatOf(static_cast<EArchetype>(Was.Archetype));
+        for (const FMarketChainSpot& Spot : Was.Spots)
+        {
+            const MarketBranches::FSite Site = MarketBranches::SiteOf(State, Was.Country, Spot.Province);
+            const int32 Free = FMath::Max(0, MarketBranches::Room(Site) - MarketBranches::ShopsIn(State, Was.Country, Spot.Province));
+            int32 Here = 0;
+            for (int32 N = 0; N < FMath::Min(Spot.Stores, Free); ++N)
+                if (MarketBranches::AddAcquired(State, Products, Was.Country, Spot.Province, Format) != INDEX_NONE) ++Here;
+            SpotOf(State.Rivals.Chains[ChainIndex], Spot.Province).Stores -= Here;
+            Taken += Here;
+        }
+    }
+    FMarketChain& C = State.Rivals.Chains[ChainIndex];
+    C.Spots.RemoveAll([](const FMarketChainSpot& S) { return S.Stores <= 0; });
+    C.bForSale = false;
+    C.bExitSale = false;
+    C.Rivalry = 0.f;
+    C.WarProvince.Reset();
+    C.RedTurns = 0;
     ++State.Rivals.OurBuys;
-    Gone.bForSale = false;
-    Gone.Spots.Reset();
-    if (State.Rivals.Nemesis == Gone.Id) State.Rivals.Nemesis.Reset();
-    for (FMarketChain& Other : State.Rivals.Chains) if (!Other.bGone && Other.Country == Chain.Country) Other.Rivalry = FMath::Min(100.f, Other.Rivalry + 5.f);
-    MarketStory::AddMemory(State, FString::Printf(TEXT("%s zincirini sat\u0131n ald\u0131k (%d ma\u011faza)"), *Chain.Name, Taken));
-    OutMessage = FString::Printf(TEXT("%s art\u0131k bizim: %d ma\u011faza \u015fubemiz oldu%s. \u00d6denen %s."), *Chain.Name, Taken,
-        Sold > 0 ? *FString::Printf(TEXT(", yer olmayan %d ma\u011faza sat\u0131ld\u0131 (%s geri geldi)"), Sold, *MarketCountry::Money(Back)) : TEXT(""), *MarketCountry::Money(Cost));
+    if (State.Rivals.Nemesis == C.Id) State.Rivals.Nemesis.Reset();
+    const int32 Kept = TotalStores(C);
+    if (Kept > 0) { C.bOurs = true; C.OursSince = State.Day; C.Cash = 0; C.TurnDay = State.Day; }
+    else { C.bGone = true; C.GoneReason = 3; }
+    for (FMarketChain& Other : State.Rivals.Chains) if (!Other.bGone && !Other.bOurs && Other.Country == Was.Country) Other.Rivalry = FMath::Min(100.f, Other.Rivalry + 5.f);
+    MarketStory::AddMemory(State, FString::Printf(TEXT("%s zincirini sat\u0131n ald\u0131k (%d ma\u011faza)"), *Was.Name, Total));
+    OutMessage = Kept == 0
+        ? FString::Printf(TEXT("%s art\u0131k bizim: %d ma\u011fazas\u0131 \u015fubemiz oldu. \u00d6denen %s."), *Was.Name, Taken, *MarketCountry::Money(Cost))
+        : FString::Printf(TEXT("%s art\u0131k bizim (%s): %d ma\u011faza%s. %d ma\u011faza kendi ad\u0131yla ba\u011fl\u0131 \u015firketimiz olarak \u00e7al\u0131\u015f\u0131yor; Ma\u011fazalar \u203a \u015eirket'ten her ay bir k\u0131sm\u0131n\u0131 kendi ad\u0131m\u0131za \u00e7evirebilirsin."),
+            *Was.Name, *MarketCountry::Money(Cost), Total, Taken > 0 ? *FString::Printf(TEXT(", %d tanesi \u015fimdiden \u015fubemiz"), Taken) : TEXT(""), Kept);
+    return true;
+}
+
+int32 MarketChains::Subsidiaries(const FMarketState& State)
+{
+    int32 Count = 0;
+    for (const FMarketChain& C : State.Rivals.Chains) if (!C.bGone && C.bOurs) ++Count;
+    return Count;
+}
+
+int32 MarketChains::SubsidiaryStores(const FMarketState& State, const FString& Country)
+{
+    int32 Count = 0;
+    for (const FMarketChain& C : State.Rivals.Chains)
+        if (!C.bGone && C.bOurs && (Country.IsEmpty() || C.Country == Country)) Count += TotalStores(C);
+    return Count;
+}
+
+int64 MarketChains::ConvertCost(const FMarketState& State, int32 ChainIndex, int32 Count)
+{
+    if (!State.Rivals.Chains.IsValidIndex(ChainIndex)) return 0;
+    const FString Format = FormatOf(static_cast<EArchetype>(State.Rivals.Chains[ChainIndex].Archetype));
+    return FMath::RoundToInt64(MarketBranches::FormatInfo(Format).FitOut * ConvertCostShare * MarketPrices::ListLevel(State.Day)) * FMath::Max(0, Count);
+}
+
+int32 MarketChains::ConvertRoom(const FMarketState& State, int32 ChainIndex)
+{
+    if (!State.Rivals.Chains.IsValidIndex(ChainIndex) || !State.Rivals.Chains[ChainIndex].bOurs || State.Rivals.Chains[ChainIndex].bGone) return 0;
+    const FMarketChainsState& R = State.Rivals;
+    const int32 Left = State.Day - R.ConvertMonthDay < TurnDays ? FMath::Max(0, ConvertPerMonth - R.ConvertedInMonth) : ConvertPerMonth;
+    const FMarketChain& C = R.Chains[ChainIndex];
+    int32 Room = 0;
+    for (const FMarketChainSpot& Spot : C.Spots)
+    {
+        const MarketBranches::FSite Site = MarketBranches::SiteOf(State, C.Country, Spot.Province);
+        if (!Site.bValid) continue;
+        Room += FMath::Min(Spot.Stores, FMath::Max(0, MarketBranches::Room(Site) - MarketBranches::ShopsIn(State, C.Country, Spot.Province)));
+    }
+    return FMath::Min(Room, Left);
+}
+
+int32 MarketChains::EncodeConvert(int32 ChainIndex, int32 Count) { return ChainIndex * 100 + FMath::Clamp(Count, 0, 99); }
+
+bool MarketChains::Convert(FMarketState& State, const TArray<FMarketProduct>& Products, int32 ChainIndex, int32 Count, FString& OutMessage)
+{
+    const int32 Can = ConvertRoom(State, ChainIndex);
+    if (Can <= 0)
+    {
+        OutMessage = State.Rivals.Chains.IsValidIndex(ChainIndex) && State.Rivals.Chains[ChainIndex].bOurs
+            ? FString(TEXT("Bu ay \u00e7evrilecek ma\u011faza yok: illerde yer kalmad\u0131 ya da ayl\u0131k s\u0131n\u0131r doldu.")) : FString(TEXT("Ba\u011fl\u0131 \u015firketimiz de\u011fil."));
+        return false;
+    }
+    const int32 Want = FMath::Clamp(Count, 1, Can);
+    const int64 Cost = ConvertCost(State, ChainIndex, Want);
+    if (State.Cash < Cost) { OutMessage = FString::Printf(TEXT("%d ma\u011fazay\u0131 \u00e7evirmek i\u00e7in %s gerekiyor."), Want, *MarketCountry::Money(Cost)); return false; }
+    FMarketChainsState& R = State.Rivals;
+    if (State.Day - R.ConvertMonthDay >= TurnDays) { R.ConvertMonthDay = State.Day; R.ConvertedInMonth = 0; }
+    const FMarketChain Was = R.Chains[ChainIndex];
+    const FString Format = FormatOf(static_cast<EArchetype>(Was.Archetype));
+    // The provinces with the most of its stores first.
+    TArray<FMarketChainSpot> Order = Was.Spots;
+    Order.Sort([](const FMarketChainSpot& A, const FMarketChainSpot& B) { return A.Stores > B.Stores; });
+    int32 Done = 0;
+    for (const FMarketChainSpot& Spot : Order)
+    {
+        if (Done >= Want) break;
+        const MarketBranches::FSite Site = MarketBranches::SiteOf(State, Was.Country, Spot.Province);
+        const int32 Free = FMath::Max(0, MarketBranches::Room(Site) - MarketBranches::ShopsIn(State, Was.Country, Spot.Province));
+        int32 Here = 0;
+        for (int32 N = 0; N < FMath::Min3(Spot.Stores, Free, Want - Done); ++N)
+            if (MarketBranches::AddAcquired(State, Products, Was.Country, Spot.Province, Format) != INDEX_NONE) ++Here;
+        MarketChainsLocal::SpotOf(R.Chains[ChainIndex], Spot.Province).Stores -= Here;
+        Done += Here;
+    }
+    const int64 Paid = ConvertCost(State, ChainIndex, Done);
+    State.Cash -= Paid;
+    MarketLedger::Post(State, MarketLedger::EAccount::Investment, -Paid, true, MarketLedger::HeadOfficeStore);
+    R.ConvertedInMonth += Done;
+    FMarketChain& C = R.Chains[ChainIndex];
+    C.Spots.RemoveAll([](const FMarketChainSpot& S) { return S.Stores <= 0; });
+    if (TotalStores(C) == 0) { C.bGone = true; C.bOurs = false; C.GoneReason = 3; }
+    OutMessage = FString::Printf(TEXT("%d %s ma\u011fazas\u0131 tabelas\u0131n\u0131 de\u011fi\u015ftirdi ve \u015fubemiz oldu (%s)%s"), Done, *Was.Name, *MarketCountry::Money(Paid),
+        C.bGone ? TEXT(". Zincir tamamen bizim ad\u0131m\u0131za ge\u00e7ti.") : *FString::Printf(TEXT("; ba\u011fl\u0131 \u015firkette %d ma\u011faza kald\u0131."), TotalStores(C)));
+    return Done > 0;
+}
+
+int64 MarketChains::SalePrice(const FMarketState& State, int32 ChainIndex)
+{
+    return YearRevenue(State, ChainIndex) * 8 / 12;
+}
+
+bool MarketChains::SellSubsidiary(FMarketState& State, int32 ChainIndex, FString& OutMessage)
+{
+    if (!State.Rivals.Chains.IsValidIndex(ChainIndex) || !State.Rivals.Chains[ChainIndex].bOurs || State.Rivals.Chains[ChainIndex].bGone) { OutMessage = TEXT("Ba\u011fl\u0131 \u015firketimiz de\u011fil."); return false; }
+    const int64 Price = SalePrice(State, ChainIndex);
+    FMarketChain& C = State.Rivals.Chains[ChainIndex];
+    State.Cash += Price;
+    MarketLedger::Post(State, MarketLedger::EAccount::StoreSale, Price, true, MarketLedger::HeadOfficeStore);
+    C.bOurs = false;
+    C.Cash = Price / 4;
+    C.Rivalry = 20.f;
+    C.TurnDay = State.Day;
+    OutMessage = FString::Printf(TEXT("%s sat\u0131ld\u0131: %s kasada. Art\u0131k yine rakibimiz."), *C.Name, *MarketCountry::Money(Price));
     return true;
 }
 
@@ -726,7 +939,7 @@ namespace MarketChainsLocal
                 for (int32 J = 0; J < State.Rivals.Chains.Num(); ++J)
                 {
                     const FMarketChain& Other = State.Rivals.Chains[J];
-                    if (J == Index || Other.bGone || Other.bForSale || Other.Country != Chain.Country || Other.Scope == static_cast<uint8>(EScope::Local)) continue;
+                    if (J == Index || Other.bGone || Other.bOurs || Other.bForSale || Other.Country != Chain.Country || Other.Scope == static_cast<uint8>(EScope::Local)) continue;
                     if (Other.Cash > Cost * 2 && Other.Cash > BestCash) { BestCash = static_cast<double>(Other.Cash); Buyer = J; }
                 }
                 if (Buyer != INDEX_NONE)
@@ -875,7 +1088,7 @@ namespace MarketChainsLocal
             for (int32 J = 0; J < State.Rivals.Chains.Num(); ++J)
             {
                 FMarketChain& Other = State.Rivals.Chains[J];
-                if (J == Index || Other.bGone || !Other.bForSale || Other.ForSaleTurns < 2 || Other.Country != Chain.Country) continue;
+                if (J == Index || Other.bGone || Other.bOurs || !Other.bForSale || Other.ForSaleTurns < 2 || Other.Country != Chain.Country) continue;
                 const int64 Cost = MarketChains::Price(State, J);
                 if (Chain.Cash < Cost * 3 || Roll(State, Salt, Hash(Other.Id)) > Chain.Ambition) continue;
                 Chain.Cash -= Cost;
@@ -914,6 +1127,80 @@ namespace MarketChainsLocal
         }
     }
 
+    // M30: our subsidiary's month: its books like a rival's, its result in our till; it gives up starving stores.
+    void OwnedTurn(FMarketState& State, int32 Index, int32 Day, FNews& News)
+    {
+        FMarketChain& Chain = State.Rivals.Chains[Index];
+        Chain.TurnDay = Day;
+        MonthlyBooks(State, Chain, Day);
+        const int64 Result = Chain.MonthProfit;
+        Chain.Cash = 0;
+        State.Cash += Result;
+        State.LastBranchProfit += Result;
+        State.LastProfit += Result;
+        MarketLedger::Post(State, MarketLedger::EAccount::BranchResult, Result, true, MarketLedger::HeadOfficeStore);
+        int32 Closed = 0;
+        for (FMarketChainSpot& Spot : Chain.Spots)
+        {
+            if (Spot.Stores <= 1 || MarketChains::Saturation(State, Chain.Country, Spot.Province) >= 0.7f) continue;
+            const int32 Cut = FMath::Max(1, Spot.Stores / 20);
+            Spot.Stores -= Cut;
+            Closed += Cut;
+        }
+        Chain.Spots.RemoveAll([](const FMarketChainSpot& S) { return S.Stores <= 0; });
+        if (Result < 0 || Closed > 0)
+            News.Add(FString::Printf(TEXT("Ba\u011fl\u0131 \u015firketimiz %s: bu ay %s%s."), *Chain.Name, *MarketCountry::Money(Result),
+                Closed > 0 ? *FString::Printf(TEXT(", doymu\u015f illerde %d ma\u011faza kapand\u0131"), Closed) : TEXT("")));
+    }
+
+    // M30: a giant leaves a country where its arm bleeds or stays small: the arm goes for sale cheap (6 months).
+    void GiantExits(FMarketState& State, FMarketGiant& G, int32 Day, FNews& News)
+    {
+        FMarketChainsState& R = State.Rivals;
+        for (FMarketChain& Arm : R.Chains)
+        {
+            if (Arm.bGone || Arm.bOurs || Arm.bForSale || Arm.Home != G.Id || Arm.Scope != static_cast<uint8>(EScope::Foreign)) continue; // its home chain never leaves
+            const float Chance = 0.06f + (Arm.MonthProfit < 0 ? 0.35f : 0.f) + (MarketChains::TotalStores(Arm) < 20 ? 0.1f : 0.f);
+            if (Roll(State, Hash(Arm.Id), static_cast<uint32>(Day) ^ 0xE817u) >= Chance) continue;
+            Arm.bForSale = true;
+            Arm.bExitSale = true;
+            Arm.ForSaleTurns = 0;
+            G.Countries.Remove(Arm.Country);
+            const MarketCountry::FProfile* Pack = MarketCountry::Find(Arm.Country);
+            const int32 Index = static_cast<int32>(&Arm - R.Chains.GetData());
+            News.Add(FString::Printf(TEXT("%s, %s pazar\u0131ndan \u00e7ekiliyor: %d ma\u011fazal\u0131k kolu ucuza sat\u0131l\u0131k (%s). Rakipler \u015f\u0131k\u0131ndan \u00f6nce davran\u0131rsan senin."),
+                *G.Name, Pack ? *Pack->Name : *Arm.Country, MarketChains::TotalStores(Arm), *MarketCountry::Money(MarketChains::Price(State, Index))));
+        }
+        // Now and then it leaves a country we are not in yet: a door into that market.
+        if (Day < 8 * 365 || Roll(State, Hash(G.Id), static_cast<uint32>(Day) ^ 0x0E1Du) > 0.05f) return;
+        const MarketChains::FRosterGiant* Row = MarketChains::GiantRoster().FindByPredicate([&G](const MarketChains::FRosterGiant& X) { return G.Id == X.Id; });
+        const FString HomePack = Row ? FString(Row->HomePack) : FString();
+        TArray<const MarketCountry::FProfile*> Doors;
+        for (const MarketCountry::FProfile& Pack : MarketCountry::All())
+            if (!R.Countries.Contains(Pack.Id) && Pack.Id != HomePack && Pack.Cities.Num() > 0) Doors.Add(&Pack);
+        if (Doors.Num() == 0) return;
+        const MarketCountry::FProfile& Pack = *Doors[Mix(Hash(G.Id), static_cast<uint32>(Day), 0xD00Fu) % static_cast<uint32>(Doors.Num())];
+        MarketChains::EnsureCountry(State, Pack.Id);
+        FMarketChain Arm;
+        Arm.Id = G.Id + TEXT(".") + Pack.Id;
+        if (FindChain(State, Arm.Id) != INDEX_NONE) return;
+        Arm.Country = Pack.Id; Arm.Name = G.Name; Arm.Boss = PersonName(State, Pack.Id, Hash(Arm.Id));
+        Arm.Archetype = G.Archetype; Arm.Scope = static_cast<uint8>(EScope::Foreign); Arm.Home = G.Id;
+        Arm.PriceIndex = 0.97f; Arm.Service = 1.f; Arm.Aggression = 0.3f; Arm.Ambition = 0.3f;
+        TArray<const MarketCountry::FCity*> Big;
+        for (const MarketCountry::FCity& City : Pack.Cities) Big.Add(&City);
+        Big.Sort([](const MarketCountry::FCity& A, const MarketCountry::FCity& B) { return A.PopulationK > B.PopulationK; });
+        const int32 PerCity = Arch(static_cast<EArchetype>(G.Archetype)).Weight > 5.f ? 3 : 12;
+        for (int32 K = 0; K < FMath::Min(6, Big.Num()); ++K) SpotOf(Arm, Big[K]->Id).Stores = PerCity;
+        Arm.bForSale = true; Arm.bExitSale = true; Arm.TurnDay = Day;
+        MonthlyBooks(State, Arm, Day);
+        Arm.Cash = 0;
+        R.Chains.Add(Arm);
+        const int32 Index = R.Chains.Num() - 1;
+        News.Add(FString::Printf(TEXT("D\u00fcnya devi %s, %s pazar\u0131ndan \u00e7ekiliyor: %d ma\u011faza ucuza sat\u0131l\u0131k (%s). O \u00fclkeye haz\u0131r ma\u011fazalarla girmenin yolu."),
+            *G.Name, *Pack.Name, MarketChains::TotalStores(Arm), *MarketCountry::Money(MarketChains::Price(State, Index))));
+    }
+
     void Giants(FMarketState& State, int32 Day, FNews& News)
     {
         FMarketChainsState& R = State.Rivals;
@@ -922,13 +1209,15 @@ namespace MarketChainsLocal
         TArray<FString> Ours = R.Countries;
         for (FMarketGiant& G : R.Giants)
         {
+            GiantExits(State, G, Day, News);
             const float Swing = (Roll(State, Hash(G.Id), static_cast<uint32>(Day)) - 0.5f) * 0.03f;
             G.RevenueB = FMath::Max(1.f, G.RevenueB * (1.f + G.Growth + Swing));
             // Entering one of our countries (not its home, not twice): rare, and more likely where the market grows.
             for (const FString& Country : Ours)
             {
                 if (G.Countries.Contains(Country)) continue;
-                const bool bHasArm = R.Chains.ContainsByPredicate([&G, &Country](const FMarketChain& C) { return !C.bGone && C.Country == Country && C.Home == G.Id; });
+                const bool bHasArm = R.Chains.ContainsByPredicate([&G, &Country](const FMarketChain& C) { return !C.bGone && !C.bOurs && C.Country == Country && C.Home == G.Id; });
+                if (R.Chains.ContainsByPredicate([&G, &Country](const FMarketChain& C) { return !C.bGone && C.bExitSale && C.Country == Country && C.Home == G.Id; })) continue; // leaving it
                 if (bHasArm) { G.Countries.Add(Country); continue; }
                 if (Day < 6 * 365 || Roll(State, Hash(G.Id) ^ Hash(Country), static_cast<uint32>(Day)) > 0.04f) continue;
                 const MarketCountry::FProfile* Pack = MarketCountry::Find(Country);
@@ -958,7 +1247,7 @@ namespace MarketChainsLocal
         int32 Best = INDEX_NONE;
         float Top = 40.f;
         for (int32 I = 0; I < R.Chains.Num(); ++I)
-            if (!R.Chains[I].bGone && R.Chains[I].Rivalry >= Top) { Top = R.Chains[I].Rivalry; Best = I; }
+            if (!R.Chains[I].bGone && !R.Chains[I].bOurs && R.Chains[I].Rivalry >= Top) { Top = R.Chains[I].Rivalry; Best = I; }
         const FString Id = Best != INDEX_NONE ? R.Chains[Best].Id : FString();
         if (Id == R.Nemesis) return;
         const FString Before = R.Nemesis;
@@ -1018,7 +1307,9 @@ void MarketChains::CloseDay(FMarketState& State)
     for (int32 I = 0; I < State.Rivals.Chains.Num(); ++I)
     {
         if (State.Rivals.Chains[I].bGone) continue;
-        if (Day - State.Rivals.Chains[I].TurnDay >= TurnDays) Turn(State, I, Day, News);
+        if (Day - State.Rivals.Chains[I].TurnDay < TurnDays) continue;
+        if (State.Rivals.Chains[I].bOurs) OwnedTurn(State, I, Day, News); // M30
+        else Turn(State, I, Day, News);
     }
     Giants(State, Day, News);
     Nemesis(State, News);
@@ -1031,6 +1322,7 @@ FString MarketChains::Describe(const FMarketState& State, int32 ChainIndex)
     const FMarketChain& C = State.Rivals.Chains[ChainIndex];
     FString Line = FString::Printf(TEXT("%s \u00b7 %s \u00b7 %d ma\u011faza \u00b7 y\u0131ll\u0131k ciro %s"), *C.Name, *ArchetypeName(static_cast<EArchetype>(C.Archetype)),
         TotalStores(C), *MarketCountry::Money(YearRevenue(State, ChainIndex)));
+    if (C.bOurs) Line += FString::Printf(TEXT(" \u00b7 BA\u011eLI \u015e\u0130RKET\u0130M\u0130Z (ayl\u0131k sonu\u00e7 %s)"), *MarketCountry::Money(C.MonthProfit));
     if (C.Id == State.Rivals.Nemesis) Line += TEXT(" \u00b7 ezeli rakip");
     if (!C.WarProvince.IsEmpty() && State.Day <= C.WarUntil) Line += FString::Printf(TEXT(" \u00b7 %s'da sana kar\u015f\u0131 fiyat sava\u015f\u0131nda"), *MarketChainsLocal::CityName(C.Country, C.WarProvince));
     if (C.bForSale) Line += FString::Printf(TEXT(" \u00b7 SATILIK (%s)"), *MarketCountry::Money(Price(State, ChainIndex)));

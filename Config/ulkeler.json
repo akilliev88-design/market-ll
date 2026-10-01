@@ -70,6 +70,7 @@
           "day": 29
         }
       ],
+      "banks": ["Esnaf Kredi Bankası", "Anadolu Ticaret Bankası", "Boğaziçi Yatırım Bankası", "Kalkınma ve Yatırım Bankası"],
       "names": {
         "first": [
           "Ayşe",
@@ -436,6 +437,7 @@
           "days": 2
         }
       ],
+      "banks": ["Stadtsparkasse Lindenau", "Hansa Handelsbank", "Rheinische Investitionsbank", "Förderbank Mittelland"],
       "names": {
         "first": [
           "Anna",
@@ -692,6 +694,7 @@
           "days": 2
         }
       ],
+      "banks": ["Thamesmoor Building Society", "Albion Commercial Bank", "Northgate Investment Bank", "Enterprise Development Bank"],
       "names": {
         "first": [
           "Oliver",
@@ -935,6 +938,7 @@
           "days": 1
         }
       ],
+      "banks": ["Main Street Savings", "Lakeshore National Bank", "Hudson Capital Bank", "Federal Development Bank"],
       "names": {
         "first": [
           "James",

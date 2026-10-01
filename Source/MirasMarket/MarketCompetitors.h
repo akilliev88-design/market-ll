@@ -11,7 +11,7 @@
 //    brings more or fewer shoppers through the door (TrafficFactor).
 //  - The shopper's idea of "the rival's price" for a product is the share-weighted price of the open rivals
 //    (RivalPriceFactor), including their campaigns and our local rival's price wars.
-//  - Bereket Market (fictional, same street): proud and touchy. Loses share to us -> gets angry -> starts a
+//  - the family market across the street (MarketCast::RivalShop, named from the country): proud and touchy. Loses share to us -> gets angry -> starts a
 //    price war on the aisle we sell most; the war costs him money; when the money is gone he gives up and raises
 //    prices. Real chains only do ordinary business (prices, campaigns, openings): B\u0130M is always cheap, Migros is
 //    dearer with better service, A101 opens on day 15 and pushes hard for a month, \u015eok arrives in summer 2011.
@@ -44,7 +44,7 @@ namespace MarketCompetitors
     bool Sells(ECompany Company, const FString& Category);
     // Open on a given game day (opening day, market day).
     bool IsOpenOn(const FMarketState& State, ECompany Company, int32 GameDay);
-    // A "rival.*" decision (MarketEvents::Decide): buying Bereket Market when it is for sale.
+    // A "rival.*" decision (MarketEvents::Decide): buying the neighbour market when it is for sale.
     bool Resolve(FMarketState& State, const TArray<FMarketProduct>& Products, const FMarketDecision& Decision, int32 Option, FString& OutMessage);
     constexpr int32 SaleAfterRedDays = 30;
     constexpr int64 BereketPrice2011 = 600000;   // 6.000 TL: goods, fittings, the name (x price level)

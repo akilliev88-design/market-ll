@@ -18,6 +18,12 @@ namespace MarketCountry
         return Profile;
     }
 
+    int32& ActiveSeedRef()
+    {
+        static int32 Seed = 0;
+        return Seed;
+    }
+
     ECharacter CharacterOf(const FString& Text)
     {
         if (Text == TEXT("istikrarli") || Text == TEXT("stable")) return ECharacter::Stable;
@@ -130,6 +136,7 @@ bool MarketCountry::Parse(const FString& Json, TArray<FProfile>& OutProfiles, TA
             (*Names)->TryGetStringArrayField(TEXT("first"), P.FirstNames);
             (*Names)->TryGetStringArrayField(TEXT("last"), P.LastNames);
         }
+        O->TryGetStringArrayField(TEXT("banks"), P.Banks); // M30
         O->TryGetStringArrayField(TEXT("relatives"), P.Relatives);
         const TArray<TSharedPtr<FJsonValue>>* Cities = nullptr;
         if (O->TryGetArrayField(TEXT("provinces"), Cities) || O->TryGetArrayField(TEXT("cities"), Cities))
@@ -313,6 +320,7 @@ void MarketCountry::SetActive(const FString& Id, int32 Seed)
 void MarketCountry::SetActiveProfile(const FProfile& Profile, int32 Seed)
 {
     ActiveRef() = Profile;
+    ActiveSeedRef() = Seed;
     ApplyEconomy(Profile, Seed);
 }
 
@@ -413,4 +421,9 @@ int64 MarketCountry::ToWorld(const FMarketState& State, const FString& CountryId
     const FProfile* Pack = Find(Id);
     const double Scale = Pack ? Pack->DisplayScale : 1.0;
     return FMath::RoundToInt64(static_cast<double>(Internal) * Scale / FMath::Max(0.0001, FxRate(State, Id, GameDay)));
+}
+
+int32 MarketCountry::ActiveSeed()
+{
+    return ActiveSeedRef();
 }

@@ -19,6 +19,7 @@
 #include "MarketBrands.h"
 #include "MarketSourcing.h"
 #include "MarketDepartments.h"
+#include "MarketBanking.h"
 #include "Framework/Application/SlateApplication.h"
 #include "GameFramework/PlayerController.h"
 #include "Kismet/GameplayStatics.h"
@@ -461,6 +462,12 @@ const TArray<FMarketTodo>& AMarketGameMode::Todos() const
             break;
         }
     }
+    // M28: the banks.
+    if (MarketBanking::CovenantBroken(State))
+        Add(2, TEXT("Bor\u00e7 s\u0131n\u0131r\u0131 a\u015f\u0131ld\u0131"), TEXT("Bor\u00e7 FAV\u00d6K'\u00fcn 3,5 kat\u0131n\u0131 ge\u00e7ti: faiz pahaland\u0131, yeni kredi yok. \u00dc\u00e7 ay s\u00fcrerse banka borcun bir k\u0131sm\u0131n\u0131 geri ister. Borcu azalt ya da k\u00e2r\u0131 art\u0131r."), SMarketMenu::Finance);
+    else if (MarketBanking::DueSoon(State) > State.Cash + (State.Banking.bLine && State.Banking.bLineAuto ? State.Banking.LineLimit - State.Banking.LineDrawn : 0))
+        Add(1, TEXT("Banka taksitleri kasay\u0131 a\u015f\u0131yor"), FString::Printf(TEXT("30 g\u00fcn i\u00e7inde %s taksit var, kasada %s. Kredi limiti a\u00e7mak ya da yap\u0131land\u0131rmak notu korur."),
+            *MarketCountry::Money(MarketBanking::DueSoon(State)), *MarketCountry::Money(State.Cash)), SMarketMenu::Finance);
     // C3 (B6): the goal closest to done, with the page that moves it.
     MarketGoals::FGoalView Goal;
     if (MarketGoals::NextGoal(State, Goal))

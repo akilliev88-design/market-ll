@@ -3,6 +3,7 @@
 #include "MarketManagers.h"
 #include "MarketStaff.h"
 #include "MarketGoods.h"
+#include "MarketFinance.h"
 #include "Misc/AutomationTest.h"
 
 #if WITH_DEV_AUTOMATION_TESTS
@@ -188,6 +189,37 @@ bool FMarketBranchesTest::RunTest(const FString& Parameters)
     TestTrue(TEXT("Close"), MarketBranches::Close(S, Products, 0, Message));
     TestTrue(TEXT("Deposit back"), S.Cash > CashBefore && !S.bSecondStore);
 
+    return true;
+}
+
+IMPLEMENT_SIMPLE_AUTOMATION_TEST(FMarketRescueTest, "MirasMarket.Finance.RescuePlan", EAutomationTestFlags::EditorContext | EAutomationTestFlags::EngineFilter)
+bool FMarketRescueTest::RunTest(const FString& Parameters)
+{
+    // M31: sixty days in the red and the bank's plan closes the losing branch and turns the hole into a long loan.
+    using namespace MarketBranchesTest;
+    const TArray<FMarketProduct> Products = Catalog();
+    FMarketState S; S.Initialize(Products); S.RivalSeed = 12; S.Cash = 5000000;
+    S.InheritedDebt = 0; S.ProfitableDays = 5; S.MarketShare = 40.f;
+    S.CountryId = TEXT("tr"); S.CityId = TEXT("kirklareli");
+    FString Message;
+    TestTrue(TEXT("Open a branch"), MarketBranches::Open(S, Products, TEXT("tr"), TEXT("kirklareli"), TEXT("mahalle"), Message));
+    for (int32 D = 0; D < 20 && S.Branches[0].Stage != static_cast<uint8>(MarketBranches::EStage::Open); ++D) Close(S, Products);
+    TestEqual(TEXT("Open"), S.Branches[0].Stage, static_cast<uint8>(MarketBranches::EStage::Open));
+
+    S.Branches[0].Last30Profit = -100000;
+    S.Cash = -800000;
+    S.NegativeCashDays = MarketFinance::RescueDays - 1;
+    S.TroubleStage = 5;
+    const int32 LoansBefore = S.Loans.Num();
+    S.DayNews.Reset();
+    MarketFinance::CloseDay(S, Products);
+    TestEqual(TEXT("One rescue"), S.Rescues, 1);
+    TestEqual(TEXT("The losing branch closed"), S.Branches[0].Stage, static_cast<uint8>(MarketBranches::EStage::Closed));
+    TestTrue(TEXT("A rescue loan"), S.Loans.Num() == LoansBefore + 1 && S.Loans.Last().Principal > 600000);
+    TestTrue(TEXT("Working capital"), S.Cash >= MarketFinance::RescueWorkingCapital);
+    TestTrue(TEXT("Money to fill the shelves"), S.Cash > 0);
+    TestTrue(TEXT("The ladder starts over"), S.NegativeCashDays == 0 && S.TroubleStage == 0);
+    TestTrue(TEXT("Told"), S.DayNews.ContainsByPredicate([](const FString& Line) { return Line.Contains(TEXT("kurtarma")); }));
     return true;
 }
 

@@ -23,6 +23,7 @@
 #include "MarketBrands.h"
 #include "MarketSourcing.h"
 #include "MarketDepartments.h"
+#include "MarketBanking.h"
 
 float MarketDirector::TrafficFactor(const FMarketState& State, const TArray<FString>& Aisles)
 {
@@ -256,6 +257,38 @@ bool MarketDirector::Command(FMarketState& State, const TArray<FMarketProduct>& 
     if (Action == TEXT("ReplaceMasters")) // M26: Arg = department
         return MarketDepartments::ReplaceWeakMasters(State, static_cast<MarketDepartments::EDept>(FMath::Clamp(Arg, 0, MarketDepartments::DeptCount)), OutMessage);
     if (Action == TEXT("BuyChain")) return MarketChains::Buy(State, Products, Arg, OutMessage); // Arg = State.Rivals.Chains index (Akis C2b)
+    if (Action == TEXT("BidChain")) return MarketChains::Bid(State, Products, Arg, OutMessage); // M29: a takeover bid
+    if (Action == TEXT("ConvertStores")) return MarketChains::Convert(State, Products, Arg / 100, Arg % 100, OutMessage); // M30: chain x 100 + count
+    if (Action == TEXT("SellSubsidiary")) return MarketChains::SellSubsidiary(State, Arg, OutMessage);
+    if (Action == TEXT("BuyChainFinanced") || Action == TEXT("BidChainFinanced")) // M29: the shortfall from a bank, then the deal
+    {
+        const bool bBid = Action == TEXT("BidChainFinanced");
+        if (bBid ? !MarketChains::CanBid(State, Arg, OutMessage, false) : !MarketChains::CanBuy(State, Arg, OutMessage, false)) return false;
+        const int64 Cost = bBid ? MarketChains::BidPrice(State, Arg) : MarketChains::Price(State, Arg);
+        FString Loan;
+        // A refused bid needs no loan; a deal that goes through needs the cost and a twentieth to keep the stores running.
+        if ((!bBid || MarketChains::WouldAccept(State, Arg)) && State.Cash < Cost + Cost / 20
+            && !MarketBanking::FinanceAcquisition(State, Cost + Cost / 20 - State.Cash, MarketChains::YearProfit(State, Arg), Loan))
+        {
+            OutMessage = Loan;
+            return false;
+        }
+        const bool bDone = bBid ? MarketChains::Bid(State, Products, Arg, OutMessage) : MarketChains::Buy(State, Products, Arg, OutMessage);
+        if (!Loan.IsEmpty()) OutMessage = Loan + TEXT(" ") + OutMessage;
+        return bDone;
+    }
+    if (Action == TEXT("CorpLoan")) // M28: Arg = MarketBanking::EncodeLoan
+    {
+        int32 BankIndex = 0, Step = 0, Tenor = 0;
+        bool bGrace = false;
+        if (!MarketBanking::DecodeLoan(Arg, BankIndex, Step, Tenor, bGrace)) { OutMessage = TEXT("B\u00f6yle bir se\u00e7enek yok."); return false; }
+        return MarketBanking::Borrow(State, BankIndex, Step, Tenor, bGrace, OutMessage);
+    }
+    if (Action == TEXT("RepayCorpLoan")) return MarketBanking::Repay(State, Arg, OutMessage);
+    if (Action == TEXT("Restructure")) return MarketBanking::Restructure(State, Arg, OutMessage);
+    if (Action == TEXT("OpenLine")) return MarketBanking::OpenLine(State, OutMessage);
+    if (Action == TEXT("LineAuto")) return MarketBanking::SetLineAuto(State, Arg != 0, OutMessage);
+    if (Action == TEXT("RepayLine")) return MarketBanking::RepayLine(State, OutMessage);
     if (Action == TEXT("VisitBranch")) return MarketBranches::Visit(State, Products, Arg, OutMessage); // A4 calls it when a visit starts (C3)
     if (Action == TEXT("Difficulty")) return MarketSimulation::SetDifficulty(State, Arg, OutMessage);
     if (Action == TEXT("PandemicProfile"))
@@ -265,7 +298,7 @@ bool MarketDirector::Command(FMarketState& State, const TArray<FMarketProduct>& 
         OutMessage = State.Online.bPandemic ? TEXT("Salg\u0131n d\u00f6nemi (10. ve 11. y\u0131l) oyunda olacak.") : TEXT("Salg\u0131n d\u00f6nemi (10. ve 11. y\u0131l) oyunda olmayacak.");
         return true;
     }
-    if (Action == TEXT("DeclineOffer")) { MarketPromotions::DeclineOffer(State); OutMessage = TEXT("Selim'in teklifi geri \u00e7evrildi."); return true; }
+    if (Action == TEXT("DeclineOffer")) { MarketPromotions::DeclineOffer(State); OutMessage = TEXT("Toptanc\u0131n\u0131n teklifi geri \u00e7evrildi."); return true; }
     OutMessage = FString::Printf(TEXT("Bilinmeyen karar: %s"), *Action.ToString());
     return false;
 }
@@ -303,6 +336,7 @@ void MarketDirector::CloseDay(FMarketState& State, const TArray<FMarketProduct>&
     MarketStaff::CloseDay(State);     // till, fatigue, morale, notices, HR, accountant and the weekly tax (G-060)
     MarketEvents::CloseDay(State, Products); // decisions past their day, modifiers, snow, a new neighbourhood event (G-066)
     MarketStory::CloseDay(State, Products);  // scenes, milestones, chapters (G-066)
+    MarketBanking::CloseDay(State);           // M28: company loans, the credit line (covers a negative till first), rating, covenants
     MarketFinance::CloseDay(State, Products); // loans, the money trouble ladder, month-end report (G-067)
     MarketCompany::TrackNationalRevenue(State); // B1 (#45): national share by revenue, after every revenue is in
     MarketLedger::EndClose(State);              // B2: the audit (till change = cash entries)

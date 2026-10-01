@@ -75,7 +75,7 @@ bool FMarketCompetitorsTest::RunTest(const FString& Parameters)
     TestTrue(TEXT("Bereket's milk is 15 % cheaper"), PriceIndex(S, ECompany::Bereket, TEXT("s\u00fct"), Aisles) < 0.9f);
     TestTrue(TEXT("Shoppers see cheaper milk elsewhere"), RivalPriceFactor(S, TEXT("s\u00fct"), Aisles) < RivalPriceFactor(S, TEXT("i\u00e7ecek"), Aisles));
     bool bTold = false;
-    for (const FString& Line : S.DayNews) if (Line.StartsWith(TEXT("Bereket Market sana cevap"))) bTold = true;
+    for (const FString& Line : S.DayNews) if (Line.StartsWith(DisplayName(ECompany::Bereket) + TEXT(" sana cevap"))) bTold = true;
     TestTrue(TEXT("War announced"), bTold);
     for (int32 D = 0; D < MarketCompetitors::WarDays; ++D) Play(S, Products, Aisles, 40, 5);
     TestTrue(TEXT("The war ends"), PriceIndex(S, ECompany::Bereket, TEXT("s\u00fct"), Aisles) > 0.95f);

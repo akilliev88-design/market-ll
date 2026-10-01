@@ -246,6 +246,24 @@ bool MarketBranches::DecodeSite(int32 Arg, FString& OutCountry, FString& OutProv
     return true;
 }
 
+int64 MarketBranches::MonthlyFixedCost(const FMarketState& State, const FString& Country, const FString& Province, const FString& Format)
+{
+    const double Level = MarketPrices::ListLevel(State.Day);
+    const FFormat& Kind = FormatInfo(Format);
+    FMarketBranch Probe;
+    Probe.Country = Country.IsEmpty() ? State.CountryId : Country;
+    Probe.Province = Province;
+    Probe.Format = Kind.Id;
+    MarketStoreViews::PreviewTo(State, Probe);
+    const FSite Site = SiteOf(State, Probe);
+    const MarketStoreAssign::FStoreMeasures Measures = MarketStoreViews::MeasuresOf(Probe);
+    const int64 Rent = FMath::RoundToInt64(MonthlyRent(Site, Kind, Level) * MarketStoreAssign::RentFactor(Measures, Kind.Id));
+    // The same lines as the branch's day (CloseDay): a middling cashier per worker and a store manager.
+    const int64 Wages = MarketStoreAssign::WorkersFor(Measures, Kind.Id) * MarketStaff::FairWage(MarketStaff::ERole::Cashier, 50, State.Day) + MarketStaff::FairWage(MarketStaff::ERole::HrManager, 55, State.Day) * 9 / 10;
+    const int64 Running = FMath::RoundToInt64(1500 * Level * Kind.Running);
+    return Rent + 30 * (Wages + MarketStaff::EmployerShare(Wages) + Running);
+}
+
 int64 MarketBranches::OpeningCost(const FMarketState& State, const TArray<FMarketProduct>& Products, const FString& Country, const FString& Province, const FString& Format)
 {
     const double Level = MarketPrices::ListLevel(State.Day);

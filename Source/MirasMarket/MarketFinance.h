@@ -5,13 +5,18 @@
 
 // Money beyond the till (G-067, Docs/Kurgu/00_KURGU_KITABI.md \u00a711). Independent of the world, tested
 // (MirasMarket.Finance.*).
-//  - Trakya Bankas\u0131 (fictional): a 12-month loan, limit from the last 30 days' profit plus the family name; the
+//  - the country's local bank (MarketCast::Bank(0), fictional): a 12-month loan, limit from the last 30 days' profit plus the family name; the
 //    interest follows the year (MarketPrices::LoanRate). Installments every 30 days are paid from the till; the
 //    interest is a finance cost of that day; early repayment costs 1 %.
 //  - The money trouble ladder. There is no game over: cash below zero at a day close starts it, and every step is
 //    told before it happens. 1 day: warning. 3 days: the wholesaler closes the payment terms. 7 days: a choice
 //    (an emergency loan at a high rate, or sell the depot at half price). 14 days: the depot is sold at half price.
 //    30 days: the bank offers a mortgage on the family shop's deed. Positive cash ends the trouble.
+//  - Karar M31 (Mustafa 01.10.2026): no zombie company. 45 days: the bank announces a rescue plan. 60 days: the plan
+//    runs (Rescue): subsidiaries are sold, losing branches close (the worst first; stock to the depot or sold off,
+//    deposits back), managers with nothing left to run leave unpaid, and when no branch is left the family shop
+//    keeps at most two workers. What is still missing becomes a long rescue loan (36 months, dearer with every
+//    rescue), so the shop can buy goods again. The game goes on: back to the family shop, a lesson learned.
 //  - The family lives from the shop: every evening 30 TL (x the minimum wage index) goes home; half of it when
 //    the till is tight and nothing when it is empty. It is not a business cost (the day's net stays), only cash.
 //  - At every month end a short report: revenue, net result, money taken home, cash, what customers owe, what
@@ -46,6 +51,15 @@ namespace MarketFinance
     void CloseDay(FMarketState& State, const TArray<FMarketProduct>& Products);
     // Money the family takes home tonight at this cash level.
     int64 HouseholdToday(const FMarketState& State);
+    // M31: the bank's rescue plan.
+    constexpr int32 RescueWarnDays = 45;
+    constexpr int32 RescueDays = 60;
+    constexpr int32 RescueMonths = 36;
+    constexpr double RescueRateBonus = 0.08;      // yearly, on top of the year's rate; +4 points for every earlier rescue
+    constexpr int32 RescueKeepStaff = 2;
+    constexpr int64 RescueWorkingCapital = 100000; // 1 000 TL at the start level: enough to fill the shelves again
+    // Runs the plan now (the ladder calls it at RescueDays); returns the lines told to the player.
+    TArray<FString> Rescue(FMarketState& State, const TArray<FMarketProduct>& Products);
     // A "finance.*" decision (called by MarketEvents::Decide).
     bool Resolve(FMarketState& State, const TArray<FMarketProduct>& Products, const FMarketDecision& Decision, int32 Option, FString& OutMessage);
 }

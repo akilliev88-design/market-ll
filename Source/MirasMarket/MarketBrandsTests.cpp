@@ -35,6 +35,7 @@ namespace MarketBrandsTest
         FMarketState S; S.Initialize(Products);
         S.RivalSeed = 5; S.Day = 1; S.Cash = 10000000; S.CountryId = TEXT("tr"); S.CityId = TEXT("kirklareli");
         S.Stock[0].Capacity = 10; S.Stock[1].Capacity = 0; S.Stock[2].Capacity = 30;
+        for (FMarketStock& Item : S.Stock) Item.Shelf = FMath::Max(Item.Shelf, 5); // C3: only a stocked shelf counts
         return S;
     }
 
@@ -84,6 +85,22 @@ bool FMarketBrandsSharesTest::RunTest(const FString& Parameters)
     TestTrue(TEXT("and charges more"), MarketBrands::CostFactor(S, TEXT("Lider")) > 1.f);
     TestTrue(TEXT("Aisle line"), MarketBrands::AisleLine(S, Products, Milk).Contains(TEXT("Lidur")));
 
+    MarketBrands::ResetTable();
+    return true;
+}
+
+IMPLEMENT_SIMPLE_AUTOMATION_TEST(FMarketBrandsEmptyShelfTest, "MirasMarket.Brands.EmptyShelfEarnsNothing", EAutomationTestFlags::EditorContext | EAutomationTestFlags::EngineFilter)
+bool FMarketBrandsEmptyShelfTest::RunTest(const FString& Parameters)
+{
+    // C3 (A istek): an allocated but empty shelf is no shelf for a brand.
+    using namespace MarketBrandsTest;
+    Table();
+    const TArray<FMarketProduct> Products = Catalog();
+    FMarketState S = Start(Products);
+    const FString Milk = TEXT("s\u00fct");
+    const float Stocked = MarketBrands::ShelfShare(S, Products, TEXT("Lider"), Milk);
+    S.Stock[0].Shelf = 0; S.Stock[0].Warehouse = 0;
+    TestTrue(TEXT("The empty shelf does not count"), MarketBrands::ShelfShare(S, Products, TEXT("Lider"), Milk) < Stocked);
     MarketBrands::ResetTable();
     return true;
 }

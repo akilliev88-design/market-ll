@@ -70,6 +70,9 @@ private:
     int32 PromoDays = 7;
     bool bWeekTab = false;          // Raporlar: false = day report, true = week report
     bool bRecordsTab = false;       // C3 (B6): Raporlar \u203a Rekorlar
+    int32 LoanStep = 3;             // M28: Finans \u203a \u015firket finans\u0131: %25/%50/%75/%100 of the offer
+    int32 LoanTenor = 1;            // 24 / 36 / 60 months
+    bool bLoanGrace = false;        // six months of interest only
     int32 LedgerPeriod = 1;         // C3 (B2): Finans \u203a gelir tablosu: 0 d\u00fcn, 1 bu hafta, 2 bu ay, 3 bu y\u0131l
     int32 RivalScope = 0;           // Rakipler: 0 local, 1 national, 2 international
     int32 BranchTab = 0;            // Magazalar: 0 shops, 1 company, 2 management (G-086b)
@@ -225,6 +228,7 @@ private:
     TSharedRef<SWidget> GoalsCard();      // C3 (B6): three goals and the last celebrations
     TSharedRef<SWidget> RecordsView();    // C3 (B6): records and celebrations
     TSharedRef<SWidget> LedgerCards();    // C3 (B2, B4): income statement, balance sheet, the audit, the era
+    TSharedRef<SWidget> BankingCard();    // M28: rating, banks, company loans, the credit line
     // Pages (MarketMenuPages.cpp)
     TSharedRef<SWidget> PricesPage();
     TSharedRef<SWidget> PromotionsPage();

@@ -12,6 +12,8 @@ namespace MarketMenuUi
     FSlateFontInfo MenuFont(bool bBold, int32 Size);
     // 1234.5 TL -> "1.234,50 TL"
     FString Tl(int64 Kurus);
+    // C3 (A istek 1): a narrow card's amount: whole lira from 10 000, "1,2 milyon" from a million (Tl stays the full sum).
+    FString TlShort(int64 Kurus);
     FLinearColor Hex(const TCHAR* Code, float Alpha = 1.f);
     // "sut" -> "Sut", "icecek" -> "Icecek" with the Turkish dotted capital I.
     FString Title(const FString& Text);

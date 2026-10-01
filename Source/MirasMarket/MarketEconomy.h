@@ -565,6 +565,10 @@ struct FMarketChain
     UPROPERTY() int32 WarUntil = 0;
     UPROPERTY() int32 WarsLost = 0;
     UPROPERTY() uint8 GoneReason = 0;   // C3: 1 closed (bankrupt), 2 bought by a rival, 3 bought by us
+    UPROPERTY() int32 BidDay = 0;       // M29: our last takeover bid it refused
+    UPROPERTY() bool bOurs = false;     // M30: bought, runs as our subsidiary under its own name
+    UPROPERTY() int32 OursSince = 0;
+    UPROPERTY() bool bExitSale = false; // M30: a giant leaving the country sells its arm cheap
     UPROPERTY() int32 RedTurns = 0;      // monthly turns in a row deep in the red
     UPROPERTY() bool bForSale = false;
     UPROPERTY() int32 ForSaleTurns = 0;
@@ -605,6 +609,8 @@ struct FMarketChainsState
     UPROPERTY() int32 Closures = 0;       // C3 counters for the reports: chains closed, bought by rivals, bought by us
     UPROPERTY() int32 Takeovers = 0;
     UPROPERTY() int32 OurBuys = 0;
+    UPROPERTY() int32 ConvertMonthDay = 0; // M30: stores of subsidiaries turned into our branches this month
+    UPROPERTY() int32 ConvertedInMonth = 0;
     UPROPERTY() int32 LeagueRank = 0;            // 0 = not ranked yet
     UPROPERTY() int32 BestLeagueRank = 0;
     UPROPERTY() int32 NationalRank = 0;
@@ -663,6 +669,47 @@ struct FMarketBrandsState
 };
 
 // Akis C2c / G-083 (MarketSourcing.h): where each supply line buys from. Older saves: every line local.
+// Karar M28: a company loan from a bank (MarketBanking.h).
+USTRUCT()
+struct FMarketCorpLoan
+{
+    GENERATED_BODY()
+    UPROPERTY() int32 Id = 0;
+    UPROPERTY() uint8 Bank = 0;          // MarketBanking::Bank index (4 = bond)
+    UPROPERTY() uint8 Kind = 0;          // MarketBanking::EKind
+    UPROPERTY() int64 Principal = 0;
+    UPROPERTY() int64 Balance = 0;       // principal still owed (+ late fees)
+    UPROPERTY() float YearRate = 0.f;
+    UPROPERTY() int32 Months = 0;
+    UPROPERTY() int32 PaidMonths = 0;
+    UPROPERTY() int32 Grace = 0;         // months of interest only at the start
+    UPROPERTY() int32 StartDay = 0;
+    UPROPERTY() int32 NextDueDay = 0;
+    UPROPERTY() int64 Installment = 0;   // after the grace (a bond: the monthly interest)
+    UPROPERTY() int32 LateSince = 0;     // 0 = on time
+};
+
+// Karar M28: the company's banking (MarketBanking.h).
+USTRUCT()
+struct FMarketBankingState
+{
+    GENERATED_BODY()
+    UPROPERTY() TArray<FMarketCorpLoan> Loans;
+    UPROPERTY() bool bLine = false;
+    UPROPERTY() bool bLineAuto = true;
+    UPROPERTY() int64 LineLimit = 0;
+    UPROPERTY() int64 LineDrawn = 0;
+    UPROPERTY() int32 LineDueDay = 0;
+    UPROPERTY() uint8 Rating = 2;        // MarketBanking::ERating (B until the first month)
+    UPROPERTY() int32 LastRatingDay = 0;
+    UPROPERTY() TArray<int32> LateDays;  // days an installment was missed (the last 365 count)
+    UPROPERTY() int32 BreachMonths = 0;
+    UPROPERTY() int32 RestructuredUntil = 0;
+    UPROPERTY() int32 DevelopmentYear = 0; // the development bank's yearly loan
+    UPROPERTY() int32 NextLoanId = 1;
+    UPROPERTY() int64 InterestPaid = 0;
+};
+
 // Karar M26: departments per store type and their price stance (MarketDepartments.h). Older saves: none.
 USTRUCT()
 struct FMarketDepartmentsState
@@ -810,6 +857,7 @@ struct FMarketState
     // Bank and the money trouble ladder (MarketFinance.h).
     UPROPERTY() TArray<FMarketLoan> Loans;
     UPROPERTY() int32 NegativeCashDays = 0;
+    UPROPERTY() int32 Rescues = 0;          // M31: the bank's rescue plans so far (MarketFinance::Rescue)
     // The family lives from the shop: money taken home this month (MarketFinance, not a business cost).
     UPROPERTY() int64 MonthHousehold = 0;
     UPROPERTY() int32 TroubleStage = 0;
@@ -825,6 +873,7 @@ struct FMarketState
     // G-083: supply lines and their tiers (MarketSourcing.h).
     UPROPERTY() FMarketSourcingState Sourcing;
     UPROPERTY() FMarketDepartmentsState Departments; // karar M26 (MarketDepartments.h)
+    UPROPERTY() FMarketBankingState Banking; // karar M28 (MarketBanking.h)
     // Online orders and payment methods (MarketOnline.h, MarketPayments.h).
     UPROPERTY() FMarketOnline Online;
     UPROPERTY() FMarketPayments Payments;

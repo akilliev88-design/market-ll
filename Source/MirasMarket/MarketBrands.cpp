@@ -59,12 +59,13 @@ namespace MarketBrandsLocal
     }
 
     // Shelf capacity of every catalog product over the family shop and the live branches (branch items are in the
-    // catalog's order; a changed catalog falls back to a search).
+    // catalog's order; a changed catalog falls back to a search). C3 (A istek): only a shelf with the goods on it
+    // counts: an empty allocated shelf earns a brand nothing.
     TArray<int32> Capacities(const FMarketState& State, const TArray<FMarketProduct>& Products)
     {
         TArray<int32> Cap;
         Cap.Init(0, Products.Num());
-        for (int32 I = 0; I < Products.Num(); ++I) if (State.Stock.IsValidIndex(I)) Cap[I] += FMath::Max(0, State.Stock[I].Capacity);
+        for (int32 I = 0; I < Products.Num(); ++I) if (State.Stock.IsValidIndex(I) && State.Stock[I].Shelf + State.Stock[I].Warehouse > 0) Cap[I] += FMath::Max(0, State.Stock[I].Capacity);
         for (const FMarketBranch& B : State.Branches)
         {
             if (B.Stage == static_cast<uint8>(MarketBranches::EStage::Closed)) continue;
@@ -72,7 +73,7 @@ namespace MarketBrandsLocal
             {
                 const FMarketBranchItem* Item = B.Items.IsValidIndex(I) && B.Items[I].ProductId == Products[I].Id ? &B.Items[I]
                     : B.Items.FindByPredicate([&Products, I](const FMarketBranchItem& It) { return It.ProductId == Products[I].Id; });
-                if (Item) Cap[I] += FMath::Max(0, Item->Capacity);
+                if (Item && Item->Units > 0) Cap[I] += FMath::Max(0, Item->Capacity);
             }
         }
         return Cap;

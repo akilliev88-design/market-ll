@@ -138,7 +138,7 @@ bool FMarketStoryTest::RunTest(const FString& Parameters)
     for (int32 D = 0; D < 6; ++D) { S.Decisions.Reset(); Close(S, Products, 30000); }
     TestEqual(TEXT("Chapter 2"), S.Story.Chapter, 2);
 
-    // Kadir Bey's offer comes from day 10.
+    // The neighbour's offer comes from day 10.
     for (int32 D = 0; D < 4 && !S.Decisions.ContainsByPredicate([](const FMarketDecision& X) { return X.Id == TEXT("story.sell"); }); ++D)
     {
         S.Decisions.RemoveAll([](const FMarketDecision& X) { return X.Id.StartsWith(TEXT("event.")); });

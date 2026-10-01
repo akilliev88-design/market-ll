@@ -5,6 +5,7 @@
 #include "MarketCountry.h"
 #include "MarketCredit.h"
 #include "MarketDepartments.h"
+#include "MarketBanking.h"
 #include "MarketFinance.h"
 #include "MarketPrices.h"
 #include "MarketSuppliers.h"
@@ -299,7 +300,7 @@ MarketLedger::FBalance MarketLedger::Balance(const FMarketState& State, const TA
     B.CardReceivable = State.Payments.CardToday + State.Payments.CardTomorrow;
     B.CreditReceivable = MarketCredit::Outstanding(State);
     B.Payables = MarketSuppliers::OpenBills(State);
-    B.Loans = MarketFinance::Debt(State);
+    B.Loans = MarketFinance::Debt(State) + MarketBanking::Debt(State); // M28: company loans and the credit line
     B.TaxDue = State.Books.TaxDue;
     B.InheritedDebt = State.InheritedDebt;
     return B;

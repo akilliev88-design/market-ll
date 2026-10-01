@@ -1,4 +1,5 @@
 #include "MarketCompetitors.h"
+#include "MarketCast.h"
 #include "MarketCountry.h"
 #include "MarketCalendar.h"
 #include "MarketGoods.h"
@@ -62,7 +63,7 @@ const MarketCompetitors::FProfile& MarketCompetitors::Profile(ECompany Company)
 {
     static const FProfile Profiles[static_cast<int32>(ECompany::Count)] =
     {
-        { TEXT("Bereket Market"), TEXT("mahalle marketi"), 1.00f, 0.90f, 1.30f, 1, 150000, INDEX_NONE },
+        { TEXT("Mahalle marketi"), TEXT("mahalle marketi"), 1.00f, 0.90f, 1.30f, 1, 150000, INDEX_NONE },
         // C3 (L12, A5): the same fictional names as the national roster (MarketChains).
         { TEXT("B\u0130N"), TEXT("indirim marketi"), 0.93f, 0.80f, 1.00f, 1, 50000000, 0 },
         { TEXT("Migron"), TEXT("s\u00fcpermarket"), 1.03f, 1.10f, 0.80f, 1, 50000000, 1 },
@@ -93,6 +94,7 @@ namespace MarketCompetitors
 
 FString MarketCompetitors::DisplayName(ECompany Company)
 {
+    if (Company == ECompany::Bereket) return MarketCast::RivalShop(); // M30: the family market next door, named from the country
     // Config/zincirler.json is read once: {"useFictional": bool, "chains":[{"id","real","fictional"}]}.
     static TMap<FString, FString> Fictional;
     static bool bLoaded = false, bUseFictional = false;
@@ -309,7 +311,7 @@ void MarketCompetitors::CloseDay(FMarketState& State, const TArray<FMarketProduc
     for (FMarketCompetitor& C : State.Competitors)
         C.Share = RivalTotal > 0.f && C.Company < Attr.Num() ? RivalPart * Attr[C.Company] / RivalTotal : 0.f;
 
-    // 2. Bereket Market: pride, anger, price wars, money.
+    // 2. The neighbour market (internal id Bereket): pride, anger, price wars, money.
     if (FMarketCompetitor* B = FindMutable(State, ECompany::Bereket); B && !(B->Told & ToldSold))
     {
         const float OurShare = State.MarketShare / 100.f;
@@ -322,7 +324,7 @@ void MarketCompetitors::CloseDay(FMarketState& State, const TArray<FMarketProduc
         if (bAtWar) B->Cash -= 3000;
         if (!bAtWar && !B->WarCategory.IsEmpty())
         {
-            News.Add(FString::Printf(TEXT("Bereket Market %s reyonundaki indirimi bitirdi."), *B->WarCategory));
+            News.Add(FString::Printf(TEXT("%s %s reyonundaki indirimi bitirdi."), *MarketCast::RivalShop(), *B->WarCategory));
             B->WarCategory.Reset();
         }
         if (!bAtWar && B->Anger >= 40.f && B->Cash >= 20000 && State.Day >= B->WarCooldownUntil)
@@ -339,23 +341,23 @@ void MarketCompetitors::CloseDay(FMarketState& State, const TArray<FMarketProduc
                 B->WarUntil = State.Day + WarDays - 1;
                 B->WarCooldownUntil = B->WarUntil + 10;
                 B->Anger = FMath::Max(0.f, B->Anger - 30.f);
-                News.Add(FString::Printf(TEXT("Bereket Market sana cevap verdi: %s reyonunda %%%d indirim (%d g\u00fcn). Kadir Bey mahallede \"yeni \u00e7ocuk fiyatlar\u0131 bozuyor\" diyor."),
-                    *Best, WarPercent, WarDays));
+                News.Add(FString::Printf(TEXT("%s sana cevap verdi: %s reyonunda %%%d indirim (%d g\u00fcn). %s mahallede \"yeni \u00e7ocuk fiyatlar\u0131 bozuyor\" diyor."),
+                    *MarketCast::RivalShop(), *Best, WarPercent, WarDays, *MarketCast::RivalOwner()));
             }
         }
         if (B->Cash < 0 && !(B->Told & ToldStruggling))
         {
             B->Told |= ToldStruggling;
             B->Service = FMath::Max(0.6f, B->Service - 0.15f);
-            News.Add(TEXT("Mahallede konu\u015fuluyor: Bereket Market toptanc\u0131ya bor\u00e7lanm\u0131\u015f, raflar\u0131 seyreldi."));
+            News.Add(FString::Printf(TEXT("Mahallede konu\u015fuluyor: %s toptanc\u0131ya bor\u00e7lanm\u0131\u015f, raflar\u0131 seyreldi."), *MarketCast::RivalShop()));
         }
         if (B->Cash < 0 && !(B->Told & ToldRaised))
         {
             B->Told |= ToldRaised;
             B->BaseIndex = 1.05f;
-            News.Add(TEXT("Bereket Market fiyatlar\u0131n\u0131 art\u0131rd\u0131; sava\u015fa dayanacak paras\u0131 kalmad\u0131."));
+            News.Add(FString::Printf(TEXT("%s fiyatlar\u0131n\u0131 art\u0131rd\u0131; sava\u015fa dayanacak paras\u0131 kalmad\u0131."), *MarketCast::RivalShop()));
         }
-        // G-079 (karar E03): a month without money and Kadir Bey puts the shop up for sale. Recovering resets it.
+        // G-079 (karar E03): a month without money and its owner puts the shop up for sale. Recovering resets it.
         B->RedDays = B->Cash < 0 ? B->RedDays + 1 : 0;
         if (B->Cash >= 0 && (B->Told & ToldRaised) && B->Share > 0.2f) { B->BaseIndex = 1.f; B->Told &= ~ToldRaised; B->Service = FMath::Min(0.9f, B->Service + 0.05f); }
         if (B->RedDays >= SaleAfterRedDays && !(B->Told & ToldForSale) && !MarketStory::StoryClosed(State))
@@ -364,9 +366,9 @@ void MarketCompetitors::CloseDay(FMarketState& State, const TArray<FMarketProduc
             const int64 Price = MarketPrices::Scaled(BereketPrice2011, Closed);
             FMarketDecision D;
             D.Id = TEXT("rival.bereket");
-            D.Title = TEXT("Bereket Market sat\u0131l\u0131k");
-            D.Text = FString::Printf(TEXT("Kadir Bey'in o\u011flu geldi: \"Babam yoruldu. D\u00fckk\u00e2n\u0131, mal\u0131yla raf\u0131yla sana verelim, %s.\" Al\u0131rsan Bereket kapan\u0131r, m\u00fc\u015fterileri sokakta sana kal\u0131r."),
-                *MarketCountry::Money(Price / 100 * 100));
+            D.Title = FString::Printf(TEXT("%s sat\u0131l\u0131k"), *MarketCast::RivalShop());
+            D.Text = FString::Printf(TEXT("%s geldi: \"Yoruldum. D\u00fckk\u00e2n\u0131, mal\u0131yla raf\u0131yla sana verelim, %s.\" Al\u0131rsan %s kapan\u0131r, m\u00fc\u015fterileri sokakta sana kal\u0131r."),
+                *MarketCast::RivalOwner(), *MarketCountry::Money(Price / 100 * 100), *MarketCast::RivalShop());
             D.Options = { FString::Printf(TEXT("Sat\u0131n al (%s)"), *MarketCountry::Money(Price)), FString(TEXT("Almayaca\u011f\u0131m")) };
             D.DefaultOption = 1;
             D.Deadline = State.Day + 6;
@@ -502,7 +504,7 @@ bool MarketCompetitors::Resolve(FMarketState& State, const TArray<FMarketProduct
     FMarketCompetitor* B = FindMutable(State, ECompany::Bereket);
     if (Option != 0 || !B)
     {
-        OutMessage = TEXT("Bereket Market'i almad\u0131n. Kadir Bey d\u00fckk\u00e2n\u0131 ba\u015fka birine satmay\u0131 deneyecek.");
+        OutMessage = FString::Printf(TEXT("D\u00fckk\u00e2n\u0131 almad\u0131n. %s ba\u015fka bir al\u0131c\u0131 arayacak."), *MarketCast::RivalOwner());
         if (B) { B->Told &= ~ToldForSale; B->RedDays = 0; B->Cash = 0; } // someone keeps it going for a while
         return true;
     }
@@ -512,7 +514,7 @@ bool MarketCompetitors::Resolve(FMarketState& State, const TArray<FMarketProduct
     MarketLedger::Post(State, MarketLedger::EAccount::Investment, -Price, true, MarketLedger::HeadOfficeStore); // C3 (B2): Bereket bought
     B->Told |= ToldSold;
     B->Share = 0.f;
-    MarketStory::AddMemory(State, TEXT("Bereket Market'i sat\u0131n ald\u0131n; sokakta tek bakkal kald\u0131n"));
-    OutMessage = TEXT("Bereket Market art\u0131k kapal\u0131. M\u00fc\u015fterileri yava\u015f yava\u015f sana ge\u00e7ecek; Kadir Bey sana elini uzatt\u0131.");
+    MarketStory::AddMemory(State, FString::Printf(TEXT("%s sat\u0131n al\u0131nd\u0131; sokakta tek bakkal kald\u0131n"), *MarketCast::RivalShop()));
+    OutMessage = FString::Printf(TEXT("%s art\u0131k kapal\u0131. M\u00fc\u015fterileri yava\u015f yava\u015f sana ge\u00e7ecek; %s sana elini uzatt\u0131."), *MarketCast::RivalShop(), *MarketCast::RivalOwner());
     return true;
 }

@@ -5,8 +5,9 @@
   "chains": [
     {
       "id": "bereket",
-      "real": "Bereket Market",
-      "fictional": "Bereket Market",
+      "real": "Mahalle marketi",
+      "fictional": "Mahalle marketi",
+      "nameFrom": "MarketCast::RivalShop (M30: ulkenin soyadlarindan)",
       "color": "#8C5A2B",
       "archetype": "family",
       "scope": "yerel",

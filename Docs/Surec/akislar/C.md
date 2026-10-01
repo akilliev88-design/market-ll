@@ -1,7 +1,7 @@
 # Akış C — Claude (Cowork)
 
 ## Kaldığım yer
-C3 bağlama yazıldı, **derlenmedi** (01.10.2026). Sırada: Codex derleme + test + smoke + uzun bot (`Docs/Surec/promptlar/codex_c3_dogrulama.md`); sonra rapordaki ayarlar ve şirket finansı (yatırım kredisi) tasarımı.
+C3 Codex'te derlendi ve doğrulandı (1fa3806: 126/126, defter farkı 0, derleme düzeltmesi 0). Üstüne **M28–M31 + C3 istekleri** yazıldı, **derlenmedi** (01.10.2026): şirket finansı, rakibe teklif, bağlı şirket ve devlerin çıkışı, ülkeye göre adlar, bankanın kurtarma planı (M31), marka parası yalnız dolu rafa, menü istekleri 1–3, kutlama satırı. Sırada: Codex C4 (`Docs/Surec/promptlar/codex_c4_finans_dogrulama.md`): derleme + test (133) + bot yeni komutlarla, şube başına kâr dökümüyle; sonra denge (şube ekonomisi, lig ölçeği).
 
 ## Yapılanlar
 - **C1 · Mağaza görünümü şubenin hesabına** (yeni `MarketStoreViews.h/.cpp`): `Config/magazalar.json` bir kez `MarketStoreKit::Parse` ile kendi kopyamıza okunur (kitin yüklü şablonlarına dokunulmaz). Şube imzalanınca (il, tür) için görünüm seçilir (`MarketStoreAssign::Assign`, `FMarketState::StoreViews`'a kaydedilir; yurt dışında ülke + tür başına bir görünüm) ve ölçüleri şubeye kopyalanır (`FMarketBranch::StoreView`, `View*` alanları).
@@ -32,6 +32,15 @@ C3 bağlama yazıldı, **derlenmedi** (01.10.2026). Sırada: Codex derleme + tes
   - **Açık kalanlar:** harita renk anahtarı; il müdürü kasadan çalınca simülasyonu durduran bayrak (A isteği); kıdem tazminatı defterde "reklam ve diğer" satırında görünüyor (`OtherCosts` yolu); `MarketRetail` tablosu hâlâ gerçek adlı (menüde kullanılmıyor).
 - **#19** kampanya adedi istismarı: mağazanın çekiciliği kampanya sayısıyla değil derinlik × genişlikle, doygun eğriyle (`MarketCompetitors::OurAttraction`).
 - **#41** gecikme faizi tavanı: fatura başına en çok 5 gün (%10 kadar), sonra yalnız haftalık güven düşüşü ve hatırlatma (`MarketSuppliers`).
+- **M28 · Şirket finansı** (`MarketBanking`): aylık kredi notu (A+…D, her parçası bir satır), ülkenin dört bankası + tahvil, 24/36/60 ay yatırım kredisi (6 ay yalnız faiz seçeneği), kredi limiti (eksi kasayı kapatır), borç sınırı 3,5×FAVÖK (aşılırsa +2 puan, 3 ayda geri çağırma), yapılandırma, erken ödeme. Finans sekmesinde banka kartı; borç toplamları (defter, final, bot) şirket borcunu sayar.
+- **M29 · Rakibe teklif:** satılık olmayan zincire teklif (yıllık ciro × sağlık), kabul olasılığı ölçek/kasa/kızgınlıkla; ret 180 gün bekletir. Kasada eksik kalan satın alma kredisiyle (`FinanceAcquisition`).
+- **M30 · Bağlı şirket ve çıkışlar** (`MarketChains`): 20 mağazaya kadar zincir şube olur, büyüğü `bOurs` bağlı şirket (kendi defteri `OwnedTurn`, kârı kasaya, payı ve sırası bize). Ayda 20 mağaza çevirme, bağlı şirketi satma. Devlerin yıllık çıkışı (satılık kol, 6 aylık ciro), boş ülkeye satın almayla giriş. Şirket sekmesinde "SATIN ALMA VE BAĞLI ŞİRKETLER" kartı.
+- **M30 · Ülkeye göre adlar** (yeni `MarketCast`): bankalar `ulkeler.json` `banks`; toptancı, satıcı, nakit-taşı toptancısı, komşu aile marketi ve sahibi etkin ülkenin ad/soyadlarından tohumla. `ESupplier::TrakyaGida/Ozdemir` → `Family/CashCarry`. Hikâye, rakip, finans, olay ve menü metinlerinden Trakya Bankası, Trakya Gıda/Selim, Bereket Market/Kadir Bey kalktı (iç kimlik `ECompany::Bereket` kaldı).
+- **C3 doğrulamasından sonra (01.10.2026):**
+  - **M31 kurtarma planı** (`MarketFinance::Rescue`): 45. gün uyarı, 60. gün bağlı şirket satışı, zarar eden şubelerin kapanması, yöneticilerin ayrılması (şube kalmadıysa), aile dükkânında 2 çalışan, kalan açık + 1.000 TL × fiyat düzeyi 36 aylık kredi. Codex'in "kasa -73 milyon, 30 yıl sıfır ciro" bulgusunun çözümü.
+  - Şube açma sorusunda aylık sabit gider (`MarketBranches::MonthlyFixedCost`).
+  - Marka: boş raf sayılmaz (`MarketBrands` `Capacities` yalnız mal olan raf; test `Brands.EmptyShelfEarnsNothing`).
+  - Menü: gelir tablosu ve bilançoda kısa tutar + alt satırda tam tutar (`MarketMenuUi::TlShort`); harita katman tepsisi zaman hapının altına; şube müdürü satırı kendi satırında; kutlama satırı son 30 gün, tarihli, yıldız yerine nokta.
 - Özel marka ("Miras") marka yarışına henüz girmedi: katalogda Miras ürünü yok (ürün kararı Mustafa/Codex).
 
 ## Doğrulama

@@ -11,11 +11,11 @@
 //  3 \u0130kinci Tabela     second shop, an HR manager, an accountant (the shop runs without you)
 //  4-7                 \u0130ller, \u00dclke \u00c7ap\u0131nda, S\u0131n\u0131r \u00d6tesi, Miras: goals of the branch/company systems (G-086)
 // Scenes: Nermin teyze's welcome (day 1) and her complaint when there is no milk; Cem, the father's apprentice,
-// asks for a job (day 2 pool); Selim's visit (day 3); Kadir Bereketo\u011flu's taunt (day 5); Kadir's offer to buy the
+// asks for a job (day 2 pool); the wholesaler's salesman (day 3); the neighbour market owner's taunt (day 5); his offer to buy the
 // shop (from day 10 or when the debt closes). Continuing asks for the shop's identity:
 //  Mahallenin Bakkal\u0131   loyal regulars forgive a little more; staples and milk sell a bit better
 //  Kaliteli Yerel       shoppers accept higher prices; better goods cost 4 % more
-//  H\u0131zl\u0131 \u0130ndirim        4 % cheaper purchases and a little more traffic, but price-hunting shoppers; Bereket is furious
+//  H\u0131zl\u0131 \u0130ndirim        4 % cheaper purchases and a little more traffic, but price-hunting shoppers; the neighbour is furious
 namespace MarketStory
 {
     enum class EIdentity : uint8 { None = 0, Bakkal, Kaliteli, Indirim };
@@ -37,7 +37,7 @@ namespace MarketStory
     TArray<FObjective> Objectives(const FMarketState& State);
     FString IdentityName(EIdentity Identity);
     void AddMemory(FMarketState& State, const FString& Text);
-    // What Kadir Bey offers for the business today (not the building: that stays in the family).
+    // What the neighbour market offers for the business today (not the building: that stays in the family).
     int64 SaleOffer(const FMarketState& State, const TArray<FMarketProduct>& Products);
 
     // Day close: scenes, milestones and the next chapter (news in State.DayNews). Call after the staff's day close

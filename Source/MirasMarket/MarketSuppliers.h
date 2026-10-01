@@ -8,18 +8,18 @@
 //  - Prices: the catalog's cost and list price are start-level values (M24); the game uses them x MarketPrices::ListLevel, which
 //    moves on the 1st of every month (the wholesaler's "zam listesi"). The rival's shelf price follows the same
 //    list, so a player who does not pass the rise on sells cheaper than the rivals but earns less.
-//  - Trakya G\u0131da Da\u011f\u0131t\u0131m (Selim): the father's wholesaler. Pays in cash at first; trust grows with orders and
+//  - The father's wholesaler (named from the country, MarketCast::Wholesaler; its man MarketCast::Salesman). Cash at first; trust grows with orders and
 //    payments on time and brings 7, then 14 days of payment terms; monthly volume brings a 3-5 % discount.
-//  - \u00d6zdemir Toptan (fictional): from day 14, 4 % cheaper, but three times the missing/broken goods and no terms.
+//  - A cash-and-carry (MarketCast::CashCarry): from day 14, 4 % cheaper, but three times the missing/broken goods and no terms.
 //  - A late payment costs trust, closes the terms and adds a 2 % late fee.
 namespace MarketSuppliers
 {
-    enum class ESupplier : uint8 { TrakyaGida = 0, Ozdemir = 1, Count };
+    enum class ESupplier : uint8 { Family = 0, CashCarry = 1, Count };
 
     struct FInfo
     {
-        const TCHAR* Name = TEXT("");
-        const TCHAR* Contact = TEXT("");
+        FString Name;                // M30: from the country pack (MarketCast)
+        FString Contact;
         float BaseDiscount = 0.f;
         uint32 DeliveryRisk = 1;     // x missing/damaged odds of the v0.1 delivery (FMarketState::CloseDay)
         int32 UnlockDay = 1;
@@ -33,7 +33,7 @@ namespace MarketSuppliers
     constexpr float LateFee = 0.02f;
     constexpr int32 LateFeeDays = 5;   // #41: the late fee runs five days at most (about 10 %), then only the trust suffers
 
-    const FInfo& Info(ESupplier Supplier);
+    FInfo Info(ESupplier Supplier);
     ESupplier Current(const FMarketState& State);
     const FMarketSupplierAccount* FindAccount(const FMarketState& State, ESupplier Supplier);
     FMarketSupplierAccount& Account(FMarketState& State, ESupplier Supplier);

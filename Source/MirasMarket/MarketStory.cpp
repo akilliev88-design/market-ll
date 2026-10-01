@@ -1,4 +1,5 @@
 #include "MarketStory.h"
+#include "MarketCast.h"
 #include "MarketGoals.h"
 #include "MarketDepots.h"
 #include "MarketStart.h"
@@ -65,7 +66,7 @@ namespace MarketStory
     void OfferIdentity(FMarketState& State)
     {
         MarketEvents::Offer(State, StoryDecision(State, TEXT("story.identity"), TEXT("D\u00fckk\u00e2n\u0131n kimli\u011fi"),
-            TEXT("Kadir Bey'e hay\u0131r dedin. \u015eimdi d\u00fckk\u00e2n\u0131n ne olaca\u011f\u0131na karar ver. Hi\u00e7biri her ko\u015fulda \u00fcst\u00fcn de\u011fil; rakipler de buna g\u00f6re davranacak."),
+            FString::Printf(TEXT("Kom\u015fu marketin (%s) teklifini geri \u00e7evirdin. \u015eimdi d\u00fckk\u00e2n\u0131n ne olaca\u011f\u0131na karar ver. Hi\u00e7biri her ko\u015fulda \u00fcst\u00fcn de\u011fil; rakipler de buna g\u00f6re davranacak."), *MarketCast::RivalShop()),
             { FString(TEXT("Mahallenin Bakkal\u0131: samimiyet ve sadakat")), FString(TEXT("Kaliteli Yerel: iyi mal, iyi fiyat")), FString(TEXT("H\u0131zl\u0131 \u0130ndirim: ucuz al, ucuz sat, \u00e7ok sat")) },
             0, 3));
     }
@@ -113,7 +114,7 @@ TArray<MarketStory::FObjective> MarketStory::Objectives(const FMarketState& Stat
         Add(TEXT("\u0130\u015fletmenin borcunu kapat"), !MarketCampaign::DebtOpen(State));
         Add(TEXT("Yerel pay\u0131 %35'e \u00e7\u0131kar"), Has(State, BShare35));
         Add(FString::Printf(TEXT("15 m\u00fcdavim kazan (\u015fu an %d)"), Regulars(State)), Regulars(State) >= 15);
-        Add(TEXT("Kadir Bey'in teklifine cevap ver"), Has(State, BSellAnswered));
+        Add(TEXT("Kom\u015fu marketin teklifine cevap ver"), Has(State, BSellAnswered));
         break;
     case 3:
         Add(TEXT("\u0130kinci \u015fubeyi a\u00e7"), State.bSecondStore);
@@ -237,12 +238,12 @@ void MarketStory::CloseDay(FMarketState& State, const TArray<FMarketProduct>& Pr
     if (Closed >= 3 && !Has(State, BSelim))
     {
         Mark(State, BSelim);
-        News.Add(FString::Printf(TEXT("Selim (Trakya G\u0131da) u\u011frad\u0131: \"%s yirmi y\u0131l \u00e7al\u0131\u015ft\u0131k. D\u00fczenli al, zaman\u0131nda \u00f6de; vadeyi de iskontoyu da a\u00e7ar\u0131m.\""), *MarketStart::Relative(State, MarketStart::ECase::With, true)));
+        News.Add(FString::Printf(TEXT("Toptanc\u0131n\u0131n sat\u0131\u015f\u00e7\u0131s\u0131 %s (%s) u\u011frad\u0131: \"%s yirmi y\u0131l \u00e7al\u0131\u015ft\u0131k. D\u00fczenli al, zaman\u0131nda \u00f6de; vadeyi de iskontoyu da a\u00e7ar\u0131m.\""), *MarketCast::Salesman(), *MarketCast::Wholesaler(), *MarketStart::Relative(State, MarketStart::ECase::With, true)));
     }
     if (Closed >= 5 && !Has(State, BKadir))
     {
         Mark(State, BKadir);
-        News.Add(TEXT("Kadir Bereketo\u011flu kap\u0131n\u0131n \u00f6n\u00fcnden ge\u00e7erken durdu: \"Bu sokak iki bakkala dar gelir, delikanl\u0131. G\u00f6r\u00fcr\u00fcz.\""));
+        News.Add(FString::Printf(TEXT("Kar\u015f\u0131daki %s sahibi %s kap\u0131n\u0131n \u00f6n\u00fcnden ge\u00e7erken durdu: \"Bu sokak iki bakkala dar gelir, delikanl\u0131. G\u00f6r\u00fcr\u00fcz.\""), *MarketCast::RivalShop(), *MarketCast::RivalOwner()));
     }
     if (Closed >= 7 && Has(State, BCem) && !Has(State, BCemGone) && !CemOnStaff(State) &&
         !State.Candidates.ContainsByPredicate([](const FMarketEmployee& E) { return E.Id == CemCandidateId; }))
@@ -275,13 +276,13 @@ void MarketStory::CloseDay(FMarketState& State, const TArray<FMarketProduct>& Pr
     if (State.bSecondStore && !Has(State, BSecondStore)) { Mark(State, BSecondStore); AddMemory(State, TEXT("ikinci tabela as\u0131ld\u0131")); }
     if (Closed >= 7 && !Has(State, BFirstWeek)) { Mark(State, BFirstWeek); AddMemory(State, TEXT("ilk hafta bitti")); }
 
-    // Kadir Bey wants the shop.
+    // The neighbour (MarketCast::RivalOwner) wants the shop.
     if (State.Story.Chapter >= 2 && !Has(State, BSellOffered) && (State.Day >= 10 || !MarketCampaign::DebtOpen(State)))
     {
         Mark(State, BSellOffered);
         const int64 Offer = SaleOffer(State, Products);
-        MarketEvents::Offer(State, StoryDecision(State, TEXT("story.sell"), TEXT("Kadir Bey'in teklifi"),
-            FString::Printf(TEXT("Kadir Bereketo\u011flu \u00e7ay\u0131n\u0131 kar\u0131\u015ft\u0131r\u0131yor: \"D\u00fckk\u00e2n\u0131 bana devret. %s veririm, d\u00fckk\u00e2n\u0131n toptanc\u0131 borcunu da ben kapat\u0131r\u0131m. Bina senin kals\u0131n, kiras\u0131n\u0131 \u00f6derim.\""), *StoryTl(Offer)),
+        MarketEvents::Offer(State, StoryDecision(State, TEXT("story.sell"), TEXT("Kom\u015fu marketin teklifi"),
+            FString::Printf(TEXT("%s (%s) \u00e7ay\u0131n\u0131 kar\u0131\u015ft\u0131r\u0131yor: \"D\u00fckk\u00e2n\u0131 bana devret. %s veririm, d\u00fckk\u00e2n\u0131n toptanc\u0131 borcunu da ben kapat\u0131r\u0131m. Bina senin kals\u0131n, kiras\u0131n\u0131 \u00f6derim.\""), *MarketCast::RivalOwner(), *MarketCast::RivalShop(), *StoryTl(Offer)),
             { FString::Printf(TEXT("Satm\u0131yorum. Bu d\u00fckk\u00e2n %s."), *MarketStart::Relative(State, MarketStart::ECase::Mine)), FString::Printf(TEXT("Sat (%s)"), *StoryTl(Offer)) }, 0, 3, static_cast<int32>(FMath::Min<int64>(Offer, MAX_int32))));
     }
 
@@ -303,8 +304,8 @@ bool MarketStory::Resolve(FMarketState& State, const TArray<FMarketProduct>& Pro
         Mark(State, BSellAnswered);
         if (Option == 0)
         {
-            OutMessage = FString::Printf(TEXT("\"Bu d\u00fckk\u00e2n %s.\" Kadir Bey bir \u015fey demeden kalkt\u0131. Sokakta r\u00fczg\u00e2r de\u011fi\u015fti."), *MarketStart::Relative(State, MarketStart::ECase::Mine));
-            AddMemory(State, TEXT("Kadir Bey'e hay\u0131r dendi"));
+            OutMessage = FString::Printf(TEXT("\"Bu d\u00fckk\u00e2n %s.\" %s bir \u015fey demeden kalkt\u0131. Sokakta r\u00fczg\u00e2r de\u011fi\u015fti."), *MarketStart::Relative(State, MarketStart::ECase::Mine), *MarketCast::RivalOwner());
+            AddMemory(State, TEXT("kom\u015fu marketin teklifine hay\u0131r dendi"));
             OfferIdentity(State);
             // A proud neighbour does not forget a no.
             if (FMarketCompetitor* B = State.Competitors.FindByPredicate([](const FMarketCompetitor& C) { return C.Company == 0; })) B->Anger = FMath::Min(100.f, B->Anger + 15.f);
@@ -312,9 +313,9 @@ bool MarketStory::Resolve(FMarketState& State, const TArray<FMarketProduct>& Pro
         else
         {
             MarketEvents::Offer(State, StoryDecision(State, TEXT("story.aftersale"), TEXT("\u0130mza"),
-                TEXT("Noterde k\u00e2\u011f\u0131tlar haz\u0131r. \u0130mzalarsan d\u00fckk\u00e2n Bereket Market'in olur; sen de parayla yeni bir hayata ba\u015flars\u0131n. Bu oyunun sonlar\u0131ndan biri. \u0130stersen son anda vazge\u00e7ebilirsin."),
+                FString::Printf(TEXT("Noterde k\u00e2\u011f\u0131tlar haz\u0131r. \u0130mzalarsan d\u00fckk\u00e2n\u0131 %s devral\u0131r; sen de parayla yeni bir hayata ba\u015flars\u0131n. Bu oyunun sonlar\u0131ndan biri. \u0130stersen son anda vazge\u00e7ebilirsin."), *MarketCast::RivalShop()),
                 { FString(TEXT("Son anda vazge\u00e7, d\u00fckk\u00e2na d\u00f6n")), FString(TEXT("\u0130mzala: bu son olsun")) }, 0, 1, D.Arg));
-            OutMessage = TEXT("Kadir Bey'in eli uzand\u0131. Noter yar\u0131n.");
+            OutMessage = FString::Printf(TEXT("%s elini uzatt\u0131. Noter yar\u0131n."), *MarketCast::RivalOwner());
         }
         return true;
     }
@@ -322,7 +323,7 @@ bool MarketStory::Resolve(FMarketState& State, const TArray<FMarketProduct>& Pro
     {
         if (Option == 0)
         {
-            OutMessage = TEXT("Kalemi b\u0131rakt\u0131n. \"Olmaz, Kadir Bey.\" D\u00fckk\u00e2na d\u00f6nd\u00fcn.");
+            OutMessage = TEXT("Kalemi b\u0131rakt\u0131n. \"Olmaz, vazge\u00e7tim.\" D\u00fckk\u00e2na d\u00f6nd\u00fcn.");
             AddMemory(State, TEXT("noterden d\u00f6n\u00fcld\u00fc"));
             OfferIdentity(State);
             return true;
@@ -387,7 +388,7 @@ bool MarketStory::Resolve(FMarketState& State, const TArray<FMarketProduct>& Pro
             MarketEvents::AddModifier(State, EModifier::CostFactor, MarketEvents::AllGroups, 0.96f, State.Day, Forever, Source);
             MarketEvents::AddModifier(State, EModifier::Traffic, MarketEvents::AllGroups, 1.05f, State.Day, Forever, Source);
             if (FMarketCompetitor* B = State.Competitors.FindByPredicate([](const FMarketCompetitor& C) { return C.Company == 0; })) B->Anger = FMath::Min(100.f, B->Anger + 25.f);
-            OutMessage = TEXT("H\u0131zl\u0131 \u0130ndirim: al\u0131\u015flar %4 ucuz, biraz daha \u00e7ok m\u00fc\u015fteri; ama gelen m\u00fc\u015fteri fiyat avc\u0131s\u0131. Kadir Bey \u00e7ok sinirlendi.");
+            OutMessage = FString::Printf(TEXT("H\u0131zl\u0131 \u0130ndirim: al\u0131\u015flar %%4 ucuz, biraz daha \u00e7ok m\u00fc\u015fteri; ama gelen m\u00fc\u015fteri fiyat avc\u0131s\u0131. %s \u00e7ok sinirlendi."), *MarketCast::RivalOwner());
             break;
         }
         AddMemory(State, FString::Printf(TEXT("d\u00fckk\u00e2n\u0131n kimli\u011fi: %s"), *IdentityName(Identity)));

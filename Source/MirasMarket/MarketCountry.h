@@ -102,6 +102,7 @@ namespace MarketCountry
         TArray<FHoliday> Holidays;
         TArray<FString> FirstNames;
         TArray<FString> LastNames;
+        TArray<FString> Banks;          // M30: local, commercial, investment, development (ulkeler.json "banks")
         TArray<FString> Relatives;      // who left the shop ("teyzen", "aunt"...)
         TArray<FCity> Cities;           // G-086: the provinces (every one a possible start and store place)
         FString CitiesFile;             // province/map file, e.g. "iller.json" ("provinces"/"cities" given as a file name)
@@ -138,6 +139,8 @@ namespace MarketCountry
     void SetActive(const FString& Id, int32 Seed);
     // Test hook: make a parsed profile active without the file.
     void SetActiveProfile(const FProfile& Profile, int32 Seed);
+    // M30: the running campaign's seed (MarketCast names its people and firms from it).
+    int32 ActiveSeed();
 
     // "12,50 TL", "4,50 \u20ac", "\u00a34.00", "$5.00": an internal amount in the active currency.
     FString Money(int64 Internal);

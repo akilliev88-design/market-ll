@@ -57,10 +57,10 @@ bool FMarketPromotionsTest::RunTest(const FString& Parameters)
     TestEqual(TEXT("Discount over"), UnitPrice(S, Products, 0, 1), int64(250));
     TestFalse(TEXT("Stop needs a running one"), Stop(S, 99, Message));
 
-    // The wholesaler's funded offer comes when Selim trusts the shop.
+    // The wholesaler's funded offer comes when the wholesaler trusts the shop.
     FMarketState O; O.Initialize(Products); O.Cash = 100000; O.RivalSeed = 3;
     O.ApplyShelfCapacities({ 12, 12, 12 });
-    MarketSuppliers::Account(O, MarketSuppliers::ESupplier::TrakyaGida).Trust = 90;
+    MarketSuppliers::Account(O, MarketSuppliers::ESupplier::Family).Trust = 90;
     for (int32 D = 0; D < 80 && O.Offer.Product == INDEX_NONE; ++D) { O.DayNews.Reset(); O.CloseDay(); CloseDay(O, Products); }
     TestTrue(TEXT("An offer came"), O.Offer.Product != INDEX_NONE);
     const int32 Deal = O.Offer.Product;

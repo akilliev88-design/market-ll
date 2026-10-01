@@ -11,6 +11,7 @@
 #include "MarketStaff.h"
 #include "MarketEvents.h"
 #include "MarketFinance.h"
+#include "MarketBanking.h"
 #include "MarketSuppliers.h"
 #include "MarketPrices.h"
 #include "MarketCalendar.h"
@@ -235,7 +236,7 @@ namespace MarketAutoPlay
     {
         FRow Value;
         Value.Day = State.Day - 1; Value.Cash = State.Cash;
-        Value.Debt = State.InheritedDebt + MarketFinance::Debt(State) + MarketSuppliers::OpenBills(State) + State.Books.TaxDue;
+        Value.Debt = State.InheritedDebt + MarketFinance::Debt(State) + MarketBanking::Debt(State) + MarketSuppliers::OpenBills(State) + State.Books.TaxDue; // M28
         Value.Profit = State.LastProfit; Value.Revenue = State.LastRevenue;
         Value.Stores = MarketCompany::TotalStores(State); Value.Provinces = MarketCompany::Provinces(State);
         Value.Share = MarketCompany::NationalShare(State);

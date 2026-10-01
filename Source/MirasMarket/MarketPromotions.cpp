@@ -475,10 +475,10 @@ void MarketPromotions::CloseDay(FMarketState& State, const TArray<FMarketProduct
         News.Add(FString::Printf(TEXT("Maliyetin alt\u0131nda sat\u0131\u015f: %d adet, %s zarar (en \u00e7ok %s)."), State.Ledger.LastBelowCostUnits,
             *PromoTl(State.Ledger.LastBelowCostLoss), *(Products[WorstIndex].RealName.IsEmpty() ? Products[WorstIndex].Id : Products[WorstIndex].RealName)));
 
-    // The wholesaler's offer: expires after its deadline; a new one now and then when Selim trusts the shop.
+    // The wholesaler's offer: expires after its deadline; a new one now and then when the family wholesaler trusts the shop.
     if (State.Offer.Product != INDEX_NONE && State.Offer.EndDay < State.Day) State.Offer = FMarketPromotion();
-    const FMarketSupplierAccount* Selim = MarketSuppliers::FindAccount(State, MarketSuppliers::ESupplier::TrakyaGida);
-    if (State.Offer.Product == INDEX_NONE && State.Supplier == 0 && Selim && Selim->Trust >= OfferTrust &&
+    const FMarketSupplierAccount* Family = MarketSuppliers::FindAccount(State, MarketSuppliers::ESupplier::Family);
+    if (State.Offer.Product == INDEX_NONE && State.Supplier == 0 && Family && Family->Trust >= OfferTrust &&
         PromoMix(State.RivalSeed, Closed, 0x0FFE4u) % 10u == 0u)
     {
         TArray<int32> Carried;
@@ -492,7 +492,7 @@ void MarketPromotions::CloseDay(FMarketState& State, const TArray<FMarketProduct
             State.Offer.Category = Products[Product].Category;
             State.Offer.Percent = DealCostCut;
             State.Offer.EndDay = State.Day + 2; // answer within three days
-            News.Add(FString::Printf(TEXT("Selim'in teklifi: %s i\u00e7in %d g\u00fcn al\u0131\u015fta %%%d destek; kar\u015f\u0131l\u0131\u011f\u0131nda rafta %%%d indirim. %d. g\u00fcne kadar men\u00fcden kabul et."),
+            News.Add(FString::Printf(TEXT("Toptanc\u0131n\u0131n teklifi: %s i\u00e7in %d g\u00fcn al\u0131\u015fta %%%d destek; kar\u015f\u0131l\u0131\u011f\u0131nda rafta %%%d indirim. %d. g\u00fcne kadar men\u00fcden kabul et."),
                 *(Products[Product].RealName.IsEmpty() ? Products[Product].Id : Products[Product].RealName), DealDays, DealCostCut, DealShelfCut, State.Offer.EndDay));
         }
     }

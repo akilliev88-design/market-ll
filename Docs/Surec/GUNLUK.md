@@ -2,6 +2,14 @@
 
 En yeni giriş en üstte. Biçim: tarih — ajan — başlık, ardından **Yapılan**, **Doğrulama**, **Sıradaki**.
 
+## 01.10.2026 — Claude (Cowork) — M28–M31 ve C3 istekleri
+
+**Yapılan:** Codex'in C3 doğrulamasının (1fa3806) üstüne: M28 şirket finansı (`MarketBanking`), M29 rakibe teklif + satın alma kredisi, M30 bağlı şirket + devlerin çıkışı + ülkeye göre adlar (`MarketCast`; Trakya Bankası, Trakya Gıda/Selim, Bereket Market/Kadir Bey metinlerden kalktı), M31 bankanın kurtarma planı (zombi şirket bulgusu). C3 raporu istekleri: marka parası yalnız dolu rafa, finans kartlarında kısa tutar, harita katman tepsisi dock'un üstüne, müdür satırı ayrı satırda, kutlama satırı son 30 gün ve tarihli, şube açarken aylık sabit gider. Test.ps1 alt sınır 133.
+
+**Doğrulama:** Derlenmedi (bulut, Unreal yok). İki ayrı ajan okuması: M30'da 1 derleme hatası (`StoresOf` ön bildirimi) ve 2 mantık hatası, M31'de 1 test beklentisi, para birimi ölçeği ve katman tepsisi çakışması bulundu, düzeltildi. Betikler: ASCII, gölgeleme, argüman sayısı.
+
+**Sıradaki:** Codex C4 (`Docs/Surec/promptlar/codex_c4_finans_dogrulama.md`): derleme + test + bot yeni komutlarla, şube başına ilk 180 gün kâr dökümü; sonra şube ekonomisi ve lig ölçeği dengesi.
+
 ## 01.10.2026 — Codex — G-093 TV standı yüzey çakışması
 
 **Yapılan:** Mustafa sabitken TV raflarında titreme bildirdi. `check_tv_surfaces.py` eski Blender kaynaklarında podyumların gövde/tabla üst yüzleri ve duvar standının gövde/arka panel/yan kolonlarında aynı düzlemde örtüşen yüzler buldu. `create_tv_displays.py`: podyum gövdesi tabla altından 4 mm ayrıldı; duvar gövdesi/arka paneli kolonların arasına alındı, arka panel altı gövdeden ayrıldı, üst başlık ve ışık uçları farklı düzleme alındı. Gömülü raylar gövde dışında 4 mm açıklığa taşındı; `railFrontY` ve gerçek mesh sınırından metadata ölçüleri güncellendi. Üç kaynak/FBX/önizleme ve Unreal mesh yeniden üretildi. LED/parlama korunur; oyun Lumen ayarına dokunulmadı. Importer `-TVFixturesOnly` ile ürün mesh/ekran dokusunu yeniden yazmaz. Ekonomi/katalog/kayıt ve oturum başından gelen bekleyen klasörü değiştirilmedi.

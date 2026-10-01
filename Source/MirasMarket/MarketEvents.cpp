@@ -1,4 +1,5 @@
 #include "MarketEvents.h"
+#include "MarketCast.h"
 #include "MarketGoals.h"
 #include "MarketEras.h"
 #include "MarketCountry.h"
@@ -321,7 +322,7 @@ bool MarketEvents::Trigger(FMarketState& State, const TArray<FMarketProduct>& Pr
     {
         // Orders placed during the coming day arrive one day later than usual.
         State.DeliveryDelayDay = Tomorrow;
-        News.Add(TEXT("Selim arad\u0131: kamyon ar\u0131zaland\u0131. Yar\u0131n verece\u011fin sipari\u015f bir g\u00fcn ge\u00e7 gelir; depoyu ona g\u00f6re planla."));
+        News.Add(FString::Printf(TEXT("%s arad\u0131 (%s): kamyon ar\u0131zaland\u0131. Yar\u0131n verece\u011fin sipari\u015f bir g\u00fcn ge\u00e7 gelir; depoyu ona g\u00f6re planla."), *MarketCast::Salesman(), *MarketCast::Wholesaler()));
     }
     else return false;
     Log(State, Id);

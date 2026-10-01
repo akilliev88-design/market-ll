@@ -74,6 +74,23 @@ namespace MarketMenuUi
         return MarketCountry::Money(Kurus); // G-084: the active country\'s currency
     }
 
+    FString TlShort(int64 Kurus)
+    {
+        const double Lira = static_cast<double>(Kurus) * MarketCountry::Active().DisplayScale / 100.0; // the country's money, as Tl shows it
+        const double Size = FMath::Abs(Lira);
+        if (Size >= 1.0e9) return MarketCountry::Decorate(FString::Printf(TEXT("%.2f milyar"), Lira / 1.0e9).Replace(TEXT("."), TEXT(",")));
+        if (Size >= 1.0e6) return MarketCountry::Decorate(FString::Printf(TEXT("%.1f milyon"), Lira / 1.0e6).Replace(TEXT("."), TEXT(",")));
+        if (Size < 1.0e4) return MarketCountry::Money(Kurus);
+        const FString Digits = FString::Printf(TEXT("%lld"), static_cast<long long>(FMath::RoundToDouble(Size)));
+        FString Grouped;
+        for (int32 I = 0; I < Digits.Len(); ++I)
+        {
+            if (I > 0 && (Digits.Len() - I) % 3 == 0) Grouped.AppendChar(TEXT('.'));
+            Grouped.AppendChar(Digits[I]);
+        }
+        return MarketCountry::Decorate(Lira < 0.0 ? TEXT("-") + Grouped : Grouped);
+    }
+
     FLinearColor Hex(const TCHAR* Code, float Alpha)
     {
         FLinearColor Result(FColor::FromHex(Code));
@@ -1420,7 +1437,9 @@ TSharedRef<SWidget> SMarketMenu::GoalsCard()
             if (!G()) return FString();
             const TArray<FMarketCelebration> Last = MarketGoals::RecentCelebrations(G()->State, 2);
             TArray<FString> Lines;
-            for (const FMarketCelebration& C : Last) Lines.Add(FString::Printf(TEXT("\u2605 %s %s"), *C.Title, *C.Text));
+            // C3 (A): only the last month's (an old one under a later year confuses); the dot is in the font, the star was not.
+            for (const FMarketCelebration& C : Last)
+                if (G()->State.Day - C.Day <= 30) Lines.Add(FString::Printf(TEXT("\u00b7 %s: %s %s"), *MarketCalendar::DateText(C.Day), *C.Title, *C.Text));
             return FString::Join(Lines, TEXT("\n"));
         }, 9, ERole::Good, false, true) ]);
 }
@@ -1534,9 +1553,9 @@ TSharedRef<SWidget> SMarketMenu::OrdersPage()
                 + SHorizontalBox::Slot().FillWidth(1.f).VAlign(VAlign_Center)
                 [ Label([G] { return G() ? MarketSuppliers::Summary(G()->State) : FString(); }, 11, ERole::Text, false, true) ]
                 + SHorizontalBox::Slot().AutoWidth().VAlign(VAlign_Center).Padding(8.f, 0.f, 0.f, 0.f)
-                [ Button([G] { return FString(G() && G()->State.Supplier == 0 ? TEXT("\u00d6zdemir'e ge\u00e7") : TEXT("Selim'e d\u00f6n")); },
+                [ Button([G] { return FString(G() && G()->State.Supplier == 0 ? TEXT("Ucuz toptanc\u0131ya ge\u00e7") : TEXT("Eski toptanc\u0131ya d\u00f6n")); },
                     [Act, G] { if (G()) Act(TEXT("Supplier"), G()->State.Supplier == 0 ? 1 : 0); }, false,
-                    [G] { return G() && (G()->State.Supplier != 0 || MarketSuppliers::Available(G()->State, MarketSuppliers::ESupplier::Ozdemir)); }) ]
+                    [G] { return G() && (G()->State.Supplier != 0 || MarketSuppliers::Available(G()->State, MarketSuppliers::ESupplier::CashCarry)); }) ]
                 + SHorizontalBox::Slot().AutoWidth().VAlign(VAlign_Center).Padding(8.f, 0.f, 0.f, 0.f)
                 [ Button([] { return FString(TEXT("Faturalar\u0131 \u00f6de")); }, [Act] { Act(TEXT("PayBills"), 0); }, false, [G] { return G() && MarketSuppliers::OpenBills(G()->State) > 0; }) ]
                 + SHorizontalBox::Slot().AutoWidth().VAlign(VAlign_Center).Padding(8.f, 0.f, 0.f, 0.f)
