@@ -191,4 +191,51 @@ bool FMarketLedgerOldSaveTest::RunTest(const FString& Parameters)
     return true;
 }
 
+IMPLEMENT_SIMPLE_AUTOMATION_TEST(FMarketLedgerNewSystemsTest, "MirasMarket.Ledger.DepartmentsBrandsChains", EAutomationTestFlags::EditorContext | EAutomationTestFlags::EngineFilter)
+bool FMarketLedgerNewSystemsTest::RunTest(const FString& Parameters)
+{
+    using namespace MarketLedger;
+    // B7: the accounts C's systems post to (B.md lists the calls).
+    FMarketState S; S.Day = 12;
+    int64 Till = 0;
+    auto Move = [&S, &Till](EAccount Account, int64 Amount, int32 Store) { Till += Amount; Post(S, Account, Amount, true, Store); };
+    Move(EAccount::DepartmentFitOut, -500000, 0);       // a department opens in branch 0
+    Move(EAccount::DepartmentPurchases, -120000, 0);    // its goods
+    Move(EAccount::DepartmentSales, 30000, 0);          // its till
+    Post(S, EAccount::DepartmentCostOfGoods, -18000, false, 0);
+    Post(S, EAccount::DepartmentWaste, -1500, false, 0);
+    Move(EAccount::DepartmentMaster, -9000, 0);         // a new master
+    Move(EAccount::BrandShelfShare, 40000, HeadOfficeStore);
+    Move(EAccount::BrandListing, 15000, HeadOfficeStore);
+    Move(EAccount::BrandRebate, 6000, HeadOfficeStore);
+    Move(EAccount::SourcingFees, -2500, HeadOfficeStore);
+    Move(EAccount::ChainPurchase, -9000000, HeadOfficeStore);
+    Move(EAccount::StoreSale, 1200000, HeadOfficeStore);
+    Move(EAccount::DepartmentClearance, 50000, 0);      // the department closes: its stock sold off
+    Post(S, EAccount::DepartmentCostOfGoods, -80000, false, 0);
+    Move(EAccount::DepartmentFitOut, 20000, 0);         // its fittings
+
+    TestEqual(TEXT("The audit sees every cash move"), S.Ledger.CashPosted, Till);
+    const FStatement Day = DayStatement(S, 12);
+    TestEqual(TEXT("Revenue: department till, clearance and brand money"), Day.Revenue, int64(30000 + 50000 + 40000 + 15000 + 6000));
+    TestEqual(TEXT("Gross: department goods and waste"), Day.GrossProfit, Day.Revenue - 18000 - 1500 - 80000);
+    TestEqual(TEXT("Expenses: master and sourcing"), Day.Expenses, int64(-9000 - 2500));
+    TestEqual(TEXT("Investments and purchases are no profit"), Day.NetProfit, Day.Revenue - 18000 - 1500 - 80000 - 9000 - 2500);
+    TestEqual(TEXT("Cash change"), Day.CashChange, Till);
+    TestEqual(TEXT("A branch's department"), Statement(S, 12, 12, 0).Revenue, int64(80000));
+    TestTrue(TEXT("Balance movements"), !IsIncomeStatement(EAccount::DepartmentPurchases) && !IsIncomeStatement(EAccount::DepartmentFitOut)
+        && !IsIncomeStatement(EAccount::ChainPurchase) && !IsIncomeStatement(EAccount::StoreSale));
+    TestTrue(TEXT("Income statement"), IsIncomeStatement(EAccount::DepartmentSales) && IsIncomeStatement(EAccount::BrandRebate) && IsIncomeStatement(EAccount::SourcingFees));
+    TSet<FString> Names;
+    bool bNamed = true;
+    for (int32 A = 0; A < static_cast<int32>(EAccount::Count); ++A)
+    {
+        const FString Name = AccountName(static_cast<EAccount>(A));
+        bNamed &= !Name.IsEmpty() && Name != TEXT("?") && !Names.Contains(Name);
+        Names.Add(Name);
+    }
+    TestTrue(TEXT("Every account has its own name"), bNamed);
+    return true;
+}
+
 #endif

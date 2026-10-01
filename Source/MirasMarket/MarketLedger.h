@@ -118,6 +118,17 @@ namespace MarketLedger
         Tax,              // VAT and income tax as declared (no cash: TaxPayment pays it)
         BadDebt,          // credit book money that is gone
         BranchResult,     // a branch's net day when it is not booked line by line (the v0.1 second store)
+        // B7: C's new systems (departments, brands, sourcing). Income:
+        DepartmentSales,  // a department's till (Store = the store it is in)
+        DepartmentClearance, // a closing department's stock sold off (cash in; its book value goes to DepartmentCostOfGoods)
+        BrandShelfShare,  // a brand's monthly shelf-share payment
+        BrandListing,     // a brand's listing money (paid once the product is on a shelf)
+        BrandRebate,      // a brand's turnover rebate
+        // Costs:
+        DepartmentCostOfGoods, // book cost of department goods sold or cleared (no cash)
+        DepartmentWaste,  // department goods spoiled, broken or written off (no cash)
+        DepartmentMaster, // changing a department's master (notice, transfer, the new one's fee)
+        SourcingFees,     // supply line fees and the shortfall of a minimum purchase
         // Balance sheet movements (cash, no profit)
         Purchases,        // goods bought for cash (they become stock)
         SupplierCredit,   // bought on terms (+) and paid later (-)
@@ -131,6 +142,10 @@ namespace MarketLedger
         OwnerDraw,        // the family's living money
         InheritedDebt,    // paying the father's debt
         Capital,          // money put in (start help, a buyer's payment)
+        DepartmentPurchases, // goods bought for a department (they become its stock)
+        DepartmentFitOut, // opening or refitting a department (-), a closing one's fittings sold (+)
+        ChainPurchase,    // buying a rival chain (-)
+        StoreSale,        // its stores we cannot take, sold on (+)
         Unexplained,      // the audit's gap: money no system posted
         Count
     };
@@ -144,6 +159,10 @@ namespace MarketLedger
     FString AccountName(EAccount Account);
     // Part of the income statement (true) or a balance sheet movement (false).
     bool IsIncomeStatement(EAccount Account);
+    // Income statement groups: revenue (sales, online, other income, departments, brands) and the cost of the
+    // goods (cost of goods, waste, shrinkage, department goods and waste); everything else is an expense.
+    bool IsRevenue(EAccount Account);
+    bool IsGoodsCost(EAccount Account);
 
     // Books an entry. Amount: + money in / income, - money out / cost; bCash: the till moved by exactly Amount.
     // Between BeginClose and EndClose the entry belongs to the closed day. Zero amounts are not booked; entries of
@@ -161,8 +180,8 @@ namespace MarketLedger
         int32 FromDay = 0;
         int32 ToDay = 0;
         TArray<int64> ByAccount;         // index = EAccount
-        int64 Revenue = 0;               // sales + online + other income
-        int64 GrossProfit = 0;           // revenue - cost of goods - waste - shrinkage
+        int64 Revenue = 0;               // sales + online + other income + departments + brands
+        int64 GrossProfit = 0;           // revenue - cost of goods - waste - shrinkage (shop and departments)
         int64 Expenses = 0;              // every other cost (negative)
         int64 NetProfit = 0;
         int64 CashChange = 0;            // sum of the cash entries (profit and balance movements)
@@ -186,12 +205,13 @@ namespace MarketLedger
         int64 CardReceivable = 0;        // card money the bank still owes
         int64 CreditReceivable = 0;      // the credit book
         int64 Deposits = 0;              // rent deposits of open branches
+        int64 DepartmentStock = 0;       // B7: departments' goods (book cost; C3 fills it, see B.md)
         // Liabilities
         int64 Payables = 0;              // wholesalers' bills
         int64 Loans = 0;
         int64 TaxDue = 0;
         int64 InheritedDebt = 0;
-        int64 Assets() const { return Cash + Stock + BranchStock + CardReceivable + CreditReceivable + Deposits; }
+        int64 Assets() const { return Cash + Stock + BranchStock + DepartmentStock + CardReceivable + CreditReceivable + Deposits; }
         int64 Liabilities() const { return Payables + Loans + TaxDue + InheritedDebt; }
         int64 Equity() const { return Assets() - Liabilities(); }
     };

@@ -27,17 +27,18 @@ namespace MarketLedger
     void Summarize(FStatement& S)
     {
         const auto Get = [&S](EAccount A) { return S.At(A); };
-        S.Revenue = Get(EAccount::Sales) + Get(EAccount::OnlineSales) + Get(EAccount::OtherIncome);
-        S.GrossProfit = S.Revenue + Get(EAccount::CostOfGoods) + Get(EAccount::Waste) + Get(EAccount::Shrinkage);
+        S.Revenue = 0;
+        int64 GoodsCost = 0;
         S.Expenses = 0;
         for (int32 A = 0; A < AccountCount; ++A)
         {
             const EAccount Account = static_cast<EAccount>(A);
             if (!IsIncomeStatement(Account)) continue;
-            if (Account == EAccount::Sales || Account == EAccount::OnlineSales || Account == EAccount::OtherIncome
-                || Account == EAccount::CostOfGoods || Account == EAccount::Waste || Account == EAccount::Shrinkage) continue;
-            S.Expenses += S.ByAccount[A];
+            if (IsRevenue(Account)) S.Revenue += Get(Account);
+            else if (IsGoodsCost(Account)) GoodsCost += Get(Account);
+            else S.Expenses += Get(Account);
         }
+        S.GrossProfit = S.Revenue + GoodsCost;
         S.NetProfit = S.GrossProfit + S.Expenses;
     }
 
@@ -83,13 +84,49 @@ FString MarketLedger::AccountName(EAccount Account)
     case EAccount::InheritedDebt: return TEXT("Babadan kalan bor\u00e7");
     case EAccount::Capital: return TEXT("Sermaye");
     case EAccount::Unexplained: return TEXT("A\u00e7\u0131klanamayan fark");
+    case EAccount::DepartmentSales: return TEXT("Reyon sat\u0131\u015flar\u0131");
+    case EAccount::DepartmentClearance: return TEXT("Kapanan reyonun mal sat\u0131\u015f\u0131");
+    case EAccount::BrandShelfShare: return TEXT("Marka raf pay\u0131 \u00f6demesi");
+    case EAccount::BrandListing: return TEXT("Marka raf paras\u0131");
+    case EAccount::BrandRebate: return TEXT("Marka ciro primi");
+    case EAccount::DepartmentCostOfGoods: return TEXT("Reyon mal\u0131n\u0131n maliyeti");
+    case EAccount::DepartmentWaste: return TEXT("Reyon firesi");
+    case EAccount::DepartmentMaster: return TEXT("Reyon ustas\u0131 de\u011fi\u015fimi");
+    case EAccount::SourcingFees: return TEXT("Tedarik \u00fccretleri");
+    case EAccount::DepartmentPurchases: return TEXT("Reyon mal al\u0131m\u0131");
+    case EAccount::DepartmentFitOut: return TEXT("Reyon tadilat\u0131");
+    case EAccount::ChainPurchase: return TEXT("Zincir sat\u0131n alma");
+    case EAccount::StoreSale: return TEXT("Ma\u011faza sat\u0131\u015f\u0131");
     default: return TEXT("?");
     }
 }
 
 bool MarketLedger::IsIncomeStatement(EAccount Account)
 {
-    return static_cast<uint8>(Account) <= static_cast<uint8>(EAccount::BranchResult);
+    return static_cast<uint8>(Account) < static_cast<uint8>(EAccount::Purchases);
+}
+
+bool MarketLedger::IsRevenue(EAccount Account)
+{
+    switch (Account)
+    {
+    case EAccount::Sales: case EAccount::OnlineSales: case EAccount::OtherIncome:
+    case EAccount::DepartmentSales: case EAccount::DepartmentClearance:
+    case EAccount::BrandShelfShare: case EAccount::BrandListing: case EAccount::BrandRebate:
+        return true;
+    default: return false;
+    }
+}
+
+bool MarketLedger::IsGoodsCost(EAccount Account)
+{
+    switch (Account)
+    {
+    case EAccount::CostOfGoods: case EAccount::Waste: case EAccount::Shrinkage:
+    case EAccount::DepartmentCostOfGoods: case EAccount::DepartmentWaste:
+        return true;
+    default: return false;
+    }
 }
 
 void MarketLedger::Post(FMarketState& State, EAccount Account, int64 Amount, bool bCash, int32 Store)
