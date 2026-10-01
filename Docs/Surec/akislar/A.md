@@ -256,3 +256,8 @@ Bunlar **kontrollü olarak denenecek ilk adaylar**, doğrulanmış denge ayarı 
 - **C'ye mantık isteği:** MarketBrands.cpp:68 depodaki ürün ve bir adet dolu raf bütün kapasiteyi saymaya devam ediyor. EmptyShelfEarnsNothing yalnız raf ve depo ikisi sıfır durumunu koruyor. Depo=1/raf=0 ve kapasite=100/raf=1 ayrı testleri gerekir; C4 marka gelirleri bu sınırlamayla okunmalı.
 - **C'ye kayıt isteği:** MarketEconomy.h:749 CurrentVersion hâlâ C3 sürümü 3; yeni Banking/Rescues alanları için M27 gereği sonraki birleşimde tek artış + C3 kaydını reddetme testi. Eski kayıt dalı yazılmadı; bu tur sabit/kural değiştirilmedi.
 - Son doğrulama DERLE + TEST 138/138 (137 temiz + motor HTTP uyarısı, başarısız/çalışmamış 0) + Smoke PASSED. 92 menü PNG ve kampanya koruma PASSED. Claude kaynaklarında derleme/test düzeltmesi 0; dosya:satır listesi bu yüzden boş. Kendi bot rapor hesabı/aylık gider yedeği düzeltmeleri önceki bölümde.
+## C5 — M32 ana klasör doğrulaması
+- Claude teslimi 1bf14f5, değiştirilmeden main'e commit/push edildi; eski bekleyen yamalar uygulanmadı.
+- Derleme düzeltmesi 1: MarketOnline.cpp:573, AtLevel çağrısına MarketOnlineLocal namespace'i eklendi; mantık değişmedi.
+- DERLE geçti (13,12 sn), TEST 140/140 (139 temiz + bir motor HTTP uyarısı), Smoke PASSED (satış, gün kapanışı, sipariş/mal kabul/personel/disk kayıt). Ledger.CashAudit geçti.
+- Bundan sonra akis-a worktree: internet komutları/kartlar/ölçümler, internetsiz karşılaştırma ve üç dönem menü incelemesi. Ana klasör Claude'a bırakılıyor; final notları yalnız bu A.md'de.

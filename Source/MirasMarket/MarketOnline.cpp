@@ -570,7 +570,7 @@ bool MarketOnline::CanOpen(const FMarketState& State, EChannel Channel, FString&
     {
     case EChannel::Web:
         if (TotalShops(State) < WebShops) { OutReason = FString::Printf(TEXT("Web sitesi i\u00e7in en az %d ma\u011faza gerekir (toplama ve kurye \u015firketin i\u015fi)."), WebShops); return false; }
-        if (State.Cash < AtLevel(WebSetupCost, State.Day) + State.OtherCosts) { OutReason = FString::Printf(TEXT("Kurulum i\u00e7in kasada %s gerekiyor."), *MarketOnlineLocal::Tl(MarketOnlineLocal::AtLevel(WebSetupCost, State.Day))); return false; }
+        if (State.Cash < MarketOnlineLocal::AtLevel(WebSetupCost, State.Day) + State.OtherCosts) { OutReason = FString::Printf(TEXT("Kurulum i\u00e7in kasada %s gerekiyor."), *MarketOnlineLocal::Tl(MarketOnlineLocal::AtLevel(WebSetupCost, State.Day))); return false; }
         return true;
     case EChannel::App:
         if (!O.bWeb) { OutReason = TEXT("\u00d6nce web sitesi gerekir."); return false; }

@@ -1,3 +1,7 @@
+## 01.10.2026 — Codex — C5 M32 ilk doğrulama
+
+Claude teslimi 1bf14f5 ile alındı. MarketOnline.cpp:573 eksik MarketOnlineLocal::AtLevel namespace'i düzeltildi; tek derleme düzeltmesi, mantık değişmedi. DERLE + TEST 140/140 (139 temiz + motor HTTP uyarısı) + Smoke PASSED; Ledger.CashAudit geçti. Sonraki iş akis-a worktree'de bot/rapor ve üç dönem menü listesi; ana klasör Claude'un sokak rakipleri/Türkiye işi için bırakılıyor. Final A.md akis-a tarafında olacak.
+
 ## 01.10.2026 — Claude (Cowork) — M32 internetten satış (C4'ün üstüne)
 
 **Yapılan:** `MarketOnline` baştan (karar M32): telefon siparişi, aile dükkânı kuryesi, şirketin tek karanlık mağazası ve salgın var/yok ayarı kalktı. Kanallar (web, uygulama, ülkenin platformu, hızlı teslimat) salgına bağlı zamanda açılır; il başına alan, il müdürü kanal değiştirmez, öneri yazar ve öneri ülke/bölge müdüründen geçip karar kartıyla onaya gelir; il başına karanlık depo; e-ticaret müdürü ve politika; rakiplerin internete çıkışı asistanla; dört kart. Şube trafiği de internete kayan payı kaybeder. C4 bot dosyasında (`MarketAutoPlayFinance.cpp`) kalkan `bDarkStore` için bir satırlık derleme düzeltmesi. Test.ps1 alt sınır 140.
