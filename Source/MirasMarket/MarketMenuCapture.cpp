@@ -5,6 +5,7 @@
 #include "MarketStart.h"
 #include "MarketCountry.h"
 #include "MarketCalendar.h"
+#include "MarketOnline.h"
 #include "MarketBranches.h"
 #include "MarketStoreViews.h"
 #include "MarketManagers.h"
@@ -38,6 +39,9 @@ namespace MarketMenuCapture
             {6,TEXT("finance_banking"),TEXT(""),false,TEXT("\u015e\u0130RKET F\u0130NANSI")},
             {6,TEXT("finance_day"),TEXT("D\u00fcn"),true}, {6,TEXT("finance_week"),TEXT("Bu hafta"),true},
             {6,TEXT("finance_month"),TEXT("Bu ay"),true}, {6,TEXT("finance_year"),TEXT("Bu y\u0131l"),true}, {7,TEXT("channels"),TEXT("")},
+            {7,TEXT("channels_areas"),TEXT(""),false,TEXT("\u0130LLER")},
+            {7,TEXT("channels_policy"),TEXT(""),false,TEXT("POL\u0130T\u0130KA")},
+            {7,TEXT("channels_stats"),TEXT(""),false,TEXT("KANALLARIN GE\u00c7EN AYI")},
             {8,TEXT("shops"),TEXT("")}, {8,TEXT("management"),TEXT("Y\u00f6netim")}, {8,TEXT("company"),TEXT("\u015eirket")},
             {9,TEXT("reports_day"),TEXT("")}, {9,TEXT("reports_week"),TEXT("Hafta")}, {9,TEXT("reports_records"),TEXT("Rekorlar")}
         }; return List;
@@ -87,7 +91,7 @@ namespace MarketMenuCapture
     {
         int32 Step = 0, Index = 0;
         double At = 0;
-        FString Directory, File;
+        FString Directory, File, Phase, Description;
         TSharedPtr<SMarketMenu> Widget;
         TSharedPtr<SWidget> Caption;
         TArray<uint8> Before;
@@ -120,6 +124,7 @@ namespace MarketMenuCapture
     {
         FString Html=TEXT("<!doctype html><meta charset='utf-8'><title>Miras Market menu incelemesi</title><style>body{font:16px system-ui;background:#eae8e2;margin:24px;color:#182b2a}section{margin:30px 0}div{display:grid;grid-template-columns:1fr 1fr;gap:12px}figure{margin:0;background:white;padding:10px}img{width:100%;display:block}h2{font-size:20px}</style><h1>Miras Market: menu goruntuleri</h1><p>3 yil otomatik oyuncu; kampanya kaydi yazilmaz. Her sayfa ve sekme, iki tema ve iki boyut.</p>");
         if(Run.bNetworkFixture)Html+=TEXT("<p><strong>Bot bu surede sube acamadi. Ag ekranlarini incelemek icin yalniz goruntu kopyasina 4 ornek sube, 2 mudur ve 1 depo eklendi; bunlar botun kazandigi gelisme degildir.</strong></p>");
+        Html.ReplaceInline(TEXT("3 yil otomatik oyuncu"),*Run.Description);
         FString Manifest=TEXT("page,tab,theme,width,height,file\n");
         for(int32 Target=0;Target<Targets().Num();++Target)
         {
@@ -149,22 +154,34 @@ bool AMarketGameMode::TickMenuCapture()
     {
         TArray<FMarketProduct> Base; TArray<int32> Capacities; TArray<FString> Errors;
         if(!MarketAutoPlay::LoadInputs(Base,Capacities,Errors))return Fail(TEXT("catalog/plan"));
-        MarketAutoPlay::FOptions Options; Options.Days=MarketCalendar::GameDayOf(MarketCalendar::StartYear+3,MarketCalendar::StartMonth,MarketCalendar::StartDayOfMonth)-1; Options.Seeds=1; Options.bKeepFinalStates=true;
-        auto Report=MarketAutoPlay::Run(Options,Base,Capacities,State.RivalSeed);
-        if(Report.FinalStates.Num()!=3)return Fail(TEXT("three-year campaign"));
+        MarketAutoPlay::FOptions Options; Options.Days=MarketCalendar::GameDayOf(MarketCalendar::StartYear+3,MarketCalendar::StartMonth,MarketCalendar::StartDayOfMonth)-1; Options.Seeds=1; Options.bKeepFinalStates=true; Options.StyleIndex=2;
+        R.Phase=TEXT("three_year");FParse::Value(FCommandLine::Get(),TEXT("MirasMenuPhase="),R.Phase);
+        if(R.Phase!=TEXT("three_year") && R.Phase!=TEXT("start") && R.Phase!=TEXT("before") && R.Phase!=TEXT("after"))return Fail(TEXT("unknown menu phase"));
+        Options.FirstSeed=22;FParse::Value(FCommandLine::Get(),TEXT("MirasMenuSeed="),Options.FirstSeed);
+        FMarketState Timeline;Timeline.Initialize(Base);MarketStart::Setup(Timeline,Options.Country,Options.Province,Options.FirstSeed);
+        const int32 Anchor=MarketOnline::PandemicStart(Timeline);
+        if(R.Phase==TEXT("start"))Options.Days=1;
+        if(R.Phase==TEXT("before"))Options.Days=FMath::Max(1,Anchor-365-1);
+        if(R.Phase==TEXT("after"))Options.Days=FMath::Max(1,Anchor+1095-1);
+        R.Description=FString::Printf(TEXT("%s | gercek atak bot, tohum %d, hedef gun %d, salgin %d | oyuncu kaydina yazilmaz"),*R.Phase,Options.FirstSeed,R.Phase==TEXT("start")?1:Options.Days+1,Anchor);
+        MarketAutoPlay::FReport Report;
+        if(R.Phase==TEXT("start"))
+        {Timeline.ApplyShelfCapacities(Capacities);MarketStart::StockShelvesPartly(Timeline,Options.FirstSeed);Report.FinalStates.Add(Timeline);}
+        else Report=MarketAutoPlay::Run(Options,Base,Capacities,State.RivalSeed);
+        if(Report.FinalStates.Num()!=1 || Report.Errors.Num()!=0 || (!Report.Runs.IsEmpty() && Report.Runs[0].AuditFailures!=0))return Fail(TEXT("campaign review"));
         State=MoveTemp(Report.FinalStates.Last()); CatalogBase=Base; Products=Base; MarketCountry::SetActive(State.CountryId,State.RivalSeed); MarketEras::Activate(State); MarketDirector::ApplyPrices(State,Base,Products);
-        if(State.Branches.IsEmpty()) { MarketMenuCapture::AddNetworkFixture(State,Products); R.bNetworkFixture=true; }
+        // C5 captures genuine progress only; no review-only shops or money are injected.
         Message.Empty(); MessageTime=0.f; ReportTime=0.f; SyncWorkers();
         R.Before=MarketBranchVisit::StateBytes(State);
         bNeedStart=false; bOpen=false; bTestMode=false; bMenuOpen=true; bPauseInMenu=false; bTimePaused=false;
         GEngine->GameViewport->RemoveViewportWidgetContent(Hud->MenuWidget().ToSharedRef());
-        R.Directory=FPaths::ProjectSavedDir()/TEXT("Screenshots/Menu")/FDateTime::Now().ToString(TEXT("%Y%m%d-%H%M%S")); IFileManager::Get().MakeDirectory(*R.Directory,true);
+        R.Directory=FPaths::ProjectSavedDir()/TEXT("Screenshots/Menu")/FDateTime::Now().ToString(TEXT("%Y%m%d-%H%M%S"))+TEXT("_")+R.Phase; IFileManager::Get().MakeDirectory(*R.Directory,true);
         R.Caption = SNew(SOverlay).Visibility(EVisibility::HitTestInvisible) + SOverlay::Slot().HAlign(HAlign_Center).VAlign(VAlign_Top)
             [ SNew(SBorder).Padding(4).BorderImage(FCoreStyle::Get().GetBrush(TEXT("WhiteBrush"))).BorderBackgroundColor(FLinearColor(.02f,.03f,.03f,.94f))
                 [ SNew(STextBlock).Font(FCoreStyle::GetDefaultFontStyle(TEXT("Regular"),10)).ColorAndOpacity(FLinearColor::White)
-                    .Text(FText::FromString(R.bNetworkFixture ? TEXT("G\u00f6r\u00fcnt\u00fc incelemesi: 3 y\u0131l bot + \u00f6rnek \u015fube/m\u00fcd\u00fcr/depo | Oyuncu kayd\u0131na yaz\u0131lmaz") : TEXT("G\u00f6r\u00fcnt\u00fc incelemesi: 3 y\u0131l otomatik oyuncu | Oyuncu kayd\u0131na yaz\u0131lmaz"))) ] ];
+                    .Text(FText::FromString(R.Description)) ] ];
         GEngine->GameViewport->AddViewportWidgetContent(R.Caption.ToSharedRef(),100);
-        MarketAutoPlay::WriteReport(Report,R.Directory/TEXT("bot"));
+        if(!Report.Runs.IsEmpty())MarketAutoPlay::WriteReport(Report,R.Directory/TEXT("bot"));
         UE_LOG(LogTemp,Display,TEXT("MirasMenuCapture campaign: day %d, branches %d, managers %d, depots %d, review-only network %d"),State.Day,State.Branches.Num(),State.Management.Managers.Num(),State.Company.DepotSites.Num(),R.bNetworkFixture);
         R.Step=1; R.At=Now; return false;
     }
