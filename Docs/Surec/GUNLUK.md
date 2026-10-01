@@ -1,3 +1,7 @@
+## 01.10.2026 — Codex — C7 ilk doğrulama
+
+C6 387d7d1 main'e alındı/push; Claude C7 7de1603 alındı. MarketManagersTests.cpp:1 eksik MarketStaff.h eklendi, mantık değişmedi. Test.ps1 alt sınır 148. DERLE 16,91 sn, TEST 148/148 (147 temiz + HTTP uyarısı), Smoke PASSED; Ledger.CashAudit geçti. Sonraki iş akis-a bot/ölçüm/koşular ve menü karşılaştırması; C7 tamamlanmadı. Başka ajanların devam eden görevleri alınmadı.
+
 ## 01.10.2026 — Claude (Cowork) — C7 denge ve menü sadeleştirme
 
 **Yapılan:** Codex C4/C5 bulguları: kurtarma sarmalı (321 plan, 500 milyon borç) için tek plan kredisi + borç silme + 180 gün ödemesiz + iki yıl kredi/şube yok; gecikme faizi günde bir yerine ayda bir; il önerisi döngüsü; marka rafı; hiper reyon marjları; kayıt sürümü 4; menü sadeleştirme listesinin 9,5 maddesi. Yeni test `Finance.RescueOnePlan`, Test.ps1 alt sınır 146.

@@ -4,6 +4,8 @@ Son güncelleme: 01.10.2026 — Codex, C4 finans doğrulaması
 
 ## Kısaca
 
+**C7 ilk doğrulama (01.10.2026):** C6 main'e birleşti; C7 7de1603 alındı. Bir eksik test başlığı düzeltildi (MarketManagersTests.cpp:1), DERLE + TEST 148/148 + Smoke geçti. Codex akis-a klasöründe bot/uzun koşu/üç dönem görüntü karşılaştırmasını sürdürecek; son devam notu A.md. C7 henüz tamamlanmadı.
+
 **C6 ilk birleşim (01.10.2026):** C5 akis-a main'e alındı; M33–M35 teslimi 37eae48. Kullanılmayan MarketRetail kaldırıldı. DERLE + TEST **145/145 temiz** + Smoke geçti; defter denetimi 0. C kaynak düzeltmesi 0, C5 botunda kaldırılan reklam alanlarına iki API uyarlaması. Codex C6 bot/uzun koşu/Almanya ve menü incelemesini akis-a ayrı klasörde sürdürür; final notu A.md. C6 henüz tamamlanmadı.
 
 **C5 M32 ilk doğrulama:** DERLE + TEST 140/140 + Smoke geçti; MarketOnline.cpp:573 tek namespace düzeltmesi, mantık değişmedi. Codex bundan sonra akis-a ayrı klasörde internet botu, uzun koşular ve üç dönem menü listesini yapacak; ana klasör Claude'a bırakıldı. Final devam notu akis-a Docs/Surec/akislar/A.md.

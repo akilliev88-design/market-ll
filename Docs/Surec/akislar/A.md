@@ -367,3 +367,7 @@ Görüntü kökü `Saved/Screenshots/Menu/`: **S**=`20261001-200405_start` (ger�
 | MarketMenuWidget.cpp:1720 günlük rapordaki uzun haber sütununda stok eritme gömülü; sol yarı kaydırınca boş kalıyor. Erzurum hiper haftalık satırı bütün varyantlarda görünür, kesilmiyor: “Stok eritme:1üründe bir haftalık indirim”. İndirim oranı (bu işlemin CSV'sinde%20), etkilenen mal ve müdürün onayı aynı satırda kısa göster; şubenin ayrıntısına bağlantı. | 03_branch_clearance |
 
 **C'ye bağlama:** akis-a C6 bot/ölçüm/çekim commitlerini birleştir; Test.ps1 alt sınır145→147; yukarıdaki denge/komuta eşik ve menü isteklerini değerlendir. M27 için yeni reklam/komuta kayıt alanları dahil birleşimde CurrentVersion tek artış ve önceki sürüm reddi gerekir; A bu tur ekonomi kayıt sabitini değiştirmedi. C6 doğrulaması tamamlandı; denge hedefi tamamlanmış değildir.
+
+## C7 — ilk birleşim (01.10.2026)
+- C6 387d7d1 main'e alındı; Claude C7 teslimi 7de1603. Derleme düzeltmesi: MarketManagersTests.cpp:1 eksik MarketStaff.h eklendi (EmployerShare kullanımı); mantık değişmedi. Test.ps1:10 alt sınır 146 + C6 iki test = 148.
+- DERLE başarılı (16,91 sn), TEST 148/148 (147 temiz, bir motor HTTP uyarısı), Smoke geçti; Ledger.CashAudit geçti. Sonraki adım akis-a bot kurtarma engeli/ölçümleri, uzun koşular ve üç dönem menü karşılaştırması. C7 son teslimi değil.
