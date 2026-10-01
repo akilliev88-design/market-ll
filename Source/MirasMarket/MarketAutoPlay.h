@@ -3,6 +3,7 @@
 #include "MarketEconomy.h"
 #include "MarketAutoPlayC.h"
 #include "MarketAutoPlayFinance.h"
+#include "MarketAutoPlayOnline.h"
 
 namespace MarketAutoPlay
 {
@@ -27,6 +28,8 @@ namespace MarketAutoPlay
         int32 Days = 3652;
         int32 Seeds = 3;
         int32 FirstSeed = 21;
+        bool bOfflineCareful = false; // paired counterfactual: only Careful, never opens online channels
+        int32 StyleIndex = -1; // -1 all, 0 careful, 1 balanced, 2 bold; review capture can select one
         bool bKeepFinalStates = false; // read-only review snapshots; player saves are never written
         FString Country = TEXT("tr");
         FString Province = TEXT("kirklareli");
@@ -45,6 +48,7 @@ namespace MarketAutoPlay
         int32 Seed = 0;
         MarketAutoPlayC::FStats C;
         MarketAutoPlayFinance::FStats Finance;
+        MarketAutoPlayOnline::FStats Online;
         TArray<FRow> Daily;
         TArray<FRow> Weekly;
         int32 NegativeDays = 0, TroubleDays = 0, AuditFailures = 0;

@@ -3,6 +3,7 @@
 #include "MarketLedger.h"
 #include "MarketStaff.h"
 #include "MarketPrices.h"
+#include "MarketOnline.h"
 #include "Misc/AutomationTest.h"
 #if WITH_DEV_AUTOMATION_TESTS
 IMPLEMENT_SIMPLE_AUTOMATION_TEST(FMarketBotNetworkReserve,"MirasMarket.AutoPlay.NetworkReserve",EAutomationTestFlags::EditorContext|EAutomationTestFlags::EngineFilter)
@@ -22,6 +23,8 @@ bool FMarketBotNetworkReserve::RunTest(const FString& Parameters)
     TestEqual(TEXT("Family payroll reserves employer insurance too"),MarketAutoPlayFinance::NetworkReserve(State),Family+Monthly+30*(int64(10000)+MarketStaff::EmployerShare(10000)));
     const int64 BeforeTruck=MarketAutoPlayFinance::NetworkReserve(State); State.Company.Trucks=1;
     TestEqual(TEXT("Reserve also pays idle fleet overhead"),MarketAutoPlayFinance::NetworkReserve(State),BeforeTruck+30*MarketPrices::Scaled(6000,State.Day));
+    const int64 BeforeWeb=MarketAutoPlayFinance::NetworkReserve(State);State.Online.bWeb=true;
+    TestEqual(TEXT("Reserve includes web monthly bill"),MarketAutoPlayFinance::NetworkReserve(State),BeforeWeb+MarketPrices::Scaled(MarketOnline::WebMonthly,State.Day));
     return true;
 }
 IMPLEMENT_SIMPLE_AUTOMATION_TEST(FMarketBotCloseLoss,"MirasMarket.AutoPlay.TwoLosingMonths",EAutomationTestFlags::EditorContext|EAutomationTestFlags::EngineFilter)

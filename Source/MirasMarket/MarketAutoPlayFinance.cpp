@@ -9,6 +9,7 @@
 #include "MarketManagers.h"
 #include "MarketStaff.h"
 #include "MarketDepots.h"
+#include "MarketOnline.h"
 
 namespace MarketAutoPlayFinance
 {
@@ -19,6 +20,13 @@ namespace MarketAutoPlayFinance
         // Head-office rent, trucks and a dark store also have to be paid while a new shop matures.
         Total+=30*MarketDepots::DailyRent(State,State.Day);
         Total+=30*MarketPrices::Scaled(State.Company.Trucks*6000,State.Day);
+        int64 OnlineMonthly=State.Online.bWeb?MarketPrices::Scaled(MarketOnline::WebMonthly,State.Day):0;
+        if(State.Online.bApp)OnlineMonthly+=FMath::RoundToInt64(State.Online.AppCost*MarketOnline::AppUpkeepMonthly);
+        if(State.Online.bWeb || State.Online.bPlatform)OnlineMonthly+=MarketPrices::Scaled(MarketOnline::AdsMonthly[FMath::Min<int32>(State.Online.Ads,3)],State.Day);
+        if(!State.Online.ManagerName.IsEmpty())OnlineMonthly+=30*MarketStaff::EmployerCost(State.Online.ManagerWage);
+        for(const auto& Area:State.Online.Areas)if(Area.DarkStoreDay>0)
+        {const auto* City=MarketCountry::FindCity(Area.Country,Area.Province);OnlineMonthly+=FMath::RoundToInt64(MarketPrices::Scaled(MarketOnline::DarkStoreMonthly,State.Day)*(City?FMath::Clamp(City->Rent,.4f,2.5f):1.f));}
+        Total+=OnlineMonthly;
         for(const auto& Branch:State.Branches)
             if(Branch.Stage!=static_cast<uint8>(MarketBranches::EStage::Closed))
                 Total+=MarketBranches::MonthlyFixedCost(State,Branch.Country,Branch.Province,Branch.Format);
