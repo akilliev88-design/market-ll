@@ -1,3 +1,11 @@
+## 02.10.2026 — Claude (Cowork) — C13b doğrulandı
+
+**Doğrulama (Mustafa, 3609dee):** DERLE, TEST 159/159 temiz (Smoke C13'te geçti, akış değişmedi). 27 koşu, defter farkı 0, sıkıcı dönem 0, kurtarma 0.
+
+**Sonuç (10. yıl mağaza):** Normal — dengeli 128/92/95 (hedef 80–150 ✓ 3/3), 3. yıl 10/12/10 ✓, sıra 8 ✓, ilk şube 278–292 (hedef ≤244 ✗); temkinli 86/77/65 (40–80; 2/3), atak 120/78/57 (120–220; 1/3). Rahat — dengeli 196/159/132 ✓, temkinli 97–128, atak 112–160. Zor — dengeli 38/8/30 (40–80 ✗, yakın), temkinli 4/53/8 (15–40; 1/3), atak 30–85. Rakip çekilmesi 9–20 (C12c 0–4, C13 19–28); açılıp kapanan şube döngüsü bitti.
+
+**Sıradaki öneri:** Zor'u biraz yumuşatmak (bir dengeli koşu 8 mağazada kalıyor), dengeli ilk şubeyi 8. aya çekmek, atak botun geç yıllardaki düşüşüne bakmak.
+
 ## 02.10.2026 — Claude (Cowork) — C13 sonucu ve C13b (derlenmedi)
 
 **Doğrulama (Mustafa, 8fdef90):** DERLE geçti (ilk denemede), Smoke geçti. TEST 157 başarılı + 1 uyarı, 1 başarısız: `Banking.ApplicationsAndBids` — ilk 3 kademe krediden sonra yerel bankanın teklifi 0, başvuru doğru biçimde reddediliyordu; test yanlıştı. Test ikinci başvuruyu borçsuz kopyada yapacak şekilde düzeltildi ve "yer yoksa başvuru yok" kontrolü eklendi.

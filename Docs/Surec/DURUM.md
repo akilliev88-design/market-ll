@@ -1,8 +1,10 @@
 # Güncel durum
 
-Son güncelleme: 02.10.2026 — Claude (Cowork), C13 derlendi; C13b yazıldı, derlenmedi
+Son güncelleme: 02.10.2026 — Claude (Cowork), C13b derlendi ve doğrulandı
 
 ## Kısaca
+
+**02.10.2026 — Claude / C13b doğrulandı (3609dee):** DERLE, TEST **159/159** temiz. Normal: dengeli 128/92/95 ✓ (3/3), 3. yıl 10–12 ✓, temkinli 86/77/65, atak 120/78/57, sıra 8–9, kurtarma 0. Rahat dengeli 132–196 ✓. Zor dengeli 38/8/30 (hedef 40–80), temkinli 4/53/8, kurtarma 0. Rakip çekilmesi 9–20 (C13: 19–28). Kalan: Zor biraz sert, dengeli ilk şube 278–292. gün (hedef ≤244), atak Normal'de dengeliden yavaş.
 
 **02.10.2026 — Claude / C13b (derlenmedi):** C13 derlendi (8fdef90), Smoke geçti; TEST 157/158 (`Banking.ApplicationsAndBids` test hatası: ilk krediden sonra yerel bankada yer kalmıyordu, test düzeltildi). Bot: Normal dengeli 133/104/74 ✓ (önce 83/71/33), 3. yıl 7–12; temkinli 60/59/**2**; Rahat dengeli 142–188; Zor dengeli 41/1/1. Bulgu: kulis çok sık ve gerçek çıkınca dünyayı fazla değiştiriyordu (rakip birleşmesi 0–4 → 19–28, "ile girme" küçük oyuncunun tek iline 2–5 mağaza). C13b: kulis 50–90 günde bir, ağırlık satış 35/girme 20/alma 15/savaş 30, girme 1–3 mağaza ve 4+ zincirli ile değil, alma yalnız zayıf zincire. Mustafa koşturacak.
 
