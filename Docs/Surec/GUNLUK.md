@@ -1,3 +1,17 @@
+<!-- C10:BEGIN -->
+## 02.10.2026 — Codex — C10 deney turu tamamlandı
+
+**Yapılan:** C9 bot main'e birleşti (c77a93b), Claude C10 gider/kurtarma/düğme teslimi2bc492f alındı; yeni kayıt alanı için sürüm6 a0eb1ed, migration yok. Bot73d52ff: ayar izolasyonu, tampon/zarar ayı düğmeleri, olgun şube örnekleri, üç yeni test, test alt sınırı157, M39 temkinli14ay testi. CLI virgül kesilmesi8b153f8 ile düzeltildi; hatalı kısmi birleşim analizden dışlandı, altı tek ayar eşdeğerliği +9×60gün D0 tekrarı birebir. Codex denge sabitlerini değiştirmedi; Claude C10 düzeltmeleri tabana dahildir.
+
+**Doğrulama:** Main DERLE57,02sn +TEST154/154 +Smoke; son A DERLE23,15sn +TEST157/157(156temiz+1HTTPuyarı) +Smoke PASSED. 75kampanya/295.890gün, para/stok/defter0; D4/D4b negatif kontroller ve birleşim10/30ilk10yıl birebir. Gider dağılımı nakdi koruyor, sonraki gün tekrar kayıt yok; kurtarma depo/kamyon satış/kapatma testleri geçti. T/D/A30yıl kurtarma=0/0/0. Rapor ve kanıt iki klasöre teslim edildi.
+
+**Karar/varsayım:** D2/D1/D3 hedef uzaklığıyla birleşim öncesi seçildi; birleşim 10yıl mağaza üst hedefini aşıyor. D2 RealWageGrowth0.005 sonraki taban adayı; bütün hedeflere uyan sabit seti bulundu denmiyor. İlk şube sözleşme/OpenCount, olgun şube açık90günü aşmış örnektir. Temiz kâr kendi defterFAVÖK−aile müdürü; İK/müşavir maaşı henüz ailede kalır. Sahipliği Claude olan bu ücret dağılımı ve kurtarmadan sonra kalan web/POS/yemek kartı ve merkez sabit giderlerinin3ay bütçesine eklenmesi G-097'ye notlandı. C9 iki menü kalanı aynı; bekleyen yamalar korunur.
+
+**Sıradaki:** Claude/Mustafa C10_deney_raporu.md önerilerini değerlendirip ilk dükkân kârı ve açılış bütçesini ayrı deneylerle düzeltir. Denge hedefi G-096 açık, Codex deney teslimi G-097 bitti. Bot akis-a8b153f8; main rapor/kanıt/devir belgelerini içerir. Kaynak push geçti, final belgeler commit/push ile teslim edilir.
+
+Ana klasör kayıt6 son doğrulaması: DERLE49,61sn +TEST154/154 +Smoke PASSED; ayrıntı C10_veri/dogrulama.json.
+<!-- C10:END -->
+
 ## 02.10.2026 — Claude (Cowork) — C10 deney turu: gider dağılımı, kurtarma, deney düğmeleri
 
 **Yapılan:** Codex C9 raporu (R1–R5): ilk dükkânın defterine şube tadilatı/işe alımı ve merkez giderleri yazılıyordu; şimdi kendi mağazalarına (`MarketLedger::AddStoreCost`). Kurtarmada şube kalmayınca depolar kapanır, kamyonlar satılır, plan 3 aylık gider koyar. `MarketTuning` düğmeleri (`BranchCompetition`, `RealWageGrowth`, `RealSpend`) ile Codex tek değişkenli deney yapacak. Test `Tuning.Knobs`; alt sınır 154. Codex C10 promptu.

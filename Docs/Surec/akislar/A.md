@@ -1,5 +1,13 @@
 # Akış A — Codex
 
+## C10 — deney turu (tamamlandı)
+
+<!-- C10:BEGIN -->
+**02.10.2026 — Codex / C10 teslim edildi:** C9 main'e birleşti; Claude C10 2bc492f ve M27 sürüm6 a0eb1ed. Son bot akis-a8b153f8 DERLE23,15sn +TEST157/157(156temiz+1HTTPuyarı) +Smoke geçti. D0/D1/D2/D3/D4/D4b/D5/D6/D6_30: **75 kampanya/295.890 gün**, para/stok ve işaretli/mutlak defter farkı0; birleşim10/30 ilk10yıl aynı, tarz izolasyonu aynı. Birleşim BranchCompetition2.5 +RealWageGrowth0.005 +RealSpend0.7; 30yıl kurtarma T/D/A=0/0/0. Tek ayarda en iyi D2; üçlü birleşim mağaza üst hedeflerini aşıyor, ilk dükkân reel kâr hedefi açık. Varsayılan oyun sabitleri değiştirilmedi. Öneri: sonraki taban adayı RealWageGrowth0.005; üçlü seti kalıcı yapma. İK/müşavir maaşının ilk dükkân defterinde kalması ve kurtarma bütçesinde kalan web/POS/yemek kartı ve açık merkez giderlerinin eksikliği Claude'a notlandı. Rapor C10_deney_raporu.md, kanıt C10_veri; bot kaynağı akis-a'da. İlk hatalı virgül-pars D6 analizden dışlandı; CLI düzeltmesi +540QA gün birebir doğrulama var. C9 iki menü kalanı değişmedi. GitHub main/akis-a kaynak push geçti; final rapor commit/push ile teslim edilir. Bekleyen eski yamalar korunur.
+
+Ana klasör kayıt6 son doğrulaması: DERLE49,61sn +TEST154/154 +Smoke PASSED; ayrıntı C10_veri/dogrulama.json.
+<!-- C10:END -->
+
 ## C9 — son teslim (02.10.2026)
 
 **02.10.2026 — Codex / C9:** Son bot kaynağı a80d925, akis-a. DERLE + TEST **153/153** (152 temiz + 1 HTTP uyarısı) + Smoke geçti; LateCarefulGrowth eşik değişmeden geçti, temkinli21 ilk şube399. 10 yıl×3 tarz×21/22/23 +30 yıl×3 tarz×21 =12 kampanya/65.751 gün; stok/defter farkı0, aynı ilk10 yıl birebir. İlk şube T399/459/489, D320/306/334, A187/180/180; üçüncü yıl T/D7, A21/21/22; on yıl T/D1, A139/72/83; 30 yıl kurtarma2/1/5, final üç tarz1 mağaza. **C9 hedef dengesi sağlanmadı**, Codex doğrulama/rapor tamamlandı. İlk dükkân defterine şube tadilat/işe alma gideri karışıyor; gerçek net için dağıtım düzeltmesi gerekir. Beş kontrollü öneri ve her hedef dışı satır `C9_cekirdek_denge_rapor.md`; `C9_veri/`. Menü32 PNG, boyut0 hata, kampanya değişmedi; işaretli grafik düzeldi, kampanya formu ve ilk gün yönetim/reklam kaldı. Kaynak akis-a'da; main'e birleştirilmedi. GitHub push otomatik onayda reddedildi; origin doğrulandı, gönderim için onay/yeniden inceleme bekliyor. Kurgu belgelerindeki mevcut değişiklikler ve bekleyen yamalar korunur.

@@ -97,9 +97,9 @@ def main():
     scalar=[{k:v for k,v in r.items() if not isinstance(v,list)} for r in results]
     write(out/'sonuclar.csv',scalar)
     text=['# C10 deney raporu','',
-          'Sonuç tablosu: ilk şube/mağaza/sıra üç tohumun ortalaması; parantezde hedefi geçen koşu sayısı. Kurtarma 10 yıllık toplamdır, 30 yıl hedefiyle aynı sayı değildir. Tutarlar TL; yıllık temiz mağaza faaliyet kârı = kendi defter FAVÖK’ü − merkezde ödenen aile müdürü maliyeti. Patron maaşı merkez gideridir.','','## Deney × hedef satırları','']
+          'Sonuç tablosu: 10 yıl deneylerinde ilk şube/mağaza/sıra üç tohumun ortalaması; D6_30 yalnız tohum21. Parantezde hedefi geçen koşu sayısı. Kurtarma, deneyin tüm süresinde koşuların toplamıdır; 10 yıl sayısı 30 yıl hedefinin yerine geçmez. Tutarlar TL; yıllık temiz mağaza faaliyet kârı = kendi defter FAVÖK’ü − merkezde ödenen aile müdürü maliyeti. Patron maaşı merkez gideridir.','','## Deney × hedef satırları','']
     for style in STYLES:
-        text+=['### '+style,'','| Deney | İlk şube günü | 3. yıl mağaza | 10. yıl mağaza | 10. yıl ulusal | Kurtarma | Reel kâr 10/1 | Olgun şube 30 gün, 10. yıl TL |','|---|---:|---:|---:|---:|---:|---:|---:|']
+        text+=['','### '+style,'','| Deney | İlk şube günü | 3. yıl mağaza | 10. yıl mağaza | 10. yıl ulusal | Kurtarma | Reel kâr 10/1 | Olgun şube 30 gün, 10. yıl TL |','|---|---:|---:|---:|---:|---:|---:|---:|']
         for case in CASES:
             rs=[r for r in results if r['deney']==case and r['tarz']==style]
             if not rs:continue
@@ -119,7 +119,7 @@ def main():
         third=mark(r['magaza3'],r['magaza3']>=10,balanced)
         stores=mark(r['magaza10'],(15 if care else 60)<=r['magaza10']<=(40 if care else 120),care or balanced)
         rank=mark(r['sira10'],0<r['sira10']<=(20 if care else 10),care or balanced)+' / '+(mark(r['sira20'],0<(r['sira20'] or 0)<=3,balanced) if r['sira20'] else '—')
-        rescue=mark(r['kurtarma'],r['kurtarma']<=(5 if not(care or balanced) else 1),r['yil']==30)
+        rescue=mark(r['kurtarma'],r['kurtarma']<=(5 if not(care or balanced) else 1),r['yil']==30 and (care or balanced))
         text.append(f"| {r['deney']} / {r['tarz']} / {r['tohum']} | {first} | {third} | {stores} | {rank} | {rescue} | {mark(fmt(r['reel_10_1'],3),r['reel_10_1'] is not None and r['reel_10_1']>=1)} | {mark(r['sikici_donem'],r['sikici_donem']==0)} |")
     text+=['','## Deney ayarları ve doğrulama','']
     for m in manifests:text.append(f"- **{m['experiment']}**: `{m['tune'] or 'C10 defaults'}`, kaynak `{m['source'][:7]}`, {3*m['seeds']} kampanya × {day(m['years'])} gün, {m['seconds']:.1f} sn, çıkış 0.")

@@ -1,0 +1,11 @@
+{
+  "source": "8b153f8",
+  "baseline_source": "73d52ff",
+  "campaigns": 9,
+  "days_each": 60,
+  "daily_rows_match": true,
+  "single_knob_parser_equivalence_test": true,
+  "multi_knob_cli_test": true,
+  "invalid_combination_excluded": "D6_invalid_parse",
+  "probe_sha256": "9f960a8a8aa6e969e7357f3917e0343a08421c19300c03e464a0706cc6fad47a"
+}

@@ -15,7 +15,7 @@ SINGLES=[('D0',''),('D1','BranchCompetition=2.5'),('D2','RealWageGrowth=0.005'),
          ('D3','RealSpend=0.7'),('D4','OpenBuffer.Balanced=1.0'),
          ('D4b','OpenBuffer.Careful=2.0'),('D5','LossMonthsToClose=4')]
 
-def run(case,tune,years=10,seeds=3):
+def run(case,tune,years=10,seeds=3,style=None):
     target=ROOT/'Saved/AutoPlay/C10'/case
     target.mkdir(parents=True,exist_ok=True)
     assert not (target/'manifest.json').exists(),f'Existing experiment must not be overwritten: {target}'
@@ -24,9 +24,10 @@ def run(case,tune,years=10,seeds=3):
     command=[str(ENGINE),str(ROOT/'MirasMarket.uproject'),'-run=MirasAutoPlay',
              f'-Years={years}',f'-Seeds={seeds}','-Seed=21',f'-Experiment={case}',
              '-unattended','-nop4','-nosound','-NullRHI',f'-abslog={log}']
+    if style is not None:command.append(f'-Style={style}')
     if tune:command.append(f'-Tune={tune}')
     meta={'experiment':case,'tune':tune,'years':years,'seeds':seeds,'first_seed':21,
-          'source':source,'command':command,'started_utc':time.strftime('%Y-%m-%dT%H:%M:%SZ',time.gmtime())}
+          'source':source,'style':style,'command':command,'started_utc':time.strftime('%Y-%m-%dT%H:%M:%SZ',time.gmtime())}
     (target/'manifest.json').write_text(json.dumps(meta,indent=2),encoding='utf-8')
     started=time.monotonic()
     with (target/'console.log').open('w',encoding='utf-8') as output:
