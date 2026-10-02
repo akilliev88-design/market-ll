@@ -31,7 +31,15 @@ namespace MarketSuppliers
     constexpr int64 VolumeTier1 = 150000;   // 1.500 TL in about 30 days: 3 %
     constexpr int64 VolumeTier2 = 400000;   // 4.000 TL: 5 %
     constexpr float LateFee = 0.02f;
-    constexpr int32 LateFeeDays = 5;   // #41: the late fee runs five days at most (about 10 %), then only the trust suffers
+    constexpr int32 LateFeeDays = 5;
+    // C9 (Codex C8: with no cash the shop could not order, empty shelves sold nothing, the fall fed itself): in a cash
+    // crisis the father's wholesaler still gives about three days of goods on three days' terms, once a week, while
+    // no bill is more than two weeks late ("baban\u0131n hat\u0131r\u0131na").
+    constexpr int32 LifelineGoodsDays = 3;
+    constexpr int32 LifelineTerms = 3;
+    constexpr int32 LifelineEvery = 7;
+    constexpr int32 LifelineMaxLate = 14;
+    int64 LifelineAllowance(const FMarketState& State);   // #41: the late fee runs five days at most (about 10 %), then only the trust suffers
 
     FInfo Info(ESupplier Supplier);
     ESupplier Current(const FMarketState& State);

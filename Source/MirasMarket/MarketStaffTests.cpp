@@ -229,14 +229,14 @@ bool FMarketStaffTillHrTest::RunTest(const FString& Parameters)
     TestTrue(TEXT("The accountant notices the pattern"), Dishonest.Staff[0].FlaggedWeek > 0);
     TestTrue(TEXT("Only the cashier can be warned"), MarketStaff::Warn(Dishonest, Dishonest.Staff[0].Id, Message) && !MarketStaff::Warn(Dishonest, Dishonest.Staff[1].Id, Message));
 
-    // HR manager: unlocked by three shop employees, found in the pool, then shows six candidates.
+    // HR manager: unlocked by eight shop employees (C9), found in the pool, then shows six candidates.
     FMarketState S; S.Initialize(Catalog()); S.RivalSeed = 5; S.Cash = 1000000;
     S.Staff.Add(Person(S, ERole::Stocker, 60, 80, 2000));
     S.Staff.Add(Person(S, ERole::Stocker, 60, 80, 5000));
     TestFalse(TEXT("HR locked with two people"), MarketStaff::HrUnlocked(S));
-    S.Staff.Add(Person(S, ERole::Cashier, 60, 80, 2000));
+    for (int32 More = 0; More < 6; ++More) S.Staff.Add(Person(S, More % 2 ? ERole::Stocker : ERole::Cashier, 60, 80, 2000));
     MarketStaff::SyncCounts(S);
-    TestTrue(TEXT("HR unlocked with three"), MarketStaff::HrUnlocked(S));
+    TestTrue(TEXT("HR unlocked with eight"), MarketStaff::HrUnlocked(S));
     MarketStaff::EnsureCandidates(S);
     TestTrue(TEXT("HR manager offered"), MarketStaff::RoleOf(S.Candidates[2]) == ERole::HrManager);
     const int64 BeforeHr = S.Cash;

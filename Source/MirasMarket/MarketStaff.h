@@ -23,7 +23,7 @@ namespace MarketStaff
 
     constexpr int32 MaxCashiers = 2;
     constexpr int32 MaxHrManagers = 1;
-    constexpr int32 HrUnlockStaff = 3;            // cashiers + stockers needed before an HR manager is offered
+    constexpr int32 HrUnlockStaff = 8;            // C9 (Codex C8: an HR manager for a three-person shop ate its profit): cashiers + stockers before an HR manager is offered
     constexpr int64 HireCost = 12000;             // cashier / stocker: 120 TL (as in v0.1)
     constexpr int64 HrHireCost = 20000;
     constexpr int64 AccountantDailyFee = 400;     // 4 TL per day (28 TL a week)

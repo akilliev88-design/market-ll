@@ -1788,21 +1788,27 @@ TSharedRef<SWidget> SMarketMenu::WeekReport()
             SNew(SVerticalBox)
             + SVerticalBox::Slot().AutoHeight().HAlign(HAlign_Center)
             [ Label([DayAt, Slot] { FMarketDayRecord R; return DayAt(Slot, R) ? MarketCatalog::Money(R.Profit) : FString(); }, 9, ERole::Muted) ]
+            // C9 (Codex C8: losses grew upwards like profits): a signed axis, profits above the zero line, losses below.
             + SVerticalBox::Slot().AutoHeight().Padding(0.f, 4.f, 0.f, 0.f)
             [
-                SNew(SBox).HeightOverride(150.f).VAlign(VAlign_Bottom)
+                SNew(SBox).HeightOverride(75.f).VAlign(VAlign_Bottom)
                 [
                     SNew(SBox)
-                    .HeightOverride_Lambda([DayAt, Peak, Slot]() -> FOptionalSize { FMarketDayRecord R; return DayAt(Slot, R) ? FMath::Max(3.f, 150.f * static_cast<float>(FMath::Abs(R.Profit)) / static_cast<float>(Peak())) : 0.f; })
-                    [
-                        SNew(SBorder).BorderImage(&BadgeBrush)
-                        .BorderBackgroundColor(ColBy([DayAt, Slot] { FMarketDayRecord R; return DayAt(Slot, R) && R.Profit < 0 ? ERole::Bad : ERole::Accent; }))
-                    ]
+                    .HeightOverride_Lambda([DayAt, Peak, Slot]() -> FOptionalSize { FMarketDayRecord R; return DayAt(Slot, R) && R.Profit > 0 ? FMath::Max(3.f, 75.f * static_cast<float>(R.Profit) / static_cast<float>(Peak())) : 0.f; })
+                    [ SNew(SBorder).BorderImage(&BadgeBrush).BorderBackgroundColor(Col(ERole::Accent)) ]
                 ]
             ]
-            // C7 (A menu comparison): the zero line under the bars (red bars are losses, drawn by size).
-            + SVerticalBox::Slot().AutoHeight().Padding(0.f, 0.f, 0.f, 4.f)
+            + SVerticalBox::Slot().AutoHeight()
             [ SNew(SBox).HeightOverride(2.f)[ SNew(SBorder).BorderImage(&FlatBrush).BorderBackgroundColor(Col(ERole::Line)) ] ]
+            + SVerticalBox::Slot().AutoHeight().Padding(0.f, 0.f, 0.f, 4.f)
+            [
+                SNew(SBox).HeightOverride(75.f).VAlign(VAlign_Top)
+                [
+                    SNew(SBox)
+                    .HeightOverride_Lambda([DayAt, Peak, Slot]() -> FOptionalSize { FMarketDayRecord R; return DayAt(Slot, R) && R.Profit < 0 ? FMath::Max(3.f, 75.f * static_cast<float>(-R.Profit) / static_cast<float>(Peak())) : 0.f; })
+                    [ SNew(SBorder).BorderImage(&BadgeBrush).BorderBackgroundColor(Col(ERole::Bad)) ]
+                ]
+            ]
             + SVerticalBox::Slot().AutoHeight().HAlign(HAlign_Center)
             [ Label([DayAt, Slot] { FMarketDayRecord R; return DayAt(Slot, R) ? FString::Printf(TEXT("%d. g\u00fcn"), R.Day) : FString(TEXT("\u2014")); }, 10, ERole::Text, true) ]
         ];

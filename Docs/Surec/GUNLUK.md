@@ -1,3 +1,9 @@
+## 02.10.2026 — Claude (Cowork) — C9 çekirdek denge oyun tarafı, gidiş yolu sürüm 2
+
+**Yapılan:** Codex C8 tanısı: tek dükkân büyümeden kârlı (8. yıl FAVÖK 65 bin TL); bozulma botun fiyat kapısı, erken İK/aile müdürü gideri ve nakit → boş raf sarmalından. Oyun tarafı: toptancı acil malı, mal parası uyarısı, İK müdürü eşiği 8 çalışan / 2 şube, haftalık grafik işaretli eksen. Gidiş yolu sürüm 2 (`Docs/Kurgu/06_GIDIS_YOLU.md`: durum, aşamalar, hedef eğriler, DLC). Codex C9 promptu.
+
+**Doğrulama:** Derlenmedi; değişiklikler küçük, araç kontrolleri temiz.
+
 ## 02.10.2026 — Codex — C8 aile dükkânı tanısı
 
 **Yapılan:** C7 akis-a main'e birleşti; Claude C8/M36–M38 0ef2363 olarak alındı, MarketCredit git rm ile silindi. Oyun sabitleri/Claude menü-ekonomi kaynağı değiştirilmedi; Claude derleme düzeltmesi0. Bot9c45f93: maaş/kâr payı Director komutları, kira/patron ağ yedeği, büyümesiz/kredisiz temkinli seçenek, günlük/aylık aynı sepet ve aile maliyetleri, kadro/patron/sipariş kararları. Yeni SingleShopDiagnosis testi. 8yıl normal21 + 8yıl tek dükkân21 + 10yıl üç tarz21,16.803 gözlenen gün (normal8 tekrar önek); defter/stok farkı0. Sekizinci yıl tek dükkân şirket FAVÖK65.278,75 TL, kasa232.489,63 TL, borç/kurtarma0. Normal ilk tam zarar6.yıl; üç neden/öneri raporda. C7→C8 eş10yıl kurtarma10/3/33→3/2/32, atak ortanca96,5→105gün, sonrası şube0. Reklam0/0, oran ölçülmedi. Menü3×104 PNG, kampanya korunumu/boyut kontrolü geçti; seçili sorun sayfaları incelendi, C7 Kaldı sütunu güncellendi.

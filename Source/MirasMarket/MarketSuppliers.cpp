@@ -122,10 +122,23 @@ namespace
     }
 }
 
+int64 MarketSuppliers::LifelineAllowance(const FMarketState& State)
+{
+    if (Current(State) != ESupplier::Family || TermsDays(State, ESupplier::Family) > 0) return 0;
+    if (State.Cash > 0 && State.TroubleStage == 0) return 0;
+    const FMarketSupplierAccount* A = FindAccount(State, ESupplier::Family);
+    if (!A || (A->LifelineDay > 0 && State.Day - A->LifelineDay < LifelineEvery)) return 0;
+    for (const FMarketPayable& Bill : State.Payables)
+        if (Bill.DueDay + LifelineMaxLate < State.Day) return 0;
+    // About three days of what the shop usually buys (at least a small start-level order).
+    const int64 Usual = FMath::Max<int64>(A->Volume30 * LifelineGoodsDays / 30, FMath::RoundToInt64(10000.0 * MarketPrices::ListLevel(State.Day)));
+    return FMath::Min<int64>(Usual, FMath::RoundToInt64(50000.0 * MarketPrices::ListLevel(State.Day)));
+}
+
 int64 MarketSuppliers::OrderAllowance(const FMarketState& State)
 {
     const ESupplier Supplier = Current(State);
-    if (TermsDays(State, Supplier) <= 0) return 0;
+    if (TermsDays(State, Supplier) <= 0) return LifelineAllowance(State); // C9
     const FMarketSupplierAccount* A = FindAccount(State, Supplier);
     const int64 Limit = FMath::RoundToInt64(50000.0 * MarketPrices::ListLevel(State.Day)) + (A ? A->Volume30 / 2 : 0);
     return FMath::Max<int64>(0, Limit - OpenBills(State));
@@ -136,8 +149,16 @@ FString MarketSuppliers::OnOrder(FMarketState& State, int64 Bill)
     if (Bill <= 0) return FString();
     const ESupplier Supplier = Current(State);
     FMarketSupplierAccount& A = Account(State, Supplier);
+    const int64 Lifeline = LifelineAllowance(State);
     A.Volume30 += Bill;
-    const int32 Terms = TermsDays(State, Supplier);
+    int32 Terms = TermsDays(State, Supplier);
+    if (Terms <= 0 && Lifeline > 0)
+    {
+        // C9: the lifeline (only what the order needed beyond the till: SubmitOrder already checked the allowance).
+        Terms = LifelineTerms;
+        A.LifelineDay = State.Day;
+        State.DayNews.Add(FString::Printf(TEXT("%s: \"Baban\u0131n hat\u0131r\u0131na, \u00fc\u00e7 g\u00fcnl\u00fck mal\u0131 veresiye yaz\u0131yorum. Raf bo\u015f kalmas\u0131n, ama haftaya yine pe\u015fin.\""), *MarketCast::Salesman()));
+    }
     if (Terms <= 0) return FString();
     // Bought on terms: the cash SubmitOrder took goes back; the bill waits.
     State.Cash += Bill;

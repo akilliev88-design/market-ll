@@ -1,4 +1,5 @@
 #include "MarketStaff.h"
+#include "MarketBranches.h"
 #include "MarketCast.h"
 #include "MarketLedger.h"
 #include "MarketCountry.h"
@@ -234,7 +235,7 @@ bool MarketStaff::HasAccountant(const FMarketState& State) { return Count(State,
 
 bool MarketStaff::HrUnlocked(const FMarketState& State)
 {
-    return Count(State, ERole::Cashier) + Count(State, ERole::Stocker) >= HrUnlockStaff || State.bSecondStore;
+    return Count(State, ERole::Cashier) + Count(State, ERole::Stocker) >= HrUnlockStaff || MarketBranches::OpenCount(State) >= 2;
 }
 
 void MarketStaff::AddStartingStaff(FMarketState& State, int32 Cashiers, int32 Stockers)

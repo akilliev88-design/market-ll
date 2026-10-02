@@ -231,6 +231,20 @@ void MarketFinance::CloseDay(FMarketState& State, const TArray<FMarketProduct>& 
     State.Books.PeriodProfit -= Rent; // the books closed before the rent: it lowers taxable profit
     State.MonthRent += Rent;
 
+    // C9 (Codex C8: the shop ran out of goods money before the ladder said anything): an early warning when the till
+    // holds less than a week of the usual purchases, at most once a month.
+    if (State.Cash >= 0 && State.TroubleStage == 0 && State.Day - State.LowCashWarnDay >= 30)
+    {
+        const FMarketSupplierAccount* A = State.SupplierAccounts.FindByPredicate([](const FMarketSupplierAccount& X) { return X.Supplier == 0; });
+        const int64 Week = A ? A->Volume30 * 7 / 30 : 0;
+        if (Week > 0 && State.Cash < Week)
+        {
+            State.LowCashWarnDay = State.Day;
+            News.Add(FString::Printf(TEXT("Kasa bir haftal\u0131k mal al\u0131m\u0131na yetmiyor (%s, haftal\u0131k al\u0131m %s). Raflar bo\u015fal\u0131rsa sat\u0131\u015f da d\u00fc\u015fer: yeni i\u015fe al\u0131m, maa\u015f art\u0131\u015f\u0131 ve k\u00e2r pay\u0131 yerine mala \u00f6ncelik ver."),
+                *FinanceTl(State.Cash), *FinanceTl(Week)));
+        }
+    }
+
     // The trouble ladder.
     if (State.Cash < 0) ++State.NegativeCashDays;
     else

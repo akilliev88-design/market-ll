@@ -1,13 +1,14 @@
 # Miras Market: gidiş yolu
 
-Tarih: 30.09.2026 · Karar: Mustafa · Yazan: Claude
-**Tek yol haritası budur.** `05_YOL_HARITASI.md` ve `02_DERIN_INCELEME.md` §4 bunun ayrıntı ve geçmişidir; hata numaraları (#1–#51) orada.
+Sürüm 2: 02.10.2026 (ilk sürüm 30.09.2026) · Karar: Mustafa · Yazan: Claude
+**Tek yol haritası budur.** `05_YOL_HARITASI.md` ve `02_DERIN_INCELEME.md` §4 ayrıntı ve geçmiştir. Sürüm 2'nin gerekçesi: `claude/durum_analizi_2026-10-02.md` (proje) ve aşağıdaki §3.
 
 ## 1. Yön (Mustafa, 30.09.2026)
 
 1. **Önce oyunun aklı, sonra dükkân içi simülasyon.** Oyun bir **tycoon**: ana ekrandan (harita + menü) bütün şirket yönetilir. Ayrıntılıdır ama oyuncuyu boğmaz. Birinci şahıs dükkân, 3B mağazalar ve insanlar ikinci aşamada tamamlanır.
 2. **Oyunu Mustafa uzun uzun oynamaz; Codex oynatır.** Oyunu yıllarca oynayan bir **otomatik oyuncu** yazılır. Codex her işten sonra onu çalıştırır, sonuç raporunu ve menü ekran görüntülerini günlüğe koyar. Mustafa rapora ve ekranlara bakıp karar verir.
-3. **Toparlanma kuralı:** aynı anda en fazla **bir** derlenmemiş Claude işi. Derlenip test ve otomatik oyuncu raporu gelmeden yenisine başlanmaz.
+3. **Toparlanma kuralı:** aynı anda en fazla **bir** derlenmemiş Claude işi. Derlenip test ve otomatik oyuncu raporu gelmeden yenisine başlanmaz. (02.10.2026: C8 + M36 + M37 + M38 bir arada verildi; bu bir istisnaydı, C9'dan sonra yine tek paket.)
+4. **Dükkânlar hepsi aynı sistem (Mustafa, 02.10.2026).** İlk dükkânın yönetim açısından özel kuralı yok: kira, müdür, kampanya, stok eritme her mağazada aynı. Fark yalnız oyuncunun içinde yürüyebilmesi.
 
 ## 2. Tycoon arayüz ilkeleri ("boğmayan ayrıntı")
 
@@ -42,50 +43,105 @@ Oyuncunun zamanı su gibi akmalı. Her sistem yazılırken şu soruya cevap veri
 
 **Ölçülür:** otomatik oyuncu raporu "sıkıcı dönemleri" (30 günden uzun süre ne karar ne olay ne eşik) ve "felaket yığılmasını" (7 gün içinde 3'ten çok kötü olay) işaretler.
 
-## 3. Aşamalar
+## 3. Durum (02.10.2026)
 
-### Aşama 0 — Doğrulama borcu (hemen)
-
-| Kim | İş | Bitti sayılır |
+| Alan | Var | Eksik / risk |
 |---|---|---|
-| Codex | Bugünkü hâli derle; TEST; Smoke (G-086f, G-089, M24 dahil). Kırılanı Claude'a bildir | Derleme ve bütün testler geçti, smoke geçti, git commit |
-| Claude | Derleme/test hatalarını düzeltir | Aynı |
+| Akıl | M1–M38: finans, banka, kurtarma, zincirler, internet, reklam, komuta zinciri, markalar, reyonlar, tedarik, depolar, dönemler, salgın, patron maaşı ve servet. 150 test, bot doğrulama döngüsü | **Çekirdek döngü dengesiz:** tek dükkân yıllar içinde zarara dönüyor; dengeli botun sırası 30 yılda iyileşmiyor (35/33/31); büyüme tohuma bağlı (1 / 104 / 107). Yürünen dükkân ile şube iki ayrı ekonomi formülüyle çalışıyor |
+| Simülasyon | Yürünen dükkân, raf dizme, reyon görevlisi, listeli müşteri, MetaHuman yürüyüşü, mağaza editörü, Ürün Stüdyosu, Blender kitleri | 3B dükkânın tycoon içindeki rolü belirsiz; 97 ürün, ülke başına yüzlercesine hat yok; kalabalık ve hipermarket performansı planlanmadı |
+| Tasarım | Kimlik ve ilkeler net (§1, §2, §2b) | Öğretici, sanat yönü, ses, İngilizce, satılacak sürümde yalnız kurgu marka adları; kapsam küçük ekip için büyük |
 
-### Aşama 1 — Oyunun aklı (Claude yazar, Codex doğrular)
+## 4. Aşamalar
 
-Sıra önemli. Her iş: yaz → Codex derler + test + otomatik oyuncu raporu → Mustafa'ya kısa özet → sonraki iş.
+Sıra önemli. Her iş: yaz → Codex derler + test + otomatik oyuncu → Mustafa'ya kısa özet → sonraki iş. "Bitti" sütunu sağlanmadan sonraki satıra geçilmez.
 
-| Sıra | İş | Bitti sayılır |
+### Aşama 1 — Oyunun aklı (sürüyor)
+
+A1–A7 bitti (bot, denge hataları, zaman, mağaza ağı, il pazarı, şirket derinliği, dünya); A8 menü sadeleştirmenin iki turu yapıldı. Kalan:
+
+| Sıra | İş | Kim | Bitti sayılır |
+|---|---|---|---|
+| **C8** | C8 + M36–M38 derleme, aile dükkânı tanı koşusu (aylık döküm, büyümesi kapalı koşu) | Codex | 150+ test; rapor dükkânın marjı hangi kalemde, hangi yılda kaybettiğini sayılarla söylüyor |
+| **C9** | **Çekirdek denge:** C8 bulgularına göre düzeltme; §5 hedef eğrileri botta tutuyor | Claude → Codex | Üç tarz × üç tohum: iyi oyun hedef eğride, kötü oyun tökezliyor ama batmıyor; kurtarma 30 yılda bir elin parmaklarını geçmiyor; tohum farkı makul |
+| **C10** | **Tek mağaza ekonomisi:** ilk dükkân ve şubeler aynı günlük modeli kullanır; yürünen dükkân onu gösterir, oyuncunun elle işi (raf, fiyat, sıra) küçük sapma ekler | Claude → Codex | Aynı koşullarda ilk dükkân ve bir şube aynı ay sonucunu veriyor (± küçük fark); testler |
+| C11 | A8 kalanları (Codex C7 listesi), ilk saat için "Şimdi ne yapmalı" akışı | Claude → Codex | Codex ekran görüntüleri; Mustafa onayı |
+| — | **Özellik dondurma:** C9 bitene kadar yeni sistem yok (yalnız düzeltme) | Herkes | — |
+
+### Aşama 2 — Dikey dilim: ilk 3–5 saat (demo ve Steam sayfası)
+
+| İş | Kim | Bitti sayılır |
 |---|---|---|
-| **A1** | **Otomatik oyuncu ve denge raporu.** Dünyasız, oyunu menü komutlarıyla (`MarketDirector::Command`) oynayan bir bot: temkinli / dengeli / atak üç tarz, birkaç tohum. Aile dükkânı (`MarketSimulation::PlayDay`) + şubeler + şirket yıllarca ilerler. Çıktı: `Saved/AutoPlay/<tarih>/rapor.md` + `.csv` (kasa, borç, mağaza sayısı, pay, iflas, ilk şube / ilk depo / 5 il gibi eşiklere ulaşma günü, en çok para kaybettiren şey). Otomasyon testi olarak da koşar (kısa sürüm) | Codex tek komutla çalıştırıyor (`TEST.cmd` içinde kısa, ayrı komutla uzun); rapor GUNLUK'e bağlanıyor |
-| A2 | **Açık denge hataları:** #19 kampanya adedi istismarı, #24 raftaki fiyat kararı, #27 maliyet altı satış/destekli kampanya raporu, #30 online kampanya, #41 gecikme faizi tavanı, #43 zarar devri, #45 ulusal pay ciroya bağlı, #21/#25/#31 kontrolü | Her biri için test; botun raporunda istismar yok |
-| A3 | **Zaman ve tur:** 1 gün / 1 hafta / 1 ay ilerletme (#12), ilerletme işi yapan kişinin becerisine bağlı (#8), hafta ve ay raporu ritmi, durma koşulları | Bot aylık turla oynuyor; menüde üç düğme |
-| A4 | **Mağaza ağının aklı tamam:** G-086b/G-089 doğrulanmış hâli; G-088 Aşama C'nin ekonomi kısmı (mağaza görünümü ataması ve kayıt, ölçülerden çeşit/kuyruk/taze/kira/tadilat/çalışan çarpanları). "Mağazayı gez" düğmesi Aşama 2'ye | Testler; botta şube geri dönüş süresi makul (#47) |
-| A5 | **Yaşayan il pazarı + tedarik ağı + markalar** (G-079 kalanı, G-083, M25): ilde rakip havuzu, yerel/bölgesel/ulusal toptancı, ölçekle ucuzlayan alım; markaların reyonda yer yarışı (raf parası, ciro primi, ortak kampanya) ve reyondaki marka payları | Testler; botta rakipler tepki veriyor |
-| A6 | **Şirket derinliği** (G-080 kalanı, G-081): muhasebe defteri (tek kaynak), ücret alt sınırı ve sigorta, ülke içi büyüme, dönem olayları | Testler; bot raporunda bilanço tutarlı |
-| A7 | **Dünya ve son** (G-082): yeni ülkeler `ulkeler.json`'da, kurgu kurlar (L08), lig, oyun sonu (J02) | Testler; bot zirveye 40–60 saatlik denk süre içinde ulaşıyor ya da ulaşamıyor, rapor söylüyor |
-| A8 | **Menü sadeleştirme turu:** her sayfa §2'ye göre gözden geçirilir; gereksiz sayı ve düğme kalkar, açılma koşulları konur | Codex'in ekran görüntüleri; Mustafa onayı |
+| Öğretici: ilk gün → borç → ilk şube; her adım tek görev kartı | Claude (akış, metin) + Codex (bağlama) | Yeni bir oyuncu yardımsız ilk şubeyi açıyor (Mustafa denemesi) |
+| Mağaza ziyareti modu: oyuncu bir mağazaya girer, sorun bulur (boş raf, kuyruk, yanlış fiyat, kirli reyon, kötü müdür), çözdüğü ekonomiye yazılır | Claude (kurallar) + Codex (3B) | Ziyaret başına 1–3 bulgu; botta etkisi ölçülüyor |
+| Menü ve 3B sanat yönü: renk, tipografi, ikonlar, tabela; tek stil rehberi | Mustafa + Codex | Rehber belgesi; menü ve dükkân görüntüleri rehbere uyuyor |
+| Yerelleştirme altyapısı: bütün metin String Table'a; İngilizce | Codex (altyapı) + Claude (çeviri) | Oyun İngilizce açılıp oynanıyor |
+| Satılacak sürümde yalnız kurgu marka adları (F8 gerçek ad geliştirme içindir) | Codex | Paket derlemesinde gerçek ad yok (denetim betiği) |
+| Temel ses: dükkân ortamı, kasa, kapı, menü | Mustafa (seçim) + Codex | Dikey dilimde sessiz an yok |
+| Demo yapısı ve Steam sayfası metni, ekran görüntüleri | Mustafa + Claude | Sayfa taslağı hazır |
 
-### Aşama 2 — Dükkân içi simülasyon (Aşama 1'den sonra)
+### Aşama 3 — İçerik hattı (ürünler, insanlar)
 
-Birinci şahıs dükkân, G-088 kalan 16 mağaza ve "Mağazayı gez" (Codex'ten test modu açmayan gezi girişi), müşteri ve çalışan hareketleri, MetaHuman, raf dizme ayrıntıları, dükkân içi HUD'un menüyle aynı dili konuşması, elle oyun testi (G-055).
+| İş | Kim | Bitti sayılır |
+|---|---|---|
+| **Ambalaj arketipleri:** 56 → ~120 şekil; ürün = arketip + etiket | Codex (Blender/Studio) | Kategori başına en az bir doğru şekil |
+| **Etiket üretim hattı:** marka kimliği (renk, logo yazısı) + ürün hattı şablonu + çeşit adı/rengi + ülke dili, veri dosyasından toplu PNG; özel çizim yalnız ülke başına 30–50 öne çıkan ürüne | Claude (şablon kuralları, veri) + Codex (betik, Studio toplu içe alma) | Bir ülkenin 300 etiketi tek komutla; gözle inceleme galerisi |
+| **Raf çizimi:** arketip başına tek materyal + etiket doku dizisi, toplu örnek (instancing) ve örnek başına etiket indisi; 4–6 m ötesinde ürün bloğu tek "raf kartı"; etiket 256–512 px (öne çıkan 1024) | Codex | Hipermarket (binlerce ürün) hedef kare hızında; çizim çağrısı ölçümü |
+| **Ülke kataloğu şeması:** ortak ürün tipleri (süt 1 L, kola 1 L) + ülke markası; manav/kasap/fırın etiketsiz, kasada örnekli meyve/et | Claude (şema, veri) + Codex | Yeni ülke = marka listesi + etiket üretimi; yeni mesh yok |
+| **İnsanlar:** 12–20 temel MetaHuman, parametreli kıyafet/saç/aksesuar, ülkeye göre görünüş havuzu (veri) | Mustafa (karakterler) + Codex | Kalabalıkta tekrar göze batmıyor |
+| Animasyon: ortak Anim BP + Motion Matching (Epic Game Animation Sample), raftan alma IK ile, sepet/araba, kasa bekleme, ödeme | Codex | Ayak kayması yok; alma hareketi her raf yüksekliğinde doğru |
+| Kalabalık: yakın 10–15 kişi tam MetaHuman, uzak düşük ayrıntı ya da pişirilmiş animasyon; ekonomi sayar, ekran temsil eder | Codex | 40 kişilik hipermarket hedef kare hızında |
+| Portreler: aynı MetaHuman'lardan menü yüzleri (müdür, rakip sahibi, hikâye karakterleri); personel üniforması şirket kimliğinin renginde | Codex | Müdür kartlarında yüz var |
 
-## 4. Şeritler
+### Aşama 4 — Genişleme ve topluluk
 
-| Kim | Aşama 1 boyunca |
+| İş | Kim | Bitti sayılır |
+|---|---|---|
+| Kalan 16 mağaza şablonu, kalan ülkeler (veriyle) | Codex + Claude | Her ülke botla 10 yıl oynanıyor, Türkçe kalıntı yok |
+| Editörler (mağaza, ürün, raf) oyuncu için cilalı ve belgeli; Workshop'a paylaşma | Codex | Oyuncu yaptığı mağazayı/ürünü paylaşıp başkası yükleyebiliyor |
+| Performans ve kayıt sağlamlığı | Codex | Uzun koşu ve büyük ağda kare hızı, kayıt boyutu hedefte |
+
+### Aşama 5 — Yayın ve DLC
+
+**Karar önerisi:** editörler ana oyunda kalır (topluluk içeriği oyunun ömrünü uzatır ve ana oyunu satar; ücretli araçlar tepki çeker). Para içerikten gelir:
+
+| DLC | İçerik |
 |---|---|
-| **Claude** | A1…A8 sırayla, tek seferde bir iş. Belgeler (DURUM/GOREVLER/GUNLUK, kararlar) güncel |
-| **Codex** | Her Claude işini derler, test eder, otomatik oyuncuyu çalıştırır, menü ekran görüntüsü alır (`-MirasCapture` menü sayfaları), sonucu GUNLUK'e yazar, commit atar. Elinde kalan G-088 editör işini kapatır; kalan 16 mağaza Aşama 2'ye kalır |
-| **Mustafa** | Karar verir; bot raporuna ve ekranlara bakar; istediği zaman kısa deneme |
+| Ülke paketleri | Markalar, zincirler, iklim, bayramlar, mağaza kiti, dil |
+| Dönem / senaryo | 1990'larda başlangıç, kriz senaryoları, meydan okumalar |
+| Mağaza formatları | AVM hipermarketi, fırın/şarküteri zinciri, kozmetik, cash & carry |
+| Kişisel hayat | Servetle ev, araba, aile, itibar (M37'nin devamı) |
+| Üretim ve tedarik | Özel marka fabrikası, lojistik filosu, franchise |
+| Kozmetik | Dekor, üniforma, tabela temaları; destekçi paketi |
 
-## 5. Aşama 1 için beklenen kararlar
+Editörden gelir istenirse: temel editör ücretsiz, ek ekipman ve dekor kütüphaneleri ücretli.
 
-Aşağıdakiler ilgili iş gelmeden sorulacak; şimdilik Claude önerisiyle ilerlenir (`05_YOL_HARITASI.md` §5).
+## 5. Hedef eğriler (C9'un ölçütü)
+
+| Ölçü | İyi oyun (dengeli bot) | Temkinli | Kötü oyun |
+|---|---|---|---|
+| İlk şube | 4–8. ay | 8–14. ay | Gecikir, olmayabilir |
+| Mağaza sayısı | 3. yıl 10, 10. yıl 60–120 | 10. yıl 15–40 | Tökezler, toparlanır |
+| Ulusal sıra | 10. yıl ilk 10, 20. yıl ilk 3 | 10. yıl ilk 20 | — |
+| Kurtarma planı (30 yıl) | 0–1 | 0–1 | En çok 3–5; borç birikmez |
+| İlk dükkânın yıllık faaliyet kârı | Enflasyonla birlikte büyür | Büyür | Düşer ama eksiye kalıcı geçmez |
+| Sıkıcı dönem (30 gün olaysız) | 0 | 0 | 0 |
+
+Sayılar Mustafa onayına kadar öneridir; bot raporu her turda bu tabloyu doldurur.
+
+## 6. Şeritler
+
+| Kim | Ne yapar |
+|---|---|
+| **Claude** | Oyun kuralları, ekonomi, kurgu, veri şemaları, şablon kuralları, metinler ve çeviri; tek seferde bir paket; belgeler güncel |
+| **Codex** | Derleme, test, otomatik oyuncu ve rapor, menü ve dükkân ekran görüntüleri; 3B, Blender, Studio, animasyon, performans; commit |
+| **Mustafa** | Kararlar, sanat yönü ve karakterler, kısa denemeler, rapor ve ekranlara bakış |
+
+## 7. Beklenen kararlar
 
 | Karar | Gerektiği iş | Claude önerisi |
 |---|---|---|
-| L08 kurgu kurlar | A7 | Para birimi adı gerçek, kur kurgu; ülkeye göre istikrarlı/oynak |
-| J02 oyun sonu | A7 | "30. yılın sonu" ya da lig birinciliği |
-| Dönem olayları | A6 | Sıra sabit, zamanı her oyunda kayar |
-| Zirveye süre | A1, A7 | 40–60 saat; "dünya ölçeği" ayarı |
-| L12 zincir adları | A5 | Varsayılan kurgu ad |
+| Hedef eğriler (§5) | C9 | Tablodaki değerler |
+| Oyun sonu (J02) | Aşama 2 | 30. yılın sonu ya da lig birinciliği; sonra serbest oyun |
+| Demo kapsamı | Aşama 2 | İlk dükkân + ilk iki şube, ~2 saat |
+| İngilizceden sonraki diller | Aşama 2–4 | Almanca, İspanyolca, Portekizce (Brezilya) |
+| DLC sırası | Aşama 5 | Önce bir ülke paketi ve kişisel hayat |

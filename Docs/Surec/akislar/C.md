@@ -1,7 +1,7 @@
 # Akış C — Claude (Cowork)
 
 ## Kaldığım yer
-C8, M36, M37, M38 ana klasörde, derlenmedi (02.10.2026); test alt sınırı 150 (akis-a 150 − 2 silinen + 2 yeni). Sırada: Codex C8 (derle, MarketCredit git rm, sonra aile dükkânı tanı koşusu).
+C8 doğrulandı (151 test; LateCarefulGrowth 609. gün). Ana klasöre **C9 oyun tarafı** yazıldı, derlenmedi (02.10.2026); alt sınır 152. Codex C9: bot fiyat/işe alma/mal parası, hedef eğri ölçümü (gidiş yolu §5).
 
 ## Yapılanlar
 - **C1 · Mağaza görünümü şubenin hesabına** (yeni `MarketStoreViews.h/.cpp`): `Config/magazalar.json` bir kez `MarketStoreKit::Parse` ile kendi kopyamıza okunur (kitin yüklü şablonlarına dokunulmaz). Şube imzalanınca (il, tür) için görünüm seçilir (`MarketStoreAssign::Assign`, `FMarketState::StoreViews`'a kaydedilir; yurt dışında ülke + tür başına bir görünüm) ve ölçüleri şubeye kopyalanır (`FMarketBranch::StoreView`, `View*` alanları).
@@ -51,6 +51,7 @@ C8, M36, M37, M38 ana klasörde, derlenmedi (02.10.2026); test alt sınırı 150
 - **M36 · Aile dükkânı sıradan bir mağaza:** annemizle babamız emekli, dükkânı bize bıraktı (`MarketStart` yalnız "baba"; giriş, final, hedef ve menü metinleri). Bina onların: dükkân ilin mahalle marketi kirasını öder (`MarketFinance::RentToday`, `EAccount::Rent`, `State.MonthRent`), eve para çekme (`HouseholdToday`), tapu ipoteği (`finance.mortgage`) ve veresiye (`MarketCredit` silindi; `Credit`, `CreditLimit`, bilanço alacağı, iki komut) kalktı; dükkâna özel broşür kalktı (`Promotions::Start` reddeder, Kampanya sayfası Şirket › Reklam'a yönlendirir). Testler: `Credit.Book` ve `Balance.Mortgage` silindi, Ledger/Start/Promotions/Simulation uyarlandı.
 - **M37 · Patronun maaşı ve servet** (`MarketOwner` yeni): ay başında maaş (şirket gideri, merkezde Wages+SGK), net kişisel servete; yaşam gideri servetten; kâr payı (geçen yılın net kârı, %15 stopaj); sermaye koyma; kurtarma maaşı asgariye indirir. Başlangıç kasası bir aylık sabit gider, baba borcu 1,5 katı (`MarketStart::Setup`, `State.StartDebt`, `MarketCampaign::InstallmentOf`). Menü: Finans > SEN kartı, üst şeritte Servet; bütün maaşlar aylık gösterilir.
 - **M38 · Her mağazada kampanya:** `FMarketPromotion::Store/bManager`, `PromoStore` komutu; şube günü kampanya etkisini alır (`StoreEffect`); ilk dükkânın müdürü haftalık stok eritir (`ManagerClearance`); kimlik adları ve şube talebine etkisi (`MarketStory::IdentityDemand`). Test: `Owner.SalaryAndWealth`, `Promotions.EveryStore`.
+- **C9 · Çekirdek denge (oyun tarafı, Codex C8 tanısı):** toptancının babanın hatırına acil malı (`MarketSuppliers::LifelineAllowance`: nakit krizinde haftada bir ~3 günlük mal, 3 gün vadeli, iki haftadan eski geciken fatura yoksa), mal parası erken uyarısı (`MarketFinance`, `State.LowCashWarnDay`), İK müdürü 8 çalışan ya da 2 açık şubeden sonra (`HrUnlockStaff`), haftalık grafikte işaretli eksen. Test: `Suppliers.Lifeline`. C8'in bot tarafı (fiyat kapısı, işe alma, işletme sermayesi) Codex C9'da.
 - Özel marka ("Miras") marka yarışına henüz girmedi: katalogda Miras ürünü yok (ürün kararı Mustafa/Codex).
 
 ## Doğrulama

@@ -2,6 +2,7 @@
 #include "MarketPromotions.h"
 #include "MarketLedger.h"
 #include "MarketFinance.h"
+#include "MarketSuppliers.h"
 #include "Misc/AutomationTest.h"
 
 #if WITH_DEV_AUTOMATION_TESTS
@@ -85,6 +86,28 @@ bool FMarketCampaignStoresTest::RunTest(const FString& Parameters)
     TestTrue(TEXT("3 for 2 in the family shop"), UnitPrice(S, Products, 1, 3) < S.Stock[1].Price);
     StoreEffect(S, Products, 0, 1, S.Day, Cut, Pull);
     TestTrue(TEXT("and in the branch"), Cut > 0.f && Pull > 1.f);
+    return true;
+}
+
+
+IMPLEMENT_SIMPLE_AUTOMATION_TEST(FMarketSupplierLifelineTest, "MirasMarket.Suppliers.Lifeline", EAutomationTestFlags::EditorContext | EAutomationTestFlags::EngineFilter)
+bool FMarketSupplierLifelineTest::RunTest(const FString& Parameters)
+{
+    // C9: in a cash crisis the father's wholesaler still gives about three days of goods on short terms, once a week.
+    const TArray<FMarketProduct> Products = MarketOwnerTest::OwnerCatalog();
+    FMarketState S; S.Initialize(Products); S.Day = 200;
+    FMarketSupplierAccount& A = MarketSuppliers::Account(S, MarketSuppliers::ESupplier::Family);
+    A.Trust = 20; A.Volume30 = 300000;
+    S.Cash = 50000;
+    TestEqual(TEXT("No lifeline while the till is fine"), MarketSuppliers::LifelineAllowance(S), int64(0));
+    S.Cash = -5000; S.TroubleStage = 2;
+    const int64 Room = MarketSuppliers::LifelineAllowance(S);
+    TestTrue(TEXT("About three days of goods"), Room > 0 && Room <= 50000 * 2);
+    TestEqual(TEXT("It is the order allowance"), MarketSuppliers::OrderAllowance(S), Room);
+    const int32 BillsBefore = S.Payables.Num();
+    MarketSuppliers::OnOrder(S, FMath::Min<int64>(Room, 20000));
+    TestTrue(TEXT("Written on short terms"), S.Payables.Num() == BillsBefore + 1 && S.Payables.Last().DueDay == S.Day + MarketSuppliers::LifelineTerms);
+    TestEqual(TEXT("Once a week"), MarketSuppliers::LifelineAllowance(S), int64(0));
     return true;
 }
 

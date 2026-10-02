@@ -171,6 +171,7 @@ struct FMarketSupplierAccount
     UPROPERTY() int64 Volume30 = 0;     // purchases of about the last 30 days (decays by 1/30 a day), kurus
     UPROPERTY() int32 OnTime = 0;
     UPROPERTY() int32 Late = 0;
+    UPROPERTY() int32 LifelineDay = 0;  // C9: the last day the father's wholesaler gave goods in a cash crisis
 };
 
 // A bill bought on payment terms, due at the close of DueDay.
@@ -974,6 +975,7 @@ struct FMarketState
     UPROPERTY() int32 Rescues = 0;          // M31: the bank's rescue plans so far (MarketFinance::Rescue)
     UPROPERTY() int32 RescueUntil = 0;      // C7: under the bank's plan until this day (no new loans or branches)
     UPROPERTY() FMarketOwner Owner;         // M37: our salary and personal wealth (MarketOwner)
+    UPROPERTY() int32 LowCashWarnDay = 0;   // C9: the last "goods money is running out" warning
     UPROPERTY() int32 PromoStore = -1;      // M38: where the player's next campaign runs (family shop / all stores)
     UPROPERTY() int64 StartDebt = 30000;    // M37: the father's debt at the start (the goal bar)
     // M36: the family shop's rent paid to the parents this month (MarketFinance).
