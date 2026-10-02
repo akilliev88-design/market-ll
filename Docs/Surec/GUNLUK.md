@@ -1,3 +1,13 @@
+## 02.10.2026 — Claude (Cowork) — C12 sonucu ve C12b (derlenmedi)
+
+**Doğrulama (Mustafa çalıştırdı, 3426b56):** DERLE geçti, TEST 157/157 (156 temiz + 1 HTTP uyarısı), Smoke geçti. Bot 27 koşu × 3653 gün, defter farkı 0, sıkıcı dönem 0.
+
+**Sonuç (10. yıl mağaza):** Normal — temkinli 26/18/8, dengeli 9/1/8, atak 21/18/18; dengeli ilk şube 306 (değişmedi). Rahat — temkinli 56/46/45, dengeli 24/22/26 (ilk şube 208–236 ✓), atak 25/1/22. Zor — temkinli 8/1/8, dengeli 1/1/1, atak 1/2/6; kurtarma Zor'da 6, Rahat'ta 1. Aşırı sert. Şube dökümü: mahalle şubesi 6 ayda ~1.000–8.000 TL net (önce ayda ~800); dengeli bot 3 mağazada İK müdürünü karşılayamayıp yıllarca bekliyor.
+
+**C12b:** küçük formatlar eski kira ve tadilata döndü; süpermarket kira ×1,5 (225.000 kuruş), tadilat 30.000 TL; hipermarket kira ×1,5, tadilat 100.000 TL. İlk şube indirimi ve zorluk çarpanı kaldı. Test eşiği "süpermarket ≥ 5 mahalle tadilatı".
+
+**Sıradaki:** Mustafa `CLAUDE_KOS.cmd` (C12b_N/R/Z), Claude kontrol eder.
+
 ## 02.10.2026 — Claude (Cowork) — C12: orta oyun, ilk şube, zorluk (derlenmedi)
 
 **Yapılan:** Mustafa ile hedefler güncellendi (M41: dengeli de büyür; Normal/Rahat/Zor tabloları, boşta para ölçüsü, ilk dükkân reel kârı 0,8–1,3). C11 şube verisi: süpermarket ilk 180 günde ayda ~8.400 TL net (%16), tadilatı 1–2 ayda çıkarıyor; mahalle ~800 TL. M42: kiralar ×1,5 (mahalle/ucuzcu) ×2 (süper/hiper), tadilat 5.000 / 3.000 / 60.000 / 200.000 TL, süpermarket fiyatı 1,00; `MarketBranches::FitOutCost`, `IsFirstBranch` (ilk şube %40), `MarketSimulation::CapitalFactor` (Rahat 0,75, Zor 1,3); aile kirası `MarketFinance::FamilyRentBase` ile sabit kaldı. Bot: `-Difficulty=` ve `FOptions::Difficulty`.

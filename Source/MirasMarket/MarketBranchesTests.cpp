@@ -129,7 +129,7 @@ bool FMarketBranchesTest::RunTest(const FString& Parameters)
         FMarketState Hard = S; Hard.Difficulty = 2;
         TestTrue(TEXT("Fit-out follows the difficulty"), FitOutCost(Easy, Home, Super, 1.f) < FitOutCost(S, Home, Super, 1.f) && FitOutCost(S, Home, Super, 1.f) < FitOutCost(Hard, Home, Super, 1.f));
         TestTrue(TEXT("Rent follows the difficulty"), MonthlyFixedCost(Easy, TEXT("tr"), TEXT("kirklareli"), TEXT("buyuk")) < MonthlyFixedCost(Hard, TEXT("tr"), TEXT("kirklareli"), TEXT("buyuk")));
-        TestTrue(TEXT("A supermarket costs a year of work, not a month"), FitOutCost(Later, Home, Super, 1.f) >= 10 * FitOutCost(Later, Home, Neighbourhood, 1.f));
+        TestTrue(TEXT("A supermarket costs months of work, not weeks"), FitOutCost(Later, Home, Super, 1.f) >= 5 * FitOutCost(Later, Home, Neighbourhood, 1.f));
     }
     const int64 Cost = OpeningCost(S, Products, TEXT("tr"), TEXT("kirklareli"), TEXT("mahalle"));
     TestTrue(TEXT("Opening cost is positive"), Cost > 0);
