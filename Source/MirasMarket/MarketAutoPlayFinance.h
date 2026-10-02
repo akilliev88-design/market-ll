@@ -27,6 +27,8 @@ namespace MarketAutoPlayFinance
         int32 Rescues=0, Closed=0, Bids=0, Accepted=0, Refused=0, Financed=0, Converted=0;
         int64 Interest=0, PeakLine=0;
     };
+    int64 GoodsReserve(const FMarketState& State);
+    bool WorthHiring(const FMarketState& State, int64 MonthlyBenefit, int64 DailyWage, int64 Fee = 0);
     int64 NetworkReserve(const FMarketState& State);
     bool CanExpand(const FMarketState& State,int64 Opening,int64 NewMonthly,double Buffer);
     bool LosingMonth(const FMarketBranch& Branch,int32 Day,int32& RedMonths);

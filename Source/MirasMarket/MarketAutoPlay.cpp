@@ -15,6 +15,9 @@
 #include "MarketSuppliers.h"
 #include "MarketPrices.h"
 #include "MarketCalendar.h"
+#include "MarketLedger.h"
+#include "MarketCompetitors.h"
+#include "MarketRivals.h"
 #include "ProductCatalog.h"
 #include "Planogram.h"
 #include "Misc/FileHelper.h"
@@ -77,12 +80,35 @@ namespace MarketAutoPlay
     {
         if (State.Day % 7 != 1) return;
         FString Message;
-        const int64 Reserve = Buffer(State, Profile);
-        if (!State.bCashier && State.Cash > Reserve) MarketStaff::HireBest(State, MarketStaff::ERole::Cashier, Message);
+        const int64 Reserve = FMath::Max(Buffer(State, Profile), MarketAutoPlayFinance::NetworkReserve(State));
+        // Estimate recoverable gross profit from visible service losses, never total gross profit.
+        const auto Family=MarketLedger::Statement(State,FMath::Max(1,State.Day-30),State.Day-1,MarketLedger::FamilyShop);
+        int64 Sold=0; int32 Days=0;
+        for(const auto& Day:State.History)if(Day.Day>=State.Day-30 && Day.Day<State.Day){Sold+=Day.Served;++Days;}
+        const int64 GrossPerBasket=FMath::Max<int64>(0,Family.GrossProfit)/FMath::Max<int64>(1,Sold);
+        const int64 QueueBenefit=State.LastLostWaiting*GrossPerBasket*30;
+        int64 ShelfBenefit=0;
+        for(int32 I=0;I<State.Stock.Num();++I)
+            if(State.Stock[I].Warehouse>0)ShelfBenefit+=State.Stock[I].Yesterday.Empty*FMath::Max<int64>(0,State.Stock[I].Price-Products[I].Cost)*30;
+        auto Hire=[&](MarketStaff::ERole Role,int64 Benefit)
+        {
+            MarketStaff::EnsureCandidates(State);
+            for(int32 I=0;I<State.Candidates.Num();++I)
+                if(MarketStaff::RoleOf(State.Candidates[I])==Role && MarketAutoPlayFinance::WorthHiring(State,Benefit,State.Candidates[I].DailyWage,MarketStaff::HireCostOn(Role,State.Day)))
+                {MarketStaff::Hire(State,I,Message);break;}
+        };
+        if(Days>=7 && (!State.bCashier || State.LastLostWaiting>0))Hire(MarketStaff::ERole::Cashier,QueueBenefit);
+        if(Days>=7 && ShelfBenefit>0)Hire(MarketStaff::ERole::Stocker,ShelfBenefit);
         if (State.Cash > Reserve * 2 && !MarketStaff::HasAccountant(State)) MarketStaff::HireAccountant(State, Message);
         for (const FMarketEmployee& Employee : State.Staff)
             if (Employee.Fatigue > 65.f) MarketStaff::GiveDayOff(State, Employee.Id, false, Message);
-        if (State.Cash > Reserve * 2 && MarketCompany::TotalStores(State) >= 2 && !MarketStaff::HasHr(State)) MarketStaff::HireBest(State, MarketStaff::ERole::HrManager, Message);
+        if(MarketStaff::HrUnlocked(State) && !MarketStaff::HasHr(State))
+        {
+            // Visible negotiated wages (8%) and actual replacement fees are HR's potential savings.
+            const auto Books=MarketLedger::Statement(State,FMath::Max(1,State.Day-30),State.Day-1);
+            const int64 Benefit=FMath::RoundToInt64(30*State.DailyPayroll()*.08)+FMath::Max<int64>(0,-Books.At(MarketLedger::EAccount::Severance));
+            Hire(MarketStaff::ERole::HrManager,Benefit);
+        }
         if (State.Cash <= Reserve) return;
         // Outside candidates are selected by visible list order, never by hidden honesty/potential.
         auto Appoint = [&](MarketManagers::ELevel Level, const FString& Country, const FString& Area)
@@ -90,7 +116,12 @@ namespace MarketAutoPlay
             FString Reason;
             if (MarketManagers::FindManager(State, Level, Country, Area) == INDEX_NONE &&
                 MarketManagers::CanAppoint(State, Level, Country, Area, INDEX_NONE, Reason))
-                Command(State, Products, TEXT("AppointCandidate"), MarketManagers::EncodeArea(Level, Country, Area) * 10, Run);
+            {
+                const auto Candidates=MarketManagers::Candidates(State,Level,Country,Area);
+                if(!Candidates.IsEmpty() && (Level!=MarketManagers::ELevel::FamilyShop ||
+                    MarketAutoPlayFinance::WorthHiring(State,(QueueBenefit+ShelfBenefit)/2,Candidates[0].Wage)))
+                    Command(State, Products, TEXT("AppointCandidate"), MarketManagers::EncodeArea(Level, Country, Area) * 10, Run);
+            }
         };
         Appoint(MarketManagers::ELevel::FamilyShop, State.CountryId, FString());
         for (const MarketCountry::FProfile& Country : MarketCountry::All())
@@ -112,7 +143,7 @@ namespace MarketAutoPlay
     void Grow(FMarketState& State, const TArray<FMarketProduct>& Products, const FProfile& Profile, FRun& Run)
     {
         if (MarketAutoPlayRescue::Blocked(State) || (State.Day - 1) % Profile.GrowthInterval != 0) return;
-        const int64 Reserve = Buffer(State, Profile);
+        const int64 Reserve = FMath::Max(Buffer(State, Profile), MarketAutoPlayFinance::NetworkReserve(State));
         if (Profile.bBorrow && State.Day % 30 == 1 && MarketFinance::Debt(State) == 0)
             Command(State, Products, TEXT("TakeLoan"), 2, Run);
         if (State.Cash <= Reserve) return;
@@ -164,7 +195,8 @@ namespace MarketAutoPlay
         const TArray<float> Scales = MarketDirector::OrderScales(State, Products);
         MarketOrderAdvice::FillSuggested(State, Products, Suggested, &Scales);
         Draft.Init(0, Products.Num());
-        const int64 Allowance = Profile.bBorrow ? MarketDirector::OrderAllowance(State) : 0;
+        const int64 Allowance = MarketDirector::OrderAllowance(State);
+        // Goods money is protected from investment and payroll raises, but is available to buy goods.
         const int64 Spendable = FMath::Max<int64>(0, State.Cash - FMath::Min(Buffer(State, Profile), FMath::Max<int64>(0, State.Cash / 2))) + Allowance;
         int64 Bill = 0;
         // Buy one case per useful line per pass: a large suggestion must not block every small order.
@@ -184,16 +216,25 @@ namespace MarketAutoPlay
         Trial.Diagnosis.Events.Add(FString::Printf(TEXT("%d,order,%lld,%s\n"),State.Day,Bill,*OrderLines));
         if (State.Cash != Before - Bill) { ++Trial.AuditFailures; Trial.Issues.AddUnique(TEXT("Siparis bedeli kasayla uyusmuyor.")); }
         MarketDirector::OnOrder(State, Bill);
-        if (Profile.Style == EStyle::Careful) Command(State, Products, TEXT("PayBills"), 0, Trial);
+        if (Profile.Style == EStyle::Careful && State.Cash-MarketSuppliers::OpenBills(State)>=MarketAutoPlayFinance::NetworkReserve(State)) Command(State, Products, TEXT("PayBills"), 0, Trial);
         return Bill;
+    }
+    int64 PriceTarget(const FMarketState& State,const TArray<FMarketProduct>& Products,int32 Index,const FProfile& Profile)
+    {
+        const auto& Product=Products[Index];
+        const bool Growing=State.Day>Profile.GrowthPriceAt && State.MarketShare<40.f && MarketBranches::OpenCount(State)<2;
+        const double Rival=MarketCompetitors::RivalPriceFactor(State,Product.Category,MarketRivals::Aisles(Products));
+        const double Factor=FMath::Min(Growing?Profile.GrowthPriceFactor:Profile.PriceFactor,Rival*(State.MarketShare<40.f?1.0:1.03));
+        const int64 Desired=FMath::Max(FMath::RoundToInt64(Product.Cost*1.05),FMath::RoundToInt64(Product.BasePrice*Factor));
+        // An opening or share threshold must not cause an abrupt family-shop price jump.
+        return State.Stock[Index].Price>0?FMath::Min(Desired,FMath::RoundToInt64(State.Stock[Index].Price*1.03)):Desired;
     }
     void SetPrices(FMarketState& State, const TArray<FMarketProduct>& Products, const FProfile& Profile)
     {
         if (State.Day % 7 != 1) return;
         for (int32 Index = 0; Index < Products.Num(); ++Index)
         {
-            const double Factor = State.Day > Profile.GrowthPriceAt && State.MarketShare < 40.f && State.Branches.IsEmpty() ? Profile.GrowthPriceFactor : Profile.PriceFactor;
-            const int64 Target = FMath::Max(FMath::RoundToInt64(Products[Index].Cost * 1.05), FMath::RoundToInt64(Products[Index].BasePrice * Factor));
+            const int64 Target = PriceTarget(State,Products,Index,Profile);
             for (int32 Step = 0; Step < 20; ++Step)
             {
                 const int64 Previous = State.Stock[Index].Price;
@@ -314,8 +355,7 @@ namespace MarketAutoPlay
                     MarketAutoPlayC::Decide(State,Products,Profile.C,FMath::Max(Buffer(State,Profile),MarketAutoPlayFinance::NetworkReserve(State)),Trial.C);
                     MarketDirector::ApplyPrices(State,Base,Products);
                     MarketAutoPlayDiagnosis::Policy(State,Products,static_cast<int32>(Profile.Style),Trial.Diagnosis);
-                    const double DiagnosisFactor=State.Day>Profile.GrowthPriceAt && State.MarketShare<40.f && State.Branches.IsEmpty()?Profile.GrowthPriceFactor:Profile.PriceFactor;
-                    MarketAutoPlayDiagnosis::BeginDay(State,Products,DiagnosisFactor,Trial.Diagnosis);
+                    MarketAutoPlayDiagnosis::BeginDay(State,Products,Profile.PriceFactor,Trial.Diagnosis);
                     Payroll = State.DailyPayroll(); TaxBefore = State.Books.TotalTaxPaid;
                     Ordered = PlaceOrder(State, Products, Profile, Trial);
                     MarketAutoPlayOnline::Decide(State,Products,static_cast<int32>(Profile.Style),Trial.Online);

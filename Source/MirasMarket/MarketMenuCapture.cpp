@@ -31,6 +31,15 @@ namespace MarketMenuCapture
     struct FTarget { int32 Page; const TCHAR* Id; const TCHAR* Tab; bool bBottom=false; const TCHAR* Anchor=TEXT(""); float Offset=0.f; };
     const TArray<FTarget>& Targets()
     {
+        if(FParse::Param(FCommandLine::Get(),TEXT("MirasMenuC9")))
+        {
+            static const TArray<FTarget> C9List={
+                {9,TEXT("reports_week"),TEXT("Hafta")},
+                {3,TEXT("promotions"),TEXT("")},
+                {8,TEXT("management"),TEXT("Y\u00f6netim")},
+                {8,TEXT("company_advertising"),TEXT("\u015eirket"),false,TEXT("REKLAM")}
+            };return C9List;
+        }
         if(FParse::Param(FCommandLine::Get(),TEXT("MirasMenuC6")))
         {
             static const TArray<FTarget> C6List={

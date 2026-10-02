@@ -9,6 +9,7 @@ namespace MarketAutoPlayDiagnosis
         TArray<FString> Days, Events, Products;
         FString Roster;
         int32 LastDividendYear = 0;
+        int32 LifelineBefore = 0, WarningBefore = 0;
         int64 SalaryBefore = 0, DividendBefore = 0;
         int64 PendingDividend = 0;
         double Shelf = 0, List = 0, Purchase = 0, Book = 0, Target = 0;
