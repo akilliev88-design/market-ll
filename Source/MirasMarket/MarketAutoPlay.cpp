@@ -177,7 +177,8 @@ namespace MarketAutoPlay
         const int64 Reserve = FMath::Max(Buffer(State, Profile), MarketAutoPlayFinance::NetworkReserve(State));
         if (Profile.bBorrow && State.Day % 30 == 1 && MarketFinance::Debt(State) == 0)
             Command(State, Products, TEXT("TakeLoan"), 2, Run);
-        if (State.Cash <= Reserve) return;
+        // C14c: why a growth turn ends without a shop (the report lists these under the postponed decisions).
+        if (State.Cash <= Reserve) { ++Run.C.Blocked.FindOrAdd(TEXT("B\u00fcy\u00fcme turu: kasa yede\u011fin alt\u0131nda")); return; }
         const int32 Stores = MarketCompany::TotalStores(State);
         if (Stores >= Profile.DepotAt && MarketDepots::Count(State) == 0)
         {
@@ -242,18 +243,33 @@ namespace MarketAutoPlay
             const float B = Right.Rent / FMath::Max(0.1f, Right.Income) + MarketBranches::ShopsIn(State, Right.Country, Right.Province) * 0.25f;
             return A == B ? Left.Country + Left.Province < Right.Country + Right.Province : A < B;
         });
-        if (Sites.IsEmpty()) return;
-        // Investigate one visible site per growth turn. OpeningCost plans shelves and is deliberately not run
-        // for every province every week; map rent/income and our crowding choose which site to investigate.
-        const auto& Site = Sites[0];
-
-        FString Reason;
-        if (!MarketBranches::CanOpen(State, Products, Site.Country, Site.Province, Format, Reason)) { ++Run.C.Blocked.FindOrAdd(Reason); return; }
-        const int64 Cost = MarketBranches::OpeningCost(State, Products, Site.Country, Site.Province, Format);
+        if (Sites.IsEmpty()) { ++Run.C.Blocked.FindOrAdd(TEXT("B\u00fcy\u00fcme turu: uygun il yok")); return; }
+        // Investigate up to three visible sites per growth turn (C14c; before only the first, which could stay blocked
+        // for years). OpeningCost plans shelves, so it is not run for every province; rent/income and crowding choose.
         // C14 (M41): the balanced player opens the first branch on a thinner cushion (the first branch is the cheapest one).
         const double Cushion = MarketBranches::OpenCount(State) == 0 && Profile.Style == EStyle::Balanced ? FMath::Min(Profile.ExpansionBuffer, 1.2) : Profile.ExpansionBuffer;
-        if (MarketAutoPlayFinance::CanExpand(State,Cost,MarketBranches::MonthlyFixedCost(State,Site.Country,Site.Province,Format),Cushion))
-            Command(State, Products, TEXT("OpenBranch"), MarketBranches::EncodeSite(Site.Country, Site.Province, Format), Run);
+        FString FirstMiss;
+        for (int32 Try = 0; Try < FMath::Min(3, Sites.Num()); ++Try)
+        {
+            const auto& Site = Sites[Try];
+            FString Reason;
+            if (!MarketBranches::CanOpen(State, Products, Site.Country, Site.Province, Format, Reason)) { if (FirstMiss.IsEmpty()) FirstMiss = Reason; continue; }
+            const int64 Cost = MarketBranches::OpeningCost(State, Products, Site.Country, Site.Province, Format);
+            if (MarketAutoPlayFinance::CanExpand(State,Cost,MarketBranches::MonthlyFixedCost(State,Site.Country,Site.Province,Format),Cushion))
+            {
+                if (Command(State, Products, TEXT("OpenBranch"), MarketBranches::EncodeSite(Site.Country, Site.Province, Format), Run)) return;
+                if (FirstMiss.IsEmpty()) FirstMiss = TEXT("B\u00fcy\u00fcme turu: a\u00e7\u0131l\u0131\u015f komutu reddedildi");
+                continue;
+            }
+            if (FirstMiss.IsEmpty())
+            {
+                // Which part is short: the network's month, half the opening (x cushion), or a little.
+                const int64 Need = FMath::RoundToInt64(Cost * Cushion), Net = MarketAutoPlayFinance::NetworkReserve(State);
+                const TCHAR* Short = State.Cash < Net ? TEXT("a\u011f\u0131n ayl\u0131k gideri bile yok") : State.Cash < Net + Need / 2 ? TEXT("a\u00e7\u0131l\u0131\u015f\u0131n yar\u0131s\u0131 bile yok") : TEXT("a\u00e7\u0131l\u0131\u015fa az kald\u0131");
+                FirstMiss = FString::Printf(TEXT("B\u00fcy\u00fcme turu: para yetmiyor, %s (%s)"), Short, *Format);
+            }
+        }
+        if (!FirstMiss.IsEmpty()) ++Run.C.Blocked.FindOrAdd(FirstMiss);
     }
     int64 PlaceOrder(FMarketState& State, const TArray<FMarketProduct>& Products, const FProfile& Profile, FRun& Trial)
     {

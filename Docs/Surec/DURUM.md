@@ -1,8 +1,10 @@
 # Güncel durum
 
-Son güncelleme: 02.10.2026 — Claude (Cowork), C14 derlendi; C14b yazıldı, derlenmedi
+Son güncelleme: 03.10.2026 — Claude (Cowork), C14b derlendi (etkisiz); C14c yazıldı, derlenmedi
 
 ## Kısaca
+
+**03.10.2026 — Claude / C14c (derlenmedi):** C14b derlendi, TEST 158 + 1 uyarı; bot çıktıları C14 ile bayt bayt aynı: küçük türe inme ve İK/müşavir alma hiç tetiklenmedi, takılmanın sebebi o değil. C14c (bot): büyüme turunda ilk 3 ile bakar (önce yalnız sıradaki ilk il; o il yıllarca engelli kalabiliyordu) ve neden açamadığını rapora yazar (kasa yedeğin altında / uygun il yok / para yetmiyor: ağın aylık gideri bile yok, açılışın yarısı yok, az kaldı / açılış komutu reddedildi / CanOpen nedeni). Mustafa koşturacak.
 
 **02.10.2026 — Claude / C14b (derlenmedi):** C14 derlendi, TEST 159/159. Normal dengeli 140/92/77 ✓, ilk şube 264/278/278 (yalnız biri erkene geldi), temkinli 86/77/65, atak 180/25/111; Rahat değişmedi; Zor dengeli 56/8/30, temkinli 4/53/8. Takılan koşularda kasa yüz binlerce TL ama mağaza açılmıyor: (1) süpermarket/hiper sırası gelince uygun il kalmıyor, bot sessizce bekliyor; (2) ev ili dolunca dışarı çıkmak için İK + mali müşavir yok. C14b (bot): uygun il yoksa bir küçük türe iner; ev ili doluysa ve kasa yetiyorsa İK ve müşavir alır. Mustafa koşturacak.
 

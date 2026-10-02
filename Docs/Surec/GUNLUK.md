@@ -1,3 +1,11 @@
+## 03.10.2026 — Claude (Cowork) — C14b sonucu ve C14c (derlenmedi)
+
+**Doğrulama (Mustafa, 04e82cb):** DERLE, TEST 158 + 1 motor uyarısı. Bot çıktıları (gunluk.csv) C14 ile birebir aynı: C14b'nin iki kuralı hiç devreye girmedi. Yani takılan koşularda uygun il var ve ev ili dolu değil; varsayımım yanlıştı.
+
+**C14c (yalnız bot):** Büyüme turunda sıralamadaki ilk üç il denenir (önce yalnız birincisi; engelli ya da pahalıysa bot her turda aynı yerde duruyordu). Açılamayan turun nedeni rapordaki "Ertelenen kararlar" listesine yazılır: kasa yedeğin altında, uygun il yok, para yetmiyor (ağın aylık gideri bile yok / açılışın yarısı yok / az kaldı, türüyle), açılış komutu reddedildi ya da CanOpen nedeni. Sonuç değişmese bile bir sonraki koşu takılmanın nedenini gösterecek.
+
+**Sıradaki:** Mustafa `CLAUDE_KOS.cmd` (C14c_N/R/Z).
+
 ## 02.10.2026 — Claude (Cowork) — C14 sonucu ve C14b (derlenmedi)
 
 **Doğrulama (Mustafa):** C14 DERLE, TEST 159/159 temiz.
