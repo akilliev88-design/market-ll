@@ -17,6 +17,23 @@
 
 namespace MarketAutoPlayFinance
 {
+    int64 GoodsReserve(const FMarketState& State)
+    {
+        const auto Books=MarketLedger::Statement(State,FMath::Max(1,State.Day-30),State.Day-1);
+        int64 Volume=0;
+        for(const auto& Account:State.SupplierAccounts)Volume+=Account.Volume30;
+        const int64 Goods=FMath::Max(Volume,FMath::Max<int64>(0,-Books.At(MarketLedger::EAccount::CostOfGoods)-Books.At(MarketLedger::EAccount::DepartmentCostOfGoods)));
+        // Do not let empty shelves erase the estimate; the initial stock is the visible fallback.
+        int64 Initial=0;
+        if(State.Day<=30)for(const auto& Stock:State.Stock)
+            Initial+=(Stock.Shelf+Stock.Warehouse+Stock.Dock+Stock.Incoming)*Stock.AvgCost;
+        return FMath::Max(Initial,Goods*14/30);
+    }
+    bool WorthHiring(const FMarketState& State,int64 MonthlyBenefit,int64 DailyWage,int64 Fee)
+    {
+        const int64 Monthly=30*MarketStaff::EmployerCost(DailyWage);
+        return MonthlyBenefit>=Monthly && State.Cash>=NetworkReserve(State)+Monthly+Fee;
+    }
     int64 NetworkReserve(const FMarketState& State)
     {
         const int64 Wages=State.DailyPayroll()+MarketManagers::DailyWages(State);
@@ -38,7 +55,7 @@ namespace MarketAutoPlayFinance
         for(const auto& Branch:State.Branches)
             if(Branch.Stage!=static_cast<uint8>(MarketBranches::EStage::Closed))
                 Total+=MarketBranches::MonthlyFixedCost(State,Branch.Country,Branch.Province,Branch.Format);
-        return Total;
+        return Total+GoodsReserve(State);
     }
     bool CanExpand(const FMarketState& State,int64 Opening,int64 NewMonthly,double Buffer)
     { return !MarketAutoPlayRescue::Blocked(State) && State.Cash>=FMath::RoundToInt64(Opening*Buffer)+NetworkReserve(State)+NewMonthly; }

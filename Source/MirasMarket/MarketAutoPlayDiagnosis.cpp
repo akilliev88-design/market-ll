@@ -1,4 +1,5 @@
 #include "MarketAutoPlayDiagnosis.h"
+#include "MarketAutoPlay.h"
 #include "MarketOwner.h"
 #include "MarketCompany.h"
 #include "MarketAutoPlayFinance.h"
@@ -19,7 +20,8 @@ namespace MarketAutoPlayDiagnosis
         const int32 Stores = MarketCompany::TotalStores(State);
         const int32 Step = Style == 2 && Stores >= 30 ? 4 : Style == 1 && Stores >= 10 ? 3 : 1;
         FString Message;
-        if (State.Day >= State.RescueUntil && State.Owner.SalaryX10 != MarketOwner::SalarySteps[Step])
+        if (State.Day >= State.RescueUntil && State.Owner.SalaryX10 != MarketOwner::SalarySteps[Step] &&
+            (State.Owner.SalaryX10 > MarketOwner::SalarySteps[Step] || State.Cash >= 3*MarketAutoPlayFinance::NetworkReserve(State)))
         {
             if (MarketDirector::Command(State, Products, TEXT("OwnerSalary"), Step, Message))
                 Stats.Events.Add(FString::Printf(TEXT("%d,salary,%d,%s\n"), State.Day, MarketOwner::SalarySteps[Step], *Safe(Message)));
@@ -37,6 +39,8 @@ namespace MarketAutoPlayDiagnosis
     }
     void BeginDay(const FMarketState& State, const TArray<FMarketProduct>& Products, double PriceFactor, FStats& Stats)
     {
+        Stats.WarningBefore=State.LowCashWarnDay;Stats.LifelineBefore=0;
+        for(const auto& Account:State.SupplierAccounts)Stats.LifelineBefore=FMath::Max(Stats.LifelineBefore,Account.LifelineDay);
         Stats.SalaryBefore = State.Owner.TotalSalary; Stats.DividendBefore = State.Owner.TotalDividends;
         Stats.Shelf = Stats.List = Stats.Purchase = Stats.Book = Stats.Target = 0;
         int32 Count = 0;
@@ -47,7 +51,9 @@ namespace MarketAutoPlayDiagnosis
             if (Item.Capacity <= 0) continue;
             ++Count; Stats.Shelf += Item.Price; Stats.List += Product.BasePrice; Stats.Purchase += Product.Cost;
             Stats.Book += Item.AvgCost > 0 ? Item.AvgCost : Product.Cost;
-            const int64 Target = FMath::Max(FMath::RoundToInt64(Product.Cost * 1.05), FMath::RoundToInt64(Product.BasePrice * PriceFactor));
+            const auto& Profiles=MarketAutoPlay::Profiles();
+            int32 Style=1;for(int32 P=0;P<Profiles.Num();++P)if(FMath::IsNearlyEqual(Profiles[P].PriceFactor,PriceFactor))Style=P;
+            const int64 Target = MarketAutoPlay::PriceTarget(State,Products,I,Profiles[Style]);
             Stats.Target += Target;
             if (Date.Day == 1 || State.Day == 1)
                 Stats.Products.Add(FString::Printf(TEXT("%d,%s,%d,%lld,%lld,%lld,%lld,%lld,%d,%d\n"), State.Day, *Safe(Product.Id), Date.Year, Item.Price, Product.BasePrice, Product.Cost, Item.AvgCost, Target, Item.Shelf, Item.Warehouse));
@@ -81,7 +87,10 @@ namespace MarketAutoPlayDiagnosis
     FString ProductHeader() { return TEXT("gun,urun,takvim_yili,raf_kurus,liste_kurus,alis_kurus,stok_ortalama_kurus,bot_hedef_kurus,raf_adet,depo_adet\n"); }
     void Observe(const FMarketState& State, const MarketSimulation::FDay& Day, int64 Ordered, FStats& Stats)
     {
-        const int32 Closed = State.Day - 1; const auto Date = MarketCalendar::DateOf(Closed);
+        const int32 Closed = State.Day - 1;
+        for(const auto& Account:State.SupplierAccounts)if(Account.LifelineDay>Stats.LifelineBefore)
+            Stats.Events.Add(FString::Printf(TEXT("%d,lifeline,0,wholesaler\n"),Closed));
+        if(State.LowCashWarnDay>Stats.WarningBefore)Stats.Events.Add(FString::Printf(TEXT("%d,goods_warning,0,cash\n"),Closed)); const auto Date = MarketCalendar::DateOf(Closed);
         using A = MarketLedger::EAccount;
         const auto Family = MarketLedger::Statement(State, Closed, Closed, MarketLedger::FamilyShop);
         const auto Company = MarketLedger::Statement(State, Closed, Closed);

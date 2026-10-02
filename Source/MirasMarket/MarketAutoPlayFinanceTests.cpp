@@ -1,4 +1,5 @@
 #include "MarketAutoPlayFinance.h"
+#include "MarketAutoPlay.h"
 #include "MarketBranches.h"
 #include "MarketLedger.h"
 #include "MarketStaff.h"
@@ -112,4 +113,32 @@ bool FMarketBotRescueBooks::RunTest(const FString& Parameters)
     TestEqual(TEXT("Replacement not repayment"),Stats.Plans[1].Paid,0);
     return true;
 }
+
+IMPLEMENT_SIMPLE_AUTOMATION_TEST(FMarketBotCoreBalance,"MirasMarket.AutoPlay.CoreBalancePolicy",EAutomationTestFlags::EditorContext|EAutomationTestFlags::EngineFilter)
+bool FMarketBotCoreBalance::RunTest(const FString& Parameters)
+{
+    FMarketState State;State.Day=100;State.Cash=100000000;
+    FMarketSupplierAccount Account;Account.Volume30=300000;State.SupplierAccounts.Add(Account);
+    TestEqual(TEXT("Two weeks of visible purchases are protected"),MarketAutoPlayFinance::GoodsReserve(State),int64(140000));
+    const int64 Reserve=MarketAutoPlayFinance::NetworkReserve(State);
+    State.Cash=Reserve+30*MarketStaff::EmployerCost(2000);
+    TestFalse(TEXT("Cash alone cannot justify hiring"),MarketAutoPlayFinance::WorthHiring(State,0,2000));
+    TestTrue(TEXT("Recoverable gross covers total employer cost"),MarketAutoPlayFinance::WorthHiring(State,30*MarketStaff::EmployerCost(2000),2000));
+    --State.Cash;
+    TestFalse(TEXT("Hiring cannot spend protected goods money"),MarketAutoPlayFinance::WorthHiring(State,1000000,2000));
+    TArray<FMarketProduct> Products;FMarketProduct Product;Product.Id=TEXT("test");Product.Category=TEXT("icecek");Product.BasePrice=1000;Product.Cost=600;Products.Add(Product);
+    State.Stock.SetNum(1);State.Stock[0].Price=880;State.MarketShare=30;
+    const auto Profile=MarketAutoPlay::Profiles()[1];
+    const int64 Before=MarketAutoPlay::PriceTarget(State,Products,0,Profile);
+    FMarketBranch Branch;Branch.Stage=static_cast<uint8>(MarketBranches::EStage::Renovation);State.Branches.Add(Branch);
+    TestEqual(TEXT("Renovation cannot switch family price policy"),MarketAutoPlay::PriceTarget(State,Products,0,Profile),Before);
+    State.Branches[0].Stage=static_cast<uint8>(MarketBranches::EStage::Open);
+    TestEqual(TEXT("First open branch keeps family growth pricing"),MarketAutoPlay::PriceTarget(State,Products,0,Profile),Before);
+    State.Branches[0].Stage=static_cast<uint8>(MarketBranches::EStage::Closed);
+    TestEqual(TEXT("Closed history cannot switch growth pricing"),MarketAutoPlay::PriceTarget(State,Products,0,Profile),Before);
+    State.MarketShare=50;
+    TestTrue(TEXT("Share threshold cannot raise target over three percent"),MarketAutoPlay::PriceTarget(State,Products,0,Profile)<=906);
+    return true;
+}
+
 #endif
