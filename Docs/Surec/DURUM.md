@@ -4,7 +4,9 @@ Son güncelleme: 02.10.2026 — Claude (Cowork), C11 derlendi, test ve bot koşu
 
 ## Kısaca
 
-**02.10.2026 — Claude / C12b (yazıldı, derlenmedi):** C12 derlendi (TEST 157/157, Smoke geçti) ama bot sonucu aşırı sertti: Normal dengeli 10. yılda 1–9 mağaza, temkinli 8–26; Zor'da herkes 1–8. Sebep: mahalle kirası ×1,5 mahalle şubesini %1 net kâra düşürdü, erken oyun 3 mağazada kaldı. C12b: küçük mağazalar eski kira/tadilata döndü; süpermarket kira ×1,5 + tadilat 30.000, hipermarket kira ×1,5 + tadilat 100.000 TL. Mustafa `CLAUDE_KOS.cmd` ile tekrar koşturacak. Önceki not:
+**02.10.2026 — Claude / C12c (yazıldı, derlenmedi):** C12b derlendi, 157 test, Smoke; Normal temkinli 57–75 ✓, dengeli 24–42 (hedef 80–150), Zor çok sert. C12c: hiper tadilatı 70.000 TL, Zor çarpanı 1,15, dengeli bot hipermarkete 30 mağazada. Mustafa koşturacak. Önceki:
+
+**02.10.2026 — Claude / C12b (derlendi):** C12 derlendi (TEST 157/157, Smoke geçti) ama bot sonucu aşırı sertti: Normal dengeli 10. yılda 1–9 mağaza, temkinli 8–26; Zor'da herkes 1–8. Sebep: mahalle kirası ×1,5 mahalle şubesini %1 net kâra düşürdü, erken oyun 3 mağazada kaldı. C12b: küçük mağazalar eski kira/tadilata döndü; süpermarket kira ×1,5 + tadilat 30.000, hipermarket kira ×1,5 + tadilat 100.000 TL. Mustafa `CLAUDE_KOS.cmd` ile tekrar koşturacak. Önceki not:
 
 **02.10.2026 — Claude / C12 (derlendi; ayar geri alındı):** M41 hedefleri (Normal/Rahat/Zor) ve M42: kiralar ×1,5/×2, büyük format tadilatları bir yıllık kâr düzeyinde, süpermarket fiyatı 1,00; ilk şube (ev ilinde mahalle) tadilatın %40'ı; zorluk tadilat/kira çarpanı (Rahat 0,75, Zor 1,3); bot `-Difficulty=`. Yeni test satırları `Branches.OpenAndRun` içinde. **Derleme/test/bot artık Mustafa'da:** kökteki `CLAUDE_KOS.cmd`'ye çift tıklar (commit, DERLE, TEST, Smoke, bot Normal + Rahat + Zor, ~45 dk); çıktı `Saved/Claude/son.log`, bitince Claude'a yazar, Claude kontrol eder.
 

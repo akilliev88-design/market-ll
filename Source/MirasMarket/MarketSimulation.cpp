@@ -143,7 +143,7 @@ double MarketSimulation::ToleranceBonus(const FMarketState& State)
 
 float MarketSimulation::CapitalFactor(const FMarketState& State)
 {
-    return State.Difficulty == 0 ? 0.75f : State.Difficulty >= 2 ? 1.3f : 1.f;
+    return State.Difficulty == 0 ? 0.75f : State.Difficulty >= 2 ? 1.15f : 1.f; // C12c: hard 1.3 -> 1.15
 }
 
 bool MarketSimulation::SetDifficulty(FMarketState& State, int32 Difficulty, FString& OutMessage)

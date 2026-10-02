@@ -167,10 +167,11 @@ const MarketBranches::FFormat& MarketBranches::FormatInfo(const FString& Id)
     // money stopped being a limit after 15 shops): large stores' rent x1.5 and a fit-out of about half a year's
     // profit, the supermarket at the rivals' price level. C12b: the small shops keep their rent and fit-out (the
     // first try, rent x1.5 everywhere, left a neighbourhood shop ~1 % net and the early game stalled at 3 shops).
+    // C12c: the hypermarket's fit-out 100 000 -> 70 000 TL (a year's payback held the balanced player back).
     static const FFormat Discount = { TEXT("kucuk"), TEXT("ucuzcu (indirim marketi)"), TEXT("Ucuzcu"), 250000, 3, 0.9f, 0.94f, 300, 45000, 1.f, 0.7f, 0, false, 0 };
     static const FFormat Neighbourhood = { TEXT("mahalle"), TEXT("mahalle marketi"), TEXT("Mahalle"), 400000, 3, 1.0f, 1.0f, 240, 60000, 1.f, 1.f, 0, false, 0 };
     static const FFormat Super = { TEXT("buyuk"), TEXT("s\u00fcpermarket"), TEXT("S\u00fcpermarket"), 3000000, 6, 1.1f, 1.0f, 520, 225000, 1.5f, 2.f, 0, false, 0 };
-    static const FFormat Hyper = { TEXT("hiper"), TEXT("hipermarket"), TEXT("Hipermarket"), 10000000, 14, 1.15f, 0.98f, 1600, 750000, 3.f, 3.f, 500, true, 5 }; // C3 (A6): 20 -> 14 workers, running 5 -> 3
+    static const FFormat Hyper = { TEXT("hiper"), TEXT("hipermarket"), TEXT("Hipermarket"), 7000000, 14, 1.15f, 0.98f, 1600, 750000, 3.f, 3.f, 500, true, 5 }; // C3 (A6): 20 -> 14 workers, running 5 -> 3
     return Id == TEXT("kucuk") ? Discount : Id == TEXT("buyuk") ? Super : Id == TEXT("hiper") ? Hyper : Neighbourhood;
 }
 

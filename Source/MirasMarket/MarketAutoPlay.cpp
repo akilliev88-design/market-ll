@@ -33,7 +33,7 @@ namespace MarketAutoPlay
     {
         static const TArray<FProfile> Values = {
             { EStyle::Careful, TEXT("Temkinli"), 30, 2.5, false, 30, 1.05, 12, {365,60,1,2,.8f,1.4f,1.15f,false,2.0}, .88,365,8,30 },
-            { EStyle::Balanced, TEXT("Dengeli"), 14, 1.5, false, 14, 1.0, 8, {180,30,2,1,.95f,1.2f,1.05f,true,1.5}, .88,90,6,20 },
+            { EStyle::Balanced, TEXT("Dengeli"), 14, 1.5, false, 14, 1.0, 8, {180,30,2,1,.95f,1.2f,1.05f,true,1.5}, .88,90,6,30 }, // C12c: hypermarkets from 30 shops (was 20)
             { EStyle::Bold, TEXT("Atak"), 7, 1.1, true, 7, 0.95, 4, {60,15,3,0,1.f,1.f,1.f,true,1.1}, .82,60,3,12 }
         };
         return Values;

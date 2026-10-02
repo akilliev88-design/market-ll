@@ -1,3 +1,13 @@
+## 02.10.2026 — Claude (Cowork) — C12b sonucu ve C12c (derlenmedi)
+
+**Doğrulama (Mustafa, 76c648a):** DERLE, TEST 157/157, Smoke geçti; 27 koşu, defter farkı 0, sıkıcı dönem 0.
+
+**C12b sonucu (10. yıl mağaza):** Normal — temkinli 75/71/57 ✓ (40–80), dengeli 42/35/24 ✗ (80–150), atak 102/43/44; dengeli ilk şube 278–292 (hedef 120–244, yaklaştı); kurtarma 0. Rahat — temkinli 119/112/101, dengeli 112/40/59, atak 134/147/85; dengeli ilk şube 208. Zor — temkinli 34/33/1, dengeli 8/8/7, atak 28/2/19; kurtarma 1. Dengeli temkinliden az büyüyor: 20 mağazada hipermarkete geçiyor (tadilat ~1 yılda dönüyor), temkinli 30'a kadar süpermarket açıyor (~5 ay).
+
+**C12c:** hipermarket tadilatı 100.000 → 70.000 TL; Zor sermaye çarpanı 1,3 → 1,15; dengeli bot hipermarkete 30 mağazada geçer (ölçüm aracı).
+
+**Sıradaki:** Mustafa `CLAUDE_KOS.cmd` (C12c_N/R/Z).
+
 ## 02.10.2026 — Claude (Cowork) — C12 sonucu ve C12b (derlenmedi)
 
 **Doğrulama (Mustafa çalıştırdı, 3426b56):** DERLE geçti, TEST 157/157 (156 temiz + 1 HTTP uyarısı), Smoke geçti. Bot 27 koşu × 3653 gün, defter farkı 0, sıkıcı dönem 0.
