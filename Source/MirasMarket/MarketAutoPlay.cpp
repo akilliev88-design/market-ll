@@ -106,8 +106,35 @@ namespace MarketAutoPlay
         {
             // Visible negotiated wages (8%) and actual replacement fees are HR's potential savings.
             const auto Books=MarketLedger::Statement(State,FMath::Max(1,State.Day-30),State.Day-1);
-            const int64 Benefit=FMath::RoundToInt64(30*State.DailyPayroll()*.08)+FMath::Max<int64>(0,-Books.At(MarketLedger::EAccount::Severance));
-            Hire(MarketStaff::ERole::HrManager,Benefit);
+            int64 Benefit=FMath::RoundToInt64(30*State.DailyPayroll()*.08)+FMath::Max<int64>(0,-Books.At(MarketLedger::EAccount::Severance));
+            int64 Commitment=0;
+            if(!Run.bNoGrowth && !MarketAutoPlayRescue::Blocked(State) && MarketBranches::OpenCount(State)>=2)
+            {
+                // HR enables another store. Forecast its incremental contribution from a mature visible
+                // store of the same format, with no bonus for a richer destination or hidden future sales.
+                for(const auto& City:MarketCountry::Active().Cities)
+                {
+                    const auto Next=MarketBranches::SiteOf(State,State.CountryId,City.Id);
+                    if(MarketBranches::ShopsIn(State,State.CountryId,City.Id)>=MarketBranches::Room(Next) ||
+                        !MarketAutoPlayC::SiteSuitable(State,State.CountryId,City.Id,TEXT("mahalle")))continue;
+                    const int64 Fixed=MarketBranches::MonthlyFixedCost(State,State.CountryId,City.Id,TEXT("mahalle"));
+                    for(const auto& Branch:State.Branches)
+                    {
+                        if(Branch.Stage!=static_cast<uint8>(MarketBranches::EStage::Open) || Branch.Format!=TEXT("mahalle") || State.Day-Branch.OpenedDay<90)continue;
+                        const auto From=MarketBranches::SiteOf(State,Branch.Country,Branch.Province);
+                        const int64 OldFixed=MarketBranches::MonthlyFixedCost(State,Branch.Country,Branch.Province,Branch.Format);
+                        const int64 Contribution=FMath::RoundToInt64((Branch.Last30Profit+OldFixed)*FMath::Min(1.f,Next.Income/FMath::Max(.1f,From.Income)))-Fixed;
+                        const int64 Opening=FMath::RoundToInt64(MarketBranches::OpeningCost(State,Products,State.CountryId,City.Id,TEXT("mahalle"))*Profile.ExpansionBuffer);
+                        if(Contribution>Benefit && State.Cash>=Reserve+Opening+Fixed)
+                        {Benefit=Contribution;Commitment=Opening+Fixed;}
+                    }
+                }
+            }
+            MarketStaff::EnsureCandidates(State);
+            for(int32 I=0;I<State.Candidates.Num();++I)
+                if(MarketStaff::RoleOf(State.Candidates[I])==MarketStaff::ERole::HrManager &&
+                    MarketAutoPlayFinance::WorthHiring(State,Benefit,State.Candidates[I].DailyWage,Commitment+MarketStaff::HireCostOn(MarketStaff::ERole::HrManager,State.Day)))
+                {MarketStaff::Hire(State,I,Message);break;}
         }
         if (State.Cash <= Reserve) return;
         // Outside candidates are selected by visible list order, never by hidden honesty/potential.
