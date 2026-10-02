@@ -12,6 +12,10 @@ UMirasAutoPlayCommandlet::UMirasAutoPlayCommandlet()
 }
 int32 UMirasAutoPlayCommandlet::Main(const FString& Params)
 {
+    FString Tune, TuneError;
+    FParse::Value(*Params, TEXT("Tune="), Tune);
+    if (!MarketAutoPlay::ConfigureTuning(Tune, TuneError))
+    { UE_LOG(LogTemp, Error, TEXT("%s"), *TuneError); return 1; }
     MarketAutoPlay::FOptions Options;
     int32 Years = 10;
     FParse::Value(*Params, TEXT("Years="), Years);
@@ -27,7 +31,11 @@ int32 UMirasAutoPlayCommandlet::Main(const FString& Params)
     if (!MarketAutoPlay::LoadInputs(Base, Capacities, Errors))
     { for (const FString& Error : Errors) UE_LOG(LogTemp, Error, TEXT("%s"), *Error); return 1; }
     const MarketAutoPlay::FReport Report = MarketAutoPlay::Run(Options, Base, Capacities);
-    const FString Directory = FPaths::ProjectSavedDir() / TEXT("AutoPlay") / FDateTime::Now().ToString(TEXT("%Y%m%d-%H%M%S"));
+    FString Tag;
+    FParse::Value(*Params, TEXT("Experiment="), Tag);
+    for (TCHAR C : Tag) if (!FChar::IsAlnum(C) && C != TEXT('_') && C != TEXT('-'))
+    { UE_LOG(LogTemp, Error, TEXT("Invalid experiment tag")); return 1; }
+    const FString Directory = FPaths::ProjectSavedDir() / TEXT("AutoPlay") / (Tag.IsEmpty() ? FDateTime::Now().ToString(TEXT("%Y%m%d-%H%M%S")) : TEXT("C10/") + Tag);
     if (!MarketAutoPlay::WriteReport(Report, Directory)) return 1;
     UE_LOG(LogTemp, Display, TEXT("AutoPlay report: %s"), *Directory);
     int32 Failures = Report.Errors.Num();

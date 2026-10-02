@@ -1,4 +1,5 @@
 #include "MarketAutoPlayFinance.h"
+#include "MarketTuning.h"
 #include "MarketBanking.h"
 #include "MarketBranches.h"
 #include "MarketChains.h"
@@ -64,7 +65,7 @@ namespace MarketAutoPlayFinance
         if(Branch.Stage!=static_cast<uint8>(MarketBranches::EStage::Open) || Day-Branch.OpenedDay<=90)
         { RedMonths=0; return false; }
         RedMonths=Branch.Last30Profit<0?RedMonths+1:0;
-        return RedMonths>=2;
+        return RedMonths>=FMath::RoundToInt(MarketTuning::Get(TEXT("LossMonthsToClose"),2.f));
     }
     bool Send(FMarketState& State,const TArray<FMarketProduct>& Products,FName Action,int32 Arg,FStats& Stats)
     {
@@ -162,6 +163,14 @@ namespace MarketAutoPlayFinance
         Stats.PeakLine=FMath::Max(Stats.PeakLine,State.Banking.LineDrawn);
         if(State.Banking.LastRatingDay!=Stats.LastRatingDay)
         { Stats.LastRatingDay=State.Banking.LastRatingDay; if(State.Banking.BreachMonths>0)++Stats.BreachMonths; }
+        if(Day%30==0 || Year>Stats.Years.Num())
+        {
+            FMatureMonth Month; Month.Day=Day; Month.ListLevel=MarketPrices::ListLevel(Day);
+            for(const auto& Branch:State.Branches)
+                if(Branch.Stage==static_cast<uint8>(MarketBranches::EStage::Open) && Day-Branch.OpenedDay>90)
+                { ++Month.Count; Month.Profit+=Branch.Last30Profit; }
+            Stats.MatureMonths.Add(Month);
+        }
         Stats.Closed=0;
         for(int32 Index=0;Index<State.Branches.Num();++Index)
         {
@@ -217,6 +226,13 @@ namespace MarketAutoPlayFinance
         FString Text; TArray<int32> Indices; Stats.Branches.GetKeys(Indices); Indices.Sort();
         for(int32 Index:Indices)
         { const auto& R=Stats.Branches[Index]; Text+=FString::Printf(TEXT("%s,%d,%d,%s,%d,%d,%d,%lld,%lld,%lld,%lld,%lld,%lld,%lld,%lld,%lld\n"),*Style,Seed,Index,*R.Format,R.Opened,R.Days,R.Closed,R.Revenue,R.Gross,R.Rent,R.Wages,R.Sgk,R.Running,R.Logistics,R.Waste,R.Net); }
+        return Text;
+    }
+    FString MatureCsv(const FStats& Stats,const FString& Style,int32 Seed)
+    {
+        FString Text;
+        for(const auto& M:Stats.MatureMonths)
+            Text+=FString::Printf(TEXT("%s,%d,%d,%d,%lld,%.8f\n"),*Style,Seed,M.Day,M.Count,M.Profit,M.ListLevel);
         return Text;
     }
     FString BankCsv(const FStats& Stats,const FString& Style,int32 Seed)

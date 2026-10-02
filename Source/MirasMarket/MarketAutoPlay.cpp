@@ -1,4 +1,5 @@
 #include "MarketAutoPlay.h"
+#include "MarketTuning.h"
 #include "MarketSimulation.h"
 #include "MarketOrderAdvice.h"
 #include "MarketStart.h"
@@ -342,7 +343,7 @@ namespace MarketAutoPlay
     }
     FReport Run(const FOptions& Options, const TArray<FMarketProduct>& Base, const TArray<int32>& Capacities, int32 RestoreSeed)
     {
-        FReport Report; Report.Options = Options;
+        FReport Report; Report.Options = Options; Report.Tuning = MarketTuning::Describe();
         FParse::Value(FCommandLine::Get(),TEXT("MirasAutoPlayStyle="),Report.Options.StyleIndex);
         Report.Options.bOfflineCareful |= FParse::Param(FCommandLine::Get(),TEXT("MirasNoInternet"));
         Report.Options.bNoGrowth |= FParse::Param(FCommandLine::Get(),TEXT("MirasNoGrowth"));
@@ -350,7 +351,7 @@ namespace MarketAutoPlay
         if (Base.IsEmpty() || Capacities.Num() != Base.Num() || !MarketCountry::FindCity(Options.Country, Options.Province) || Options.Days < 1 || Options.Days > 10958 || Options.Seeds < 1 || Options.Seeds > 100)
         { Report.Errors.Add(TEXT("Katalog, raf plani, ulke, il ya da kosu suresi gecersiz.")); return Report; }
         const MarketCountry::FProfile PreviousCountry = MarketCountry::Active();
-        for (const FProfile& Profile : Profiles()) for (int32 SeedIndex = 0; SeedIndex < Options.Seeds; ++SeedIndex)
+        for (const FProfile& Profile : TunedProfiles()) for (int32 SeedIndex = 0; SeedIndex < Options.Seeds; ++SeedIndex)
         {
             if(((Report.Options.bOfflineCareful || Report.Options.bNoGrowth) && Profile.Style!=EStyle::Careful) || (Report.Options.StyleIndex>=0 && static_cast<int32>(Profile.Style)!=Report.Options.StyleIndex))continue;
             FRun Trial; Trial.Profile = Profile.Name; Trial.Seed = Options.FirstSeed + SeedIndex;
@@ -483,6 +484,7 @@ namespace MarketAutoPlay
         IFileManager::Get().MakeDirectory(*Directory, true);
         FString Text = TEXT("# Otomatik oyuncunun denge raporu\n\n");
         Text += FString::Printf(TEXT("%d kosu, her biri %d gun; toplam sure %.1f saniye.\n\n"), Report.Runs.Num(), Report.Options.Days, Report.Seconds);
+        Text += TEXT("Tune: ") + (Report.Tuning.IsEmpty() ? TEXT("C10 defaults") : Report.Tuning) + TEXT("\n\n");
         Text += TEXT("| Tarz | Tohum | Son kasa | Borc | Magaza | Il | Ulusal pay | Kasa eksi gun | Sikinti gunu | Denetim hatasi |\n|---|---:|---:|---:|---:|---:|---:|---:|---:|---:|\n");
         int64 LowestPositive = MAX_int64, Highest = 0;
         int32 Broke = 0, Expanded = 0, Failures = 0;
@@ -579,12 +581,14 @@ namespace MarketAutoPlay
         FString EraCsv=TEXT("tarz,tohum,donem,dalga,baslangic,bitis,oynanan_gun,ilk_kasa_kurus,son_kasa_kurus,en_az_kasa_kurus,net_kar_kurus\n");
         FString C3Csv=TEXT("tarz,tohum,fark_gun,fark_kurus,mutlak_fark_kurus,hedef,tamamlanan,kutlama,sakin_olay,ertelenen_kotu,sikici_donem,en_uzun_sessizlik,kapanma,rakip_alimi,bizim_alim\n");
         FString BranchCsv=TEXT("tarz,tohum,sube,tur,acilis,oynanan_gun,kapanis,ciro_kurus,brut_kar_kurus,kira_kurus,ucret_kurus,sgk_kurus,isletme_kurus,lojistik_kurus,fire_kurus,net_kar_kurus\n");
+        FString MatureCsv=TEXT("tarz,tohum,gun,olgun_sube,kar30_kurus,liste_duzeyi\n");
         FString BankCsv=TEXT("tarz,tohum,yil,gun,not,sirket_borcu_kurus,favok_kurus,borc_favok,faiz_kurus,limit_kullanimi_kurus,limit_kurus,bagli_sirket,bagli_magaza\n");
         FString C4Csv=TEXT("tarz,tohum,kurtarma,kapanan_sube,ihlal_ay,teklif,kabul,ret,finansmanli_alim,cevrilen,dev_cikisi,kapi,faiz_kurus,en_cok_limit_kurus\n");
         for(const auto& Trial:Report.Runs)
         {
             const auto& Metrics=Trial.C;
             BranchCsv+=MarketAutoPlayFinance::BranchCsv(Trial.Finance,Trial.Profile,Trial.Seed);
+            MatureCsv+=MarketAutoPlayFinance::MatureCsv(Trial.Finance,Trial.Profile,Trial.Seed);
             BankCsv+=MarketAutoPlayFinance::BankCsv(Trial.Finance,Trial.Profile,Trial.Seed);
             C4Csv+=MarketAutoPlayFinance::SummaryCsv(Trial.Finance,Trial.Profile,Trial.Seed);
             EraCsv+=MarketAutoPlayC::EraCsv(Metrics,Trial.Profile,Trial.Seed);
@@ -592,7 +596,8 @@ namespace MarketAutoPlay
             for(const auto& Year:Trial.C.Years)LeagueCsv+=FString::Printf(TEXT("%s,%d,%d,%d,%d,%d,%d,%.0f,%.0f\n"),*Trial.Profile,Trial.Seed,Year.Year,Year.Day,Year.National,Year.World,Year.Stores,Year.OurWorld,Year.LeaderWorld);
             for(const auto& Change:Trial.C.Sourcing)SupplyCsv+=FString::Printf(TEXT("%s,%d,%d,%d,%d,%d\n"),*Trial.Profile,Trial.Seed,Change.Day,Change.Line,Change.From,Change.To);
         }
-        if(!FFileHelper::SaveStringToFile(BranchCsv,*(Directory/TEXT("sube180.csv")),FFileHelper::EEncodingOptions::ForceUTF8) ||
+        if(!FFileHelper::SaveStringToFile(MatureCsv,*(Directory/TEXT("olgun_sube.csv")),FFileHelper::EEncodingOptions::ForceUTF8) ||
+            !FFileHelper::SaveStringToFile(BranchCsv,*(Directory/TEXT("sube180.csv")),FFileHelper::EEncodingOptions::ForceUTF8) ||
             !FFileHelper::SaveStringToFile(BankCsv,*(Directory/TEXT("banka.csv")),FFileHelper::EEncodingOptions::ForceUTF8) ||
             !FFileHelper::SaveStringToFile(C4Csv,*(Directory/TEXT("c4.csv")),FFileHelper::EEncodingOptions::ForceUTF8) ||
             !FFileHelper::SaveStringToFile(EraCsv,*(Directory/TEXT("donemler.csv")),FFileHelper::EEncodingOptions::ForceUTF8) ||
