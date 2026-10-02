@@ -864,7 +864,7 @@ struct FMarketState
     static constexpr int64 StockerDailyWage = 2000;
 
     // Save format version. 2 (G-076): story finale flags, test-mode mark. Older saves load and are migrated.
-    static constexpr int32 CurrentVersion = 5; // M36-M38 (M27): owner, rent, campaigns per store; older saves start a new game
+    static constexpr int32 CurrentVersion = 6; // C10 (M27): serialized pending store costs; older saves start a new game
     UPROPERTY() int32 Version = CurrentVersion;
     UPROPERTY() int32 Day = 1;
     UPROPERTY() int64 Cash = 35000;
