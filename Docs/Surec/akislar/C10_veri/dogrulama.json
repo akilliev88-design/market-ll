@@ -1,0 +1,35 @@
+{
+  "source": "8b153f8",
+  "build_seconds": 23.15,
+  "tests_passed": 157,
+  "tests_clean": 156,
+  "tests_warnings": 1,
+  "tests_failed": 0,
+  "smoke_passed": true,
+  "balance_campaigns": 75,
+  "balance_days": 295890,
+  "extra_regression_days": 540,
+  "audit_failures": 0,
+  "combined_10_year_prefix_equal": true,
+  "profile_negative_controls_equal": true,
+  "logs_sha256": {
+    "GameplaySmoke.log": "2fa3da13d4931921fd8295c7f37db2449add5711d41f39232eca04bea9ce139f",
+    "index.json": "12bdbf294e88661318389820a32d20f048ab01255ea6a40dd470c64fa4eee39a",
+    "DERLE_son.log": "2ba8021dfe8a9b7257c419eb5537fef5f4896643c7e00d624fad4d3f8076a222"
+  },
+  "main_final": {
+    "source": "a0eb1ed",
+    "save_version": 6,
+    "build_passed": true,
+    "build_seconds": 49.61,
+    "tests_passed": 154,
+    "tests_warnings": 1,
+    "tests_failed": 0,
+    "smoke_passed": true,
+    "logs_sha256": {
+      "GameplaySmoke.log": "9acb333524623bbc44c85af32ff2fe2a119088329590b8b8b959405b779d0f7f",
+      "index.json": "c9d50a44c6e2ab6ef2e051240f0c6dc0fb8dddac4788713b043f6d18a5c9d47e",
+      "DERLE_son.log": "1bf7bad34def90b27d36d4f697d496ac4b960d74e2ab2ffd0819989edb92eba1"
+    }
+  }
+}

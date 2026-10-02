@@ -1,0 +1,26 @@
+{
+  "experiment": "D6",
+  "tune": "BranchCompetition=2.5,RealWageGrowth=0.005,RealSpend=0.7",
+  "years": 10,
+  "seeds": 3,
+  "first_seed": 21,
+  "source": "8b153f8869ca19c838858eb9c4ed7e95df554db8",
+  "command": [
+    "C:\\Program Files\\Epic Games\\UE_5.8\\Engine\\Binaries\\Win64\\UnrealEditor-Cmd.exe",
+    "C:\\Users\\mtass\\Desktop\\market-ll-A\\MirasMarket.uproject",
+    "-run=MirasAutoPlay",
+    "-Years=10",
+    "-Seeds=3",
+    "-Seed=21",
+    "-Experiment=D6",
+    "-unattended",
+    "-nop4",
+    "-nosound",
+    "-NullRHI",
+    "-abslog=C:\\Users\\mtass\\Desktop\\market-ll-A\\Saved\\Logs\\C10_D6.log",
+    "-Tune=BranchCompetition=2.5,RealWageGrowth=0.005,RealSpend=0.7"
+  ],
+  "started_utc": "2026-10-02T08:19:25Z",
+  "exit_code": 0,
+  "seconds": 880.19
+}

@@ -1,0 +1,20 @@
+{
+  "selected_before_combined_utc": "2026-10-02T08:01:32.676788+00:00",
+  "source": "73d52ff",
+  "selected": [
+    "D2",
+    "D1",
+    "D3"
+  ],
+  "tune": "BranchCompetition=2.5,RealWageGrowth=0.005,RealSpend=0.7",
+  "loss_sum": {
+    "D0": 16.35344291316943,
+    "D1": 11.588909941847009,
+    "D2": 10.889997182537636,
+    "D3": 12.656686984907184,
+    "D4": 15.86128290047361,
+    "D4b": 15.843893542652273,
+    "D5": 16.368355985253753
+  },
+  "method": "Per target and seed equally weighted. Careful: first branch, stores10, national10, real profit ratio. Balanced: those four plus stores3. 27 target/seed pairs. Below range: (low-value)/low; above: (value-high)/high; cap 1. Missing value: 1. Lower is better. Atak has no numeric growth targets and is excluded. 10-year rescues are shown separately, not treated as completion of the 30-year target."
+}

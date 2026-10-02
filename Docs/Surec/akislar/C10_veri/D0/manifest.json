@@ -1,0 +1,25 @@
+{
+  "experiment": "D0",
+  "tune": "",
+  "years": 10,
+  "seeds": 3,
+  "first_seed": 21,
+  "source": "73d52ff0c14cf33432767235abb939c62a6509e3",
+  "command": [
+    "C:\\Program Files\\Epic Games\\UE_5.8\\Engine\\Binaries\\Win64\\UnrealEditor-Cmd.exe",
+    "C:\\Users\\mtass\\Desktop\\market-ll-A\\MirasMarket.uproject",
+    "-run=MirasAutoPlay",
+    "-Years=10",
+    "-Seeds=3",
+    "-Seed=21",
+    "-Experiment=D0",
+    "-unattended",
+    "-nop4",
+    "-nosound",
+    "-NullRHI",
+    "-abslog=C:\\Users\\mtass\\Desktop\\market-ll-A\\Saved\\Logs\\C10_D0.log"
+  ],
+  "started_utc": "2026-10-02T07:28:17Z",
+  "exit_code": 0,
+  "seconds": 920.38
+}
