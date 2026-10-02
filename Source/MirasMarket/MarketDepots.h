@@ -117,6 +117,13 @@ namespace MarketDepots
     // A branch's delivery lost at a depot (goods already paid, at cost): short / broken and skimmed.
     void RecordLoss(FMarketState& State, int32 DepotIndex, int64 ShortCost, int64 SkimCost);
 
+    // C13 (M43, the 8-shop stall: a full depot's rent and manager cost more than 8 branches saved): a depot
+    // starts small and grows with what it serves. Share of its full rent and of its manager's band: branches
+    // served / ScaleFullBranches, at least ScaleMin.
+    constexpr int32 ScaleFullBranches = 20;
+    constexpr float ScaleMin = 0.3f;
+    float Scale(const FMarketState& State, int32 DepotIndex);
+    float ScaleFor(int32 Branches);
     // Today's rent of all depots (paid in MarketCompany::CloseDay with the head office).
     int64 DailyRent(const FMarketState& State, int32 Day);
     // Day close after the branches and managers: a caught skimmer, weekly warnings for depots without a manager,

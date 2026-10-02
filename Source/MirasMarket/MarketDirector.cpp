@@ -26,6 +26,7 @@
 #include "MarketBanking.h"
 #include "MarketAdvertising.h"
 #include "MarketCommand.h"
+#include "MarketRumors.h"
 
 float MarketDirector::TrafficFactor(const FMarketState& State, const TArray<FString>& Aisles)
 {
@@ -302,6 +303,24 @@ bool MarketDirector::Command(FMarketState& State, const TArray<FMarketProduct>& 
         return MarketBanking::Borrow(State, BankIndex, Step, Tenor, bGrace, OutMessage);
     }
     if (Action == TEXT("RepayCorpLoan")) return MarketBanking::Repay(State, Arg, OutMessage);
+    // C13 (M43): the player's way to a loan and a deal: an application, the bank's answer in days, the offer.
+    if (Action == TEXT("LoanApply")) // Arg = MarketBanking::EncodeLoan with step 0..4
+    {
+        int32 BankIndex = 0, Step = 0, Tenor = 0;
+        bool bGrace = false;
+        if (!MarketBanking::DecodeApp(Arg, BankIndex, Step, Tenor, bGrace)) { OutMessage = TEXT("B\u00f6yle bir se\u00e7enek yok."); return false; }
+        return MarketBanking::Apply(State, BankIndex, Step, Tenor, bGrace, OutMessage);
+    }
+    if (Action == TEXT("LoanAccept")) return MarketBanking::AcceptApp(State, Products, Arg, OutMessage); // Arg = application id
+    if (Action == TEXT("LoanDecline")) return MarketBanking::DeclineApp(State, Arg, OutMessage);
+    if (Action == TEXT("BidChainAsk")) return MarketChains::OfferBid(State, Arg, OutMessage); // Arg = chain index
+    if (Action == TEXT("DealComplete") || Action == TEXT("DealFinance")) // Arg = chain index: pay from the till, or ask the banks for the shortfall
+    {
+        const int64 Price = MarketChains::DealPrice(State, Arg);
+        if (Price <= 0) { OutMessage = TEXT("Tamamlanacak bir anla\u015fma yok."); return false; }
+        if (State.Cash >= Price) return MarketChains::CompleteDeal(State, Products, Arg, OutMessage);
+        return MarketBanking::ApplyAcquisition(State, Arg, Price, OutMessage);
+    }
     if (Action == TEXT("Restructure")) return MarketBanking::Restructure(State, Arg, OutMessage);
     if (Action == TEXT("OpenLine")) return MarketBanking::OpenLine(State, OutMessage);
     if (Action == TEXT("LineAuto")) return MarketBanking::SetLineAuto(State, Arg != 0, OutMessage);
@@ -341,6 +360,7 @@ void MarketDirector::CloseDay(FMarketState& State, const TArray<FMarketProduct>&
     MarketCommand::CloseDay(State, Products);    // M33: province managers propose opening or closing a branch (up the line)
     MarketDepots::CloseDay(State);               // depots: a caught depot manager, missing managers, losses (G-089)
     MarketChains::CloseDay(State);               // rival chains of our countries and the world giants (Akis C2b)
+    MarketRumors::CloseDay(State);               // C13 (M43): market rumours, their sources and their day
     MarketBrands::CloseDay(State, Products);     // brands: sales, deals, trust, offers (karar M25)
     MarketSourcing::CloseDay(State, Products);   // supply lines: the month's minimums (G-083)
     MarketCompany::CloseDay(State);              // stores in other cities, depot, trucks, leadership (G-072)
@@ -353,6 +373,7 @@ void MarketDirector::CloseDay(FMarketState& State, const TArray<FMarketProduct>&
     MarketEvents::CloseDay(State, Products); // decisions past their day, modifiers, snow, a new neighbourhood event (G-066)
     MarketStory::CloseDay(State, Products);  // scenes, milestones, chapters (G-066)
     MarketBanking::CloseDay(State);           // M28: company loans, the credit line (covers a negative till first), rating, covenants
+    MarketBanking::CloseApps(State);          // C13 (M43): the banks' answers to our applications
     MarketFinance::CloseDay(State, Products); // loans, the money trouble ladder, month-end report (G-067)
     MarketCompany::TrackNationalRevenue(State); // B1 (#45): national share by revenue, after every revenue is in
     MarketLedger::EndClose(State);              // B2: the audit (till change = cash entries)

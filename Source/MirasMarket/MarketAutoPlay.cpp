@@ -182,7 +182,16 @@ namespace MarketAutoPlay
         if (Stores >= Profile.DepotAt && MarketDepots::Count(State) == 0)
         {
             const MarketDepots::FAdvice Advice = MarketDepots::SuggestDepotProvince(State, State.CountryId);
-            if (!Advice.Province.IsEmpty() && State.Cash > MarketDepots::BuildCost(State, State.CountryId, Advice.Province) + Reserve)
+            const int64 DepotCost = Advice.Province.IsEmpty() ? 0 : MarketDepots::BuildCost(State, State.CountryId, Advice.Province);
+            // C13 (M43): a balanced or bold player funds the depot with an investment loan when the till is short.
+            if (DepotCost > 0 && State.Cash <= DepotCost + Reserve && Profile.Style != EStyle::Careful)
+            {
+                int32 Best = INDEX_NONE;
+                for (int32 Bank = 0; Bank < MarketBanking::BankCount; ++Bank)
+                    if (MarketBanking::Offer(State, Bank) >= DepotCost + Reserve - State.Cash && (Best == INDEX_NONE || MarketBanking::YearRate(State, Bank) < MarketBanking::YearRate(State, Best))) Best = Bank;
+                if (Best != INDEX_NONE) Command(State, Products, TEXT("CorpLoan"), MarketBanking::EncodeLoan(Best, 3, 1, false), Run);
+            }
+            if (DepotCost > 0 && State.Cash > DepotCost + Reserve)
                 Command(State, Products, TEXT("BuildDepotIn"), MarketManagers::EncodeArea(MarketManagers::ELevel::Depot, State.CountryId, Advice.Province), Run);
         }
         if (Stores >= 8) Command(State, Products, TEXT("Build"), 2, Run);

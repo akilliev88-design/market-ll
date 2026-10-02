@@ -1,10 +1,14 @@
 # Güncel durum
 
-Son güncelleme: 02.10.2026 — Claude (Cowork), C11 derlendi, test ve bot koşusu yapıldı
+Son güncelleme: 02.10.2026 — Claude (Cowork), C13 yazıldı, derlenmedi
 
 ## Kısaca
 
-**02.10.2026 — Claude / C12c (yazıldı, derlenmedi):** C12b derlendi, 157 test, Smoke; Normal temkinli 57–75 ✓, dengeli 24–42 (hedef 80–150), Zor çok sert. C12c: hiper tadilatı 70.000 TL, Zor çarpanı 1,15, dengeli bot hipermarkete 30 mağazada. Mustafa koşturacak. Önceki:
+**02.10.2026 — Claude / C13 (yazıldı, derlenmedi):** M43: kredi başvurusu ve banka cevabı (`MarketBanking::Apply/CloseApps/AcceptApp`), satın alma teklifine birkaç günde cevap ve 14 gün ödeme süresi (`MarketChains::OfferBid/CloseBids/CompleteDeal`), satın alma kredisi başvurusu (`ApplyAcquisition`), piyasa kulisi (yeni `MarketRumors`: gizli doğruluk, güvenilir/güvensiz kaynaklar, asistan okuması, `MarketChains::Force*`), depo kirası/müdürü şube sayısıyla (`MarketDepots::Scale`). Menü: Finans › Şirket finansı (Başvur, teklifler), Mağazalar › Şirket › Kulis ve teklifler, bildirimler. Kayıt sürümü 7. Yeni testler `Rumors.SourcesAndTruth`, `Banking.ApplicationsAndBids`; Test.ps1 alt sınırı 159. Mustafa `CLAUDE_KOS.cmd` ile derleyip bot koşturacak.
+
+**02.10.2026 — Claude / C12c doğrulandı:** 157 test, Smoke. Normal temkinli 62–82, dengeli 33–83, atak 50–127, kurtarma 0; Rahat dengeli 92–161; Zor hâlâ sert (dengeli 8 mağazada takılıyor). Sıradaki: 8 mağaza eşiği (depo/merkezi alım) ve dengeli ilk şube. Önceki:
+
+**02.10.2026 — Claude / C12c (derlendi):** C12b derlendi, 157 test, Smoke; Normal temkinli 57–75 ✓, dengeli 24–42 (hedef 80–150), Zor çok sert. C12c: hiper tadilatı 70.000 TL, Zor çarpanı 1,15, dengeli bot hipermarkete 30 mağazada. Mustafa koşturacak. Önceki:
 
 **02.10.2026 — Claude / C12b (derlendi):** C12 derlendi (TEST 157/157, Smoke geçti) ama bot sonucu aşırı sertti: Normal dengeli 10. yılda 1–9 mağaza, temkinli 8–26; Zor'da herkes 1–8. Sebep: mahalle kirası ×1,5 mahalle şubesini %1 net kâra düşürdü, erken oyun 3 mağazada kaldı. C12b: küçük mağazalar eski kira/tadilata döndü; süpermarket kira ×1,5 + tadilat 30.000, hipermarket kira ×1,5 + tadilat 100.000 TL. Mustafa `CLAUDE_KOS.cmd` ile tekrar koşturacak. Önceki not:
 

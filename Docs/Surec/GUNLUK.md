@@ -1,3 +1,19 @@
+## 02.10.2026 — Claude (Cowork) — C13: kredi başvurusu, teklif süreci, kulis, büyüyen depo (derlenmedi)
+
+**Yapılan (M43):** Bankaya kredi başvurusu (yatırım ve satın alma amaçlı); banka 2–4 günde not ve borç durumuna göre tam, kısmi ya da ret cevabı verir, teklif 7 gün geçerli, "Kabul et / Reddet / Geri çek" Finans › Banka kartında. Zincir satın alma teklifine 2–4 günde cevap; kabul edilirse 14 gün içinde "Anlaşmayı tamamla" (kasa yetmezse bankalara satın alma kredisi başvurusu açılır), süre geçerse anlaşma bozulur. Piyasa kulisi (`MarketRumors`): satışa çıkacak / pazara girecek / satın alacak / fiyat savaşı söylentileri; gizli doğruluk (ön olasılık ~%42), birkaç günde bir güvenilir ya da güvensiz yeni kaynak doğrular ya da yalanlar; kaynak dökümü ve inanç düzeyi (zayıf/belirsiz/güçlü/çok güçlü) Şirket sekmesinde "KULİS VE TEKLİFLER" kartında. Simülasyonda: yalnız güvensiz kaynaklı söylenti ~%43 doğru, 3 güvenilir onaylı ~%5 yanlış, "çok güçlü" ~%88 doğru. Depo kirası ve depo müdürü ücreti mağaza sayısıyla büyür (20 mağazada tam, en az %30); dengeli/atak bot depo için kurumsal kredi kullanır. Kayıt sürümü 7.
+
+**Doğrulama:** Derlenmedi. İki yeni test (`Rumors.SourcesAndTruth`, `Banking.ApplicationsAndBids`); Test.ps1 alt sınırı 159.
+
+**Sıradaki:** Mustafa `CLAUDE_KOS.cmd` (C13 commit, DERLE, TEST, Smoke, bot C13_N/C13_R/C13_Z); Claude sonucu M41 hedefleri, 8 mağaza eşiği ve Zor açısından kontrol eder.
+
+## 02.10.2026 — Claude (Cowork) — C12c doğrulandı
+
+**Doğrulama (Mustafa, 6f8227f):** DERLE, TEST 157/157 temiz, Smoke geçti; 27 koşu, defter farkı 0, sıkıcı dönem 0.
+
+**Sonuç (10. yıl mağaza):** Normal — temkinli 82/72/62 (hedef 40–80, biri az üstte), dengeli 83/71/33 (80–150; 1/3), 3. yıl 8 ✓, sıra 8–10 ✓, ilk şube 278–292 (hedef ≤244), kurtarma 0; atak 127/54/50. Rahat — temkinli 101–119, dengeli 161/92/124, atak 106–167, kurtarma 0. Zor — temkinli 1/39/25, dengeli 8/1/8, atak 5/3/27; kurtarma 5.
+
+**Bulgu:** Dengeli bot Normal'de 3.–5. yıl, Zor'da 4.–10. yıl 8 mağazada duruyor. 8 mağaza botun depo kurduğu, merkezi alım ve kamyon aldığı eşik (`DepotAt=8`, `Stores>=8 → Build 2`); merkez yükü Zor'da şubelerin kârını aşıyor gibi. Sıradaki: 8 mağaza eşiğinde depo/merkezi alım/kamyon maliyetinin şube kârına oranını incelemek; dengeli ilk şubeyi 8. aya çekmek.
+
 ## 02.10.2026 — Claude (Cowork) — C12b sonucu ve C12c (derlenmedi)
 
 **Doğrulama (Mustafa, 76c648a):** DERLE, TEST 157/157, Smoke geçti; 27 koşu, defter farkı 0, sıkıcı dönem 0.

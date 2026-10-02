@@ -107,6 +107,34 @@ namespace MarketBanking
     // Due in the next 30 days (installments + line interest).
     int64 DueSoon(const FMarketState& State);
 
+    // C13 (karar M43, Mustafa 02.10.2026: "bankaya gidip kredi \u00e7ekebilelim, asistan teklifimize cevap geldi diye
+    // sunsun"): the player's loans go through an application. The bank answers in 2-4 days (a bond in 5) with what
+    // it sees on that day: the full amount, a smaller one (and why), or no (and why); its rate is the day's rate
+    // with the bank's mood (-0.5 .. +1 point). An offer stays open for a week; accepting it books the loan. An
+    // acquisition application (a chain we agreed to buy, or one for sale) asks for the shortfall and, accepted,
+    // closes the deal. Several banks can be asked at once (one open application a bank). The automatic player and
+    // older commands keep the instant Borrow / FinanceAcquisition.
+    enum class EPurpose : uint8 { Investment = 0, Acquisition };
+    enum class EAppStatus : uint8 { Pending = 0, Offered, Refused, Accepted, Declined, Expired };
+    constexpr int32 AppValidDays = 7;
+    constexpr int32 MaxAsk = 4;                 // menu steps 0..3 = 25..100 % of today's offer, 4 = half again more
+    // Menu argument for an application: the same as EncodeLoan, step 0..4.
+    bool DecodeApp(int32 Arg, int32& OutBank, int32& OutStep, int32& OutTenor, bool& bOutGrace);
+    int64 AskedFor(const FMarketState& State, int32 BankIndex, int32 Step);
+    bool CanApply(const FMarketState& State, int32 BankIndex, FString& OutReason);
+    bool Apply(FMarketState& State, int32 BankIndex, int32 Step, int32 Tenor, bool bGrace, FString& OutMessage);
+    // An acquisition: the shortfall of the price (+5 % to keep the stores running) from every bank that might lend.
+    int64 AcquisitionNeed(const FMarketState& State, int64 Price);
+    bool ApplyAcquisition(FMarketState& State, int32 ChainIndex, int64 Price, FString& OutMessage);
+    int32 FindApp(const FMarketState& State, int32 AppId);
+    bool AcceptApp(FMarketState& State, const TArray<FMarketProduct>& Products, int32 AppId, FString& OutMessage);
+    bool DeclineApp(FMarketState& State, int32 AppId, FString& OutMessage);
+    // Applications still waiting or offers open (the menu's list), newest first.
+    TArray<int32> OpenApps(const FMarketState& State);
+    FString DescribeApp(const FMarketState& State, int32 AppIndex);
+    // Day close (after CloseDay): answers due today, offers that ran out.
+    void CloseApps(FMarketState& State);
+
     // Day close (before MarketFinance: the line can cover a negative till first): installments, the line, the
     // monthly rating, covenants, news.
     void CloseDay(FMarketState& State);

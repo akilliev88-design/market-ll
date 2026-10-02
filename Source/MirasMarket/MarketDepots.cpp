@@ -413,8 +413,9 @@ MarketDepots::FAdvice MarketDepots::SuggestDepotProvince(const FMarketState& Sta
         Gain += Spot.Weight * DepotGoodsShare * 30.0 * (Spot.NowCost - NewCost);
     }
     Advice.AverageKm = Weight > 0.0 ? static_cast<float>(WeightedKm / Weight) : 0.f;
-    const int64 Wage = MarketPrices::WageScaled(MarketManagers::BaseWageFor(MarketManagers::ELevel::Depot, 60, C), State.Day) * 30;
-    Advice.MonthlyGain = FMath::RoundToInt64(Gain) - MonthlyRent(State, C, Advice.Province) - Wage;
+    const float Start = ScaleFor(Advice.Branches); // C13 (M43): rent and manager follow what it serves
+    const int64 Wage = FMath::RoundToInt64(MarketPrices::WageScaled(MarketManagers::BaseWageFor(MarketManagers::ELevel::Depot, 60, C), State.Day) * 30 * Start);
+    Advice.MonthlyGain = FMath::RoundToInt64(Gain) - FMath::RoundToInt64(MonthlyRent(State, C, Advice.Province) * Start) - Wage;
     const MarketCountry::FCity* Best = MarketCountry::FindCity(C, Advice.Province);
     const FString Name = Best ? Best->Name : Advice.Province;
     Advice.Text = Advice.MonthlyGain >= 0
@@ -477,11 +478,22 @@ void MarketDepots::RecordLoss(FMarketState& State, int32 DepotIndex, int64 Short
     D.WeekSkim += SkimCost;
 }
 
+float MarketDepots::ScaleFor(int32 Branches)
+{
+    return FMath::Clamp(static_cast<float>(Branches) / ScaleFullBranches, ScaleMin, 1.f);
+}
+
+float MarketDepots::Scale(const FMarketState& State, int32 DepotIndex)
+{
+    return State.Company.DepotSites.IsValidIndex(DepotIndex) ? ScaleFor(Served(State, DepotIndex)) : 1.f;
+}
+
 int64 MarketDepots::DailyRent(const FMarketState& State, int32 Day)
 {
     const double Level = MarketPrices::ListLevel(FMath::Max(1, Day));
     int64 Sum = 0;
-    for (const FMarketDepot& D : State.Company.DepotSites) Sum += FMath::RoundToInt64(static_cast<double>(D.Rent) * Level / 30.0);
+    for (int32 I = 0; I < State.Company.DepotSites.Num(); ++I)
+        Sum += FMath::RoundToInt64(static_cast<double>(State.Company.DepotSites[I].Rent) * Level / 30.0 * Scale(State, I)); // C13 (M43)
     return Sum;
 }
 

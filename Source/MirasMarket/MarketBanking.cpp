@@ -5,6 +5,7 @@
 #include "MarketCountry.h"
 #include "MarketFinance.h"
 #include "MarketPrices.h"
+#include "MarketChains.h"
 
 namespace MarketBankingLocal
 {
@@ -587,5 +588,247 @@ void MarketBanking::CloseDay(FMarketState& State)
             AddLoan(State, BankIndex, EKind::Called, Part, Rate, 1, 0);
             News.Add(FString::Printf(TEXT("%s borcunun d\u00f6rtte birini (%s) 30 g\u00fcn i\u00e7inde geri istiyor."), *Bank(State, BankIndex).Name, *MarketCountry::Money(Part)));
         }
+    }
+}
+
+// ---------------------------------------------------------------------------------------------------------------
+// C13 (M43): applications
+
+namespace MarketBankingAppsLocal
+{
+    uint32 Mix(uint32 A, uint32 B, uint32 C)
+    {
+        uint32 H = A * 0x9E3779B1u ^ (B + 0x7F4A7C15u) * 0x85EBCA77u ^ (C + 0x165667B1u) * 0xC2B2AE3Du;
+        H ^= H >> 15; H *= 0x2C1B3C6Du; H ^= H >> 12; H *= 0x297A2D39u; H ^= H >> 15;
+        return H;
+    }
+    FString Money(int64 Kurus) { return MarketCountry::Money(Kurus); }
+    bool IsOpenStatus(uint8 Status)
+    {
+        return Status == static_cast<uint8>(MarketBanking::EAppStatus::Pending) || Status == static_cast<uint8>(MarketBanking::EAppStatus::Offered);
+    }
+    int32 MonthsFor(const FMarketState& State, int32 BankIndex, int32 Tenor)
+    {
+        if (BankIndex == MarketBanking::BondBank) return 60;
+        return FMath::Min(MarketBanking::Tenors[FMath::Clamp(Tenor, 0, MarketBanking::TenorCount - 1)], MarketBanking::Bank(State, BankIndex).MaxTenor);
+    }
+    bool HasOpen(const FMarketState& State, int32 BankIndex)
+    {
+        return State.Banking.Apps.ContainsByPredicate([BankIndex](const FMarketLoanApp& A) { return A.Bank == BankIndex && IsOpenStatus(A.Status); });
+    }
+    int32 AddApp(FMarketState& State, int32 BankIndex, MarketBanking::EPurpose Purpose, int32 Chain, int64 Asked, int32 Tenor, bool bGrace)
+    {
+        FMarketBankingState& B = State.Banking;
+        FMarketLoanApp App;
+        App.Id = B.NextAppId++;
+        App.Bank = static_cast<uint8>(BankIndex);
+        App.Purpose = static_cast<uint8>(Purpose);
+        App.Chain = Chain;
+        App.Asked = Asked;
+        App.Tenor = Tenor;
+        App.bGrace = bGrace && BankIndex != MarketBanking::BondBank;
+        App.AppliedDay = State.Day;
+        // 2-4 days (the bond: a week of paperwork).
+        App.AnswerDay = State.Day + (BankIndex == MarketBanking::BondBank ? 5 : 2 + static_cast<int32>(Mix(static_cast<uint32>(State.RivalSeed), static_cast<uint32>(App.Id), 0xA11Cu) % 3u));
+        // Keep the list short: drop finished applications older than a month.
+        B.Apps.RemoveAll([&State](const FMarketLoanApp& A) { return !IsOpenStatus(A.Status) && State.Day - A.AnswerDay > 30; });
+        return B.Apps.Add(App);
+    }
+}
+
+bool MarketBanking::DecodeApp(int32 Arg, int32& OutBank, int32& OutStep, int32& OutTenor, bool& bOutGrace)
+{
+    if (Arg < 0) return false;
+    OutBank = Arg / 1000;
+    OutStep = (Arg / 100) % 10;
+    OutTenor = (Arg / 10) % 10;
+    bOutGrace = Arg % 10 == 1;
+    return OutBank <= BondBank && OutStep <= MaxAsk && OutTenor < TenorCount && Arg % 10 <= 1;
+}
+
+int64 MarketBanking::AskedFor(const FMarketState& State, int32 BankIndex, int32 Step)
+{
+    const int64 Max = Offer(State, BankIndex);
+    const int64 Amount = Step >= MaxAsk ? Max * 3 / 2 : Max * FMath::Clamp(Step + 1, 1, 4) / 4;
+    return Amount / 10000 * 10000;
+}
+
+bool MarketBanking::CanApply(const FMarketState& State, int32 BankIndex, FString& OutReason)
+{
+    if (!CanBorrow(State, BankIndex, OutReason)) return false;
+    if (MarketBankingAppsLocal::HasOpen(State, BankIndex)) { OutReason = FString::Printf(TEXT("%s'da a\u00e7\u0131k bir ba\u015fvurun var: cevab\u0131n\u0131 bekle ya da teklifi kapat."), *Bank(State, BankIndex).Name); return false; }
+    if (Offer(State, BankIndex) <= 0) { OutReason = TEXT("Banka \u015fu an kredi vermiyor: bor\u00e7 \u015firketin kazanc\u0131na g\u00f6re zaten y\u00fcksek."); return false; }
+    return true;
+}
+
+bool MarketBanking::Apply(FMarketState& State, int32 BankIndex, int32 Step, int32 Tenor, bool bGrace, FString& OutMessage)
+{
+    if (!CanApply(State, BankIndex, OutMessage)) return false;
+    const int64 Asked = AskedFor(State, BankIndex, Step);
+    if (Asked <= 0) { OutMessage = TEXT("Ba\u015fvuru tutar\u0131 \u00e7ok k\u00fc\u00e7\u00fck."); return false; }
+    const int32 Index = MarketBankingAppsLocal::AddApp(State, BankIndex, EPurpose::Investment, INDEX_NONE, Asked, Tenor, bGrace);
+    const FMarketLoanApp& App = State.Banking.Apps[Index];
+    OutMessage = FString::Printf(TEXT("%s'a %s i\u00e7in ba\u015fvuruldu (%d ay%s). Kredi komitesi %d g\u00fcn i\u00e7inde cevap verir."),
+        *Bank(State, BankIndex).Name, *MarketBankingAppsLocal::Money(Asked), MarketBankingAppsLocal::MonthsFor(State, BankIndex, Tenor),
+        App.bGrace ? TEXT(", ilk 6 ay yaln\u0131z faiz") : TEXT(""), App.AnswerDay - State.Day);
+    return true;
+}
+
+int64 MarketBanking::AcquisitionNeed(const FMarketState& State, int64 Price)
+{
+    const int64 Need = Price + Price / 20 - State.Cash;
+    return Need <= 0 ? 0 : (Need + 9999) / 10000 * 10000;
+}
+
+bool MarketBanking::ApplyAcquisition(FMarketState& State, int32 ChainIndex, int64 Price, FString& OutMessage)
+{
+    const int64 Need = AcquisitionNeed(State, Price);
+    if (Need <= 0) { OutMessage = TEXT("Kasa anla\u015fmaya yetiyor: krediye gerek yok."); return false; }
+    const int64 Target = MarketChains::YearProfit(State, ChainIndex);
+    TArray<FString> Asked;
+    for (int32 I = 0; I < BankCount; ++I)
+    {
+        FString Why;
+        if (I == 3 || !CanBorrow(State, I, Why) || MarketBankingAppsLocal::HasOpen(State, I)) continue; // the development bank funds only new stores
+        if (AcquisitionRoom(State, I, Target) <= 0) continue;
+        MarketBankingAppsLocal::AddApp(State, I, EPurpose::Acquisition, ChainIndex, Need, TenorCount - 1, false);
+        Asked.Add(Bank(State, I).Name);
+    }
+    if (Asked.Num() == 0)
+    {
+        OutMessage = FString::Printf(TEXT("Hi\u00e7bir banka %s sat\u0131n alma kredisini de\u011ferlendirmiyor: notun %s, bor\u00e7 \u015firketin ve hedefin kazanc\u0131na g\u00f6re fazla (ya da bankalarda a\u00e7\u0131k ba\u015fvurun var)."),
+            *MarketBankingAppsLocal::Money(Need), *RatingName(Rating(State)));
+        return false;
+    }
+    OutMessage = FString::Printf(TEXT("Kasada yetmeyen %s i\u00e7in %s'a sat\u0131n alma kredisi ba\u015fvurusu yap\u0131ld\u0131. Cevaplar birka\u00e7 g\u00fcn i\u00e7inde gelir; en iyi teklifi se\u00e7ersin."),
+        *MarketBankingAppsLocal::Money(Need), *FString::Join(Asked, TEXT(", ")));
+    return true;
+}
+
+int32 MarketBanking::FindApp(const FMarketState& State, int32 AppId)
+{
+    return State.Banking.Apps.IndexOfByPredicate([AppId](const FMarketLoanApp& A) { return A.Id == AppId; });
+}
+
+bool MarketBanking::AcceptApp(FMarketState& State, const TArray<FMarketProduct>& Products, int32 AppId, FString& OutMessage)
+{
+    const int32 Index = FindApp(State, AppId);
+    if (Index == INDEX_NONE) { OutMessage = TEXT("B\u00f6yle bir teklif yok."); return false; }
+    const FMarketLoanApp App = State.Banking.Apps[Index];
+    if (App.Status != static_cast<uint8>(EAppStatus::Offered)) { OutMessage = TEXT("Bu ba\u015fvurunun a\u00e7\u0131k bir teklifi yok."); return false; }
+    if (State.Day > App.ValidUntil) { OutMessage = TEXT("Teklifin s\u00fcresi doldu."); return false; }
+    if (!CanBorrow(State, App.Bank, OutMessage)) return false;
+    const bool bAcq = App.Purpose == static_cast<uint8>(EPurpose::Acquisition);
+    int64 Price = 0;
+    if (bAcq)
+    {
+        Price = MarketChains::DealPrice(State, App.Chain);
+        if (Price <= 0) { OutMessage = TEXT("Bu sat\u0131n alma art\u0131k ge\u00e7erli de\u011fil: kredi kullan\u0131lmad\u0131."); State.Banking.Apps[Index].Status = static_cast<uint8>(EAppStatus::Declined); return false; }
+    }
+    const EKind Kind = bAcq ? EKind::Acquisition : App.Bank == BondBank ? EKind::Bond : EKind::Investment;
+    const int32 Loan = MarketBankingLocal::AddLoan(State, App.Bank, Kind, App.Offered, App.YearRate, App.Months, App.bGrace ? GraceMonths : 0);
+    if (Bank(State, App.Bank).bInvestmentOnly) State.Banking.DevelopmentYear = MarketCalendar::DateOf(FMath::Max(1, State.Day)).Year;
+    State.Cash += App.Offered;
+    MarketBankingLocal::Book(State, MarketLedger::EAccount::LoanIn, App.Offered);
+    State.Banking.Apps[Index].Status = static_cast<uint8>(EAppStatus::Accepted);
+    OutMessage = FString::Printf(TEXT("%s: %s kredi kasada. Y\u0131ll\u0131k %s, %d ay, ayl\u0131k taksit %s."), *Bank(State, App.Bank).Name, *MarketBankingAppsLocal::Money(App.Offered),
+        *MarketBankingLocal::Percent(App.YearRate), App.Months, *MarketBankingAppsLocal::Money(State.Banking.Loans[Loan].Installment));
+    if (bAcq)
+    {
+        FString Deal;
+        if (State.Cash >= Price && MarketChains::CompleteDeal(State, Products, App.Chain, Deal))
+        {
+            OutMessage += TEXT(" ") + Deal;
+            for (FMarketLoanApp& Other : State.Banking.Apps)
+                if (Other.Chain == App.Chain && Other.Purpose == App.Purpose && MarketBankingAppsLocal::IsOpenStatus(Other.Status)) Other.Status = static_cast<uint8>(EAppStatus::Declined);
+        }
+        else OutMessage += FString::Printf(TEXT(" Anla\u015fma i\u00e7in kasada h\u00e2l\u00e2 %s eksik: ba\u015fka bir teklifi de kabul edebilirsin."), *MarketBankingAppsLocal::Money(FMath::Max<int64>(0, Price - State.Cash)));
+    }
+    return true;
+}
+
+bool MarketBanking::DeclineApp(FMarketState& State, int32 AppId, FString& OutMessage)
+{
+    const int32 Index = FindApp(State, AppId);
+    if (Index == INDEX_NONE || !MarketBankingAppsLocal::IsOpenStatus(State.Banking.Apps[Index].Status)) { OutMessage = TEXT("B\u00f6yle bir a\u00e7\u0131k ba\u015fvuru yok."); return false; }
+    State.Banking.Apps[Index].Status = static_cast<uint8>(EAppStatus::Declined);
+    OutMessage = FString::Printf(TEXT("%s ba\u015fvurusu kapat\u0131ld\u0131."), *Bank(State, State.Banking.Apps[Index].Bank).Name);
+    return true;
+}
+
+TArray<int32> MarketBanking::OpenApps(const FMarketState& State)
+{
+    TArray<int32> List;
+    for (int32 I = State.Banking.Apps.Num() - 1; I >= 0; --I)
+    {
+        const FMarketLoanApp& A = State.Banking.Apps[I];
+        // Open ones, and refusals of the last week (so the player reads why).
+        if (MarketBankingAppsLocal::IsOpenStatus(A.Status) || (A.Status == static_cast<uint8>(EAppStatus::Refused) && State.Day - A.AnswerDay <= 7)) List.Add(I);
+    }
+    return List;
+}
+
+FString MarketBanking::DescribeApp(const FMarketState& State, int32 AppIndex)
+{
+    if (!State.Banking.Apps.IsValidIndex(AppIndex)) return FString();
+    const FMarketLoanApp& A = State.Banking.Apps[AppIndex];
+    const FString Name = Bank(State, A.Bank).Name;
+    const FString What = A.Purpose == static_cast<uint8>(EPurpose::Acquisition) && State.Rivals.Chains.IsValidIndex(A.Chain)
+        ? FString::Printf(TEXT("%s sat\u0131n almas\u0131"), *State.Rivals.Chains[A.Chain].Name) : FString(TEXT("yat\u0131r\u0131m kredisi"));
+    switch (static_cast<EAppStatus>(A.Status))
+    {
+    case EAppStatus::Pending:
+        return FString::Printf(TEXT("%s \u00b7 %s \u00b7 %s istendi \u00b7 cevap %d g\u00fcn i\u00e7inde"), *Name, *What, *MarketBankingAppsLocal::Money(A.Asked), FMath::Max(0, A.AnswerDay - State.Day + 1));
+    case EAppStatus::Offered:
+        return FString::Printf(TEXT("%s \u00b7 %s \u00b7 TEKL\u0130F %s, y\u0131ll\u0131k %s, %d ay%s \u00b7 %d g\u00fcn ge\u00e7erli%s"), *Name, *What, *MarketBankingAppsLocal::Money(A.Offered),
+            *MarketBankingLocal::Percent(A.YearRate), A.Months, A.bGrace ? TEXT(" (6 ay yaln\u0131z faiz)") : TEXT(""), FMath::Max(0, A.ValidUntil - State.Day + 1),
+            A.Reason.IsEmpty() ? TEXT("") : *(TEXT(" \u00b7 ") + A.Reason));
+    case EAppStatus::Refused:
+        return FString::Printf(TEXT("%s \u00b7 %s \u00b7 RET: %s"), *Name, *What, *A.Reason);
+    default:
+        return FString::Printf(TEXT("%s \u00b7 %s"), *Name, *What);
+    }
+}
+
+void MarketBanking::CloseApps(FMarketState& State)
+{
+    using namespace MarketBankingAppsLocal;
+    const int32 Closed = State.Day - 1;
+    if (Closed < 1) return;
+    TArray<FString>& News = State.DayNews;
+    for (FMarketLoanApp& A : State.Banking.Apps)
+    {
+        if (A.Status == static_cast<uint8>(EAppStatus::Offered) && Closed > A.ValidUntil)
+        {
+            A.Status = static_cast<uint8>(EAppStatus::Expired);
+            News.Add(FString::Printf(TEXT("%s teklifinin s\u00fcresi doldu."), *Bank(State, A.Bank).Name));
+            continue;
+        }
+        if (A.Status != static_cast<uint8>(EAppStatus::Pending) || Closed < A.AnswerDay) continue;
+        const FString Name = Bank(State, A.Bank).Name;
+        const bool bAcq = A.Purpose == static_cast<uint8>(EPurpose::Acquisition);
+        FString Why;
+        int64 Room = 0;
+        if (!CanBorrow(State, A.Bank, Why)) Room = 0;
+        else if (bAcq) { Room = MarketChains::DealPrice(State, A.Chain) > 0 ? AcquisitionRoom(State, A.Bank, MarketChains::YearProfit(State, A.Chain)) : 0; if (Room <= 0) Why = TEXT("bor\u00e7, \u015firketin ve hedefin kazanc\u0131na g\u00f6re fazla"); }
+        else { Room = Offer(State, A.Bank); if (Room <= 0) Why = TEXT("bor\u00e7 \u015firketin kazanc\u0131na g\u00f6re zaten y\u00fcksek"); }
+        A.AnswerDay = Closed;
+        if (Room < FMath::Max<int64>(10000, A.Asked * 3 / 10))
+        {
+            A.Status = static_cast<uint8>(EAppStatus::Refused);
+            A.Reason = Why.IsEmpty() ? FString::Printf(TEXT("komite yeterli g\u00f6rmedi (verebilece\u011fi %s)"), *Money(Room)) : Why;
+            News.Add(FString::Printf(TEXT("Asistan: %s ba\u015fvurumuza cevap verdi: ret. Gerek\u00e7e: %s. Notumuz %s."), *Name, *A.Reason, *RatingName(Rating(State))));
+            continue;
+        }
+        // The bank's mood of the day: -0.5 .. +1 point on the day's rate.
+        static const float Mood[4] = { -0.005f, 0.f, 0.005f, 0.01f };
+        A.YearRate = static_cast<float>(FMath::Max(0.01, YearRate(State, A.Bank) + Mood[Mix(static_cast<uint32>(State.RivalSeed), static_cast<uint32>(A.Id), A.Bank + 0xB4u) % 4u]));
+        A.Offered = FMath::Min(A.Asked, Room) / 10000 * 10000;
+        A.Months = bAcq ? Bank(State, A.Bank).MaxTenor : MonthsFor(State, A.Bank, A.Tenor);
+        A.ValidUntil = Closed + AppValidDays;
+        A.Status = static_cast<uint8>(EAppStatus::Offered);
+        A.Reason = A.Offered < A.Asked ? FString::Printf(TEXT("istenenin bir k\u0131sm\u0131: notumuz %s, bor\u00e7 / FAV\u00d6K %.1f"), *RatingName(Rating(State)), FMath::Min(99.f, Picture(State).Leverage)) : FString();
+        News.Add(FString::Printf(TEXT("Asistan: %s ba\u015fvurumuza cevap verdi: %s, y\u0131ll\u0131k %s, %d ay%s. Teklif %d g\u00fcn ge\u00e7erli (Finans)."),
+            *Name, *Money(A.Offered), *MarketBankingLocal::Percent(A.YearRate), A.Months, A.Offered < A.Asked ? *FString::Printf(TEXT(" (istedi\u011fimiz %s'\u0131n bir k\u0131sm\u0131)"), *Money(A.Asked)) : TEXT(""), AppValidDays));
     }
 }

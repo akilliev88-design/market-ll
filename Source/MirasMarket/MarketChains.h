@@ -128,6 +128,26 @@ namespace MarketChains
     // The chain's yearly operating result (what an acquisition loan can lean on).
     int64 YearProfit(const FMarketState& State, int32 ChainIndex);
 
+    // C13 (M43): the player's bid goes to the owner, who answers in 2-4 days; a yes holds for BidHoldDays at the
+    // agreed price (the money can come from a bank application), then the deal falls through. A no costs the
+    // advisers' fee and waits BidWaitDays as before. Bid() stays the instant version (automatic player, tests).
+    constexpr int32 BidHoldDays = 14;
+    bool OfferBid(FMarketState& State, int32 ChainIndex, FString& OutMessage);
+    // The price of a deal we can close now: an accepted bid's agreed price, a chain for sale's price (0: none).
+    int64 DealPrice(const FMarketState& State, int32 ChainIndex);
+    // Pay for an accepted bid or a chain for sale from the till.
+    bool CompleteDeal(FMarketState& State, const TArray<FMarketProduct>& Products, int32 ChainIndex, FString& OutMessage);
+    // Owners' answers due today, accepted bids that ran out (MarketChains::CloseDay).
+    void CloseBids(FMarketState& State);
+
+    // C13 (M43): what a true rumour makes happen on its day (MarketRumors). False when it cannot happen any more.
+    bool ForceForSale(FMarketState& State, int32 ChainIndex, FString& OutNews);
+    bool ForceEnter(FMarketState& State, int32 ChainIndex, const FString& Province, FString& OutNews);
+    bool ForceAcquire(FMarketState& State, int32 BuyerIndex, int32 TargetIndex, FString& OutNews);
+    bool ForceWar(FMarketState& State, int32 ChainIndex, const FString& Province, FString& OutNews);
+    int32 FindChainIndex(const FMarketState& State, const FString& Id);
+    FString ProvinceName(const FString& Country, const FString& Province);
+
     // Karar M30: what we buy is ours whole. A small chain (up to SmallChain stores) becomes our branches as far as
     // the provinces have room; anything bigger (and what does not fit) runs as our subsidiary under its own name:
     // its month is reckoned like a rival's (no war, no openings, it closes stores where the province starves),

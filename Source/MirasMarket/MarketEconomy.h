@@ -684,6 +684,9 @@ struct FMarketChain
     UPROPERTY() int32 WarsLost = 0;
     UPROPERTY() uint8 GoneReason = 0;   // C3: 1 closed (bankrupt), 2 bought by a rival, 3 bought by us
     UPROPERTY() int32 BidDay = 0;       // M29: our last takeover bid it refused
+    UPROPERTY() int32 BidAnswerDay = 0;  // C13 (M43): our bid is with its owner until this day
+    UPROPERTY() int32 BidAcceptedUntil = 0; // C13: the owner said yes; we pay by this day
+    UPROPERTY() int64 BidAgreed = 0;     // C13: the agreed price (kurus)
     UPROPERTY() bool bOurs = false;     // M30: bought, runs as our subsidiary under its own name
     UPROPERTY() int32 OursSince = 0;
     UPROPERTY() bool bExitSale = false; // M30: a giant leaving the country sells its arm cheap
@@ -807,12 +810,36 @@ struct FMarketCorpLoan
     UPROPERTY() int32 LateSince = 0;     // 0 = on time
 };
 
+// C13 (M43): a loan application to a bank; the answer comes in a few days, an offer is open for a week.
+USTRUCT()
+struct FMarketLoanApp
+{
+    GENERATED_BODY()
+    UPROPERTY() int32 Id = 0;
+    UPROPERTY() uint8 Bank = 0;          // MarketBanking::Bank index (4 = bond)
+    UPROPERTY() uint8 Purpose = 0;       // MarketBanking::EPurpose
+    UPROPERTY() int32 Chain = INDEX_NONE; // an acquisition: State.Rivals.Chains index
+    UPROPERTY() int64 Asked = 0;         // kurus
+    UPROPERTY() int32 Tenor = 0;         // MarketBanking::Tenors index
+    UPROPERTY() bool bGrace = false;
+    UPROPERTY() int32 AppliedDay = 0;
+    UPROPERTY() int32 AnswerDay = 0;
+    UPROPERTY() uint8 Status = 0;        // MarketBanking::EAppStatus
+    UPROPERTY() int64 Offered = 0;
+    UPROPERTY() float YearRate = 0.f;
+    UPROPERTY() int32 Months = 0;
+    UPROPERTY() int32 ValidUntil = 0;
+    UPROPERTY() FString Reason;          // a refusal's or a partial offer's reason
+};
+
 // Karar M28: the company's banking (MarketBanking.h).
 USTRUCT()
 struct FMarketBankingState
 {
     GENERATED_BODY()
     UPROPERTY() TArray<FMarketCorpLoan> Loans;
+    UPROPERTY() TArray<FMarketLoanApp> Apps; // C13 (M43): open applications and offers
+    UPROPERTY() int32 NextAppId = 1;
     UPROPERTY() bool bLine = false;
     UPROPERTY() bool bLineAuto = true;
     UPROPERTY() int64 LineLimit = 0;
@@ -826,6 +853,38 @@ struct FMarketBankingState
     UPROPERTY() int32 DevelopmentYear = 0; // the development bank's yearly loan
     UPROPERTY() int32 NextLoanId = 1;
     UPROPERTY() int64 InterestPaid = 0;
+};
+
+// C13 (M43): market rumours (MarketRumors.h). A rumour says a rival will do something; its truth is decided when
+// it starts and kept hidden; sources (reliable or not, confirming or denying) come in over the days.
+USTRUCT()
+struct FMarketRumor
+{
+    GENERATED_BODY()
+    UPROPERTY() int32 Id = 0;
+    UPROPERTY() uint8 Kind = 0;          // MarketRumors::EKind
+    UPROPERTY() FString ChainId;         // the rival it is about
+    UPROPERTY() FString OtherId;         // an acquisition: the chain it would buy
+    UPROPERTY() FString Country;
+    UPROPERTY() FString Province;        // entering / a price war: where
+    UPROPERTY() bool bTrue = false;      // hidden
+    UPROPERTY() int32 StartDay = 0;
+    UPROPERTY() int32 DueDay = 0;
+    UPROPERTY() int32 NextSourceDay = 0;
+    UPROPERTY() TArray<uint8> Sources;   // bit 0 reliable, bit 1 confirms
+    UPROPERTY() uint8 Outcome = 0;       // 0 open, 1 it happened, 2 it did not
+};
+
+USTRUCT()
+struct FMarketRumorsState
+{
+    GENERATED_BODY()
+    UPROPERTY() TArray<FMarketRumor> Active;
+    UPROPERTY() TArray<FMarketRumor> Past;   // the last few resolved, newest last
+    UPROPERTY() int32 NextDay = 0;           // the next rumour may start from this day
+    UPROPERTY() int32 NextId = 1;
+    UPROPERTY() int32 Started = 0;           // counters for the reports
+    UPROPERTY() int32 CameTrue = 0;
 };
 
 // Karar M26: departments per store type and their price stance (MarketDepartments.h). Older saves: none.
@@ -864,7 +923,7 @@ struct FMarketState
     static constexpr int64 StockerDailyWage = 2000;
 
     // Save format version. 2 (G-076): story finale flags, test-mode mark. Older saves load and are migrated.
-    static constexpr int32 CurrentVersion = 6; // C10 (M27): serialized pending store costs; older saves start a new game
+    static constexpr int32 CurrentVersion = 7; // C13 (M27): loan applications, bids, rumours; older saves start a new game
     UPROPERTY() int32 Version = CurrentVersion;
     UPROPERTY() int32 Day = 1;
     UPROPERTY() int64 Cash = 35000;
@@ -994,6 +1053,7 @@ struct FMarketState
     UPROPERTY() FMarketSourcingState Sourcing;
     UPROPERTY() FMarketDepartmentsState Departments; // karar M26 (MarketDepartments.h)
     UPROPERTY() FMarketBankingState Banking; // karar M28 (MarketBanking.h)
+    UPROPERTY() FMarketRumorsState Rumors;   // C13 (M43): market rumours (MarketRumors.h)
     // Online orders and payment methods (MarketOnline.h, MarketPayments.h).
     UPROPERTY() FMarketOnline Online;
     UPROPERTY() FMarketAdvertising Advertising; // M34

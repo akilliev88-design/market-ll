@@ -307,6 +307,21 @@ const TArray<FMarketTodo>& AMarketGameMode::Todos() const
         if (Bill.LateSince > 0) { Add(2, TEXT("Toptanc\u0131 faturas\u0131 gecikti"), TEXT("Her g\u00fcn gecikme fark\u0131 i\u015fliyor ve vade kapand\u0131. Sipari\u015f sayfas\u0131ndan \u00f6de."), SMarketMenu::Orders); break; }
     if (State.Books.TaxDue > 0 && !MarketStaff::HasAccountant(State) && State.Books.TaxDueDay - State.Day <= 1)
         Add(2, TEXT("Vergi \u00f6deme g\u00fcn\u00fc"), FString::Printf(TEXT("%s, son g\u00fcn %d. Gecikirse ceza i\u015fler."), *MarketCountry::Money(State.Books.TaxDue), State.Books.TaxDueDay), SMarketMenu::Finance);
+    // C13 (M43): a bank's offer waiting, a chain that said yes to our bid.
+    for (const FMarketLoanApp& App : State.Banking.Apps)
+        if (App.Status == static_cast<uint8>(MarketBanking::EAppStatus::Offered) && State.Day <= App.ValidUntil)
+        {
+            Add(1, MarketBanking::Bank(State, App.Bank).Name + TEXT(" teklif verdi"), FString::Printf(TEXT("%s, y\u0131ll\u0131k %%%.1f, %d ay. %d g\u00fcn ge\u00e7erli: Finans sayfas\u0131nda kabul et ya da reddet."),
+                *MarketCountry::Money(App.Offered), App.YearRate * 100.f, App.Months, App.ValidUntil - State.Day + 1), SMarketMenu::Finance);
+            break;
+        }
+    for (const FMarketChain& Chain : State.Rivals.Chains)
+        if (!Chain.bGone && Chain.BidAcceptedUntil >= State.Day)
+        {
+            Add(2, Chain.Name + TEXT(" teklifimizi kabul etti"), FString::Printf(TEXT("%s, %d g\u00fcn i\u00e7inde \u00f6denmeli. Ma\u011fazalar \u203a \u015eirket \u203a Kulis ve teklifler."),
+                *MarketCountry::Money(Chain.BidAgreed), Chain.BidAcceptedUntil - State.Day + 1), SMarketMenu::Branches);
+            break;
+        }
     if (State.TroubleStage > 0)
         Add(2, TEXT("Nakit s\u0131k\u0131nt\u0131s\u0131"), TEXT("Kasa eksiye d\u00fc\u015ft\u00fc. Finans sayfas\u0131nda kredi ve giderlere bak."), SMarketMenu::Finance);
     // The product whose price scares most shoppers away (only on shelves).

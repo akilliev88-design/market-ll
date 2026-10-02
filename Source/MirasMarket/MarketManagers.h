@@ -94,6 +94,8 @@ namespace MarketManagers
     // C11 (M40): open shops in a country (the family shop counts at home) and the country manager's share of his band.
     int32 ShopsInCountry(const FMarketState& State, const FString& Country);
     float CountryWageScale(const FMarketState& State, const FString& Country);
+    // C13 (M43): the share of a band a level is paid now (country: shops in the country; depot: what it serves).
+    float WageScale(const FMarketState& State, ELevel Level, const FString& Country, const FString& Area);
     // Name of an area: "Tekirda\u011f", "Trakya", "Marmara", "T\u00fcrkiye".
     FString AreaName(ELevel Level, const FString& Country, const FString& Area);
 

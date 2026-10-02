@@ -683,6 +683,145 @@ bool MarketChains::Bid(FMarketState& State, const TArray<FMarketProduct>& Produc
     return MarketChainsLocal::Take(State, Products, ChainIndex, Cost, OutMessage);
 }
 
+bool MarketChains::OfferBid(FMarketState& State, int32 ChainIndex, FString& OutMessage)
+{
+    if (!CanBid(State, ChainIndex, OutMessage, false)) return false;
+    FMarketChain& C = State.Rivals.Chains[ChainIndex];
+    if (C.BidAnswerDay >= State.Day) { OutMessage = FString::Printf(TEXT("%s teklifini de\u011ferlendiriyor."), *C.Name); return false; }
+    if (C.BidAcceptedUntil >= State.Day) { OutMessage = FString::Printf(TEXT("%s teklifini zaten kabul etti: anla\u015fmay\u0131 tamamla."), *C.Name); return false; }
+    C.BidAgreed = BidPrice(State, ChainIndex);
+    C.BidAnswerDay = State.Day + 2 + static_cast<int32>(MarketChainsLocal::Mix(static_cast<uint32>(State.RivalSeed), MarketChainsLocal::Hash(C.Id), static_cast<uint32>(State.Day)) % 3u);
+    OutMessage = FString::Printf(TEXT("%s patronu %s'a %s teklif iletildi. Y\u00f6netim kurulu %d g\u00fcn i\u00e7inde cevap verir."),
+        *C.Name, *C.Boss, *MarketCountry::Money(C.BidAgreed), C.BidAnswerDay - State.Day);
+    return true;
+}
+
+int64 MarketChains::DealPrice(const FMarketState& State, int32 ChainIndex)
+{
+    if (!State.Rivals.Chains.IsValidIndex(ChainIndex)) return 0;
+    const FMarketChain& C = State.Rivals.Chains[ChainIndex];
+    if (C.bGone || C.bOurs) return 0;
+    if (C.BidAcceptedUntil >= State.Day && C.BidAgreed > 0) return C.BidAgreed;
+    FString Why;
+    return C.bForSale && CanBuy(State, ChainIndex, Why, false) ? Price(State, ChainIndex) : 0;
+}
+
+bool MarketChains::CompleteDeal(FMarketState& State, const TArray<FMarketProduct>& Products, int32 ChainIndex, FString& OutMessage)
+{
+    const int64 Cost = DealPrice(State, ChainIndex);
+    if (Cost <= 0) { OutMessage = TEXT("Tamamlanacak bir anla\u015fma yok."); return false; }
+    if (State.Cash < Cost) { OutMessage = FString::Printf(TEXT("Anla\u015fma i\u00e7in kasada %s gerekiyor (bankaya sat\u0131n alma kredisi ba\u015fvurusu yap\u0131labilir)."), *MarketCountry::Money(Cost)); return false; }
+    FMarketChain& C = State.Rivals.Chains[ChainIndex];
+    C.BidAcceptedUntil = 0;
+    C.BidAgreed = 0;
+    return MarketChainsLocal::Take(State, Products, ChainIndex, Cost, OutMessage);
+}
+
+void MarketChains::CloseBids(FMarketState& State)
+{
+    const int32 Closed = State.Day - 1;
+    for (int32 I = 0; I < State.Rivals.Chains.Num(); ++I)
+    {
+        FMarketChain& C = State.Rivals.Chains[I];
+        if (C.bGone) { C.BidAnswerDay = C.BidAcceptedUntil = 0; continue; }
+        if (C.BidAcceptedUntil > 0 && Closed > C.BidAcceptedUntil)
+        {
+            C.BidAcceptedUntil = 0; C.BidAgreed = 0; C.BidDay = Closed;
+            C.Rivalry = FMath::Min(100.f, C.Rivalry + 5.f);
+            State.DayNews.Add(FString::Printf(TEXT("%s ile anla\u015fma d\u00fc\u015ft\u00fc: \u00f6deme s\u00fcresinde yap\u0131lmad\u0131. Zincir %d g\u00fcn yeni teklif dinlemez."), *C.Name, BidWaitDays));
+            continue;
+        }
+        if (C.BidAnswerDay <= 0 || Closed < C.BidAnswerDay) continue;
+        C.BidAnswerDay = 0;
+        if (C.bForSale || C.bOurs) { C.BidAgreed = 0; continue; }
+        if (WouldAccept(State, I))
+        {
+            C.BidAcceptedUntil = Closed + BidHoldDays;
+            State.DayNews.Add(FString::Printf(TEXT("Asistan: %s teklifimizi KABUL ETT\u0130 (%s). %d g\u00fcn i\u00e7inde \u00f6deme yap\u0131lmal\u0131; kasa yetmezse bankaya sat\u0131n alma kredisi ba\u015fvurusu yap\u0131labilir (Ma\u011fazalar \u203a \u015eirket)."),
+                *C.Name, *MarketCountry::Money(C.BidAgreed), BidHoldDays));
+        }
+        else
+        {
+            const int64 Fee = FMath::RoundToInt64(C.BidAgreed * BidFee);
+            State.Cash -= Fee;
+            MarketLedger::Post(State, MarketLedger::EAccount::HeadOffice, -Fee, true, MarketLedger::HeadOfficeStore);
+            C.BidDay = Closed;
+            C.Rivalry = FMath::Min(100.f, C.Rivalry + 10.f);
+            State.DayNews.Add(FString::Printf(TEXT("Asistan: %s teklifimizi reddetti. Patronu %s: \"Buras\u0131 sat\u0131l\u0131k de\u011fil.\" Dan\u0131\u015fmanlar %s ald\u0131."), *C.Name, *C.Boss, *MarketCountry::Money(Fee)));
+            C.BidAgreed = 0;
+        }
+    }
+}
+
+int32 MarketChains::FindChainIndex(const FMarketState& State, const FString& Id)
+{
+    return State.Rivals.Chains.IndexOfByPredicate([&Id](const FMarketChain& C) { return C.Id == Id; });
+}
+
+FString MarketChains::ProvinceName(const FString& Country, const FString& Province)
+{
+    return MarketChainsLocal::CityName(Country, Province);
+}
+
+bool MarketChains::ForceForSale(FMarketState& State, int32 ChainIndex, FString& OutNews)
+{
+    if (!State.Rivals.Chains.IsValidIndex(ChainIndex)) return false;
+    FMarketChain& C = State.Rivals.Chains[ChainIndex];
+    if (C.bGone || C.bOurs || C.bForSale || TotalStores(C) <= 0) return false;
+    C.bForSale = true;
+    C.ForSaleTurns = 0;
+    OutNews = FString::Printf(TEXT("%s sat\u0131l\u0131\u011fa \u00e7\u0131kt\u0131 (%d ma\u011faza, fiyat\u0131 %s). \u0130stersen Ma\u011fazalar \u203a \u015eirket'ten sat\u0131n alabilirsin."),
+        *C.Name, TotalStores(C), *MarketCountry::Money(Price(State, ChainIndex)));
+    return true;
+}
+
+bool MarketChains::ForceEnter(FMarketState& State, int32 ChainIndex, const FString& Province, FString& OutNews)
+{
+    using namespace MarketChainsLocal;
+    if (!State.Rivals.Chains.IsValidIndex(ChainIndex)) return false;
+    FMarketChain& C = State.Rivals.Chains[ChainIndex];
+    if (C.bGone || C.bOurs || C.bForSale || C.Cash <= 0 || StoresOf(C, Province) > 0) return false;
+    const MarketCountry::FCity* City = MarketCountry::FindCity(C.Country, Province);
+    if (!City) return false;
+    const int32 Count = FMath::Clamp(City->PopulationK / 150, 2, 5);
+    SpotOf(C, Province).Stores += Count;
+    C.Cash -= FMath::RoundToInt64(Count * OpenCost(static_cast<EArchetype>(C.Archetype)) * MarketPrices::ListLevel(FMath::Max(1, State.Day)));
+    OutNews = FString::Printf(TEXT("%s, %s'a girdi: %d ma\u011faza birden a\u00e7t\u0131."), *C.Name, *CityName(C.Country, Province), Count);
+    return true;
+}
+
+bool MarketChains::ForceAcquire(FMarketState& State, int32 BuyerIndex, int32 TargetIndex, FString& OutNews)
+{
+    using namespace MarketChainsLocal;
+    if (!State.Rivals.Chains.IsValidIndex(BuyerIndex) || !State.Rivals.Chains.IsValidIndex(TargetIndex) || BuyerIndex == TargetIndex) return false;
+    FMarketChain& B = State.Rivals.Chains[BuyerIndex];
+    FMarketChain& T = State.Rivals.Chains[TargetIndex];
+    if (B.bGone || B.bOurs || T.bGone || T.bOurs || B.Country != T.Country) return false;
+    const int64 Cost = BidPrice(State, TargetIndex);
+    if (B.Cash < Cost) return false;
+    B.Cash -= Cost;
+    const int32 Stores = TotalStores(T);
+    for (const FMarketChainSpot& S : T.Spots) SpotOf(B, S.Province).Stores += S.Stores;
+    T.bGone = true; T.bForSale = false; T.Spots.Reset(); T.GoneReason = 2; ++State.Rivals.Takeovers;
+    T.BidAnswerDay = T.BidAcceptedUntil = 0; T.BidAgreed = 0;
+    OutNews = FString::Printf(TEXT("%s, %s zincirini sat\u0131n ald\u0131 (%d ma\u011faza, %s)."), *B.Name, *T.Name, Stores, *MarketCountry::Money(Cost));
+    return true;
+}
+
+bool MarketChains::ForceWar(FMarketState& State, int32 ChainIndex, const FString& Province, FString& OutNews)
+{
+    using namespace MarketChainsLocal;
+    if (!State.Rivals.Chains.IsValidIndex(ChainIndex)) return false;
+    FMarketChain& C = State.Rivals.Chains[ChainIndex];
+    if (C.bGone || C.bOurs || C.bForSale || StoresOf(C, Province) <= 0 || !C.WarProvince.IsEmpty() || State.Day <= C.WarUntil) return false;
+    if (MarketBranches::ShopsIn(State, C.Country, Province) <= 0 || WarIn(State, C.Country, Province, State.Day) != INDEX_NONE) return false;
+    C.WarProvince = Province;
+    C.WarUntil = State.Day + WarDays;
+    C.Rivalry = FMath::Min(100.f, C.Rivalry + 8.f);
+    OutNews = FString::Printf(TEXT("%s, %s'da fiyatlar\u0131 %%8 k\u0131rd\u0131: hedefi sensin."), *C.Name, *CityName(C.Country, Province));
+    return true;
+}
+
 int64 MarketChains::Price(const FMarketState& State, int32 ChainIndex)
 {
     const bool bExit = State.Rivals.Chains.IsValidIndex(ChainIndex) && State.Rivals.Chains[ChainIndex].bExitSale;
@@ -1303,6 +1442,7 @@ void MarketChains::CloseDay(FMarketState& State)
     Ensure(State);
     const int32 Day = State.Day;
     FNews News(State);
+    CloseBids(State); // C13 (M43): owners' answers to our bids
     EndWars(State, Day, News);
     for (int32 I = 0; I < State.Rivals.Chains.Num(); ++I)
     {
