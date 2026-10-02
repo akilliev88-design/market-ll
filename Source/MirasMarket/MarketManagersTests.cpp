@@ -396,7 +396,7 @@ bool FMarketManagersCountryVisibleTest::RunTest(const FString& Parameters)
     TestTrue(TEXT("Visible"), IsTierVisible(S, ELevel::Country, TEXT("tr"), TEXT("tr")) && VisibleTiers(S, TEXT("tr")).Contains(ELevel::Country));
     TestTrue(TEXT("Suggested"), Suggestions(S).ContainsByPredicate([](const FString& Line) { return Line.Contains(TEXT("\u00fclke m\u00fcd\u00fcr\u00fc")); }));
     // C11 (M40): a country manager of a few shops asks for a part of his band; it grows with the network.
-    TestEqual(TEXT("Five shops"), ShopsInCountry(S, TEXT("tr")), 5);
+    TestEqual(TEXT("Five branches and the family shop"), ShopsInCountry(S, TEXT("tr")), 6);
     TestTrue(TEXT("Small chain, smaller pay"), FMath::IsNearlyEqual(CountryWageScale(S, TEXT("tr")), CountryMinScale));
     const TArray<FCandidate> Small = Candidates(S, ELevel::Country, TEXT("tr"), TEXT("tr"));
     TestTrue(TEXT("A third of the band"), Small.Num() > 0 && Small[0].BaseWage <= BaseWageFor(ELevel::Country, Small[0].Skill, TEXT("tr")) * 0.35);
