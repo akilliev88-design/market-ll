@@ -201,17 +201,39 @@ namespace MarketAutoPlay
         if (Stores >= 20) Command(State, Products, TEXT("Build"), 3, Run);
         FString Format = Stores >= Profile.HyperAt ? TEXT("hiper") : Stores >= Profile.SuperAt ? TEXT("buyuk") : TEXT("mahalle");
         if(Format==TEXT("hiper") && !MarketCompany::ChapterOpen(State,MarketBranches::FormatInfo(Format).Chapter))Format=TEXT("buyuk");
-        TArray<MarketBranches::FSite> Sites;
-        for (const MarketCountry::FProfile& Country : MarketCountry::All())
+        // C14b: the home province is full: hire the HR manager and the accountant a shop outside it needs (the menu says so).
         {
-            if (Country.Id != State.CountryId && !MarketCompany::ChapterOpen(State, 6)) continue;
-            for (const MarketCountry::FCity& Province : Country.Cities)
+            const auto Home = MarketBranches::SiteOf(State, State.CountryId, State.CityId);
+            if (MarketBranches::ShopsIn(State, State.CountryId, State.CityId) >= MarketBranches::Room(Home) && State.Cash > Reserve * 2)
             {
-                const auto Site = MarketBranches::SiteOf(State, Country.Id, Province.Id);
-                if (!Site.bHome && (!MarketStaff::HasHr(State) || !MarketStaff::HasAccountant(State))) continue;
-                if (MarketBranches::ShopsIn(State, Country.Id, Province.Id) >= MarketBranches::Room(Site)) continue;
-                if(!MarketAutoPlayC::SiteSuitable(State,Country.Id,Province.Id,Format))continue;
-                Sites.Add(Site);
+                FString Message;
+                if (!MarketStaff::HasAccountant(State)) MarketStaff::HireAccountant(State, Message);
+                if (!MarketStaff::HasHr(State))
+                {
+                    MarketStaff::EnsureCandidates(State);
+                    for (int32 I = 0; I < State.Candidates.Num(); ++I)
+                        if (MarketStaff::RoleOf(State.Candidates[I]) == MarketStaff::ERole::HrManager) { MarketStaff::Hire(State, I, Message); break; }
+                }
+            }
+        }
+        // C14b: no site for the big format (small provinces, full cities): open the next smaller one, as a player would.
+        TArray<MarketBranches::FSite> Sites;
+        static const TCHAR* Smaller[3] = { TEXT("hiper"), TEXT("buyuk"), TEXT("mahalle") };
+        int32 Step = Format == TEXT("hiper") ? 0 : Format == TEXT("buyuk") ? 1 : 2;
+        for (; Step < 3 && Sites.IsEmpty(); ++Step)
+        {
+            Format = Smaller[Step];
+            for (const MarketCountry::FProfile& Country : MarketCountry::All())
+            {
+                if (Country.Id != State.CountryId && !MarketCompany::ChapterOpen(State, 6)) continue;
+                for (const MarketCountry::FCity& Province : Country.Cities)
+                {
+                    const auto Site = MarketBranches::SiteOf(State, Country.Id, Province.Id);
+                    if (!Site.bHome && (!MarketStaff::HasHr(State) || !MarketStaff::HasAccountant(State))) continue;
+                    if (MarketBranches::ShopsIn(State, Country.Id, Province.Id) >= MarketBranches::Room(Site)) continue;
+                    if(!MarketAutoPlayC::SiteSuitable(State,Country.Id,Province.Id,Format))continue;
+                    Sites.Add(Site);
+                }
             }
         }
         Sites.Sort([&](const MarketBranches::FSite& Left, const MarketBranches::FSite& Right)

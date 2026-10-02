@@ -1,3 +1,15 @@
+## 02.10.2026 — Claude (Cowork) — C14 sonucu ve C14b (derlenmedi)
+
+**Doğrulama (Mustafa):** C14 DERLE, TEST 159/159 temiz.
+
+**Sonuç (10. yıl mağaza):** Normal — dengeli 140/92/77 (80–150; 2/3, 77 sınırda), ilk şube 264/278/278 (tampon yalnız tohum 21'i öne aldı), temkinli 86/77/65, atak 180/25/111 (atak 22 depo gecikince 8 → 25'te kaldı, 21 ve 23 iyileşti). Rahat aynı (dengeli 132–196). Zor — dengeli 56/8/30, temkinli 4/53/8, atak 74–87. Kurtarma 0.
+
+**Bulgu:** Takılan koşular (Zor dengeli 22: 8 mağaza, kasa 230–390 bin; Zor temkinli 21: 4 mağaza ev ilinde, kasa 60–100 bin; Normal atak 22: 24 mağaza, kasa 1,4–3 milyon) parası olduğu hâlde yıllarca mağaza açmıyor. Bot büyük türe (süpermarket 520 bin nüfus, hiper) geçince uygun il kalmayınca ya da ev ili dolup İK/müşavir eksik olunca sessizce bekliyor. Zor dengeli 22'de depo tahmini artı göründüğü hâlde depo ve merkez 10 yılda −598 bin: `SuggestDepotProvince` tahmini iyimser, sonra bakılacak.
+
+**C14b (yalnız bot):** büyük tür için il yoksa bir küçük türe iner (hiper → süpermarket → mahalle); ev ili doluysa ve kasa yedeğin iki katıysa İK müdürü ve mali müşavir alır.
+
+**Sıradaki:** Mustafa `CLAUDE_KOS.cmd` (C14b_N/R/Z).
+
 ## 02.10.2026 — Claude (Cowork) — C14: dengeli ilk şube ve depo kararı (derlenmedi)
 
 **Not:** Mustafa C13b'yi yanlışlıkla ikinci kez başlattı (8fc8c8d yalnız belge commit'i), testte kapattı; zararı yok.
