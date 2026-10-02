@@ -783,7 +783,7 @@ bool MarketChains::ForceEnter(FMarketState& State, int32 ChainIndex, const FStri
     if (C.bGone || C.bOurs || C.bForSale || C.Cash <= 0 || StoresOf(C, Province) > 0) return false;
     const MarketCountry::FCity* City = MarketCountry::FindCity(C.Country, Province);
     if (!City) return false;
-    const int32 Count = FMath::Clamp(City->PopulationK / 150, 2, 5);
+    const int32 Count = FMath::Clamp(City->PopulationK / 300, 1, 3);
     SpotOf(C, Province).Stores += Count;
     C.Cash -= FMath::RoundToInt64(Count * OpenCost(static_cast<EArchetype>(C.Archetype)) * MarketPrices::ListLevel(FMath::Max(1, State.Day)));
     OutNews = FString::Printf(TEXT("%s, %s'a girdi: %d ma\u011faza birden a\u00e7t\u0131."), *C.Name, *CityName(C.Country, Province), Count);

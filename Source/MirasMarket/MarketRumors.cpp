@@ -93,7 +93,14 @@ namespace MarketRumorsLocal
         case EKind::Enters:
         {
             TArray<FString> Ours = MarketBranches::ProvincesWithShops(State, C.Country);
-            Ours.RemoveAll([&C](const FString& P) { return StoresIn(C, P) > 0; });
+            // Not where the chain already is, nor into a province four or more chains already share.
+            Ours.RemoveAll([&C, &Chains](const FString& P)
+            {
+                if (StoresIn(C, P) > 0) return true;
+                int32 There = 0;
+                for (const FMarketChain& O : Chains) if (!O.bGone && !O.bOurs && O.Country == C.Country && StoresIn(O, P) > 0) ++There;
+                return There >= 4;
+            });
             if (Ours.Num() == 0 || C.Cash <= 0) return false;
             OutProvince = Ours[Mix(Salt, 0x52u, static_cast<uint32>(Ours.Num())) % static_cast<uint32>(Ours.Num())];
             OutPrior = 0.45f;
@@ -108,6 +115,7 @@ namespace MarketRumorsLocal
                 if (J == Chain || T.bGone || T.bOurs || T.Country != C.Country || Busy(State, T.Id)) continue;
                 if (T.Scope != static_cast<uint8>(MarketChains::EScope::Regional) && T.Scope != static_cast<uint8>(MarketChains::EScope::Local)) continue;
                 if (MarketChains::TotalStores(T) <= 0 || C.Cash < MarketChains::BidPrice(State, J)) continue;
+                if (!T.bForSale && T.RedTurns <= 0 && T.Cash >= 0) continue; // only a weak chain is a target
                 Targets.Add(J);
             }
             if (Targets.Num() == 0) return false;
@@ -275,10 +283,10 @@ void MarketRumors::CloseDay(FMarketState& State)
     if (RS.NextDay <= 0) { RS.NextDay = Closed + 30; return; }
     if (Closed < RS.NextDay || RS.Active.Num() >= MaxActive) return;
     const uint32 Salt = Mix(static_cast<uint32>(State.RivalSeed), static_cast<uint32>(Closed), 0x7A11u);
-    RS.NextDay = Closed + 25 + static_cast<int32>(Salt % 21u);
-    // Kinds by weight (for sale 30, entering 30, buying 20, a price war 20), the next ones if a kind has no candidate.
+    RS.NextDay = Closed + 50 + static_cast<int32>(Salt % 41u); // every 50-90 days: the talk follows the market, it does not drive it
+    // Kinds by weight (for sale 35, entering 20, buying 15, a price war 30), the next ones if a kind has no candidate.
     static const EKind Order[4] = { EKind::ForSale, EKind::Enters, EKind::Acquires, EKind::PriceWar };
-    static const uint32 Weights[4] = { 30, 30, 20, 20 };
+    static const uint32 Weights[4] = { 35, 20, 15, 30 };
     uint32 Pick100 = Mix(Salt, 0x01u, 0u) % 100u;
     int32 First = 0;
     for (; First < 3 && Pick100 >= Weights[First]; ++First) Pick100 -= Weights[First];

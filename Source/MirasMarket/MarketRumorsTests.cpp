@@ -85,7 +85,7 @@ bool FMarketRumorsTest::RunTest(const FString& Parameters)
 
     // New rumours start by themselves once the company has a branch (at most three open).
     FMarketState Fresh = Start(21);
-    Days(Fresh, 400);
+    Days(Fresh, 700);
     TestTrue(TEXT("Rumours start by themselves"), Fresh.Rumors.Started >= 5 && Fresh.Rumors.Active.Num() <= MarketRumors::MaxActive);
     TestTrue(TEXT("Some come true, not all"), Fresh.Rumors.CameTrue < Fresh.Rumors.Started);
     return true;
@@ -107,6 +107,7 @@ bool FMarketLoanAppTest::RunTest(const FString& Parameters)
     }
     S.Day = MarketCalendar::GameDayOf(Year + 1, 1, 2);
     S.Cash = 100000;
+    const FMarketState Fresh = S; // the same books with no debt, for the second application
     FString Why;
     TestTrue(TEXT("The commercial bank takes applications"), MarketBanking::CanApply(S, 1, Why));
     const int64 Cash = S.Cash;
@@ -121,7 +122,10 @@ bool FMarketLoanAppTest::RunTest(const FString& Parameters)
     TestTrue(TEXT("Accepted"), MarketBanking::AcceptApp(S, TArray<FMarketProduct>(), S.Banking.Apps[App].Id, Message));
     TestTrue(TEXT("The loan is booked and the money in"), S.Banking.Loans.Num() == Loans + 1 && S.Cash == Cash + S.Banking.Apps[App].Offered);
 
+    // The first loan used the room: the local bank does not take a new application.
+    TestFalse(TEXT("No room, no application"), MarketBanking::CanApply(S, 0, Why));
     // Asking for more than the bank can give: a smaller offer and why.
+    S = Fresh;
     TestTrue(TEXT("Applied for more"), MarketBanking::Apply(S, 0, MarketBanking::MaxAsk, 0, false, Message));
     for (int32 D = 0; D < 6; ++D) { ++S.Day; S.DayNews.Reset(); MarketBanking::CloseApps(S); }
     const FMarketLoanApp& More = S.Banking.Apps.Last();

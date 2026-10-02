@@ -1,3 +1,15 @@
+## 02.10.2026 — Claude (Cowork) — C13 sonucu ve C13b (derlenmedi)
+
+**Doğrulama (Mustafa, 8fdef90):** DERLE geçti (ilk denemede), Smoke geçti. TEST 157 başarılı + 1 uyarı, 1 başarısız: `Banking.ApplicationsAndBids` — ilk 3 kademe krediden sonra yerel bankanın teklifi 0, başvuru doğru biçimde reddediliyordu; test yanlıştı. Test ikinci başvuruyu borçsuz kopyada yapacak şekilde düzeltildi ve "yer yoksa başvuru yok" kontrolü eklendi.
+
+**Bot (10. yıl mağaza):** Normal — temkinli 60/59/2, dengeli 133/104/74 (hedef 80–150; 2/3, C12c'de 1/3), 3. yıl 10/12/7, atak 96/73/57, kurtarma 0, sıra 7–9. Rahat — temkinli 93–113, dengeli 145–188, atak 103–155. Zor — temkinli 2/44/1, dengeli 41/1/1, atak 23–53. 8 mağaza duvarı Normal'de kalktı.
+
+**Bulgu:** Takılan koşularda (Normal temkinli 23, Zor dengeli 22/23) şubeler açılıp kapanıyor (24/16/9 kapanış), şubeler toplamda zararda. C12c ile fark: rakip birleşmesi/çekilme 0–4 → 19–28, etkin zincir 127 → 28, satılık zincir 3 → 17. Sebep kulis: 25–45 günde bir söylenti, %42'si gerçekleşince fazladan olay; "ile girme" küçük şirketin tek iline 2–5 mağaza ekliyordu.
+
+**C13b:** Kulis 50–90 günde bir; ağırlıklar satış 35, girme 20, alma 15, savaş 30; girme 1–3 mağaza ve dört ya da daha çok zincirin olduğu ile değil; birleşme yalnız zayıf (zararda, eksi kasalı ya da satılık) zincire. Test 700 güne uzatıldı.
+
+**Sıradaki:** Mustafa `CLAUDE_KOS.cmd` (C13b_N/R/Z).
+
 ## 02.10.2026 — Claude (Cowork) — C13: kredi başvurusu, teklif süreci, kulis, büyüyen depo (derlenmedi)
 
 **Yapılan (M43):** Bankaya kredi başvurusu (yatırım ve satın alma amaçlı); banka 2–4 günde not ve borç durumuna göre tam, kısmi ya da ret cevabı verir, teklif 7 gün geçerli, "Kabul et / Reddet / Geri çek" Finans › Banka kartında. Zincir satın alma teklifine 2–4 günde cevap; kabul edilirse 14 gün içinde "Anlaşmayı tamamla" (kasa yetmezse bankalara satın alma kredisi başvurusu açılır), süre geçerse anlaşma bozulur. Piyasa kulisi (`MarketRumors`): satışa çıkacak / pazara girecek / satın alacak / fiyat savaşı söylentileri; gizli doğruluk (ön olasılık ~%42), birkaç günde bir güvenilir ya da güvensiz yeni kaynak doğrular ya da yalanlar; kaynak dökümü ve inanç düzeyi (zayıf/belirsiz/güçlü/çok güçlü) Şirket sekmesinde "KULİS VE TEKLİFLER" kartında. Simülasyonda: yalnız güvensiz kaynaklı söylenti ~%43 doğru, 3 güvenilir onaylı ~%5 yanlış, "çok güçlü" ~%88 doğru. Depo kirası ve depo müdürü ücreti mağaza sayısıyla büyür (20 mağazada tam, en az %30); dengeli/atak bot depo için kurumsal kredi kullanır. Kayıt sürümü 7.
