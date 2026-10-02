@@ -44,6 +44,8 @@ namespace MarketAdvertising
     bool SetLevelArg(FMarketState& State, int32 Arg, FString& OutMessage);
     // Countries with our shops (the campaign's first).
     TArray<FString> Countries(const FMarketState& State);
+    // C11: what the running channels and the advertising manager cost a day at today's levels (MarketFinance budgets it).
+    int64 DailySpend(const FMarketState& State);
 
     // x walk-in shoppers of our shops in a country, x online orders there.
     float TrafficFactor(const FMarketState& State, const FString& Country = FString());

@@ -1094,6 +1094,24 @@ bool MarketOnline::Resolve(FMarketState& State, const TArray<FMarketProduct>& Pr
 // ---------------------------------------------------------------------------------------------------------------
 // The day
 
+int64 MarketOnline::DailyFixedCost(const FMarketState& State, int32 GameDay)
+{
+    using namespace MarketOnlineLocal;
+    const FMarketOnline& O = State.Online;
+    const double Level = LevelOn(GameDay);
+    int64 Fixed = 0;
+    if (O.bWeb) Fixed += FMath::RoundToInt64(WebMonthly * Level / 30.0);
+    if (O.bApp) Fixed += FMath::RoundToInt64(O.AppCost * AppUpkeepMonthly / 30.0);
+    for (const FMarketOnlineArea& A : O.Areas)
+        if (A.DarkStoreDay > 0)
+        {
+            const MarketCountry::FCity* City = MarketCountry::FindCity(A.Country, A.Province);
+            Fixed += FMath::RoundToInt64(DarkStoreMonthly * Level * (City ? FMath::Clamp(City->Rent, 0.4f, 2.5f) : 1.f) / 30.0);
+        }
+    if (!O.ManagerName.IsEmpty()) Fixed += MarketStaff::EmployerCost(O.ManagerWage);
+    return Fixed;
+}
+
 void MarketOnline::CloseDay(FMarketState& State, const TArray<FMarketProduct>& Products)
 {
     using namespace MarketOnlineLocal;
@@ -1111,16 +1129,7 @@ void MarketOnline::CloseDay(FMarketState& State, const TArray<FMarketProduct>& P
     const double Level = LevelOn(Closed);
 
     // Fixed costs of the head office.
-    int64 Fixed = 0;
-    if (O.bWeb) Fixed += FMath::RoundToInt64(WebMonthly * Level / 30.0);
-    if (O.bApp) Fixed += FMath::RoundToInt64(O.AppCost * AppUpkeepMonthly / 30.0);
-    for (const FMarketOnlineArea& A : O.Areas)
-        if (A.DarkStoreDay > 0)
-        {
-            const MarketCountry::FCity* City = MarketCountry::FindCity(A.Country, A.Province);
-            Fixed += FMath::RoundToInt64(DarkStoreMonthly * Level * (City ? FMath::Clamp(City->Rent, 0.4f, 2.5f) : 1.f) / 30.0);
-        }
-    if (!O.ManagerName.IsEmpty()) Fixed += MarketStaff::EmployerCost(O.ManagerWage);
+    const int64 Fixed = DailyFixedCost(State, Closed);
     // The manager's touch: the stars drift to his skill, picking is quicker.
     if (!O.ManagerName.IsEmpty()) O.Reputation += (O.ManagerSkill - 50) / 500.f;
     const float Hands = (O.ManagerName.IsEmpty() ? 1.f : 1.f + O.ManagerSkill / 200.f) * (Closed < O.SurgeUntil ? 2.f : 1.f);

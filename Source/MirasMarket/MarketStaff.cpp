@@ -507,7 +507,12 @@ void MarketStaff::CloseDay(FMarketState& State)
         State.Cash -= Social;
         State.LastOperatingCost += Social;
         State.LastProfit -= Social;
-        MarketLedger::Post(State, MarketLedger::EAccount::SocialSecurity, -Social);
+        // C11: the HR manager is the head office's (the accountant is a fee, no social security).
+        int64 HrWages = 0;
+        for (const FMarketEmployee& E : State.Staff) if (RoleOf(E) == ERole::HrManager) HrWages += FMath::Max<int64>(0, E.DailyWage);
+        const int64 OfficeSocial = FMath::Clamp<int64>(EmployerShare(HrWages), 0, Social);
+        MarketLedger::Post(State, MarketLedger::EAccount::SocialSecurity, -(Social - OfficeSocial));
+        MarketLedger::Post(State, MarketLedger::EAccount::SocialSecurity, -OfficeSocial, true, MarketLedger::HeadOfficeStore);
     }
 
     // 1. The till: the cashiers on duty share the day's shoppers. When nobody worked the till the player did.

@@ -418,6 +418,23 @@ TArray<MarketManagers::ELevel> MarketManagers::VisibleTiers(const FMarketState& 
     return List;
 }
 
+int32 MarketManagers::ShopsInCountry(const FMarketState& State, const FString& Country)
+{
+    const FString C = CountryOr(State, Country);
+    int32 Shops = C == State.CountryId ? 1 : 0; // the family shop
+    for (const FMarketBranch& B : State.Branches)
+        if (IsOpenBranch(B) && MarketBranches::CountryOf(State, B) == C) ++Shops;
+    return Shops;
+}
+
+float MarketManagers::CountryWageScale(const FMarketState& State, const FString& Country)
+{
+    // C11 (M40, Codex C10: a 7-shop chain paid its country manager more than the family shop and six branches earned,
+    // and the cautious and balanced players stalled at 7 shops and fell back to one): the job of a country manager
+    // of a few shops is smaller, so is his pay; it grows with the network to the full band (MonthStart).
+    return FMath::Clamp(static_cast<float>(ShopsInCountry(State, Country)) / CountryFullShops, CountryMinScale, 1.f);
+}
+
 int32 MarketManagers::ProvincesWithShops(const FMarketState& State, const FString& Country)
 {
     const FString C = CountryOr(State, Country);
@@ -752,7 +769,8 @@ TArray<MarketManagers::FCandidate> MarketManagers::Candidates(const FMarketState
         }
         else
         {
-            Who.BaseWage = FMath::RoundToInt64(static_cast<double>(BaseWageFor(Level, Who.Skill, C) * Ask) / 5000.0) * 50;
+            const double Scale = Level == ELevel::Country ? CountryWageScale(State, C) : 1.0; // C11 (M40)
+            Who.BaseWage = FMath::RoundToInt64(static_cast<double>(BaseWageFor(Level, Who.Skill, C) * Ask) * Scale / 5000.0) * 50;
             Who.Wage = MarketPrices::WageScaled(Who.BaseWage, State.Day);
         }
         Pool.Add(Who);
@@ -930,7 +948,7 @@ bool MarketManagers::Appoint(FMarketState& State, ELevel Level, const FString& C
     M.Style = From.ManagerStyle;
     M.Potential = PotentialOf(From);
     M.Morale = FMath::Min(100.f, FMath::Max(50.f, From.ManagerMorale) + 10.f);
-    M.BaseWage = BaseWageFor(Level, M.Skill, M.Country);
+    M.BaseWage = FMath::RoundToInt64(static_cast<double>(BaseWageFor(Level, M.Skill, M.Country)) * (Level == ELevel::Country ? CountryWageScale(State, M.Country) : 1.0) / 50.0) * 50; // C11 (M40)
     M.AppointedDay = State.Day;
     M.bPromoted = true;
     HireStoreManager(State, FromBranch);
@@ -1422,6 +1440,16 @@ void MarketManagers::CloseDay(FMarketState& State)
     }
 
     if (Closed % 7 != 0) return;
+
+    // C11 (M40): a country manager's pay grows with the network to his full band (never falls).
+    for (FMarketManager& M : Team.Managers)
+    {
+        if (M.Level != static_cast<uint8>(ELevel::Country)) continue;
+        const int64 Band = FMath::RoundToInt64(static_cast<double>(BaseWageFor(ELevel::Country, M.Skill, M.Country)) * CountryWageScale(State, M.Country) / 50.0) * 50;
+        if (Band <= M.BaseWage) continue;
+        M.BaseWage = Band;
+        News.Add(FString::Printf(TEXT("%s: \u015firket b\u00fcy\u00fcd\u00fc, \u00fclke m\u00fcd\u00fcr\u00fcn\u00fcn maa\u015f\u0131 i\u015finin b\u00fcy\u00fckl\u00fc\u011f\u00fcne g\u00f6re artt\u0131."), *M.Name));
+    }
 
     // Weekly marks: growth, tiredness, leaving; the province manager warns, proposes and catches a skimmer.
     for (int32 I = 0; I < State.Branches.Num(); ++I)

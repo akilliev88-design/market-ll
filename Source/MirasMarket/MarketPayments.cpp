@@ -130,6 +130,12 @@ FString MarketPayments::Summary(const FMarketState& State)
     return Line;
 }
 
+int64 MarketPayments::DailyFees(const FMarketState& State)
+{
+    const FMarketPayments& P = State.Payments;
+    return (P.bCard ? DailyFee(State, PosMonthlyRent) : 0) + (P.bMealCard ? DailyFee(State, MealMonthlyFee) : 0);
+}
+
 void MarketPayments::CloseDay(FMarketState& State)
 {
     FMarketPayments& P = State.Payments;
@@ -139,7 +145,7 @@ void MarketPayments::CloseDay(FMarketState& State)
     P.CardTomorrow = P.CardToday;
     P.CardToday = 0;
     // Commission and fees are costs of the closed day.
-    const int64 Fees = (P.bCard ? DailyFee(State, PosMonthlyRent) : 0) + (P.bMealCard ? DailyFee(State, MealMonthlyFee) : 0);
+    const int64 Fees = DailyFees(State);
     P.LastCommission = P.Commission;
     State.LastOperatingCost += P.Commission + Fees;
     State.LastProfit -= P.Commission + Fees;

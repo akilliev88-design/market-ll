@@ -21,10 +21,10 @@ namespace MarketPrices
     constexpr double LaterLoanRate = 0.14;
 
     // Net monthly minimum wage of the first half of 2011 (TL). Afterwards it is raised every January and July to
-    // the price level expected at the end of that half year, plus 1.5 % real growth a year: wages never fall behind
+    // the price level expected at the end of that half year, plus 0.5 % real growth a year: wages never fall behind
     // for long, and never run away from prices either.
     constexpr double StartWage = 658.95;
-    constexpr double RealWageGrowth = 0.015;
+    constexpr double RealWageGrowth = 0.005; // C11 (Codex C10 D2: the closest single change to the target curves; was 0.015)
 
     struct FEconomy { bool bOn = false; double Mean = 0.0; double Vol = 0.0; double Spread = 0.0; bool bShocks = false; uint32 Seed = 0; };
     FEconomy& Economy() { static FEconomy E; return E; }

@@ -220,6 +220,18 @@ bool FMarketRescueTest::RunTest(const FString& Parameters)
     TestTrue(TEXT("Money to fill the shelves"), S.Cash > 0);
     TestTrue(TEXT("The ladder starts over"), S.NegativeCashDays == 0 && S.TroubleStage == 0);
     TestTrue(TEXT("Told"), S.DayNews.ContainsByPredicate([](const FString& Line) { return Line.Contains(TEXT("kurtarma")); }));
+
+    // C11 (Codex C10): the head office's costs that stay (web, POS, meal card) are in the month's budget.
+    FMarketState Bare = S;
+    Bare.Online.bWeb = false; Bare.Payments.bCard = false; Bare.Payments.bMealCard = false;
+    Bare.Advertising.Countries.Reset(); Bare.Advertising.ManagerName.Reset(); Bare.Online.bApp = false; Bare.Online.ManagerName.Reset();
+    Bare.Company.DepotSites.Reset(); Bare.Company.Trucks = 0;
+    for (FMarketOnlineArea& Area : Bare.Online.Areas) Area.DarkStoreDay = 0;
+    TestEqual(TEXT("Nothing running: no head office cost"), MarketFinance::HeadOfficeDailyCost(Bare), int64(0));
+    FMarketState Running = Bare;
+    Running.Online.bWeb = true; Running.Payments.bCard = true; Running.Payments.bMealCard = true;
+    TestTrue(TEXT("Web, POS and meal card cost every day"), MarketFinance::HeadOfficeDailyCost(Running) > 0);
+    TestEqual(TEXT("And the month's budget counts them"), MarketFinance::CompanyMonthCost(Running) - MarketFinance::CompanyMonthCost(Bare), 30 * MarketFinance::HeadOfficeDailyCost(Running));
     return true;
 }
 

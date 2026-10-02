@@ -205,7 +205,7 @@ bool FMarketManagersCountryTest::RunTest(const FString& Parameters)
 
     // Wages are paid at the day close from the till and count in the day's result.
     const int64 Wages = DailyWages(S);
-    TestTrue(TEXT("Country managers are expensive"), Wages >= 2 * MarketPrices::WageScaled(12500, S.Day));
+    TestTrue(TEXT("Country managers are expensive"), Wages >= 2 * MarketPrices::WageScaled(FMath::RoundToInt64(12500 * CountryMinScale), S.Day)); // C11 (M40): a few shops, a part of the band
     const int64 Cash = S.Cash;
     const int64 Result = S.LastBranchProfit;
     ++S.Day;
@@ -395,6 +395,20 @@ bool FMarketManagersCountryVisibleTest::RunTest(const FString& Parameters)
     TestTrue(TEXT("Five provinces: possible"), CanAppoint(S, ELevel::Country, TEXT("tr"), FString(), INDEX_NONE, Message));
     TestTrue(TEXT("Visible"), IsTierVisible(S, ELevel::Country, TEXT("tr"), TEXT("tr")) && VisibleTiers(S, TEXT("tr")).Contains(ELevel::Country));
     TestTrue(TEXT("Suggested"), Suggestions(S).ContainsByPredicate([](const FString& Line) { return Line.Contains(TEXT("\u00fclke m\u00fcd\u00fcr\u00fc")); }));
+    // C11 (M40): a country manager of a few shops asks for a part of his band; it grows with the network.
+    TestEqual(TEXT("Five shops"), ShopsInCountry(S, TEXT("tr")), 5);
+    TestTrue(TEXT("Small chain, smaller pay"), FMath::IsNearlyEqual(CountryWageScale(S, TEXT("tr")), CountryMinScale));
+    const TArray<FCandidate> Small = Candidates(S, ELevel::Country, TEXT("tr"), TEXT("tr"));
+    TestTrue(TEXT("A third of the band"), Small.Num() > 0 && Small[0].BaseWage <= BaseWageFor(ELevel::Country, Small[0].Skill, TEXT("tr")) * 0.35);
+    TestTrue(TEXT("Appointed"), Appoint(S, ELevel::Country, TEXT("tr"), FString(), INDEX_NONE, Message));
+    const int32 Head = FindManager(S, ELevel::Country, TEXT("tr"), TEXT("tr"));
+    const int64 Before = S.Management.Managers[Head].BaseWage;
+    const TCHAR* More[] = { TEXT("izmir"), TEXT("ankara"), TEXT("antalya"), TEXT("adana"), TEXT("konya"), TEXT("kayseri"), TEXT("samsun"), TEXT("trabzon"), TEXT("mersin"), TEXT("denizli") };
+    for (const TCHAR* P : More) AddShop(S, P);
+    for (const TCHAR* P : More) AddShop(S, P);
+    S.Day = 7 * 30 + 1; // a week's close
+    MarketManagers::CloseDay(S);
+    TestTrue(TEXT("Pay grew with the network"), S.Management.Managers[Head].BaseWage > Before);
 
     // In a second country the country manager is required at once, without five provinces.
     FMarketState Two = MakeState();

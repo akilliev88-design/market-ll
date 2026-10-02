@@ -8,6 +8,7 @@
 #include "MarketFinance.h"
 #include "MarketPrices.h"
 #include "MarketSuppliers.h"
+#include "MarketStaff.h"
 
 namespace MarketLedger
 {
@@ -191,8 +192,18 @@ void MarketLedger::BeginClose(FMarketState& State, const TArray<FMarketProduct>&
     const double Seasonal = Season == MarketCalendar::ESeason::Summer ? 1.15 : Season == MarketCalendar::ESeason::Winter ? 1.10 : 1.0;
     const int64 Utilities = FMath::RoundToInt64(2200.0 * MarketPrices::ListLevel(Closed) * Seasonal);
     const int64 Payroll = State.DailyPayroll();
+    // C11: the HR manager and the accountant serve the whole company: their pay is the head office's, so the family
+    // shop's books show only the shop's own people. The till paid the whole payroll; only the books split it.
+    int64 HeadOfficePay = 0;
+    for (const FMarketEmployee& E : State.Staff)
+    {
+        const MarketStaff::ERole Role = MarketStaff::RoleOf(E);
+        if (Role == MarketStaff::ERole::HrManager || Role == MarketStaff::ERole::Accountant) HeadOfficePay += FMath::Max<int64>(0, E.DailyWage);
+    }
+    HeadOfficePay = FMath::Clamp<int64>(HeadOfficePay, 0, FMath::Max<int64>(0, Payroll));
     Post(State, EAccount::Utilities, -Utilities);
-    Post(State, EAccount::Wages, -Payroll);
+    Post(State, EAccount::Wages, -(Payroll - HeadOfficePay));
+    Post(State, EAccount::Wages, -HeadOfficePay, true, HeadOfficeStore);
     // C10: what other stores and the head office left in today's costs goes to them.
     int64 Elsewhere = 0;
     for (const FMarketLedgerEntry& Cost : L.PendingStoreCosts) { Post(State, EAccount::Marketing, -Cost.Amount, true, Cost.Store); Elsewhere += Cost.Amount; }

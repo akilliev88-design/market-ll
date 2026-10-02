@@ -50,6 +50,8 @@ namespace MarketManagers
     constexpr int32 OpeningDaysSaved = 2;
     constexpr int32 MissingCountryPenalty = 10;     // skill lost in a country without its required country manager
     constexpr int32 CountryProvinces = 5;           // provinces with our shops in a country for a country manager (M20)
+    constexpr int32 CountryFullShops = 30;          // C11 (M40): a country manager's full band from 30 shops in the country
+    constexpr float CountryMinScale = 0.3f;         // C11 (M40): a 5-province chain of a few shops pays 30 % of the band
     constexpr int32 SkillTop = 95;                  // nobody's skill grows past this (M21)
     constexpr int32 PotentialMin = 55;              // a new candidate's ceiling: 55..95
     constexpr int32 CandidateCount = 3;             // outside candidates offered for every appointment (M22)
@@ -89,6 +91,9 @@ namespace MarketManagers
     TArray<ELevel> VisibleTiers(const FMarketState& State, const FString& Country);
     // Provinces of a country with an open branch of ours (the family shop's province counts in its country).
     int32 ProvincesWithShops(const FMarketState& State, const FString& Country);
+    // C11 (M40): open shops in a country (the family shop counts at home) and the country manager's share of his band.
+    int32 ShopsInCountry(const FMarketState& State, const FString& Country);
+    float CountryWageScale(const FMarketState& State, const FString& Country);
     // Name of an area: "Tekirda\u011f", "Trakya", "Marmara", "T\u00fcrkiye".
     FString AreaName(ELevel Level, const FString& Country, const FString& Area);
 

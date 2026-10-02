@@ -15,6 +15,8 @@
 #include "MarketBanking.h"
 #include "MarketOnline.h"
 #include "MarketAdvertising.h"
+#include "MarketPayments.h"
+#include "MarketCompany.h"
 
 namespace MarketFinance
 {
@@ -323,7 +325,16 @@ int64 MarketFinance::CompanyMonthCost(const FMarketState& State)
     for (const FMarketBranch& B : State.Branches)
         if (B.Stage != static_cast<uint8>(MarketBranches::EStage::Closed))
             Total += MarketBranches::MonthlyFixedCost(State, MarketBranches::CountryOf(State, B), B.Province, B.Format);
+    // C11 (Codex C10: the plan budgeted only the shops): the head office's running costs that stay: web, app, dark
+    // stores, the e-commerce and advertising managers, the ads, the depots and trucks, the POS and meal card fees.
+    Total += 30 * HeadOfficeDailyCost(State);
     return Total;
+}
+
+int64 MarketFinance::HeadOfficeDailyCost(const FMarketState& State)
+{
+    return MarketOnline::DailyFixedCost(State, State.Day) + MarketAdvertising::DailySpend(State)
+        + MarketCompany::DailyOfficeCost(State, State.Day) + MarketPayments::DailyFees(State);
 }
 
 int64 MarketFinance::RentToday(const FMarketState& State)

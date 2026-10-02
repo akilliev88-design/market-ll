@@ -7,7 +7,7 @@ Sürüm 2: 02.10.2026 (ilk sürüm 30.09.2026) · Karar: Mustafa · Yazan: Claud
 
 1. **Önce oyunun aklı, sonra dükkân içi simülasyon.** Oyun bir **tycoon**: ana ekrandan (harita + menü) bütün şirket yönetilir. Ayrıntılıdır ama oyuncuyu boğmaz. Birinci şahıs dükkân, 3B mağazalar ve insanlar ikinci aşamada tamamlanır.
 2. **Oyunu Mustafa uzun uzun oynamaz; Codex oynatır.** Oyunu yıllarca oynayan bir **otomatik oyuncu** yazılır. Codex her işten sonra onu çalıştırır, sonuç raporunu ve menü ekran görüntülerini günlüğe koyar. Mustafa rapora ve ekranlara bakıp karar verir.
-3. **Toparlanma kuralı:** aynı anda en fazla **bir** derlenmemiş Claude işi. Derlenip test ve otomatik oyuncu raporu gelmeden yenisine başlanmaz. (02.10.2026: C8 + M36 + M37 + M38 bir arada verildi; bu bir istisnaydı, C9'dan sonra yine tek paket.)
+3. **Toparlanma kuralı:** kaldırıldı (Mustafa, 02.10.2026). Derlenmemiş iş DURUM'da "derlenmedi" diye işaretlenir, tamamlanmış gibi gösterilmez.
 4. **Dükkânlar hepsi aynı sistem (Mustafa, 02.10.2026).** İlk dükkânın yönetim açısından özel kuralı yok: kira, müdür, kampanya, stok eritme her mağazada aynı. Fark yalnız oyuncunun içinde yürüyebilmesi.
 
 ## 2. Tycoon arayüz ilkeleri ("boğmayan ayrıntı")

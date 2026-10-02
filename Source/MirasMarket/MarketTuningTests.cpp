@@ -11,7 +11,7 @@ bool FMarketTuningKnobsTest::RunTest(const FString& Parameters)
     MarketTuning::Reset();
     TestEqual(TEXT("Default"), MarketTuning::Get(TEXT("BranchCompetition"), 3.f), 3.f);
     const double Wage = MarketPrices::WageIndex(3000);
-    TestEqual(TEXT("Two knobs"), MarketTuning::Apply(TEXT("BranchCompetition=2.5, RealWageGrowth=0.005")), 2);
+    TestEqual(TEXT("Two knobs"), MarketTuning::Apply(TEXT("BranchCompetition=2.5, RealWageGrowth=0.0")), 2);
     TestEqual(TEXT("Set"), MarketTuning::Get(TEXT("BranchCompetition"), 3.f), 2.5f);
     TestTrue(TEXT("Slower real wages"), MarketPrices::WageIndex(3000) < Wage);
     TestTrue(TEXT("Reported"), MarketTuning::Describe().Contains(TEXT("BranchCompetition=2.5")));

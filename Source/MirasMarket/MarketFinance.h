@@ -50,6 +50,8 @@ namespace MarketFinance
     // M37: a month of the company's fixed costs (the family shop's people, running costs and rent, the head office's
     // managers, every open branch); the dividend leaves at least this in the till.
     int64 CompanyMonthCost(const FMarketState& State);
+    // C11: the head office's fixed running costs of a day (online, ads, depots and trucks, POS and meal card fees).
+    int64 HeadOfficeDailyCost(const FMarketState& State);
     // M31: the bank's rescue plan.
     constexpr int32 RescueWarnDays = 45;
     constexpr int32 RescueDays = 60;

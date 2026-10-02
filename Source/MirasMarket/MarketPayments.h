@@ -46,4 +46,6 @@ namespace MarketPayments
 
     // Call after FMarketState::CloseDay: yesterday's card money arrives, commissions and fees are the day's costs.
     void CloseDay(FMarketState& State);
+    // C11: the POS rent and the meal card fee of a day (today's price list); MarketFinance budgets them.
+    int64 DailyFees(const FMarketState& State);
 }

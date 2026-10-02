@@ -154,4 +154,6 @@ namespace MarketOnline
     // Day close (after the branches and the payments, before the bills): areas and their deciders, the timeline's
     // news and cards, rivals going online, the orders of every shop, the costs, the books.
     void CloseDay(FMarketState& State, const TArray<FMarketProduct>& Products);
+    // C11: the head office's fixed online costs of a day (web hosting, app upkeep, dark stores, the e-commerce manager).
+    int64 DailyFixedCost(const FMarketState& State, int32 GameDay);
 }

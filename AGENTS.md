@@ -109,7 +109,7 @@ Değişiklik ancak şunlardan sonra bitmiş sayılır: `DERLE.cmd` başarılı, 
 
 ## 7. Ajanlara özel notlar
 
-- **Gidiş yolu (Mustafa, 30.09.2026):** sıra `Docs/Kurgu/06_GIDIS_YOLU.md`'de. Önce oyunun aklı, sonra dükkân içi simülasyon. **Aynı anda en fazla bir derlenmemiş Claude işi**; Codex derleyip test ve otomatik oyuncu raporunu GUNLUK'e yazmadan Claude yenisine başlamaz.
+- **Gidiş yolu (Mustafa, 30.09.2026):** sıra `Docs/Kurgu/06_GIDIS_YOLU.md`'de. Önce oyunun aklı, sonra dükkân içi simülasyon. (02.10.2026, Mustafa: "aynı anda en fazla bir derlenmemiş Claude işi" kuralı kaldırıldı. Derlenmemiş iş yine DURUM'da "derlenmedi" diye işaretlenir.)
 
 - **Codex:** Aynı klasörde yerel çalışır. Kabuk erişimin varsa derleme ve testleri sen çalıştır, sonuçları GUNLUK'e yaz.
 - **Claude (Cowork):** Klasöre köprü üzerinden erişir. Kabuk yoksa dosyaları hazırlar, derlemeyi Mustafa'dan (`DERLE.cmd`) ister, logu `Saved/Logs/DERLE_son.log` dosyasından okur. **Dosya yazdıktan sonra geri okuyup karşılaştır:** 27.09.2026'da bir aktarım iki dosyayı eski hâliyle yazdı ve derleme bu yüzden kırıldı. 29.09.2026'da da aynısı oldu: aynı çıktı yolundan ikinci kez yazılan dosya ilk hâliyle gitti. Bir dosyayı ikinci kez yazarken her seferinde **yeni bir çıktı yolu** kullan (ör. `outputs/r3/...`) ve geri okuyup karşılaştır.
@@ -123,5 +123,5 @@ Aynı dosyaya iki ajan aynı anda dokunmaz. Sahibi olmayan dosyada değişiklik 
 |---|---|---|
 | Oyunun aklı, kurgu, ekonomi, menü | Claude | `MarketEconomy.*`, `MarketBranches.*`, `MarketCompany.*`, `MarketCompetitors.*`, `MarketRivals.*`, `MarketStaff.*`, `MarketSuppliers.*`, `MarketPrices.*`, `MarketCountry.*`, `MarketStart.*`, `MarketStory.*`, `MarketEvents.*`, `MarketDirector.*`, `MarketSimulation.*`, `MarketLayout.*`, `MarketMenu*`, `MarketHudWidget.*`, `MarketMap.*`, `MarketTheme.*`, `Config/*.json` (magazalar.json hariç), `Docs/Kurgu/` |
 | Mağaza görünümleri, 3B, dünya | Codex | `MarketStoreKit.*`, `Planogram.*` (ekipman tanımları), `MarketGame.*`, `MarketWorkers.cpp`, `MarketVisuals.*`, `MarketArrange.cpp`, `MarketPeople.*`, `MarketAutomation.cpp`, `Source/MirasMarketStudio/`, `Tools/Blender/`, `Tools/*.py`, `Config/magazalar.json`, `AssetInbox/`, `Content/Stores/` |
-| Derleme, test, smoke | Codex (bilgisayarda kabuk var) | Claude'un derlenmemiş işini de derler, sonucu GUNLUK'e yazar |
+| Derleme, test, smoke | Kim çalışıyorsa | Codex kabuktan; Claude, Codex yokken bilgisayar kontrolüyle `DERLE.cmd /q`, `TEST.cmd /q` çalıştırıp logları okur. Sonuç GUNLUK'e yazılır |
 | Karar, oyun testi, ambalaj | Mustafa | — |

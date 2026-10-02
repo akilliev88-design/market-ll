@@ -337,6 +337,16 @@ FString MarketAdvertising::ChannelLine(const FMarketState& State, const FString&
     return FString::Printf(TEXT("%s%s \u00b7 d\u00f6nem g\u00fcc\u00fc %%%.0f \u00b7 ak\u0131llarda %.0f"), *LevelNowText, *FirstLevelText, Era * 100.f, Stock);
 }
 
+int64 MarketAdvertising::DailySpend(const FMarketState& State)
+{
+    int64 Total = 0;
+    for (const FMarketAdCountry& C : State.Advertising.Countries)
+        for (int32 I = 0; I < ChannelCount && I < C.Levels.Num(); ++I)
+            if (C.Levels[I] > 0) Total += MonthCost(State, C.Country, static_cast<EChannel>(I), FMath::Min<int32>(C.Levels[I], MaxLevel)) / 30;
+    if (!State.Advertising.ManagerName.IsEmpty()) Total += MarketStaff::EmployerCost(State.Advertising.ManagerWage);
+    return Total;
+}
+
 void MarketAdvertising::CloseDay(FMarketState& State)
 {
     using namespace MarketAdvertisingLocal;

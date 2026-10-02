@@ -67,4 +67,6 @@ namespace MarketCompany
 
     // Day close: head office, depots and trucks, leadership; weekly line.
     void CloseDay(FMarketState& State);
+    // C11: the depots' rent and the trucks of a day (MarketFinance budgets them).
+    int64 DailyOfficeCost(const FMarketState& State, int32 GameDay);
 }

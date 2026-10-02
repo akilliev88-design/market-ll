@@ -6,7 +6,7 @@
 // experiments without a code change (commandlet: -Tune=Key=Value,Key=Value). The game itself never sets them; an
 // unset knob is the constant written in the code. Tested (MirasMarket.Tuning.*).
 //   BranchCompetition   x the province's competition in a branch's pull (MarketBranches; 3.0)
-//   RealWageGrowth      yearly real growth of the minimum wage (MarketPrices; 0.015)
+//   RealWageGrowth      yearly real growth of the minimum wage (MarketPrices; 0.005 since C11)
 //   RealSpend           elasticity of a branch shopper's basket to the real wage (MarketBranches; 0 = none)
 namespace MarketTuning
 {

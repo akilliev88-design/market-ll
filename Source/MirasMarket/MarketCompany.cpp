@@ -234,6 +234,12 @@ FString MarketCompany::Summary(const FMarketState& State)
     return Line;
 }
 
+int64 MarketCompany::DailyOfficeCost(const FMarketState& State, int32 GameDay)
+{
+    // G-089: each depot's rent (its province, the list level); a truck's running cost.
+    return MarketDepots::DailyRent(State, GameDay) + FMath::RoundToInt64(State.Company.Trucks * 6000 * MarketPrices::ListLevel(GameDay));
+}
+
 void MarketCompany::CloseDay(FMarketState& State)
 {
     FMarketCompany& C = State.Company;
@@ -241,10 +247,8 @@ void MarketCompany::CloseDay(FMarketState& State)
     if (Closed < 1) return;
     // Head office: the depots and trucks (dark stores: MarketOnline). The managers above the shops are named people since G-086b
     // and are paid by MarketManagers::CloseDay (no anonymous area managers here any more).
-    const double Level = MarketPrices::ListLevel(Closed);
     const int32 Stores = TotalStores(State);
-    int64 Office = MarketDepots::DailyRent(State, Closed); // G-089: each depot's rent (its province, the list level)
-    Office += FMath::RoundToInt64(C.Trucks * 6000 * Level);
+    const int64 Office = DailyOfficeCost(State, Closed);
     const int64 Total = -Office;
     C.LastProfit = Total;
     C.WeekProfit += Total;

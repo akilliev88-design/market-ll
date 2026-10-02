@@ -113,6 +113,11 @@ bool FMarketLedgerAuditTest::RunTest(const FString& Parameters)
     TestTrue(TEXT("Rent to the parents"), All.At(MarketLedger::EAccount::Rent) < 0);
     TestTrue(TEXT("Tax declared"), All.At(MarketLedger::EAccount::Tax) < 0);
     TestTrue(TEXT("Wages"), All.At(MarketLedger::EAccount::Wages) < 0 && All.At(MarketLedger::EAccount::Hiring) < 0);
+    // C11: the accountant's fee is the head office's; the family shop's wages are its own people.
+    const MarketLedger::FStatement Shop = MarketLedger::Statement(S, 20, 80, MarketLedger::FamilyShop);
+    const MarketLedger::FStatement Office = MarketLedger::Statement(S, 20, 80, MarketLedger::HeadOfficeStore);
+    TestTrue(TEXT("Accountant paid by the head office"), MarketStaff::HasAccountant(S) && Office.At(MarketLedger::EAccount::Wages) < 0);
+    TestEqual(TEXT("Wages split, none lost"), Shop.At(MarketLedger::EAccount::Wages) + Office.At(MarketLedger::EAccount::Wages), MarketLedger::Statement(S, 20, 80).At(MarketLedger::EAccount::Wages));
 
     // A movement no system posted shows up as a gap, is booked as unexplained and the next day is clean again.
     FMarketState Leak = S;
