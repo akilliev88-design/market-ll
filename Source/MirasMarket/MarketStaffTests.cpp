@@ -1,5 +1,6 @@
 #include "MarketGame.h"
 #include "MarketStaff.h"
+#include "MarketBranches.h"
 #include "MarketLedger.h"
 #include "MarketPrices.h"
 #include "MarketCalendar.h"
@@ -237,6 +238,13 @@ bool FMarketStaffTillHrTest::RunTest(const FString& Parameters)
     for (int32 More = 0; More < 6; ++More) S.Staff.Add(Person(S, More % 2 ? ERole::Stocker : ERole::Cashier, 60, 80, 2000));
     MarketStaff::SyncCounts(S);
     TestTrue(TEXT("HR unlocked with eight"), MarketStaff::HrUnlocked(S));
+    // Keep the original two-stocker replacement scenario; two open branches also unlock HR.
+    S.Staff.SetNum(2);
+    S.Staff.Add(Person(S, ERole::Cashier, 60, 80, 2000));
+    FMarketBranch OpenBranch; OpenBranch.Stage = static_cast<uint8>(MarketBranches::EStage::Open);
+    S.Branches.Add(OpenBranch); S.Branches.Add(OpenBranch);
+    MarketStaff::SyncCounts(S);
+    TestTrue(TEXT("HR unlocked with two open branches"), MarketStaff::HrUnlocked(S));
     MarketStaff::EnsureCandidates(S);
     TestTrue(TEXT("HR manager offered"), MarketStaff::RoleOf(S.Candidates[2]) == ERole::HrManager);
     const int64 BeforeHr = S.Cash;
