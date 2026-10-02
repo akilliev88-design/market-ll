@@ -24,6 +24,8 @@ namespace MarketSimulation
     float TrafficFactor(const FMarketState& State);
     double ToleranceBonus(const FMarketState& State);
     bool SetDifficulty(FMarketState& State, int32 Difficulty, FString& OutMessage);
+    // C12 (M41/M42): x the money a new shop needs (fit-out) and the shops' rents: easy 0.75, normal 1, hard 1.3.
+    float CapitalFactor(const FMarketState& State);
 
     bool AdjustPrice(FMarketState& State, const TArray<FMarketProduct>& Products, int32 Index, bool bUp);
 

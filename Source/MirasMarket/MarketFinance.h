@@ -30,6 +30,7 @@
 namespace MarketFinance
 {
     constexpr int32 LoanMonths = 12;
+    constexpr int64 FamilyRentBase = 60000;       // C12: the parents' rent a month, start-level kurus (x the home province's rent)
     constexpr int32 MonthDays = 30;
     constexpr float EarlyRepayFee = 0.01f;
     constexpr float LateFee = 0.03f;

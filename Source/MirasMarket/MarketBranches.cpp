@@ -24,6 +24,7 @@
 #include "MarketSuppliers.h"
 #include "MarketPromotions.h"
 #include "MarketTuning.h"
+#include "MarketSimulation.h"
 
 namespace MarketBranches
 {
@@ -138,9 +139,9 @@ namespace MarketBranches
         return Count > 0 ? static_cast<float>(Sum / Count) : 1.f;
     }
 
-    int64 MonthlyRent(const FSite& Site, const FFormat& Kind, double Level)
+    int64 MonthlyRent(const FMarketState& State, const FSite& Site, const FFormat& Kind, double Level)
     {
-        return FMath::RoundToInt64(Kind.Rent * Site.Rent * Level);
+        return FMath::RoundToInt64(Kind.Rent * Site.Rent * Level * MarketSimulation::CapitalFactor(State)); // C12: the difficulty
     }
 
     FString NameFor(const FMarketState& State, const FSite& Site, const FFormat& Kind)
@@ -162,10 +163,13 @@ const TArray<FString>& MarketBranches::FormatIds()
 const MarketBranches::FFormat& MarketBranches::FormatInfo(const FString& Id)
 {
     //                                 id               name                                     short                    fit-out  wk  service price trips rent    weight run   pop  depot chapter
-    static const FFormat Discount = { TEXT("kucuk"), TEXT("ucuzcu (indirim marketi)"), TEXT("Ucuzcu"), 250000, 3, 0.9f, 0.94f, 300, 45000, 1.f, 0.7f, 0, false, 0 };
-    static const FFormat Neighbourhood = { TEXT("mahalle"), TEXT("mahalle marketi"), TEXT("Mahalle"), 400000, 3, 1.0f, 1.0f, 240, 60000, 1.f, 1.f, 0, false, 0 };
-    static const FFormat Super = { TEXT("buyuk"), TEXT("s\u00fcpermarket"), TEXT("S\u00fcpermarket"), 900000, 6, 1.1f, 1.04f, 520, 150000, 1.5f, 2.f, 0, false, 0 };
-    static const FFormat Hyper = { TEXT("hiper"), TEXT("hipermarket"), TEXT("Hipermarket"), 3500000, 14, 1.15f, 0.98f, 1600, 500000, 3.f, 3.f, 500, true, 5 }; // C3 (A6): 20 -> 14 workers, running 5 -> 3
+    // C12 (M42, C11 bot: a supermarket paid its fit-out back in 1-2 months at a 16 % net margin, a hypermarket in 4;
+    // money stopped being a limit after 15 shops): rents x1.5 (small) and x2 (large), large fit-outs priced like a
+    // year or more of the store's profit, the supermarket at the rivals' price level.
+    static const FFormat Discount = { TEXT("kucuk"), TEXT("ucuzcu (indirim marketi)"), TEXT("Ucuzcu"), 300000, 3, 0.9f, 0.94f, 300, 67500, 1.f, 0.7f, 0, false, 0 };
+    static const FFormat Neighbourhood = { TEXT("mahalle"), TEXT("mahalle marketi"), TEXT("Mahalle"), 500000, 3, 1.0f, 1.0f, 240, 90000, 1.f, 1.f, 0, false, 0 };
+    static const FFormat Super = { TEXT("buyuk"), TEXT("s\u00fcpermarket"), TEXT("S\u00fcpermarket"), 6000000, 6, 1.1f, 1.0f, 520, 300000, 1.5f, 2.f, 0, false, 0 };
+    static const FFormat Hyper = { TEXT("hiper"), TEXT("hipermarket"), TEXT("Hipermarket"), 20000000, 14, 1.15f, 0.98f, 1600, 1000000, 3.f, 3.f, 500, true, 5 }; // C3 (A6): 20 -> 14 workers, running 5 -> 3
     return Id == TEXT("kucuk") ? Discount : Id == TEXT("buyuk") ? Super : Id == TEXT("hiper") ? Hyper : Neighbourhood;
 }
 
@@ -251,6 +255,19 @@ bool MarketBranches::DecodeSite(int32 Arg, FString& OutCountry, FString& OutProv
     return true;
 }
 
+bool MarketBranches::IsFirstBranch(const FMarketState& State, const FSite& Site, const FFormat& Kind)
+{
+    return State.Branches.Num() == 0 && Site.bHome && FString(Kind.Id) == TEXT("mahalle");
+}
+
+int64 MarketBranches::FitOutCost(const FMarketState& State, const FSite& Site, const FFormat& Kind, float MeasureFactor)
+{
+    // C12 (M42): the difficulty scales the money a shop needs; the very first branch, a neighbourhood shop in the
+    // home province, is a neighbour's empty shop that needs little work (the first milestone comes in months 4-8).
+    const double First = IsFirstBranch(State, Site, Kind) ? FirstBranchFitOut : 1.0;
+    return FMath::RoundToInt64(Kind.FitOut * MarketPrices::ListLevel(State.Day) * MeasureFactor * MarketSimulation::CapitalFactor(State) * First);
+}
+
 int64 MarketBranches::MonthlyFixedCost(const FMarketState& State, const FString& Country, const FString& Province, const FString& Format)
 {
     const double Level = MarketPrices::ListLevel(State.Day);
@@ -262,7 +279,7 @@ int64 MarketBranches::MonthlyFixedCost(const FMarketState& State, const FString&
     MarketStoreViews::PreviewTo(State, Probe);
     const FSite Site = SiteOf(State, Probe);
     const MarketStoreAssign::FStoreMeasures Measures = MarketStoreViews::MeasuresOf(Probe);
-    const int64 Rent = FMath::RoundToInt64(MonthlyRent(Site, Kind, Level) * MarketStoreAssign::RentFactor(Measures, Kind.Id));
+    const int64 Rent = FMath::RoundToInt64(MonthlyRent(State, Site, Kind, Level) * MarketStoreAssign::RentFactor(Measures, Kind.Id));
     // The same lines as the branch's day (CloseDay): a middling cashier per worker and a store manager.
     const int64 Wages = MarketStoreAssign::WorkersFor(Measures, Kind.Id) * MarketStaff::FairWage(MarketStaff::ERole::Cashier, 50, State.Day) + MarketStaff::FairWage(MarketStaff::ERole::HrManager, 55, State.Day) * 9 / 10;
     const int64 Running = FMath::RoundToInt64(1500 * Level * Kind.Running);
@@ -281,8 +298,8 @@ int64 MarketBranches::OpeningCost(const FMarketState& State, const TArray<FMarke
     PlanShelves(State, Probe, Products);
     const FSite Site = SiteOf(State, Probe);
     const MarketStoreAssign::FStoreMeasures Measures = MarketStoreViews::MeasuresOf(Probe);
-    return 2 * FMath::RoundToInt64(MonthlyRent(Site, Kind, Level) * MarketStoreAssign::RentFactor(Measures, Kind.Id))
-        + FMath::RoundToInt64(Kind.FitOut * Level * MarketStoreAssign::FitOutFactor(Measures, Kind.Id)) + StockCost(Probe, Products);
+    return 2 * FMath::RoundToInt64(MonthlyRent(State, Site, Kind, Level) * MarketStoreAssign::RentFactor(Measures, Kind.Id))
+        + FitOutCost(State, Site, Kind, MarketStoreAssign::FitOutFactor(Measures, Kind.Id)) + StockCost(Probe, Products);
 }
 
 int32 MarketBranches::OpenCount(const FMarketState& State)
@@ -340,18 +357,20 @@ bool MarketBranches::Open(FMarketState& State, const TArray<FMarketProduct>& Pro
     // G-088 C: the site's ready-made store (saved for the province and type); its size sets rent and fit-out.
     MarketStoreViews::AssignTo(State, Branch);
     const MarketStoreAssign::FStoreMeasures Measures = MarketStoreViews::MeasuresOf(Branch);
-    Branch.Rent = FMath::RoundToInt64(MonthlyRent(Site, Kind, Level) * MarketStoreAssign::RentFactor(Measures, Kind.Id));
+    Branch.Rent = FMath::RoundToInt64(MonthlyRent(State, Site, Kind, Level) * MarketStoreAssign::RentFactor(Measures, Kind.Id));
     Branch.PriceIndex = FMath::Clamp(Kind.PriceTarget, 0.85f, 1.2f);
     PlanShelves(State, Branch, Products);
     // The deposit leaves the till now and comes back when the branch closes; the fit-out is an expense of today
     // (paid at the day close with the other costs).
     State.Cash -= 2 * Branch.Rent;
     MarketLedger::Post(State, MarketLedger::EAccount::Investment, -2 * Branch.Rent, true, State.Branches.Num()); // C3: the deposit
-    MarketLedger::AddStoreCost(State, FMath::RoundToInt64(Kind.FitOut * Level * MarketStoreAssign::FitOutFactor(Measures, Kind.Id)), State.Branches.Num()); // C10: the branch's own books
+    const bool bFirst = IsFirstBranch(State, Site, Kind);
+    MarketLedger::AddStoreCost(State, FitOutCost(State, Site, Kind, MarketStoreAssign::FitOutFactor(Measures, Kind.Id)), State.Branches.Num()); // C10: the branch's own books
     State.Branches.Add(Branch);
     State.bSecondStore = true;
     OutMessage = FString::Printf(TEXT("%s: kira s\u00f6zle\u015fmesi imzaland\u0131 (depozito %s), tadilat ba\u015flad\u0131 (%d g\u00fcn). Raflar senin kurallar\u0131nla otomatik planland\u0131."),
         *Branch.Name, *BranchTl(2 * Branch.Rent), RenovationDays);
+    if (bFirst) OutMessage += TEXT(" Kom\u015fu esnaf\u0131n bo\u015falan d\u00fckk\u00e2n\u0131: raflar\u0131 ve tezg\u00e2h\u0131 duruyor, tadilat ucuza geldi.");
     if (Site.bAbroad && !State.Branches.ContainsByPredicate([&State, &Site](const FMarketBranch& B) { return &B != &State.Branches.Last() && CountryOf(State, B) == Site.Country; }))
     {
         const MarketCountry::FProfile* Pack = MarketCountry::Find(Site.Country);
@@ -375,7 +394,7 @@ int32 MarketBranches::AddAcquired(FMarketState& State, const TArray<FMarketProdu
     Branch.OpenedDay = State.Day;
     MarketStoreViews::AssignTo(State, Branch);
     const MarketStoreAssign::FStoreMeasures Measures = MarketStoreViews::MeasuresOf(Branch);
-    Branch.Rent = FMath::RoundToInt64(MonthlyRent(Site, Kind, MarketPrices::ListLevel(State.Day)) * MarketStoreAssign::RentFactor(Measures, Kind.Id));
+    Branch.Rent = FMath::RoundToInt64(MonthlyRent(State, Site, Kind, MarketPrices::ListLevel(State.Day)) * MarketStoreAssign::RentFactor(Measures, Kind.Id));
     Branch.PriceIndex = FMath::Clamp(Kind.PriceTarget, 0.85f, 1.2f);
     Branch.Workers = MarketStoreAssign::WorkersFor(Measures, Kind.Id);
     Branch.Maturity = 0.6f;       // the district already shops there

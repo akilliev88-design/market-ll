@@ -1,7 +1,7 @@
 # Akış C — Claude (Cowork)
 
 ## Kaldığım yer
-**C11 derlendi ve doğrulandı** (02.10.2026): TEST 157/157, Smoke, bot C11_E0 kurtarma 0. Codex limiti doldu; derleme/test/bot artık Claude'da (`CLAUDE_KOS.cmd`). Sıradaki: orta oyunun kolaylığı (temkinli = dengeli), dengeli ilk şube, ilk dükkân fiyat/pay kaybı. Rapor `C11_rapor.md`.
+**C12 yazıldı, derlenmedi** (M42: kira/tadilat, ilk şube, zorluk çarpanı; Mustafa derleyip bot koşturacak). **C11 derlendi ve doğrulandı** (02.10.2026): TEST 157/157, Smoke, bot C11_E0 kurtarma 0. Codex limiti doldu; derleme/test/bot artık Claude'da (`CLAUDE_KOS.cmd`). Sıradaki: orta oyunun kolaylığı (temkinli = dengeli), dengeli ilk şube, ilk dükkân fiyat/pay kaybı. Rapor `C11_rapor.md`.
 
 ## Yapılanlar
 - **C1 · Mağaza görünümü şubenin hesabına** (yeni `MarketStoreViews.h/.cpp`): `Config/magazalar.json` bir kez `MarketStoreKit::Parse` ile kendi kopyamıza okunur (kitin yüklü şablonlarına dokunulmaz). Şube imzalanınca (il, tür) için görünüm seçilir (`MarketStoreAssign::Assign`, `FMarketState::StoreViews`'a kaydedilir; yurt dışında ülke + tür başına bir görünüm) ve ölçüleri şubeye kopyalanır (`FMarketBranch::StoreView`, `View*` alanları).

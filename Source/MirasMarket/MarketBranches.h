@@ -63,9 +63,14 @@ namespace MarketBranches
 
     const TArray<FString>& FormatIds();      // kucuk, mahalle, buyuk, hiper
     const FFormat& FormatInfo(const FString& Id);
+    constexpr double FirstBranchFitOut = 0.4; // C12 (M42): the first neighbourhood branch at home costs 40 % of its fit-out
 
     FSite SiteOf(const FMarketState& State, const FString& Country, const FString& Province);
     FSite SiteOf(const FMarketState& State, const FMarketBranch& Branch);
+    // C12 (M42): the company's first branch (a neighbourhood shop in the home province) and a fit-out's price today
+    // (x the store's size factor, x the difficulty, the first branch's discount).
+    bool IsFirstBranch(const FMarketState& State, const FSite& Site, const FFormat& Kind);
+    int64 FitOutCost(const FMarketState& State, const FSite& Site, const FFormat& Kind, float MeasureFactor);
     // Most shops of ours a province takes (the family shop counts in the home province).
     int32 Room(const FSite& Site);
     // Our shops in a province that are not closed (+1 for the family shop in the home province).

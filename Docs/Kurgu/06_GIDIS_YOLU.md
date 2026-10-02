@@ -115,18 +115,37 @@ A1–A7 bitti (bot, denge hataları, zaman, mağaza ağı, il pazarı, şirket d
 
 Editörden gelir istenirse: temel editör ücretsiz, ek ekipman ve dekor kütüphaneleri ücretli.
 
-## 5. Hedef eğriler (C9'un ölçütü)
+## 5. Hedef eğriler (C9'un ölçütü; C11'de güncellendi)
 
-| Ölçü | İyi oyun (dengeli bot) | Temkinli | Kötü oyun |
-|---|---|---|---|
-| İlk şube | 4–8. ay | 8–14. ay | Gecikir, olmayabilir |
-| Mağaza sayısı | 3. yıl 10, 10. yıl 60–120 | 10. yıl 15–40 | Tökezler, toparlanır |
-| Ulusal sıra | 10. yıl ilk 10, 20. yıl ilk 3 | 10. yıl ilk 20 | — |
-| Kurtarma planı (30 yıl) | 0–1 | 0–1 | En çok 3–5; borç birikmez |
-| İlk dükkânın yıllık faaliyet kârı | Enflasyonla birlikte büyür | Büyür | Düşer ama eksiye kalıcı geçmez |
-| Sıkıcı dönem (30 gün olaysız) | 0 | 0 | 0 |
+**İlke (Mustafa + Claude, 02.10.2026):** Dengeli oynayan da büyür; zevk, büyümenin ritminden gelir. Her aşamada para biraz sıkışık olmalı, her yeni mağaza bir karar olmalı. Bir mağaza "kendiliğinden" açılıyorsa ya da kasada milyonlar boşta duruyorsa oyun sıkılmaya başlamıştır. Zorluk her aşamada yeni bir sorunla gelir: önce para, sonra yönetim (müdür, kadro), sonra lojistik ve rakipler, en sonda doymuş pazar. Hedefler **Normal** zorluk içindir; Rahat ve Zor ayrı satırlardadır.
 
-**Onaylandı (Mustafa, 02.10.2026).** Bot raporu her turda bu tabloyu doldurur; dışında kalan her satır bir denge işidir. `AutoPlay.LateCarefulGrowth` testi C9'dan sonra bu tabloya göre güncellenir (temkinli ilk şube en geç 14. ay).
+### Normal zorluk
+
+| Ölçü | Dengeli (iyi oyun) | Temkinli | Atak | Kötü oyun |
+|---|---|---|---|---|
+| İlk şube | 4–8. ay | 8–14. ay | 3–6. ay | Gecikir, olmayabilir |
+| 3. yıl mağaza | 8–12 | 4–8 | 12–25 | — |
+| 10. yıl mağaza | 80–150 | 40–80 | 120–220 | Tökezler, toparlanır |
+| Ulusal sıra | 10. yıl ilk 10, 20. yıl ilk 3 | 10. yıl ilk 20, 20. yıl ilk 5 | 10. yıl ilk 10 | — |
+| Kurtarma planı (30 yıl) | 0–1 | 0 | 0–2 (hız riskli olmalı) | En çok 3–5; borç birikmez |
+| Boşta para (büyüme dönemi, 1–15. yıl) | Kasa 6 aylık sabit gideri aşan dönemler kısa | Kısa | — | — |
+| İlk dükkânın yıllık faaliyet kârı (reel, 10. yıl / 1. yıl) | 0,8–1,3 (yatay ya da hafif artış; dönem şoku yılında düşebilir) | 0,8–1,3 | 0,7–1,3 | Düşer ama eksiye kalıcı geçmez |
+| Sıkıcı dönem (30 gün olaysız) | 0 | 0 | 0 | 0 |
+
+Temkinli ile dengeli arasındaki fark oyundan gelmeli: temkinli daha az risk alır, daha az büyür ama hiç batmaz; dengeli daha hızlı büyür, arada bir sıkışır. İlk dükkân bir mahalle marketidir; indirim zincirleri yayılırken onun reel kârının yatay kalması başarıdır, "enflasyonla birlikte büyür" beklentisi kaldırıldı.
+
+### Rahat ve Zor
+
+| Ölçü (dengeli bot) | Rahat | Zor |
+|---|---|---|
+| İlk şube | 3–6. ay | 8–14. ay |
+| 10. yıl mağaza | 120–200 | 40–80 (temkinli 15–40) |
+| Ulusal sıra | 10. yıl ilk 5 | 10. yıl ilk 20, 20. yıl ilk 10 |
+| Kurtarma (30 yıl) | 0 | 1–3 olabilir; borç birikmez |
+
+Zor: daha az müşteri ve daha sert fiyat duyarlılığı (bugün var), saldırgan rakipler ve fiyat savaşı, pahalı kredi, daha pahalı yöneticiler; büyük mağaza ve ölçek kârı daha düşük. Rahat: tersi. Zorluk oyunun kurallarını değil, sayıların sertliğini değiştirir.
+
+**Onaylandı (Mustafa, 02.10.2026; C11 güncellemesi Mustafa'nın isteğiyle Claude, 02.10.2026).** Bot raporu her turda Normal tablosunu doldurur; Rahat ve Zor, zorluk ayarı bota bağlandığında ölçülür. `AutoPlay.LateCarefulGrowth` temkinli ilk şube en geç 14. ay.
 
 ## 6. Şeritler
 

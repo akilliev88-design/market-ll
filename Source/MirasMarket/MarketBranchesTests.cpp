@@ -116,6 +116,21 @@ bool FMarketBranchesTest::RunTest(const FString& Parameters)
     TestFalse(TEXT("Beyond the home province: HR and an accountant"), CanOpen(S, Products, TEXT("tr"), TEXT("tekirdag"), TEXT("mahalle"), Message));
     TestFalse(TEXT("Hypermarket waits for its chapter"), CanOpen(S, Products, TEXT("tr"), TEXT("kirklareli"), TEXT("hiper"), Message));
     TestFalse(TEXT("Unknown province"), CanOpen(S, Products, TEXT("tr"), TEXT("atlantis"), TEXT("mahalle"), Message));
+    // C12 (M42): the first neighbourhood branch at home is cheap to fit out; the difficulty scales fit-out and rent.
+    {
+        const FFormat& Neighbourhood = FormatInfo(TEXT("mahalle"));
+        const FFormat& Super = FormatInfo(TEXT("buyuk"));
+        TestTrue(TEXT("First branch at home"), IsFirstBranch(S, Home, Neighbourhood));
+        TestFalse(TEXT("Not a supermarket"), IsFirstBranch(S, Home, Super));
+        TestFalse(TEXT("Not in another province"), IsFirstBranch(S, SiteOf(S, TEXT("tr"), TEXT("tekirdag")), Neighbourhood));
+        FMarketState Later = S; Later.Branches.AddDefaulted();
+        TestEqual(TEXT("First fit-out discount"), FitOutCost(S, Home, Neighbourhood, 1.f), FMath::RoundToInt64(FitOutCost(Later, Home, Neighbourhood, 1.f) * FirstBranchFitOut));
+        FMarketState Easy = S; Easy.Difficulty = 0;
+        FMarketState Hard = S; Hard.Difficulty = 2;
+        TestTrue(TEXT("Fit-out follows the difficulty"), FitOutCost(Easy, Home, Super, 1.f) < FitOutCost(S, Home, Super, 1.f) && FitOutCost(S, Home, Super, 1.f) < FitOutCost(Hard, Home, Super, 1.f));
+        TestTrue(TEXT("Rent follows the difficulty"), MonthlyFixedCost(Easy, TEXT("tr"), TEXT("kirklareli"), TEXT("buyuk")) < MonthlyFixedCost(Hard, TEXT("tr"), TEXT("kirklareli"), TEXT("buyuk")));
+        TestTrue(TEXT("A supermarket costs a year of work, not a month"), FitOutCost(Later, Home, Super, 1.f) >= 10 * FitOutCost(Later, Home, Neighbourhood, 1.f));
+    }
     const int64 Cost = OpeningCost(S, Products, TEXT("tr"), TEXT("kirklareli"), TEXT("mahalle"));
     TestTrue(TEXT("Opening cost is positive"), Cost > 0);
     TestTrue(TEXT("Open in the home province"), Open(S, Products, TEXT("tr"), TEXT("kirklareli"), TEXT("mahalle"), Message));

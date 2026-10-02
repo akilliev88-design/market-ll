@@ -38,6 +38,7 @@ namespace MarketAutoPlay
         bool bOfflineCareful = false; // paired counterfactual: only Careful, never opens online channels
         bool bNoGrowth = false; // no voluntary expansion or borrowing; automatic bank rescue remains observable
         int32 StyleIndex = -1; // -1 all, 0 careful, 1 balanced, 2 bold; review capture can select one
+        int32 Difficulty = 1; // C12: 0 Rahat, 1 Normal, 2 Zor (MarketSimulation)
         bool bKeepFinalStates = false; // read-only review snapshots; player saves are never written
         FString Country = TEXT("tr");
         FString Province = TEXT("kirklareli");

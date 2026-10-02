@@ -4,6 +4,8 @@ Son güncelleme: 02.10.2026 — Claude (Cowork), C11 derlendi, test ve bot koşu
 
 ## Kısaca
 
+**02.10.2026 — Claude / C12 (yazıldı, derlenmedi):** M41 hedefleri (Normal/Rahat/Zor) ve M42: kiralar ×1,5/×2, büyük format tadilatları bir yıllık kâr düzeyinde, süpermarket fiyatı 1,00; ilk şube (ev ilinde mahalle) tadilatın %40'ı; zorluk tadilat/kira çarpanı (Rahat 0,75, Zor 1,3); bot `-Difficulty=`. Yeni test satırları `Branches.OpenAndRun` içinde. **Derleme/test/bot artık Mustafa'da:** kökteki `CLAUDE_KOS.cmd`'ye çift tıklar (commit, DERLE, TEST, Smoke, bot Normal + Rahat + Zor, ~45 dk); çıktı `Saved/Claude/son.log`, bitince Claude'a yazar, Claude kontrol eder.
+
 **02.10.2026 — Claude / C11 (derlendi, doğrulandı):** Codex'in limiti doldu; derleme/test/bot Claude tarafından bilgisayarda `CLAUDE_KOS.cmd` (adımlar `Saved/Claude/is.cmd`, çıktı `Saved/Claude/son.log`) ile yapılıyor. "Aynı anda tek derlenmemiş iş" kuralı kaldırıldı (Mustafa). akis-a main'e birleşti (bb0b9bf). C11: İK/müşavir ücreti merkez defterinde; kurtarma ve aylık sabit gider bütçesine merkezin kalan giderleri; **M40 ülke müdürü maaşı ağ büyüklüğüyle** (az mağazada bandın %30'u); reel asgari ücret artışı %0,5. DERLE geçti, TEST **157/157**, Smoke geçti. Bot C11_E0 (10 yıl × 3 tarz × 3 tohum): **kurtarma 0**, çöküş yok; dengeli 3. yıl 9, 10. yıl 135–147 mağaza, sıra 7–8; temkinli 107–119, sıra 8; atak 134–176. Kalan: orta oyun fazla kolay (temkinli dengeliyle aynı büyüyor), dengeli ilk şube 306–334. gün, ilk dükkân reel kârı 9–10. yılda düşüyor. Rapor `Docs/Surec/akislar/C11_rapor.md`. Karar bekleyen: temkinli/dengeli farkı oyundan mı (ölçek kârı) bottan mı (açılış sıklığı) gelsin.
 
 <!-- C10:BEGIN -->

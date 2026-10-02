@@ -342,7 +342,7 @@ int64 MarketFinance::RentToday(const FMarketState& State)
     // A neighbourhood market's rent in the home province, at today's price level (like a branch opened today).
     const MarketBranches::FSite Site = MarketBranches::SiteOf(State, State.CountryId, MarketStart::HomeProvince(State));
     const double Factor = Site.bValid ? Site.Rent : 1.0;
-    return FMath::RoundToInt64(MarketBranches::FormatInfo(TEXT("mahalle")).Rent * Factor * Level(State) / 30.0);
+    return FMath::RoundToInt64(FamilyRentBase * Factor * Level(State) / 30.0); // C12: the parents' rent does not follow the branch rents (M42)
 }
 
 bool MarketFinance::Resolve(FMarketState& State, const TArray<FMarketProduct>& Products, const FMarketDecision& D, int32 Option, FString& OutMessage)

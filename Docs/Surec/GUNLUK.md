@@ -1,3 +1,11 @@
+## 02.10.2026 — Claude (Cowork) — C12: orta oyun, ilk şube, zorluk (derlenmedi)
+
+**Yapılan:** Mustafa ile hedefler güncellendi (M41: dengeli de büyür; Normal/Rahat/Zor tabloları, boşta para ölçüsü, ilk dükkân reel kârı 0,8–1,3). C11 şube verisi: süpermarket ilk 180 günde ayda ~8.400 TL net (%16), tadilatı 1–2 ayda çıkarıyor; mahalle ~800 TL. M42: kiralar ×1,5 (mahalle/ucuzcu) ×2 (süper/hiper), tadilat 5.000 / 3.000 / 60.000 / 200.000 TL, süpermarket fiyatı 1,00; `MarketBranches::FitOutCost`, `IsFirstBranch` (ilk şube %40), `MarketSimulation::CapitalFactor` (Rahat 0,75, Zor 1,3); aile kirası `MarketFinance::FamilyRentBase` ile sabit kaldı. Bot: `-Difficulty=` ve `FOptions::Difficulty`.
+
+**Doğrulama:** Derlenmedi. Mustafa `CLAUDE_KOS.cmd` ile derleyip bot koşturacak (Normal 3 tarz, sonra Rahat ve Zor).
+
+**Sıradaki:** Sonuçları M41 tablosuyla karşılaştırmak; gerekirse tadilat/kira oranlarını ayarlamak.
+
 ## 02.10.2026 — Claude (Cowork) — C11: ülke müdürü tuzağı, merkez giderleri, reel ücret; derleme ve bot
 
 **Yapılan:** C10 verisinden kök neden: 5 ile yayılan 6 şubede atanan ülke müdürü (yılda ~130 bin TL) ilk dükkân + altı şubenin kârını yiyordu; temkinli/dengeli 7 mağazada takılıp çöküyordu. M40: ülke müdürü bandı ülkedeki mağaza sayısıyla ölçekli (%30–100), büyüdükçe haftalık yükselir. İK/müşavir ücreti ve İK SGK payı merkez defterine. `MarketFinance::HeadOfficeDailyCost` (online, reklam, depo/kamyon, POS/yemek kartı) `CompanyMonthCost`'a girdi; modüllerin `CloseDay`'i aynı yardımcıyı kullanır. `RealWageGrowth` 0,015 → 0,005. akis-a main'e birleşti. AGENTS/06_GIDIS_YOLU: derlenmemiş tek iş kuralı kaldırıldı. Karar M40 `01_KARARLAR.md`.

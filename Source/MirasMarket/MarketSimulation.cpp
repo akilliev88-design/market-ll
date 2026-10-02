@@ -141,6 +141,11 @@ double MarketSimulation::ToleranceBonus(const FMarketState& State)
     return State.Difficulty == 0 ? 0.05 : State.Difficulty == 2 ? -0.04 : 0.0;
 }
 
+float MarketSimulation::CapitalFactor(const FMarketState& State)
+{
+    return State.Difficulty == 0 ? 0.75f : State.Difficulty >= 2 ? 1.3f : 1.f;
+}
+
 bool MarketSimulation::SetDifficulty(FMarketState& State, int32 Difficulty, FString& OutMessage)
 {
     const uint8 Value = static_cast<uint8>(FMath::Clamp(Difficulty, 0, 2));
@@ -149,8 +154,8 @@ bool MarketSimulation::SetDifficulty(FMarketState& State, int32 Difficulty, FStr
     if (State.Day > 1) { OutMessage = TEXT("Zorluk kampanyan\u0131n ba\u015f\u0131nda se\u00e7ilir; ilk g\u00fcnden sonra de\u011fi\u015fmez."); return false; }
     State.Difficulty = Value;
     OutMessage = FString::Printf(TEXT("Zorluk: %s. %s"), *DifficultyName(static_cast<EDifficulty>(Value)),
-        Value == 0 ? TEXT("Biraz daha \u00e7ok m\u00fc\u015fteri, fiyata daha ho\u015fg\u00f6r\u00fcl\u00fc.")
-        : Value == 2 ? TEXT("Daha az m\u00fc\u015fteri, fiyata daha titiz.") : TEXT("Oyunun tasarland\u0131\u011f\u0131 denge."));
+        Value == 0 ? TEXT("Biraz daha \u00e7ok m\u00fc\u015fteri, fiyata daha ho\u015fg\u00f6r\u00fcl\u00fc; yeni ma\u011faza ve kira daha ucuz, rakipler daha yava\u015f.")
+        : Value == 2 ? TEXT("Daha az m\u00fc\u015fteri, fiyata daha titiz; yeni ma\u011faza ve kira daha pahal\u0131, rakipler daha sert.") : TEXT("Oyunun tasarland\u0131\u011f\u0131 denge."));
     return true;
 }
 

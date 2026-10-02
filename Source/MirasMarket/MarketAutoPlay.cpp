@@ -361,6 +361,7 @@ namespace MarketAutoPlay
             if(Trial.Online.Offline)Trial.Profile+=TEXT(" (internetsiz)");
             FMarketState State; State.Initialize(Base);
             MarketStart::Setup(State, Options.Country, Options.Province, Trial.Seed);
+            State.Difficulty = static_cast<uint8>(FMath::Clamp(Options.Difficulty, 0, 2)); // C12: chosen on day 1
             MarketCountry::SetActive(State.CountryId, State.RivalSeed); MarketEras::Activate(State);
             TArray<FMarketProduct> Products = Base;
             MarketDirector::ApplyPrices(State, Base, Products);
