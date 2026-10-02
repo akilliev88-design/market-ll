@@ -1,3 +1,17 @@
+## 03.10.2026 — Claude (Cowork) — C14c sonucu ve C14d (derlenmedi)
+
+**Düzeltme:** C14 girişindeki "süpermarket 520 bin nüfus" yanlış: `FFormat` sırasında 520 süpermarketin günlük alışveriş sayısı (`Trips`). Süpermarketin nüfus sınırı yok; hipermarket 500 bin nüfus, 600 km içinde depo ve 5. bölüm ister (Mustafa sordu, 03.10.2026).
+
+**Doğrulama (Mustafa):** C14c DERLE, TEST 158 + 1 uyarı. Bot süresi Normal 227, Rahat 1416, Zor 861 sn (C14: 181/293/114): her büyüme turunda 3 il için açılış maliyeti (raf planı) hesaplanıyordu.
+
+**Sonuç:** Normal dengeli 154/92/84, temkinli 86/77/65, atak 164/26/97; Rahat dengeli 196/159/139; Zor dengeli 56/8/33, temkinli 4/53/8, atak 75–90. Kurtarma 0.
+
+**Bulgu (yeni rapor satırları):** Takılan koşularda engel para. Zor dengeli 22: "kasa yedeğin altında" 75, "para yetmiyor, açılışın yarısı bile yok (büyük)" 61, "az kaldı (büyük)" 52 tur; kasada 230–390 bin TL varken süpermarketi bekliyor, mahalleye inmiyor. Normal atak 22: hiper/süpermarket için 236 tur, yedek altı 229. Zor temkinli 21: mahalleye bile yetmiyor (44), dört dükkânın kârı ağın aylık giderini zor karşılıyor; bu Zor'un sertliği.
+
+**C14d (yalnız bot):** Seçilen tür (hiper/süpermarket) için il yoksa ya da para yetmiyorsa aynı turda bir küçük türe inilir; ilk üç ilden kurallara uyan ilki seçilir ve açılış maliyeti tür başına bir kez hesaplanır. Küçük türle açılış rapora "küçük türle açıldı" diye yazılır.
+
+**Sıradaki:** Mustafa `CLAUDE_KOS.cmd` (C14d_N/R/Z).
+
 ## 03.10.2026 — Claude (Cowork) — C14b sonucu ve C14c (derlenmedi)
 
 **Doğrulama (Mustafa, 04e82cb):** DERLE, TEST 158 + 1 motor uyarısı. Bot çıktıları (gunluk.csv) C14 ile birebir aynı: C14b'nin iki kuralı hiç devreye girmedi. Yani takılan koşularda uygun il var ve ev ili dolu değil; varsayımım yanlıştı.

@@ -217,13 +217,18 @@ namespace MarketAutoPlay
                 }
             }
         }
-        // C14b: no site for the big format (small provinces, full cities): open the next smaller one, as a player would.
-        TArray<MarketBranches::FSite> Sites;
+        // C14d: the format the network calls for first; if no site has it or the till cannot carry it, the next smaller
+        // one (hiper -> supermarket -> neighbourhood), as a player with money for a small shop would. C14c's report
+        // showed the stalled runs waited years for a supermarket while a neighbourhood shop was within reach.
+        // C14 (M41): the balanced player opens the first branch on a thinner cushion (the first branch is the cheapest one).
+        const double Cushion = MarketBranches::OpenCount(State) == 0 && Profile.Style == EStyle::Balanced ? FMath::Min(Profile.ExpansionBuffer, 1.2) : Profile.ExpansionBuffer;
         static const TCHAR* Smaller[3] = { TEXT("hiper"), TEXT("buyuk"), TEXT("mahalle") };
-        int32 Step = Format == TEXT("hiper") ? 0 : Format == TEXT("buyuk") ? 1 : 2;
-        for (; Step < 3 && Sites.IsEmpty(); ++Step)
+        FString FirstMiss;
+        const int32 FirstStep = Format == TEXT("hiper") ? 0 : Format == TEXT("buyuk") ? 1 : 2;
+        for (int32 Step = FirstStep; Step < 3; ++Step)
         {
             Format = Smaller[Step];
+            TArray<MarketBranches::FSite> Sites;
             for (const MarketCountry::FProfile& Country : MarketCountry::All())
             {
                 if (Country.Id != State.CountryId && !MarketCompany::ChapterOpen(State, 6)) continue;
@@ -236,28 +241,31 @@ namespace MarketAutoPlay
                     Sites.Add(Site);
                 }
             }
-        }
-        Sites.Sort([&](const MarketBranches::FSite& Left, const MarketBranches::FSite& Right)
-        {
-            const float A = Left.Rent / FMath::Max(0.1f, Left.Income) + MarketBranches::ShopsIn(State, Left.Country, Left.Province) * 0.25f;
-            const float B = Right.Rent / FMath::Max(0.1f, Right.Income) + MarketBranches::ShopsIn(State, Right.Country, Right.Province) * 0.25f;
-            return A == B ? Left.Country + Left.Province < Right.Country + Right.Province : A < B;
-        });
-        if (Sites.IsEmpty()) { ++Run.C.Blocked.FindOrAdd(TEXT("B\u00fcy\u00fcme turu: uygun il yok")); return; }
-        // Investigate up to three visible sites per growth turn (C14c; before only the first, which could stay blocked
-        // for years). OpeningCost plans shelves, so it is not run for every province; rent/income and crowding choose.
-        // C14 (M41): the balanced player opens the first branch on a thinner cushion (the first branch is the cheapest one).
-        const double Cushion = MarketBranches::OpenCount(State) == 0 && Profile.Style == EStyle::Balanced ? FMath::Min(Profile.ExpansionBuffer, 1.2) : Profile.ExpansionBuffer;
-        FString FirstMiss;
-        for (int32 Try = 0; Try < FMath::Min(3, Sites.Num()); ++Try)
-        {
-            const auto& Site = Sites[Try];
-            FString Reason;
-            if (!MarketBranches::CanOpen(State, Products, Site.Country, Site.Province, Format, Reason)) { if (FirstMiss.IsEmpty()) FirstMiss = Reason; continue; }
+            if (Sites.IsEmpty()) { if (FirstMiss.IsEmpty()) FirstMiss = FString::Printf(TEXT("B\u00fcy\u00fcme turu: uygun il yok (%s)"), *Format); continue; }
+            Sites.Sort([&](const MarketBranches::FSite& Left, const MarketBranches::FSite& Right)
+            {
+                const float A = Left.Rent / FMath::Max(0.1f, Left.Income) + MarketBranches::ShopsIn(State, Left.Country, Left.Province) * 0.25f;
+                const float B = Right.Rent / FMath::Max(0.1f, Right.Income) + MarketBranches::ShopsIn(State, Right.Country, Right.Province) * 0.25f;
+                return A == B ? Left.Country + Left.Province < Right.Country + Right.Province : A < B;
+            });
+            // The first of the top three sites the rules allow; OpeningCost plans shelves, so it runs once per format.
+            int32 Pick = INDEX_NONE;
+            for (int32 Try = 0; Try < FMath::Min(3, Sites.Num()) && Pick == INDEX_NONE; ++Try)
+            {
+                FString Reason;
+                if (MarketBranches::CanOpen(State, Products, Sites[Try].Country, Sites[Try].Province, Format, Reason)) Pick = Try;
+                else if (FirstMiss.IsEmpty()) FirstMiss = Reason;
+            }
+            if (Pick == INDEX_NONE) continue;
+            const auto& Site = Sites[Pick];
             const int64 Cost = MarketBranches::OpeningCost(State, Products, Site.Country, Site.Province, Format);
             if (MarketAutoPlayFinance::CanExpand(State,Cost,MarketBranches::MonthlyFixedCost(State,Site.Country,Site.Province,Format),Cushion))
             {
-                if (Command(State, Products, TEXT("OpenBranch"), MarketBranches::EncodeSite(Site.Country, Site.Province, Format), Run)) return;
+                if (Command(State, Products, TEXT("OpenBranch"), MarketBranches::EncodeSite(Site.Country, Site.Province, Format), Run))
+                {
+                    if (Step > FirstStep) ++Run.C.Blocked.FindOrAdd(FString::Printf(TEXT("B\u00fcy\u00fcme turu: k\u00fc\u00e7\u00fck t\u00fcrle a\u00e7\u0131ld\u0131 (%s)"), *Format));
+                    return;
+                }
                 if (FirstMiss.IsEmpty()) FirstMiss = TEXT("B\u00fcy\u00fcme turu: a\u00e7\u0131l\u0131\u015f komutu reddedildi");
                 continue;
             }

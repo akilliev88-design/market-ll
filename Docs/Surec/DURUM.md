@@ -1,8 +1,10 @@
 # Güncel durum
 
-Son güncelleme: 03.10.2026 — Claude (Cowork), C14b derlendi (etkisiz); C14c yazıldı, derlenmedi
+Son güncelleme: 03.10.2026 — Claude (Cowork), C14c derlendi; C14d yazıldı, derlenmedi
 
 ## Kısaca
+
+**03.10.2026 — Claude / C14d (derlenmedi):** C14c derlendi (158 + 1 uyarı). Sonuç neredeyse aynı (Normal dengeli 154/92/84, Zor dengeli 56/8/33). Yeni rapor nedeni gösterdi: takılan koşular yıllarca süpermarket/hiper parası bekliyor ("para yetmiyor, açılışın yarısı bile yok (büyük)"), mahalle marketine yetecek parası varken. C14d (bot): seçilen türe para ya da il yetmezse aynı turda bir küçük türe iner; açılış maliyeti tür başına bir kez hesaplanır (C14c koşusu 3 il × maliyet yüzünden Rahat'ta 293 → 1416 sn sürdü). Mustafa koşturacak.
 
 **03.10.2026 — Claude / C14c (derlenmedi):** C14b derlendi, TEST 158 + 1 uyarı; bot çıktıları C14 ile bayt bayt aynı: küçük türe inme ve İK/müşavir alma hiç tetiklenmedi, takılmanın sebebi o değil. C14c (bot): büyüme turunda ilk 3 ile bakar (önce yalnız sıradaki ilk il; o il yıllarca engelli kalabiliyordu) ve neden açamadığını rapora yazar (kasa yedeğin altında / uygun il yok / para yetmiyor: ağın aylık gideri bile yok, açılışın yarısı yok, az kaldı / açılış komutu reddedildi / CanOpen nedeni). Mustafa koşturacak.
 
