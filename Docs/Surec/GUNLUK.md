@@ -1,3 +1,13 @@
+## 02.10.2026 — Claude (Cowork) — C11: ülke müdürü tuzağı, merkez giderleri, reel ücret; derleme ve bot
+
+**Yapılan:** C10 verisinden kök neden: 5 ile yayılan 6 şubede atanan ülke müdürü (yılda ~130 bin TL) ilk dükkân + altı şubenin kârını yiyordu; temkinli/dengeli 7 mağazada takılıp çöküyordu. M40: ülke müdürü bandı ülkedeki mağaza sayısıyla ölçekli (%30–100), büyüdükçe haftalık yükselir. İK/müşavir ücreti ve İK SGK payı merkez defterine. `MarketFinance::HeadOfficeDailyCost` (online, reklam, depo/kamyon, POS/yemek kartı) `CompanyMonthCost`'a girdi; modüllerin `CloseDay`'i aynı yardımcıyı kullanır. `RealWageGrowth` 0,015 → 0,005. akis-a main'e birleşti. AGENTS/06_GIDIS_YOLU: derlenmemiş tek iş kuralı kaldırıldı. Karar M40 `01_KARARLAR.md`.
+
+**Doğrulama:** Codex yok; Claude bilgisayarda `CLAUDE_KOS.cmd` çalıştırdı. DERLE geçti (ilk deneme). İlk TEST 156/157: yeni testte mağaza sayısı beklentisi (aile dükkânı sayılmamıştı) düzeltildi → TEST **157/157** (156 temiz + 1 HTTP uyarısı). Smoke PASSED. Bot C11_E0: 9 kampanya × 3653 gün, 808 sn, denetim 0, defter farkı 0, kurtarma 0, sıkıcı dönem 0.
+
+**Sonuç:** Dengeli ilk şube 306/334/334, 3. yıl 9, 10. yıl 147/141/135, sıra 8/7/8. Temkinli 399/459/459, 10. yıl 119/107/107, sıra 8. Atak 176/156/134, sıra 7. İlk dükkân reel 10/1: T 0,62, D 0,91, A 0,64.
+
+**Sıradaki:** Mustafa kararı: temkinli/dengeli farkı (ölçek kârını kısmak mı, temkinli bot açılış sıklığı mı). Sonra dengeli ilk şubeyi öne çekmek ve ilk dükkânın fiyat/pay kaybı. C9 menü kalanları (kampanya formu, ilk gün yönetim/reklam) açık.
+
 <!-- C10:BEGIN -->
 ## 02.10.2026 — Codex — C10 deney turu tamamlandı
 

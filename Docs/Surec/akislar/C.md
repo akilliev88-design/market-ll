@@ -1,7 +1,7 @@
 # Akış C — Claude (Cowork)
 
 ## Kaldığım yer
-C9 doğrulandı (153 test; bot akis-a'da). Ana klasöre **C10** yazıldı, derlenmedi (02.10.2026); alt sınır 154. Codex C10: tek değişkenli deneyler (MarketTuning düğmeleri), sonra hangi değerin koda yazılacağı.
+**C11 derlendi ve doğrulandı** (02.10.2026): TEST 157/157, Smoke, bot C11_E0 kurtarma 0. Codex limiti doldu; derleme/test/bot artık Claude'da (`CLAUDE_KOS.cmd`). Sıradaki: orta oyunun kolaylığı (temkinli = dengeli), dengeli ilk şube, ilk dükkân fiyat/pay kaybı. Rapor `C11_rapor.md`.
 
 ## Yapılanlar
 - **C1 · Mağaza görünümü şubenin hesabına** (yeni `MarketStoreViews.h/.cpp`): `Config/magazalar.json` bir kez `MarketStoreKit::Parse` ile kendi kopyamıza okunur (kitin yüklü şablonlarına dokunulmaz). Şube imzalanınca (il, tür) için görünüm seçilir (`MarketStoreAssign::Assign`, `FMarketState::StoreViews`'a kaydedilir; yurt dışında ülke + tür başına bir görünüm) ve ölçüleri şubeye kopyalanır (`FMarketBranch::StoreView`, `View*` alanları).
@@ -53,6 +53,7 @@ C9 doğrulandı (153 test; bot akis-a'da). Ana klasöre **C10** yazıldı, derle
 - **M38 · Her mağazada kampanya:** `FMarketPromotion::Store/bManager`, `PromoStore` komutu; şube günü kampanya etkisini alır (`StoreEffect`); ilk dükkânın müdürü haftalık stok eritir (`ManagerClearance`); kimlik adları ve şube talebine etkisi (`MarketStory::IdentityDemand`). Test: `Owner.SalaryAndWealth`, `Promotions.EveryStore`.
 - **C9 · Çekirdek denge (oyun tarafı, Codex C8 tanısı):** toptancının babanın hatırına acil malı (`MarketSuppliers::LifelineAllowance`: nakit krizinde haftada bir ~3 günlük mal, 3 gün vadeli, iki haftadan eski geciken fatura yoksa), mal parası erken uyarısı (`MarketFinance`, `State.LowCashWarnDay`), İK müdürü 8 çalışan ya da 2 açık şubeden sonra (`HrUnlockStaff`), haftalık grafikte işaretli eksen. Test: `Suppliers.Lifeline`. C8'in bot tarafı (fiyat kapısı, işe alma, işletme sermayesi) Codex C9'da.
 - **C10 · Deney turu (Codex C9 R1/R4):** şube/merkez giderleri artık ilk dükkânın defterine yazılmıyor (`MarketLedger::AddStoreCost`, `FMarketLedger::PendingStoreCosts`); kurtarmada şube kalmayınca depo kapanır, kamyon %40'a satılır, plan 3 aylık gider koyar (`RescueWorkingMonths`); deney düğmeleri `MarketTuning` (`BranchCompetition`, `RealWageGrowth`, `RealSpend`; komutlet `-Tune=`). Test `Tuning.Knobs`.
+- **C11 · Ülke müdürü tuzağı ve merkez giderleri:** M40 ülke müdürü bandı mağaza sayısıyla %30–100 (`MarketManagers::CountryWageScale`), İK/müşavir merkez defterinde, `MarketFinance::HeadOfficeDailyCost` kurtarma/aylık sabit gider bütçesinde, `RealWageGrowth` 0,005. Derlendi, 157 test.
 - Özel marka ("Miras") marka yarışına henüz girmedi: katalogda Miras ürünü yok (ürün kararı Mustafa/Codex).
 
 ## Doğrulama

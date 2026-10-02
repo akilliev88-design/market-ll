@@ -1,8 +1,10 @@
 # Güncel durum
 
-Son güncelleme: 02.10.2026 — Codex, C10 deney turu teslim edildi
+Son güncelleme: 02.10.2026 — Claude (Cowork), C11 derlendi, test ve bot koşusu yapıldı
 
 ## Kısaca
+
+**02.10.2026 — Claude / C11 (derlendi, doğrulandı):** Codex'in limiti doldu; derleme/test/bot Claude tarafından bilgisayarda `CLAUDE_KOS.cmd` (adımlar `Saved/Claude/is.cmd`, çıktı `Saved/Claude/son.log`) ile yapılıyor. "Aynı anda tek derlenmemiş iş" kuralı kaldırıldı (Mustafa). akis-a main'e birleşti (bb0b9bf). C11: İK/müşavir ücreti merkez defterinde; kurtarma ve aylık sabit gider bütçesine merkezin kalan giderleri; **M40 ülke müdürü maaşı ağ büyüklüğüyle** (az mağazada bandın %30'u); reel asgari ücret artışı %0,5. DERLE geçti, TEST **157/157**, Smoke geçti. Bot C11_E0 (10 yıl × 3 tarz × 3 tohum): **kurtarma 0**, çöküş yok; dengeli 3. yıl 9, 10. yıl 135–147 mağaza, sıra 7–8; temkinli 107–119, sıra 8; atak 134–176. Kalan: orta oyun fazla kolay (temkinli dengeliyle aynı büyüyor), dengeli ilk şube 306–334. gün, ilk dükkân reel kârı 9–10. yılda düşüyor. Rapor `Docs/Surec/akislar/C11_rapor.md`. Karar bekleyen: temkinli/dengeli farkı oyundan mı (ölçek kârı) bottan mı (açılış sıklığı) gelsin.
 
 <!-- C10:BEGIN -->
 **02.10.2026 — Codex / C10 teslim edildi:** C9 main'e birleşti; Claude C10 2bc492f ve M27 sürüm6 a0eb1ed. Son bot akis-a8b153f8 DERLE23,15sn +TEST157/157(156temiz+1HTTPuyarı) +Smoke geçti. D0/D1/D2/D3/D4/D4b/D5/D6/D6_30: **75 kampanya/295.890 gün**, para/stok ve işaretli/mutlak defter farkı0; birleşim10/30 ilk10yıl aynı, tarz izolasyonu aynı. Birleşim BranchCompetition2.5 +RealWageGrowth0.005 +RealSpend0.7; 30yıl kurtarma T/D/A=0/0/0. Tek ayarda en iyi D2; üçlü birleşim mağaza üst hedeflerini aşıyor, ilk dükkân reel kâr hedefi açık. Varsayılan oyun sabitleri değiştirilmedi. Öneri: sonraki taban adayı RealWageGrowth0.005; üçlü seti kalıcı yapma. İK/müşavir maaşının ilk dükkân defterinde kalması ve kurtarma bütçesinde kalan web/POS/yemek kartı ve açık merkez giderlerinin eksikliği Claude'a notlandı. Rapor C10_deney_raporu.md, kanıt C10_veri; bot kaynağı akis-a'da. İlk hatalı virgül-pars D6 analizden dışlandı; CLI düzeltmesi +540QA gün birebir doğrulama var. C9 iki menü kalanı değişmedi. GitHub main/akis-a kaynak push geçti; final rapor commit/push ile teslim edilir. Bekleyen eski yamalar korunur.
