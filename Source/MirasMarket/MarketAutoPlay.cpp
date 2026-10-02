@@ -182,7 +182,9 @@ namespace MarketAutoPlay
         if (Stores >= Profile.DepotAt && MarketDepots::Count(State) == 0)
         {
             const MarketDepots::FAdvice Advice = MarketDepots::SuggestDepotProvince(State, State.CountryId);
-            const int64 DepotCost = Advice.Province.IsEmpty() ? 0 : MarketDepots::BuildCost(State, State.CountryId, Advice.Province);
+            // C14: the menu's own estimate decides, as a good player reads it; past twice the threshold the depot comes anyway.
+            const bool bPays = Advice.MonthlyGain > 0 || Stores >= 2 * Profile.DepotAt;
+            const int64 DepotCost = Advice.Province.IsEmpty() || !bPays ? 0 : MarketDepots::BuildCost(State, State.CountryId, Advice.Province);
             // C13 (M43): a balanced or bold player funds the depot with an investment loan when the till is short.
             if (DepotCost > 0 && State.Cash <= DepotCost + Reserve && Profile.Style != EStyle::Careful)
             {
@@ -226,7 +228,9 @@ namespace MarketAutoPlay
         FString Reason;
         if (!MarketBranches::CanOpen(State, Products, Site.Country, Site.Province, Format, Reason)) { ++Run.C.Blocked.FindOrAdd(Reason); return; }
         const int64 Cost = MarketBranches::OpeningCost(State, Products, Site.Country, Site.Province, Format);
-        if (MarketAutoPlayFinance::CanExpand(State,Cost,MarketBranches::MonthlyFixedCost(State,Site.Country,Site.Province,Format),Profile.ExpansionBuffer))
+        // C14 (M41): the balanced player opens the first branch on a thinner cushion (the first branch is the cheapest one).
+        const double Cushion = MarketBranches::OpenCount(State) == 0 && Profile.Style == EStyle::Balanced ? FMath::Min(Profile.ExpansionBuffer, 1.2) : Profile.ExpansionBuffer;
+        if (MarketAutoPlayFinance::CanExpand(State,Cost,MarketBranches::MonthlyFixedCost(State,Site.Country,Site.Province,Format),Cushion))
             Command(State, Products, TEXT("OpenBranch"), MarketBranches::EncodeSite(Site.Country, Site.Province, Format), Run);
     }
     int64 PlaceOrder(FMarketState& State, const TArray<FMarketProduct>& Products, const FProfile& Profile, FRun& Trial)

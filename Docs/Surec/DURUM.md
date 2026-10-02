@@ -1,8 +1,10 @@
 # Güncel durum
 
-Son güncelleme: 02.10.2026 — Claude (Cowork), C13b derlendi ve doğrulandı
+Son güncelleme: 02.10.2026 — Claude (Cowork), C14 yazıldı, derlenmedi
 
 ## Kısaca
+
+**02.10.2026 — Claude / C14 (derlenmedi):** Yalnız bot kararları: dengeli bot ilk şubeyi 1,2 kat tamponla açar (önce 1,5; hedef ≤244. gün), bütün botlar depoyu menünün aylık kazanç tahmini artıysa kurar (ya da mağaza sayısı eşiğin iki katına çıkınca). Sebep: Zor dengeli 22'de 8 mağazada kurulan depo ve merkez 10 yılda −598 bin TL, şirket kârı yatay. Oyun kuralı değişmedi. Mustafa koşturacak.
 
 **02.10.2026 — Claude / C13b doğrulandı (3609dee):** DERLE, TEST **159/159** temiz. Normal: dengeli 128/92/95 ✓ (3/3), 3. yıl 10–12 ✓, temkinli 86/77/65, atak 120/78/57, sıra 8–9, kurtarma 0. Rahat dengeli 132–196 ✓. Zor dengeli 38/8/30 (hedef 40–80), temkinli 4/53/8, kurtarma 0. Rakip çekilmesi 9–20 (C13: 19–28). Kalan: Zor biraz sert, dengeli ilk şube 278–292. gün (hedef ≤244), atak Normal'de dengeliden yavaş.
 

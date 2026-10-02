@@ -1,3 +1,13 @@
+## 02.10.2026 — Claude (Cowork) — C14: dengeli ilk şube ve depo kararı (derlenmedi)
+
+**Not:** Mustafa C13b'yi yanlışlıkla ikinci kez başlattı (8fc8c8d yalnız belge commit'i), testte kapattı; zararı yok.
+
+**Bulgu:** Dengeli ilk şube 278/278/292: büyüme 14 günde bir bakıyor ve kasa ≥ açılış × 1,5 + yedek bekliyor; kasa bunu ~265. günde geçiyor. Zor dengeli 22: 8 mağazada depo kuruluyor, depo ve merkez 10 yılda −598 bin TL, şubeler +2,5 milyon; şirket FAVÖK'ü yatay, 8'de kalıyor.
+
+**Yapılan (yalnız bot, `MarketAutoPlay.cpp`):** dengeli bot ilk şubede tampon en çok 1,2; depo, menünün tahmini aylık kazancı (`SuggestDepotProvince().MonthlyGain`) artıysa ya da mağaza sayısı eşiğin iki katına (16) çıkınca kurulur. Oyun kuralı değişmedi.
+
+**Doğrulama:** Derlenmedi. **Sıradaki:** Mustafa `CLAUDE_KOS.cmd` (C14_N/R/Z). Atak botun geç yıllardaki düşüşü sonraya.
+
 ## 02.10.2026 — Claude (Cowork) — C13b doğrulandı
 
 **Doğrulama (Mustafa, 3609dee):** DERLE, TEST 159/159 temiz (Smoke C13'te geçti, akış değişmedi). 27 koşu, defter farkı 0, sıkıcı dönem 0, kurtarma 0.
