@@ -35,6 +35,13 @@ def run(case,tune,years=10,seeds=3):
             time.sleep(20)
             lines=log.read_text(encoding='utf-8-sig',errors='replace').splitlines() if log.exists() else []
             progress=next((line for line in reversed(lines) if 'AutoPlay progress' in line or 'audit failures' in line),'starting')
+            tuned=next((line.split('AutoPlay Tune: ')[1].strip() for line in lines if 'AutoPlay Tune: ' in line),None)
+            if tuned is not None:
+                actual={} if tuned=='C10 defaults' else {k:float(v) for k,v in (part.split('=') for part in tuned.split(', '))}
+                expected={k:float(v) for k,v in (part.split('=') for part in tune.split(','))} if tune else {}
+                if actual!=expected:
+                    process.terminate();process.wait()
+                    raise RuntimeError(('Commandlet applied different Tune',case,actual,expected))
             print(f'{case} {time.monotonic()-started:.0f}s {progress}',flush=True)
     meta.update(exit_code=process.returncode,seconds=round(time.monotonic()-started,2))
     (target/'manifest.json').write_text(json.dumps(meta,indent=2),encoding='utf-8')

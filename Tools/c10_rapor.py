@@ -41,14 +41,18 @@ def main():
         folder=base/case
         if not (folder/'gunluk.csv').exists():continue
         meta=json.loads((folder/'manifest.json').read_text(encoding='utf-8'))
+        if 'exit_code' not in meta:continue
         assert meta['exit_code']==0,(case,meta)
         aggregate(folder)
         days=group(read(folder/'gunluk.csv'));annual=group(read(folder/'aile_yillik.csv'))
         audits=group(read(folder/'c3.csv'));rescues=group(read(folder/'kurtarma.csv'))
-        mature=group(read(folder/'olgun_sube.csv'));summary=read(folder/'rapor.md') if False else (folder/'rapor.md').read_text(encoding='utf-8-sig')
+        mature=group(read(folder/'olgun_sube.csv'));summary=(folder/'rapor.md').read_text(encoding='utf-8-sig')
         assert 'Tune: ' in summary
         if meta['tune']:
-            for kv in meta['tune'].split(','):assert kv.split('=')[0]+'=' in summary
+            described=next(line[6:] for line in summary.splitlines() if line.startswith('Tune: '))
+            actual={k:float(v) for k,v in (part.split('=') for part in described.split(', '))}
+            expected={k:float(v) for k,v in (part.split('=') for part in meta['tune'].split(','))}
+            assert actual==expected,('Tune mismatch',case,actual,expected)
         else:assert 'Tune: C10 defaults' in summary
         assert len(days)==3*meta['seeds']
         for key,ds in days.items():

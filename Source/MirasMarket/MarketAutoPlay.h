@@ -28,6 +28,7 @@ namespace MarketAutoPlay
     const TArray<FProfile>& Profiles();
     TArray<FProfile> TunedProfiles();
     bool ConfigureTuning(const FString& List, FString& Error);
+    bool ConfigureTuningParams(const FString& Params, FString& Error);
     int64 PriceTarget(const FMarketState& State, const TArray<FMarketProduct>& Products, int32 Index, const FProfile& Profile);
     struct FOptions
     {

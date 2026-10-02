@@ -1,6 +1,14 @@
 #include "MarketAutoPlay.h"
 #include "MarketTuning.h"
 #include "String/LexFromString.h"
+#include "Misc/Parse.h"
+
+bool MarketAutoPlay::ConfigureTuningParams(const FString& Params,FString& Error)
+{
+    FString List;
+    FParse::Value(*Params,TEXT("Tune="),List,false); // Commas separate knobs, not command-line arguments.
+    return ConfigureTuning(List,Error);
+}
 
 TArray<MarketAutoPlay::FProfile> MarketAutoPlay::TunedProfiles()
 {

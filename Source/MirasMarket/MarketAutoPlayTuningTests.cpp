@@ -7,12 +7,24 @@
 #include "MarketOwner.h"
 #include "MarketPrices.h"
 #include "Misc/AutomationTest.h"
+#include "Misc/Parse.h"
 
 #if WITH_DEV_AUTOMATION_TESTS
 IMPLEMENT_SIMPLE_AUTOMATION_TEST(FMarketBotExperimentKnobs,"MirasMarket.AutoPlay.ExperimentKnobs",EAutomationTestFlags::EditorContext|EAutomationTestFlags::EngineFilter)
 bool FMarketBotExperimentKnobs::RunTest(const FString& Parameters)
 {
     FString Error;
+    TestTrue(TEXT("Command-line comma list"),MarketAutoPlay::ConfigureTuningParams(TEXT("-Tune=BranchCompetition=2.5,RealWageGrowth=0.005,RealSpend=0.7 -Years=10"),Error));
+    TestEqual(TEXT("First knob"),MarketTuning::Get(TEXT("BranchCompetition"),3.f),2.5f);
+    TestEqual(TEXT("Second knob"),MarketTuning::Get(TEXT("RealWageGrowth"),.015f),.005f);
+    TestEqual(TEXT("Third knob"),MarketTuning::Get(TEXT("RealSpend"),0.f),.7f);
+    // The parser correction is identical for every completed single-knob experiment.
+    for(const TCHAR* List:{TEXT("BranchCompetition=2.5"),TEXT("RealWageGrowth=0.005"),TEXT("RealSpend=0.7"),TEXT("OpenBuffer.Balanced=1.0"),TEXT("OpenBuffer.Careful=2.0"),TEXT("LossMonthsToClose=4")})
+    {
+        const FString Params=FString(TEXT("-Tune="))+List+TEXT(" -Years=10");FString Before,After;
+        FParse::Value(*Params,TEXT("Tune="),Before);FParse::Value(*Params,TEXT("Tune="),After,false);
+        TestEqual(TEXT("Completed single-knob input unchanged"),After,Before);
+    }
     TestTrue(TEXT("Default run"),MarketAutoPlay::ConfigureTuning(TEXT(""),Error));
     const auto Defaults=MarketAutoPlay::TunedProfiles();
     TestTrue(TEXT("One buffer override"),MarketAutoPlay::ConfigureTuning(TEXT("OpenBuffer.Balanced=1.0"),Error));

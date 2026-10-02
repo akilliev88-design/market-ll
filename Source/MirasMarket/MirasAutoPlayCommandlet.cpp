@@ -1,6 +1,7 @@
 #include "MirasAutoPlayCommandlet.h"
 #include "MarketAutoPlay.h"
 #include "MarketCalendar.h"
+#include "MarketTuning.h"
 #include "Misc/Parse.h"
 #include "Misc/Paths.h"
 #include "Misc/DateTime.h"
@@ -12,10 +13,10 @@ UMirasAutoPlayCommandlet::UMirasAutoPlayCommandlet()
 }
 int32 UMirasAutoPlayCommandlet::Main(const FString& Params)
 {
-    FString Tune, TuneError;
-    FParse::Value(*Params, TEXT("Tune="), Tune);
-    if (!MarketAutoPlay::ConfigureTuning(Tune, TuneError))
+    FString TuneError;
+    if (!MarketAutoPlay::ConfigureTuningParams(Params, TuneError))
     { UE_LOG(LogTemp, Error, TEXT("%s"), *TuneError); return 1; }
+    UE_LOG(LogTemp, Display, TEXT("AutoPlay Tune: %s"), MarketTuning::Describe().IsEmpty() ? TEXT("C10 defaults") : *MarketTuning::Describe());
     MarketAutoPlay::FOptions Options;
     int32 Years = 10;
     FParse::Value(*Params, TEXT("Years="), Years);
