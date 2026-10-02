@@ -59,7 +59,9 @@ namespace MarketFinance
     constexpr double RescueRepeatCap = 0.06;
     constexpr float RescueCarryShare = 0.04f;     // C7: the installment the shop can carry: 4 % of its monthly revenue
     constexpr int32 RescueMaxMonths = 96;         // C8: longer when the new money alone is more than the shop carries
-    constexpr int32 RescueGraceDays = 180;        // C7: the first installment half a year later
+    constexpr int32 RescueGraceDays = 180;
+    constexpr int32 RescueWorkingMonths = 3;      // C10: months of the remaining costs the plan puts in the till
+    constexpr int64 RescueTruckPrice = 1200000;   // C10: a truck's start-level price (MarketCompany); sold for 40 %        // C7: the first installment half a year later
     constexpr int32 RescueBlockDays = 730;        // C7: two years without new loans or branches
     constexpr int32 RescueKeepStaff = 2;
     constexpr int64 RescueWorkingCapital = 100000; // 1 000 TL at the start level: enough to fill the shelves again

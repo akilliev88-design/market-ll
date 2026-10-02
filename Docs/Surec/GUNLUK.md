@@ -1,3 +1,9 @@
+## 02.10.2026 — Claude (Cowork) — C10 deney turu: gider dağılımı, kurtarma, deney düğmeleri
+
+**Yapılan:** Codex C9 raporu (R1–R5): ilk dükkânın defterine şube tadilatı/işe alımı ve merkez giderleri yazılıyordu; şimdi kendi mağazalarına (`MarketLedger::AddStoreCost`). Kurtarmada şube kalmayınca depolar kapanır, kamyonlar satılır, plan 3 aylık gider koyar. `MarketTuning` düğmeleri (`BranchCompetition`, `RealWageGrowth`, `RealSpend`) ile Codex tek değişkenli deney yapacak. Test `Tuning.Knobs`; alt sınır 154. Codex C10 promptu.
+
+**Doğrulama:** Derlenmedi; araç kontrolleri temiz.
+
 ## 02.10.2026 — Codex — C9 çekirdek denge botu ve hedef eğrileri
 
 **Yapılan:** Claude18e37bf alındı; İK test kurulumuna cf61dae küçük düzeltme (MarketStaffTests.cpp:241, sekiz çalışan kilidi + iki açık şube, eski iki görevli senaryosu). Akis-a45abc33/4d0ca8f/a80d925: fiyat kapısı/rakip hedefi/ani artış, ek kazançla kadro/İK'nın şube katkısı, iki haftalık mal yedeği, temkinli vade/acil mal; gerçek hedef fiyat gözlemi; C9 ölçüm aracı ve menü dört hedef. İK tahminindeki aynı açılış planı tekrarları site başına bir kez; karar hesabı korunur.

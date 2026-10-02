@@ -88,6 +88,10 @@ struct FMarketLedger
     // Goods other systems bought during the last close (branch orders add to FMarketState::Purchases): they post
     // their own lines, so the next BeginClose leaves them out of the family shop's purchases.
     UPROPERTY() int64 PurchasesInClose = 0;
+    // C10 (Codex C9 R1: a branch's fit-out and hiring, managers' bonuses and severance landed in the family shop's
+    // books): costs paid with the family shop's day close (FMarketState::OtherCosts) that belong to another store or
+    // the head office. The next BeginClose books them there (Marketing) and leaves them out of the family shop.
+    UPROPERTY() TArray<FMarketLedgerEntry> PendingStoreCosts;
 };
 
 namespace MarketLedger
@@ -168,6 +172,9 @@ namespace MarketLedger
     // Between BeginClose and EndClose the entry belongs to the closed day. Zero amounts are not booked; entries of
     // the same day, store, account and kind are added up into one line.
     void Post(FMarketState& State, EAccount Account, int64 Amount, bool bCash = true, int32 Store = FamilyShop);
+    // C10: a cost paid with today's costs at the family shop's close (FMarketState::OtherCosts) that belongs to Store
+    // (a branch index or HeadOfficeStore). Amount > 0.
+    void AddStoreCost(FMarketState& State, int64 Amount, int32 Store);
 
     // Day close, right after FMarketState::CloseDay (MarketDirector, Ak\u0131\u015f B block at the start): books the family
     // shop's day from its counters (till sales, cost of goods, purchases, wages, the shop's costs, delivery losses).

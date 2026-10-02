@@ -126,7 +126,7 @@ Editörden gelir istenirse: temel editör ücretsiz, ek ekipman ve dekor kütüp
 | İlk dükkânın yıllık faaliyet kârı | Enflasyonla birlikte büyür | Büyür | Düşer ama eksiye kalıcı geçmez |
 | Sıkıcı dönem (30 gün olaysız) | 0 | 0 | 0 |
 
-Sayılar Mustafa onayına kadar öneridir; bot raporu her turda bu tabloyu doldurur.
+**Onaylandı (Mustafa, 02.10.2026).** Bot raporu her turda bu tabloyu doldurur; dışında kalan her satır bir denge işidir. `AutoPlay.LateCarefulGrowth` testi C9'dan sonra bu tabloya göre güncellenir (temkinli ilk şube en geç 14. ay).
 
 ## 6. Şeritler
 
@@ -140,7 +140,7 @@ Sayılar Mustafa onayına kadar öneridir; bot raporu her turda bu tabloyu doldu
 
 | Karar | Gerektiği iş | Claude önerisi |
 |---|---|---|
-| Hedef eğriler (§5) | C9 | Tablodaki değerler |
+| ~~Hedef eğriler (§5)~~ | C9 | Onaylandı 02.10.2026 |
 | Oyun sonu (J02) | Aşama 2 | 30. yılın sonu ya da lig birinciliği; sonra serbest oyun |
 | Demo kapsamı | Aşama 2 | İlk dükkân + ilk iki şube, ~2 saat |
 | İngilizceden sonraki diller | Aşama 2–4 | Almanca, İspanyolca, Portekizce (Brezilya) |

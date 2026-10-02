@@ -1,4 +1,5 @@
 #include "MarketManagers.h"
+#include "MarketLedger.h"
 #include "MarketBranches.h"
 #include "MarketCountry.h"
 #include "MarketDepots.h"
@@ -964,7 +965,7 @@ bool MarketManagers::Dismiss(FMarketState& State, int32 ManagerIndex, FString& O
     // C3 (B3): notice pay and seniority pay after the first full year.
     const int64 Severance = DailyWage(State, Leaving) * SeveranceDays + MarketStaff::SeniorityPay(DailyWage(State, Leaving), Leaving.AppointedDay, State.Day);
     if (State.Cash < Severance + State.OtherCosts) { OutMessage = FString::Printf(TEXT("Tazminat i\u00e7in kasada %s gerekiyor."), *ManagerTl(Severance)); return false; }
-    State.OtherCosts += Severance;
+    MarketLedger::AddStoreCost(State, Severance, MarketLedger::HeadOfficeStore); // C10: the head office's books
     State.Management.UsedNames.AddUnique(Leaving.Name); // M22: he does not come back as a candidate
     State.Management.Managers.RemoveAt(ManagerIndex);
     const int32 Boss = BossOfManager(State, Leaving);
@@ -980,7 +981,7 @@ bool MarketManagers::BonusManager(FMarketState& State, int32 ManagerIndex, FStri
     if (M.BonusDay > 0 && State.Day - M.BonusDay < BonusCooldown) { OutMessage = FString::Printf(TEXT("%s yak\u0131n zamanda prim ald\u0131."), *M.Name); return false; }
     const int64 Cost = DailyWage(State, M) * BonusDays;
     if (State.Cash < Cost + State.OtherCosts) { OutMessage = FString::Printf(TEXT("Prim i\u00e7in kasada %s gerekiyor."), *ManagerTl(Cost)); return false; }
-    State.OtherCosts += Cost;
+    MarketLedger::AddStoreCost(State, Cost, MarketLedger::HeadOfficeStore); // C10
     M.Morale = FMath::Min(100.f, M.Morale + 15.f);
     if (M.Skill < FMath::Min(SkillTop, PotentialOf(M))) ++M.Skill; // M21: never past the ceiling
     M.BonusDay = State.Day;
@@ -1009,7 +1010,7 @@ bool MarketManagers::Bonus(FMarketState& State, int32 BranchIndex, FString& OutM
     if (B.ManagerBonusDay > 0 && State.Day - B.ManagerBonusDay < BonusCooldown) { OutMessage = FString::Printf(TEXT("%s yak\u0131n zamanda prim ald\u0131."), *B.ManagerName); return false; }
     const int64 Cost = B.ManagerWage * BonusDays;
     if (State.Cash < Cost + State.OtherCosts) { OutMessage = FString::Printf(TEXT("Prim i\u00e7in kasada %s gerekiyor."), *ManagerTl(Cost)); return false; }
-    State.OtherCosts += Cost;
+    MarketLedger::AddStoreCost(State, Cost, MarketLedger::HeadOfficeStore); // C10
     B.ManagerMorale = FMath::Min(100.f, FMath::Max(0.f, B.ManagerMorale) + 15.f);
     if (B.ManagerSkill < FMath::Min(SkillTop, PotentialOf(B))) ++B.ManagerSkill; // M21: never past the ceiling
     B.ManagerBonusDay = State.Day;
@@ -1050,7 +1051,7 @@ bool MarketManagers::ReplaceWithCandidate(FMarketState& State, int32 BranchIndex
     if (!Pool.IsValidIndex(CandidateIndex)) { OutMessage = TEXT("B\u00f6yle bir aday yok."); return false; }
     const int64 Severance = Before.ManagerName.IsEmpty() ? 0 : Before.ManagerWage * SeveranceDays + MarketStaff::SeniorityPay(Before.ManagerWage, Before.ManagerSince, State.Day); // C3 (B3)
     if (Severance > 0 && State.Cash < Severance + State.OtherCosts) { OutMessage = FString::Printf(TEXT("Tazminat i\u00e7in kasada %s gerekiyor."), *ManagerTl(Severance)); return false; }
-    State.OtherCosts += Severance;
+    MarketLedger::AddStoreCost(State, Severance, MarketLedger::HeadOfficeStore); // C10: the head office's books
     if (!Before.ManagerName.IsEmpty()) State.Management.UsedNames.AddUnique(Before.ManagerName);
     HireFrom(State, BranchIndex, Pool[CandidateIndex]);
     MarkSeen(State, Pool);

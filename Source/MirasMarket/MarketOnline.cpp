@@ -595,7 +595,7 @@ bool MarketOnline::Open(FMarketState& State, EChannel Channel, FString& OutMessa
     case EChannel::Web:
     {
         const int64 Cost = AtLevel(WebSetupCost, Day);
-        State.OtherCosts += Cost;              // paid with today's costs at the day close
+        MarketLedger::AddStoreCost(State, Cost, MarketLedger::HeadOfficeStore); // paid with today's costs at the day close (C10: head office)
         O.bWeb = true;
         O.WebDay = Day;
         OutMessage = FString::Printf(TEXT("Web sitesi a\u00e7\u0131ld\u0131 (%s kurulum). Hangi illerde \u00e7al\u0131\u015faca\u011f\u0131na il m\u00fcd\u00fcrleri karar verir; insanlar\u0131n siteyi \u00f6\u011frenmesi iki ay s\u00fcrer."), *Tl(Cost));
@@ -609,7 +609,7 @@ bool MarketOnline::Open(FMarketState& State, EChannel Channel, FString& OutMessa
     case EChannel::Platform:
     {
         const int64 Cost = AtLevel(PlatformJoinCost, Day) * FMath::Max(1, O.Areas.Num());
-        State.OtherCosts += Cost;
+        MarketLedger::AddStoreCost(State, Cost, MarketLedger::HeadOfficeStore); // C10
         O.bPlatform = true;
         OutMessage = FString::Printf(TEXT("%s ile anla\u015ft\u0131k (%s tablet ve listeleme). Sipari\u015fleri onlar\u0131n kuryesi al\u0131r, %%%.0f komisyon; y\u0131ld\u0131z\u0131m\u0131z d\u00fc\u015ferse sipari\u015f azal\u0131r."),
             *MarketCast::Platform(), *Tl(Cost), O.Commission * 100.f);
@@ -650,7 +650,7 @@ bool MarketOnline::OpenApp(FMarketState& State, int32 Tier, FString& OutMessage)
     const int64 Cost = AtLevel(AppCosts[T], State.Day);
     if (State.Cash < Cost + State.OtherCosts) { OutMessage = FString::Printf(TEXT("Uygulama i\u00e7in kasada %s gerekiyor."), *Tl(Cost)); return false; }
     FMarketOnline& O = State.Online;
-    State.OtherCosts += Cost;
+    MarketLedger::AddStoreCost(State, Cost, MarketLedger::HeadOfficeStore); // C10
     O.bApp = true;
     O.AppDay = State.Day;
     O.AppTier = static_cast<uint8>(T);
@@ -844,7 +844,7 @@ bool MarketOnline::FireManager(FMarketState& State, FString& OutMessage)
     if (O.ManagerName.IsEmpty()) { OutMessage = TEXT("E-ticaret m\u00fcd\u00fcr\u00fc yok."); return false; }
     const int64 Severance = O.ManagerWage * 10 + MarketStaff::SeniorityPay(O.ManagerWage, O.ManagerSince, State.Day);
     if (State.Cash < Severance + State.OtherCosts) { OutMessage = FString::Printf(TEXT("Tazminat i\u00e7in kasada %s gerekiyor."), *MarketOnlineLocal::Tl(Severance)); return false; }
-    State.OtherCosts += Severance;
+    MarketLedger::AddStoreCost(State, Severance, MarketLedger::HeadOfficeStore); // C10
     OutMessage = FString::Printf(TEXT("%s ayr\u0131ld\u0131, tazminat %s."), *O.ManagerName, *MarketOnlineLocal::Tl(Severance));
     O.ManagerName.Reset();
     O.ManagerSkill = 0;

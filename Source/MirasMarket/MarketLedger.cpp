@@ -161,6 +161,17 @@ void MarketLedger::Post(FMarketState& State, EAccount Account, int64 Amount, boo
     if (bCash) L.CashPosted += Amount;
 }
 
+void MarketLedger::AddStoreCost(FMarketState& State, int64 Amount, int32 Store)
+{
+    if (Amount <= 0) return;
+    State.OtherCosts += Amount;
+    FMarketLedgerEntry Cost;
+    Cost.Store = Store;
+    Cost.Account = static_cast<uint8>(EAccount::Marketing);
+    Cost.Amount = Amount;
+    State.Ledger.PendingStoreCosts.Add(Cost);
+}
+
 void MarketLedger::BeginClose(FMarketState& State, const TArray<FMarketProduct>& Products)
 {
     FMarketLedger& L = State.Ledger;
@@ -182,7 +193,11 @@ void MarketLedger::BeginClose(FMarketState& State, const TArray<FMarketProduct>&
     const int64 Payroll = State.DailyPayroll();
     Post(State, EAccount::Utilities, -Utilities);
     Post(State, EAccount::Wages, -Payroll);
-    Post(State, EAccount::Marketing, -(State.LastOperatingCost - Utilities - Payroll));
+    // C10: what other stores and the head office left in today's costs goes to them.
+    int64 Elsewhere = 0;
+    for (const FMarketLedgerEntry& Cost : L.PendingStoreCosts) { Post(State, EAccount::Marketing, -Cost.Amount, true, Cost.Store); Elsewhere += Cost.Amount; }
+    L.PendingStoreCosts.Reset();
+    Post(State, EAccount::Marketing, -(State.LastOperatingCost - Utilities - Payroll - Elsewhere));
     Post(State, EAccount::BranchResult, State.LastBranchProfit);
     // Paid-for units that never arrived whole (#37): FMarketState::CloseDay puts them into PendingLoss for the next
     // report; the books take the loss today.

@@ -393,7 +393,6 @@ TArray<FString> MarketFinance::Rescue(FMarketState& State, const TArray<FMarketP
         {
             const MarketManagers::ELevel Tier = static_cast<MarketManagers::ELevel>(State.Management.Managers[I].Level);
             // C8 (Codex C7: the family shop's manager cost as much as all its people): the family runs the shop again.
-            if (Tier == MarketManagers::ELevel::Depot && State.Company.DepotSites.Num() > 0) continue;
             State.Management.UsedNames.AddUnique(State.Management.Managers[I].Name);
             State.Management.Managers.RemoveAt(I);
             ++Left;
@@ -415,6 +414,21 @@ TArray<FString> MarketFinance::Rescue(FMarketState& State, const TArray<FMarketP
         if (bCut) Lines.Add(TEXT("Reklamlar durdu; uygulama, h\u0131zl\u0131 teslimat ve karanl\u0131k depolar kapand\u0131; reklam ve e-ticaret m\u00fcd\u00fcrleri ayr\u0131ld\u0131."));
 
         // C8: one shop needs no HR manager.
+        // C10 (Codex C9 R4: idle depots and trucks kept costing while the plans came back every 63-65 days): with no
+        // branch the depots close and the trucks are sold (for 40 % of their price today); their manager leaves above.
+        if (State.Company.DepotSites.Num() > 0 || State.Company.Trucks > 0)
+        {
+            const int64 TruckSale = FMath::RoundToInt64(RescueTruckPrice * 0.4 * Level(State)) * State.Company.Trucks;
+            if (TruckSale > 0)
+            {
+                State.Cash += TruckSale;
+                MarketLedger::Post(State, MarketLedger::EAccount::Divestment, TruckSale, true, MarketLedger::HeadOfficeStore);
+            }
+            Lines.Add(FString::Printf(TEXT("%d depo kapand\u0131, %d kamyon %s kar\u015f\u0131l\u0131\u011f\u0131nda sat\u0131ld\u0131."), State.Company.DepotSites.Num(), State.Company.Trucks, *FinanceTl(TruckSale)));
+            State.Company.DepotSites.Reset();
+            State.Company.Trucks = 0;
+        }
+
         const int32 HrBefore = State.Staff.Num();
         State.Staff.RemoveAll([](const FMarketEmployee& E) { return MarketStaff::RoleOf(E) == MarketStaff::ERole::HrManager; });
         if (State.Staff.Num() < HrBefore) { MarketStaff::SyncCounts(State); Lines.Add(TEXT("\u0130K m\u00fcd\u00fcr\u00fc ayr\u0131ld\u0131: tek d\u00fckk\u00e2nda i\u015fi yok.")); }
@@ -440,7 +454,9 @@ TArray<FString> MarketFinance::Rescue(FMarketState& State, const TArray<FMarketP
     // new loan and no new branch for two years. Before C7 the plans piled up and the debt grew without end.
     // C8 (Codex C7: most plans came back within 93 days, before any installment): the wholesaler's open bills and
     // the declared tax are paid from the plan too, so the month's money is really free.
-    const int64 Working = FMath::Max<int64>(FMath::RoundToInt64(RescueWorkingCapital * Level(State)), FamilyMonthCost(State) + RefillCost(State, Products))
+    MarketOwner::CutToMinimum(State, Lines); // M37 (before the plan counts our salary)
+    // C10 (R4): three months of what is left (the shop, the head office, our salary at the minimum) and full shelves.
+    const int64 Working = FMath::Max<int64>(FMath::RoundToInt64(RescueWorkingCapital * Level(State)), RescueWorkingMonths * (CompanyMonthCost(State) + MarketOwner::CompanyCost(State)) + RefillCost(State, Products))
         + MarketSuppliers::OpenBills(State) + FMath::Max<int64>(0, State.Books.TaxDue);
     const int64 Fresh = FMath::Max<int64>(0, (Working - State.Cash + 99) / 100 * 100);
     int64 Old = Debt(State) + State.Banking.LineDrawn;
@@ -482,7 +498,6 @@ TArray<FString> MarketFinance::Rescue(FMarketState& State, const TArray<FMarketP
     if (WrittenOff > 0)
         Lines.Add(FString::Printf(TEXT("D\u00fckk\u00e2n\u0131n \u00f6deyemeyece\u011fi %s bor\u00e7 silindi. Bedeli: iki y\u0131l kredi yok, yeni \u015fube yok, kredi notu D."), *FinanceTl(WrittenOff)));
     // C8 (Codex C7: every new plan restarted the two years): a plan inside a running plan adds a year at most.
-    MarketOwner::CutToMinimum(State, Lines); // M37
     State.RescueUntil = State.Day < State.RescueUntil ? FMath::Max(State.RescueUntil, State.Day + 365) : State.Day + RescueBlockDays;
     State.NegativeCashDays = 0;
     State.TroubleStage = 0;

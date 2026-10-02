@@ -1,6 +1,7 @@
 #include "MarketPrices.h"
 #include "MarketCalendar.h"
 #include "MarketEras.h"
+#include "MarketTuning.h"
 
 namespace MarketPrices
 {
@@ -114,7 +115,7 @@ double MarketPrices::MinimumWage(int32 GameDay)
     const int32 HalfEnd = Date.Month <= 6 ? MarketCalendar::GameDayOf(Date.Year, 7, 1) : MarketCalendar::GameDayOf(Date.Year + 1, 1, 1);
     const int32 HalfStart = Date.Month <= 6 ? MarketCalendar::GameDayOf(Date.Year, 1, 1) : MarketCalendar::GameDayOf(Date.Year, 7, 1);
     const double Years = (HalfStart - 1) / 365.0;
-    return StartWage * PriceLevel(HalfEnd) * FMath::Pow(1.0 + RealWageGrowth, Years);
+    return StartWage * PriceLevel(HalfEnd) * FMath::Pow(1.0 + MarketTuning::Get(TEXT("RealWageGrowth"), static_cast<float>(RealWageGrowth)), Years); // C10: a knob for experiments
 }
 
 double MarketPrices::WageIndex(int32 GameDay)

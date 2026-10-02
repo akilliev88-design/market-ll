@@ -1,4 +1,5 @@
 #include "MarketBranches.h"
+#include "MarketLedger.h"
 #include "MarketCountry.h"
 #include "MarketCalendar.h"
 #include "MarketCampaign.h"
@@ -22,6 +23,7 @@
 #include "MarketDepartments.h"
 #include "MarketSuppliers.h"
 #include "MarketPromotions.h"
+#include "MarketTuning.h"
 
 namespace MarketBranches
 {
@@ -345,7 +347,7 @@ bool MarketBranches::Open(FMarketState& State, const TArray<FMarketProduct>& Pro
     // (paid at the day close with the other costs).
     State.Cash -= 2 * Branch.Rent;
     MarketLedger::Post(State, MarketLedger::EAccount::Investment, -2 * Branch.Rent, true, State.Branches.Num()); // C3: the deposit
-    State.OtherCosts += FMath::RoundToInt64(Kind.FitOut * Level * MarketStoreAssign::FitOutFactor(Measures, Kind.Id));
+    MarketLedger::AddStoreCost(State, FMath::RoundToInt64(Kind.FitOut * Level * MarketStoreAssign::FitOutFactor(Measures, Kind.Id)), State.Branches.Num()); // C10: the branch's own books
     State.Branches.Add(Branch);
     State.bSecondStore = true;
     OutMessage = FString::Printf(TEXT("%s: kira s\u00f6zle\u015fmesi imzaland\u0131 (depozito %s), tadilat ba\u015flad\u0131 (%d g\u00fcn). Raflar senin kurallar\u0131nla otomatik planland\u0131."),
@@ -541,7 +543,7 @@ void MarketBranches::CloseDay(FMarketState& State, const TArray<FMarketProduct>&
         {
             B.Stage = static_cast<uint8>(EStage::Hiring);
             B.Workers = MarketStoreAssign::WorkersFor(MarketStoreViews::MeasuresOf(B), B.Format); // G-088 C: the store's size and tills
-            State.OtherCosts += MarketStaff::HireCostOn(MarketStaff::ERole::Cashier, Closed) * B.Workers;
+            MarketLedger::AddStoreCost(State, MarketStaff::HireCostOn(MarketStaff::ERole::Cashier, Closed) * B.Workers, Index); // C10
             if (B.ManagerName.IsEmpty()) MarketManagers::HireStoreManager(State, Index); // G-086b ek (M22): a name never used before
             News.Add(FString::Printf(TEXT("%s: ruhsat \u00e7\u0131kt\u0131. %d \u00e7al\u0131\u015fan i\u015fe al\u0131nd\u0131; m\u00fcd\u00fcr %s (beceri %d)."), *B.Name, B.Workers, *B.ManagerName, B.ManagerSkill));
             continue;
@@ -595,7 +597,7 @@ void MarketBranches::CloseDay(FMarketState& State, const TArray<FMarketProduct>&
             (0.8f + B.Satisfaction / 250.f) * (0.9f + 0.4f * B.Maturity) * (State.Day - B.OpenedDay < 7 ? 1.3f : 1.f) * MarketCompany::TrafficBonus(State)
             * MarketDepartments::PullFactor(B, Closed); // M26: fresh bread, a good butcher
         // Akis C2b: the province's chains against the start, a price war against us on top.
-        const float Share = Pull / (Pull + 3.f * Where.Competition * MarketChains::PressureFactor(State, Where.Country, Where.Province, Closed));
+        const float Share = Pull / (Pull + MarketTuning::Get(TEXT("BranchCompetition"), 3.f) * Where.Competition * MarketChains::PressureFactor(State, Where.Country, Where.Province, Closed));
         const float Trips = MarketCalendar::ClosedByLaw(Closed) ? 0.f : TripsOf(Where, Kind) * MarketCalendar::TrafficFactor(Closed, State.RivalSeed)
             * MarketOnline::StoreTrafficFactorOn(State, Closed, Where.Country) // M32: trips gone online, the epidemic's closure days
             * MarketAdvertising::TrafficFactor(State, Where.Country); // M34: the company's ads
@@ -608,6 +610,8 @@ void MarketBranches::CloseDay(FMarketState& State, const TArray<FMarketProduct>&
         const float FreshSpoil = MarketStoreAssign::SpoilFactor(Measures, B.Format);
         const float ColdChain = MarketSourcing::DairySpoilFactor(State); // G-083: a distributor keeps the cold chain
 
+        // C10 knob (default off): a shopper's basket grows with the real wage (wages / prices), elasticity RealSpend.
+        const float RealSpend = FMath::Pow(static_cast<float>(MarketPrices::WageIndex(Closed) / FMath::Max(0.01, MarketPrices::ListLevel(Closed))), MarketTuning::Get(TEXT("RealSpend"), 0.f));
         // What they want, what is on the shelf.
         int64 Revenue = 0, Cogs = 0, WasteCost = 0;
         int32 DayEmpty = 0, DaySold = 0;
@@ -623,7 +627,7 @@ void MarketBranches::CloseDay(FMarketState& State, const TArray<FMarketProduct>&
             float PromoCut = 0.f, PromoPull = 1.f;
             MarketPromotions::StoreEffect(State, Products, Index, I, Closed, PromoCut, PromoPull);
             const float Cut = FMath::Max(Item->MarkdownUntil >= Closed ? Item->Markdown / 100.f : 0.f, PromoCut);
-            const int32 Want = FMath::RoundToInt32(Shoppers * UnitsPerShopper * WishToday[I] * Where.Income * (bFresh ? FreshDemand : 1.f) * (1.f + 2.5f * Cut)
+            const int32 Want = FMath::RoundToInt32(Shoppers * UnitsPerShopper * RealSpend * WishToday[I] * Where.Income * (bFresh ? FreshDemand : 1.f) * (1.f + 2.5f * Cut)
                 * PromoPull * MarketStory::IdentityDemand(State, Group)); // M38: the company's identity
             const int32 Take = Item->Capacity > 0 ? FMath::Min(Want, Item->Units) : 0;
             Item->Units -= Take;

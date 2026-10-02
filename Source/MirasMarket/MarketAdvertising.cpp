@@ -282,7 +282,7 @@ bool MarketAdvertising::FireManager(FMarketState& State, FString& OutMessage)
     if (A.ManagerName.IsEmpty()) { OutMessage = TEXT("Reklam m\u00fcd\u00fcr\u00fc yok."); return false; }
     const int64 Severance = A.ManagerWage * 10 + MarketStaff::SeniorityPay(A.ManagerWage, A.ManagerSince, State.Day);
     if (State.Cash < Severance + State.OtherCosts) { OutMessage = FString::Printf(TEXT("Tazminat i\u00e7in kasada %s gerekiyor."), *MarketAdvertisingLocal::Tl(Severance)); return false; }
-    State.OtherCosts += Severance;
+    MarketLedger::AddStoreCost(State, Severance, MarketLedger::HeadOfficeStore); // C10
     OutMessage = FString::Printf(TEXT("%s ayr\u0131ld\u0131, tazminat %s."), *A.ManagerName, *MarketAdvertisingLocal::Tl(Severance));
     A.ManagerName.Reset();
     A.ManagerSkill = 0;
