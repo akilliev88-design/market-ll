@@ -118,15 +118,18 @@ namespace MarketAutoPlay
                     if(MarketBranches::ShopsIn(State,State.CountryId,City.Id)>=MarketBranches::Room(Next) ||
                         !MarketAutoPlayC::SiteSuitable(State,State.CountryId,City.Id,TEXT("mahalle")))continue;
                     const int64 Fixed=MarketBranches::MonthlyFixedCost(State,State.CountryId,City.Id,TEXT("mahalle"));
+                    int64 Opening=-1; // expensive shelf planning, once per promising site
                     for(const auto& Branch:State.Branches)
                     {
                         if(Branch.Stage!=static_cast<uint8>(MarketBranches::EStage::Open) || Branch.Format!=TEXT("mahalle") || State.Day-Branch.OpenedDay<90)continue;
                         const auto From=MarketBranches::SiteOf(State,Branch.Country,Branch.Province);
                         const int64 OldFixed=MarketBranches::MonthlyFixedCost(State,Branch.Country,Branch.Province,Branch.Format);
                         const int64 Contribution=FMath::RoundToInt64((Branch.Last30Profit+OldFixed)*FMath::Min(1.f,Next.Income/FMath::Max(.1f,From.Income)))-Fixed;
-                        const int64 Opening=FMath::RoundToInt64(MarketBranches::OpeningCost(State,Products,State.CountryId,City.Id,TEXT("mahalle"))*Profile.ExpansionBuffer);
-                        if(Contribution>Benefit && State.Cash>=Reserve+Opening+Fixed)
-                        {Benefit=Contribution;Commitment=Opening+Fixed;}
+                        if(Contribution>Benefit)
+                        {
+                            if(Opening<0)Opening=FMath::RoundToInt64(MarketBranches::OpeningCost(State,Products,State.CountryId,City.Id,TEXT("mahalle"))*Profile.ExpansionBuffer);
+                            if(State.Cash>=Reserve+Opening+Fixed){Benefit=Contribution;Commitment=Opening+Fixed;}
+                        }
                     }
                 }
             }
