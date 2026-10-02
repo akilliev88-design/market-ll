@@ -1,3 +1,13 @@
+## 02.10.2026 — Codex — C9 çekirdek denge botu ve hedef eğrileri
+
+**Yapılan:** Claude18e37bf alındı; İK test kurulumuna cf61dae küçük düzeltme (MarketStaffTests.cpp:241, sekiz çalışan kilidi + iki açık şube, eski iki görevli senaryosu). Akis-a45abc33/4d0ca8f/a80d925: fiyat kapısı/rakip hedefi/ani artış, ek kazançla kadro/İK'nın şube katkısı, iki haftalık mal yedeği, temkinli vade/acil mal; gerçek hedef fiyat gözlemi; C9 ölçüm aracı ve menü dört hedef. İK tahminindeki aynı açılış planı tekrarları site başına bir kez; karar hesabı korunur.
+
+**Doğrulama:** Son DERLE + TEST153/153 (152 temiz+1 HTTP uyarısı) +Smoke PASSED; LateCarefulGrowth600/365 eşikleri değişmeden geçti, ilk399, 600.gün3 mağaza. 12 uzun kampanya/65.751 gün stok/defter farkı0; 10/30 ilk10 yıl eşleşti. 32 menü PNG, boyut hatası0, kampanya korunumu geçti; dört işaretli grafik ve seçili ilk gün sayfaları gözle incelendi.
+
+**Sonuç/sınırlar:** T/D on yılda1 mağaza, A139/72/83. 30 yıl21 kurtarma2/1/5, final hepsi1 mağaza; atak son planlar63–65 gün aralı, kasa−2.529.482,88TL. Sıkıcı dönem0. İlk mağaza defterine şube tadilat/işe alma gideri karışıyor; mağaza çekirdeği üst sınırı ayrıca verildi. Diğer giderler ayrışmadan ilk mağaza gerçek neti doğrulanmaz. İK ek kazancı gerçekleşmiş deney değil, görünür olgun mağazaya dayalı tahmin. Oyun sabitleri/kayıt biçimi değişmedi. Atak kötü oyuncu değildir, o hedef senaryosu sınanmadı. C9 raporu beş uygulanmamış sabit/dağıtım önerisi, her hedef dışı satır ve maaş/kâr payı/servet/acil mal/boş raf ayı/uyarı ölçümlerini içerir.
+
+**Sıradaki:** Claude/Mustafa önce gider dağılımı, şube neti/ilk açılış tamponu ve kurtarma sonrası atıl merkez yükünü değerlendirir; C9 hedefleri yeşil olmadan yeni özellik yok. Kampanya formu, ilk gün yönetim/reklam C'de. Kaynak akis-a, main'e birleştirilmedi; main'de rapor/veri/devir kopyası. GitHub gönderimi otomatik onay incelemesinde özel depo/destination yetkisi gerekçesiyle reddedildi; origin m07tas/market-ll olarak doğrulandı, son durum ayrıca güncellenecek. Kurgu değişiklikleri/bekleyen klasörü teslim commitlerine alınmaz.
+
 ## 02.10.2026 — Claude (Cowork) — C9 çekirdek denge oyun tarafı, gidiş yolu sürüm 2
 
 **Yapılan:** Codex C8 tanısı: tek dükkân büyümeden kârlı (8. yıl FAVÖK 65 bin TL); bozulma botun fiyat kapısı, erken İK/aile müdürü gideri ve nakit → boş raf sarmalından. Oyun tarafı: toptancı acil malı, mal parası uyarısı, İK müdürü eşiği 8 çalışan / 2 şube, haftalık grafik işaretli eksen. Gidiş yolu sürüm 2 (`Docs/Kurgu/06_GIDIS_YOLU.md`: durum, aşamalar, hedef eğriler, DLC). Codex C9 promptu.

@@ -1,5 +1,12 @@
 # Akış A — Codex
 
+## C9 — son teslim (02.10.2026)
+
+**02.10.2026 — Codex / C9:** Son bot kaynağı a80d925, akis-a. DERLE + TEST **153/153** (152 temiz + 1 HTTP uyarısı) + Smoke geçti; LateCarefulGrowth eşik değişmeden geçti, temkinli21 ilk şube399. 10 yıl×3 tarz×21/22/23 +30 yıl×3 tarz×21 =12 kampanya/65.751 gün; stok/defter farkı0, aynı ilk10 yıl birebir. İlk şube T399/459/489, D320/306/334, A187/180/180; üçüncü yıl T/D7, A21/21/22; on yıl T/D1, A139/72/83; 30 yıl kurtarma2/1/5, final üç tarz1 mağaza. **C9 hedef dengesi sağlanmadı**, Codex doğrulama/rapor tamamlandı. İlk dükkân defterine şube tadilat/işe alma gideri karışıyor; gerçek net için dağıtım düzeltmesi gerekir. Beş kontrollü öneri ve her hedef dışı satır `C9_cekirdek_denge_rapor.md`; `C9_veri/`. Menü32 PNG, boyut0 hata, kampanya değişmedi; işaretli grafik düzeldi, kampanya formu ve ilk gün yönetim/reklam kaldı. Kaynak akis-a'da; main'e birleştirilmedi. GitHub push otomatik onayda reddedildi; origin doğrulandı, gönderim için onay/yeniden inceleme bekliyor. Kurgu belgelerindeki mevcut değişiklikler ve bekleyen yamalar korunur.
+
+Küçük C düzeltmesi: [MarketStaffTests.cpp:241](../../../Source/MirasMarket/MarketStaffTests.cpp); test senaryosu onarımı, oyun kuralı değişmedi. [Hedef tablo ve öneriler](C9_cekirdek_denge_rapor.md), [doğrulama](C9_veri/dogrulama.json), [görseller](../../../Saved/Screenshots/Menu/C9_20261002/index.html). Kaynak dalı akis-a.
+
+
 **Son teslim — C3 doğrulaması (01.10.2026, main):** DERLE + TEST 126/126 + Smoke + BranchVisitReview geçti; 88/88 menü PNG'si gözle incelendi. 12 uzun kampanya / 65.751 gün / 0 stok-satış hatası / 0 defter farkı. Derleme/test düzeltmesi 0 (hiçbir dosyada gerekmedi). Dengeli 10/20/30: ulusal 32/32/33, dünya 20/20/20; denge hedefi karşılanmadı. Beş denge bulgusu C3_30_yil_rapor.md'de, üç ana menü isteği aşağıdaki C3 bölümünde. Bu işin açık doğrulama adımı kalmadı; ayar ve menü düzeltmeleri C'ye bırakıldı.
 
 Önceki A6 teslimi (01.10.2026): A1/A3/A4/A5/A6 hazır, DERLE + TEST 105/105 + Smoke geçti. A5 gerçek ağla 68/68 (örnek ağ yok). C teslimi, M27 ve bot push edildi; iki son uzun koşu 12 kampanya/65.751 gün/0 denetim hatası. Denge hedefi karşılanmadı: son dengeli 10/20/30. yılda ulusal 74/63/60, dünya 20/20/20. Raporlar ve C ayar önerileri aşağıda; kod sabitleri değiştirilmedi.

@@ -1,0 +1,306 @@
+{
+  "source": "a80d925",
+  "tests": {
+    "succeeded": 152,
+    "succeededWithWarnings": 1,
+    "failed": 0,
+    "notRun": 0,
+    "inProcess": 0
+  },
+  "days": 65751,
+  "campaigns": 12,
+  "folders": [
+    "C:\\Users\\mtass\\Desktop\\market-ll-A\\Saved\\AutoPlay\\20261002-092637",
+    "C:\\Users\\mtass\\Desktop\\market-ll-A\\Saved\\AutoPlay\\20261002-091934"
+  ],
+  "images": [
+    {
+      "phase": "start",
+      "file": "00_reports_week_dark_1280x720.png",
+      "size": [
+        1280,
+        720
+      ],
+      "sha256": "685c752fbe317e5da206a1230b4611977b201cfa723bfd24cd57da88ce12d02b"
+    },
+    {
+      "phase": "start",
+      "file": "00_reports_week_dark_1920x1080.png",
+      "size": [
+        1920,
+        1080
+      ],
+      "sha256": "666c4808320d30719f3b63f1953b583f1839d2c869f7d664c970b4cf0ab8ea0c"
+    },
+    {
+      "phase": "start",
+      "file": "00_reports_week_light_1280x720.png",
+      "size": [
+        1280,
+        720
+      ],
+      "sha256": "45f06a17f391ec39fad7d0df9cb19286dd8878bcec634edf49ead4f9d03ccb70"
+    },
+    {
+      "phase": "start",
+      "file": "00_reports_week_light_1920x1080.png",
+      "size": [
+        1920,
+        1080
+      ],
+      "sha256": "0a64589bfbcd95883a02ea3b46dfa20138453198ea13ed909aa19d75361e3e63"
+    },
+    {
+      "phase": "start",
+      "file": "01_promotions_dark_1280x720.png",
+      "size": [
+        1280,
+        720
+      ],
+      "sha256": "3b75558ac8eee18a8db29b9c3b5810a1314b705f0599f24c700e4dff635b4561"
+    },
+    {
+      "phase": "start",
+      "file": "01_promotions_dark_1920x1080.png",
+      "size": [
+        1920,
+        1080
+      ],
+      "sha256": "378fa84e72895364aadeecbf89208bc9a1823c2240b1136842f6cc9832c21994"
+    },
+    {
+      "phase": "start",
+      "file": "01_promotions_light_1280x720.png",
+      "size": [
+        1280,
+        720
+      ],
+      "sha256": "0a7d881d0c0a21deaab5173596b80f870d72a77f541ad147100c83cd4e00922e"
+    },
+    {
+      "phase": "start",
+      "file": "01_promotions_light_1920x1080.png",
+      "size": [
+        1920,
+        1080
+      ],
+      "sha256": "a688eba7f55ccba09787a3a3cdc51a99b04a1d685af7f0a81a6a3c7ad00665cb"
+    },
+    {
+      "phase": "start",
+      "file": "02_management_dark_1280x720.png",
+      "size": [
+        1280,
+        720
+      ],
+      "sha256": "64976fd1cc08c85a6fec4e1aecf3797c888d87d3d9868f36d347cdb93f4f4d7e"
+    },
+    {
+      "phase": "start",
+      "file": "02_management_dark_1920x1080.png",
+      "size": [
+        1920,
+        1080
+      ],
+      "sha256": "8cdedd011d9f18a4da97952bf7d8e84d3432cebcd8c5fed01cce059b80484ac9"
+    },
+    {
+      "phase": "start",
+      "file": "02_management_light_1280x720.png",
+      "size": [
+        1280,
+        720
+      ],
+      "sha256": "207188b3a9b3a3fe8bf8ad8176b1056e184b90f11c118599dfa35440548f903a"
+    },
+    {
+      "phase": "start",
+      "file": "02_management_light_1920x1080.png",
+      "size": [
+        1920,
+        1080
+      ],
+      "sha256": "43a4d245c7100870fdabfc76a99d70ed58fcfd792795a6eae3093a95ea337aa0"
+    },
+    {
+      "phase": "start",
+      "file": "03_company_advertising_dark_1280x720.png",
+      "size": [
+        1280,
+        720
+      ],
+      "sha256": "48e57f54f95809c0cab391010aaf6eacd23cfccf44c84c9600c43270fe2d26de"
+    },
+    {
+      "phase": "start",
+      "file": "03_company_advertising_dark_1920x1080.png",
+      "size": [
+        1920,
+        1080
+      ],
+      "sha256": "71f6df23c9c8c8ae93aad0d062ad677cfd75005728e031b1caf8df75fc738ffc"
+    },
+    {
+      "phase": "start",
+      "file": "03_company_advertising_light_1280x720.png",
+      "size": [
+        1280,
+        720
+      ],
+      "sha256": "1d945379761d8dc3fc63ebcb26c2d270dc71e1c7eb3e218634cf0ae61dac0f29"
+    },
+    {
+      "phase": "start",
+      "file": "03_company_advertising_light_1920x1080.png",
+      "size": [
+        1920,
+        1080
+      ],
+      "sha256": "d5df62db1e142ad67fc442b19d349f744d98c5db3a4173f43153c2f7a49b7889"
+    },
+    {
+      "phase": "signed_week",
+      "file": "00_reports_week_dark_1280x720.png",
+      "size": [
+        1280,
+        720
+      ],
+      "sha256": "5f4032026fe304d9774d6cda436c2ee4a554fe05c0d78e2c5b72de2a6ec7553d"
+    },
+    {
+      "phase": "signed_week",
+      "file": "00_reports_week_dark_1920x1080.png",
+      "size": [
+        1920,
+        1080
+      ],
+      "sha256": "2f40e91f6007a6cd29ebfbed504e8a5a10b7339073d50515e9cb999fd80a0803"
+    },
+    {
+      "phase": "signed_week",
+      "file": "00_reports_week_light_1280x720.png",
+      "size": [
+        1280,
+        720
+      ],
+      "sha256": "b67d3e92a62714e694a19ca258228c1cb61012ce846a3d7e7a3e3e270032ddef"
+    },
+    {
+      "phase": "signed_week",
+      "file": "00_reports_week_light_1920x1080.png",
+      "size": [
+        1920,
+        1080
+      ],
+      "sha256": "ef1456a45b9cc848694707248342939fa8bcffdc96b3353debd34d9b3b24d02f"
+    },
+    {
+      "phase": "signed_week",
+      "file": "01_promotions_dark_1280x720.png",
+      "size": [
+        1280,
+        720
+      ],
+      "sha256": "c1ba9b56b61a9a0f316acc50469c51acd2276367ac1285e7c9fe4fff8495970d"
+    },
+    {
+      "phase": "signed_week",
+      "file": "01_promotions_dark_1920x1080.png",
+      "size": [
+        1920,
+        1080
+      ],
+      "sha256": "a4ea5baf9ed2aa6b72ae1615b6a618a73e7afb0728180b98add2d06ba0cca869"
+    },
+    {
+      "phase": "signed_week",
+      "file": "01_promotions_light_1280x720.png",
+      "size": [
+        1280,
+        720
+      ],
+      "sha256": "2e0dff5204cca3e10b956f7d0f9a0b9e6698b2b9b2279f22d72da981f6316e29"
+    },
+    {
+      "phase": "signed_week",
+      "file": "01_promotions_light_1920x1080.png",
+      "size": [
+        1920,
+        1080
+      ],
+      "sha256": "7ed558d57fe2b9d9185d2ff332621bef2d14b5d64aa1b46bd9ba394a0fa78926"
+    },
+    {
+      "phase": "signed_week",
+      "file": "02_management_dark_1280x720.png",
+      "size": [
+        1280,
+        720
+      ],
+      "sha256": "28d08cabc106f8ec32d850cdd0ea445378f97b934f1c825ef24b47a6d6641b93"
+    },
+    {
+      "phase": "signed_week",
+      "file": "02_management_dark_1920x1080.png",
+      "size": [
+        1920,
+        1080
+      ],
+      "sha256": "c87649b2aacfb8d31ef5ca737a74986385f1d4f3d921ce05e309e049f9ffe6cc"
+    },
+    {
+      "phase": "signed_week",
+      "file": "02_management_light_1280x720.png",
+      "size": [
+        1280,
+        720
+      ],
+      "sha256": "b3fdca77d75834afcd6deecb0bd182188c7340cbbc972c3d4a622c51dec79017"
+    },
+    {
+      "phase": "signed_week",
+      "file": "02_management_light_1920x1080.png",
+      "size": [
+        1920,
+        1080
+      ],
+      "sha256": "c3852f9a90ea13fffe77f4c6887a79f5515298eaed8940b5d3978e863fa301c3"
+    },
+    {
+      "phase": "signed_week",
+      "file": "03_company_advertising_dark_1280x720.png",
+      "size": [
+        1280,
+        720
+      ],
+      "sha256": "4680789e255b5388b40136999a1ba6b8bafa2bdea7fe0769f2d45b4937c304dd"
+    },
+    {
+      "phase": "signed_week",
+      "file": "03_company_advertising_dark_1920x1080.png",
+      "size": [
+        1920,
+        1080
+      ],
+      "sha256": "ecf691ad2410eb11abbf3c63dbe24a4f89802e070f00ee8329001d4529d109a5"
+    },
+    {
+      "phase": "signed_week",
+      "file": "03_company_advertising_light_1280x720.png",
+      "size": [
+        1280,
+        720
+      ],
+      "sha256": "4dfe8f5f559ab36a089cf62e4ccfad53c75d863773d89e89b22b6eba3d4ba098"
+    },
+    {
+      "phase": "signed_week",
+      "file": "03_company_advertising_light_1920x1080.png",
+      "size": [
+        1920,
+        1080
+      ],
+      "sha256": "ab537d72bb838586e5718da17a7c8a3e59ce6294347dc4e6f7574729deec8fe2"
+    }
+  ]
+}

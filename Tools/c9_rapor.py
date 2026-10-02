@@ -38,13 +38,16 @@ def main():
             first=next((int(r['gun']) for r in days if int(r['magaza'])>=2),None)
             snaps={int(r['gun']):r for r in days}
             annual=years[key];profit=[int(r['aile_favok_kurus'])-int(r['aile_mudur_gunluk_maliyet_kurus']) for r in annual]
+            core=[int(r['brut_kar_kurus'])-sum(int(r[k]) for k in ('ucret_kurus','sgk_kurus','kira_kurus','isletme_kurus','aile_mudur_gunluk_maliyet_kurus')) for r in annual]
+            real_core=[v/float(r['liste_duzeyi']) for v,r in zip(core,annual)]
             plans=len(rescues[key]);c=audit[key][0]
             assert int(c['fark_gun'])==int(c['fark_kurus'])==int(c['mutlak_fark_kurus'])==0
             row={'tarz':style,'tohum':seed,'yil':horizon,'ilk_sube_gunu':first,'magaza_3':int(snaps[year_day(3)]['magaza']),
                  'magaza_10':int(snaps[year_day(10)]['magaza']),'sira_10':int(snaps[year_day(10)]['ulusal_sira']),
                  'sira_20':int(snaps[year_day(20)]['ulusal_sira']) if horizon==30 else None,
                  'kurtarma':plans,'sikici_donem':int(c['sikici_donem']),'en_uzun_sessizlik':int(c['en_uzun_sessizlik']),
-                 'ilk_dukkan_faaliyet_kari_kurus':profit,'kar_egrisi_buyuyor':all(b>=a for a,b in zip(profit,profit[1:]))}
+                 'ilk_dukkan_faaliyet_kari_kurus':profit,'cekirdek_ust_sinir_kurus':core,
+                 'reel_cekirdek_ust_sinir_kurus':real_core,'kar_egrisi_buyuyor':real_core[-1]>=real_core[0] and core[-1]>0}
             curves.append(row)
             extra={'tarz':style,'tohum':seed,'yil':horizon,'acil_mal':sum(r['tur']=='lifeline' for r in events[key]),
                    'mal_parasi_uyari':sum(r['tur']=='goods_warning' for r in events[key]),
@@ -72,11 +75,13 @@ def main():
         rank=f"{r['sira_10']} {mark(0<r['sira_10']<=(20 if care else 10))}" if care or balanced else str(r['sira_10'])
         rank20=f"{r['sira_20']} {mark(0<r['sira_20']<=3)}" if balanced and r['sira_20'] else str(r['sira_20'] or '—')
         rescue=f"{r['kurtarma']} {mark(r['kurtarma']<=(5 if style=='Atak' else 1))}" if r['yil']==30 else f"{r['kurtarma']} (10 yıl)"
-        text.append(f"| {style} / {r['tohum']} / {r['yil']} yıl | {firstcell} | {third} | {stores} | {rank} | {rank20} | {rescue} | {mark(r['kar_egrisi_buyuyor'])} | {r['sikici_donem']} {mark(r['sikici_donem']==0)} |")
-    text+=['','İlk şube takvim hedeflerinin gün karşılığı yaklaşık 4–8 ay = 120–244, 8–14 ay = 240–426. Üçüncü yıl 10 mağaza alt sınır kabul edildi. Kâr eğrisi ölçütü her tam yılda önceki yıldan düşük olmama; enflasyonla reel büyüme iddiası yok. Şube sayısı açık şubeler + ilk mağaza; kapanmış kayıtlar sayılmaz.', '', '## İlk dükkânın yıllık faaliyet kârı', '',
-           'Aile dükkânının defter FAVÖK’ünden aile müdürünün toplam işveren maliyeti düşüldü. Patron gideri merkezde; patron sonrası ayrı sütun ham yıllık CSV’de. Sütun sırası oyun yılıdır.', '']
+        text.append(f"| {style} / {r['tohum']} / {r['yil']} yıl | {firstcell} | {third} | {stores} | {rank} | {rank20} | {rescue} | {mark(r['kar_egrisi_buyuyor'])}* | {r['sikici_donem']} {mark(r['sikici_donem']==0)} |")
+    text+=['','İlk şube takvim hedeflerinin gün karşılığı yaklaşık 4–8 ay = 120–244, 8–14 ay = 240–426. Üçüncü yıl 10 mağaza alt sınır kabul edildi. Şube sayısı açık şubeler + ilk mağaza; kapanmış kayıtlar sayılmaz.',
+           '', '* Kâr kıyası, aşağıdaki mağaza çekirdeği üst sınırının son yılda enflasyondan arındırılmış ilk yıl düzeyini koruyup korumadığıdır. Yılın ortalama katalog liste düzeyi kullanıldı; bütün yılların monoton artması şart koşulmadı. Ağ giderleri ilk dükkân defterine karıştığı için gerçek ilk mağaza neti ayrıca doğrulanamıyor. ✓ varsa dahi gider dağıtımı düzeltilmeden hedef tamamlanmış sayılmaz.', '', '## İlk dükkânın yıllık faaliyet kârı', '',
+           'Birinci dizi aile dükkânı defter FAVÖK’ü − aile müdürünün toplam işveren maliyeti. İkinci dizi brüt kâr − personel/SGK/kira/işletme/aile müdürü; ayrıştırılamayan diğer giderleri içermediği için üst sınırdır. Brüt kâr zaten fire ve stok kaybını içerir. Patron gideri merkezde; patron sonrası ayrı sütun ham yıllık CSV’de. Sütun sırası oyun yılıdır.', '']
     for r in curves:
-        text.append(f"- {r['tarz']} / {r['tohum']} / {r['yil']} yıl: "+' → '.join(f'{v/100:,.2f}' for v in r['ilk_dukkan_faaliyet_kari_kurus'])+' TL.')
+        text.append(f"- {r['tarz']} / {r['tohum']} / {r['yil']} yıl, defter: "+' → '.join(f'{v/100:,.2f}' for v in r['ilk_dukkan_faaliyet_kari_kurus'])+' TL.')
+        text.append('  Mağaza çekirdeği üst sınırı: '+' → '.join(f'{v/100:,.2f}' for v in r['cekirdek_ust_sinir_kurus'])+' TL.')
     text+=['','## Mal ve patron','', '| Tarz / tohum / süre | Acil mal | Boş raf ayı | Mal parası uyarısı | Net maaş TL | Net kâr payı TL | Son servet TL |', '|---|---:|---:|---:|---:|---:|---:|']
     for r in extras:text.append(f"| {r['tarz']} / {r['tohum']} / {r['yil']} | {r['acil_mal']} | {r['bos_raf_ayi']} | {r['mal_parasi_uyari']} | {r['patron_net_maas_kurus']/100:,.2f} | {r['patron_net_kar_payi_kurus']/100:,.2f} | {r['son_servet_kurus']/100:,.2f} |")
     text+=['','Boş raf ayı, en az bir karşılanamayan ürün isteği bulunan takvim ayıdır; bütün ay rafların boş olduğu anlamına gelmez. İlk/son takvim ayı kısmidir. Toptancı acil malı ve uyarı ilgili gün alanının değişmesinden sayılır, haber metninden tahmin edilmez. Aynı tohumun 10 yıllık koşusu 30 yılın tekrarlanan önekidir; toplamları bağımsız olay gibi toplamayın. Servet yaşam giderlerinden sonraki bakiye, maaşların toplamı değildir.', '', '## Doğrulama ve öneriler', '', 'DERLE/TEST/Smoke, kaynak satırları ve menü görsel incelemesi teslim notunda tamamlanır. Oyun sabitleri değişmedi.']
