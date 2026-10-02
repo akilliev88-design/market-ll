@@ -15,12 +15,19 @@ namespace MarketAutoPlayFinance
         int64 Debt=0, Ebitda=0, Interest=0, Line=0, Limit=0;
         float Leverage=0;
     };
+    struct FMatureMonth
+    {
+        int32 Day=0, Count=0;
+        int64 Profit=0;
+        double ListLevel=1;
+    };
     struct FStats
     {
         TMap<int32,FBranchResult> Branches;
         TMap<int32,int32> RedMonths;
         TMap<FString,int32> Commands, Attempts;
         TArray<FBankYear> Years;
+        TArray<FMatureMonth> MatureMonths;
         TArray<int32> RescueDays;
         TSet<FString> Exits, Gates;
         int32 ObservedDay=0, LastTurn=0, LastRatingDay=0, BreachMonths=0;
@@ -36,6 +43,7 @@ namespace MarketAutoPlayFinance
     void Observe(const FMarketState& State,int32 Year,FStats& Stats);
     FString Report(const FStats& Stats);
     FString BranchCsv(const FStats& Stats,const FString& Style,int32 Seed);
+    FString MatureCsv(const FStats& Stats,const FString& Style,int32 Seed);
     FString BankCsv(const FStats& Stats,const FString& Style,int32 Seed);
     FString SummaryCsv(const FStats& Stats,const FString& Style,int32 Seed);
 }

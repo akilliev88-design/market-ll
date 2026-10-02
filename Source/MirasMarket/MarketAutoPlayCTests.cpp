@@ -93,7 +93,7 @@ bool FMarketAutoPlayGrowingStyles::RunTest(const FString& Parameters)
 {
     TArray<FMarketProduct> Products;TArray<int32> Capacities;TArray<FString> Errors;
     if(!MarketAutoPlay::LoadInputs(Products,Capacities,Errors))return false;
-    MarketAutoPlay::FOptions Options;Options.Days=600;Options.Seeds=1;
+    MarketAutoPlay::FOptions Options;Options.Days=426;Options.Seeds=1;
     const auto Report=MarketAutoPlay::Run(Options,Products,Capacities);
     if(!TestEqual(TEXT("Three real styles"),Report.Runs.Num(),3))return false;
     for(const auto& Run:Report.Runs)
@@ -105,7 +105,7 @@ bool FMarketAutoPlayGrowingStyles::RunTest(const FString& Parameters)
     const int32* Balanced=Report.Runs[1].Milestones.Find(TEXT("Ilk sube"));
     TestNotNull(TEXT("Careful eventually opens a real branch"),Careful);
     TestNotNull(TEXT("Balanced opens a real branch"),Balanced);
-    if(Careful && Balanced){TestTrue(TEXT("Careful waits a year and opens later"),*Careful>365 && *Careful>*Balanced);}
+    if(Careful && Balanced){TestTrue(TEXT("M39: Careful opens within months eight to fourteen"),*Careful>=240 && *Careful<=426);TestTrue(TEXT("Careful expands after Balanced"),*Careful>*Balanced);}
     return true;
 }
 IMPLEMENT_SIMPLE_AUTOMATION_TEST(FMarketAutoPlayC3Metrics,"MirasMarket.AutoPlay.C3Metrics",EAutomationTestFlags::EditorContext|EAutomationTestFlags::EngineFilter)

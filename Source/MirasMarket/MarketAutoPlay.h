@@ -26,6 +26,9 @@ namespace MarketAutoPlay
         int32 GrowthPriceAt = 90, SuperAt = 6, HyperAt = 20;
     };
     const TArray<FProfile>& Profiles();
+    TArray<FProfile> TunedProfiles();
+    bool ConfigureTuning(const FString& List, FString& Error);
+    bool ConfigureTuningParams(const FString& Params, FString& Error);
     int64 PriceTarget(const FMarketState& State, const TArray<FMarketProduct>& Products, int32 Index, const FProfile& Profile);
     struct FOptions
     {
@@ -74,6 +77,7 @@ namespace MarketAutoPlay
         TArray<FRun> Runs;
         TArray<FMarketState> FinalStates;
         double Seconds = 0;
+        FString Tuning;
         TArray<FString> Errors;
     };
     // Pure campaign runner; never writes player saves, creates actors or grants money/stock.
