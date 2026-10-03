@@ -899,7 +899,7 @@ struct FMarketState
     static constexpr int64 StockerDailyWage = 2000;
 
     // Save format version. 2 (G-076): story finale flags, test-mode mark. Older saves load and are migrated.
-    static constexpr int32 CurrentVersion = 14; // E3c2c: branch staff are people; // M64: the father's favour is counted; // E3c2 (M27): branch goods use the family shop's record, the v0.1 staff flags are gone; older saves start a new game
+    static constexpr int32 CurrentVersion = 15; // E4: the exchange difference account; // E3c2c: branch staff are people; // M64: the father's favour is counted; // E3c2 (M27): branch goods use the family shop's record, the v0.1 staff flags are gone; older saves start a new game
     UPROPERTY() int32 Version = CurrentVersion;
     UPROPERTY() int32 Day = 1;
     UPROPERTY() int64 Cash = 35000;

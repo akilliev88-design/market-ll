@@ -89,6 +89,29 @@ namespace MarketBranches
 
     FSite SiteOf(const FMarketState& State, const FString& Country, const FString& Province);
     FSite SiteOf(const FMarketState& State, const FMarketBranch& Branch);
+
+    // E4 (M51, Docs/Kurgu/11_TEK_EKONOMI.md): the money of a store in Country on Day. A store abroad works in its
+    // own country's money: its prices, goods, rent and small costs follow that country's list level (Goods, against
+    // the campaign's own), its wages that country's wage index (Wages), and every amount reaches the till in the
+    // campaign's money at today's exchange rate (Fx, MarketPrices::ToHome, 1 on day 1). At home all three are 1.
+    struct FMoney
+    {
+        double Goods = 1.0;
+        double Wages = 1.0;
+        double Fx = 1.0;
+        bool bForeign = false;
+    };
+    FMoney MoneyOf(const FMarketState& State, const FString& Country, int32 Day);
+    // An amount computed with the campaign's own levels (a home price, cost or wage), earned or paid by such a store,
+    // in the campaign's money: x Goods (bWages: x Wages) x Fx. Unchanged at home.
+    int64 InHome(const FMoney& Money, int64 HomeLevelAmount, bool bWages = false);
+    // The exchange difference of LocalAssets (local units) when the rate moves from FxBefore to FxAfter.
+    int64 FxDifference(int64 LocalAssets, double FxBefore, double FxAfter);
+    // A branch's assets abroad in its local money on Day (its goods at today's local cost and its deposit, which was
+    // paid at the opening's rate); 0 at home.
+    int64 LocalAssets(const FMarketState& State, const FMarketBranch& Branch, const TArray<FMarketProduct>& Products, int32 Day);
+    // A branch's deposit in the campaign's money on Day (abroad it moves with the rate).
+    int64 DepositInHome(const FMarketState& State, const FMarketBranch& Branch, int32 Day);
     // C12 (M42): the company's first branch (a neighbourhood shop in the home province) and a fit-out's price today
     // (x the store's size factor, x the difficulty, the first branch's discount).
     bool IsFirstBranch(const FMarketState& State, const FSite& Site, const FFormat& Kind);

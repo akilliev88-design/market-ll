@@ -1,3 +1,32 @@
+## 03.10.2026 — Claude Code — E4a: yabancı mağazanın parası (derlenmedi)
+
+**Yapılan:**
+- `MarketBranches`: `FMoney`, `MoneyOf(State, ülke, gün)`, `InHome(para, tutar, ücret mi)`, `FxDifference(yerel varlık, eski kur, yeni kur)`, `LocalAssets` (mal × bugünkü yerel maliyet + açılış kurundan depozito), `DepositInHome`.
+- Şube günü (yurt dışı):
+  - satış, satılan mal, fire ürün döngüsünden sonra `InHome`; depo kaybı da öyle; lojistik çevrilmiş maliyetten;
+  - kira = açılıştaki kira × ülkenin liste düzeyi artışı × kur(bugün)/kur(açılış);
+  - ücret = (kadro + müdür) × ücret oranı × kur; küçük gider × Goods × kur;
+  - açılış stoğu ve müdürün siparişi `InHome` (bütçe bölmesi de);
+  - gün sonunda kur farkı nakitsiz `FxDifference` kaydı (mağaza = şube) ve `State.LastProfit` (şubenin `LastProfit`'ine değil).
+- `MarketLedger`: yeni `EAccount::FxDifference` ("Kur farkı", gelir tablosunda, `SourcingFees`'ten sonra). `Balance` yurt dışı depozito ve şube malını günün kuruyla gösteriyor.
+- Kayıt sürümü 15 (hesap sırası kaydı değişti, M27).
+
+**Test:** yeni `MirasMarket.Branches.ForeignMoney`:
+- yurt içinde çarpanlar tam 1, tutar aynı;
+- kur fiyat farkını izlerken aynı kâr;
+- kur %20 kayınca %20 az;
+- kur farkı kaybı ve kazancı;
+- gerçek bir yabancı pakette ilk gün kur 1, ileride makul;
+- açılış günü depozito ve yerel varlık.
+
+Test.ps1 alt sınırı 166.
+
+**Bilinen eksik:** yurt dışı şubenin reyonları (`MarketDepartments`) ve online satışı hâlâ ana para düzeyinde. Kredi ülkesi E4b'de.
+
+**Doğrulama:** Derlenmedi.
+
+**Sıradaki:** Mustafa CLAUDE_KOS.cmd; sonra E4b.
+
 ## 03.10.2026 — Claude Code — E3 bitti
 
 **son.log (986e2d5):** DERLE geçti; TEST 164 başarılı + 1 uyarılı, başarısız 0 (alt sınır 165); Smoke geçti. E3c2c bitti, böylece E3 tamam.

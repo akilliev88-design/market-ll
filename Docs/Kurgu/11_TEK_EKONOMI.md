@@ -111,6 +111,10 @@
 
 ### Faz E4 — Yabancı mağazanın parası
 
+> **Durum (Claude Code, 03.10.2026):** iki tura bölündü.
+> - **E4a — mağazanın parası (yazıldı, derlenmedi):** `MarketBranches::FMoney/MoneyOf` (Goods = ülkenin liste düzeyi / bizimki, Wages = ücret endeksi oranı, Fx = `ToHome`); `InHome` şubenin satış, mal, fire, depo kaybı, ücret, küçük gider, açılış stoğu ve müdür siparişini ana paraya çevirir; kira ülkenin liste düzeyiyle artar ve günün kuruyla ödenir; depozito açılış kurundan yerel parada durur (`DepositInHome`). Kur farkı `LocalAssets × (Fx bugün − Fx dün)` her gün `EAccount::FxDifference` (yeni, nakitsiz) satırına ve şirketin kârına yazılır; bilanço yurt dışı mal ve depozitoyu günün kuruyla gösterir. Yurt içinde her şey aynı (çarpanlar 1, yuvarlama yok). Kayıt sürümü 15. Reyonlar ve online yurt dışında henüz ana para düzeyinde.
+> - **E4b — ülkenin bankası (sırada):** madde 4.
+
 1. Mağaza günü kendi ülkesinin `ListLevel/WageIndex`'iyle hesaplanır (ürün fiyatı = katalog başlangıç fiyatı × ülkenin liste düzeyi × ülkenin fiyat/gelir çarpanı).
 2. Günün bütün para hareketleri (satış, mal, ücret, kira, gider) `ToHome` ile ana paraya çevrilip kasaya ve deftere yazılır.
 3. Kur farkı: mağazanın stok değeri ve depozitosu yerel parada tutulur; ay sonunda ana paraya yeniden değerlenir, fark `MarketLedger::EAccount::FxDifference` (yeni) satırına gider.

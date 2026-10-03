@@ -185,6 +185,49 @@ MarketBranches::FSite MarketBranches::SiteOf(const FMarketState& State, const FS
     return Site;
 }
 
+MarketBranches::FMoney MarketBranches::MoneyOf(const FMarketState& State, const FString& Country, int32 Day)
+{
+    FMoney Money;
+    if (Country.IsEmpty() || Country == State.CountryId) return Money;
+    const int32 D = FMath::Max(1, Day);
+    Money.bForeign = true;
+    Money.Goods = MarketPrices::ListLevel(Country, D) / FMath::Max(1e-9, MarketPrices::ListLevel(D));
+    Money.Wages = MarketPrices::WageIndex(Country, D) / FMath::Max(1e-9, MarketPrices::WageIndex(D));
+    Money.Fx = MarketPrices::ToHome(State, Country, D);
+    return Money;
+}
+
+int64 MarketBranches::InHome(const FMoney& Money, int64 HomeLevelAmount, bool bWages)
+{
+    if (!Money.bForeign) return HomeLevelAmount;
+    return FMath::RoundToInt64(static_cast<double>(HomeLevelAmount) * (bWages ? Money.Wages : Money.Goods) * Money.Fx);
+}
+
+int64 MarketBranches::FxDifference(int64 LocalAssets, double FxBefore, double FxAfter)
+{
+    return FMath::RoundToInt64(static_cast<double>(LocalAssets) * (FxAfter - FxBefore));
+}
+
+int64 MarketBranches::LocalAssets(const FMarketState& State, const FMarketBranch& Branch, const TArray<FMarketProduct>& Products, int32 Day)
+{
+    const FMoney Money = MoneyOf(State, CountryOf(State, Branch), Day);
+    if (!Money.bForeign || Branch.Stage == static_cast<uint8>(EStage::Closed)) return 0;
+    int64 Goods = 0;
+    for (const FMarketStock& Item : Branch.Items)
+        if (const FMarketProduct* P = Products.FindByPredicate([&Item](const FMarketProduct& X) { return X.Id == Item.Id; }))
+            Goods += static_cast<int64>(FMath::Max(0, Item.Shelf + Item.Incoming)) * P->Cost;
+    const double OpenFx = MoneyOf(State, CountryOf(State, Branch), FMath::Max(1, Branch.OpenedDay)).Fx;
+    return FMath::RoundToInt64(static_cast<double>(Goods) * Money.Goods + 2.0 * static_cast<double>(Branch.Rent) / FMath::Max(1e-9, OpenFx));
+}
+
+int64 MarketBranches::DepositInHome(const FMarketState& State, const FMarketBranch& Branch, int32 Day)
+{
+    const FMoney Now = MoneyOf(State, CountryOf(State, Branch), Day);
+    if (!Now.bForeign) return 2 * Branch.Rent;
+    const double OpenFx = MoneyOf(State, CountryOf(State, Branch), FMath::Max(1, Branch.OpenedDay)).Fx;
+    return FMath::RoundToInt64(2.0 * static_cast<double>(Branch.Rent) * Now.Fx / FMath::Max(1e-9, OpenFx));
+}
+
 MarketBranches::FSite MarketBranches::SiteOf(const FMarketState& State, const FMarketBranch& Branch)
 {
     return SiteOf(State, CountryOf(State, Branch), Branch.Province.IsEmpty() ? MarketStart::HomeProvince(State) : Branch.Province);
@@ -592,7 +635,7 @@ void MarketBranches::CloseDay(FMarketState& State, const TArray<FMarketProduct>&
         }
         if (Stage == EStage::Hiring)
         {
-            const int64 Bill = StockCost(B, Products);
+            const int64 Bill = InHome(MoneyOf(State, Where.Country, Closed), StockCost(B, Products)); // E4: bought in the country's money
             State.Cash -= Bill;
             State.Purchases += Bill;
             MarketLedger::Post(State, MarketLedger::EAccount::Purchases, -Bill, true, Index); // C3: bought during the close
@@ -624,7 +667,7 @@ void MarketBranches::CloseDay(FMarketState& State, const TArray<FMarketProduct>&
                 SkimCost += Products[I].Cost * Taken;
             }
             MarketDepots::RecordLoss(State, Link.Depot, ShortCost, SkimCost);
-            DepotLoss = ShortCost + SkimCost;
+            DepotLoss = InHome(MoneyOf(State, Where.Country, Closed), ShortCost + SkimCost); // E4: local goods abroad
         }
         for (FMarketStock& Item : B.Items) { Item.Shelf += Item.Incoming; Item.Received += Item.Incoming; Item.Incoming = 0; } // E3c2: arrivals form tomorrow's batches
         // G-086b: what the manager brings today (effective skill, style, honesty, the hierarchy above).
@@ -718,6 +761,12 @@ void MarketBranches::CloseDay(FMarketState& State, const TArray<FMarketProduct>&
             DayDonated += FMath::Min(Removed, Fresh.Donated);
         }
         B.Batches.RemoveAll([](const FMarketBatch& Batch) { return Batch.Units <= 0; });
+        // E4 (M51): abroad the day was in the country's money (its list level, its wages), and reaches the till at
+        // today's rate. The shelf prices above are home-level labels; only the money is converted.
+        const FMoney Money = MoneyOf(State, Where.Country, Closed);
+        Revenue = InHome(Money, Revenue);
+        Cogs = InHome(Money, Cogs);
+        WasteCost = InHome(Money, WasteCost);
         if (DayDonated > 0) B.Satisfaction = FMath::Min(100.f, B.Satisfaction + FMath::Min(2.f, DayDonated * 0.1f)); // the district notices
         // Logistics and buying power of the company (G-086: depots per sub-region, trucks, central buying, own
         // brand, a new country's first months).
@@ -725,10 +774,14 @@ void MarketBranches::CloseDay(FMarketState& State, const TArray<FMarketProduct>&
         const int64 Logistics = FMath::RoundToInt64(Cogs * (MarketCompany::CostFactor(State, B, Link) - 1.f));
         // A dishonest manager keeps a little of the till.
         const int64 Skim = Revenue * Rule.SkimPermille / 1000;
-        const int64 RentDay = FMath::RoundToInt64(B.Rent * MarketPrices::ListLevel(State.Day) / MarketPrices::ListLevel(FMath::Max(1, B.OpenedDay)) / 30.0);
-        const int64 WagesDay = MarketStaff::BranchWages(B) + B.ManagerWage; // E3c2c: every person's own wage
+        // E4: abroad the rent follows the country's list level from the opening and is paid at today's rate.
+        const int64 RentDay = !Money.bForeign
+            ? FMath::RoundToInt64(B.Rent * MarketPrices::ListLevel(State.Day) / MarketPrices::ListLevel(FMath::Max(1, B.OpenedDay)) / 30.0)
+            : FMath::RoundToInt64(B.Rent * MarketPrices::ListLevel(Where.Country, State.Day) / MarketPrices::ListLevel(Where.Country, FMath::Max(1, B.OpenedDay))
+                * Money.Fx / FMath::Max(1e-9, MoneyOf(State, Where.Country, FMath::Max(1, B.OpenedDay)).Fx) / 30.0);
+        const int64 WagesDay = InHome(Money, MarketStaff::BranchWages(B) + B.ManagerWage, true); // E3c2c: every person's own wage; E4: the country's wages
         const int64 SocialDay = MarketStaff::EmployerShare(WagesDay); // C3 (B3): the employer's social security share
-        const int64 RunningDay = FMath::RoundToInt64(1500 * Level * Kind.Running);
+        const int64 RunningDay = InHome(Money, FMath::RoundToInt64(1500 * Level * Kind.Running));
         const int64 Opex = RentDay + WagesDay + SocialDay + RunningDay;
         // M26: the branch's departments (they book their own lines; their goods are bought and paid the same day).
         const MarketDepartments::FDay Dept = MarketDepartments::Day(State, Index, Shoppers, Where.Income, Closed);
@@ -755,6 +808,14 @@ void MarketBranches::CloseDay(FMarketState& State, const TArray<FMarketProduct>&
         }
         State.LastBranchProfit += Profit;
         State.LastProfit += Profit;
+        // E4: the exchange difference of the day on the store's goods and deposit abroad (no cash; the company's
+        // result, not the store's operating one).
+        if (Money.bForeign && Closed > 1)
+        {
+            const int64 Fx = FxDifference(LocalAssets(State, B, Products, Closed), MoneyOf(State, Where.Country, Closed - 1).Fx, Money.Fx);
+            MarketLedger::Post(State, MarketLedger::EAccount::FxDifference, Fx, false, Index);
+            State.LastProfit += Fx;
+        }
         // Branch sales carry VAT like the family shop's (their purchases already count in State.Purchases).
         State.Books.PeriodSales += Revenue + Dept.Revenue;
         B.LastRevenue = Revenue + Dept.Revenue;
@@ -789,10 +850,11 @@ void MarketBranches::CloseDay(FMarketState& State, const TArray<FMarketProduct>&
             const int32 Target = FMath::RoundToInt32(Rule.OrderFactor * FMath::Min(Item->Capacity * StockRoom, FMath::Max(static_cast<float>(Item->Capacity), Expected * 1.2f)));
             int32 Order = FMath::Max(0, Target - Item->Shelf);
             if (bTight) Order /= 2;
-            if (Products[I].Cost > 0) Order = static_cast<int32>(FMath::Min<int64>(Order, FMath::Max<int64>(0, Budget - Bill) / Products[I].Cost));
+            const int64 CostHere = InHome(Money, Products[I].Cost); // E4: bought in the country's money abroad
+            if (CostHere > 0) Order = static_cast<int32>(FMath::Min<int64>(Order, FMath::Max<int64>(0, Budget - Bill) / CostHere));
             Order = FMath::Max(0, Order);
             Item->Incoming = Order;
-            Bill += Products[I].Cost * Order;
+            Bill += CostHere * Order;
             MarketSourcing::RecordPurchase(State, Products[I].Category, Products[I].Cost * Order); // G-083: the line's monthly minimum
         }
         State.Cash -= Bill;

@@ -95,6 +95,7 @@ FString MarketLedger::AccountName(EAccount Account)
     case EAccount::DepartmentWaste: return TEXT("Reyon firesi");
     case EAccount::DepartmentMaster: return TEXT("Reyon ustas\u0131 de\u011fi\u015fimi");
     case EAccount::SourcingFees: return TEXT("Tedarik \u00fccretleri");
+    case EAccount::FxDifference: return TEXT("Kur fark\u0131");
     case EAccount::DepartmentPurchases: return TEXT("Reyon mal al\u0131m\u0131");
     case EAccount::DepartmentFitOut: return TEXT("Reyon tadilat\u0131");
     case EAccount::ChainPurchase: return TEXT("Zincir sat\u0131n alma");
@@ -313,11 +314,13 @@ MarketLedger::FBalance MarketLedger::Balance(const FMarketState& State, const TA
     for (const FMarketBranch& Branch : State.Branches)
     {
         if (Branch.Stage == static_cast<uint8>(MarketBranches::EStage::Closed)) continue;
-        B.Deposits += 2 * Branch.Rent;
+        // E4: a store abroad holds its deposit and goods in its own money, worth today's rate.
+        B.Deposits += MarketBranches::DepositInHome(State, Branch, State.Day);
+        const MarketBranches::FMoney Money = MarketBranches::MoneyOf(State, MarketBranches::CountryOf(State, Branch), State.Day);
         for (const FMarketStock& Item : Branch.Items)
         {
             const FMarketProduct* P = Products.FindByPredicate([&Item](const FMarketProduct& X) { return X.Id == Item.Id; });
-            if (P) B.BranchStock += static_cast<int64>(FMath::Max(0, Item.Shelf + Item.Incoming)) * P->Cost;
+            if (P) B.BranchStock += MarketBranches::InHome(Money, static_cast<int64>(FMath::Max(0, Item.Shelf + Item.Incoming)) * P->Cost);
         }
     }
     B.DepartmentStock = MarketDepartments::StockValue(State); // C3 (M26)

@@ -133,6 +133,7 @@ namespace MarketLedger
         DepartmentWaste,  // department goods spoiled, broken or written off (no cash)
         DepartmentMaster, // changing a department's master (notice, transfer, the new one's fee)
         SourcingFees,     // supply line fees and the shortfall of a minimum purchase
+        FxDifference,     // E4: the exchange difference on stores' assets abroad (no cash; + gain, - loss)
         // Balance sheet movements (cash, no profit)
         Purchases,        // goods bought for cash (they become stock)
         SupplierCredit,   // bought on terms (+) and paid later (-)

@@ -1,8 +1,18 @@
 # Güncel durum
 
-Son güncelleme: 03.10.2026 — Claude Code, akis-cc2: E3 bitti (986e2d5 derlendi, testler ve Smoke geçti); sıradaki E4
+Son güncelleme: 03.10.2026 — Claude Code, akis-cc2: E4a (yabancı mağazanın parası) yazıldı, derlenmedi
 
 ## Kısaca
+
+**03.10.2026 — Claude Code / E4a (derlenmedi, `akis-cc2`):** Yurt dışı şube kendi ülkesinin parasıyla çalışıyor.
+- `MarketBranches::MoneyOf` üç çarpan veriyor: Goods (ülkenin liste düzeyi / bizimki), Wages (ücret endeksi oranı), Fx (`MarketPrices::ToHome`).
+- `InHome` şunları ana paraya çeviriyor: satış, satılan mal, fire, depo kaybı, ücret, küçük giderler, açılış stoğu, müdür siparişi.
+- Kira ülkenin liste düzeyiyle artıyor ve günün kuruyla ödeniyor. Depozito yerel parada.
+- Kur farkı her gün yerel varlıklar × kur değişimi olarak yeni `FxDifference` hesabına (nakitsiz) ve şirket kârına yazılıyor. Bilanço yurt dışı malı ve depozitoyu günün kuruyla gösteriyor.
+- Yurt içinde değişiklik yok.
+- Kayıt sürümü 15. Yeni test `Branches.ForeignMoney`; Test.ps1 166.
+
+**Devam notu:** Mustafa derler; sonra E4b (kredi o ülkenin bankasından, o ülkenin faiziyle, kurla geri ödeme).
 
 **03.10.2026 — Claude Code / E3 bitti (986e2d5):** DERLE geçti, TEST 164 + 1 uyarı, başarısız 0, Smoke geçti; OLCUM aynı. E3c2c ile E3 (tek satış ve tek mağaza kaydı) tamamlandı. Sıradaki: E4.
 
