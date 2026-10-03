@@ -14,7 +14,6 @@
 #include "StaffPlanner.h"
 #include "MarketDemand.h"
 #include "MarketCampaign.h"
-#include "MarketRivals.h"
 #include "MarketBasket.h"
 #include "MarketOrderAdvice.h"
 #include "MarketStaff.h"
@@ -389,13 +388,12 @@ public:
     void ResolveCustomerItem(FMarketCustomer& Customer);
     void AdvanceCustomerList(FMarketCustomer& Customer);
     FString LoyaltySummary() const;
-    // Rival shops (MarketRivals.h): the factor that applies to every product today (weekend sales) and the
-    // rival price factor for one product (its aisle). RivalAisles = the product categories rivals can target.
+    // E2: the rivals' price level today (the home province's chains, MarketDirector::RivalPriceFactor) and the
+    // factor for one product.
     float RivalDiscount() const;
     float RivalPriceFactor(int32 ProductIndex) const;
-    TArray<FString> RivalAisles;
     bool bWeekJustEnded = false;             // the last closed day finished a week: the report shows the week
-    FString RivalNewsText() const;           // tomorrow's rival news (evening report)
+    FString RivalNewsText() const;           // tomorrow's calendar and the home province's rivals (evening report)
     FString WeekReportText() const;          // last finished week (MarketCampaign)
     // Office line for one product: our price, the rival's price and the share of shoppers who accept it.
     FString PriceSummary(int32 Index) const;

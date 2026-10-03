@@ -6,6 +6,7 @@
 #include "MarketStory.h"
 #include "MarketCompany.h"
 #include "MarketStoreAssign.h"
+#include "MarketStaff.h"
 
 namespace MarketChainsLocal
 {
@@ -396,7 +397,12 @@ void MarketChains::EnsureLocal(FMarketState& State, const FString& InCountry, co
     if (!City) return;
     State.Rivals.LocalPools.Add(Pool);
     const int32 Count = FMath::Clamp(FMath::RoundToInt32(City->Competition * 1.3f + Roll(State, Hash(Pool), 1u)), 1, 3);
-    const TArray<FString> Pattern = { TEXT(" Market"), TEXT(" G\u0131da"), TEXT(" S\u00fcpermarket"), TEXT(" Karde\u015fler") };
+    // E2 (M52): the pack's words for a family shop ("Market", "Kardesler"...; a pack without them: the default one's).
+    const MarketCountry::FProfile* Pack = MarketCountry::Find(Country);
+    const TArray<FString>& Words = Pack && Pack->LocalSuffixes.Num() > 0 ? Pack->LocalSuffixes : MarketCountry::Default().LocalSuffixes;
+    TArray<FString> Pattern;
+    for (const FString& Word : Words) Pattern.Add(TEXT(" ") + Word);
+    if (Pattern.Num() == 0) Pattern.Add(TEXT(" Market"));
     for (int32 N = 0; N < Count; ++N)
     {
         FMarketChain Chain;
@@ -486,6 +492,74 @@ float MarketChains::PressureFactor(const FMarketState& State, const FString& InC
     const float Now = WeightedIn(State, Country, Province);
     const float Factor = FMath::Clamp(FMath::Sqrt((Now + 1.f) / (*Base + 1.f)), 0.6f, 1.8f);
     return Factor * (WarIn(State, Country, Province, Day) != INDEX_NONE ? WarPressure : 1.f);
+}
+
+TArray<int32> MarketChains::RivalsIn(const FMarketState& State, const FString& InCountry, const FString& Province, int32 Max)
+{
+    using namespace MarketChainsLocal;
+    const FString Country = CountryOf(State, InCountry);
+    TArray<TPair<float, int32>> Found;
+    for (int32 I = 0; I < State.Rivals.Chains.Num(); ++I)
+    {
+        const FMarketChain& C = State.Rivals.Chains[I];
+        if (C.bGone || C.bOurs || C.Country != Country) continue;
+        const int32 Stores = StoresOf(C, Province);
+        if (Stores > 0) Found.Add(TPair<float, int32>(Stores * Arch(static_cast<EArchetype>(C.Archetype)).Weight, I));
+    }
+    Found.Sort([](const TPair<float, int32>& A, const TPair<float, int32>& B) { return A.Key != B.Key ? A.Key > B.Key : A.Value < B.Value; });
+    TArray<int32> Out;
+    for (const TPair<float, int32>& F : Found) { if (Out.Num() >= Max) break; Out.Add(F.Value); }
+    return Out;
+}
+
+float MarketChains::PriceIn(const FMarketState& State, int32 ChainIndex, const FString& Province, int32 Day)
+{
+    if (!State.Rivals.Chains.IsValidIndex(ChainIndex)) return 1.f;
+    const FMarketChain& C = State.Rivals.Chains[ChainIndex];
+    const bool bWar = C.WarProvince == Province && Day <= C.WarUntil;
+    return FMath::Clamp(C.PriceIndex * (bWar ? WarPrice : 1.f), 0.6f, 1.5f);
+}
+
+float MarketChains::RivalPriceFactor(const FMarketState& State, const FString& InCountry, const FString& Province, int32 Day)
+{
+    using namespace MarketChainsLocal;
+    const FString Country = CountryOf(State, InCountry);
+    float Weighted = 0.f, Weights = 0.f;
+    for (int32 I = 0; I < State.Rivals.Chains.Num(); ++I)
+    {
+        const FMarketChain& C = State.Rivals.Chains[I];
+        if (C.bGone || C.bOurs || C.Country != Country) continue;
+        const int32 Stores = StoresOf(C, Province);
+        if (Stores <= 0) continue;
+        const float W = Stores * Arch(static_cast<EArchetype>(C.Archetype)).Weight;
+        Weighted += W * PriceIn(State, I, Province, Day);
+        Weights += W;
+    }
+    return Weights > 0.f ? FMath::Clamp(Weighted / Weights, 0.7f, 1.3f) : 1.f;
+}
+
+void MarketChains::Poach(FMarketState& State, int32 Closed)
+{
+    using namespace MarketChainsLocal;
+    if (Closed < 1 || Mix(static_cast<uint32>(State.RivalSeed), static_cast<uint32>(Closed), 0x9A7Eu) % 40u != 0u) return;
+    FMarketEmployee* Target = nullptr;
+    for (FMarketEmployee& E : State.Staff)
+    {
+        const MarketStaff::ERole Role = MarketStaff::RoleOf(E);
+        if ((Role == MarketStaff::ERole::Cashier || Role == MarketStaff::ERole::Stocker) && E.Skill >= 65 && E.LeaveDay == 0 && (!Target || E.Skill > Target->Skill)) Target = &E;
+    }
+    if (!Target) return;
+    // Only a chain that is in the home province makes an offer.
+    const TArray<int32> Here = RivalsIn(State, State.CountryId, MarketStart::HomeProvince(State), 4);
+    if (Here.Num() == 0) return;
+    const FString Chain = State.Rivals.Chains[Here[Mix(static_cast<uint32>(State.RivalSeed), static_cast<uint32>(Closed), 0x9A7Fu) % static_cast<uint32>(Here.Num())]].Name;
+    if (Target->Morale < 45.f) // below the level where MarketStaff lets a notice be withdrawn
+    {
+        Target->LeaveDay = State.Day + 1;
+        State.DayNews.Add(FString::Printf(TEXT("%s, %s'e daha iyi \u00fccret teklif etti. %s ayr\u0131lmak istiyor (%d. g\u00fcn\u00fcn sonunda). Zam yaparsan kalabilir."),
+            *Chain, *Target->Name, *Target->Name, Target->LeaveDay));
+    }
+    else State.DayNews.Add(FString::Printf(TEXT("%s, %s'e i\u015f teklif etti; %s burada mutlu, reddetti."), *Chain, *Target->Name, *Target->Name));
 }
 
 // ---------------------------------------------------------------------------------------------------------------

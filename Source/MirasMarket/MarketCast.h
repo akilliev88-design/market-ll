@@ -11,6 +11,8 @@
 // Independent of the world (MarketCountry::Active / ActiveSeed), tested (MirasMarket.Cast.*).
 namespace MarketCast
 {
+    // RivalShop/RivalOwner: the neighbour market of the prototype (removed, M57); the roles stay so the other people
+    // of a campaign keep their names.
     enum class ERole : uint8 { Salesman = 0, Wholesaler, CashCarry, CashCarryOwner, RivalShop, RivalOwner, Accountant, Count };
     // "Mehmet Kaya" (first and last name, distinct for every role in a campaign).
     FString Person(ERole Role);
@@ -21,8 +23,6 @@ namespace MarketCast
     FString Wholesaler();      // "Kaya G\u0131da Da\u011f\u0131t\u0131m"
     FString CashCarry();       // "Demir Toptan"
     FString CashCarryOwner();  // "Ali Demir"
-    FString RivalShop();       // "\u015eahin Market"
-    FString RivalOwner();      // "Kadir \u015eahin"
     FString Accountant();      // M35: the family's old accountant ("Ay\u015fe Y\u0131lmaz")
 
     // The country's banks: 0 local, 1 commercial, 2 investment, 3 development.

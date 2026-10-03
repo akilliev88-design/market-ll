@@ -1,6 +1,6 @@
 {
   "schemaVersion": 1,
-  "note": "G-084/G-086 (karar L02-L14, Docs/Kurgu/03_MAGAZA_AGI.md): ulke paketleri. displayScale = ic birim basina yerel para; fxPerWorld = dunya birimi karsiligi yerel para; economy.character = istikrarli / oynak / yuksek_enflasyon. Zincir adlari kurgu (karar L12). provinces: il listesi (dizi) ya da il dosyasinin adi (TR: iller.json). regions: ana bolgeler (bolge direktoru); subregions: alt bolgeler (bolge muduru), her il tek alt bolgede; income alt bolgenin alim gucu. Il degerleri verilmezse nufustan turetilir: s = log2(nufus / referencePopK); gelir = alt bolge geliri x (1 + 0.03 s); kira = gelir^1.5 x (1 + 0.1 s); rekabet = (1 + 0.08 s), TR'de zincir yogunlugu ile. Varsayilan baslangic ili yok (Mustafa 29.09.2026). holidays: rule = fixed | easter | nth | lunar; kind = national | feast. sundayClosed: pazar ve resmi tatilde kapali. D3 (M52, alanlar Docs/Kurgu/10_ULKE_STANDARDI.md 3): defaultCountry, giants, continent, economy.curve, habits.cardShareByYear, calendar (showHolidayNames, school), holidays[].table/fastDays/butcherPeak, realChainNames, roster, regionalSuffixes, firmWords, names.staff, names.managers.",
+  "note": "G-084/G-086 (karar L02-L14, Docs/Kurgu/03_MAGAZA_AGI.md): ulke paketleri. displayScale = ic birim basina yerel para; fxPerWorld = dunya birimi karsiligi yerel para; economy.character = istikrarli / oynak / yuksek_enflasyon. Zincir adlari kurgu (karar L12). provinces: il listesi (dizi) ya da il dosyasinin adi (TR: iller.json). regions: ana bolgeler (bolge direktoru); subregions: alt bolgeler (bolge muduru), her il tek alt bolgede; income alt bolgenin alim gucu. Il degerleri verilmezse nufustan turetilir: s = log2(nufus / referencePopK); gelir = alt bolge geliri x (1 + 0.03 s); kira = gelir^1.5 x (1 + 0.1 s); rekabet = (1 + 0.08 s), TR'de zincir yogunlugu ile. Varsayilan baslangic ili yok (Mustafa 29.09.2026). holidays: rule = fixed | easter | nth | lunar; kind = national | feast. sundayClosed: pazar ve resmi tatilde kapali. D3 (M52, alanlar Docs/Kurgu/10_ULKE_STANDARDI.md 3): defaultCountry, giants, continent, economy.curve, habits.cardShareByYear, calendar (showHolidayNames, school), holidays[].table/fastDays/butcherPeak, realChainNames, roster, regionalSuffixes, localSuffixes, firmWords, names.staff, names.managers.",
   "defaultCountry": "tr",
   "giants": [
     {"id": "wallmark", "name": "Wallmark", "home": "ABD", "pack": "us", "archetype": "hyper", "revenueB": 447, "growth": 0.03},
@@ -71,6 +71,7 @@
       ],
       "calendar": { "showHolidayNames": false, "school": { "start": { "month": 9, "weekday": 0, "n": 3 }, "end": { "month": 6, "weekday": 4, "n": 2 } } },
       "realChainNames": true,
+      "localSuffixes": ["Market", "Gıda", "Süpermarket", "Kardeşler"],
       "regionalSuffixes": ["Market", "Gross", "Süper", "Gıda"],
       "firmWords": { "wholesale": "Gıda Dağıtım", "cashCarry": "Toptan" },
       "roster": [
@@ -455,6 +456,7 @@
           "days": 2
         }
       ],
+      "localSuffixes": ["Markt", "Lebensmittel", "Frischmarkt", "& Söhne"],
       "regionalSuffixes": ["Markt", "Frischemarkt", "Kaufhaus", "Lebensmittel"],
       "firmWords": { "wholesale": "Lebensmittelhandel", "cashCarry": "Großmarkt" },
       "roster": [
@@ -726,6 +728,7 @@
           "days": 2
         }
       ],
+      "localSuffixes": ["Stores", "Grocers", "Food Store", "& Sons"],
       "regionalSuffixes": ["Stores", "Foods", "Grocers", "Market"],
       "firmWords": { "wholesale": "Food Distribution", "cashCarry": "Cash & Carry" },
       "roster": [
@@ -985,6 +988,7 @@
           "days": 1
         }
       ],
+      "localSuffixes": ["Market", "Grocery", "Foods", "& Sons"],
       "regionalSuffixes": ["Market", "Foods", "Grocery", "Supermarkets"],
       "firmWords": { "wholesale": "Food Distribution", "cashCarry": "Cash & Carry" },
       "roster": [
@@ -1447,6 +1451,7 @@
         {"name": "Noël", "month": 12, "day": 25, "kind": "feast", "days": 1}
       ],
       "calendar": {"school": {"start": {"month": 9, "weekday": 1, "n": 1}, "end": {"month": 7, "weekday": 4, "n": 1}}},
+      "localSuffixes": ["Marché", "Épicerie", "Alimentation", "et Fils"],
       "regionalSuffixes": ["Marché", "Primeur", "Frais", "Alimentation"],
       "firmWords": {"wholesale": "Distribution Alimentaire", "cashCarry": "Grossiste"},
       "roster": [
@@ -1521,6 +1526,7 @@
         {"name": "Navidad", "month": 12, "day": 25, "kind": "feast", "days": 1}
       ],
       "calendar": {"school": {"start": {"month": 9, "weekday": 0, "n": 2}, "end": {"month": 6, "weekday": 4, "n": 4}}},
+      "localSuffixes": ["Supermercado", "Alimentación", "Ultramarinos", "e Hijos"],
       "regionalSuffixes": ["Supermercados", "Alimentación", "Mercado", "Frescos"],
       "firmWords": {"wholesale": "Distribuciones", "cashCarry": "Mayorista"},
       "roster": [
@@ -1600,6 +1606,7 @@
         {"name": "Boże Narodzenie", "month": 12, "day": 25, "kind": "feast", "days": 2}
       ],
       "calendar": {"school": {"start": {"month": 9, "weekday": 0, "n": 1}, "end": {"month": 6, "weekday": 4, "n": 5}}},
+      "localSuffixes": ["Market", "Sklep", "Delikatesy", "i Synowie"],
       "regionalSuffixes": ["Market", "Sklep", "Delikatesy", "Spożywczy"],
       "firmWords": {"wholesale": "Dystrybucja", "cashCarry": "Hurtownia"},
       "roster": [
@@ -1676,6 +1683,7 @@
         {"name": "Natal", "month": 12, "day": 25, "kind": "feast", "days": 1}
       ],
       "calendar": {"school": {"start": {"month": 2, "weekday": 0, "n": 1}, "end": {"month": 12, "weekday": 4, "n": 2}}},
+      "localSuffixes": ["Mercado", "Mercearia", "Supermercado", "& Filhos"],
       "regionalSuffixes": ["Supermercados", "Mercado", "Atacado", "Alimentos"],
       "firmWords": {"wholesale": "Distribuidora", "cashCarry": "Atacadista"},
       "roster": [
@@ -1764,6 +1772,7 @@
         {"name": "Navidad", "month": 12, "day": 25, "kind": "feast", "days": 1}
       ],
       "calendar": {"school": {"start": {"month": 8, "weekday": 0, "n": 5}, "end": {"month": 7, "weekday": 4, "n": 2}}},
+      "localSuffixes": ["Abarrotes", "Súper", "Tienda", "e Hijos"],
       "regionalSuffixes": ["Abarrotes", "Súper", "Mercado", "Tiendas"],
       "firmWords": {"wholesale": "Distribuidora", "cashCarry": "Mayoreo"},
       "roster": [
@@ -1864,6 +1873,7 @@
         {"name": "Kinro Kansha no Hi", "month": 11, "day": 23}
       ],
       "calendar": {"school": {"start": {"month": 4, "weekday": 0, "n": 2}, "end": {"month": 3, "weekday": 4, "n": 4}}},
+      "localSuffixes": ["Shoten", "Store", "Mart", "Shokuhin"],
       "regionalSuffixes": ["Supa", "Mart", "Store", "Ichiba"],
       "firmWords": {"wholesale": "Shokuhin", "cashCarry": "Oroshiuri"},
       "roster": [

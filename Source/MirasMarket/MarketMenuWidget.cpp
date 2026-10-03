@@ -9,7 +9,6 @@
 #include "ProductCatalog.h"
 #include "MarketSuppliers.h"
 #include "MarketPromotions.h"
-#include "MarketCompetitors.h"
 #include "MarketEvents.h"
 #include "MarketStory.h"
 #include "MarketFinance.h"
@@ -22,7 +21,8 @@
 #include "MarketCampaign.h"
 #include "MarketCalendar.h"
 #include "MarketStaff.h"
-#include "MarketRivals.h"
+#include "MarketChains.h"
+#include "MarketGoods.h"
 #include "MarketDirector.h"
 #include "MarketDemand.h"
 #include "MarketOrderAdvice.h"
@@ -130,24 +130,60 @@ namespace MarketMenuUi
         }
     }
 
-    // Price of one rival for one product today; false = the rival's shelf is empty.
+    // E2: the rivals the shopper compares with are the home province's chains, most present first.
+    TArray<int32> HomeRivals(const AMarketGameMode& G)
+    {
+        return MarketChains::RivalsIn(G.State, G.State.CountryId, MarketStart::HomeProvince(G.State), 3);
+    }
+
+    int32 RivalCount(const AMarketGameMode* G)
+    {
+        return G ? HomeRivals(*G).Num() : 0;
+    }
+
+    const FMarketChain* RivalChain(const AMarketGameMode* G, int32 Slot)
+    {
+        if (!G) return nullptr;
+        const TArray<int32> List = HomeRivals(*G);
+        return List.IsValidIndex(Slot) ? &G->State.Rivals.Chains[List[Slot]] : nullptr;
+    }
+
+    FString RivalName(const AMarketGameMode* G, int32 Slot)
+    {
+        const FMarketChain* C = RivalChain(G, Slot);
+        return C ? C->Name : FString();
+    }
+
+    FString RivalKind(const AMarketGameMode* G, int32 Slot)
+    {
+        const FMarketChain* C = RivalChain(G, Slot);
+        return C ? MarketChains::ArchetypeName(static_cast<MarketChains::EArchetype>(C->Archetype)) : FString();
+    }
+
+    FString RivalLogoKey(const AMarketGameMode* G, int32 Slot)
+    {
+        const FMarketChain* C = RivalChain(G, Slot);
+        return C ? C->Id.ToLower().Replace(TEXT("."), TEXT("_")) : FString();
+    }
+
+    // Price of one rival for one product today (its everyday level, its war prices in our province).
     bool RivalShelfPrice(const AMarketGameMode& G, int32 Product, int32 Rival, int64& OutPrice)
     {
         OutPrice = 0;
         if (!G.Products.IsValidIndex(Product)) return false;
-        bool bEmpty = false;
-        const float Factor = MarketRivals::RivalFactor(G.State.Day, G.State.RivalSeed, G.RivalAisles, G.Products[Product].Category, Rival, &bEmpty)
-            * MarketCompetitors::NewsRivalIndex(G.State, Rival); // the chain's everyday price level (G-065)
+        const TArray<int32> List = HomeRivals(G);
+        if (!List.IsValidIndex(Rival)) return false;
+        const float Factor = MarketChains::PriceIn(G.State, List[Rival], MarketStart::HomeProvince(G.State), G.State.Day);
         OutPrice = MarketDemand::RivalPrice(G.Products[Product], Factor);
-        return !bEmpty;
+        return true;
     }
 
-    // Cheapest open rival with the product on its shelf (INDEX_NONE = nobody has it today).
+    // Cheapest rival with the product (INDEX_NONE = no chain in the province).
     int32 CheapestRival(const AMarketGameMode& G, int32 Product, int64& OutPrice)
     {
         int32 Best = INDEX_NONE;
         OutPrice = 0;
-        for (int32 Rival = 0; Rival < MarketRivals::RivalCount(G.State.Day); ++Rival)
+        for (int32 Rival = 0; Rival < RivalCount(&G); ++Rival)
         {
             int64 Price = 0;
             if (RivalShelfPrice(G, Product, Rival, Price) && (Best == INDEX_NONE || Price < OutPrice)) { Best = Rival; OutPrice = Price; }
@@ -178,9 +214,19 @@ namespace MarketMenuUi
     FString RivalsToday(const AMarketGameMode& G, int32 OnlyRival)
     {
         TArray<FString> Lines;
-        for (const MarketRivals::FEvent& Event : MarketRivals::ActiveOn(G.State.Day, G.State.RivalSeed, G.RivalAisles))
-            if (OnlyRival == INDEX_NONE || Event.Rival == OnlyRival) Lines.Add(MarketRivals::Describe(Event));
-        return Lines.Num() > 0 ? FString::Join(Lines, TEXT("\n")) : FString(TEXT("Sakin: \u00f6zel bir kampanya yok."));
+        const FString Home = MarketStart::HomeProvince(G.State);
+        const TArray<int32> List = HomeRivals(G);
+        for (int32 Slot = 0; Slot < List.Num(); ++Slot)
+        {
+            if (OnlyRival != INDEX_NONE && Slot != OnlyRival) continue;
+            const FMarketChain& C = G.State.Rivals.Chains[List[Slot]];
+            int32 Stores = 0;
+            for (const FMarketChainSpot& Spot : C.Spots) if (Spot.Province == Home) Stores += Spot.Stores;
+            FString Line = FString::Printf(TEXT("%s \u00b7 ilde %d ma\u011faza \u00b7 fiyat d\u00fczeyi %%%.0f"), *C.Name, Stores, MarketChains::PriceIn(G.State, List[Slot], Home, G.State.Day) * 100.f);
+            if (C.WarProvince == Home && G.State.Day <= C.WarUntil) Line += FString::Printf(TEXT(" \u00b7 sana kar\u015f\u0131 fiyat sava\u015f\u0131nda (%d. g\u00fcne kadar)"), C.WarUntil);
+            Lines.Add(Line);
+        }
+        return Lines.Num() > 0 ? FString::Join(Lines, TEXT("\n")) : FString(TEXT("\u0130lde hen\u00fcz zincir ma\u011fazas\u0131 yok."));
     }
 }
 // ---------------------------------------------------------------------------------------------------------------
@@ -338,7 +384,7 @@ TSharedRef<SWidget> SMarketMenu::CategoryChips(FString* Chosen)
 {
     TSharedRef<SWrapBox> Box = SNew(SWrapBox).UseAllottedSize(true).InnerSlotPadding(FVector2D(6.f, 6.f));
     TArray<FString> Names = { FString() };
-    if (const AMarketGameMode* G = Game.Get()) Names.Append(MarketRivals::Aisles(G->Products));
+    if (const AMarketGameMode* G = Game.Get()) Names.Append(MarketGoods::Aisles(G->Products));
     for (const FString& Name : Names)
     {
         Box->AddSlot()

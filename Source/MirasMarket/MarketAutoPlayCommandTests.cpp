@@ -45,8 +45,7 @@ bool FMarketBotCommandBooks::RunTest(const FString& Parameters)
     FMarketState State;State.CountryId=TEXT("tr");State.CityId=TEXT("kirklareli");State.Day=MarketCalendar::GameDayOf(2012,1,31);
     FMarketAdCountry Ad;Ad.Country=State.CountryId;Ad.MonthChannelSpend={100,200,0,0,0,10};Ad.MonthUplift=200;Ad.Stock={20,10,0,0,0,7};State.Advertising.Countries.Add(Ad);
     FMarketBranch Branch;FMarketBranchItem Item;Item.ProductId=TEXT("tea");Branch.Items.Add(Item);State.Branches.Add(Branch);
-    FMarketCompetitor Rival;Rival.Company=1;State.Competitors.Add(Rival);
-    FStats Stats;BeginDay(State,Stats);++State.Day;State.Competitors[0].ChainId=TEXT("#gone");
+    FStats Stats;BeginDay(State,Stats);++State.Day;
     auto& Country=State.Advertising.Countries[0];Country.PrevChannelSpend={150,230,0,0,0,20};Country.PrevUplift=1100;Country.MonthChannelSpend.Init(0,6);Country.MonthUplift=0;
     State.Branches[0].Items[0].Markdown=20;State.Branches[0].Items[0].MarkdownUntil=State.Day-1+7;
     Observe(State,0,Stats);
@@ -55,7 +54,6 @@ bool FMarketBotCommandBooks::RunTest(const FString& Parameters)
     TestEqual(TEXT("Estimated physical uplift is conserved"),Stats.Years[0].Estimate[0]+Stats.Years[0].Estimate[1],int64(900));
     TestEqual(TEXT("Search is not attributed walk-in revenue"),Stats.Years[0].Estimate[5],int64(0));
     TestEqual(TEXT("New clearance counted"),Stats.ClearanceItems,1);
-    TestEqual(TEXT("Initial state is not a closure"),Stats.Events.FilterByPredicate([](const FString& Line){return Line.Contains(TEXT(",sokak_kapandi,"));}).Num(),1);
     Observe(State,0,Stats);TestEqual(TEXT("No double counting"),Stats.ClearanceItems,1);
     BeginDay(State,Stats);++State.Day;Country.MonthChannelSpend[0]=7;Country.MonthUplift=30;Observe(State,0,Stats);
     TestEqual(TEXT("Next day expense added once"),Stats.Years[0].Spend[0],int64(57));

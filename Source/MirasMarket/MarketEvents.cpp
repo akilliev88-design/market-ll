@@ -10,7 +10,6 @@
 #include "MarketStaff.h"
 #include "MarketStory.h"
 #include "MarketFinance.h"
-#include "MarketCompetitors.h"
 
 namespace MarketEvents
 {
@@ -210,7 +209,6 @@ bool MarketEvents::Decide(FMarketState& State, const TArray<FMarketProduct>& Pro
     if (!D.Options.IsValidIndex(Option)) { OutMessage = TEXT("B\u00f6yle bir se\u00e7enek yok."); return false; }
     const bool bDone = D.Id.StartsWith(TEXT("story.")) ? MarketStory::Resolve(State, Products, D, Option, OutMessage)
         : D.Id.StartsWith(TEXT("finance.")) ? MarketFinance::Resolve(State, Products, D, Option, OutMessage)
-        : D.Id.StartsWith(TEXT("rival.")) ? MarketCompetitors::Resolve(State, Products, D, Option, OutMessage)
         : D.Id.StartsWith(TEXT("online.")) ? MarketOnline::Resolve(State, Products, D, Option, OutMessage) // M32
         : D.Id.StartsWith(TEXT("command.")) ? MarketCommand::Resolve(State, Products, D, Option, OutMessage) // M33
         : ResolveEvent(State, Products, D, Option, OutMessage);

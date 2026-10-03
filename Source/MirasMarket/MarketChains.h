@@ -5,8 +5,8 @@
 
 // Akis C2b (Docs/Kurgu/07_AKIL_ISBOLUMU.md, Mustafa 30.09.2026: "iyi bir rakip listesi, akillari iyi olsun; dunya
 // ligine gitmek ne cok zor ne cok kolay"): the rival chains of every country we play in and the world's giants.
-// Independent of the world, tested (MirasMarket.Chains.*). The street next to the family shop keeps its own rivals
-// (MarketCompetitors); this module is the country and the world:
+// Independent of the world, tested (MirasMarket.Chains.*). E2: this is the one rival model; the family shop's rivals
+// are the chains of its province like every store's (the street model and the daily rival news were removed):
 //  - Three layers, every name fictional (L12): local family chains of a province and a regional chain of each
 //    sub-region; 6-8 national chains a country, each with a character (discounter, fast discounter, supermarket,
 //    hypermarket, premium, regional, cash & carry); 12 world giants whose arms enter countries.
@@ -92,6 +92,17 @@ namespace MarketChains
     float PressureFactor(const FMarketState& State, const FString& Country, const FString& Province, int32 Day);
     // The chain at war with us in that province today (INDEX_NONE: none).
     int32 WarIn(const FMarketState& State, const FString& Country, const FString& Province, int32 Day);
+    // E2 (the one rival model): the chains with stores in a province, most present first (weighted stores; not ours,
+    // not gone), at most Max of them.
+    TArray<int32> RivalsIn(const FMarketState& State, const FString& Country, const FString& Province, int32 Max);
+    // A chain's shelf prices in a province on a day against the list (its everyday level, its war prices there).
+    float PriceIn(const FMarketState& State, int32 ChainIndex, const FString& Province, int32 Day);
+    // What shoppers of the province think "the rivals" charge against the list: the chains' prices weighted by
+    // their weighted stores there (1 when nobody is there yet).
+    float RivalPriceFactor(const FMarketState& State, const FString& Country, const FString& Province, int32 Day);
+    // E2 (was MarketCompetitors): now and then a chain of the home province offers one of our good people a job;
+    // a content one says no, an unhappy one (morale < 45) gives notice. Called at the day close.
+    void Poach(FMarketState& State, int32 Closed);
 
     // Revenue a year (kurus at today's level): a chain, and ours in a country (branches + the family shop at home).
     int64 YearRevenue(const FMarketState& State, int32 ChainIndex);

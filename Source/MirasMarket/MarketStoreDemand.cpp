@@ -113,18 +113,20 @@ MarketStoreDemand::FStoreDay MarketStoreDemand::FamilyDay(const FMarketState& St
     }
     Store.Maturity = 1.f; // the shop has been on this street for years
     // The family shop's own trips: its flyers and promotions, the street's events, the card terminal.
-    Store.TripsExtra = MarketPromotions::TrafficFactor(State) * MarketEvents::Factor(State, MarketEvents::EModifier::Traffic) * MarketPayments::TrafficFactor(State);
+    Store.TripsExtra = FamilySiteTrips * MarketPromotions::TrafficFactor(State) * MarketEvents::Factor(State, MarketEvents::EModifier::Traffic) * MarketPayments::TrafficFactor(State);
     (void)Day;
     return Store;
 }
 
 int32 MarketStoreDemand::FamilyShoppers(const FMarketState& State, const TArray<FMarketProduct>& Products, int32 Day)
 {
-    const FStoreDay Store = FamilyDay(State, Products, Day);
-    return FMath::RoundToInt32(ShoppersExact(State, Store, Day) * MarketTuning::Get(TEXT("FamilyTrips"), 1.f));
+    return Shoppers(State, FamilyDay(State, Products, Day), Day);
 }
 
-bool MarketStoreDemand::Unified()
+void MarketStoreDemand::CloseDay(FMarketState& State, const TArray<FMarketProduct>& Products)
 {
-    return MarketTuning::Get(TEXT("UnifiedDemand"), 0.f) >= 0.5f;
+    const int32 Closed = State.Day - 1;
+    if (Closed < 1 || State.LastServed + State.LastLost <= 0) return;
+    const float Target = Share(State, FamilyDay(State, Products, Closed), Closed);
+    State.MarketShare = FMath::Clamp(State.ShareBeforeClose * 0.85f + Target * 100.f * 0.15f, 5.f, 65.f);
 }

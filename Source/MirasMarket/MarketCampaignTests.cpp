@@ -1,5 +1,4 @@
 #include "MarketCampaign.h"
-#include "MarketRivals.h"
 #include "Misc/AutomationTest.h"
 
 #if WITH_DEV_AUTOMATION_TESTS
@@ -51,68 +50,6 @@ bool FMarketCampaignDebtTest::RunTest(const FString& Parameters)
     TestEqual(TEXT("Week debt payments"), S.LastWeekDebtPaid, MarketCampaign::StartingDebt);
     TestEqual(TEXT("New week starts empty"), S.WeekRevenue + S.WeekDebtPaid, int64(0));
     TestTrue(TEXT("Valid save"), S.IsStructurallyValid());
-    return true;
-}
-
-IMPLEMENT_SIMPLE_AUTOMATION_TEST(FMarketRivalsTest, "MirasMarket.Rivals.News", EAutomationTestFlags::EditorContext | EAutomationTestFlags::EngineFilter)
-bool FMarketRivalsTest::RunTest(const FString& Parameters)
-{
-    FMarketProduct A; A.Id = TEXT("a"); A.Category = TEXT("sut");
-    FMarketProduct B; B.Id = TEXT("b"); B.Category = TEXT("icecek");
-    FMarketProduct C; C.Id = TEXT("c"); C.Category = TEXT("bakliyat");
-    FMarketProduct D; D.Id = TEXT("d"); D.Category = TEXT("sut");
-    const TArray<FString> Aisles = MarketRivals::Aisles({ A, B, C, D });
-    TestEqual(TEXT("Three distinct aisles"), Aisles.Num(), 3);
-    TestEqual(TEXT("Sorted"), Aisles.Num() == 3 ? Aisles[0] : FString(), FString(TEXT("bakliyat")));
-    TestEqual(TEXT("Logo folder of the first rival"), MarketRivals::RivalLogoKey(0), FString(TEXT("bim")));
-    TestFalse(TEXT("Every rival has a format"), MarketRivals::RivalFormat(1).IsEmpty());
-
-    constexpr int32 Seed = 7;
-    TestEqual(TEXT("Quiet first day"), MarketRivals::NewsOn(1, Seed, Aisles).Num(), 0);
-    TestEqual(TEXT("Quiet second day"), MarketRivals::NewsOn(2, Seed, Aisles).Num(), 0);
-    int32 NewsCount = 0;
-    TSet<uint8> Kinds;
-    bool bFoundSale = false;
-    for (int32 Day = 3; Day <= 60; ++Day)
-    {
-        const TArray<MarketRivals::FEvent> News = MarketRivals::NewsOn(Day, Seed, Aisles);
-        TestEqual(TEXT("Same day, same news"), MarketRivals::NewsOn(Day, Seed, Aisles).Num(), News.Num());
-        for (const MarketRivals::FEvent& Event : News)
-        {
-            ++NewsCount;
-            Kinds.Add(static_cast<uint8>(Event.Kind));
-            TestFalse(TEXT("Every news has a text"), MarketRivals::Describe(Event).IsEmpty());
-            if (!bFoundSale && Event.Kind == MarketRivals::EKind::AisleSale)
-            {
-                bFoundSale = true;
-                // Seed 7: the first news is an aisle sale on day 6 (drinks, -15 %) and nothing else is active then.
-                TestEqual(TEXT("First sale day"), Event.FirstDay, 6);
-                TestTrue(TEXT("Rival price of that aisle drops"), FMath::IsNearlyEqual(MarketRivals::PriceFactor(Day, Seed, Aisles, Event.Category), Event.PriceFactor));
-                TestTrue(TEXT("Only that rival discounts"), FMath::IsNearlyEqual(MarketRivals::RivalFactor(Day, Seed, Aisles, Event.Category, Event.Rival), Event.PriceFactor)
-                    && FMath::IsNearlyEqual(MarketRivals::RivalFactor(Day, Seed, Aisles, Event.Category, 1 - Event.Rival), 1.f));
-                TestTrue(TEXT("Other aisles keep the list price"), FMath::IsNearlyEqual(MarketRivals::PriceFactor(Day, Seed, Aisles, Event.Category == TEXT("sut") ? TEXT("icecek") : TEXT("sut")), 1.f));
-            }
-        }
-        const float Price = MarketRivals::PriceFactor(Day, Seed, Aisles, TEXT("sut"));
-        const float Traffic = MarketRivals::TrafficFactor(Day, Seed, Aisles);
-        TestTrue(TEXT("Price factor in range"), Price >= 0.7f && Price <= 1.3f);
-        TestTrue(TEXT("Traffic factor in range"), Traffic >= 0.8f && Traffic <= 1.f);
-    }
-    TestTrue(TEXT("News on many days"), NewsCount >= 15);
-    TestTrue(TEXT("Different kinds of news"), Kinds.Num() >= 4);
-    TestTrue(TEXT("An aisle sale happened"), bFoundSale);
-    TestEqual(TEXT("Two rivals at first"), MarketRivals::RivalCount(14), 2);
-    TestEqual(TEXT("The new store opens on day 15"), MarketRivals::RivalCount(15), 3);
-    bool bChain = false;
-    for (const MarketRivals::FEvent& Event : MarketRivals::NewsOn(MarketRivals::ChainOpensDay, Seed, Aisles)) bChain |= Event.Kind == MarketRivals::EKind::NewRival;
-    TestTrue(TEXT("Opening is in the news"), bChain);
-    // G-077 (#17): the new store takes shoppers through the share model (MarketCompetitors), not through the news.
-    TestTrue(TEXT("The opening news does not cut traffic twice"), MarketRivals::TrafficFactor(40, Seed, Aisles) <= 1.f);
-    TestTrue(TEXT("A different campaign brings different news"),
-        MarketRivals::NewsOn(6, Seed, Aisles).Num() != MarketRivals::NewsOn(6, Seed + 1, Aisles).Num() ||
-        MarketRivals::NewsOn(9, Seed, Aisles).Num() != MarketRivals::NewsOn(9, Seed + 1, Aisles).Num() ||
-        MarketRivals::NewsOn(12, Seed, Aisles).Num() != MarketRivals::NewsOn(12, Seed + 1, Aisles).Num() ||
-        MarketRivals::NewsOn(17, Seed, Aisles).Num() != MarketRivals::NewsOn(17, Seed + 1, Aisles).Num());
     return true;
 }
 

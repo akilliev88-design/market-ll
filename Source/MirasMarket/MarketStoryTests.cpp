@@ -120,60 +120,35 @@ bool FMarketStoryTest::RunTest(const FString& Parameters)
     TestEqual(TEXT("Chapter 1"), S.Story.Chapter, 1);
     TestEqual(TEXT("Three goals"), MarketStory::Objectives(S).Num(), 3);
 
-    // Day 1: Nermin teyze and Cem.
+    // Day 1: the first order and the first profit become memories (M57: no character scenes any more).
     Close(S, Products, 30000, 6000);
-    TestTrue(TEXT("Nermin's welcome"), NewsStarts(S, TEXT("Nermin teyze u\u011frad\u0131")));
-    TestTrue(TEXT("Cem asks for a job"), S.Candidates.ContainsByPredicate([](const FMarketEmployee& E) { return E.Name == TEXT("Cem Aksoy"); }));
     TestTrue(TEXT("Memories: first order and first profit"), S.Story.Memories.Num() >= 2);
+    TestFalse(TEXT("No neighbour scene"), NewsStarts(S, TEXT("Kar\u015f\u0131daki")));
     FString Message;
-    const int32 CemIndex = S.Candidates.IndexOfByPredicate([](const FMarketEmployee& E) { return E.Name == TEXT("Cem Aksoy"); });
-    TestTrue(TEXT("Hire Cem"), MarketStaff::Hire(S, CemIndex, Message));
-
-    // An empty milk shelf: Nermin notices.
-    S.Stock[0].Today.Empty = 3;
-    Close(S, Products, 30000);
-    TestTrue(TEXT("Nermin complains"), NewsStarts(S, TEXT("Nermin teyze eli bo\u015f")));
 
     // The first week closes chapter 1.
-    for (int32 D = 0; D < 6; ++D) { S.Decisions.Reset(); Close(S, Products, 30000); }
+    for (int32 D = 0; D < 7; ++D) { S.Decisions.Reset(); Close(S, Products, 30000); }
     TestEqual(TEXT("Chapter 2"), S.Story.Chapter, 2);
+    TestEqual(TEXT("Chapter 2 title"), MarketStory::ChapterTitle(2), FString(TEXT("K\u00f6k Salmak")));
+    TestTrue(TEXT("Chapter 2 asks for the identity"), MarketStory::Objectives(S).ContainsByPredicate([](const MarketStory::FObjective& O) { return O.Text.Contains(TEXT("kimli")); }));
 
-    // The neighbour's offer comes from day 10.
-    for (int32 D = 0; D < 4 && !S.Decisions.ContainsByPredicate([](const FMarketDecision& X) { return X.Id == TEXT("story.sell"); }); ++D)
+    // The identity is asked once from day 10.
+    for (int32 D = 0; D < 4 && !S.Decisions.ContainsByPredicate([](const FMarketDecision& X) { return X.Id == TEXT("story.identity"); }); ++D)
     {
         S.Decisions.RemoveAll([](const FMarketDecision& X) { return X.Id.StartsWith(TEXT("event.")); });
         Close(S, Products, 30000);
     }
     S.Decisions.RemoveAll([](const FMarketDecision& X) { return X.Id.StartsWith(TEXT("event.")); });
-    TestTrue(TEXT("The offer"), MarketEvents::Pending(S) && MarketEvents::Pending(S)->Id == TEXT("story.sell"));
-
-    // Say yes, then change your mind at the notary; then choose the discount identity.
-    FMarketState Sold = S;
-    TestTrue(TEXT("Sell"), MarketEvents::Decide(S, Products, 1, Message));
-    TestTrue(TEXT("Notary"), MarketEvents::Pending(S) && MarketEvents::Pending(S)->Id == TEXT("story.aftersale"));
-    TestTrue(TEXT("Back to the shop"), MarketEvents::Decide(S, Products, 0, Message));
     TestTrue(TEXT("Identity asked"), MarketEvents::Pending(S) && MarketEvents::Pending(S)->Id == TEXT("story.identity"));
+    TestFalse(TEXT("No sale offer"), S.Decisions.ContainsByPredicate([](const FMarketDecision& X) { return X.Id == TEXT("story.sell"); }));
     TestTrue(TEXT("Discount identity"), MarketEvents::Decide(S, Products, 2, Message));
     TestEqual(TEXT("Identity kept"), S.Story.Identity, static_cast<uint8>(MarketStory::EIdentity::Indirim));
     TestTrue(TEXT("Cheaper purchases"), MarketEvents::Factor(S, MarketEvents::EModifier::CostFactor, MarketGoods::EGroup::Dairy) < 1.f);
     TestTrue(TEXT("Price hunters"), MarketEvents::Tolerance(S, MarketGoods::EGroup::Dairy) < 0.0);
-
-    // The other road: sign and it is an ending; the money waits for the last choice (karar J03).
-    const int64 Before = Sold.Cash;
-    MarketEvents::Decide(Sold, Products, 1, Message);
-    TestTrue(TEXT("Sign"), MarketEvents::Decide(Sold, Products, 1, Message));
-    TestEqual(TEXT("Ending"), Sold.Story.Ending, static_cast<uint8>(MarketStory::EEnding::Sold));
-    TestEqual(TEXT("Sale money not in the till yet"), Sold.Cash, Before);
-    TestTrue(TEXT("Dream or the end"), MarketEvents::Pending(Sold) && MarketEvents::Pending(Sold)->Id == TEXT("story.dream"));
-    // It was a dream: back in the shop, the money never came, the identity is asked.
-    FMarketState Dream = Sold;
-    TestTrue(TEXT("Dream"), MarketEvents::Decide(Dream, Products, 0, Message));
-    TestEqual(TEXT("No sale money"), Dream.Cash, Before);
-    TestFalse(TEXT("Story goes on"), MarketStory::StoryClosed(Dream));
-    TestTrue(TEXT("Identity asked after the dream"), MarketEvents::Pending(Dream) && MarketEvents::Pending(Dream)->Id == TEXT("story.identity"));
-    TestTrue(TEXT("The end"), MarketEvents::Decide(Sold, Products, 1, Message));
-    TestTrue(TEXT("Campaign over"), Sold.Story.bCampaignOver && MarketStory::StoryClosed(Sold));
-    TestEqual(TEXT("No goals in free play"), MarketStory::Objectives(Sold).Num(), 0);
+    TestTrue(TEXT("Identity goal done"), MarketStory::Objectives(S).ContainsByPredicate([](const MarketStory::FObjective& O) { return O.Text.Contains(TEXT("kimli")) && O.bDone; }));
+    // Not asked twice.
+    Close(S, Products, 30000);
+    TestFalse(TEXT("Asked once"), S.Decisions.ContainsByPredicate([](const FMarketDecision& X) { return X.Id == TEXT("story.identity"); }));
     TestTrue(TEXT("Chapter titles"), MarketStory::ChapterTitle(3) == TEXT("\u0130kinci Tabela"));
     return true;
 }

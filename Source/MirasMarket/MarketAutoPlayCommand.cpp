@@ -3,7 +3,8 @@
 #include "MarketAutoPlayFinance.h"
 #include "MarketBranches.h"
 #include "MarketCalendar.h"
-#include "MarketCompetitors.h"
+#include "MarketChains.h"
+#include "MarketStart.h"
 #include "MarketDirector.h"
 #include "MarketOnline.h"
 #include "MarketStaff.h"
@@ -84,15 +85,13 @@ namespace MarketAutoPlayCommand
             if(Card.Id.StartsWith(TEXT("command.open:")))++Stats.OpenProposals;else ++Stats.CloseProposals;
             Event(Stats,State.Day,TEXT("kart_onerisi"),Card.Id,Card.Arg);
         }
-        for(const auto& Rival:State.Competitors)
+        // E2: a price war of the home province's chains against us (the street rivals left with MarketCompetitors).
         {
-            const auto Kind=static_cast<MarketCompetitors::ECompany>(Rival.Company);
-            const FString Name=MarketCompetitors::DisplayName(Kind);const bool Open=MarketCompetitors::IsOpen(State,Kind);
-            if(!Stats.StreetNames.Contains(Rival.Company) || Stats.StreetNames[Rival.Company]!=Name)
-            {Stats.StreetNames.Add(Rival.Company,Name);Event(Stats,State.Day,TEXT("sokak_adi"),Name,Rival.Company);}
-            const bool First=!Stats.StreetOpen.Contains(Rival.Company);
-            if(First || Stats.StreetOpen[Rival.Company]!=Open)
-            {Stats.StreetOpen.Add(Rival.Company,Open);const TCHAR* KindOfEvent=First?(Open?TEXT("sokak_basta_acik"):TEXT("sokak_basta_kapali")):Rival.Company==6?(Open?TEXT("pazar_kuruldu"):TEXT("pazar_toplandi")):(Open?TEXT("sokak_acildi"):TEXT("sokak_kapandi"));Event(Stats,State.Day,KindOfEvent,Name,Rival.Company);}
+            const int32 War=MarketChains::WarIn(State,State.CountryId,MarketStart::HomeProvince(State),State.Day);
+            const bool On=War!=INDEX_NONE;
+            const bool First=!Stats.StreetOpen.Contains(0);
+            if(!First && Stats.StreetOpen[0]!=On)Event(Stats,State.Day,On?TEXT("yerel_fiyat_savasi"):TEXT("yerel_fiyat_savasi_bitti"),On?State.Rivals.Chains[War].Name:FString(),0);
+            Stats.StreetOpen.Add(0,On);
         }
     }
     void BeginDay(const FMarketState& State,FStats& Stats)

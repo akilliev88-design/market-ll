@@ -1,4 +1,5 @@
 #include "MarketGame.h"
+#include "MarketChains.h"
 #include "MarketTelevisionDisplay.h"
 #include "MarketSimulation.h"
 #include "MarketWorldText.h"
@@ -151,7 +152,6 @@ void AMarketGameMode::BeginPlay()
     State.RivalSeed = FMath::Rand();
     MarketCountry::SetActive(State.CountryId, State.RivalSeed); MarketEras::Activate(State); // G-084: currency and economy of the country pack
     RefreshPrices();
-    RivalAisles = MarketRivals::Aisles(Products);
     OrderDraftCases.Init(0, Products.Num());
     ApplyCapacities();
     if (bUseMetaHumans)
@@ -785,19 +785,20 @@ void AMarketGameMode::RefreshShelfItems()
 
 FString AMarketGameMode::ProductName(int32 Index) const { return State.bRealBrands ? Products[Index].RealName : Products[Index].FictionalName; }
 void AMarketGameMode::Notify(const FString& Text) { Message = Text; MessageTime = 9; }
-float AMarketGameMode::RivalDiscount() const { return MarketDirector::RivalPriceFactor(State, RivalAisles, FString()); }
+float AMarketGameMode::RivalDiscount() const { return MarketDirector::RivalPriceFactor(State, FString()); }
 float AMarketGameMode::RivalPriceFactor(int32 ProductIndex) const
 {
-    // Share-weighted rival shelf price of the product's aisle: chains' levels, their news, Bereket's price wars.
-    return Products.IsValidIndex(ProductIndex) ? MarketDirector::RivalPriceFactor(State, RivalAisles, Products[ProductIndex].Category) : 1.f;
+    // E2: the home province's chains, weighted by their stores, war prices included.
+    return Products.IsValidIndex(ProductIndex) ? MarketDirector::RivalPriceFactor(State, Products[ProductIndex].Category) : 1.f;
 }
 FString AMarketGameMode::RivalNewsText() const
 {
     TArray<FString> Lines;
     Lines.Add(TEXT("\u2022 ") + MarketDirector::TomorrowText(State)); // calendar: weather, bayrams, paydays, what sells
-    for (const MarketRivals::FEvent& Event : MarketRivals::NewsOn(State.Day, State.RivalSeed, RivalAisles))
-        Lines.Add(TEXT("\u2022 ") + MarketRivals::Describe(Event));
-    if (Lines.Num() == 1) Lines.Add(TEXT("\u2022 Rakiplerden yeni bir haber yok."));
+    // E2: a price war of a chain in the home province against us.
+    const int32 War = MarketChains::WarIn(State, State.CountryId, MarketStart::HomeProvince(State), State.Day);
+    if (War != INDEX_NONE) Lines.Add(FString::Printf(TEXT("\u2022 %s ilde fiyat sava\u015f\u0131nda (%d. g\u00fcne kadar)."), *State.Rivals.Chains[War].Name, State.Rivals.Chains[War].WarUntil));
+    else Lines.Add(TEXT("\u2022 Rakiplerden yeni bir haber yok."));
     return FString::Join(Lines, TEXT("\n"));
 }
 FString AMarketGameMode::WeekReportText() const
@@ -1374,7 +1375,7 @@ void AMarketGameMode::Tick(float DeltaTime)
     if (!bOpen) return;
     DayTime += DeltaTime;
     SpawnTimer -= DeltaTime;
-    if (SpawnTimer <= 0) { SpawnCustomer(); SpawnTimer = Random.FRandRange(3.5f, 5.5f) / MarketDirector::TrafficFactor(State, RivalAisles); }
+    if (SpawnTimer <= 0) { SpawnCustomer(); SpawnTimer = Random.FRandRange(3.5f, 5.5f) / FMath::Max(0.05f, MarketDirector::TrafficFactor(State, Products)); }
     for (int32 I = 0; I < Customers.Num();)
     {
         auto& C = Customers[I];

@@ -17,8 +17,6 @@
 #include "MarketPrices.h"
 #include "MarketCalendar.h"
 #include "MarketLedger.h"
-#include "MarketCompetitors.h"
-#include "MarketRivals.h"
 #include "ProductCatalog.h"
 #include "Planogram.h"
 #include "Misc/FileHelper.h"
@@ -315,7 +313,7 @@ namespace MarketAutoPlay
     {
         const auto& Product=Products[Index];
         const bool Growing=State.Day>Profile.GrowthPriceAt && State.MarketShare<40.f && MarketBranches::OpenCount(State)<2;
-        const double Rival=MarketCompetitors::RivalPriceFactor(State,Product.Category,MarketRivals::Aisles(Products));
+        const double Rival=MarketDirector::RivalPriceFactor(State,Product.Category); // E2: the home province's chains
         const double Factor=FMath::Min(Growing?Profile.GrowthPriceFactor:Profile.PriceFactor,Rival*(State.MarketShare<40.f?1.0:1.03));
         const int64 Desired=FMath::Max(FMath::RoundToInt64(Product.Cost*1.05),FMath::RoundToInt64(Product.BasePrice*Factor));
         // An opening or share threshold must not cause an abrupt family-shop price jump.
@@ -359,8 +357,6 @@ namespace MarketAutoPlay
         }
         for (const FMarketEmployee& Person : State.Staff)
             Check(FMath::IsFinite(Person.Morale) && FMath::IsFinite(Person.Fatigue) && Person.Morale >= 0 && Person.Morale <= 100 && Person.Fatigue >= 0 && Person.Fatigue <= 100, TEXT("Calisan durumu gecersiz."));
-        for (const FMarketCompetitor& Rival : State.Competitors)
-            Check(FMath::IsFinite(Rival.Share) && Rival.Share >= 0 && Rival.Share <= 1, TEXT("Rakip payi gecersiz."));
         for (const FMarketLoan& Loan : State.Loans)
             Check(Loan.Remaining >= 0 && FMath::IsFinite(Loan.MonthlyRate) && Loan.MonthlyRate >= 0, TEXT("Kredi kaydi gecersiz."));
         return Errors;

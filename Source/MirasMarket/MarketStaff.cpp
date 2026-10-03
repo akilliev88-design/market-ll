@@ -9,7 +9,7 @@
 // without a using-directive (the module is a unity build).
 namespace MarketStaff
 {
-    // Stable 32-bit hash of (seed, day, salt), as in MarketRivals: a reload never rerolls people or tills.
+    // Stable 32-bit hash of (seed, day, salt), as in the campaign's other rolls: a reload never rerolls people or tills.
     uint32 Mix(int32 Seed, int32 Day, uint32 Salt)
     {
         uint32 Hash = 2166136261u;

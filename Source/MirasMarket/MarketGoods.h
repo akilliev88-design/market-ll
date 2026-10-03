@@ -34,4 +34,6 @@ namespace MarketGoods
     int32 ShelfLifeDays(EGroup Group);
     // G-078: the product's own shelf life from the catalog, else its group's.
     int32 ShelfLifeDays(const FMarketProduct& Product);
+    // Distinct product categories (aisles) of a catalog, sorted (was MarketRivals::Aisles; E2).
+    TArray<FString> Aisles(const TArray<FMarketProduct>& Products);
 }

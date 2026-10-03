@@ -1,5 +1,6 @@
 #include "MarketStart.h"
 #include "MarketCountry.h"
+#include "MarketChains.h"
 #include "MarketStaff.h"
 #include "MarketFinance.h"
 #include "MarketOwner.h"
@@ -59,6 +60,7 @@ void MarketStart::Setup(FMarketState& State, const FString& CountryId, const FSt
     State.StartDebt = FMath::Max<int64>(10000, FMath::RoundToInt64(Month * StartDebtMonths) / 10000 * 10000);
     State.InheritedDebt = State.StartDebt;
     MarketEras::Setup(State); // C3 (B4): this campaign's eras, shifted by the seed
+    MarketChains::Ensure(State); // E2: the province's chains are there from the first day (the shoppers' rivals)
 }
 
 int32 MarketStart::StockShelvesPartly(FMarketState& State, int32 Seed)

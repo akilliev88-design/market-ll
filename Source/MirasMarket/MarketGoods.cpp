@@ -91,3 +91,12 @@ int32 MarketGoods::ShelfLifeDays(const FMarketProduct& Product)
 {
     return Product.ShelfLifeDays > 0 ? Product.ShelfLifeDays : ShelfLifeDays(Classify(Product.Category));
 }
+
+TArray<FString> MarketGoods::Aisles(const TArray<FMarketProduct>& Products)
+{
+    TArray<FString> Result;
+    for (const FMarketProduct& Product : Products)
+        if (!Product.Category.IsEmpty()) Result.AddUnique(Product.Category);
+    Result.Sort();
+    return Result;
+}

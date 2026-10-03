@@ -59,8 +59,6 @@ namespace MarketCastLocal
 FString MarketCast::Wholesaler() { return LastName(ERole::Wholesaler) + MarketCastLocal::FirmWord(false); }
 FString MarketCast::CashCarry() { return LastName(ERole::CashCarry) + MarketCastLocal::FirmWord(true); }
 FString MarketCast::CashCarryOwner() { return FirstName(ERole::CashCarryOwner) + TEXT(" ") + LastName(ERole::CashCarry); }
-FString MarketCast::RivalShop() { return LastName(ERole::RivalShop) + TEXT(" Market"); }
-FString MarketCast::RivalOwner() { return FirstName(ERole::RivalOwner) + TEXT(" ") + LastName(ERole::RivalShop); }
 
 FString MarketCast::Bank(int32 Index)
 {

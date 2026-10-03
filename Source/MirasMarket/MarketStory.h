@@ -5,18 +5,16 @@
 #include "MarketGoods.h"
 
 // The main story (G-066, Docs/Kurgu/00_KURGU_KITABI.md \u00a74-5). Independent of the world, tested
-// (MirasMarket.Story.*). Chapters have goals measured from the game state; scenes with the characters play at day
-// closes; choices go through MarketEvents decisions ("story.*"); milestones become memories.
+// (MirasMarket.Story.*). Chapters have goals measured from the game state; choices go through MarketEvents decisions ("story.*"); milestones become memories.
 //  1 Defter            first order, first profitable day, first week
-//  2 Kar\u015f\u0131 D\u00fckk\u00e2n      father's debt closed, 35 % local share, 15 regulars, sell-or-continue answered
+//  2 K\u00f6k Salmak        the business's debt closed, 35 % local share, 15 regulars, the shop's identity chosen
 //  3 \u0130kinci Tabela     second shop, an HR manager, an accountant (the shop runs without you)
 //  4-7                 \u0130ller, \u00dclke \u00c7ap\u0131nda, S\u0131n\u0131r \u00d6tesi, Miras: goals of the branch/company systems (G-086)
-// Scenes: Nermin teyze's welcome (day 1) and her complaint when there is no milk; Cem, the father's apprentice,
-// asks for a job (day 2 pool); the wholesaler's salesman (day 3); the neighbour market owner's taunt (day 5); his offer to buy the
-// shop (from day 10 or when the debt closes). Continuing asks for the shop's identity:
-//  Mahallenin Bakkal\u0131   loyal regulars forgive a little more; staples and milk sell a bit better
-//  Kaliteli Yerel       shoppers accept higher prices; better goods cost 4 % more
-//  H\u0131zl\u0131 \u0130ndirim        4 % cheaper purchases and a little more traffic, but price-hunting shoppers; the neighbour is furious
+// M57 (Mustafa 03.10.2026): the neighbour market and the character scenes (the regular customer, the apprentice, the
+// wholesaler's salesman) left the game. In the second chapter the shop chooses its identity (it carries to every store):
+//  Mahalle Marketi      loyal regulars forgive a little more; staples and milk sell a bit better
+//  Kaliteli Market      shoppers accept higher prices; better goods cost 4 % more
+//  H\u0131zl\u0131 \u0130ndirim        4 % cheaper purchases and a little more traffic, but price-hunting shoppers
 namespace MarketStory
 {
     enum class EIdentity : uint8 { None = 0, Bakkal, Kaliteli, Indirim };
@@ -41,11 +39,8 @@ namespace MarketStory
     // in every branch (the family shop takes it from the modifiers): x wish of a group.
     float IdentityDemand(const FMarketState& State, MarketGoods::EGroup Group);
     void AddMemory(FMarketState& State, const FString& Text);
-    // What the neighbour market offers for the business today (not the building: that stays in the family).
-    int64 SaleOffer(const FMarketState& State, const TArray<FMarketProduct>& Products);
 
-    // Day close: scenes, milestones and the next chapter (news in State.DayNews). Call after the staff's day close
-    // (Cem joins the fresh hiring pool).
+    // Day close: milestones, the identity choice and the next chapter (news in State.DayNews).
     void CloseDay(FMarketState& State, const TArray<FMarketProduct>& Products);
     // The one finale (karar J02): remember it, show the summary once, then free play without new content.
     // Returns false if a finale was already reached.

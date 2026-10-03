@@ -1,11 +1,9 @@
 #include "MarketDirector.h"
 #include "MarketCountry.h"
 #include "MarketCalendar.h"
-#include "MarketRivals.h"
 #include "MarketStaff.h"
 #include "MarketSuppliers.h"
 #include "MarketPromotions.h"
-#include "MarketCompetitors.h"
 #include "MarketEvents.h"
 #include "MarketStory.h"
 #include "MarketGoods.h"
@@ -28,19 +26,10 @@
 #include "MarketCommand.h"
 #include "MarketRumors.h"
 #include "MarketStoreDemand.h"
+#include "MarketStart.h"
 
-float MarketDirector::TrafficFactor(const FMarketState& State, const TArray<FString>& Aisles)
+float MarketDirector::TrafficFactor(const FMarketState& State, const TArray<FMarketProduct>& Products)
 {
-    return MarketCalendar::TrafficFactor(State.Day, State.RivalSeed) * MarketRivals::TrafficFactor(State.Day, State.RivalSeed, Aisles)
-        * MarketPromotions::TrafficFactor(State) * MarketCompetitors::TrafficFactor(State)
-        * MarketEvents::Factor(State, MarketEvents::EModifier::Traffic) * MarketBranches::MainShopFactor(State)
-        * MarketOnline::StoreTrafficFactor(State) * MarketPayments::TrafficFactor(State) * MarketSimulation::TrafficFactor(State)
-        * MarketAdvertising::TrafficFactor(State); // M34: the company's advertising
-}
-
-float MarketDirector::TrafficFactor(const FMarketState& State, const TArray<FString>& Aisles, const TArray<FMarketProduct>& Products)
-{
-    if (!MarketStoreDemand::Unified()) return TrafficFactor(State, Aisles);
     return static_cast<float>(MarketStoreDemand::FamilyShoppers(State, Products, State.Day)) / static_cast<float>(MarketSimulation::ShoppersPerDay);
 }
 
@@ -51,9 +40,10 @@ double MarketDirector::ToleranceBonus(const FMarketState& State, const FMarketPr
     return MarketEvents::Tolerance(State, MarketGoods::Classify(Product.Category)) + MarketSimulation::ToleranceBonus(State) + Income;
 }
 
-float MarketDirector::RivalPriceFactor(const FMarketState& State, const TArray<FString>& Aisles, const FString& Category)
+float MarketDirector::RivalPriceFactor(const FMarketState& State, const FString& Category)
 {
-    return MarketCompetitors::RivalPriceFactor(State, Category, Aisles);
+    (void)Category;
+    return MarketChains::RivalPriceFactor(State, State.CountryId, MarketStart::HomeProvince(State), State.Day);
 }
 
 float MarketDirector::DemandWeight(const FMarketState& State, const FMarketProduct& Product)
@@ -361,7 +351,8 @@ void MarketDirector::CloseDay(FMarketState& State, const TArray<FMarketProduct>&
         if (!Cleared.IsEmpty()) State.DayNews.Add(Cleared);
     }
     MarketFreshness::CloseDay(State, Products);  // batches, waste, donations (G-067) - before the books
-    MarketCompetitors::CloseDay(State, Products, MarketRivals::Aisles(Products)); // shares, rivals' moves, poaching (G-065)
+    MarketStoreDemand::CloseDay(State, Products); // E2: the family shop's share of its province (one store formula)
+    MarketChains::Poach(State, State.Day - 1);    // a chain of the home province offers one of our people a job
     MarketBranches::CloseDay(State, Products);   // opening steps and the simulated day of every branch (G-068)
     MarketManagers::CloseDay(State);             // managers' wages, morale, weekly marks, the player's span (G-086b)
     MarketCommand::CloseDay(State, Products);    // M33: province managers propose opening or closing a branch (up the line)

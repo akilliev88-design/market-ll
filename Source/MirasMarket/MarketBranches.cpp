@@ -4,7 +4,6 @@
 #include "MarketCalendar.h"
 #include "MarketCampaign.h"
 #include "MarketCompany.h"
-#include "MarketCompetitors.h"
 #include "MarketDepots.h"
 #include "MarketCustomers.h"
 #include "MarketGoods.h"
@@ -776,7 +775,7 @@ void MarketBranches::CloseDay(FMarketState& State, const TArray<FMarketProduct>&
         {
             // A good (or price-minded) manager keeps prices at the market type's place against the rivals; the
             // price-minded one a little under it (G-086b style).
-            const float Rival = MarketCompetitors::RivalPriceFactor(State, FString(), TArray<FString>());
+            const float Rival = MarketChains::RivalPriceFactor(State, Where.Country, Where.Province, Closed); // E2: the chains of its own province
             B.PriceIndex = FMath::Clamp(B.PriceIndex + (Rival * (Kind.PriceTarget + 0.02f + Rule.PriceBias) - B.PriceIndex) * 0.2f, 0.85f, 1.2f);
         }
         else B.PriceIndex = FMath::Clamp(MainPriceIndex(State, Products) * (Kind.PriceTarget + Rule.PriceBias), 0.85f, 1.2f); // copies the family shop's labels

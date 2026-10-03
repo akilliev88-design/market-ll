@@ -50,7 +50,7 @@ bool FMarketSimulationTest::RunTest(const FString& Parameters)
     FMarketState Easy = S, Hard = S;
     TestTrue(TEXT("Easy"), MarketDirector::Command(Easy, Products, TEXT("Difficulty"), 0, Message));
     TestTrue(TEXT("Hard"), MarketSimulation::SetDifficulty(Hard, 2, Message));
-    TestTrue(TEXT("More shoppers when easy"), MarketDirector::TrafficFactor(Easy, {}) > MarketDirector::TrafficFactor(Hard, {}));
+    TestTrue(TEXT("More shoppers when easy"), MarketDirector::TrafficFactor(Easy, Products) > MarketDirector::TrafficFactor(Hard, Products));
     TestTrue(TEXT("Easier on prices"), MarketDirector::ToleranceBonus(Easy, Products[0]) > MarketDirector::ToleranceBonus(Hard, Products[0]));
     TestFalse(TEXT("Same again"), MarketSimulation::SetDifficulty(Hard, 2, Message));
 

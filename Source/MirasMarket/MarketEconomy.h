@@ -211,32 +211,6 @@ struct FMarketPromotion
     UPROPERTY() bool bManager = false;
 };
 
-// A competing company in the district (MarketCompetitors.h). Older saves start without them (created on first use).
-USTRUCT()
-struct FMarketCompetitor
-{
-    GENERATED_BODY()
-    UPROPERTY() uint8 Company = 0;       // MarketCompetitors::ECompany
-    UPROPERTY() int64 Cash = 0;          // what the company can spend on a fight in this district
-    UPROPERTY() float BaseIndex = 1.f;   // its everyday prices / list price
-    UPROPERTY() float Service = 1.f;
-    UPROPERTY() int32 Stores = 1;        // its shops that serve our street
-    UPROPERTY() float Share = 0.f;       // 0..1 of the district's shopping
-    UPROPERTY() float Anger = 0.f;       // 0..100: how much it wants to hurt us (the local rival)
-    UPROPERTY() FString WarCategory;     // aisle of a running price war
-    UPROPERTY() int32 WarUntil = 0;
-    UPROPERTY() int32 WarCooldownUntil = 0;
-    UPROPERTY() int32 Told = 0;          // bit flags of one-time news already told
-    // G-079: days in a row with no money left (the local rival sells out after a month) and a slow average of our
-    // local share the chains watch (they answer a rising shop).
-    UPROPERTY() int32 RedDays = 0;
-    UPROPERTY() float WatchShare = 0.f;
-    // M35: the street's chain shops are the real chains of the home province (MarketChains): which one and its name.
-    // "#gone": the chain left (closed, sold, or we bought it) and the shop with it.
-    UPROPERTY() FString ChainId;
-    UPROPERTY() FString Name;
-};
-
 // A choice waiting for the player (MarketEvents.h): story scenes and neighbourhood events.
 USTRUCT()
 struct FMarketDecision
@@ -925,7 +899,7 @@ struct FMarketState
     static constexpr int64 StockerDailyWage = 2000;
 
     // Save format version. 2 (G-076): story finale flags, test-mode mark. Older saves load and are migrated.
-    static constexpr int32 CurrentVersion = 8; // C15 (M27): growth strain (SignedDay, bHasty); older saves start a new game
+    static constexpr int32 CurrentVersion = 9; // E2 (M27): the street rivals left the save (one rival model, MarketChains); older saves start a new game
     UPROPERTY() int32 Version = CurrentVersion;
     UPROPERTY() int32 Day = 1;
     UPROPERTY() int64 Cash = 35000;
@@ -980,7 +954,7 @@ struct FMarketState
     UPROPERTY() int64 LastWeekDebtPaid = 0;
     UPROPERTY() int32 LastWeekServed = 0;
     UPROPERTY() int32 LastWeekLost = 0;
-    // Seed of the rival shops' news (MarketRivals.h); set for each new campaign, so a reload cannot reroll it.
+    // Seed of the campaign (weather, people, rival chains); set for each new campaign, so a reload cannot reroll it.
     UPROPERTY() int32 RivalSeed = 0;
     // Every closed day, oldest first (MarketCampaign::CloseDay). Kept for ten game years at most.
     UPROPERTY() TArray<FMarketDayRecord> History;
@@ -1017,8 +991,6 @@ struct FMarketState
     // Book losses of today with no cash cost at the close (stock sold below cost, an early-repayment fee paid at
     // once): taken into the next close's profit so reports and the tax books see them.
     UPROPERTY() int64 PendingLoss = 0;
-    // Competing companies of the district (MarketCompetitors.h).
-    UPROPERTY() TArray<FMarketCompetitor> Competitors;
     // Story, choices waiting for the player, lasting effects and the history of events (MarketStory, MarketEvents).
     UPROPERTY() FMarketStoryState Story;
     UPROPERTY() TArray<FMarketDecision> Decisions;
@@ -1068,7 +1040,7 @@ struct FMarketState
     // G-086b: province, regional and country managers (MarketManagers.h).
     UPROPERTY() FMarketManagement Management;
     UPROPERTY() int32 AdvancedDays = 0;
-    // Local share at the start of the last day close (MarketCompetitors replaces the simple satisfaction update).
+    // Local share at the start of the last day close (MarketStoreDemand::CloseDay replaces the simple satisfaction update).
     UPROPERTY() float ShareBeforeClose = 25.f;
     // Evening report lines of the background systems (MarketDirector clears it at every day close).
     UPROPERTY() TArray<FString> DayNews;

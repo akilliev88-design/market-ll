@@ -8,7 +8,6 @@
 #include "ProductCatalog.h"
 #include "MarketSimulation.h"
 #include "MarketEvents.h"
-#include "MarketRivals.h"
 #include "MarketCampaign.h"
 #include "MarketDemand.h"
 #include "MarketCalendar.h"
@@ -341,8 +340,9 @@ const TArray<FMarketTodo>& AMarketGameMode::Todos() const
     if (Dearest != INDEX_NONE)
         Add(1, ProductName(Dearest) + TEXT(" rakiplerden pahal\u0131"), FString::Printf(TEXT("Sende %s, m\u00fc\u015fterinin akl\u0131ndaki rakip fiyat\u0131 %s."),
             *MarketCountry::Money(State.Stock[Dearest].Price), *MarketCountry::Money(MarketDemand::RivalPrice(Products[Dearest], RivalPriceFactor(Dearest)))), SMarketMenu::Prices, Dearest);
-    const TArray<MarketRivals::FEvent> News = MarketRivals::ActiveOn(State.Day, State.RivalSeed, RivalAisles);
-    if (News.Num() > 0) Add(0, TEXT("Rakiplerde bug\u00fcn"), MarketRivals::Describe(News[0]), SMarketMenu::Rivals);
+    // E2: a chain's price war against us in the home province.
+    const int32 War = MarketChains::WarIn(State, State.CountryId, MarketStart::HomeProvince(State), State.Day);
+    if (War != INDEX_NONE) Add(1, TEXT("Rakip fiyat sava\u015f\u0131nda"), FString::Printf(TEXT("%s ilde fiyatlar\u0131n\u0131 k\u0131rd\u0131 (%d. g\u00fcne kadar)."), *State.Rivals.Chains[War].Name, State.Rivals.Chains[War].WarUntil), SMarketMenu::Rivals);
     if (MarketCampaign::DebtOpen(State) && State.Cash >= MarketCampaign::InstallmentOf(State) * 3)
         Add(0, TEXT("\u0130\u015fletmenin borcu"), FString::Printf(TEXT("%s kald\u0131. Kasa yetiyor: bir taksit \u00f6deyebilirsin."), *MarketCountry::Money(State.InheritedDebt)), SMarketMenu::Summary);
     if (!bOpen && OrderDraftCaseCount() > 0)

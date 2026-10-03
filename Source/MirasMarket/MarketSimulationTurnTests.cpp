@@ -2,6 +2,7 @@
 #include "MarketCalendar.h"
 #include "MarketManagers.h"
 #include "MarketEvents.h"
+#include "MarketStart.h"
 #include "Misc/AutomationTest.h"
 
 #if WITH_DEV_AUTOMATION_TESTS
@@ -64,7 +65,14 @@ bool FMarketTurnLengths::RunTest(const FString& Parameters)
     TestEqual(TEXT("Chapter stops after one day"), Turn.Played, 1);
     TestTrue(TEXT("Typed chapter reason"), Turn.Stop == MarketSimulation::EStop::Chapter);
     State = MarketTurnTests::State(Base);
-    Hooks.AfterDay = [&](const MarketSimulation::FDay&) { State.Decisions.Reset(); State.Competitors[0].WarUntil = State.Day + 7; };
+    Hooks.AfterDay = [&](const MarketSimulation::FDay&)
+    {
+        // E2: a chain of the home province starts a price war against us.
+        State.Decisions.Reset();
+        FMarketChain War; War.Id = TEXT("test.war"); War.Country = State.CountryId; War.Name = TEXT("Test");
+        War.WarProvince = MarketStart::HomeProvince(State); War.WarUntil = State.Day + 7;
+        State.Rivals.Chains.Add(War);
+    };
     Turn = MarketSimulation::AdvanceTurn(State, Base, Products, MarketSimulation::ETurn::Month, Hooks);
     TestEqual(TEXT("Price war stops after one day"), Turn.Played, 1);
     TestTrue(TEXT("Typed important event reason"), Turn.Stop == MarketSimulation::EStop::ImportantEvent);

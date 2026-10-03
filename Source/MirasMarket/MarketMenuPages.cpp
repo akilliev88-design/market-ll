@@ -10,7 +10,6 @@
 #include "ProductCatalog.h"
 #include "MarketSuppliers.h"
 #include "MarketPromotions.h"
-#include "MarketCompetitors.h"
 #include "MarketFinance.h"
 #include "MarketOnline.h"
 #include "MarketAdvertising.h"
@@ -21,7 +20,6 @@
 #include "MarketCampaign.h"
 #include "MarketCalendar.h"
 #include "MarketStaff.h"
-#include "MarketRivals.h"
 #include "MarketPrices.h"
 #include "MarketMap.h"
 #include "MarketTheme.h"
@@ -228,8 +226,9 @@ namespace MarketMenuPagesUi
             break;
         }
         // Rivals, the story, the debt, the till.
-        const FString Rivals = MarketMenuUi::RivalsToday(G);
-        if (!Rivals.StartsWith(TEXT("Sakin"))) Cards.Add({ TEXT("RAK\u0130PLERDE BUG\u00dcN"), TEXT("Rakip hamlesi"), Rivals, SMarketMenu::Rivals });
+        // E2: a chain's price war against us in the home province is the rivals' move worth a card.
+        const int32 War = MarketChains::WarIn(S, S.CountryId, MarketStart::HomeProvince(S), S.Day);
+        if (War != INDEX_NONE) Cards.Add({ TEXT("RAK\u0130PLERDE BUG\u00dcN"), TEXT("Fiyat sava\u015f\u0131"), FString::Printf(TEXT("%s ilde fiyatlar\u0131n\u0131 k\u0131rd\u0131 (%d. g\u00fcne kadar). M\u00fc\u015fterinin akl\u0131ndaki rakip fiyat\u0131 d\u00fc\u015ft\u00fc."), *S.Rivals.Chains[War].Name, S.Rivals.Chains[War].WarUntil), SMarketMenu::Rivals });
         for (const MarketStory::FObjective& Goal : MarketStory::Objectives(S))
             if (!Goal.bDone)
             {
@@ -761,26 +760,26 @@ TSharedRef<SWidget> SMarketMenu::PricesPage()
         RivalRows->AddSlot().AutoHeight().Padding(0.f, 3.f)
         [
             SNew(SBorder).BorderImage(&SmallBrush).BorderBackgroundColor(Col(ERole::Inset)).Padding(FMargin(12.f, 8.f))
-            .Visibility_Lambda([G, Rival] { return G() && Rival < MarketRivals::RivalCount(G()->State.Day) ? EVisibility::Visible : EVisibility::Collapsed; })
+            .Visibility_Lambda([G, Rival] { return Rival < MarketMenuUi::RivalCount(G()) ? EVisibility::Visible : EVisibility::Collapsed; })
             [
                 SNew(SHorizontalBox)
                 + SHorizontalBox::Slot().AutoWidth().VAlign(VAlign_Center).Padding(0.f, 0.f, 12.f, 0.f)
-                [ Badge(MarketRivals::RivalLogoKey(Rival), MarketMenuUi::Initials(MarketRivals::RivalName(Rival)), MarketMenuUi::RivalColor(Rival), 34.f) ]
+                [ Badge(MarketMenuUi::RivalLogoKey(G(), Rival), MarketMenuUi::Initials(MarketMenuUi::RivalName(G(), Rival)), MarketMenuUi::RivalColor(Rival), 34.f) ]
                 + SHorizontalBox::Slot().FillWidth(1.f).VAlign(VAlign_Center)
                 [
                     SNew(SVerticalBox)
-                    + SVerticalBox::Slot().AutoHeight()[ Fixed(MarketRivals::RivalName(Rival), 12, ERole::Text, true) ]
+                    + SVerticalBox::Slot().AutoHeight()[ Label([G, Rival] { return MarketMenuUi::RivalName(G(), Rival); }, 12, ERole::Text, true) ]
                     + SVerticalBox::Slot().AutoHeight()
                     [
                         Label([G, Valid, Current, Rival]
                         {
                             if (!Valid()) return FString();
-                            bool bEmpty = false;
-                            const float Factor = MarketRivals::RivalFactor(G()->State.Day, G()->State.RivalSeed, G()->RivalAisles, G()->Products[Current()].Category, Rival, &bEmpty);
-                            const FString Kind = MarketRivals::RivalFormat(Rival);
-                            if (bEmpty) return Kind + TEXT(" \u00b7 bu reyon bo\u015f");
-                            if (Factor < 1.f) return Kind + FString::Printf(TEXT(" \u00b7 kampanyada %%%d"), FMath::RoundToInt32((1.f - Factor) * 100.f));
-                            if (Factor > 1.f) return Kind + FString::Printf(TEXT(" \u00b7 zam %%%d"), FMath::RoundToInt32((Factor - 1.f) * 100.f));
+                            int64 Price = 0;
+                            const FString Kind = MarketMenuUi::RivalKind(G(), Rival);
+                            if (!MarketMenuUi::RivalShelfPrice(*G(), Current(), Rival, Price) || G()->Products[Current()].BasePrice <= 0) return Kind;
+                            const float Factor = static_cast<float>(Price) / static_cast<float>(G()->Products[Current()].BasePrice);
+                            if (Factor < 0.995f) return Kind + FString::Printf(TEXT(" \u00b7 listenin %%%d alt\u0131nda"), FMath::RoundToInt32((1.f - Factor) * 100.f));
+                            if (Factor > 1.005f) return Kind + FString::Printf(TEXT(" \u00b7 listenin %%%d \u00fcst\u00fcnde"), FMath::RoundToInt32((Factor - 1.f) * 100.f));
                             return Kind;
                         }, 9, ERole::Muted)
                     ]
@@ -1200,19 +1199,19 @@ TSharedRef<SWidget> SMarketMenu::RivalsPage()
         NewsCards->AddSlot().FillWidth(1.f).Padding(0.f, 0.f, Rival < 2 ? 12.f : 0.f, 0.f)
         [
             SNew(SBox)
-            .Visibility_Lambda([G, Rival] { return G() && Rival < MarketRivals::RivalCount(G()->State.Day) ? EVisibility::Visible : EVisibility::Hidden; })
+            .Visibility_Lambda([G, Rival] { return Rival < MarketMenuUi::RivalCount(G()) ? EVisibility::Visible : EVisibility::Hidden; })
             [
                 Card(SNew(SVerticalBox)
                     + SVerticalBox::Slot().AutoHeight()
                     [
                         SNew(SHorizontalBox)
                         + SHorizontalBox::Slot().AutoWidth().VAlign(VAlign_Center).Padding(0.f, 0.f, 12.f, 0.f)
-                        [ Badge(MarketRivals::RivalLogoKey(Rival), MarketMenuUi::Initials(MarketRivals::RivalName(Rival)), MarketMenuUi::RivalColor(Rival), 40.f) ]
+                        [ Badge(MarketMenuUi::RivalLogoKey(G(), Rival), MarketMenuUi::Initials(MarketMenuUi::RivalName(G(), Rival)), MarketMenuUi::RivalColor(Rival), 40.f) ]
                         + SHorizontalBox::Slot().FillWidth(1.f).VAlign(VAlign_Center)
                         [
                             SNew(SVerticalBox)
-                            + SVerticalBox::Slot().AutoHeight()[ Fixed(MarketRivals::RivalName(Rival), 15, ERole::Text, true) ]
-                            + SVerticalBox::Slot().AutoHeight()[ Fixed(MarketRivals::RivalFormat(Rival), 10, ERole::Muted) ]
+                            + SVerticalBox::Slot().AutoHeight()[ Label([G, Rival] { return MarketMenuUi::RivalName(G(), Rival); }, 15, ERole::Text, true) ]
+                            + SVerticalBox::Slot().AutoHeight()[ Label([G, Rival] { return MarketMenuUi::RivalKind(G(), Rival); }, 10, ERole::Muted) ]
                         ]
                     ]
                     + SVerticalBox::Slot().AutoHeight().Padding(0.f, 14.f, 0.f, 6.f)[ Section(TEXT("BUG\u00dcN")) ]
@@ -1232,15 +1231,12 @@ TSharedRef<SWidget> SMarketMenu::RivalsPage()
                 [ Label([G] { return G() ? FString::Printf(TEXT("Mahalle m\u00fc\u015fterilerinin %%%.0f'i bizden al\u0131\u015fveri\u015f yap\u0131yor"), G()->State.MarketShare) : FString(); }, 16, ERole::Text, true) ]
                 + SVerticalBox::Slot().AutoHeight()[ Bar([G] { return G() ? G()->State.MarketShare / 100.f : 0.f; }, ERole::Accent) ]
                 + SVerticalBox::Slot().AutoHeight().Padding(0.f, 8.f, 0.f, 0.f)
-                [ More([] { return FString(TEXT("Pay her g\u00fcn sonunda de\u011fi\u015fir: fiyat, dolu raf, bekleme, sadakat, kampanya ve yak\u0131nl\u0131k.")); }) ]
+                [ More([] { return FString(TEXT("Pay her g\u00fcn sonunda de\u011fi\u015fir: fiyat, dolu raf, bekleme, m\u00fc\u015fteri memnuniyeti, ildeki zincirler ve fiyat sava\u015flar\u0131.")); }) ]
                 + SVerticalBox::Slot().AutoHeight().Padding(0.f, 8.f, 0.f, 0.f)
                 [ Label([G]
                 {
                     if (!G()) return FString();
-                    TArray<FString> Lines;
-                    for (int32 C = 0; C < static_cast<int32>(MarketCompetitors::ECompany::Count); ++C)
-                        Lines.Add(TEXT("\u2022 ") + MarketCompetitors::Describe(G()->State, static_cast<MarketCompetitors::ECompany>(C)));
-                    return FString::Join(Lines, TEXT("\n"));
+                    return MarketMenuUi::RivalsToday(*G()); // E2: the home province's chains
                 }, 10, ERole::Text, false, true) ])
         ]
         + SVerticalBox::Slot().AutoHeight().Padding(0.f, 12.f, 0.f, 0.f)[ NewsCards ]

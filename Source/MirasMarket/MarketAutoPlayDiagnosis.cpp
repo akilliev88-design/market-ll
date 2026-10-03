@@ -114,8 +114,8 @@ namespace MarketAutoPlayDiagnosis
         N(MarketSuppliers::OpenBills(State)); N(State.Cash); N(State.Owner.TotalSalary - Stats.SalaryBefore); N(State.Owner.TotalDividends - Stats.DividendBefore + Stats.PendingDividend); N(State.Owner.Wealth); N(Stats.ManagerCost); N(Stats.FamilyManagerCost);
         N(Stats.StaffCount); N(Stats.Cashiers); N(Stats.Stockers); N(Stats.Hr); N(Stats.Accountant); F(Stats.Shelf); F(Stats.List); F(Stats.Purchase); F(Stats.Book); F(Stats.Target); F(MarketPrices::ListLevel(Closed)); F(State.MarketShare); F(MarketDirector::BudgetFactor(State, 0)); F(MarketEras::BudgetFactor(State)); F(MarketEras::ImportCostFactor(State, 1.f, Closed)); F(MarketEras::NonFoodDemand(State, Closed));
         MarketEras::FEra Era; S(MarketEras::Current(State, Closed, Era) ? FString::FromInt(static_cast<int32>(Era.Kind)) : TEXT("none"));
-        FString Rivals; for (const auto& Rival : State.Competitors) Rivals += FString::Printf(TEXT("%d:%.4f|"), Rival.Company, Rival.BaseIndex);
-        S(Rivals); S(Stats.Managers); N(Ordered); N(MarketCompany::TotalStores(State));
+        S(FString::Printf(TEXT("%.4f"), MarketDirector::RivalPriceFactor(State, FString()))); // E2: the home province's rival price level
+        S(Stats.Managers); N(Ordered); N(MarketCompany::TotalStores(State));
         N(State.Owner.TotalSalary > Stats.SalaryBefore ? MarketOwner::CompanyCost(State) : 0);
         Stats.PendingDividend = 0;
         Row.LeftChopInline(1); Row += TEXT("\n"); Stats.Days.Add(Row);

@@ -157,6 +157,7 @@ namespace MarketCountry
         bool bRealChainNames = false;
         TArray<FRosterRow> Roster;      // D3: national chains ("roster")
         TArray<FString> RegionalSuffixes; // D3: regional chain names = sub-region + one of these ("regionalSuffixes")
+        TArray<FString> LocalSuffixes;  // E2: local family chains = a family name + one of these ("localSuffixes")
         FString WholesaleWord;          // D3: "firmWords.wholesale": the wholesaler's firm word ("G\u0131da Da\u011f\u0131t\u0131m")
         FString CashCarryWord;          // D3: "firmWords.cashCarry" ("Toptan", "Gro\u00dfmarkt")
         FString GrocerName;

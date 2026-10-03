@@ -7,7 +7,7 @@
 // (MirasMarket.Promotions.*). A promotion changes three things the shoppers see: the price they pay, how often a
 // product lands on a shopping list (visibility) and how many shoppers come (flyers). Every promotion ends with a
 // report line: units sold against the same days before, and the margin given away, so the player learns whether it
-// paid. Rivals notice promotions (MarketCompetitors).
+// paid. Promotions bring the family shop more trips (MarketStoreDemand).
 //  AisleDiscount  - one aisle (category) 10 or 20 % off for 3 days
 //  MultiBuy       - "3 al 2 \u00f6de" on one product for 7 days: a shopper who takes it takes three and pays for two
 //  Flyer          - M36: no longer started (flyers are the company's ads, MarketAdvertising); kept for the order

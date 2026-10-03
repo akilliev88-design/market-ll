@@ -13,11 +13,10 @@ bool FMarketCastNamesTest::RunTest(const FString& Parameters)
     P.LastNames = { TEXT("M\u00fcller"), TEXT("Schmidt"), TEXT("Schneider"), TEXT("Fischer"), TEXT("Weber"), TEXT("Meyer"), TEXT("Wagner"), TEXT("Becker") };
     P.Banks = { TEXT("Stadtsparkasse"), TEXT("Hansa Handelsbank"), TEXT("Rhein Invest"), TEXT("F\u00f6rderbank") };
     MarketCountry::SetActiveProfile(P, 42);
-    TestTrue(TEXT("Names from the pack"), P.LastNames.Contains(MarketCast::LastName(MarketCast::ERole::RivalShop)));
-    TestTrue(TEXT("The rival shop carries its owner's name"), MarketCast::RivalShop().StartsWith(MarketCast::LastName(MarketCast::ERole::RivalShop)));
-    TestTrue(TEXT("Owner and shop: one family"), MarketCast::RivalOwner().EndsWith(MarketCast::LastName(MarketCast::ERole::RivalShop)));
-    TestNotEqual(TEXT("The wholesaler is another family"), MarketCast::LastName(MarketCast::ERole::Wholesaler), MarketCast::LastName(MarketCast::ERole::RivalShop));
-    TestEqual(TEXT("Same campaign, same names"), MarketCast::RivalShop(), MarketCast::RivalShop());
+    TestTrue(TEXT("Names from the pack"), P.LastNames.Contains(MarketCast::LastName(MarketCast::ERole::Wholesaler)));
+    TestTrue(TEXT("The wholesaler's firm carries its family name"), MarketCast::Wholesaler().StartsWith(MarketCast::LastName(MarketCast::ERole::Wholesaler)));
+    TestNotEqual(TEXT("The cash and carry is another family"), MarketCast::LastName(MarketCast::ERole::Wholesaler), MarketCast::LastName(MarketCast::ERole::CashCarry));
+    TestEqual(TEXT("Same campaign, same names"), MarketCast::Wholesaler(), MarketCast::Wholesaler());
     TestEqual(TEXT("The country's bank"), MarketCast::Bank(1), FString(TEXT("Hansa Handelsbank")));
     MarketCountry::SetActiveProfile(P, 43);
     const FString Other = MarketCast::Wholesaler();

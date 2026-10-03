@@ -1,3 +1,17 @@
+## 03.10.2026 — Claude Code — E2b: tek rakip modeli, karşı dükkân ve karakterler kalktı (derlenmedi)
+
+**E2a sonucu (son.log, ba4cf33):** DERLE geçti, TEST 165 + 1 uyarı, Smoke geçti. OLCUM: 90 gün ciro eski 7.341.275, yeni 10.264.930 (oran 1,398); müşteri 4.323 → 6.031; gün 20'de aile dükkânının gerçek müşterisi 73 (görsel ölçek 55).
+
+**Yapılan:** `MarketStoreDemand::FamilySiteTrips` = 0,72 (ilk dükkân ara sokakta eski tabela; ölçülen 1,40'ın tersi); `FamilyShoppers` her zaman; `MarketStoreDemand::CloseDay` yerel payı formülün payına yaklaştırır (0,85/0,15, %5–65). `MarketDirector::TrafficFactor(State, Products)`, `RivalPriceFactor(State, Category)` → `MarketChains::RivalPriceFactor` (ilin zincirleri, mağaza ağırlıklı, savaş fiyatı 0,92 dahil); `MarketChains::RivalsIn/PriceIn/Poach`. `MarketSimulation` rakip fiyatını günde bir kez hesaplar; önemli olay sinyali ev ilindeki zincir savaşı. Silindi: `MarketRivals.*`, `MarketCompetitors.*`, `FMarketCompetitor` ve `State.Competitors` (kayıt sürümü 9), `MarketCompetitorsTests`, `MarketStreetTests`, `Rivals.News` testi, `MarketCast::RivalShop/RivalOwner`. `MarketStory` (M57): Nermin/Cem/Selim/Kadir sahneleri, `story.sell/aftersale/dream`, `SaleOffer` kalktı; 2. bölüm "Kök Salmak", 4. hedef "Marketin kimliğini seç", kimlik 10. günden bir kez sorulur; son metninde Nermin yok. Şube müdürü fiyatını kendi ilinin zincirlerine göre ayarlar. Menü: fiyat ve rakip sayfalarında ilin ilk 3 zinciri (ad, tür, fiyat), yerel pay kartında zincir satırları, özet ve bildirimde yalnız fiyat savaşı. Yürünen dünya aynı trafiği kullanır (`MarketGame`, Mustafa izni). Zincirler `MarketStart::Setup`'ta kurulur. Yerel aile zinciri adları pakette (`localSuffixes`, 10 ülke). Bot: fiyat hedefi zincir fiyatına, sokak olayları yerine "yerel_fiyat_savasi". AGENTS.md haritası güncellendi.
+
+**Testler:** yeni `MirasMarket.StoreDemand.OneRivalModel` (trafik = formül, rakip fiyatı = zincirler, savaş payı düşürür, yerel pay formülü izler); `FamilyBeforeAfter` artık ölçülen eski sayıya karşı (0,6–1,6 dışı başarısız, oran OLCUM'da); `Story.ChaptersAndChoices` yeni akışa; `Cast`, `AutoPlay.AdvertisingBooksAndClearance`, `SimulationTurn` (savaş artık zincirden) güncellendi. Test.ps1 alt sınırı 163 (166 − 4 + 1).
+
+**Varsayımlar / dikkat:** Satış teklifi karşı dükkândan geldiği için "Sattın" sonu da kalktı (J03'ün tetikleyicisi yok); istenirse ileride başka yoldan (yatırımcı teklifi) gelir. Rakip fiyatı artık yalnız zincirlerden; bakkal ve pazar ayrı fiyat taşımıyor (ilin rekabetinde). Ayın denge değişikliği beklenir: OLCUM satırları gösterecek.
+
+**Doğrulama:** Derlenmedi.
+
+**Sıradaki:** Mustafa CLAUDE_KOS.cmd → son.log; sonra E3.
+
 ## 03.10.2026 — Claude Code — ilk derleme turu: 1 hata düzeltildi
 
 **son.log (Mustafa, 02018be):** derleme tek hatayla kırıldı: `MarketBranches.cpp(655)` C4800, `uint8 bHasty` doğrudan `bool`'a atanmış (E2a). Düzeltildi (`!= 0`). Test raporu eskiydi (derleme olmadığı için önceki tur, 159 + 1 uyarı); Smoke atlandı.

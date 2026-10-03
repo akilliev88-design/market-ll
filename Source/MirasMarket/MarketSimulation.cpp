@@ -10,7 +10,8 @@
 #include "MarketManagers.h"
 #include "MarketOrderAdvice.h"
 #include "MarketPromotions.h"
-#include "MarketRivals.h"
+#include "MarketChains.h"
+#include "MarketStart.h"
 #include "MarketStaff.h"
 #include "MarketSuppliers.h"
 
@@ -36,7 +37,7 @@ namespace MarketSimulation
     }
 
     // One shopper, as AMarketGameMode::SpawnCustomer + ResolveCustomerItem + Checkout do it in the world.
-    void Shopper(FMarketState& State, const TArray<FMarketProduct>& Products, const TArray<FString>& Aisles, FRandomStream& Random, int32& AuditFailures)
+    void Shopper(FMarketState& State, const TArray<FMarketProduct>& Products, float RivalToday, FRandomStream& Random, int32& AuditFailures)
     {
         bool bReturning = false;
         const int32 CustomerId = MarketBasket::ChooseCustomer(State, Random.FRand(), Random.FRand(), bReturning);
@@ -50,7 +51,7 @@ namespace MarketSimulation
         TArray<FMarketSaleLine> Lines;
         TSet<int32> InBasket;
         int32 Fulfilled = 0;
-        auto Rival = [&](int32 Index) { return MarketDirector::RivalPriceFactor(State, Aisles, Products[Index].Category); };
+        auto Rival = [RivalToday](int32 Index) { (void)Index; return RivalToday; }; // E2: the home province's chains, once a day
         auto Available = [&](int32 Index)
         {
             int32 Taken = 0;
@@ -164,7 +165,6 @@ MarketSimulation::FDay MarketSimulation::PlayDay(FMarketState& State, const TArr
     FDay Day;
     if (State.Stock.Num() != Products.Num()) return Day;
     FRandomStream Random(static_cast<int32>(SimMix(State.RivalSeed, State.Day, 0x51A7u)));
-    const TArray<FString> Aisles = MarketRivals::Aisles(Products);
     // Morning routine of the family: the month's price rise goes on the shelf tags, the declared tax is paid, and
     // a spare installment (a tenth of the starting debt, M37) goes to the father's debt when the till can bear it.
     // G-086b ek (M19): with a manager in the family shop his style and skill run the routine (bManaged false: as before).
@@ -184,14 +184,15 @@ MarketSimulation::FDay MarketSimulation::PlayDay(FMarketState& State, const TArr
     }
     FillShelves(State);
     // The world's crowd limit: nine people inside turn the next one away at the door (about 1 in 25 on busy days).
-    const float Traffic = MarketDirector::TrafficFactor(State, Aisles, Products); // E2a: the one store formula when switched on
+    const float Traffic = MarketDirector::TrafficFactor(State, Products); // E2: the one store formula
+    const float RivalToday = MarketDirector::RivalPriceFactor(State, FString());
     // G-084: a day the law keeps shops shut (Germany: Sundays, holidays) has no shoppers; wages and rent still run.
     Day.Shoppers = MarketCalendar::ClosedByLaw(State.Day) ? 0 : FMath::Max(0, FMath::RoundToInt(ShoppersPerDay * Traffic));
     const int32 Crowded = Traffic > 1.3f ? Day.Shoppers / 25 : 0;
     for (int32 N = 0; N < Crowded; ++N) MarketDemand::RecordWaitingLoss(State);
     for (int32 N = Crowded; N < Day.Shoppers; ++N)
     {
-        Shopper(State, Products, Aisles, Random, Day.AuditFailures);
+        Shopper(State, Products, RivalToday, Random, Day.AuditFailures);
         if (N % Family.RefillEvery == Family.RefillEvery - 1) FillShelves(State);   // the family (and the stockers) refill between customers
     }
     Day.Served = State.Served;
@@ -286,19 +287,24 @@ namespace MarketSimulation
     struct FSignals
     {
         int32 Chapter = 0;
-        TArray<int32> Wars, Caught;
+        int32 War = 0;               // E2: the latest price war against us in the home province (its last day)
+        TArray<int32> Caught;
         TArray<FString> DepotCaught;
+        static int32 HomeWar(const FMarketState& State)
+        {
+            const int32 Chain = MarketChains::WarIn(State, State.CountryId, MarketStart::HomeProvince(State), State.Day);
+            return Chain != INDEX_NONE ? State.Rivals.Chains[Chain].WarUntil : 0;
+        }
         explicit FSignals(const FMarketState& State)
         {
             Chapter = State.Story.Chapter;
-            for (const FMarketCompetitor& Rival : State.Competitors) Wars.Add(Rival.WarUntil);
+            War = HomeWar(State);
             for (const FMarketBranch& Branch : State.Branches) Caught.Add(Branch.ManagerCaughtDay);
             for (const FMarketDepot& Depot : State.Company.DepotSites) DepotCaught.Add(Depot.CaughtName);
         }
         bool Important(const FMarketState& State) const
         {
-            for (int32 Index = 0; Index < State.Competitors.Num(); ++Index)
-                if (State.Competitors[Index].WarUntil >= State.Day && State.Competitors[Index].WarUntil > (Wars.IsValidIndex(Index) ? Wars[Index] : 0)) return true;
+            if (HomeWar(State) > War) return true;
             for (int32 Index = 0; Index < State.Branches.Num(); ++Index)
                 if (State.Branches[Index].ManagerCaughtDay > (Caught.IsValidIndex(Index) ? Caught[Index] : 0)) return true;
             for (int32 Index = 0; Index < State.Company.DepotSites.Num(); ++Index)

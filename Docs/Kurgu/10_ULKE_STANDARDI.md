@@ -48,6 +48,7 @@ D3 ile eklenen alanlar (Claude Code, 03.10.2026; hepsi isteğe bağlı, yoksa mo
 | `realChainNames` | marka anahtarı kurgu demedikçe menüde gerçek zincir adları | `false` |
 | `roster[]` | ulusal zincirler: `id`, `name`, `boss`, `archetype`, `stores`, `price`, `service`, `aggression`, `ambition`, `region` (isteğe bağlı ana bölge) | zincir yok |
 | `regionalSuffixes[]` | bölge zinciri adının sözcükleri ("Market", "Gross"…) | varsayılan ülkeninki |
+| `localSuffixes[]` | yerel aile zinciri adının sözcükleri ("Gıda", "Kardeşler") | varsayılan ülkeninki |
 | `firmWords.wholesale` / `.cashCarry` | toptancı firma sözcükleri ("Gıda Dağıtım", "Toptan") | varsayılan ülkeninki |
 | `names.staff.first/last`, `names.managers.first/last` | personel ve müdür için ayrı isim havuzları | `names.first/last` |
 

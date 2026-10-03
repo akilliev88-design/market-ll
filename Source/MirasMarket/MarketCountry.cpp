@@ -197,6 +197,7 @@ bool MarketCountry::Parse(const FString& Json, TArray<FProfile>& OutProfiles, TA
         }
         O->TryGetBoolField(TEXT("realChainNames"), P.bRealChainNames); // D3
         O->TryGetStringArrayField(TEXT("regionalSuffixes"), P.RegionalSuffixes);
+        O->TryGetStringArrayField(TEXT("localSuffixes"), P.LocalSuffixes); // E2
         const TSharedPtr<FJsonObject>* Firm = nullptr;
         if (O->TryGetObjectField(TEXT("firmWords"), Firm) && Firm && Firm->IsValid())
         {

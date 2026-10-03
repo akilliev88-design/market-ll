@@ -6,7 +6,7 @@
 #include "MarketEras.h"
 #include "MarketSimulation.h"
 #include "MarketStart.h"
-#include "MarketTuning.h"
+#include "MarketChains.h"
 #include "Misc/AutomationTest.h"
 
 #if WITH_DEV_AUTOMATION_TESTS
@@ -49,10 +49,8 @@ namespace MarketStoreDemandTest
 
     struct FRun { int64 Revenue = 0; int32 Shoppers = 0; int32 Audit = 0; };
 
-    FRun Play(int32 Days, bool bUnified, int32 Seed)
+    FRun Play(int32 Days, int32 Seed)
     {
-        MarketTuning::Reset();
-        if (bUnified) MarketTuning::Set(TEXT("UnifiedDemand"), 1.f);
         const TArray<FMarketProduct> Base = Catalog();
         TArray<FMarketProduct> Products;
         FMarketState S = NewShop(Base, Products, Seed);
@@ -64,9 +62,13 @@ namespace MarketStoreDemandTest
             Run.Shoppers += Day.Shoppers;
             Run.Audit += Day.AuditFailures;
         }
-        MarketTuning::Reset();
         return Run;
     }
+
+    // E2a measurement (03.10.2026, the old street model with MarketRivals and MarketCompetitors, seed 23): the family
+    // shop's first 90 days in this catalog.
+    constexpr int64 OldRevenue90 = 7341275;
+    constexpr int32 OldShoppers90 = 4323;
 }
 
 IMPLEMENT_SIMPLE_AUTOMATION_TEST(FMarketStoreDemandSameTest, "MirasMarket.StoreDemand.SameFormulaFamilyAndBranch", EAutomationTestFlags::EditorContext | EAutomationTestFlags::EngineFilter)
@@ -105,7 +107,7 @@ bool FMarketStoreDemandSameTest::RunTest(const FString& Parameters)
     S.Branches.Reset();
     TestTrue(TEXT("Alone in the province: more for the family shop"), MarketStoreDemand::ShoppersExact(S, Family, Day) >= A);
 
-    // The family shop's own day: about one walking figure per real shopper on an ordinary day.
+    // The family shop's own day: one walking figure per real shopper.
     const int32 Real = MarketStoreDemand::FamilyShoppers(S, Products, Day);
     AddInfo(FString::Printf(TEXT("OLCUM: aile dukkani gercek musteri (gun 20) %d, gorsel olcek %d"), Real, MarketSimulation::ShoppersPerDay));
     TestTrue(TEXT("Family shop has shoppers"), Real > 0);
@@ -116,19 +118,69 @@ bool FMarketStoreDemandSameTest::RunTest(const FString& Parameters)
 IMPLEMENT_SIMPLE_AUTOMATION_TEST(FMarketStoreDemandBeforeAfterTest, "MirasMarket.StoreDemand.FamilyBeforeAfter", EAutomationTestFlags::EditorContext | EAutomationTestFlags::EngineFilter)
 bool FMarketStoreDemandBeforeAfterTest::RunTest(const FString& Parameters)
 {
-    // E2 calibration (11_TEK_EKONOMI \u00a72 E2.8): the family shop's first 90 days, the old street model against the one
-    // store formula. Target +-15 % revenue; this run reports the numbers (OLCUM lines) and only fails on a gross gap.
+    // E2 calibration (11_TEK_EKONOMI \u00a72 E2.8): the family shop's first 90 days with the one store formula against
+    // the old street model's measured numbers. Target +-15 % revenue; the run reports the numbers (OLCUM) and fails
+    // only on a gross gap.
     using namespace MarketStoreDemandTest;
-    const FRun Old = Play(90, false, 23);
-    const FRun New = Play(90, true, 23);
-    const double Ratio = Old.Revenue > 0 ? static_cast<double>(New.Revenue) / static_cast<double>(Old.Revenue) : 0.0;
+    const FRun New = Play(90, 23);
+    const double Ratio = static_cast<double>(New.Revenue) / static_cast<double>(OldRevenue90);
     AddInfo(FString::Printf(TEXT("OLCUM: 90 gun ciro eski %lld yeni %lld oran %.3f; musteri eski %d yeni %d"),
-        static_cast<long long>(Old.Revenue), static_cast<long long>(New.Revenue), Ratio, Old.Shoppers, New.Shoppers));
-    TestTrue(TEXT("Old model sells"), Old.Revenue > 0);
-    TestTrue(TEXT("New model sells"), New.Revenue > 0);
-    TestEqual(TEXT("No audit gap (old)"), Old.Audit, 0);
-    TestEqual(TEXT("No audit gap (new)"), New.Audit, 0);
-    TestTrue(TEXT("Not a gross gap (0.5 .. 2)"), Ratio > 0.5 && Ratio < 2.0);
+        static_cast<long long>(OldRevenue90), static_cast<long long>(New.Revenue), Ratio, OldShoppers90, New.Shoppers));
+    TestTrue(TEXT("The shop sells"), New.Revenue > 0);
+    TestEqual(TEXT("No audit gap"), New.Audit, 0);
+    TestTrue(TEXT("Not a gross gap (0.6 .. 1.6)"), Ratio > 0.6 && Ratio < 1.6);
+    MarketCountry::SetActive(MarketCountry::DefaultId(), 1);
+    return true;
+}
+
+IMPLEMENT_SIMPLE_AUTOMATION_TEST(FMarketStoreDemandOneRivalTest, "MirasMarket.StoreDemand.OneRivalModel", EAutomationTestFlags::EditorContext | EAutomationTestFlags::EngineFilter)
+bool FMarketStoreDemandOneRivalTest::RunTest(const FString& Parameters)
+{
+    // E2 (11_TEK_EKONOMI \u00a72 E2.9): the family shop's traffic is the formula and nothing else (no rival news), the
+    // rivals' price is the province's chains, a chain's price war cuts our share, and the local share follows the
+    // formula (the story's 35 % goal looks at it).
+    using namespace MarketStoreDemandTest;
+    const TArray<FMarketProduct> Base = Catalog();
+    TArray<FMarketProduct> Products;
+    FMarketState S = NewShop(Base, Products, 31);
+    const FString Home = MarketStart::HomeProvince(S);
+    TestTrue(TEXT("The province's chains are there from day 1"), MarketChains::RivalsIn(S, S.CountryId, Home, 3).Num() > 0);
+
+    // Traffic: exactly the formula's shoppers over the visual scale, the same every time it is asked.
+    for (int32 Day = 2; Day <= 40; Day += 6)
+    {
+        S.Day = Day;
+        const float Traffic = MarketDirector::TrafficFactor(S, Products);
+        const float Expected = static_cast<float>(MarketStoreDemand::FamilyShoppers(S, Products, Day)) / static_cast<float>(MarketSimulation::ShoppersPerDay);
+        TestTrue(*FString::Printf(TEXT("Day %d: traffic = formula"), Day), FMath::IsNearlyEqual(Traffic, Expected));
+        TestTrue(*FString::Printf(TEXT("Day %d: asked twice, same"), Day), FMath::IsNearlyEqual(Traffic, MarketDirector::TrafficFactor(S, Products)));
+    }
+    S.Day = 20;
+
+    // The rivals' price is the chains' weighted price level.
+    const float Rival = MarketDirector::RivalPriceFactor(S, FString());
+    TestTrue(TEXT("Rival price from the chains"), FMath::IsNearlyEqual(Rival, MarketChains::RivalPriceFactor(S, S.CountryId, Home, S.Day)) && Rival >= 0.7f && Rival <= 1.3f);
+
+    // A price war of the biggest chain against us: dearer competition, lower share, cheaper rival shelves.
+    const MarketStoreDemand::FStoreDay Shop = MarketStoreDemand::FamilyDay(S, Products, S.Day);
+    const float Before = MarketStoreDemand::Share(S, Shop, S.Day);
+    FMarketState War = S;
+    const int32 Biggest = MarketChains::RivalsIn(War, War.CountryId, Home, 1).Num() > 0 ? MarketChains::RivalsIn(War, War.CountryId, Home, 1)[0] : INDEX_NONE;
+    if (TestTrue(TEXT("A chain to fight"), Biggest != INDEX_NONE))
+    {
+        War.Rivals.Chains[Biggest].WarProvince = Home;
+        War.Rivals.Chains[Biggest].WarUntil = War.Day + 10;
+        TestTrue(TEXT("War cuts our share"), MarketStoreDemand::Share(War, Shop, War.Day) < Before);
+        TestTrue(TEXT("War cuts the rivals' price"), MarketDirector::RivalPriceFactor(War, FString()) < Rival);
+    }
+
+    // The local share follows the formula at the close.
+    FMarketState Close = S;
+    Close.Day = 21; Close.LastServed = 40; Close.ShareBeforeClose = 10.f; Close.MarketShare = 10.f;
+    MarketStoreDemand::CloseDay(Close, Products);
+    const float Target = MarketStoreDemand::Share(Close, MarketStoreDemand::FamilyDay(Close, Products, 20), 20) * 100.f;
+    TestTrue(TEXT("Share moves towards the formula"), FMath::IsNearlyEqual(Close.MarketShare, FMath::Clamp(10.f * 0.85f + Target * 0.15f, 5.f, 65.f), 0.01f));
+    AddInfo(FString::Printf(TEXT("OLCUM: aile dukkani pay hedefi %%%.1f, rakip fiyat duzeyi %.3f"), Target, Rival));
     MarketCountry::SetActive(MarketCountry::DefaultId(), 1);
     return true;
 }

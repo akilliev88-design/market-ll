@@ -19,9 +19,14 @@ namespace MarketMenuUi
     FString Title(const FString& Text);
     FString Initials(const FString& Name);
     FLinearColor RivalColor(int32 Rival);
-    // Price of one rival for one product today; false = the rival's shelf is empty.
+    // E2: the home province's chains the shoppers compare with (slot 0 = most present), at most three.
+    int32 RivalCount(const AMarketGameMode* G);
+    FString RivalName(const AMarketGameMode* G, int32 Slot);
+    FString RivalKind(const AMarketGameMode* G, int32 Slot);
+    FString RivalLogoKey(const AMarketGameMode* G, int32 Slot);
+    // Price of one rival for one product today; false = no such rival.
     bool RivalShelfPrice(const AMarketGameMode& G, int32 Product, int32 Rival, int64& OutPrice);
-    // Cheapest open rival with the product on its shelf (INDEX_NONE = nobody has it today).
+    // Cheapest rival with the product (INDEX_NONE = no chain in the province).
     int32 CheapestRival(const AMarketGameMode& G, int32 Product, int64& OutPrice);
     double BuyChanceOf(const AMarketGameMode& G, int32 Product);
     FString ProblemText(const AMarketGameMode& G, const MarketDemand::FProblem& Problem);

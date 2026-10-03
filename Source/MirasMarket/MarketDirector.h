@@ -9,13 +9,14 @@
 // The campaign seed for weather, news and people is State.RivalSeed (set once per new campaign).
 namespace MarketDirector
 {
-    // Shopper traffic today: calendar (weekday, weather, paydays, bayrams) x rival news.
-    float TrafficFactor(const FMarketState& State, const TArray<FString>& Aisles);
-    // E2a: with the products the family shop's traffic can come from the one store formula (MarketStoreDemand) when
-    // MarketStoreDemand::Unified() is on: its real shoppers / MarketSimulation::ShoppersPerDay. Off: as above.
-    float TrafficFactor(const FMarketState& State, const TArray<FString>& Aisles, const TArray<FMarketProduct>& Products);
-    // What shoppers think the rivals charge for an aisle today, relative to the list price (MarketCompetitors).
-    float RivalPriceFactor(const FMarketState& State, const TArray<FString>& Aisles, const FString& Category);
+    // Shopper traffic of the family shop today (E2): its real shoppers from the one store formula
+    // (MarketStoreDemand::FamilyShoppers: catchment, share against the province's chains, calendar, online, ads,
+    // difficulty, its promotions, events and card terminal) / MarketSimulation::ShoppersPerDay. The walked world
+    // spawns ShoppersPerDay x this; one walking figure is one shopper.
+    float TrafficFactor(const FMarketState& State, const TArray<FMarketProduct>& Products);
+    // What shoppers think the rivals charge today against the list price: the home province's chains, weighted by
+    // their stores, war prices included (MarketChains::RivalPriceFactor). Category is kept for aisle-level rivals.
+    float RivalPriceFactor(const FMarketState& State, const FString& Category);
     // Extra price tolerance of shoppers for a product today (the shop's identity, events), added to the segment's.
     double ToleranceBonus(const FMarketState& State, const FMarketProduct& Product);
     // How much a product is wanted today relative to an ordinary day (calendar season, weather, special days).

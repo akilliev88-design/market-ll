@@ -49,7 +49,11 @@ namespace MarketStoreDemand
     FStoreDay FamilyDay(const FMarketState& State, const TArray<FMarketProduct>& Products, int32 Day);
     // Its real shoppers today (the walked world shows this many people; one figure walks for one shopper).
     int32 FamilyShoppers(const FMarketState& State, const TArray<FMarketProduct>& Products, int32 Day);
-    // E2a switch (MarketTuning "UnifiedDemand", default 0 until the before/after measurement is in): when on, the
-    // family shop's traffic is FamilyShoppers / MarketSimulation::ShoppersPerDay instead of the old street model.
-    bool Unified();
+    // E2 calibration (11_TEK_EKONOMI E2.8, measured 03.10.2026: the formula gave the family shop 1.40 x the old
+    // street model's shoppers): the family shop is an old sign in a side street; its catchment's trips x this
+    // (like a hastily chosen branch site, MarketBranches::HastyTrips).
+    constexpr float FamilySiteTrips = 0.72f;
+    // Day close: the family shop's share of its province (State.MarketShare, percent) moves a little towards the
+    // formula's share of the day that was played; habits change slowly. A day without visitors keeps it.
+    void CloseDay(FMarketState& State, const TArray<FMarketProduct>& Products);
 }
