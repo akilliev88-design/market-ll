@@ -109,3 +109,5 @@ Yeni görev en alta eklenir; biten görev silinmez, durumu değişir. Kimlikler 
 | D3-D5 | D3: Türkiye dallarını ülke paketine taşı (M52); D5: Fransa, İspanya, Polonya, Brezilya, Meksika, Japonya paketleri; PackStandard + SmokeEveryPack testleri | Claude (Code) | Doğrulama bekliyor | 03.10.2026: yazıldı, **derlenmedi**; dal akis-cc; teslim notu akislar/D3_D5_cc_teslim.md |
 
 | G-100 | Soğuk dolap/vitrinlerin üzerindeki kategori tabelası ve çıkıntılarını kaldır; kategoriler kalsın | Codex | Bitti | 03.10.2026: 17 ekipmanda levha/yazı kapalı; Blender kaynaklarında taşıyıcı yok. DERLE, TEST169/169, Smoke, Blender15/15 ve beş oyun görünümü geçti. |
+
+| G-101 | BUZ teşhir reyonlarını mevcut dolaplarla karşılaştır, eksik tipleri listele | Codex | Bitti (inceleme) | 03.10.2026: 12 dolap kaynağı/uasset mevcut; eksik biçim/varyantlar Docs/Environment/BUZ_EKSIK_TIPLER.md. Yeni üretim yapılmadı. |

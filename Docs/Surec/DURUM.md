@@ -4,6 +4,8 @@ Son güncelleme: 03.10.2026 — Claude Code, akis-cc2: M54 + M58 + M59 yazıldı
 
 ## Kısaca
 
+**03.10.2026 — Codex / BUZ tip incelemesi:** 12 BUZ dolabının Blender/Unreal varlıkları mevcut. Eksik biçimler: METEOR dikey+yatay birleşik dondurucu, SENNA ada baş modülü, köşe/dönüşlü servis-pasta tezgâhları; üç kapılı içecek ve 2/4/5 kapılı dikey dondurucu varyantları; içten motorlu servis ailesine özel gövdeler. İnceleme raporu Docs/Environment/BUZ_EKSIK_TIPLER.md. Yeni model/kod üretilmedi; önceki DERLE/TEST169/Smoke doğrulaması değişmedi.
+
 **03.10.2026 — Codex / soğuk dolaplar tabelasız:** BUZ referanslı 12 soğuk dolap/vitrin ve önceki 5 soğuk ekipmanda kategori levhası/yazısı kapatıldı (planogram.showCategorySign=false); kategoriler, ürün alanları ve fiyat etiketleri korunur. Blender kaynaklarında tabela/taşıyıcı zaten yok; model/FBX yeniden üretilmedi. DERLE geçti; TEST 169/169 (168 temiz + 1 motor uyarısı), Smoke geçti; Blender 15/15 ve mahalle_01 beş oyun görünümü geçti. Son doğrulama c1c7cd4 kaynak tabanıyla; test sürerken gelen Claude kaydı nedeniyle eski derleme/yeni ülke verisi uyuşmazlığı yeniden derleme/test ile giderildi. Görüntü: Docs/Images/Stores/Cabinets/no_category_signs_store.png.
 
 **03.10.2026 — Claude Code / M54 + M58 + M59 (derlenmedi, `akis-cc2`):** c43791b (E4b) geçti: TEST 168, 0 başarısız, Smoke. E1–E4 tamam. Mustafa üç işi istedi.

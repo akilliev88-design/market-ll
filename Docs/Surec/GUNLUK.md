@@ -1,3 +1,11 @@
+## 03.10.2026 — Codex — BUZ dolap tipleri eksik incelemesi
+
+**Yapılan:** Erişilebilen resmi alt sayfalar/ürün sonuçları ve önceki referans görselleri, mevcut 12 BUZ dolap modeliyle karşılaştırıldı. Eksik biçimler/varyantlar BUZ_EKSIK_TIPLER.md'de. Ana sayfa açılamadı; sonuç tüm SKU'ların eksiksiz taraması değil, doğrulanmış tip açıklarıdır.
+
+**Doğrulama:** 12 modelin Blender kaynağı ve Unreal uasset'i dosya varlığıyla doğrulandı. Yalnız inceleme/belge; kod/model değişmedi, derleme/test tekrarlanmadı. Önceki DERLE/TEST169/Smoke sonucu geçerli.
+
+**Sıradaki:** Mustafa hangi eksik türlerin üretileceğini belirler; öncelik önerisi birleşik dondurucu, ada başı, köşe servis modülü.
+
 ## 03.10.2026 — Codex — Soğuk dolapların üst kategori tabelalarını kaldır
 
 **İstek:** Mustafa, BUZ teşhir reyonlarından esinlenen dondurucu ve dolapların üstündeki kategori tabelası/çıkıntıları kalksın; kategorileri kalsın.
