@@ -46,13 +46,13 @@ FString MarketCast::Person(ERole Role) { return FirstName(Role) + TEXT(" ") + La
 FString MarketCast::Salesman() { return FirstName(ERole::Salesman); }
 namespace MarketCastLocal
 {
-    // C8 (Codex C6: "Schmidt G\u0131da Da\u011f\u0131t\u0131m" in Berlin): the firm's word in the country's language.
-    const TCHAR* FirmWord(bool bCashCarry)
+    // C8 (Codex C6: "Schmidt G\u0131da Da\u011f\u0131t\u0131m" in Berlin), D3: the firm's word in the country's language
+    // (ulkeler.json "firmWords"; a pack without them: the default country's).
+    FString FirmWord(bool bCashCarry)
     {
-        const FString& Id = MarketCountry::Active().Id;
-        if (Id == TEXT("de")) return bCashCarry ? TEXT(" Gro\u00dfmarkt") : TEXT(" Lebensmittelhandel");
-        if (Id == TEXT("gb") || Id == TEXT("us")) return bCashCarry ? TEXT(" Cash & Carry") : TEXT(" Food Distribution");
-        return bCashCarry ? TEXT(" Toptan") : TEXT(" G\u0131da Da\u011f\u0131t\u0131m");
+        const MarketCountry::FProfile& Own = MarketCountry::Active();
+        const MarketCountry::FProfile& P = Own.WholesaleWord.IsEmpty() || Own.CashCarryWord.IsEmpty() ? MarketCountry::Default() : Own;
+        return TEXT(" ") + (bCashCarry ? P.CashCarryWord : P.WholesaleWord);
     }
 }
 

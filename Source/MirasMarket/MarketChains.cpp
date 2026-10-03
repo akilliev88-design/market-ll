@@ -223,63 +223,62 @@ namespace MarketChainsLocal
 // ---------------------------------------------------------------------------------------------------------------
 // Roster
 
+bool MarketChains::ArchetypeOf(const FString& Text, EArchetype& OutArchetype)
+{
+    static const TCHAR* Names[static_cast<int32>(EArchetype::Count)] = { TEXT("discount"), TEXT("fastDiscount"), TEXT("super"), TEXT("hyper"),
+        TEXT("premium"), TEXT("regional"), TEXT("family"), TEXT("wholesale"), TEXT("club") };
+    for (int32 A = 0; A < static_cast<int32>(EArchetype::Count); ++A)
+        if (Text.Equals(Names[A], ESearchCase::IgnoreCase)) { OutArchetype = static_cast<EArchetype>(A); return true; }
+    return false;
+}
+
 const TArray<MarketChains::FRosterChain>& MarketChains::NationalRoster()
 {
-    using E = EArchetype;
-    static const TArray<FRosterChain> Rows = {
-        // Turkey (names as in Config/zincirler.json, L12)
-        { TEXT("bim"), TEXT("tr"), TEXT("B\u0130N"), TEXT("Haluk Sezer"), E::Discount, 3500, 0.90f, 0.80f, 0.60f, 0.80f, TEXT("") },
-        { TEXT("a101"), TEXT("tr"), TEXT("A110"), TEXT("Kaan Y\u0131ld\u0131r"), E::FastDiscount, 1900, 0.91f, 0.78f, 0.85f, 1.00f, TEXT("") },
-        { TEXT("sok"), TEXT("tr"), TEXT("\u015eAK"), TEXT("Deniz Arslan"), E::Discount, 1300, 0.93f, 0.82f, 0.50f, 0.70f, TEXT("") },
-        { TEXT("migros"), TEXT("tr"), TEXT("Migron"), TEXT("Selin Tuna"), E::Super, 1100, 1.05f, 1.10f, 0.50f, 0.60f, TEXT("") },
-        { TEXT("carrefoursa"), TEXT("tr"), TEXT("CarreFive SA"), TEXT("Emre \u00c7elikta\u015f"), E::Hyper, 250, 1.03f, 1.05f, 0.30f, 0.40f, TEXT("") },
-        { TEXT("kipa"), TEXT("tr"), TEXT("Tesko Kupa"), TEXT("Burak Aky\u00fcz"), E::Hyper, 170, 1.02f, 1.00f, 0.20f, 0.25f, TEXT("ege") },
-        { TEXT("onur"), TEXT("tr"), TEXT("Onar Market"), TEXT("Onur Karaca"), E::Regional, 150, 0.99f, 1.00f, 0.40f, 0.50f, TEXT("marmara") },
-        { TEXT("metro"), TEXT("tr"), TEXT("Metra Toptan"), TEXT("Klaus Weber"), E::Wholesale, 30, 0.95f, 0.90f, 0.20f, 0.30f, TEXT("") },
-        // Germany
-        { TEXT("alda_de"), TEXT("de"), TEXT("Alda"), TEXT("Karl Brenner"), E::Discount, 4200, 0.88f, 0.80f, 0.50f, 0.50f, TEXT("") },
-        { TEXT("lidel_de"), TEXT("de"), TEXT("Lidel"), TEXT("Dieter Schwarm"), E::FastDiscount, 3200, 0.89f, 0.82f, 0.70f, 0.60f, TEXT("") },
-        { TEXT("edecka"), TEXT("de"), TEXT("Edecka"), TEXT("Markus Hahn"), E::Super, 11000, 1.04f, 1.10f, 0.40f, 0.40f, TEXT("") },
-        { TEXT("rewa"), TEXT("de"), TEXT("Rewa"), TEXT("Anna Keller"), E::Super, 6000, 1.03f, 1.05f, 0.50f, 0.50f, TEXT("") },
-        { TEXT("kauffeld"), TEXT("de"), TEXT("Kauffeld"), TEXT("Jonas Wolf"), E::Hyper, 660, 0.97f, 0.95f, 0.40f, 0.40f, TEXT("") },
-        { TEXT("nettol"), TEXT("de"), TEXT("Nettol"), TEXT("Petra Lang"), E::Discount, 4200, 0.90f, 0.78f, 0.50f, 0.50f, TEXT("") },
-        // United Kingdom
-        { TEXT("tesko"), TEXT("gb"), TEXT("Tesko"), TEXT("Oliver Grant"), E::Super, 3400, 1.00f, 1.00f, 0.60f, 0.50f, TEXT("") },
-        { TEXT("sainsbee"), TEXT("gb"), TEXT("Sainsbee's"), TEXT("Emily Hart"), E::Super, 1400, 1.05f, 1.10f, 0.40f, 0.40f, TEXT("") },
-        { TEXT("asdale"), TEXT("gb"), TEXT("Asdale"), TEXT("Harry Moss"), E::Hyper, 630, 0.95f, 0.95f, 0.50f, 0.40f, TEXT("") },
-        { TEXT("morrisen"), TEXT("gb"), TEXT("Morrisen"), TEXT("Jack Pike"), E::Super, 500, 1.00f, 1.00f, 0.40f, 0.30f, TEXT("england") },
-        { TEXT("koop"), TEXT("gb"), TEXT("Ko-op"), TEXT("Sophie Reed"), E::Regional, 2600, 1.06f, 1.00f, 0.30f, 0.30f, TEXT("") },
-        { TEXT("alda_gb"), TEXT("gb"), TEXT("Alda"), TEXT("Karl Brenner"), E::Discount, 900, 0.88f, 0.80f, 0.60f, 0.80f, TEXT("") },
-        { TEXT("lidel_gb"), TEXT("gb"), TEXT("Lidel"), TEXT("Dieter Schwarm"), E::FastDiscount, 800, 0.89f, 0.82f, 0.70f, 0.80f, TEXT("") },
-        // United States
-        { TEXT("wallmark"), TEXT("us"), TEXT("Wallmark"), TEXT("Sam Walden"), E::Hyper, 3000, 0.92f, 0.85f, 0.70f, 0.50f, TEXT("") },
-        { TEXT("krueger"), TEXT("us"), TEXT("Krueger"), TEXT("Rodney Mack"), E::Super, 2600, 1.00f, 1.00f, 0.50f, 0.40f, TEXT("") },
-        { TEXT("alberton"), TEXT("us"), TEXT("Alberton"), TEXT("Vivek Rao"), E::Super, 2200, 1.03f, 1.00f, 0.40f, 0.30f, TEXT("west") },
-        { TEXT("publick"), TEXT("us"), TEXT("Publick"), TEXT("Todd Jones"), E::Regional, 1100, 1.02f, 1.20f, 0.30f, 0.40f, TEXT("south") },
-        { TEXT("costko"), TEXT("us"), TEXT("Costko"), TEXT("Craig Jelly"), E::Club, 440, 0.90f, 0.90f, 0.40f, 0.40f, TEXT("") },
-        { TEXT("alda_us"), TEXT("us"), TEXT("Alda"), TEXT("Karl Brenner"), E::Discount, 1250, 0.88f, 0.80f, 0.60f, 0.70f, TEXT("") },
-        { TEXT("traders"), TEXT("us"), TEXT("Traders Jo"), TEXT("Dan Bane"), E::Premium, 360, 1.08f, 1.30f, 0.30f, 0.40f, TEXT("") },
-    };
+    // D3: the national chains live in the country packs (Config/ulkeler.json "roster"; Turkey's names as in
+    // Config/zincirler.json, L12).
+    static TArray<FRosterChain> Rows;
+    static bool bLoaded = false;
+    if (!bLoaded)
+    {
+        bLoaded = true;
+        for (const MarketCountry::FProfile& Pack : MarketCountry::All())
+            for (const MarketCountry::FRosterRow& Row : Pack.Roster)
+            {
+                FRosterChain Chain;
+                if (!ArchetypeOf(Row.Archetype, Chain.Archetype))
+                {
+                    UE_LOG(LogTemp, Warning, TEXT("MirasMarket roster: %s/%s unknown archetype '%s'"), *Pack.Id, *Row.Id, *Row.Archetype);
+                    continue;
+                }
+                Chain.Id = Row.Id; Chain.Country = Pack.Id; Chain.Name = Row.Name; Chain.Boss = Row.Boss;
+                Chain.StartStores = Row.Stores; Chain.PriceIndex = Row.PriceIndex; Chain.Service = Row.Service;
+                Chain.Aggression = Row.Aggression; Chain.Ambition = Row.Ambition; Chain.HomeRegion = Row.HomeRegion;
+                Rows.Add(Chain);
+            }
+    }
     return Rows;
 }
 
 const TArray<MarketChains::FRosterGiant>& MarketChains::GiantRoster()
 {
-    using E = EArchetype;
-    static const TArray<FRosterGiant> Rows = {
-        { TEXT("wallmark"), TEXT("Wallmark"), TEXT("ABD"), TEXT("us"), E::Hyper, 447.f, 0.030f },
-        { TEXT("carrefive"), TEXT("CarreFive"), TEXT("Fransa"), TEXT(""), E::Hyper, 113.f, 0.005f },
-        { TEXT("tesko"), TEXT("Tesko"), TEXT("Birle\u015fik Krall\u0131k"), TEXT("gb"), E::Super, 102.f, 0.010f },
-        { TEXT("metra"), TEXT("Metra Group"), TEXT("Almanya"), TEXT(""), E::Wholesale, 93.f, -0.010f },
-        { TEXT("krueger"), TEXT("Krueger"), TEXT("ABD"), TEXT("us"), E::Super, 90.f, 0.030f },
-        { TEXT("costko"), TEXT("Costko"), TEXT("ABD"), TEXT("us"), E::Club, 89.f, 0.060f },
-        { TEXT("schwarm"), TEXT("Schwarm Grubu"), TEXT("Almanya"), TEXT("de"), E::FastDiscount, 87.f, 0.050f },
-        { TEXT("alda"), TEXT("Alda"), TEXT("Almanya"), TEXT("de"), E::Discount, 73.f, 0.040f },
-        { TEXT("aeonn"), TEXT("Aeonn"), TEXT("Japonya"), TEXT(""), E::Super, 60.f, 0.020f },
-        { TEXT("edecka"), TEXT("Edecka"), TEXT("Almanya"), TEXT("de"), E::Super, 55.f, 0.020f },
-        { TEXT("sevenme"), TEXT("Seven & Me"), TEXT("Japonya"), TEXT(""), E::Regional, 56.f, 0.030f },
-        { TEXT("ahald"), TEXT("Ahald"), TEXT("Hollanda"), TEXT(""), E::Super, 40.f, 0.020f },
-    };
+    static TArray<FRosterGiant> Rows;
+    static bool bLoaded = false;
+    if (!bLoaded)
+    {
+        bLoaded = true;
+        for (const MarketCountry::FGiantRow& Row : MarketCountry::Giants())
+        {
+            FRosterGiant Giant;
+            if (!ArchetypeOf(Row.Archetype, Giant.Archetype))
+            {
+                UE_LOG(LogTemp, Warning, TEXT("MirasMarket giants: %s unknown archetype '%s'"), *Row.Id, *Row.Archetype);
+                continue;
+            }
+            Giant.Id = Row.Id; Giant.Name = Row.Name; Giant.Home = Row.Home; Giant.HomePack = Row.Pack;
+            Giant.RevenueB = Row.RevenueB; Giant.Growth = Row.Growth;
+            Rows.Add(Giant);
+        }
+    }
     return Rows;
 }
 
@@ -350,7 +349,11 @@ void MarketChains::EnsureCountry(FMarketState& State, const FString& InCountry)
     // The campaign's country: one regional chain in every sub-region that has room for it.
     if (Country == State.CountryId)
     {
-        const TArray<FString> Suffix = { TEXT(" Market"), TEXT(" Gross"), TEXT(" S\u00fcper"), TEXT(" G\u0131da") };
+        // D3: the pack's words for a regional chain ("Market", "Gross", ...; a pack without them: the default one's).
+        const TArray<FString>& Words = Pack->RegionalSuffixes.Num() > 0 ? Pack->RegionalSuffixes : MarketCountry::Default().RegionalSuffixes;
+        TArray<FString> Suffix;
+        for (const FString& Word : Words) Suffix.Add(TEXT(" ") + Word);
+        if (Suffix.Num() == 0) Suffix.Add(TEXT(" Market"));
         for (const MarketCountry::FRegion& Sub : Pack->SubRegions)
         {
             if (Sub.Provinces.Num() < 2) continue;
@@ -1313,7 +1316,7 @@ namespace MarketChainsLocal
         // Now and then it leaves a country we are not in yet: a door into that market.
         if (Day < 8 * 365 || Roll(State, Hash(G.Id), static_cast<uint32>(Day) ^ 0x0E1Du) > 0.05f) return;
         const MarketChains::FRosterGiant* Row = MarketChains::GiantRoster().FindByPredicate([&G](const MarketChains::FRosterGiant& X) { return G.Id == X.Id; });
-        const FString HomePack = Row ? FString(Row->HomePack) : FString();
+        const FString HomePack = Row ? Row->HomePack : FString();
         TArray<const MarketCountry::FProfile*> Doors;
         for (const MarketCountry::FProfile& Pack : MarketCountry::All())
             if (!R.Countries.Contains(Pack.Id) && Pack.Id != HomePack && Pack.Cities.Num() > 0) Doors.Add(&Pack);

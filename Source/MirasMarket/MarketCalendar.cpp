@@ -182,42 +182,62 @@ bool MarketCalendar::ClosedByLaw(int32 GameDay)
     return Info(GameDay, 0).bClosedByLaw;
 }
 
+int32 MarketCalendar::HolidayStart(const MarketCountry::FHoliday& H, int32 Year)
+{
+    using MarketCountry::EHolidayRule;
+    int32 Start = 0;
+    if (H.Rule == EHolidayRule::Lunar)
+    {
+        // D3: the lunar feasts' date tables (a bayram early in January can belong to last year's entry).
+        if (H.Table != TEXT("ramazan") && H.Table != TEXT("kurban")) return MIN_int32;
+        const FDate F = H.Table == TEXT("ramazan") ? RamazanBayrami(Year) : KurbanBayrami(Year);
+        Start = GameDayOf(F.Year, F.Month, F.Day);
+    }
+    else if (H.Rule == EHolidayRule::Easter)
+    {
+        const FDate E = EasterSunday(Year);
+        Start = GameDayOf(E.Year, E.Month, E.Day);
+    }
+    else if (H.Rule == EHolidayRule::Nth)
+    {
+        if (H.Month < 1 || H.Month > 12) return MIN_int32;
+        Start = GameDayOf(Year, H.Month, NthWeekdayOf(Year, H.Month, H.Weekday, H.Nth));
+    }
+    else
+    {
+        if (H.Month < 1 || H.Month > 12 || H.Day < 1 || H.Day > DaysInMonth(Year, H.Month)) return MIN_int32;
+        Start = GameDayOf(Year, H.Month, H.Day);
+    }
+    return Start + H.Offset;
+}
+
 namespace MarketCalendar
 {
-    // G-084 3. parca: a foreign country's holidays from its pack (Turkey keeps the built-in list below).
+    // G-084 3. parca, D3: the country's holidays from its pack (Turkey too: its bayrams are lunar feasts with a
+    // date table, Ramazan Bayram\u0131 brings the fasting month).
     void AddPackHolidays(FDayInfo& Out, int32 GameDay, const MarketCountry::FProfile& Country)
     {
-        using MarketCountry::EHolidayRule;
+        const bool bName = Country.bShowHolidayNames;
         for (const MarketCountry::FHoliday& H : Country.Holidays)
         {
-            if (H.Rule == EHolidayRule::Lunar) continue; // only the Turkish calendar knows the lunar feasts
             for (int32 Year = Out.Date.Year - 1; Year <= Out.Date.Year + 1; ++Year)
             {
-                int32 Start = 0;
-                if (H.Rule == EHolidayRule::Easter)
-                {
-                    const FDate E = EasterSunday(Year);
-                    Start = GameDayOf(E.Year, E.Month, E.Day);
-                }
-                else if (H.Rule == EHolidayRule::Nth)
-                {
-                    if (H.Month < 1 || H.Month > 12) continue;
-                    Start = GameDayOf(Year, H.Month, NthWeekdayOf(Year, H.Month, H.Weekday, H.Nth));
-                }
-                else
-                {
-                    if (H.Month < 1 || H.Month > 12 || H.Day < 1 || H.Day > DaysInMonth(Year, H.Month)) continue;
-                    Start = GameDayOf(Year, H.Month, H.Day);
-                }
-                Start += H.Offset;
+                const int32 Start = HolidayStart(H, Year);
+                if (Start == MIN_int32) continue;
+                if (H.FastDays > 0 && GameDay >= Start - H.FastDays && GameDay <= Start - 1) Out.Tags.AddUnique(ETag::Ramadan);
                 if (H.Kind == MarketCountry::EHolidayKind::Feast)
                 {
-                    if (GameDay == Start - 1) { Out.Tags.AddUnique(ETag::BayramEve); Out.HolidayName = H.Name; }
-                    if (GameDay >= Start && GameDay < Start + H.Days) { Out.Tags.AddUnique(ETag::Bayram); Out.HolidayName = H.Name; }
+                    if (GameDay == Start - 1) { Out.Tags.AddUnique(ETag::BayramEve); if (bName) Out.HolidayName = H.Name; }
+                    if (GameDay >= Start && GameDay < Start + H.Days) { Out.Tags.AddUnique(ETag::Bayram); if (bName) Out.HolidayName = H.Name; }
                 }
-                else if (GameDay == Start) { Out.Tags.AddUnique(ETag::NationalHoliday); Out.HolidayName = H.Name; }
+                else if (GameDay == Start) { Out.Tags.AddUnique(ETag::NationalHoliday); if (bName) Out.HolidayName = H.Name; }
             }
         }
+    }
+
+    bool IsSchoolDay(const FDate& D, const MarketCountry::FSchoolDay& School)
+    {
+        return School.Month > 0 && D.Month == School.Month && D.Day == NthWeekdayOf(D.Year, School.Month, School.Weekday, School.Nth);
     }
 }
 
@@ -243,35 +263,17 @@ MarketCalendar::FDayInfo MarketCalendar::Info(int32 GameDay, int32 Seed)
     if (D.Day == 1 || D.Day == 15) Out.Tags.Add(ETag::Payday);
     if (D.Day > MonthDays - 3) Out.Tags.Add(ETag::MonthEnd);
     const int32 Key = D.Month * 100 + D.Day;
-    const MarketCountry::FProfile& Country = MarketCountry::Active();
-    const bool bTurkey = Country.Id == TEXT("tr");
-    if (bTurkey && (Key == 101 || Key == 423 || Key == 501 || Key == 519 || Key == 830 || Key == 1029)) Out.Tags.Add(ETag::NationalHoliday);
     if (Key == 214) Out.Tags.Add(ETag::Valentines);
     if (Key == 1231) Out.Tags.Add(ETag::NewYearsEve);
     if (D.Month == 5 && D.Day == NthWeekday(D.Year, 5, 6, 2)) Out.Tags.Add(ETag::MothersDay);
     if (D.Month == 6 && D.Day == NthWeekday(D.Year, 6, 6, 3)) Out.Tags.Add(ETag::FathersDay);
-    if (bTurkey && D.Month == 9 && D.Day == NthWeekday(D.Year, 9, 0, 3)) Out.Tags.Add(ETag::SchoolStart);
-    if (bTurkey && D.Month == 6 && D.Day == NthWeekday(D.Year, 6, 4, 2)) Out.Tags.Add(ETag::SchoolEnd);
-    if (!bTurkey)
-    {
-        AddPackHolidays(Out, GameDay, Country);
-        Out.bClosedByLaw = Country.bSundayClosed && (D.Weekday == 6 || Out.Has(ETag::NationalHoliday) || Out.Has(ETag::Bayram));
-        return Out;
-    }
-
-    // Bayrams: arife the day before; Ramazan Bayram\u0131 3 days, Kurban Bayram\u0131 4 days; Ramadan = the 29 days before.
-    // A bayram early in January can belong to last year's table entry, so look at this year and the next.
-    const int32 Today = GameDay;
-    for (int32 Year = D.Year - 1; Year <= D.Year + 1; ++Year)
-    {
-        const FDate Ramazan = RamazanBayrami(Year);
-        const FDate Kurban = KurbanBayrami(Year);
-        const int32 R = GameDayOf(Ramazan.Year, Ramazan.Month, Ramazan.Day);
-        const int32 K = GameDayOf(Kurban.Year, Kurban.Month, Kurban.Day);
-        if (Today >= R - 29 && Today <= R - 1) Out.Tags.AddUnique(ETag::Ramadan);
-        if (Today == R - 1 || Today == K - 1) Out.Tags.AddUnique(ETag::BayramEve);
-        if ((Today >= R && Today < R + 3) || (Today >= K && Today < K + 4)) Out.Tags.AddUnique(ETag::Bayram);
-    }
+    // D3: school start and report day from the pack (Turkey: third Monday of September, second Friday of June).
+    if (IsSchoolDay(D, Pack.SchoolStart)) Out.Tags.Add(ETag::SchoolStart);
+    if (IsSchoolDay(D, Pack.SchoolEnd)) Out.Tags.Add(ETag::SchoolEnd);
+    // Holidays, feasts and their eves (Turkey: arife, Ramazan Bayram\u0131 3 days, Kurban Bayram\u0131 4 days, Ramadan the
+    // 29 days before), then the shop law.
+    AddPackHolidays(Out, GameDay, Pack);
+    Out.bClosedByLaw = Pack.bSundayClosed && (D.Weekday == 6 || Out.Has(ETag::NationalHoliday) || Out.Has(ETag::Bayram));
     return Out;
 }
 

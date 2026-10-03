@@ -3,6 +3,8 @@
 #include "CoreMinimal.h"
 #include "MarketEconomy.h"
 
+namespace MarketCountry { struct FProfile; }
+
 // The people of the shop and the books (G-060). Pure rules without the world, so they are tested
 // (MirasMarket.Staff.*). The game calls CloseDay once per day close and asks the rules below for speeds.
 // Design and numbers: Docs/PERSONEL_VE_MUHASEBE.md.
@@ -51,6 +53,8 @@ namespace MarketStaff
     // The lowest daily wage of the day: the net monthly minimum wage (MarketPrices) / 30 x the country's wage
     // factor, rounded up to 50 kuru\u015f. Nobody on the payroll earns less; the accountant is a fee, not a wage.
     int64 MinimumDailyWage(int32 GameDay);
+    // D3: a country's pool of staff names: its names.staff, else its names, else the default country's.
+    void StaffNames(const MarketCountry::FProfile& Country, TArray<FString>& OutFirst, TArray<FString>& OutLast);
     // The employer's social security share of the active country (MarketCountry: employerSocialRate).
     float EmployerSocialRate();
     // Social security the employer pays on a wage, and wage + that share.

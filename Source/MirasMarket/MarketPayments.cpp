@@ -19,14 +19,15 @@ namespace MarketPayments
 
 float MarketPayments::CardShare(int32 GameDay)
 {
-    // Rough Turkish grocery card use by year; contactless payments jump in 2020.
-    static const float Shares[] = { 0.25f, 0.28f, 0.32f, 0.36f, 0.40f, 0.45f, 0.50f, 0.55f, 0.60f, 0.72f, 0.75f, 0.78f };
+    // The world trend of grocery card use by year (contactless payments jump in 2020).
+    static const float Trend[] = { 0.25f, 0.28f, 0.32f, 0.36f, 0.40f, 0.45f, 0.50f, 0.55f, 0.60f, 0.72f, 0.75f, 0.78f };
     const int32 Year = MarketCalendar::DateOf(GameDay).Year;
-    const int32 Index = FMath::Clamp(Year - 2011, 0, static_cast<int32>(UE_ARRAY_COUNT(Shares)) - 1);
-    // G-084: another country starts from its own card habit (pack cardShare) and follows the same trend.
+    // D3: a pack with its own yearly curve (Turkey) uses it; another starts from its card habit (pack cardShare) and
+    // follows the trend.
     const MarketCountry::FProfile& Country = MarketCountry::Active();
-    if (Country.Id != TEXT("tr")) return FMath::Clamp(Country.CardShare + (Shares[Index] - Shares[0]) * 0.6f, 0.05f, 0.95f);
-    return Shares[Index];
+    if (Country.CardShareByYear.Num() > 0) return Country.CardShareByYear[FMath::Clamp(Year - MarketCalendar::StartYear, 0, Country.CardShareByYear.Num() - 1)];
+    const int32 Index = FMath::Clamp(Year - MarketCalendar::StartYear, 0, static_cast<int32>(UE_ARRAY_COUNT(Trend)) - 1);
+    return FMath::Clamp(Country.CardShare + (Trend[Index] - Trend[0]) * 0.6f, 0.05f, 0.95f);
 }
 
 float MarketPayments::SegmentCardFactor(MarketCustomers::ESegment Segment)

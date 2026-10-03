@@ -342,7 +342,7 @@ namespace MarketEras
 
     bool IsHome(const FMarketState& State, const FString& Country)
     {
-        return Country.IsEmpty() || Country == State.CountryId || (State.CountryId.IsEmpty() && Country == TEXT("tr"));
+        return Country.IsEmpty() || Country == State.CountryId || (State.CountryId.IsEmpty() && Country == MarketCountry::DefaultId());
     }
 
     // The plan of a country on the campaign's timing.

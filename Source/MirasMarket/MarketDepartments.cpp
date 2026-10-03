@@ -281,19 +281,26 @@ bool MarketDepartments::DecodeSet(int32 Arg, EDept& OutDept, int32& OutFormat, b
     return true;
 }
 
+namespace MarketDepartmentsLocal
+{
+    // D3: the feast whose eve week is the butcher's peak in the active country (ulkeler.json "butcherPeak").
+    const MarketCountry::FHoliday* ButcherFeast()
+    {
+        return MarketCountry::Active().Holidays.FindByPredicate([](const MarketCountry::FHoliday& H) { return H.bButcherPeak; });
+    }
+}
 float MarketDepartments::SeasonFactor(EDept Dept, int32 GameDay)
 {
     const MarketCalendar::FDate Date = MarketCalendar::DateOf(GameDay);
     float Factor = Info(Dept).Season[FMath::Clamp(Date.Month, 1, 12) - 1];
     if (Dept == EDept::Butcher)
     {
-        const MarketCountry::FProfile& Pack = MarketCountry::Active();
-        const bool bFeast = Pack.Id.IsEmpty() || Pack.Id == TEXT("tr") || Pack.Holidays.ContainsByPredicate([](const MarketCountry::FHoliday& H) { return H.Rule == MarketCountry::EHolidayRule::Lunar; });
-        if (bFeast)
+        // D3: the pack's butcher feast (Turkey: the week before Kurban Bayram\u0131, meat for the feast).
+        const MarketCountry::FHoliday* Feast = MarketDepartmentsLocal::ButcherFeast();
+        if (Feast)
         {
-            // The week before Kurban Bayram\u0131: meat for the feast (those who do not sacrifice buy it).
-            const MarketCalendar::FDate Feast = MarketCalendar::KurbanBayrami(Date.Year);
-            const int32 Until = MarketCalendar::GameDayOf(Feast.Year, Feast.Month, Feast.Day) - GameDay;
+            const int32 Start = MarketCalendar::HolidayStart(*Feast, Date.Year);
+            const int32 Until = Start == MIN_int32 ? -1 : Start - GameDay;
             if (Until >= 0 && Until <= 6) Factor *= 1.8f;
         }
         else if (Date.Month == 12 && Date.Day >= 18 && Date.Day <= 24) Factor *= 1.5f; // M35: the Christmas roast elsewhere
@@ -388,7 +395,11 @@ FString MarketDepartments::Describe(EDept Dept)
         static const TCHAR* Months[12] = { TEXT("ocak"), TEXT("\u015fubat"), TEXT("mart"), TEXT("nisan"), TEXT("may\u0131s"), TEXT("haziran"), TEXT("temmuz"), TEXT("a\u011fustos"), TEXT("eyl\u00fcl"), TEXT("ekim"), TEXT("kas\u0131m"), TEXT("aral\u0131k") };
         Line += FString::Printf(TEXT(" \u00b7 zirve: %s"), Months[Peak]);
     }
-    if (Dept == EDept::Butcher) Line += MarketCountry::Active().Id.IsEmpty() || MarketCountry::Active().Id == TEXT("tr") ? TEXT(" \u00b7 zirve: Kurban Bayram\u0131 \u00f6ncesi") : TEXT(" \u00b7 zirve: y\u0131l sonu bayramlar\u0131 \u00f6ncesi");
+    if (Dept == EDept::Butcher)
+    {
+        const MarketCountry::FHoliday* Feast = MarketDepartmentsLocal::ButcherFeast(); // D3
+        Line += Feast ? TEXT(" \u00b7 zirve: ") + Feast->Name + TEXT(" \u00f6ncesi") : FString(TEXT(" \u00b7 zirve: y\u0131l sonu bayramlar\u0131 \u00f6ncesi"));
+    }
     return Line;
 }
 
