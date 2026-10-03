@@ -53,6 +53,11 @@ namespace MarketStoreDemand
     // street model's shoppers): the family shop is an old sign in a side street; its catchment's trips x this
     // (like a hastily chosen branch site, MarketBranches::HastyTrips).
     constexpr float FamilySiteTrips = 0.72f;
+    // The share an ordinary well-run store of this format gets in a province (list prices, 90 % full shelves, the
+    // format's service, average mood, settled; no war): crowded big cities give less (Istanbul ~21 %), small
+    // provinces more (~39 %), the reference province ~28 %. The share goals are measured against it (Mustafa
+    // 03.10.2026: "a corner shop with 27 % in Istanbul or Tokyo would be wrong").
+    float NeutralShare(const FMarketState& State, const FString& Country, const FString& Province, const FString& Format = TEXT("mahalle"));
     // Day close: the family shop's share of its province (State.MarketShare, percent) moves a little towards the
     // formula's share of the day that was played; habits change slowly. A day without visitors keeps it.
     void CloseDay(FMarketState& State, const TArray<FMarketProduct>& Products);

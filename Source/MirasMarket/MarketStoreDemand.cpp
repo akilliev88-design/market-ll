@@ -50,6 +50,19 @@ float MarketStoreDemand::Share(const FMarketState& State, const FStoreDay& Store
     return P / (P + MarketTuning::Get(TEXT("BranchCompetition"), 3.f) * Where.Competition * MarketChains::PressureFactor(State, Where.Country, Where.Province, Day));
 }
 
+float MarketStoreDemand::NeutralShare(const FMarketState& State, const FString& Country, const FString& Province, const FString& Format)
+{
+    FStoreDay Store;
+    Store.Country = Country;
+    Store.Province = Province;
+    Store.Format = Format;
+    Store.Availability = 0.9f;
+    Store.Service = MarketBranches::FormatInfo(Format).Service;
+    const MarketBranches::FSite Where = MarketStoreDemandLocal::SiteOf(State, Store);
+    const float P = Pull(State, Store);
+    return P / (P + MarketTuning::Get(TEXT("BranchCompetition"), 3.f) * Where.Competition);
+}
+
 float MarketStoreDemand::Cannibalization(const FMarketState& State, const FStoreDay& Store)
 {
     const MarketBranches::FSite Where = MarketStoreDemandLocal::SiteOf(State, Store);

@@ -114,7 +114,7 @@ TArray<MarketStory::FObjective> MarketStory::Objectives(const FMarketState& Stat
         break;
     case 2:
         Add(TEXT("\u0130\u015fletmenin borcunu kapat"), !MarketCampaign::DebtOpen(State));
-        Add(TEXT("Yerel pay\u0131 %35'e \u00e7\u0131kar"), Has(State, BShare35));
+        Add(FString::Printf(TEXT("Mahalle pay\u0131n\u0131 %%%.0f'e \u00e7\u0131kar (\u015fu an %%%.0f)"), MarketCampaign::ShareGoal(State), State.MarketShare), Has(State, BShare35));
         Add(FString::Printf(TEXT("15 m\u00fcdavim kazan (\u015fu an %d)"), Regulars(State)), Regulars(State) >= 15);
         Add(TEXT("Marketin kimli\u011fini se\u00e7"), Has(State, BIdentity));
         break;
@@ -206,7 +206,7 @@ void MarketStory::CloseDay(FMarketState& State, const TArray<FMarketProduct>& Pr
     if (State.LastPurchases > 0 && !Has(State, BFirstOrder)) { Mark(State, BFirstOrder); AddMemory(State, TEXT("ilk sipari\u015f")); }
     if (State.LastProfit > 0 && !Has(State, BFirstProfit)) { Mark(State, BFirstProfit); AddMemory(State, TEXT("ilk k\u00e2rl\u0131 g\u00fcn")); }
     if (!MarketCampaign::DebtOpen(State) && !Has(State, BDebt)) { Mark(State, BDebt); AddMemory(State, TEXT("i\u015fletmenin borcu kapand\u0131")); }
-    if (State.MarketShare >= 35.f && !Has(State, BShare35)) { Mark(State, BShare35); AddMemory(State, TEXT("mahallenin \u00fc\u00e7te biri art\u0131k bizden al\u0131\u015fveri\u015f yap\u0131yor")); }
+    if (State.MarketShare >= MarketCampaign::ShareGoal(State) && !Has(State, BShare35)) { Mark(State, BShare35); AddMemory(State, TEXT("mahallede say\u0131lan bir d\u00fckk\u00e2n olduk")); }
     if (MarketStaff::Count(State, MarketStaff::ERole::Cashier) + MarketStaff::Count(State, MarketStaff::ERole::Stocker) > 0 && !Has(State, BFirstEmployee))
     {
         Mark(State, BFirstEmployee);

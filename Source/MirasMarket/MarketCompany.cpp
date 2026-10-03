@@ -1,4 +1,5 @@
 #include "MarketCompany.h"
+#include "MarketCampaign.h"
 #include "MarketLedger.h"
 #include "MarketCountry.h"
 #include "MarketBranches.h"
@@ -216,7 +217,7 @@ bool MarketCompany::LeadsToday(const FMarketState& State)
     float Satisfaction = 0.f;
     for (const FMarketLoyalty& L : State.Loyalty) Satisfaction += L.Satisfaction;
     const float Average = State.Loyalty.Num() > 0 ? Satisfaction / State.Loyalty.Num() : 0.f;
-    return State.MarketShare >= 40.f && TotalStores(State) >= 60 && State.LastProfit > 0 && Average >= 60.f;
+    return State.MarketShare >= MarketCampaign::LeadShare(State) && TotalStores(State) >= 60 && State.LastProfit > 0 && Average >= 60.f;
 }
 
 FString MarketCompany::Summary(const FMarketState& State)

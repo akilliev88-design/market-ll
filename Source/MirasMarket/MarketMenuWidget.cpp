@@ -1284,8 +1284,8 @@ TSharedRef<SWidget> SMarketMenu::GoalList()
         [ Row([G] { return G() && G()->State.ProfitableDays >= MarketCampaign::ExpandProfitableDays; },
               [G] { return FString::Printf(TEXT("%d k\u00e2rl\u0131 g\u00fcn  (%d / %d)"), MarketCampaign::ExpandProfitableDays, G() ? G()->State.ProfitableDays : 0, MarketCampaign::ExpandProfitableDays); }) ]
         + SVerticalBox::Slot().AutoHeight().Padding(0.f, 3.f)
-        [ Row([G] { return G() && G()->State.MarketShare >= MarketCampaign::ExpandShare; },
-              [G] { return FString::Printf(TEXT("Yerel pay en az %%%.0f  (\u015fu an %%%.0f)"), MarketCampaign::ExpandShare, G() ? G()->State.MarketShare : 0.f); }) ]
+        [ Row([G] { return G() && G()->State.MarketShare >= MarketCampaign::ShareGoal(G()->State); },
+              [G] { return FString::Printf(TEXT("Mahalle pay\u0131 en az %%%.0f  (\u015fu an %%%.0f)"), G() ? MarketCampaign::ShareGoal(G()->State) : 35.f, G() ? G()->State.MarketShare : 0.f); }) ]
         + SVerticalBox::Slot().AutoHeight().Padding(0.f, 12.f, 0.f, 0.f).HAlign(HAlign_Left)
         [
             // G-074: every district and format is on the Subeler page (the old single "second shop" is a branch there).

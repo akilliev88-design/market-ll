@@ -1,8 +1,10 @@
 # Güncel durum
 
-Son güncelleme: 03.10.2026 — Claude Code, akis-cc2: E3a yazıldı, derlenmedi
+Son güncelleme: 03.10.2026 — Claude Code, akis-cc2: E3a derlendi; M61 şehre göre pay hedefi yazıldı, derlenmedi
 
 ## Kısaca
+
+**03.10.2026 — Claude Code / M61 şehre göre pay hedefi (derlenmedi, `akis-cc2`):** E3a doğrulandı (ba3ceae: DERLE geçti, TEST 160 + 1 uyarı, Smoke geçti). Mustafa: "%27 pay İstanbul/Tokyo'da çok yüksek." Pay zaten dükkânın kendi mahallesindeki payı; hedefler artık ilde sıradan bir mahalle marketinin alacağı paydan türetiliyor: `MarketStoreDemand::NeutralShare`, `MarketCampaign::ShareGoal` (1,25×, %15–55: Kırklareli ~35, İstanbul ~26, küçük il ~49) ve `LeadShare` (1,43×, %18–60). Kullanılan yerler: `MarketBranches::CanOpen`, menü hedef satırı, hikâye 3. bölüm hedefi, `MarketCompany` liderlik yılı, bot fiyat sezgisi. `StoreDemand.OneRivalModel`'e hedef aralığı ve "en büyük şehirde pay en küçük şehirden az" kontrolü eklendi (test sayısı değişmedi, 161). **Devam notu:** Mustafa derler; sonra E3b.
 
 **03.10.2026 — Claude Code / E3a (derlenmedi, `akis-cc2`):** E3 üç tura bölündü (a kalıntılar, b tek satış, c tek kayıt). E3a: `MarketManagers::Migrate` (her gün) kalktı; `bSecondStore` kayıttan çıktı; v0.1 ikinci şube nakit şartı (`ExpandCash`, `ExpandBlock`) ve v0.1 şube toplamı/`BranchResult` kaydı kalktı; kayıt sürümü 10. Silinen 2 test (Managers.OlderSaves, OlderSavesPotential), güncellenenler: Economy.ProgressAndStorageLimit, Campaign.DebtAndWeek, Branches, Goals, Managers.NamesNeverReturn; Test.ps1 161. **Devam notu:** Mustafa derler; sonra E3b.
 

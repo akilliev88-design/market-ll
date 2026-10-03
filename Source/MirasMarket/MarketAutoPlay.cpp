@@ -1,4 +1,5 @@
 #include "MarketAutoPlay.h"
+#include "MarketCampaign.h"
 #include "MarketTuning.h"
 #include "MarketSimulation.h"
 #include "MarketOrderAdvice.h"
@@ -312,9 +313,10 @@ namespace MarketAutoPlay
     int64 PriceTarget(const FMarketState& State,const TArray<FMarketProduct>& Products,int32 Index,const FProfile& Profile)
     {
         const auto& Product=Products[Index];
-        const bool Growing=State.Day>Profile.GrowthPriceAt && State.MarketShare<40.f && MarketBranches::OpenCount(State)<2;
+        const float Lead=MarketCampaign::LeadShare(State); // the province's crowding sets what a strong local share is
+        const bool Growing=State.Day>Profile.GrowthPriceAt && State.MarketShare<Lead && MarketBranches::OpenCount(State)<2;
         const double Rival=MarketDirector::RivalPriceFactor(State,Product.Category); // E2: the home province's chains
-        const double Factor=FMath::Min(Growing?Profile.GrowthPriceFactor:Profile.PriceFactor,Rival*(State.MarketShare<40.f?1.0:1.03));
+        const double Factor=FMath::Min(Growing?Profile.GrowthPriceFactor:Profile.PriceFactor,Rival*(State.MarketShare<Lead?1.0:1.03));
         const int64 Desired=FMath::Max(FMath::RoundToInt64(Product.Cost*1.05),FMath::RoundToInt64(Product.BasePrice*Factor));
         // An opening or share threshold must not cause an abrupt family-shop price jump.
         return State.Stock[Index].Price>0?FMath::Min(Desired,FMath::RoundToInt64(State.Stock[Index].Price*1.03)):Desired;

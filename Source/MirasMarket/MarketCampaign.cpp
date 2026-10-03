@@ -1,6 +1,20 @@
 #include "MarketCampaign.h"
 #include "MarketLedger.h"
 #include "MarketPrices.h"
+#include "MarketStart.h"
+#include "MarketStoreDemand.h"
+
+float MarketCampaign::ShareGoal(const FMarketState& State)
+{
+    const float Neutral = MarketStoreDemand::NeutralShare(State, State.CountryId, MarketStart::HomeProvince(State));
+    return FMath::Clamp(static_cast<float>(FMath::RoundToInt32(Neutral * 125.f)), 15.f, 55.f);
+}
+
+float MarketCampaign::LeadShare(const FMarketState& State)
+{
+    const float Neutral = MarketStoreDemand::NeutralShare(State, State.CountryId, MarketStart::HomeProvince(State));
+    return FMath::Clamp(static_cast<float>(FMath::RoundToInt32(Neutral * 143.f)), 18.f, 60.f);
+}
 
 int64 MarketCampaign::InstallmentOf(const FMarketState& State)
 {

@@ -340,7 +340,8 @@ bool MarketBranches::CanOpen(const FMarketState& State, const TArray<FMarketProd
         // The first branch keeps the chapter-2 goals (the money is checked below against the real opening cost).
         if (MarketCampaign::DebtOpen(State)) { OutReason = TEXT("\u00d6nce i\u015fletmenin borcunu kapat."); return false; }
         if (State.ProfitableDays < MarketCampaign::ExpandProfitableDays) { OutReason = FString::Printf(TEXT("\u00d6nce %d k\u00e2rl\u0131 g\u00fcn."), MarketCampaign::ExpandProfitableDays); return false; }
-        if (State.MarketShare < MarketCampaign::ExpandShare) { OutReason = FString::Printf(TEXT("\u00d6nce yerel pay %%%.0f."), MarketCampaign::ExpandShare); return false; }
+        const float Goal = MarketCampaign::ShareGoal(State); // E3: the home province's crowding sets the goal
+        if (State.MarketShare < Goal) { OutReason = FString::Printf(TEXT("\u00d6nce mahalle pay\u0131 %%%.0f."), Goal); return false; }
     }
     // One person cannot follow three shops: from the third shop on, an HR manager is needed.
     if (OpenCount(State) >= 2 && !MarketStaff::HasHr(State)) { OutReason = TEXT("\u00dc\u00e7\u00fcnc\u00fc ma\u011faza i\u00e7in \u00f6nce bir \u0130K m\u00fcd\u00fcr\u00fc i\u015fe al."); return false; }

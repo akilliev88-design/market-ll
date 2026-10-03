@@ -7,6 +7,7 @@
 #include "MarketSimulation.h"
 #include "MarketStart.h"
 #include "MarketChains.h"
+#include "MarketCampaign.h"
 #include "Misc/AutomationTest.h"
 
 #if WITH_DEV_AUTOMATION_TESTS
@@ -138,7 +139,7 @@ bool FMarketStoreDemandOneRivalTest::RunTest(const FString& Parameters)
 {
     // E2 (11_TEK_EKONOMI \u00a72 E2.9): the family shop's traffic is the formula and nothing else (no rival news), the
     // rivals' price is the province's chains, a chain's price war cuts our share, and the local share follows the
-    // formula (the story's 35 % goal looks at it).
+    // formula (the story's share goal, MarketCampaign::ShareGoal, looks at it).
     using namespace MarketStoreDemandTest;
     const TArray<FMarketProduct> Base = Catalog();
     TArray<FMarketProduct> Products;
@@ -180,6 +181,25 @@ bool FMarketStoreDemandOneRivalTest::RunTest(const FString& Parameters)
     MarketStoreDemand::CloseDay(Close, Products);
     const float Target = MarketStoreDemand::Share(Close, MarketStoreDemand::FamilyDay(Close, Products, 20), 20) * 100.f;
     TestTrue(TEXT("Share moves towards the formula"), FMath::IsNearlyEqual(Close.MarketShare, FMath::Clamp(10.f * 0.85f + Target * 0.15f, 5.f, 65.f), 0.01f));
+    // M61: the share goal follows the city (a corner shop's share is smaller in the biggest city, larger in the
+    // smallest one); the goal sits between 15 and 55 and the leadership share above it.
+    const float Goal = MarketCampaign::ShareGoal(S);
+    TestTrue(TEXT("Share goal in range"), Goal >= 15.f && Goal <= 55.f && MarketCampaign::LeadShare(S) > Goal);
+    const MarketCountry::FProfile* Pack = MarketCountry::Find(S.CountryId);
+    if (TestTrue(TEXT("The pack has cities"), Pack && Pack->Cities.Num() > 1))
+    {
+        const MarketCountry::FCity* Big = &Pack->Cities[0];
+        const MarketCountry::FCity* Small = &Pack->Cities[0];
+        for (const MarketCountry::FCity& City : Pack->Cities)
+        {
+            if (City.PopulationK > Big->PopulationK) Big = &City;
+            if (City.PopulationK < Small->PopulationK) Small = &City;
+        }
+        const float BigShare = MarketStoreDemand::NeutralShare(S, S.CountryId, Big->Id);
+        const float SmallShare = MarketStoreDemand::NeutralShare(S, S.CountryId, Small->Id);
+        TestTrue(TEXT("Biggest city: smaller share than the smallest"), BigShare < SmallShare);
+        AddInfo(FString::Printf(TEXT("OLCUM: sube pay hedefi %%%.0f; notr pay en buyuk sehir %%%.1f, en kucuk %%%.1f"), Goal, BigShare * 100.f, SmallShare * 100.f));
+    }
     AddInfo(FString::Printf(TEXT("OLCUM: aile dukkani pay hedefi %%%.1f, rakip fiyat duzeyi %.3f"), Target, Rival));
     MarketCountry::SetActive(MarketCountry::DefaultId(), 1);
     return true;

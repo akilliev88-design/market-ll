@@ -1,3 +1,21 @@
+## 03.10.2026 — Claude Code — M61: pay hedefi şehre göre (derlenmedi)
+
+**E3a sonucu (son.log, ba3ceae):** DERLE geçti; TEST 160 başarılı + 1 uyarılı, başarısız 0 (alt sınır 161); Smoke geçti. E3a bitti.
+
+**İstek (Mustafa):** "%27 pay İstanbul, Tokyo gibi yerlerde küçük bir market için çok yüksek; nüfusa göre orantı kur, ikinci şube sınırlarını da ona göre revize et."
+
+**Bulgu:** Gösterilen pay ilin tamamı değil, dükkânın kendi mahallesindeki payı (formül: çekim / (çekim + 3 × rekabet)). İlin rekabeti nüfusla arttığı için sıradan bir mahalle marketinin payı İstanbul'da ~%21, Kırklareli'de ~%28, küçük illerde ~%39. Sabit %35 hedefi İstanbul'da neredeyse ulaşılamaz, küçük ilde kolaydı.
+
+**Yapılan:** `MarketStoreDemand::NeutralShare(State, ülke, il, tür)` (liste fiyatı, %90 dolu raf, türün hizmeti, savaşsız). `MarketCampaign::ShareGoal` = 1,25 × nötr pay (%15–55), `LeadShare` = 1,43 × nötr pay (%18–60); `ExpandShare` sabiti kalktı. Kullanan yerler: `MarketBranches::CanOpen` ("Önce mahalle payı %X."), menü hedef listesi ("Mahalle payı en az %X"), `MarketStory` hedefi ("Mahalle payını %X'e çıkar"), `MarketCompany` liderlik yılı (eski sabit 40), `MarketAutoPlay` fiyat sezgisi. KARARLAR M61.
+
+**Test:** `StoreDemand.OneRivalModel`: hedef 15–55 arasında ve liderlik payı hedefin üstünde; paketin en kalabalık şehrinde nötr pay en küçük şehirden az. Yeni OLCUM satırı: "sube pay hedefi %X; notr pay en buyuk sehir %Y, en kucuk %Z". Test sayısı değişmedi (Test.ps1 161).
+
+**Varsayım:** 1,25 ve 1,43 katsayıları eski Kırklareli değerlerini (35 ve 40) korumak için seçildi.
+
+**Doğrulama:** Derlenmedi.
+
+**Sıradaki:** Mustafa CLAUDE_KOS.cmd; sonra E3b.
+
 ## 03.10.2026 — Claude Code — E3a: prototip kalıntıları (derlenmedi)
 
 **Neden bölündü:** İlk dükkânın stok kaydı (`State.Stock`) 55 dosyada 330 yerde, şube kaydı 463 yerde. E3'ün kayıt birleşimi derleyicisiz tek seferde yapılırsa çok risk taşır; E3a (kalıntılar), E3b (tek satış), E3c (tek kayıt) ayrı derleme turları.
