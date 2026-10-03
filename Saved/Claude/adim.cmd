@@ -2,8 +2,13 @@
 rem Claude Code (akis-cc2): bir sonraki derleme turunun adimlari. Cikti Saved\Claude\son.log'a gider.
 cd /d "%~dp0..\.."
 echo === DERLE ===
+if exist "Saved\Logs\DERLE_son.log" del /q "Saved\Logs\DERLE_son.log" >nul 2>nul
 call DERLE.cmd /q
 if errorlevel 1 (echo DERLE_BASARISIZ & goto ozet)
+rem 03.10.2026: "dosya baska bir islem tarafindan kullaniliyor" gibi durumlarda DERLE.cmd hata vermeden donebiliyor;
+rem derleme logunda "Result: Succeeded" yoksa derleme olmamis sayilir ve testler eski surumle calistirilmaz.
+findstr /c:"Result: Succeeded" "Saved\Logs\DERLE_son.log" >nul 2>nul
+if errorlevel 1 (echo DERLE_BASARISIZ_SONUC_YOK: derleme yapilmadi ya da log kilitli. Unreal Editor ve baska derlemeler kapali mi? & powershell -NoProfile -Command "if (Test-Path Saved\Logs\DERLE_son.log) { Get-Content Saved\Logs\DERLE_son.log -Tail 15 }" & goto ozet)
 echo DERLE_TAMAM
 echo === TEST ===
 call TEST.cmd /q
