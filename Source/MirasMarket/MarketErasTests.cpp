@@ -16,7 +16,7 @@ namespace MarketErasTest
     // Leaves the global plan as every other test expects it (the Turkish prototype, no shift).
     void Restore()
     {
-        MarketCountry::SetActiveProfile(MarketCountry::FProfile(), 1);
+        MarketCountry::SetActive(MarketCountry::DefaultId(), 1); // D3: the default pack (Turkey)
         MarketEras::ActivateNominal(MarketEras::ECharacter::HighInflation);
     }
 

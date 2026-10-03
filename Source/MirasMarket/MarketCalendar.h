@@ -3,6 +3,8 @@
 #include "CoreMinimal.h"
 #include "MarketGoods.h"
 
+namespace MarketCountry { struct FHoliday; }
+
 // The campaign calendar (G-061, Docs/Kurgu/00_KURGU_KITABI.md \u00a72). Independent of the world, tested
 // (MirasMarket.Calendar.*). Game day 1 = Monday 7 March 2011; a played day is a calendar day. Weekends are days
 // 6 and 7 of every week, as the rival news already assumed.
@@ -25,7 +27,7 @@ namespace MarketCalendar
     {
         Payday,          // 1st and 15th: pensions and salaries
         MonthEnd,        // last three days of a month: tight wallets
-        NationalHoliday, // 1 Jan, 23 Apr, 1 May, 19 May, 30 Aug, 29 Oct
+        NationalHoliday, // the pack's national days (Turkey: 1 Jan, 23 Apr, 1 May, 19 May, 30 Aug, 29 Oct)
         BayramEve,       // arife: the big shopping day
         Bayram,          // Ramazan / Kurban bayram\u0131 days: visits, quiet shop
         Ramadan,         // fasting month: sahur and iftar shopping
@@ -48,8 +50,8 @@ namespace MarketCalendar
         EWeather Weather = EWeather::Sunny;
         int32 TemperatureC = 10;
         TArray<ETag> Tags;
-        // G-084: outside Turkey the holidays come from the country pack; their name ("Weihnachten") is shown
-        // instead of "bayram". Empty in Turkey.
+        // G-084, D3: the holidays come from the country pack; their name ("Weihnachten") is shown instead of
+        // "bayram" when the pack asks for it (calendar.showHolidayNames). Empty in Turkey.
         FString HolidayName;
         // Shops must stay closed today (e.g. Germany: Sundays and public holidays).
         bool bClosedByLaw = false;
@@ -70,6 +72,9 @@ namespace MarketCalendar
     FDate EasterSunday(int32 Year);
     // Day of month of the N-th weekday (0 = Monday) of a month; N = 5 means the last one.
     int32 NthWeekdayOf(int32 Year, int32 Month, int32 Weekday, int32 N);
+    // D3: first day of a pack holiday in a year (offset included), MIN_int32 when it has no date that year (bad
+    // row, lunar feast without a table).
+    int32 HolidayStart(const MarketCountry::FHoliday& Holiday, int32 Year);
     // The active country's law keeps shops closed on this day (MarketCountry: sundayClosed).
     bool ClosedByLaw(int32 GameDay);
 

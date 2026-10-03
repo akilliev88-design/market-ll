@@ -24,46 +24,18 @@ namespace MarketManagers
         return MarketCountry::Money(Kurus);
     }
 
-    const TCHAR* TurkishFirst[] = { TEXT("Serkan"), TEXT("H\u00fclya"), TEXT("Volkan"), TEXT("G\u00fclay"), TEXT("Erdem"), TEXT("Nesrin"), TEXT("Kaan"),
-        TEXT("Meltem"), TEXT("Tuncay"), TEXT("\u00d6zlem"), TEXT("Bar\u0131\u015f"), TEXT("Sevgi"), TEXT("Cengiz"), TEXT("P\u0131nar"),
-        // G-086b ek (M22): enough names for a long campaign without repeats.
-        TEXT("Ahmet"), TEXT("Ay\u015fe"), TEXT("Mehmet"), TEXT("Fatma"), TEXT("Mustafa"), TEXT("Emine"), TEXT("H\u00fcseyin"), TEXT("Hatice"),
-        TEXT("\u0130brahim"), TEXT("Zeynep"), TEXT("Hasan"), TEXT("Elif"), TEXT("Osman"), TEXT("Merve"), TEXT("Yusuf"), TEXT("Esra"),
-        TEXT("Burak"), TEXT("Seda"), TEXT("Emre"), TEXT("Gamze"), TEXT("Onur"), TEXT("Dilek"), TEXT("Sinan"), TEXT("Tu\u011fba"),
-        TEXT("Halil"), TEXT("Song\u00fcl"), TEXT("Ercan"), TEXT("Yasemin"), TEXT("Levent"), TEXT("Serap"), TEXT("B\u00fclent"), TEXT("Arzu"),
-        TEXT("Kadir"), TEXT("Esin"), TEXT("Tolga"), TEXT("Ebru"), TEXT("Ufuk"), TEXT("Derya"), TEXT("Alper"), TEXT("Nazl\u0131") };
-    const TCHAR* TurkishLast[] = { TEXT("Y\u0131ld\u0131r\u0131m"), TEXT("Arslan"), TEXT("Do\u011fan"), TEXT("\u00c7etin"), TEXT("Ko\u00e7"), TEXT("Kaplan"), TEXT("\u00d6zdemir"),
-        TEXT("Ta\u015f"), TEXT("U\u00e7ar"), TEXT("Polat"), TEXT("Erdo\u011fan"), TEXT("\u015eahin"),
-        TEXT("Y\u0131lmaz"), TEXT("Kaya"), TEXT("Demir"), TEXT("\u00c7elik"), TEXT("Y\u0131ld\u0131z"), TEXT("Ayd\u0131n"), TEXT("\u00d6zt\u00fcrk"), TEXT("Kurt"),
-        TEXT("\u00d6zkan"), TEXT("\u015eim\u015fek"), TEXT("Akta\u015f"), TEXT("Korkmaz"), TEXT("Karaca"), TEXT("Bulut"), TEXT("Tekin"), TEXT("Aksoy"),
-        TEXT("G\u00fcler"), TEXT("Kara"), TEXT("Duman"), TEXT("Sar\u0131"), TEXT("Akg\u00fcl"), TEXT("Er"), TEXT("Kocaba\u015f"), TEXT("Tun\u00e7"),
-        TEXT("Bozkurt"), TEXT("Yavuz"), TEXT("G\u00fcne\u015f"), TEXT("Soylu"), TEXT("Uysal"), TEXT("Kalkan"), TEXT("Avc\u0131"), TEXT("Turan") };
-    // Names added to a foreign pack's own (Config/ulkeler.json keeps a few per country).
-    const TCHAR* GermanFirst[] = { TEXT("Lukas"), TEXT("Anna"), TEXT("Jonas"), TEXT("Lena"), TEXT("Felix"), TEXT("Laura"), TEXT("Tobias"), TEXT("Julia"),
-        TEXT("Stefan"), TEXT("Sabine"), TEXT("Markus"), TEXT("Katrin"), TEXT("Florian"), TEXT("Nina"), TEXT("Andreas"), TEXT("Claudia"), TEXT("Jan"), TEXT("Petra") };
-    const TCHAR* GermanLast[] = { TEXT("M\u00fcller"), TEXT("Schmidt"), TEXT("Schneider"), TEXT("Fischer"), TEXT("Weber"), TEXT("Meyer"), TEXT("Wagner"),
-        TEXT("Becker"), TEXT("Schulz"), TEXT("Hoffmann"), TEXT("Koch"), TEXT("Richter"), TEXT("Klein"), TEXT("Wolf"), TEXT("Neumann"), TEXT("Braun") };
-    const TCHAR* EnglishFirst[] = { TEXT("James"), TEXT("Emma"), TEXT("Oliver"), TEXT("Sophie"), TEXT("Daniel"), TEXT("Grace"), TEXT("Thomas"), TEXT("Emily"),
-        TEXT("Michael"), TEXT("Sarah"), TEXT("David"), TEXT("Hannah"), TEXT("Robert"), TEXT("Lucy"), TEXT("Matthew"), TEXT("Chloe"), TEXT("Andrew"), TEXT("Megan") };
-    const TCHAR* EnglishLast[] = { TEXT("Smith"), TEXT("Jones"), TEXT("Taylor"), TEXT("Brown"), TEXT("Williams"), TEXT("Wilson"), TEXT("Johnson"),
-        TEXT("Davies"), TEXT("Evans"), TEXT("Walker"), TEXT("Wright"), TEXT("Thompson"), TEXT("Harris"), TEXT("Clarke"), TEXT("Baker"), TEXT("Miller") };
-
-    // First and last names of a country's pool: the pack's own plus the built-in ones (Turkish for Turkey and for a
-    // pack without names).
+    // First and last names of a country's manager pool (D3, ulkeler.json names.managers, else its names; a pack
+    // without any: the default country's).
     void NamePool(const FString& Country, TArray<FString>& OutFirst, TArray<FString>& OutLast)
     {
-        const MarketCountry::FProfile* Pack = MarketCountry::Find(Country);
-        const FString Id = Pack ? Pack->Id : FString(TEXT("tr"));
-        auto AddAll = [](TArray<FString>& Into, const TCHAR* const* List, int32 Count) { for (int32 N = 0; N < Count; ++N) Into.AddUnique(FString(List[N])); };
-        if (Pack && Id != TEXT("tr")) { for (const FString& X : Pack->FirstNames) OutFirst.AddUnique(X); for (const FString& X : Pack->LastNames) OutLast.AddUnique(X); }
-        if (Id == TEXT("de")) { AddAll(OutFirst, GermanFirst, static_cast<int32>(UE_ARRAY_COUNT(GermanFirst))); AddAll(OutLast, GermanLast, static_cast<int32>(UE_ARRAY_COUNT(GermanLast))); }
-        else if (Id == TEXT("gb") || Id == TEXT("us")) { AddAll(OutFirst, EnglishFirst, static_cast<int32>(UE_ARRAY_COUNT(EnglishFirst))); AddAll(OutLast, EnglishLast, static_cast<int32>(UE_ARRAY_COUNT(EnglishLast))); }
-        if (OutFirst.Num() == 0 || OutLast.Num() == 0 || Id == TEXT("tr"))
+        auto Take = [&OutFirst, &OutLast](const MarketCountry::FProfile& P)
         {
-            AddAll(OutFirst, TurkishFirst, static_cast<int32>(UE_ARRAY_COUNT(TurkishFirst)));
-            AddAll(OutLast, TurkishLast, static_cast<int32>(UE_ARRAY_COUNT(TurkishLast)));
-            if (Pack) { for (const FString& X : Pack->FirstNames) OutFirst.AddUnique(X); for (const FString& X : Pack->LastNames) OutLast.AddUnique(X); }
-        }
+            const bool bOwn = P.ManagerFirst.Num() > 0 && P.ManagerLast.Num() > 0;
+            for (const FString& X : bOwn ? P.ManagerFirst : P.FirstNames) OutFirst.AddUnique(X);
+            for (const FString& X : bOwn ? P.ManagerLast : P.LastNames) OutLast.AddUnique(X);
+        };
+        Take(MarketCountry::FindOrDefault(Country));
+        if (OutFirst.Num() == 0 || OutLast.Num() == 0) Take(MarketCountry::Default());
     }
 
     // Everyone whose name a new candidate must not take: used and turned-down names, and everybody working for us.

@@ -42,7 +42,7 @@ const TArray<FString>& MarketStart::RelativeKeys()
 
 void MarketStart::Setup(FMarketState& State, const FString& CountryId, const FString& CityId, int32 Seed)
 {
-    State.CountryId = CountryId.IsEmpty() || !MarketCountry::Find(CountryId) ? FString(TEXT("tr")) : CountryId;
+    State.CountryId = MarketCountry::FindOrDefault(CountryId).Id;
     State.CityId = CityId;
     if (!MarketCountry::FindCity(State.CountryId, State.CityId)) State.CityId = LegacyProvince(State.CountryId);
     State.RivalSeed = Seed;
@@ -88,7 +88,7 @@ FString MarketStart::Relative(const FMarketState& State, ECase Case, bool bCapit
 
 FString MarketStart::LegacyProvince(const FString& CountryId)
 {
-    const MarketCountry::FProfile* Country = MarketCountry::Find(CountryId.IsEmpty() ? FString(TEXT("tr")) : CountryId);
+    const MarketCountry::FProfile* Country = CountryId.IsEmpty() ? &MarketCountry::Default() : MarketCountry::Find(CountryId);
     if (!Country) return FString();
     if (!Country->ReferenceProvince.IsEmpty() && MarketCountry::FindCity(Country->Id, Country->ReferenceProvince)) return Country->ReferenceProvince;
     return Country->Cities.Num() > 0 ? Country->Cities[0].Id : FString();
@@ -103,7 +103,7 @@ FString MarketStart::PlaceText(const FMarketState& State)
 {
     const MarketCountry::FProfile* Country = MarketCountry::Find(State.CountryId);
     const MarketCountry::FCity* City = MarketCountry::FindCity(State.CountryId, HomeProvince(State));
-    const FString CountryName = Country ? Country->Name : FString(TEXT("T\u00fcrkiye"));
+    const FString CountryName = Country ? Country->Name : MarketCountry::Default().Name;
     return City ? City->Name + TEXT(", ") + CountryName : CountryName;
 }
 

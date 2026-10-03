@@ -39,31 +39,36 @@ namespace MarketChains
 
     // Tables of the roster (national chains a country, the giants). Fictional names come from Config/zincirler.json
     // when it is readable; the table's own names otherwise.
+    // D3: a national chain of a country pack (ulkeler.json "roster", MarketCountry::FRosterRow).
     struct FRosterChain
     {
-        const TCHAR* Id;
-        const TCHAR* Country;
-        const TCHAR* Name;
-        const TCHAR* Boss;
-        EArchetype Archetype;
-        int32 StartStores;
-        float PriceIndex;
-        float Service;
-        float Aggression;
-        float Ambition;
-        const TCHAR* HomeRegion;             // regional chains: the main region they start in ("" = everywhere)
+        FString Id;
+        FString Country;
+        FString Name;
+        FString Boss;
+        EArchetype Archetype = EArchetype::Super;
+        int32 StartStores = 0;
+        float PriceIndex = 1.f;
+        float Service = 1.f;
+        float Aggression = 0.5f;
+        float Ambition = 0.5f;
+        FString HomeRegion;                  // regional chains: the main region they start in ("" = everywhere)
     };
+    // D3: a world giant (Config/ulkeler.json root "giants", MarketCountry::FGiantRow).
     struct FRosterGiant
     {
-        const TCHAR* Id;
-        const TCHAR* Name;
-        const TCHAR* Home;                   // home country name for the menu
-        const TCHAR* HomePack;               // its pack id when we have one ("" = none)
-        EArchetype Archetype;
-        float RevenueB;                      // billions of world units a year at the start
-        float Growth;
+        FString Id;
+        FString Name;
+        FString Home;                        // home country name for the menu
+        FString HomePack;                    // its pack id when we have one ("" = none)
+        EArchetype Archetype = EArchetype::Super;
+        float RevenueB = 1.f;                // billions of world units a year at the start
+        float Growth = 0.f;
     };
+    // Every pack's national chains in pack order (loaded once from MarketCountry::All()).
     const TArray<FRosterChain>& NationalRoster();
+    // D3: "discount", "fastDiscount", ... -> archetype (false: unknown text).
+    bool ArchetypeOf(const FString& Text, EArchetype& OutArchetype);
     const TArray<FRosterGiant>& GiantRoster();
     FString ArchetypeName(EArchetype Archetype);  // "indirim marketi"
     // The market type (MarketBranches format) a chain's stores are closest to.

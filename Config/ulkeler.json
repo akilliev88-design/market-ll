@@ -1,6 +1,21 @@
 {
   "schemaVersion": 1,
   "note": "G-084/G-086 (karar L02-L14, Docs/Kurgu/03_MAGAZA_AGI.md): ulke paketleri. displayScale = ic birim basina yerel para; fxPerWorld = dunya birimi karsiligi yerel para; economy.character = istikrarli / oynak / yuksek_enflasyon. Zincir adlari kurgu (karar L12). provinces: il listesi (dizi) ya da il dosyasinin adi (TR: iller.json). regions: ana bolgeler (bolge direktoru); subregions: alt bolgeler (bolge muduru), her il tek alt bolgede; income alt bolgenin alim gucu. Il degerleri verilmezse nufustan turetilir: s = log2(nufus / referencePopK); gelir = alt bolge geliri x (1 + 0.03 s); kira = gelir^1.5 x (1 + 0.1 s); rekabet = (1 + 0.08 s), TR'de zincir yogunlugu ile. Varsayilan baslangic ili yok (Mustafa 29.09.2026). holidays: rule = fixed | easter | nth | lunar; kind = national | feast. sundayClosed: pazar ve resmi tatilde kapali.",
+  "defaultCountry": "tr",
+  "giants": [
+    {"id": "wallmark", "name": "Wallmark", "home": "ABD", "pack": "us", "archetype": "hyper", "revenueB": 447, "growth": 0.03},
+    {"id": "carrefive", "name": "CarreFive", "home": "Fransa", "pack": "fr", "archetype": "hyper", "revenueB": 113, "growth": 0.005},
+    {"id": "tesko", "name": "Tesko", "home": "Birleşik Krallık", "pack": "gb", "archetype": "super", "revenueB": 102, "growth": 0.01},
+    {"id": "metra", "name": "Metra Group", "home": "Almanya", "pack": "", "archetype": "wholesale", "revenueB": 93, "growth": -0.01},
+    {"id": "krueger", "name": "Krueger", "home": "ABD", "pack": "us", "archetype": "super", "revenueB": 90, "growth": 0.03},
+    {"id": "costko", "name": "Costko", "home": "ABD", "pack": "us", "archetype": "club", "revenueB": 89, "growth": 0.06},
+    {"id": "schwarm", "name": "Schwarm Grubu", "home": "Almanya", "pack": "de", "archetype": "fastDiscount", "revenueB": 87, "growth": 0.05},
+    {"id": "alda", "name": "Alda", "home": "Almanya", "pack": "de", "archetype": "discount", "revenueB": 73, "growth": 0.04},
+    {"id": "aeonn", "name": "Aeonn", "home": "Japonya", "pack": "jp", "archetype": "super", "revenueB": 60, "growth": 0.02},
+    {"id": "edecka", "name": "Edecka", "home": "Almanya", "pack": "de", "archetype": "super", "revenueB": 55, "growth": 0.02},
+    {"id": "sevenme", "name": "Seven & Me", "home": "Japonya", "pack": "jp", "archetype": "regional", "revenueB": 56, "growth": 0.03},
+    {"id": "ahald", "name": "Ahald", "home": "Hollanda", "pack": "", "archetype": "super", "revenueB": 40, "growth": 0.02}
+  ],
   "countries": [
     {
       "id": "tr",
@@ -17,6 +32,7 @@
       "fxPerWorld": 1.5,
       "economy": {
         "character": "yuksek_enflasyon",
+        "curve": "builtin",
         "inflationMean": 0.14,
         "inflationVol": 0.06,
         "loanSpread": 0.05,
@@ -28,7 +44,8 @@
       "habits": {
         "weeklyShopShare": 0.25,
         "sundayClosed": false,
-        "cardShare": 0.35
+        "cardShare": 0.35,
+        "cardShareByYear": [0.25, 0.28, 0.32, 0.36, 0.40, 0.45, 0.50, 0.55, 0.60, 0.72, 0.75, 0.78]
       },
       "traditional": {
         "grocer": "Mahalle bakkalları",
@@ -42,38 +59,35 @@
         "migros": "Migron"
       },
       "holidays": [
-        {
-          "name": "Yılbaşı",
-          "month": 1,
-          "day": 1
-        },
-        {
-          "name": "23 Nisan",
-          "month": 4,
-          "day": 23
-        },
-        {
-          "name": "Ramazan Bayramı",
-          "rule": "lunar",
-          "kind": "feast",
-          "days": 3
-        },
-        {
-          "name": "Kurban Bayramı",
-          "rule": "lunar",
-          "kind": "feast",
-          "days": 4
-        },
-        {
-          "name": "Cumhuriyet Bayramı",
-          "month": 10,
-          "day": 29
-        }
+        {"name": "Yılbaşı", "month": 1, "day": 1},
+        {"name": "23 Nisan", "month": 4, "day": 23},
+        {"name": "Emek ve Dayanışma Günü", "month": 5, "day": 1},
+        {"name": "19 Mayıs", "month": 5, "day": 19},
+        {"name": "Zafer Bayramı", "month": 8, "day": 30},
+        {"name": "Cumhuriyet Bayramı", "month": 10, "day": 29},
+        {"name": "Ramazan Bayramı", "rule": "lunar", "table": "ramazan", "kind": "feast", "days": 3, "fastDays": 29},
+        {"name": "Kurban Bayramı", "rule": "lunar", "table": "kurban", "kind": "feast", "days": 4, "butcherPeak": true}
+      ],
+      "calendar": { "showHolidayNames": false, "school": { "start": { "month": 9, "weekday": 0, "n": 3 }, "end": { "month": 6, "weekday": 4, "n": 2 } } },
+      "realChainNames": true,
+      "regionalSuffixes": ["Market", "Gross", "Süper", "Gıda"],
+      "firmWords": { "wholesale": "Gıda Dağıtım", "cashCarry": "Toptan" },
+      "roster": [
+        {"id": "bim", "name": "BİN", "boss": "Haluk Sezer", "archetype": "discount", "stores": 3500, "price": 0.9, "service": 0.8, "aggression": 0.6, "ambition": 0.8},
+        {"id": "a101", "name": "A110", "boss": "Kaan Yıldır", "archetype": "fastDiscount", "stores": 1900, "price": 0.91, "service": 0.78, "aggression": 0.85, "ambition": 1.0},
+        {"id": "sok", "name": "ŞAK", "boss": "Deniz Arslan", "archetype": "discount", "stores": 1300, "price": 0.93, "service": 0.82, "aggression": 0.5, "ambition": 0.7},
+        {"id": "migros", "name": "Migron", "boss": "Selin Tuna", "archetype": "super", "stores": 1100, "price": 1.05, "service": 1.1, "aggression": 0.5, "ambition": 0.6},
+        {"id": "carrefoursa", "name": "CarreFive SA", "boss": "Emre Çeliktaş", "archetype": "hyper", "stores": 250, "price": 1.03, "service": 1.05, "aggression": 0.3, "ambition": 0.4},
+        {"id": "kipa", "name": "Tesko Kupa", "boss": "Burak Akyüz", "archetype": "hyper", "stores": 170, "price": 1.02, "service": 1.0, "aggression": 0.2, "ambition": 0.25, "region": "ege"},
+        {"id": "onur", "name": "Onar Market", "boss": "Onur Karaca", "archetype": "regional", "stores": 150, "price": 0.99, "service": 1.0, "aggression": 0.4, "ambition": 0.5, "region": "marmara"},
+        {"id": "metro", "name": "Metra Toptan", "boss": "Klaus Weber", "archetype": "wholesale", "stores": 30, "price": 0.95, "service": 0.9, "aggression": 0.2, "ambition": 0.3}
       ],
       "banks": ["Esnaf Kredi Bankası", "Anadolu Ticaret Bankası", "Boğaziçi Yatırım Bankası", "Kalkınma ve Yatırım Bankası"],
       "online": { "platform": "Kapıda", "plateau": 0.09 },
       "climate": { "temperature": [4, 5, 8, 13, 18, 23, 25, 25, 20, 15, 10, 6], "rain": [35, 32, 30, 28, 25, 18, 10, 10, 15, 25, 32, 35] },
       "names": {
+        "staff": { "first": ["Ayşe", "Mehmet", "Fatma", "Emre", "Zeynep", "Burak", "Elif", "Hasan", "Merve", "Murat", "Esra", "Serkan", "Derya", "Onur", "Gül", "Kemal", "Selin", "Hakan", "Büşra", "Cem", "Hülya", "Tolga", "Sevgi", "Yusuf"], "last": ["Kaya", "Yıldız", "Demir", "Çelik", "Şahin", "Aydın", "Öztürk", "Arslan", "Doğan", "Koç", "Kılıç", "Aslan", "Polat", "Erdem"] },
+        "managers": { "first": ["Serkan", "Hülya", "Volkan", "Gülay", "Erdem", "Nesrin", "Kaan", "Meltem", "Tuncay", "Özlem", "Barış", "Sevgi", "Cengiz", "Pınar", "Ahmet", "Ayşe", "Mehmet", "Fatma", "Mustafa", "Emine", "Hüseyin", "Hatice", "İbrahim", "Zeynep", "Hasan", "Elif", "Osman", "Merve", "Yusuf", "Esra", "Burak", "Seda", "Emre", "Gamze", "Onur", "Dilek", "Sinan", "Tuğba", "Halil", "Songül", "Ercan", "Yasemin", "Levent", "Serap", "Bülent", "Arzu", "Kadir", "Esin", "Tolga", "Ebru", "Ufuk", "Derya", "Alper", "Nazlı", "Can", "Selin", "Murat"], "last": ["Yıldırım", "Arslan", "Doğan", "Çetin", "Koç", "Kaplan", "Özdemir", "Taş", "Uçar", "Polat", "Erdoğan", "Şahin", "Yılmaz", "Kaya", "Demir", "Çelik", "Yıldız", "Aydın", "Öztürk", "Kurt", "Özkan", "Şimşek", "Aktaş", "Korkmaz", "Karaca", "Bulut", "Tekin", "Aksoy", "Güler", "Kara", "Duman", "Sarı", "Akgül", "Er", "Kocabaş", "Tunç", "Bozkurt", "Yavuz", "Güneş", "Soylu", "Uysal", "Kalkan", "Avcı", "Turan"] },
         "first": [
           "Ayşe",
           "Mehmet",
@@ -439,10 +453,21 @@
           "days": 2
         }
       ],
+      "regionalSuffixes": ["Markt", "Frischemarkt", "Kaufhaus", "Lebensmittel"],
+      "firmWords": { "wholesale": "Lebensmittelhandel", "cashCarry": "Großmarkt" },
+      "roster": [
+        {"id": "alda_de", "name": "Alda", "boss": "Karl Brenner", "archetype": "discount", "stores": 4200, "price": 0.88, "service": 0.8, "aggression": 0.5, "ambition": 0.5},
+        {"id": "lidel_de", "name": "Lidel", "boss": "Dieter Schwarm", "archetype": "fastDiscount", "stores": 3200, "price": 0.89, "service": 0.82, "aggression": 0.7, "ambition": 0.6},
+        {"id": "edecka", "name": "Edecka", "boss": "Markus Hahn", "archetype": "super", "stores": 11000, "price": 1.04, "service": 1.1, "aggression": 0.4, "ambition": 0.4},
+        {"id": "rewa", "name": "Rewa", "boss": "Anna Keller", "archetype": "super", "stores": 6000, "price": 1.03, "service": 1.05, "aggression": 0.5, "ambition": 0.5},
+        {"id": "kauffeld", "name": "Kauffeld", "boss": "Jonas Wolf", "archetype": "hyper", "stores": 660, "price": 0.97, "service": 0.95, "aggression": 0.4, "ambition": 0.4},
+        {"id": "nettol", "name": "Nettol", "boss": "Petra Lang", "archetype": "discount", "stores": 4200, "price": 0.9, "service": 0.78, "aggression": 0.5, "ambition": 0.5}
+      ],
       "banks": ["Stadtsparkasse Lindenau", "Hansa Handelsbank", "Rheinische Investitionsbank", "Förderbank Mittelland"],
       "online": { "platform": "Flinkly", "plateau": 0.05 },
       "climate": { "temperature": [1, 2, 5, 9, 13, 16, 18, 18, 14, 10, 5, 2], "rain": [45, 40, 42, 40, 45, 45, 45, 42, 40, 42, 45, 48] },
       "names": {
+        "managers": { "first": ["Anna", "Lukas", "Mia", "Jonas", "Lea", "Felix", "Emma", "Paul", "Lena", "Laura", "Tobias", "Julia", "Stefan", "Sabine", "Markus", "Katrin", "Florian", "Nina", "Andreas", "Claudia", "Jan", "Petra"], "last": ["Müller", "Schmidt", "Schneider", "Fischer", "Weber", "Wagner", "Meyer", "Becker", "Schulz", "Hoffmann", "Koch", "Richter", "Klein", "Wolf", "Neumann", "Braun"] },
         "first": [
           "Anna",
           "Lukas",
@@ -698,10 +723,22 @@
           "days": 2
         }
       ],
+      "regionalSuffixes": ["Stores", "Foods", "Grocers", "Market"],
+      "firmWords": { "wholesale": "Food Distribution", "cashCarry": "Cash & Carry" },
+      "roster": [
+        {"id": "tesko", "name": "Tesko", "boss": "Oliver Grant", "archetype": "super", "stores": 3400, "price": 1.0, "service": 1.0, "aggression": 0.6, "ambition": 0.5},
+        {"id": "sainsbee", "name": "Sainsbee's", "boss": "Emily Hart", "archetype": "super", "stores": 1400, "price": 1.05, "service": 1.1, "aggression": 0.4, "ambition": 0.4},
+        {"id": "asdale", "name": "Asdale", "boss": "Harry Moss", "archetype": "hyper", "stores": 630, "price": 0.95, "service": 0.95, "aggression": 0.5, "ambition": 0.4},
+        {"id": "morrisen", "name": "Morrisen", "boss": "Jack Pike", "archetype": "super", "stores": 500, "price": 1.0, "service": 1.0, "aggression": 0.4, "ambition": 0.3, "region": "england"},
+        {"id": "koop", "name": "Ko-op", "boss": "Sophie Reed", "archetype": "regional", "stores": 2600, "price": 1.06, "service": 1.0, "aggression": 0.3, "ambition": 0.3},
+        {"id": "alda_gb", "name": "Alda", "boss": "Karl Brenner", "archetype": "discount", "stores": 900, "price": 0.88, "service": 0.8, "aggression": 0.6, "ambition": 0.8},
+        {"id": "lidel_gb", "name": "Lidel", "boss": "Dieter Schwarm", "archetype": "fastDiscount", "stores": 800, "price": 0.89, "service": 0.82, "aggression": 0.7, "ambition": 0.8}
+      ],
       "banks": ["Thamesmoor Building Society", "Albion Commercial Bank", "Northgate Investment Bank", "Enterprise Development Bank"],
       "online": { "platform": "Dashby", "plateau": 0.12 },
       "climate": { "temperature": [5, 5, 7, 9, 12, 15, 17, 17, 14, 11, 8, 5], "rain": [55, 48, 48, 45, 45, 42, 42, 45, 45, 52, 55, 55] },
       "names": {
+        "managers": { "first": ["Oliver", "Amelia", "Harry", "Isla", "George", "Ava", "Jack", "Emily", "James", "Emma", "Sophie", "Daniel", "Grace", "Thomas", "Michael", "Sarah", "David", "Hannah", "Robert", "Lucy", "Matthew", "Chloe", "Andrew", "Megan"], "last": ["Smith", "Jones", "Taylor", "Brown", "Williams", "Wilson", "Johnson", "Davies", "Evans", "Walker", "Wright", "Thompson", "Harris", "Clarke", "Baker", "Miller"] },
         "first": [
           "Oliver",
           "Amelia",
@@ -944,10 +981,22 @@
           "days": 1
         }
       ],
+      "regionalSuffixes": ["Market", "Foods", "Grocery", "Supermarkets"],
+      "firmWords": { "wholesale": "Food Distribution", "cashCarry": "Cash & Carry" },
+      "roster": [
+        {"id": "wallmark", "name": "Wallmark", "boss": "Sam Walden", "archetype": "hyper", "stores": 3000, "price": 0.92, "service": 0.85, "aggression": 0.7, "ambition": 0.5},
+        {"id": "krueger", "name": "Krueger", "boss": "Rodney Mack", "archetype": "super", "stores": 2600, "price": 1.0, "service": 1.0, "aggression": 0.5, "ambition": 0.4},
+        {"id": "alberton", "name": "Alberton", "boss": "Vivek Rao", "archetype": "super", "stores": 2200, "price": 1.03, "service": 1.0, "aggression": 0.4, "ambition": 0.3, "region": "west"},
+        {"id": "publick", "name": "Publick", "boss": "Todd Jones", "archetype": "regional", "stores": 1100, "price": 1.02, "service": 1.2, "aggression": 0.3, "ambition": 0.4, "region": "south"},
+        {"id": "costko", "name": "Costko", "boss": "Craig Jelly", "archetype": "club", "stores": 440, "price": 0.9, "service": 0.9, "aggression": 0.4, "ambition": 0.4},
+        {"id": "alda_us", "name": "Alda", "boss": "Karl Brenner", "archetype": "discount", "stores": 1250, "price": 0.88, "service": 0.8, "aggression": 0.6, "ambition": 0.7},
+        {"id": "traders", "name": "Traders Jo", "boss": "Dan Bane", "archetype": "premium", "stores": 360, "price": 1.08, "service": 1.3, "aggression": 0.3, "ambition": 0.4}
+      ],
       "banks": ["Main Street Savings", "Lakeshore National Bank", "Hudson Capital Bank", "Federal Development Bank"],
       "online": { "platform": "Grabit", "plateau": 0.1 },
       "climate": { "temperature": [0, 2, 7, 12, 17, 22, 25, 24, 20, 13, 7, 2], "rain": [30, 30, 33, 33, 33, 30, 28, 28, 27, 27, 30, 31] },
       "names": {
+        "managers": { "first": ["James", "Olivia", "Liam", "Emma", "Noah", "Sophia", "Lucas", "Mia", "Oliver", "Sophie", "Daniel", "Grace", "Thomas", "Emily", "Michael", "Sarah", "David", "Hannah", "Robert", "Lucy", "Matthew", "Chloe", "Andrew", "Megan"], "last": ["Johnson", "Garcia", "Miller", "Davis", "Martinez", "Lopez", "Smith", "Jones", "Taylor", "Brown", "Williams", "Wilson", "Davies", "Evans", "Walker", "Wright", "Thompson", "Harris", "Clarke", "Baker"] },
         "first": [
           "James",
           "Olivia",

@@ -103,7 +103,7 @@ namespace MarketMenuPagesUi
         return Most;
     }
 
-    // G-086: map index of a province id of Turkey (INDEX_NONE without the map). Looked up once per id.
+    // G-086: map index of a province id of the map's country (INDEX_NONE without the map). Looked up once per id.
     int32 MapIndexOf(const FString& ProvinceId)
     {
         static TMap<FString, int32> Cache;
@@ -2308,7 +2308,7 @@ FString SMarketMenu::ShownCountry() const
 {
     const AMarketGameMode* G = Game.Get();
     if (!MapCountry.IsEmpty() && MarketCountry::Find(MapCountry)) return MapCountry;
-    return G ? G->State.CountryId : FString(TEXT("tr"));
+    return G ? G->State.CountryId : MarketCountry::DefaultId();
 }
 
 FString SMarketMenu::ShownProvince() const
@@ -2324,7 +2324,7 @@ FString SMarketMenu::ShownProvince() const
 TSharedRef<SWidget> SMarketMenu::HomePage()
 {
     // G-086d, design boards 4 (no province chosen) and 5 (the panel open).
-    auto HasMap = [this] { return ShownCountry() == TEXT("tr") && MarketMapData::Get().bLoaded; };
+    auto HasMap = [this] { return MarketCountry::HasMap(ShownCountry()); };
     auto Chip = [this](const FString& Name, TFunction<bool()> On, TFunction<void()> Click) -> TSharedRef<SWidget>
     {
         return SNew(SBox).HeightOverride(28.f)
@@ -2416,25 +2416,25 @@ TSharedRef<SWidget> SMarketMenu::HomePage()
 TSharedRef<SWidget> SMarketMenu::HomeMap()
 {
     auto G = [this] { return Game.Get(); };
-    auto HasMap = [this] { return ShownCountry() == TEXT("tr") && MarketMapData::Get().bLoaded; };
+    auto HasMap = [this] { return MarketCountry::HasMap(ShownCountry()); };
     auto IdOf = [](int32 Index) -> FString
     {
         const MarketMapData::FData& Data = MarketMapData::Get();
         return Data.Provinces.IsValidIndex(Index) ? Data.Provinces[Index].Id : FString();
     };
-    // Our shops on the map count only in Turkey (the map is Turkey's).
-    auto Shops = [G, IdOf](int32 Index) { return G() ? MarketMenuPagesUi::OurShops(G()->State, TEXT("tr"), IdOf(Index)) : 0; };
+    // Our shops on the map count only in the map's country (D3: the pack drawn from iller.json).
+    auto Shops = [G, IdOf](int32 Index) { return G() ? MarketMenuPagesUi::OurShops(G()->State, MarketCountry::MapCountry(), IdOf(Index)) : 0; };
     auto IsHome = [G, IdOf](int32 Index) { return G() && MarketStart::HomeProvince(G()->State) == IdOf(Index); };
     auto InRegion = [this, IdOf](int32 Index)
     {
         if (MapRegion.IsEmpty()) return true;
-        const MarketCountry::FCity* City = MarketCountry::FindCity(TEXT("tr"), IdOf(Index));
+        const MarketCountry::FCity* City = MarketCountry::FindCity(MarketCountry::MapCountry(), IdOf(Index));
         return City && City->Region == MapRegion;
     };
     auto Fill = [this, G, IdOf, Shops, IsHome, InRegion](int32 Index) -> FLinearColor
     {
         const FLinearColor Land = Color(ERole::Land);
-        const MarketCountry::FCity* City = MarketCountry::FindCity(TEXT("tr"), IdOf(Index));
+        const MarketCountry::FCity* City = MarketCountry::FindCity(MarketCountry::MapCountry(), IdOf(Index));
         if (!G() || !City) return Land;
         FLinearColor Out = Land;
         if (MapLayer == 1)
@@ -2454,11 +2454,11 @@ TSharedRef<SWidget> SMarketMenu::HomeMap()
         // Outside the chosen region the provinces fade into the paper.
         return InRegion(Index) ? Out : FMath::Lerp(Out, Color(ERole::Stage), 0.6f);
     };
-    auto Worrying = [G, IdOf](int32 Index) { return G() && MarketMenuPagesUi::WorstGrade(G()->State, TEXT("tr"), IdOf(Index)) == TEXT("D"); };
+    auto Worrying = [G, IdOf](int32 Index) { return G() && MarketMenuPagesUi::WorstGrade(G()->State, MarketCountry::MapCountry(), IdOf(Index)) == TEXT("D"); };
     TSharedRef<SWidget> Map = SNew(SMarketMap)
         .FillOf(Fill)
         .LineColor([this] { return Color(ERole::Stage); })
-        .Selected([this] { return PanelOpen() && ShownCountry() == TEXT("tr") ? MarketMenuPagesUi::MapIndexOf(MapProvinceId) : INDEX_NONE; })
+        .Selected([this] { return PanelOpen() && ShownCountry() == MarketCountry::MapCountry() ? MarketMenuPagesUi::MapIndexOf(MapProvinceId) : INDEX_NONE; })
         .InView([this, InRegion](int32 Index) { return !MapRegion.IsEmpty() && InRegion(Index); })
         .HasPin([this, Shops](int32 Index) { return MapLayer == 0 && Shops(Index) > 0; })
         .PinCount([Shops](int32 Index) { return Shops(Index); })
@@ -2471,7 +2471,7 @@ TSharedRef<SWidget> SMarketMenu::HomeMap()
         .LabelColor([this] { return Color(ERole::MapLabel); })
         .RightInset([this] { const float T = PanelAnim; return T * T * (3.f - 2.f * T) * (PanelWidth + 24.f - 70.f + 16.f); })
         // G-089: our depots (a square "D" beside the pin) and the range of the chosen depot (else the open province's).
-        .DepotOf([this, G, IdOf](int32 Index) { return MapLayer == 0 && G() && MarketDepots::HasDepotIn(G()->State, TEXT("tr"), IdOf(Index)); })
+        .DepotOf([this, G, IdOf](int32 Index) { return MapLayer == 0 && G() && MarketDepots::HasDepotIn(G()->State, MarketCountry::MapCountry(), IdOf(Index)); })
         .DepotColor([this] { return Color(ERole::Info); })
         .DepotTextColor([this] { return Color(ERole::Solid); })
         .RingOf([this, G]() -> int32
@@ -2479,13 +2479,13 @@ TSharedRef<SWidget> SMarketMenu::HomeMap()
             if (MapLayer != 0 || !G()) return INDEX_NONE;
             const TArray<FMarketDepot>& Sites = G()->State.Company.DepotSites;
             int32 Depot = Sites.IsValidIndex(DepotSel) ? DepotSel : INDEX_NONE;
-            if (Depot == INDEX_NONE && PanelOpen() && ShownCountry() == TEXT("tr")) Depot = MarketDepots::Find(G()->State, TEXT("tr"), MapProvinceId);
-            if (!Sites.IsValidIndex(Depot) || Sites[Depot].Country != TEXT("tr")) return INDEX_NONE;
+            if (Depot == INDEX_NONE && PanelOpen() && ShownCountry() == MarketCountry::MapCountry()) Depot = MarketDepots::Find(G()->State, MarketCountry::MapCountry(), MapProvinceId);
+            if (!Sites.IsValidIndex(Depot) || Sites[Depot].Country != MarketCountry::MapCountry()) return INDEX_NONE;
             return MarketMenuPagesUi::MapIndexOf(Sites[Depot].Province);
         })
         .RingRadius([]
         {
-            const MarketCountry::FProfile* Pack = MarketCountry::Find(TEXT("tr"));
+            const MarketCountry::FProfile* Pack = MarketCountry::Find(MarketCountry::MapCountry());
             return Pack && Pack->MapKm > 0.f ? static_cast<float>(MarketDepots::RangeKm) / Pack->MapKm : 0.f;
         })
         .RingColor([this] { return Color(ERole::Info); })
@@ -2493,11 +2493,11 @@ TSharedRef<SWidget> SMarketMenu::HomeMap()
         {
             const FString Id = IdOf(Index);
             // A second click on the open province closes its panel.
-            if (PanelOpen() && ShownCountry() == TEXT("tr") && MapProvinceId == Id) { MapProvinceId.Reset(); DepotSel = INDEX_NONE; return; }
-            MapCountry = TEXT("tr");
+            if (PanelOpen() && ShownCountry() == MarketCountry::MapCountry() && MapProvinceId == Id) { MapProvinceId.Reset(); DepotSel = INDEX_NONE; return; }
+            MapCountry = MarketCountry::MapCountry();
             MapProvinceId = Id;
             // A depot's range follows the province clicked (its own depot, none otherwise).
-            DepotSel = G() ? MarketDepots::Find(G()->State, TEXT("tr"), Id) : INDEX_NONE;
+            DepotSel = G() ? MarketDepots::Find(G()->State, MarketCountry::MapCountry(), Id) : INDEX_NONE;
             if (G()) G()->MapProvince = Index;
         });
 
@@ -4444,7 +4444,7 @@ TSharedRef<SWidget> SMarketMenu::DepotCard()
                             MapCountry = Site->Country;
                             MapRegion.Reset();
                             MapProvinceId = Site->Province;
-                            if (G() && Site->Country == TEXT("tr")) G()->MapProvince = MarketMenuPagesUi::MapIndexOf(Site->Province);
+                            if (G() && Site->Country == MarketCountry::MapCountry()) G()->MapProvince = MarketMenuPagesUi::MapIndexOf(Site->Province);
                             Go(Summary);
                         }) ]
                     ]
@@ -4673,10 +4673,10 @@ TSharedRef<SWidget> SMarketMenu::NewGameLayer()
     auto Country = [this, G]() -> FString
     {
         if (!NewCountry.IsEmpty() && MarketCountry::Find(NewCountry)) return NewCountry;
-        return G() ? G()->State.CountryId : FString(TEXT("tr"));
+        return G() ? G()->State.CountryId : MarketCountry::DefaultId();
     };
     auto Chosen = [this, Country]() -> const MarketCountry::FCity* { return NewCity.IsEmpty() ? nullptr : MarketCountry::FindCity(Country(), NewCity); };
-    auto HasMap = [Country] { return Country() == TEXT("tr") && MarketMapData::Get().bLoaded; };
+    auto HasMap = [Country] { return MarketCountry::HasMap(Country()); };
     auto Forced = [G] { return G() && G()->bNeedStart; };
 
     // Countries.
@@ -4701,12 +4701,12 @@ TSharedRef<SWidget> SMarketMenu::NewGameLayer()
         ];
     }
 
-    // The map (Turkey) or the provinces as buttons, and the search.
+    // The map (the map's country, D3) or the provinces as buttons, and the search.
     auto Fill = [this](int32 Index) -> FLinearColor
     {
         const MarketMapData::FData& Data = MarketMapData::Get();
         const FLinearColor Base = Color(ERole::Inset);
-        const MarketCountry::FCity* City = Data.Provinces.IsValidIndex(Index) ? MarketCountry::FindCity(TEXT("tr"), Data.Provinces[Index].Id) : nullptr;
+        const MarketCountry::FCity* City = Data.Provinces.IsValidIndex(Index) ? MarketCountry::FindCity(MarketCountry::MapCountry(), Data.Provinces[Index].Id) : nullptr;
         if (!City) return Base;
         if (NewLayer == 1) return FLinearColor::LerpUsingHSV(Base, Color(ERole::Good), FMath::Clamp((City->Income - 0.65f) / 0.8f, 0.f, 1.f) * 0.8f);
         if (NewLayer == 2) return FLinearColor::LerpUsingHSV(Base, Color(ERole::Warn), FMath::Clamp((City->Rent - 0.5f) / 1.4f, 0.f, 1.f) * 0.8f);
@@ -4719,7 +4719,7 @@ TSharedRef<SWidget> SMarketMenu::NewGameLayer()
         .HasPin([this](int32 Index) { const MarketMapData::FData& Data = MarketMapData::Get(); return Data.Provinces.IsValidIndex(Index) && Data.Provinces[Index].Id == NewCity; })
         .PinColor([this](int32) { return Color(ERole::Accent); })
         .StrongColor([this] { return Color(ERole::Text); })
-        .OnPick([this](int32 Index) { const MarketMapData::FData& Data = MarketMapData::Get(); if (Data.Provinces.IsValidIndex(Index)) { NewCountry = TEXT("tr"); NewCity = Data.Provinces[Index].Id; } });
+        .OnPick([this](int32 Index) { const MarketMapData::FData& Data = MarketMapData::Get(); if (Data.Provinces.IsValidIndex(Index)) { NewCountry = MarketCountry::MapCountry(); NewCity = Data.Provinces[Index].Id; } });
     TSharedRef<SWrapBox> List = SNew(SWrapBox).UseAllottedSize(true).InnerSlotPadding(FVector2D(6.f, 6.f));
     for (const MarketCountry::FProfile& Pack : MarketCountry::All())
     {
