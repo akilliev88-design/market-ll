@@ -1268,38 +1268,6 @@ bool MarketManagers::DecodeArea(int32 Arg, ELevel& OutLevel, FString& OutCountry
     return true;
 }
 
-void MarketManagers::Migrate(FMarketState& State)
-{
-    for (int32 I = 0; I < State.Branches.Num(); ++I)
-    {
-        FMarketBranch& B = State.Branches[I];
-        if (B.ManagerName.IsEmpty()) continue;
-        const uint32 Roll = ManagerMix(State.RivalSeed, I, 0x0A1Du + GetTypeHash(B.ManagerName));
-        if (B.ManagerStyle == 0) B.ManagerStyle = static_cast<uint8>(1u + Roll % 3u);
-        if (B.ManagerMorale < 0.f) B.ManagerMorale = 55.f + static_cast<float>((Roll >> 8) % 21u);
-        if (B.ManagerPotential <= 0) B.ManagerPotential = PotentialOf(B); // G-086b ek (M21): the ceiling, once
-    }
-    for (int32 I = 0; I < State.Management.Managers.Num(); ++I)
-    {
-        FMarketManager& M = State.Management.Managers[I];
-        if (M.Style == 0) M.Style = static_cast<uint8>(1u + ManagerMix(State.RivalSeed, I, 0x5791u + GetTypeHash(M.Name)) % 3u);
-        if (M.Potential <= 0) M.Potential = PotentialOf(M);
-    }
-    // M22: everyone who works for us (older saves, promoted employees, the legacy branches) is a used name, so
-    // nobody's name comes back after he leaves. Idempotent: only names not listed yet are added.
-    TArray<FString>& Used = State.Management.UsedNames;
-    TSet<FString> Known;
-    for (const FString& Name : Used) Known.Add(Name);
-    auto Remember = [&Used, &Known](const FString& Name)
-    {
-        if (Name.IsEmpty() || Known.Contains(Name)) return;
-        Known.Add(Name);
-        Used.Add(Name);
-    };
-    for (const FMarketBranch& B : State.Branches) Remember(B.ManagerName);
-    for (const FMarketManager& M : State.Management.Managers) Remember(M.Name);
-}
-
 int32 MarketManagers::PotentialOf(const FMarketBranch& Branch)
 {
     return Branch.ManagerPotential > 0 ? Branch.ManagerPotential : DerivedPotential(Branch.ManagerSkill, ManagerMix(0, Branch.ManagerSkill, 0x9071u + GetTypeHash(Branch.ManagerName)));
@@ -1364,7 +1332,6 @@ void MarketManagers::ShapeFamilyOrder(const FMarketState& State, const FFamilyRu
 
 void MarketManagers::CloseDay(FMarketState& State)
 {
-    Migrate(State);
     const int32 Closed = State.Day - 1;
     if (Closed < 1) return;
     FMarketManagement& Team = State.Management;

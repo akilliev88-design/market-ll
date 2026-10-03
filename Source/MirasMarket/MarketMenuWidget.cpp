@@ -1281,9 +1281,6 @@ TSharedRef<SWidget> SMarketMenu::GoalList()
         + SVerticalBox::Slot().AutoHeight().Padding(0.f, 3.f)
         [ Row([G] { return G() && !MarketCampaign::DebtOpen(G()->State); }, [] { return FString(TEXT("\u0130\u015fletmenin borcu kapans\u0131n")); }) ]
         + SVerticalBox::Slot().AutoHeight().Padding(0.f, 3.f)
-        [ Row([G] { return G() && G()->State.Cash >= MarketCampaign::ExpandCashOn(G()->State.Day); },
-              [G] { return FString::Printf(TEXT("Kasada %s  (\u015fu an %s)"), *MarketMenuUi::Tl(G() ? MarketCampaign::ExpandCashOn(G()->State.Day) : MarketCampaign::ExpandCash), G() ? *MarketMenuUi::Tl(G()->State.Cash) : TEXT("")); }) ]
-        + SVerticalBox::Slot().AutoHeight().Padding(0.f, 3.f)
         [ Row([G] { return G() && G()->State.ProfitableDays >= MarketCampaign::ExpandProfitableDays; },
               [G] { return FString::Printf(TEXT("%d k\u00e2rl\u0131 g\u00fcn  (%d / %d)"), MarketCampaign::ExpandProfitableDays, G() ? G()->State.ProfitableDays : 0, MarketCampaign::ExpandProfitableDays); }) ]
         + SVerticalBox::Slot().AutoHeight().Padding(0.f, 3.f)
@@ -1757,7 +1754,7 @@ TSharedRef<SWidget> SMarketMenu::DayReport()
             [ Stat(TEXT("MAL MAL\u0130YET\u0130 \u00b7 A\u0130LE"), [G] { return G() ? MarketMenuUi::Tl(G()->State.LastCostOfGoods) : FString(); }, [] { return FString(TEXT("sat\u0131lan \u00fcr\u00fcnlerin al\u0131\u015f\u0131")); }) ]
             + SHorizontalBox::Slot().FillWidth(1.f)
             [ Stat(TEXT("G\u0130DER"), [G] { return G() ? MarketMenuUi::Tl(G()->State.LastOperatingCost) : FString(); },
-                   [G] { return G() && (G()->State.bSecondStore || MarketBranches::OpenCount(G()->State) > 0) ? FString::Printf(TEXT("\u015fubeler %s"), *MarketMenuUi::Tl(G()->State.LastBranchProfit)) : FString(TEXT("kira, elektrik, maa\u015f")); }) ]
+                   [G] { return G() && MarketBranches::OpenCount(G()->State) > 0 ? FString::Printf(TEXT("\u015fubeler %s"), *MarketMenuUi::Tl(G()->State.LastBranchProfit)) : FString(TEXT("kira, elektrik, maa\u015f")); }) ]
         ]
         + SVerticalBox::Slot().AutoHeight().Padding(0.f, 12.f, 0.f, 0.f)
         [

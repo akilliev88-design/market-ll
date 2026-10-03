@@ -1,3 +1,17 @@
+## 03.10.2026 — Claude Code — E3a: prototip kalıntıları (derlenmedi)
+
+**Neden bölündü:** İlk dükkânın stok kaydı (`State.Stock`) 55 dosyada 330 yerde, şube kaydı 463 yerde. E3'ün kayıt birleşimi derleyicisiz tek seferde yapılırsa çok risk taşır; E3a (kalıntılar), E3b (tek satış), E3c (tek kayıt) ayrı derleme turları.
+
+**Yapılan (E3a):** K4: `MarketManagers::Migrate` ve iki çağrısı (şube günü, yönetici günü) kalktı; stil/moral/tavan zaten atamada veriliyor (`InitStoreManager`, `ManagerFrom`, `Appoint`), isimler işe alımda `UsedNames`'e giriyor. `bSecondStore` alanı kalktı (hikâyede "şube var mı", menüde `OpenCount`). K5: `MarketCampaign::ExpandCash/ExpandCashOn/EExpandBlock/ExpandBlock` kalktı; ilk şube şartı `CanOpen`'da borç + 3 kârlı gün + %35 yerel pay (nakit gerçek açılış maliyetiyle ölçülüyor), menüdeki nakit satırı kalktı. K6: `FMarketState::CloseDay`'deki v0.1 şube toplamı (800 + pay × 35) ve `MarketLedger::BeginClose`'daki `BranchResult` kaydı kalktı; hesap artık yalnız satın aldığımız zincirlerin aylık sonucu ("Bağlı şirket sonucu"). Kayıt sürümü 10.
+
+**Testler:** silinen `Managers.OlderSaves`, `Managers.OlderSavesPotential` (eski kayıt testleri, M27); güncellenen `Economy.ProgressAndStorageLimit` (kâr 5.800, şube sonucu 0), `Campaign.DebtAndWeek`, `Branches.OpenAndRun`, `Goals` yardımcısı, `Managers.NamesNeverReturn`. Test.ps1 alt sınırı 161.
+
+**Dokunulmayan (E3c'ye):** personelsiz "v0.1 bayrakları" (`bCashier`, `Stockers`, `DailyPayroll`), yorumlardaki "older saves" notları.
+
+**Doğrulama:** Derlenmedi.
+
+**Sıradaki:** Mustafa CLAUDE_KOS.cmd; sonra E3b.
+
 ## 03.10.2026 — Claude Code — E2 doğrulandı
 
 **son.log (e851b3f):** DERLE geçti; TEST 162 başarılı + 1 uyarılı, başarısız 0 (alt sınır 163); Smoke geçti. OLCUM: 90 gün ciro 7.341.275 → 7.952.830 (oran 1,083, hedef ±%15 içinde), müşteri 4.323 → 4.485; ilk dükkân pay hedefi %26,7; rakip fiyat düzeyi 0,966; gün 20 gerçek müşteri 52.

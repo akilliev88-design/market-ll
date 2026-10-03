@@ -10,7 +10,7 @@ bool FMarketCampaignDebtTest::RunTest(const FString& Parameters)
     const TArray<FMarketProduct> Catalog = { Milk };
     FMarketState S; S.Initialize(Catalog);
     TestEqual(TEXT("New campaign starts with the inherited debt"), S.InheritedDebt, MarketCampaign::StartingDebt);
-    TestTrue(TEXT("Second branch waits for the debt"), MarketCampaign::ExpandBlock(S) == MarketCampaign::EExpandBlock::Debt);
+    TestTrue(TEXT("The debt is open"), MarketCampaign::DebtOpen(S));
 
     const int64 Cash = S.Cash;
     TestEqual(TEXT("One installment"), MarketCampaign::PayDebt(S), MarketCampaign::Installment);
@@ -27,8 +27,6 @@ bool FMarketCampaignDebtTest::RunTest(const FString& Parameters)
     TestEqual(TEXT("Closed on day 1"), S.DebtClearedDay, 1);
     TestEqual(TEXT("Never below zero"), MarketCampaign::PayDebt(S), int64(0));
     TestEqual(TEXT("Paid this week"), S.WeekDebtPaid, MarketCampaign::StartingDebt);
-    S.Cash = MarketCampaign::ExpandCash;
-    TestTrue(TEXT("Then the usual conditions"), MarketCampaign::ExpandBlock(S) == MarketCampaign::EExpandBlock::ProfitableDays);
 
     // Weekly report: days 1..7 make week 1.
     TestEqual(TEXT("Day 7 is week 1"), MarketCampaign::WeekOf(7), 1);

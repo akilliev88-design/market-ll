@@ -82,6 +82,11 @@
 
 ### Faz E3 — Tek satış ve tek gün (D2-2; kalıntı K3, K4, K5, K6)
 
+> **Durum (Claude Code, 03.10.2026):** üç derleme turuna bölündü, çünkü ilk dükkânın stok kaydı 55 dosyada 330 yerde, şube kaydı 463 yerde kullanılıyor; tek seferde birleştirmek derleyicisiz çok riskli.
+> - **E3a — kalıntılar (yazıldı, derlenmedi):** her gün çalışan `MarketManagers::Migrate` kalktı (değerler kişi atanırken veriliyordu; isimler işe alımda kaydediliyor); `bSecondStore` kayıttan çıktı (şube sayısına bakılır); v0.1 ikinci şube nakit şartı (`ExpandCash`, `ExpandBlock`) kalktı, ilk şube şartları borç + kârlı gün + yerel pay olarak kaldı; v0.1 şube toplamı (`LastBranchProfit` 800 + pay × 35) ve onun `BranchResult` kaydı kalktı (hesap adı "Bağlı şirket sonucu", yalnız satın aldığımız zincirler); kayıt sürümü 10.
+> - **E3b — tek satış:** ilk dükkânın hızlı ilerletme günü şubenin ürün ürün satış formülünü kullanır; yürünen dünya aynı sayıları örnekler.
+> - **E3c — tek mağaza kaydı:** `FMarketBranch` ürün kaydı ilk dükkânın `FMarketStock`'u olur; tazelik, toptancı siparişi, personel şubeye açılır. Kalan K4 (personelsiz eski "v0.1 bayrakları": `bCashier/Stockers`) burada kalkar.
+
 1. Şubenin ürün ürün satışı (istek payı × müşteri × raftaki stok × fiyat çekimi) **ilk dükkânın stratejik gününe de uygulanır.**
    - Ajan oynatma yalnız yürünen dünyada kalır ve aynı sayıları örnekler: ajanın sepeti o günün model satışından çekilir.
    - Böylece "aynı koşulda aynı ay sonucu" kesinleşir.

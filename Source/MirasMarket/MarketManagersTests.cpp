@@ -269,43 +269,6 @@ bool FMarketManagersDecisionsTest::RunTest(const FString& Parameters)
     return true;
 }
 
-IMPLEMENT_SIMPLE_AUTOMATION_TEST(FMarketManagersMigrationTest, "MirasMarket.Managers.OlderSaves", EAutomationTestFlags::EditorContext | EAutomationTestFlags::EngineFilter)
-bool FMarketManagersMigrationTest::RunTest(const FString& Parameters)
-{
-    using namespace MarketManagers;
-    using namespace MarketManagersTest;
-    FMarketState S = MakeState();
-    AddShop(S, TEXT("tekirdag"));
-    AddShop(S, TEXT("edirne"));
-    // An older save: no style, no morale; one branch without a manager.
-    S.Branches[0].ManagerStyle = 0;
-    S.Branches[0].ManagerMorale = -1.f;
-    S.Branches[1].ManagerName.Reset();
-    S.Branches[1].ManagerStyle = 0;
-    S.Branches[1].ManagerMorale = -1.f;
-    Migrate(S);
-    TestTrue(TEXT("Style from the seed"), S.Branches[0].ManagerStyle >= 1 && S.Branches[0].ManagerStyle <= 3);
-    TestTrue(TEXT("Morale from the seed"), S.Branches[0].ManagerMorale >= 55.f && S.Branches[0].ManagerMorale <= 75.f);
-    TestEqual(TEXT("No manager, nothing to derive"), S.Branches[1].ManagerStyle, static_cast<uint8>(0));
-    const uint8 Style = S.Branches[0].ManagerStyle;
-    const float Morale = S.Branches[0].ManagerMorale;
-    S.Branches[0].ManagerMorale = 33.f;
-    Migrate(S);
-    TestEqual(TEXT("Only once: style kept"), S.Branches[0].ManagerStyle, Style);
-    TestTrue(TEXT("Only once: morale kept"), FMath::IsNearlyEqual(S.Branches[0].ManagerMorale, 33.f));
-    // Same seed, same result.
-    FMarketState Again = MakeState();
-    AddShop(Again, TEXT("tekirdag"));
-    Again.Branches[0].ManagerStyle = 0;
-    Again.Branches[0].ManagerMorale = -1.f;
-    Migrate(Again);
-    TestTrue(TEXT("Deterministic"), Again.Branches[0].ManagerStyle == Style && FMath::IsNearlyEqual(Again.Branches[0].ManagerMorale, Morale));
-    // Older saves have no managers above the shops and nothing to pay.
-    TestEqual(TEXT("Nobody appointed"), S.Management.Managers.Num(), 0);
-    TestEqual(TEXT("No wages"), DailyWages(S), static_cast<int64>(0));
-    return true;
-}
-
 IMPLEMENT_SIMPLE_AUTOMATION_TEST(FMarketManagersFamilyShopTest, "MirasMarket.Managers.FamilyShopManager", EAutomationTestFlags::EditorContext | EAutomationTestFlags::EngineFilter)
 bool FMarketManagersFamilyShopTest::RunTest(const FString& Parameters)
 {
@@ -598,42 +561,6 @@ bool FMarketManagersCandidatesTest::RunTest(const FString& Parameters)
     return true;
 }
 
-IMPLEMENT_SIMPLE_AUTOMATION_TEST(FMarketManagersPotentialMigrationTest, "MirasMarket.Managers.OlderSavesPotential", EAutomationTestFlags::EditorContext | EAutomationTestFlags::EngineFilter)
-bool FMarketManagersPotentialMigrationTest::RunTest(const FString& Parameters)
-{
-    using namespace MarketManagers;
-    using namespace MarketManagersTest;
-    FMarketState S = MakeState();
-    AddShop(S, TEXT("tekirdag"), 60);
-    AddShop(S, TEXT("edirne"), 93);
-    FMarketManager Old;
-    Old.Level = static_cast<uint8>(ELevel::Province);
-    Old.Country = TEXT("tr");
-    Old.Area = TEXT("tekirdag");
-    Old.Name = TEXT("Eski Kay\u0131t");
-    Old.Skill = 70;
-    Old.BaseWage = 6000;
-    S.Management.Managers.Add(Old);
-    // An older save: no potential, no style, no used names.
-    TestEqual(TEXT("Older save"), S.Branches[0].ManagerPotential, 0);
-    Migrate(S);
-    const int32 P0 = S.Branches[0].ManagerPotential;
-    TestTrue(TEXT("Skill + 5..20"), P0 >= 65 && P0 <= 80);
-    TestEqual(TEXT("At most 95"), S.Branches[1].ManagerPotential, 95);
-    const FMarketManager& M = S.Management.Managers[0];
-    TestTrue(TEXT("Manager's ceiling"), M.Potential >= 75 && M.Potential <= 90);
-    TestTrue(TEXT("Manager's style"), M.Style >= 1 && M.Style <= 3);
-    TestTrue(TEXT("Names are used"), S.Management.UsedNames.Contains(M.Name) && S.Management.UsedNames.Contains(S.Branches[0].ManagerName));
-    const int32 Kept = M.Potential;
-    const uint8 Style = M.Style;
-    Migrate(S);
-    TestTrue(TEXT("Only once"), S.Branches[0].ManagerPotential == P0 && S.Management.Managers[0].Potential == Kept && S.Management.Managers[0].Style == Style);
-    TestEqual(TEXT("Before the migration the same ceiling is read"), PotentialOf(Old), Kept);
-    // A candidate never takes the name of someone working for us.
-    for (const FCandidate& Who : BranchCandidates(S, 0)) TestTrue(TEXT("Not a working name"), Who.Name != M.Name && Who.Name != S.Branches[0].ManagerName);
-    return true;
-}
-
 IMPLEMENT_SIMPLE_AUTOMATION_TEST(FMarketManagersNamesTest, "MirasMarket.Managers.NamesNeverReturn", EAutomationTestFlags::EditorContext | EAutomationTestFlags::EngineFilter)
 bool FMarketManagersNamesTest::RunTest(const FString& Parameters)
 {
@@ -646,12 +573,8 @@ bool FMarketManagersNamesTest::RunTest(const FString& Parameters)
     const FString Leaver = TEXT("Ayr\u0131lan M\u00fcd\u00fcr");
     const int32 Shop = AddShop(S, TEXT("tekirdag"));
     S.Branches[Shop].ManagerName = Leaver;
-    S.Branches[Shop].ManagerPotential = 70; // not an older save: the name is known only because he works here
-    Migrate(S);
-    TestTrue(TEXT("A working name is used"), S.Management.UsedNames.Contains(Leaver));
-    const int32 Listed = S.Management.UsedNames.Num();
-    Migrate(S);
-    TestEqual(TEXT("Listed once"), S.Management.UsedNames.Num(), Listed);
+    S.Branches[Shop].ManagerPotential = 70;
+    S.Management.UsedNames.AddUnique(Leaver); // E3a: a hire records the name (HireFrom, Promote); no daily migration
 
     // He resigns (no morale left): the branch has no manager, his name stays used.
     S.Branches[Shop].ManagerMorale = 5.f;

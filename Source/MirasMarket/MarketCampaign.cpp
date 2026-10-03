@@ -2,11 +2,6 @@
 #include "MarketLedger.h"
 #include "MarketPrices.h"
 
-int64 MarketCampaign::ExpandCashOn(int32 GameDay)
-{
-    return MarketPrices::Scaled(ExpandCash, GameDay);
-}
-
 int64 MarketCampaign::InstallmentOf(const FMarketState& State)
 {
     return FMath::Max<int64>(Installment, State.StartDebt / 10 / 100 * 100);
@@ -33,16 +28,6 @@ bool MarketCampaign::DebtOpen(const FMarketState& State)
 float MarketCampaign::DebtProgress(const FMarketState& State)
 {
     return FMath::Clamp(1.f - static_cast<float>(State.InheritedDebt) / static_cast<float>(FMath::Max<int64>(1, State.StartDebt)), 0.f, 1.f);
-}
-
-MarketCampaign::EExpandBlock MarketCampaign::ExpandBlock(const FMarketState& State)
-{
-    if (State.bSecondStore) return EExpandBlock::AlreadyOpen;
-    if (DebtOpen(State)) return EExpandBlock::Debt;
-    if (State.Cash < ExpandCashOn(State.Day)) return EExpandBlock::Cash;
-    if (State.ProfitableDays < ExpandProfitableDays) return EExpandBlock::ProfitableDays;
-    if (State.MarketShare < ExpandShare) return EExpandBlock::Share;
-    return EExpandBlock::None;
 }
 
 int32 MarketCampaign::WeekOf(int32 Day)

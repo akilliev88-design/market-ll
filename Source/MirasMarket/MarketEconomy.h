@@ -368,7 +368,7 @@ struct FMarketBranch
     UPROPERTY() int32 ManagerBonusDay = 0;
     UPROPERTY() int32 ManagerWarnedDay = 0;
     UPROPERTY() int32 ManagerCaughtDay = 0;
-    // G-086b ek (M21): the manager's hidden ceiling of skill (55..95). 0 = an older save: MarketManagers::Migrate
+    // G-086b ek (M21): the manager's hidden ceiling of skill (55..95). 0 = derived from the skill (MarketManagers::PotentialOf)
     // derives it once from the skill (+5..20, at most 95).
     UPROPERTY() int32 ManagerPotential = 0;
     // G-088 stage C (MarketStoreViews.h): the ready-made store view signed for this branch and a copy of its
@@ -899,7 +899,7 @@ struct FMarketState
     static constexpr int64 StockerDailyWage = 2000;
 
     // Save format version. 2 (G-076): story finale flags, test-mode mark. Older saves load and are migrated.
-    static constexpr int32 CurrentVersion = 9; // E2 (M27): the street rivals left the save (one rival model, MarketChains); older saves start a new game
+    static constexpr int32 CurrentVersion = 10; // E3a (M27): the v0.1 second store flag left the save; older saves start a new game
     UPROPERTY() int32 Version = CurrentVersion;
     UPROPERTY() int32 Day = 1;
     UPROPERTY() int64 Cash = 35000;
@@ -907,7 +907,6 @@ struct FMarketState
     UPROPERTY() bool bCashier = false;
     // Shelf staff count (older saves load 0).
     UPROPERTY() int32 Stockers = 0;
-    UPROPERTY() bool bSecondStore = false;
     UPROPERTY() bool bRealBrands = false;   // karar L12: fictional brands close to the real ones; F8 shows real names (development)
     // G-076: true once free test controls (F2/F3, free orders) were used in this campaign; shown in the menu.
     UPROPERTY() bool bUsedTestMode = false;
@@ -1014,7 +1013,7 @@ struct FMarketState
     // M36: the family shop's rent paid to the parents this month (MarketFinance).
     UPROPERTY() int64 MonthRent = 0;
     UPROPERTY() int32 TroubleStage = 0;
-    // Branches (MarketBranches.h). bSecondStore stays true while at least one branch exists (older code and saves).
+    // Branches (MarketBranches.h).
     UPROPERTY() TArray<FMarketBranch> Branches;
     // G-088 stage C: the store view of every site (MarketStoreAssign::SiteKey -> magazalar.json id), so a province
     // keeps its view for every branch of that type and across saves (MarketStoreViews).

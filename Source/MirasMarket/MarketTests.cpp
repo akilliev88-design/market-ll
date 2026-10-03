@@ -453,11 +453,11 @@ bool FMarketProgressTest::RunTest(const FString& Parameters)
     S.Stock[0].Warehouse = 120;
     TestFalse(TEXT("Warehouse capacity includes pending deliveries"), S.Order(0, Catalog));
     S.Revenue = 20000; S.CostOfGoods = 10000; S.bCashier = true;
-    S.bSecondStore = true; S.Served = 30; S.Lost = 0;
+    S.Served = 30; S.Lost = 0;
     S.CloseDay();
     TestEqual(TEXT("Staff cost counted"), S.LastOperatingCost, int64(4200));
-    TestEqual(TEXT("Branch contributes separately"), S.LastBranchProfit, int64(1675));
-    TestEqual(TEXT("Profit includes branch net and payroll"), S.LastProfit, int64(7475));
+    TestEqual(TEXT("No branch, no branch result (E3a: the v0.1 second store is gone)"), S.LastBranchProfit, int64(0));
+    TestEqual(TEXT("Profit includes payroll"), S.LastProfit, int64(5800));
     TestEqual(TEXT("Profitable day advances milestone"), S.ProfitableDays, 1);
     TestTrue(TEXT("Good service improves local share"), S.MarketShare > 25);
     FMarketState Quiet; Quiet.Initialize(Catalog);

@@ -13,9 +13,8 @@ namespace MarketCampaign
     constexpr int64 Installment = 5000;     // one press of P: 50 TL (or what is left)
     constexpr int32 DaysPerWeek = 7;
     constexpr int32 MaxHistoryDays = 3650;
-    // Second branch conditions (v0.1 values) plus the closed debt.
-    constexpr int64 ExpandCash = 95000;
-    int64 ExpandCashOn(int32 GameDay);   // G-077 (#36): at today's prices
+    // The first branch waits for the closed debt, a few profitable days and a share of the province (E3a/K5: the v0.1
+    // cash condition is gone; MarketBranches::CanOpen checks the real opening cost).
     constexpr int32 ExpandProfitableDays = 3;
     constexpr float ExpandShare = 35.f;
 
@@ -27,10 +26,6 @@ namespace MarketCampaign
     bool DebtOpen(const FMarketState& State);
     // 0..1 of the starting debt paid (for the goal bar).
     float DebtProgress(const FMarketState& State);
-
-    enum class EExpandBlock : uint8 { None, Debt, Cash, ProfitableDays, Share, AlreadyOpen };
-    // First reason the second branch cannot be opened yet (None = it can).
-    EExpandBlock ExpandBlock(const FMarketState& State);
 
     // Week of a day: days 1-7 = week 1.
     int32 WeekOf(int32 Day);

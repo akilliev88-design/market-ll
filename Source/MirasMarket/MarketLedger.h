@@ -121,7 +121,7 @@ namespace MarketLedger
         Penalties,        // late fees and tax penalties
         Tax,              // VAT and income tax as declared (no cash: TaxPayment pays it)
         BadDebt,          // credit book money that is gone (M36: no credit book any more; kept for the order)
-        BranchResult,     // a branch's net day when it is not booked line by line (the v0.1 second store)
+        BranchResult,     // the month's result of a chain we own (MarketChains, not booked line by line; E3a: the v0.1 second store is gone)
         // B7: C's new systems (departments, brands, sourcing). Income:
         DepartmentSales,  // a department's till (Store = the store it is in)
         DepartmentClearance, // a closing department's stock sold off (cash in; its book value goes to DepartmentCostOfGoods)

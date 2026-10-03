@@ -390,7 +390,6 @@ bool MarketBranches::Open(FMarketState& State, const TArray<FMarketProduct>& Pro
     Branch.bHasty = Strain > 0.f && (BranchMix(State.RivalSeed, State.Day, 0x4A57u + static_cast<uint32>(State.Branches.Num()) * 17u) % 1000u) < static_cast<uint32>(HastyChance * Strain * 1000.f) ? 1 : 0;
     MarketLedger::AddStoreCost(State, FitOutCost(State, Site, Kind, MarketStoreAssign::FitOutFactor(Measures, Kind.Id)), State.Branches.Num()); // C10: the branch's own books
     State.Branches.Add(Branch);
-    State.bSecondStore = true;
     OutMessage = FString::Printf(TEXT("%s: kira s\u00f6zle\u015fmesi imzaland\u0131 (depozito %s), tadilat ba\u015flad\u0131 (%d g\u00fcn). Raflar senin kurallar\u0131nla otomatik planland\u0131."),
         *Branch.Name, *BranchTl(2 * Branch.Rent), RenovationDays);
     if (bFirst) OutMessage += TEXT(" Kom\u015fu esnaf\u0131n bo\u015falan d\u00fckk\u00e2n\u0131: raflar\u0131 ve tezg\u00e2h\u0131 duruyor, tadilat ucuza geldi.");
@@ -426,7 +425,6 @@ int32 MarketBranches::AddAcquired(FMarketState& State, const TArray<FMarketProdu
     PlanShelves(State, Branch, Products);
     for (FMarketBranchItem& Item : Branch.Items) Item.Units = Item.Capacity; // the goods came with the chain
     State.Branches.Add(Branch);
-    State.bSecondStore = true;
     const int32 Index = State.Branches.Num() - 1;
     MarketManagers::HireStoreManager(State, Index);
     return Index;
@@ -473,7 +471,6 @@ bool MarketBranches::Close(FMarketState& State, const TArray<FMarketProduct>& Pr
     MarketLedger::Post(State, MarketLedger::EAccount::Shrinkage, -SoldValue, false, BranchIndex); // the lost half (sold at half the cost)
     MarketDepartments::CloseAll(State, BranchIndex); // M26: its departments sell their stock off
     B.Items.Reset();
-    State.bSecondStore = OpenCount(State) > 0;
     OutMessage = FString::Printf(TEXT("%s kapand\u0131. Depozito geri al\u0131nd\u0131, %d \u00fcr\u00fcn ana depoya ta\u015f\u0131nd\u0131."), *B.Name, Moved);
     if (Sold > 0) OutMessage += FString::Printf(TEXT(" Depoya s\u0131\u011fmayan %d \u00fcr\u00fcn toptanc\u0131ya yar\u0131 fiyat\u0131na verildi (%s)."), Sold, *BranchTl(SoldValue));
     return true;
@@ -554,7 +551,6 @@ FString MarketBranches::Summary(const FMarketState& State, int32 BranchIndex, co
 
 void MarketBranches::CloseDay(FMarketState& State, const TArray<FMarketProduct>& Products)
 {
-    MarketManagers::Migrate(State); // seeds a new manager's hidden style, morale and ceiling once; keeps the used names
     MarketDepartments::CloseDay(State); // M26: departments reach new branches, masters learn
     const int32 Closed = State.Day - 1;
     if (Closed < 1) return;

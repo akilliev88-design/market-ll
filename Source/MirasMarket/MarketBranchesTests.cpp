@@ -134,7 +134,7 @@ bool FMarketBranchesTest::RunTest(const FString& Parameters)
     const int64 Cost = OpeningCost(S, Products, TEXT("tr"), TEXT("kirklareli"), TEXT("mahalle"));
     TestTrue(TEXT("Opening cost is positive"), Cost > 0);
     TestTrue(TEXT("Open in the home province"), Open(S, Products, TEXT("tr"), TEXT("kirklareli"), TEXT("mahalle"), Message));
-    TestTrue(TEXT("A branch exists"), S.Branches.Num() == 1 && S.bSecondStore && S.Branches[0].Stage == static_cast<uint8>(EStage::Renovation));
+    TestTrue(TEXT("A branch exists"), S.Branches.Num() == 1 && S.Branches[0].Stage == static_cast<uint8>(EStage::Renovation));
     int64 OpeningStock = 0;
     for (const FMarketBranchItem& Item : S.Branches[0].Items)
         for (const FMarketProduct& Product : Products) if (Product.Id == Item.ProductId) OpeningStock += static_cast<int64>(Item.Capacity) * Product.Cost;
@@ -202,7 +202,7 @@ bool FMarketBranchesTest::RunTest(const FString& Parameters)
     TestTrue(TEXT("Now the manager"), S.Branches[0].ManagerName == TEXT("Selin Kaya") && !MarketStaff::FindEmployee(S, 77));
     const int64 CashBefore = S.Cash;
     TestTrue(TEXT("Close"), MarketBranches::Close(S, Products, 0, Message));
-    TestTrue(TEXT("Deposit back"), S.Cash > CashBefore && !S.bSecondStore);
+    TestTrue(TEXT("Deposit back"), S.Cash > CashBefore && MarketBranches::OpenCount(S) == 0);
 
     return true;
 }

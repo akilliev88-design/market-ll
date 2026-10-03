@@ -143,7 +143,7 @@ namespace MarketMenuCapture
         const auto AddManager=[&](MarketManagers::ELevel Level,const TCHAR* Area,const TCHAR* Name)
         { FMarketManager Manager; Manager.Level=static_cast<uint8>(Level); Manager.Country=State.CountryId; Manager.Area=Area; Manager.Name=Name; Manager.Skill=65; Manager.Potential=80; Manager.Honesty=70; Manager.Morale=65; Manager.BaseWage=5000; Manager.AppointedDay=State.Day-60; State.Management.Managers.Add(Manager); };
         AddManager(MarketManagers::ELevel::Province,TEXT("kirklareli"),TEXT("Selim")); AddManager(MarketManagers::ELevel::Depot,TEXT("kirklareli"),TEXT("Deniz"));
-        State.Company.Trucks=1; State.bSecondStore=true;
+        State.Company.Trucks=1;
     }
     bool WriteIndex(const FCapture& Run)
     {

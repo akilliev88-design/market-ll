@@ -1,8 +1,10 @@
 # Güncel durum
 
-Son güncelleme: 03.10.2026 — Claude Code, akis-cc2: E2 bitti (derlendi, test ve Smoke geçti); E3 başlıyor
+Son güncelleme: 03.10.2026 — Claude Code, akis-cc2: E3a yazıldı, derlenmedi
 
 ## Kısaca
+
+**03.10.2026 — Claude Code / E3a (derlenmedi, `akis-cc2`):** E3 üç tura bölündü (a kalıntılar, b tek satış, c tek kayıt). E3a: `MarketManagers::Migrate` (her gün) kalktı; `bSecondStore` kayıttan çıktı; v0.1 ikinci şube nakit şartı (`ExpandCash`, `ExpandBlock`) ve v0.1 şube toplamı/`BranchResult` kaydı kalktı; kayıt sürümü 10. Silinen 2 test (Managers.OlderSaves, OlderSavesPotential), güncellenenler: Economy.ProgressAndStorageLimit, Campaign.DebtAndWeek, Branches, Goals, Managers.NamesNeverReturn; Test.ps1 161. **Devam notu:** Mustafa derler; sonra E3b.
 
 **03.10.2026 — Claude Code / E2 doğrulandı (e851b3f):** DERLE geçti, TEST 162 + 1 uyarı (163/163), Smoke geçti. OLCUM: ilk dükkânın 90 günlük cirosu eski modelin 1,083 katı (hedef ±%15 ✓), müşteri 4.323 → 4.485; ilk dükkânın pay hedefi %26,7 (hikâyenin %35 hedefi çabayla); ilin rakip fiyat düzeyi 0,966; gün 20 gerçek müşteri 52 (görsel ölçek 55). Sıradaki: E3.
 

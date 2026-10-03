@@ -72,7 +72,7 @@ FString MarketLedger::AccountName(EAccount Account)
     case EAccount::Penalties: return TEXT("Gecikme ve cezalar");
     case EAccount::Tax: return TEXT("Vergi (KDV ve gelir)");
     case EAccount::BadDebt: return TEXT("Batan veresiye");
-    case EAccount::BranchResult: return TEXT("\u015eube sonucu");
+    case EAccount::BranchResult: return TEXT("Ba\u011fl\u0131 \u015firket sonucu");
     case EAccount::Purchases: return TEXT("Mal al\u0131m\u0131");
     case EAccount::SupplierCredit: return TEXT("Vadeli al\u0131m ve \u00f6demesi");
     case EAccount::LoanIn: return TEXT("Kredi giri\u015fi");
@@ -209,7 +209,6 @@ void MarketLedger::BeginClose(FMarketState& State, const TArray<FMarketProduct>&
     for (const FMarketLedgerEntry& Cost : L.PendingStoreCosts) { Post(State, EAccount::Marketing, -Cost.Amount, true, Cost.Store); Elsewhere += Cost.Amount; }
     L.PendingStoreCosts.Reset();
     Post(State, EAccount::Marketing, -(State.LastOperatingCost - Utilities - Payroll - Elsewhere));
-    Post(State, EAccount::BranchResult, State.LastBranchProfit);
     // Paid-for units that never arrived whole (#37): FMarketState::CloseDay puts them into PendingLoss for the next
     // report; the books take the loss today.
     Post(State, EAccount::Shrinkage, -State.PendingLoss, false);

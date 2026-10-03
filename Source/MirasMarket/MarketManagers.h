@@ -230,12 +230,8 @@ namespace MarketManagers
     // The area of a level that contains a branch ("" when the pack has none).
     FString AreaOfBranch(const FMarketState& State, int32 BranchIndex, ELevel Level);
 
-    // Older saves: store managers without a style / morale / potential and managers without a style / potential get
-    // them from the seed (once; idempotent). A potential is the skill + 5..20, at most 95. Everyone working for us
-    // is added to State.Management.UsedNames (M22: a name never comes back after he leaves).
-    void Migrate(FMarketState& State);
 
-    // M21: a person's ceiling (Potential; an older save's value derived as Migrate does), the chance of +1 skill
+    // M21: a person's ceiling (Potential; when 0 it is derived from the skill), the chance of +1 skill
     // in a good week (0 at the ceiling, proportional to the distance, seniority adds up to half) and one week's
     // growth with a seeded roll (its value modulo 100000; Pace scales the chance: managers above the shops 0.5).
     int32 PotentialOf(const FMarketBranch& Branch);

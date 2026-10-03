@@ -37,6 +37,12 @@ namespace MarketStory
         return Count;
     }
 
+    // E3a: a branch signed, being fitted out or open (the v0.1 "second store" flag is gone).
+    bool HasBranch(const FMarketState& State)
+    {
+        return State.Branches.ContainsByPredicate([](const FMarketBranch& B) { return B.Stage != static_cast<uint8>(MarketBranches::EStage::Closed); });
+    }
+
     FMarketDecision StoryDecision(const FMarketState& State, const TCHAR* Id, const FString& Title, const FString& Text, std::initializer_list<FString> Options, int32 Default, int32 Days, int32 Arg = 0)
     {
         FMarketDecision D;
@@ -113,7 +119,7 @@ TArray<MarketStory::FObjective> MarketStory::Objectives(const FMarketState& Stat
         Add(TEXT("Marketin kimli\u011fini se\u00e7"), Has(State, BIdentity));
         break;
     case 3:
-        Add(TEXT("\u0130kinci \u015fubeyi a\u00e7"), State.bSecondStore);
+        Add(TEXT("\u0130kinci \u015fubeyi a\u00e7"), HasBranch(State));
         Add(TEXT("Bir \u0130K m\u00fcd\u00fcr\u00fc i\u015fe al"), MarketStaff::HasHr(State));
         Add(TEXT("Defterleri mali m\u00fc\u015favire devret"), MarketStaff::HasAccountant(State));
         break;
@@ -206,7 +212,7 @@ void MarketStory::CloseDay(FMarketState& State, const TArray<FMarketProduct>& Pr
         Mark(State, BFirstEmployee);
         AddMemory(State, TEXT("ilk \u00e7al\u0131\u015fan"));
     }
-    if (State.bSecondStore && !Has(State, BSecondStore)) { Mark(State, BSecondStore); AddMemory(State, TEXT("ikinci tabela as\u0131ld\u0131")); }
+    if (HasBranch(State) && !Has(State, BSecondStore)) { Mark(State, BSecondStore); AddMemory(State, TEXT("ikinci tabela as\u0131ld\u0131")); }
     if (Closed >= 7 && !Has(State, BFirstWeek)) { Mark(State, BFirstWeek); AddMemory(State, TEXT("ilk hafta bitti")); }
 
     // M57: in the second chapter the shop chooses what it wants to be (once; the default keeps the corner shop).

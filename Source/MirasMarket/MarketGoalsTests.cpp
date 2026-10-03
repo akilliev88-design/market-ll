@@ -55,7 +55,6 @@ namespace MarketGoalsTest
     {
         FMarketBranch B; B.Country = TEXT("tr"); B.Province = Province; B.Stage = static_cast<uint8>(MarketBranches::EStage::Open); B.Format = TEXT("mahalle");
         S.Branches.Add(B);
-        S.bSecondStore = true;
     }
 }
 
