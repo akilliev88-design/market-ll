@@ -1,3 +1,13 @@
+## 03.10.2026 — Claude Code — c1c7cd4 turu: derleme yapılamadı
+
+**son.log:** DERLE adımı "Dosya başka bir işlem tarafından kullanıldığından bu işlem dosyaya erişemiyor." dedi, ama DERLE.cmd hata kodu vermediği için "DERLEME TAMAM" yazdı. Testler eski derlemeyle koştu: 166 başarılı + 1 uyarılı, 1 başarısız (`MirasMarket.Country.PackStandard`: yeni `ulkeler.json`'daki 12 zinciri eski koddaki 8/9 beklentisiyle karşılaştırdı). Yeni `Expansion` testi hiç koşmadı, Smoke atlandı. Veri dosyası çalışırken okunduğu için OLCUM biraz değişti (ciro oranı 1,045, rakip fiyat düzeyi 0,974): yeni zincirler etkili.
+
+**Not:** Mustafa'nın klasöründe Codex'in kaydedilmemiş değişiklikleri görünüyor (AssetInbox ekipman json'ları, MarketGame.cpp, MarketStoreBuild.cpp, Planogram.h, StoreEquipment.cpp, Blender betikleri). Muhtemelen Codex aynı anda derliyor ya da Unreal açık; dosya kilidi buradan. Bu dosyalara dokunulmadı.
+
+**Yapılan:** `Saved/Claude/adim.cmd` derlemeden önce eski `DERLE_son.log`'u siler; derlemeden sonra logda "Result: Succeeded" yoksa `DERLE_BASARISIZ_SONUC_YOK` yazar, logun son 15 satırını gösterir ve testleri koşturmaz.
+
+**Sıradaki:** Unreal Editor ve Codex derlemesi kapalıyken CLAUDE_KOS yeniden.
+
 ## 03.10.2026 — Claude Code — M54, M58, M59 (derlenmedi)
 
 **E4b sonucu (c43791b):** DERLE geçti; TEST 168 başarılı, 0 uyarı, 0 başarısız; Smoke geçti. OLCUM: kur 1,1262; yerel taksit 106.619 → bizim paramızla 120.070. E4 bitti; 11_TEK_EKONOMI E1–E4 tamam.
