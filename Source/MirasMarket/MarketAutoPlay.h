@@ -41,7 +41,7 @@ namespace MarketAutoPlay
         int32 Difficulty = 1; // C12: 0 Rahat, 1 Normal, 2 Zor (MarketSimulation)
         bool bKeepFinalStates = false; // read-only review snapshots; player saves are never written
         FString Country = TEXT("tr");
-        FString Province = TEXT("kirklareli");
+        FString Province; // empty = the country's median province (MarketStart::FallbackProvince)
     };
     struct FRow
     {

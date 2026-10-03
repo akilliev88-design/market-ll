@@ -44,7 +44,7 @@ namespace MarketStoreViewsTest
     FMarketState Start(const TArray<FMarketProduct>& Products)
     {
         FMarketState S; S.Initialize(Products); S.RivalSeed = 12; S.Cash = 50000000;
-        S.InheritedDebt = 0; S.ProfitableDays = 5; S.MarketShare = 40.f;
+        S.InheritedDebt = 0; S.ProfitableDays = 5; S.MarketShare = 55.f; // M61: the share goal is at most 55
         S.CountryId = TEXT("tr"); S.CityId = TEXT("kirklareli");
         return S;
     }

@@ -127,7 +127,7 @@ bool FMarketBotCoreBalance::RunTest(const FString& Parameters)
     --State.Cash;
     TestFalse(TEXT("Hiring cannot spend protected goods money"),MarketAutoPlayFinance::WorthHiring(State,1000000,2000));
     TArray<FMarketProduct> Products;FMarketProduct Product;Product.Id=TEXT("test");Product.Category=TEXT("icecek");Product.BasePrice=1000;Product.Cost=600;Products.Add(Product);
-    State.Stock.SetNum(1);State.Stock[0].Price=880;State.MarketShare=30;
+    State.Stock.SetNum(1);State.Stock[0].Price=880;State.MarketShare=15; // M61: below any leadership share (at least 18)
     const auto Profile=MarketAutoPlay::Profiles()[1];
     const int64 Before=MarketAutoPlay::PriceTarget(State,Products,0,Profile);
     FMarketBranch Branch;Branch.Stage=static_cast<uint8>(MarketBranches::EStage::Renovation);State.Branches.Add(Branch);
@@ -136,7 +136,7 @@ bool FMarketBotCoreBalance::RunTest(const FString& Parameters)
     TestEqual(TEXT("First open branch keeps family growth pricing"),MarketAutoPlay::PriceTarget(State,Products,0,Profile),Before);
     State.Branches[0].Stage=static_cast<uint8>(MarketBranches::EStage::Closed);
     TestEqual(TEXT("Closed history cannot switch growth pricing"),MarketAutoPlay::PriceTarget(State,Products,0,Profile),Before);
-    State.MarketShare=50;
+    State.MarketShare=60; // M61: above any leadership share (at most 60)
     TestTrue(TEXT("Share threshold cannot raise target over three percent"),MarketAutoPlay::PriceTarget(State,Products,0,Profile)<=906);
     return true;
 }

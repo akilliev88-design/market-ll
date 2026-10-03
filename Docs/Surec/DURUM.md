@@ -1,8 +1,10 @@
 # Güncel durum
 
-Son güncelleme: 03.10.2026 — Claude Code, akis-cc2: E3a derlendi; M61 şehre göre pay hedefi yazıldı, derlenmedi
+Son güncelleme: 03.10.2026 — Claude Code, akis-cc2: E3a derlendi; M61/M61b (çevre payı, şehirdeki pay, ortanca il) yazıldı, derlenmedi
 
 ## Kısaca
+
+**03.10.2026 — Claude Code / M61 ek + M61b (derlenmedi, `akis-cc2`):** Mustafa: "çevredeki pay ile şehirdeki pay ayrı yazılsın" ve "Kırklareli'nin ayrıcalığı yok". Çevre payı (`MarketShare`) ve şehirdeki pay (`MarketCompany::ProvinceShare`: ildeki gelirimiz / ilin günlük market harcaması) menünün Yerel pazar kartında ayrı ayrı gösteriliyor; hedef metinleri "çevre payı" oldu. M61b: il değerlerinin 1,0 noktası ülkenin ortanca ili (`MedianPopK`, `MedianDensity`, `MedianProvince`, paketten hesaplanır); `referencePopK`/`referenceProvince` paketlerden, 341 sabiti koddan kalktı; `LegacyProvince` → `FallbackProvince` (ortanca il); bot varsayılan ili boş (ortanca il). Testler: StartTests yedek il = ortanca il; eşikler (pay 40/45/50/30) hedef aralığının dışına çekildi. Ölçüm kayabilir: E2 ayarı Kırklareli'de yapılmıştı; FamilyBeforeAfter oranına bakılacak. **Devam notu:** Mustafa derler; sonra E3b.
 
 **03.10.2026 — Claude Code / M61 şehre göre pay hedefi (derlenmedi, `akis-cc2`):** E3a doğrulandı (ba3ceae: DERLE geçti, TEST 160 + 1 uyarı, Smoke geçti). Mustafa: "%27 pay İstanbul/Tokyo'da çok yüksek." Pay zaten dükkânın kendi mahallesindeki payı; hedefler artık ilde sıradan bir mahalle marketinin alacağı paydan türetiliyor: `MarketStoreDemand::NeutralShare`, `MarketCampaign::ShareGoal` (1,25×, %15–55: Kırklareli ~35, İstanbul ~26, küçük il ~49) ve `LeadShare` (1,43×, %18–60). Kullanılan yerler: `MarketBranches::CanOpen`, menü hedef satırı, hikâye 3. bölüm hedefi, `MarketCompany` liderlik yılı, bot fiyat sezgisi. `StoreDemand.OneRivalModel`'e hedef aralığı ve "en büyük şehirde pay en küçük şehirden az" kontrolü eklendi (test sayısı değişmedi, 161). **Devam notu:** Mustafa derler; sonra E3b.
 

@@ -102,7 +102,7 @@ bool FMarketBranchesTest::RunTest(const FString& Parameters)
     using namespace MarketBranchesTest;
     const TArray<FMarketProduct> Products = Catalog();
     FMarketState S; S.Initialize(Products); S.RivalSeed = 12; S.Cash = 5000000;
-    S.InheritedDebt = 0; S.ProfitableDays = 5; S.MarketShare = 40.f;
+    S.InheritedDebt = 0; S.ProfitableDays = 5; S.MarketShare = 55.f; // M61: the share goal is at most 55
     S.CountryId = TEXT("tr"); S.CityId = TEXT("kirklareli");
     FString Message;
 
@@ -214,7 +214,7 @@ bool FMarketRescueTest::RunTest(const FString& Parameters)
     using namespace MarketBranchesTest;
     const TArray<FMarketProduct> Products = Catalog();
     FMarketState S; S.Initialize(Products); S.RivalSeed = 12; S.Cash = 5000000;
-    S.InheritedDebt = 0; S.ProfitableDays = 5; S.MarketShare = 40.f;
+    S.InheritedDebt = 0; S.ProfitableDays = 5; S.MarketShare = 55.f; // M61: the share goal is at most 55
     S.CountryId = TEXT("tr"); S.CityId = TEXT("kirklareli");
     FString Message;
     TestTrue(TEXT("Open a branch"), MarketBranches::Open(S, Products, TEXT("tr"), TEXT("kirklareli"), TEXT("mahalle"), Message));

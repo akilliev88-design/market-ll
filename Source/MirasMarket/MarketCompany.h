@@ -32,6 +32,12 @@ namespace MarketCompany
     // country a day (smoothed over about a month, State.Ledger.CountryRevenueDay; before the first measured day
     // the last closed day) / what the country's people spend on groceries a day (CountryMarketDay).
     float NationalShare(const FMarketState& State);
+    // M61b: percent of a province's grocery retail (the whole city, not the shop's surroundings): our revenue of the
+    // last closed day in the province (the family shop in the home province + the open branches there) / what the
+    // province's people spend on groceries a day. A corner shop is a fraction of a percent of a city; the shop's
+    // share of its own surroundings is State.MarketShare (MarketStoreDemand). Country empty = the campaign's.
+    float ProvinceShare(const FMarketState& State, const FString& Country, const FString& Province);
+    int64 ProvinceMarketDay(const FMarketState& State, const FString& Country, const FString& Province);
     // The country's grocery retail a day at today's prices: people x MarketCountry::FProfile::GroceryPerPersonDay.
     int64 CountryMarketDay(const FMarketState& State);
     // Our revenue of the last closed day in the campaign country (family shop with its online orders + branches there).

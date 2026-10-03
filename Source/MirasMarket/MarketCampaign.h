@@ -16,10 +16,10 @@ namespace MarketCampaign
     // The first branch waits for the closed debt, a few profitable days and a share of the province (E3a/K5: the v0.1
     // cash condition is gone; MarketBranches::CanOpen checks the real opening cost).
     constexpr int32 ExpandProfitableDays = 3;
-    // The local share goal of the first branch and chapter 2, percent of the family shop's neighbourhood: 1.25 x what
-    // an ordinary shop gets in the home province (MarketStoreDemand::NeutralShare; the reference province 35 %,
-    // Istanbul ~26 %, a small province ~49 %), 15..55. LeadShare: the leadership year's share, 1.43 x (40 % in the
-    // reference province), 18..60.
+    // The surroundings share goal of the first branch and chapter 2 (percent of the shoppers around the family shop,
+    // not of the city): 1.25 x what an ordinary shop gets in the home province (MarketStoreDemand::NeutralShare;
+    // the same rule for every province, M61/M61b: Istanbul ~26 %, a median province ~33 %, a small one ~42 %),
+    // 15..55. LeadShare: the leadership year's share, 1.43 x, 18..60.
     float ShareGoal(const FMarketState& State);
     float LeadShare(const FMarketState& State);
 

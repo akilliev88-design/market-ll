@@ -1228,10 +1228,19 @@ TSharedRef<SWidget> SMarketMenu::RivalsPage()
             Card(SNew(SVerticalBox)
                 + SVerticalBox::Slot().AutoHeight()[ Label([G] { return G() ? FString(TEXT("YEREL PAZAR \u00b7 ")) + MarketMenuPagesUi::CityName(G()->State.CountryId, MarketStart::HomeProvince(G()->State)).ToUpper() : FString(); }, 9, ERole::Muted, true) ]
                 + SVerticalBox::Slot().AutoHeight().Padding(0.f, 6.f, 0.f, 8.f)
-                [ Label([G] { return G() ? FString::Printf(TEXT("Mahalle m\u00fc\u015fterilerinin %%%.0f'i bizden al\u0131\u015fveri\u015f yap\u0131yor"), G()->State.MarketShare) : FString(); }, 16, ERole::Text, true) ]
+                [ Label([G] { return G() ? FString::Printf(TEXT("\u00c7evre pay\u0131 %%%.0f  \u00b7  d\u00fckk\u00e2n\u0131n \u00e7evresindeki al\u0131\u015fveri\u015fin bu kadar\u0131 bizden"), G()->State.MarketShare) : FString(); }, 16, ERole::Text, true) ]
                 + SVerticalBox::Slot().AutoHeight()[ Bar([G] { return G() ? G()->State.MarketShare / 100.f : 0.f; }, ERole::Accent) ]
+                + SVerticalBox::Slot().AutoHeight().Padding(0.f, 10.f, 0.f, 0.f)
+                [ Label([G]
+                {
+                    if (!G()) return FString();
+                    const FString Home = MarketStart::HomeProvince(G()->State);
+                    // M61b: the whole city is another figure: a corner shop is a fraction of a percent of it.
+                    return FString::Printf(TEXT("\u015eehirdeki pay (%s) %%%.2f  \u00b7  ilin b\u00fct\u00fcn market al\u0131\u015fveri\u015finin bu kadar\u0131 bizden"),
+                        *MarketMenuPagesUi::CityName(G()->State.CountryId, Home), MarketCompany::ProvinceShare(G()->State, G()->State.CountryId, Home));
+                }, 12, ERole::Text) ]
                 + SVerticalBox::Slot().AutoHeight().Padding(0.f, 8.f, 0.f, 0.f)
-                [ More([] { return FString(TEXT("Pay her g\u00fcn sonunda de\u011fi\u015fir: fiyat, dolu raf, bekleme, m\u00fc\u015fteri memnuniyeti, ildeki zincirler ve fiyat sava\u015flar\u0131.")); }) ]
+                [ More([] { return FString(TEXT("\u00c7evre pay\u0131 yaln\u0131z d\u00fckk\u00e2n\u0131n y\u00fcr\u00fcme mesafesindeki m\u00fc\u015fterileri sayar; b\u00fcy\u00fck \u015fehirde rakip \u00e7ok oldu\u011fu i\u00e7in do\u011fal olarak daha d\u00fc\u015f\u00fckt\u00fcr. \u015eehirdeki pay b\u00fct\u00fcn ilin market al\u0131\u015fveri\u015fine bakar; tek d\u00fckk\u00e2nla k\u00fc\u00e7\u00fck kal\u0131r, \u015fubelerle b\u00fcy\u00fcr. \u00c7evre pay\u0131 her g\u00fcn sonunda de\u011fi\u015fir: fiyat, dolu raf, bekleme, m\u00fc\u015fteri memnuniyeti, ildeki zincirler ve fiyat sava\u015flar\u0131.")); }) ]
                 + SVerticalBox::Slot().AutoHeight().Padding(0.f, 8.f, 0.f, 0.f)
                 [ Label([G]
                 {

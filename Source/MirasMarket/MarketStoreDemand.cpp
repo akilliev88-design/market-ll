@@ -3,6 +3,7 @@
 #include "MarketBranches.h"
 #include "MarketCalendar.h"
 #include "MarketChains.h"
+#include "MarketCountry.h"
 #include "MarketCompany.h"
 #include "MarketEvents.h"
 #include "MarketOnline.h"
@@ -27,7 +28,7 @@ float MarketStoreDemand::Trips(const FMarketState& State, const FStoreDay& Store
     const MarketBranches::FSite Where = MarketStoreDemandLocal::SiteOf(State, Store);
     const MarketBranches::FFormat& Kind = MarketBranches::FormatInfo(Store.Format);
     // Bigger provinces are denser: a little more traffic per shop.
-    const float Size = FMath::Clamp(FMath::Pow(FMath::Max(1.f, static_cast<float>(Where.PopulationK)) / 341.f, 0.1f), 0.85f, 1.3f);
+    const float Size = FMath::Clamp(FMath::Pow(FMath::Max(1.f, static_cast<float>(Where.PopulationK)) / static_cast<float>(MarketCountry::MedianPopK(Where.Country)), 0.1f), 0.85f, 1.3f);
     return Kind.Trips * Size * MarketCalendar::TrafficFactor(Day, State.RivalSeed)
         * MarketOnline::StoreTrafficFactorOn(State, Day, Where.Country) // M32: trips gone online, the epidemic's closure days
         * MarketAdvertising::TrafficFactor(State, Where.Country) // M34: the company's ads

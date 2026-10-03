@@ -114,7 +114,7 @@ TArray<MarketStory::FObjective> MarketStory::Objectives(const FMarketState& Stat
         break;
     case 2:
         Add(TEXT("\u0130\u015fletmenin borcunu kapat"), !MarketCampaign::DebtOpen(State));
-        Add(FString::Printf(TEXT("Mahalle pay\u0131n\u0131 %%%.0f'e \u00e7\u0131kar (\u015fu an %%%.0f)"), MarketCampaign::ShareGoal(State), State.MarketShare), Has(State, BShare35));
+        Add(FString::Printf(TEXT("D\u00fckk\u00e2n\u0131n \u00e7evre pay\u0131n\u0131 en az %%%.0f yap (\u015fu an %%%.0f)"), MarketCampaign::ShareGoal(State), State.MarketShare), Has(State, BShare35));
         Add(FString::Printf(TEXT("15 m\u00fcdavim kazan (\u015fu an %d)"), Regulars(State)), Regulars(State) >= 15);
         Add(TEXT("Marketin kimli\u011fini se\u00e7"), Has(State, BIdentity));
         break;

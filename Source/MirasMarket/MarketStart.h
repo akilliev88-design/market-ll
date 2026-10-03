@@ -22,10 +22,10 @@ namespace MarketStart
     // "babanla"; Mine = "babam\u0131n", as the player says it). bCapital: first letter upper case.
     FString Relative(const FMarketState& State, ECase Case, bool bCapital = false);
     // There is no default start province (Mustafa, 29.09.2026): the player picks one. This is only the fallback
-    // for older saves (no province yet) and automated runs: the pack's reference province (Turkey: Kirklareli,
-    // where the prototype's shop was), else its first province.
-    FString LegacyProvince(const FString& CountryId);
-    // The province of the family shop (the campaign's, else LegacyProvince).
+    // of automated runs without a province: the country's median province by population (M61b: no province is
+    // special), else its first province.
+    FString FallbackProvince(const FString& CountryId);
+    // The province of the family shop (the campaign's, else FallbackProvince).
     FString HomeProvince(const FMarketState& State);
     // "K\u0131rklareli, T\u00fcrkiye" (the country alone when the province is unknown).
     FString PlaceText(const FMarketState& State);

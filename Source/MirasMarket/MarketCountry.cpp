@@ -270,8 +270,6 @@ bool MarketCountry::Parse(const FString& Json, TArray<FProfile>& OutProfiles, TA
         }
         else if (!O->TryGetStringField(TEXT("provinces"), P.CitiesFile)) O->TryGetStringField(TEXT("cities"), P.CitiesFile);
         O->TryGetStringField(TEXT("map"), P.CitiesFile);
-        O->TryGetNumberField(TEXT("referencePopK"), P.ReferencePopK);
-        O->TryGetStringField(TEXT("referenceProvince"), P.ReferenceProvince);
         double MapKm = 0.0;
         if (O->TryGetNumberField(TEXT("kmPerMapUnit"), MapKm) && MapKm > 0.0) P.MapKm = static_cast<float>(MapKm);
         auto ReadRegions = [&O](const TCHAR* Field, TArray<FRegion>& Out)
@@ -426,14 +424,22 @@ void MarketCountry::Resolve(FProfile& P)
     for (FCity& City : P.Cities)
         for (const FRegion& Sub : P.SubRegions)
             if (Sub.Provinces.Contains(City.Id)) { City.SubRegion = Sub.Id; City.Region = Sub.Parent; break; }
-    // The reference point (1.0) and the derived values.
-    float RefPop = static_cast<float>(FMath::Max(1, P.ReferencePopK));
-    float RefDensity = -1.f;
-    if (const FCity* Ref = P.Cities.FindByPredicate([&P](const FCity& C) { return C.Id == P.ReferenceProvince; }))
+    // M61b: the reference point (1.0) is the country's median province, no province is named.
+    if (P.Cities.Num() > 0)
     {
-        RefPop = static_cast<float>(FMath::Max(1, Ref->PopulationK));
-        RefDensity = Ref->ChainDensity;
+        TArray<const FCity*> ByPop;
+        for (const FCity& City : P.Cities) ByPop.Add(&City);
+        ByPop.Sort([](const FCity& A, const FCity& B) { return A.PopulationK == B.PopulationK ? A.Id < B.Id : A.PopulationK < B.PopulationK; });
+        const FCity* Middle = ByPop[(ByPop.Num() - 1) / 2];
+        P.MedianPopK = FMath::Max(1, Middle->PopulationK);
+        P.MedianProvince = Middle->Id;
+        TArray<float> Densities;
+        for (const FCity& City : P.Cities) if (City.ChainDensity >= 0.f) Densities.Add(City.ChainDensity);
+        Densities.Sort();
+        P.MedianDensity = Densities.Num() > 0 ? Densities[(Densities.Num() - 1) / 2] : -1.f;
     }
+    const float RefPop = static_cast<float>(FMath::Max(1, P.MedianPopK));
+    const float RefDensity = P.MedianDensity;
     for (FCity& City : P.Cities)
     {
         const FRegion* Sub = P.SubRegions.FindByPredicate([&City](const FRegion& R) { return R.Id == City.SubRegion; });
@@ -469,6 +475,12 @@ int32 MarketCountry::PopulationK(const FString& CountryId)
     int32 Sum = 0;
     if (Country) for (const FCity& City : Country->Cities) Sum += City.PopulationK;
     return Sum;
+}
+
+int32 MarketCountry::MedianPopK(const FString& CountryId)
+{
+    const FProfile* Country = Find(CountryId);
+    return Country ? FMath::Max(1, Country->MedianPopK) : 500;
 }
 
 const MarketCountry::FCity* MarketCountry::FindCity(const FString& CountryId, const FString& CityId)

@@ -1285,7 +1285,7 @@ TSharedRef<SWidget> SMarketMenu::GoalList()
               [G] { return FString::Printf(TEXT("%d k\u00e2rl\u0131 g\u00fcn  (%d / %d)"), MarketCampaign::ExpandProfitableDays, G() ? G()->State.ProfitableDays : 0, MarketCampaign::ExpandProfitableDays); }) ]
         + SVerticalBox::Slot().AutoHeight().Padding(0.f, 3.f)
         [ Row([G] { return G() && G()->State.MarketShare >= MarketCampaign::ShareGoal(G()->State); },
-              [G] { return FString::Printf(TEXT("Mahalle pay\u0131 en az %%%.0f  (\u015fu an %%%.0f)"), G() ? MarketCampaign::ShareGoal(G()->State) : 35.f, G() ? G()->State.MarketShare : 0.f); }) ]
+              [G] { return FString::Printf(TEXT("\u00c7evre pay\u0131 en az %%%.0f  (\u015fu an %%%.0f)"), G() ? MarketCampaign::ShareGoal(G()->State) : 35.f, G() ? G()->State.MarketShare : 0.f); }) ]
         + SVerticalBox::Slot().AutoHeight().Padding(0.f, 12.f, 0.f, 0.f).HAlign(HAlign_Left)
         [
             // G-074: every district and format is on the Subeler page (the old single "second shop" is a branch there).
@@ -1895,7 +1895,7 @@ TSharedRef<SWidget> SMarketMenu::WeekReport()
                         int32 A = 0;
                         while (A < 7 && !DayAt(A, First)) ++A;
                         if (A >= 7 || !DayAt(6, Last)) return FString();
-                        return FString::Printf(TEXT("Yerel pay: ba\u015fta %%%.0f, sonda %%%.0f  \u00b7  kasa: ba\u015fta %s, sonda %s"), First.MarketShare, Last.MarketShare, *MarketMenuUi::Tl(First.Cash), *MarketMenuUi::Tl(Last.Cash));
+                        return FString::Printf(TEXT("\u00c7evre pay\u0131: ba\u015fta %%%.0f, sonda %%%.0f  \u00b7  kasa: ba\u015fta %s, sonda %s"), First.MarketShare, Last.MarketShare, *MarketMenuUi::Tl(First.Cash), *MarketMenuUi::Tl(Last.Cash));
                     }, 10, ERole::Muted)
                 ])
             ]

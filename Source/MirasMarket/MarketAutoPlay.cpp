@@ -403,11 +403,12 @@ namespace MarketAutoPlay
     FReport Run(const FOptions& Options, const TArray<FMarketProduct>& Base, const TArray<int32>& Capacities, int32 RestoreSeed)
     {
         FReport Report; Report.Options = Options; Report.Tuning = MarketTuning::Describe();
+        if (Report.Options.Province.IsEmpty()) Report.Options.Province = MarketStart::FallbackProvince(Options.Country);
         FParse::Value(FCommandLine::Get(),TEXT("MirasAutoPlayStyle="),Report.Options.StyleIndex);
         Report.Options.bOfflineCareful |= FParse::Param(FCommandLine::Get(),TEXT("MirasNoInternet"));
         Report.Options.bNoGrowth |= FParse::Param(FCommandLine::Get(),TEXT("MirasNoGrowth"));
         const double Started = FPlatformTime::Seconds();
-        if (Base.IsEmpty() || Capacities.Num() != Base.Num() || !MarketCountry::FindCity(Options.Country, Options.Province) || Options.Days < 1 || Options.Days > 10958 || Options.Seeds < 1 || Options.Seeds > 100)
+        if (Base.IsEmpty() || Capacities.Num() != Base.Num() || !MarketCountry::FindCity(Options.Country, Report.Options.Province) || Options.Days < 1 || Options.Days > 10958 || Options.Seeds < 1 || Options.Seeds > 100)
         { Report.Errors.Add(TEXT("Katalog, raf plani, ulke, il ya da kosu suresi gecersiz.")); return Report; }
         const MarketCountry::FProfile PreviousCountry = MarketCountry::Active();
         for (const FProfile& Profile : TunedProfiles()) for (int32 SeedIndex = 0; SeedIndex < Options.Seeds; ++SeedIndex)
@@ -419,7 +420,7 @@ namespace MarketAutoPlay
             Trial.Online.Offline=Report.Options.bOfflineCareful;
             if(Trial.Online.Offline)Trial.Profile+=TEXT(" (internetsiz)");
             FMarketState State; State.Initialize(Base);
-            MarketStart::Setup(State, Options.Country, Options.Province, Trial.Seed);
+            MarketStart::Setup(State, Options.Country, Report.Options.Province, Trial.Seed);
             State.Difficulty = static_cast<uint8>(FMath::Clamp(Options.Difficulty, 0, 2)); // C12: chosen on day 1
             MarketCountry::SetActive(State.CountryId, State.RivalSeed); MarketEras::Activate(State);
             TArray<FMarketProduct> Products = Base;

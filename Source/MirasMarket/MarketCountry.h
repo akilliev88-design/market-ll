@@ -15,8 +15,8 @@ namespace MarketCountry
     enum class ECharacter : uint8 { Stable = 0, Volatile, HighInflation };
 
     // A province (il, Land, state, UK region; G-086, Docs/Kurgu/03_MAGAZA_AGI.md \u00a71). The only place level
-    // of the game: nothing below a province has a name. Income / rent / competition are 1 for the balancing
-    // reference province (Turkey: Kirklareli) and derived from the population when the pack gives none.
+    // of the game: nothing below a province has a name. Income / rent / competition are derived from the
+    // population (and chain density) against the country's median province when the pack gives none (M61b).
     struct FCity
     {
         FString Id;
@@ -182,8 +182,13 @@ namespace MarketCountry
         FString CitiesFile;             // province/map file, e.g. "iller.json" ("provinces"/"cities" given as a file name)
         TArray<FRegion> Regions;        // main regions
         TArray<FRegion> SubRegions;     // sub-regions, each with its provinces
-        int32 ReferencePopK = 500;      // population of the balancing reference province
-        FString ReferenceProvince;      // e.g. "kirklareli": its population and chain density are the 1.0 point
+        // M61b (Mustafa 03.10.2026: no province is special): the 1.0 point of the derived province values is the
+        // country's median province, computed from the pack (Resolve): the median population and the median chain
+        // density of its provinces. MedianProvince: the province of median population (ties: by id), the fallback
+        // start of automated runs.
+        int32 MedianPopK = 500;
+        float MedianDensity = -1.f;
+        FString MedianProvince;
         // G-089: kilometres per map unit ("kmPerMapUnit"). iller.json: 1.61, calibrated on Istanbul-Ankara (~350 km)
         // and Edirne-Kars (~1 380 km as the crow flies between the provinces' centres).
         float MapKm = 1.61f;
@@ -218,9 +223,12 @@ namespace MarketCountry
     const FRegion* RegionOf(const FString& CountryId, const FString& ProvinceId);
     // Sum of the provinces' population (thousands).
     int32 PopulationK(const FString& CountryId);
-    // How crowded the city's grocery trade is: multiplies the rivals' pull in the share model (1 = the prototype).
+    // The country's median province population (thousands; 500 for an unknown country): the 1.0 point of a
+    // province's size (more trips per shop in denser places).
+    int32 MedianPopK(const FString& CountryId);
+    // How crowded the city's grocery trade is: multiplies the rivals' pull in the share model (1 = the country's median province).
     float CityCompetition(const FString& CountryId, const FString& CityId);
-    // Purchasing power of the city (1 = the prototype): richer shoppers accept a little more on the price tag.
+    // Purchasing power of the city (1 = average): richer shoppers accept a little more on the price tag.
     float CityIncome(const FString& CountryId, const FString& CityId);
     // The country of the running campaign (the default country until a campaign sets one). SetActive also sets the
     // economy of MarketPrices.

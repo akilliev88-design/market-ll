@@ -54,10 +54,14 @@ bool FMarketStartTest::RunTest(const FString& Parameters)
     TestEqual(TEXT("Our salary"), S.Owner.SalaryX10, MarketOwner::StartSalaryX10);
     TestEqual(TEXT("Seed kept"), S.RivalSeed, 4242);
     TestEqual(TEXT("Country"), S.CountryId, FString(TEXT("tr")));
-    // No default province for players; automated runs and older saves fall back to the reference province.
+    // No default province for players; automated runs fall back to the country's median province (M61b).
     if (MarketCountry::FindCity(TEXT("tr"), TEXT("kirklareli")))
     {
-        TestEqual(TEXT("Fallback province"), S.CityId, FString(TEXT("kirklareli")));
+        const MarketCountry::FProfile* Tr = MarketCountry::Find(TEXT("tr"));
+        TestEqual(TEXT("Fallback province: the median one"), S.CityId, Tr->MedianProvince);
+        int32 Smaller = 0, Bigger = 0;
+        for (const MarketCountry::FCity& City : Tr->Cities) { Smaller += City.PopulationK < Tr->MedianPopK ? 1 : 0; Bigger += City.PopulationK > Tr->MedianPopK ? 1 : 0; }
+        TestTrue(TEXT("Median: as many smaller as bigger provinces"), FMath::Abs(Smaller - Bigger) <= 1);
         FMarketState Chosen; Chosen.Initialize(Products);
         Setup(Chosen, TEXT("tr"), TEXT("van"), 7);
         TestEqual(TEXT("The chosen province"), Chosen.CityId, FString(TEXT("van")));
@@ -66,8 +70,10 @@ bool FMarketStartTest::RunTest(const FString& Parameters)
         TestTrue(TEXT("Kirklareli is in Trakya"), Sub && Sub->Id == TEXT("trakya"));
         const MarketCountry::FRegion* Main = MarketCountry::RegionOf(TEXT("tr"), TEXT("van"));
         TestTrue(TEXT("Van is in Eastern Anatolia"), Main && Main->Id == TEXT("doguanadolu"));
-        const MarketCountry::FCity* Ref = MarketCountry::FindCity(TEXT("tr"), TEXT("kirklareli"));
-        TestTrue(TEXT("Reference province is 1.0"), Ref && FMath::IsNearlyEqual(Ref->Income, 1.f) && FMath::IsNearlyEqual(Ref->Competition, 1.f));
+        // M61b: no province is the 1.0 point; the biggest city is more crowded than the median one.
+        const MarketCountry::FCity* Middle = MarketCountry::FindCity(TEXT("tr"), Tr->MedianProvince);
+        const MarketCountry::FCity* Istanbul = MarketCountry::FindCity(TEXT("tr"), TEXT("istanbul"));
+        TestTrue(TEXT("Crowded biggest city"), Middle && Istanbul && Istanbul->Competition > Middle->Competition);
         const MarketCountry::FCity* Van = MarketCountry::FindCity(TEXT("tr"), TEXT("van"));
         TestTrue(TEXT("Van: cheaper rent, poorer shoppers"), Van && Van->Rent < 1.f && Van->Income < 1.f);
         for (const MarketCountry::FProfile& Pack : MarketCountry::All())

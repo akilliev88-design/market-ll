@@ -27,7 +27,7 @@
 
 ## 3. Paket şeması (özet)
 
-Zorunlu: `id`, `name`, `nameEn`, `continent`, `currency` (code, symbol, decimal, symbolBefore), `displayScale`, `fxPerWorld`, `economy`, `habits`, `holidays`, `chains`, `banks`, `names`, `relatives`, `referencePopK`, `regions`, `subregions`, `provinces` (liste ya da dosya adı).
+Zorunlu: `id`, `name`, `nameEn`, `continent`, `currency` (code, symbol, decimal, symbolBefore), `displayScale`, `fxPerWorld`, `economy`, `habits`, `holidays`, `chains`, `banks`, `names`, `relatives`, `regions`, `subregions`, `provinces` (liste ya da dosya adı). (M61b: `referencePopK` ve `referenceProvince` kalktı; illerin gelir, kira ve rekabeti ülkenin ortanca iline göre hesaplanır, hiçbir il ayrıcalıklı değil.)
 İsteğe bağlı (varsayılanı motorda): `traditional`, `online`, `climate`, `school`, `payments`, `feasts`, `kmPerMapUnit`.
 
 D3 ile eklenen alanlar (Claude Code, 03.10.2026; hepsi isteğe bağlı, yoksa motor varsayılanı):

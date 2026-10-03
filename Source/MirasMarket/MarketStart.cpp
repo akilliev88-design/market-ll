@@ -45,7 +45,7 @@ void MarketStart::Setup(FMarketState& State, const FString& CountryId, const FSt
 {
     State.CountryId = MarketCountry::FindOrDefault(CountryId).Id;
     State.CityId = CityId;
-    if (!MarketCountry::FindCity(State.CountryId, State.CityId)) State.CityId = LegacyProvince(State.CountryId);
+    if (!MarketCountry::FindCity(State.CountryId, State.CityId)) State.CityId = FallbackProvince(State.CountryId);
     State.RivalSeed = Seed;
     State.RelativeKey = RelativeKeys()[0];
     // The shop comes with its people: one cashier, two shelf stockers (karar L03).
@@ -88,17 +88,17 @@ FString MarketStart::Relative(const FMarketState& State, ECase Case, bool bCapit
     return Text;
 }
 
-FString MarketStart::LegacyProvince(const FString& CountryId)
+FString MarketStart::FallbackProvince(const FString& CountryId)
 {
     const MarketCountry::FProfile* Country = CountryId.IsEmpty() ? &MarketCountry::Default() : MarketCountry::Find(CountryId);
     if (!Country) return FString();
-    if (!Country->ReferenceProvince.IsEmpty() && MarketCountry::FindCity(Country->Id, Country->ReferenceProvince)) return Country->ReferenceProvince;
+    if (!Country->MedianProvince.IsEmpty() && MarketCountry::FindCity(Country->Id, Country->MedianProvince)) return Country->MedianProvince;
     return Country->Cities.Num() > 0 ? Country->Cities[0].Id : FString();
 }
 
 FString MarketStart::HomeProvince(const FMarketState& State)
 {
-    return MarketCountry::FindCity(State.CountryId, State.CityId) ? State.CityId : LegacyProvince(State.CountryId);
+    return MarketCountry::FindCity(State.CountryId, State.CityId) ? State.CityId : FallbackProvince(State.CountryId);
 }
 
 FString MarketStart::PlaceText(const FMarketState& State)

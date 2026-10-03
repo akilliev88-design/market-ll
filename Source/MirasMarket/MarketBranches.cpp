@@ -81,7 +81,7 @@ namespace MarketBranches
     float TripsOf(const FSite& Site, const FFormat& Kind)
     {
         // Bigger provinces are denser: a little more traffic per shop.
-        const float Size = FMath::Clamp(FMath::Pow(FMath::Max(1.f, static_cast<float>(Site.PopulationK)) / 341.f, 0.1f), 0.85f, 1.3f);
+        const float Size = FMath::Clamp(FMath::Pow(FMath::Max(1.f, static_cast<float>(Site.PopulationK)) / static_cast<float>(MarketCountry::MedianPopK(Site.Country)), 0.1f), 0.85f, 1.3f);
         return Kind.Trips * Size;
     }
 
@@ -186,9 +186,9 @@ MarketBranches::FSite MarketBranches::SiteOf(const FMarketState& State, const FS
     }
     else
     {
-        // Unknown province (a pack changed under an older save): the reference values.
+        // Unknown province: the country's median values (M61b).
         Site.Name = Province;
-        Site.PopulationK = 341;
+        Site.PopulationK = MarketCountry::MedianPopK(Site.Country);
     }
     return Site;
 }
@@ -341,7 +341,7 @@ bool MarketBranches::CanOpen(const FMarketState& State, const TArray<FMarketProd
         if (MarketCampaign::DebtOpen(State)) { OutReason = TEXT("\u00d6nce i\u015fletmenin borcunu kapat."); return false; }
         if (State.ProfitableDays < MarketCampaign::ExpandProfitableDays) { OutReason = FString::Printf(TEXT("\u00d6nce %d k\u00e2rl\u0131 g\u00fcn."), MarketCampaign::ExpandProfitableDays); return false; }
         const float Goal = MarketCampaign::ShareGoal(State); // E3: the home province's crowding sets the goal
-        if (State.MarketShare < Goal) { OutReason = FString::Printf(TEXT("\u00d6nce mahalle pay\u0131 %%%.0f."), Goal); return false; }
+        if (State.MarketShare < Goal) { OutReason = FString::Printf(TEXT("\u00d6nce d\u00fckk\u00e2n\u0131n \u00e7evre pay\u0131 %%%.0f."), Goal); return false; }
     }
     // One person cannot follow three shops: from the third shop on, an HR manager is needed.
     if (OpenCount(State) >= 2 && !MarketStaff::HasHr(State)) { OutReason = TEXT("\u00dc\u00e7\u00fcnc\u00fc ma\u011faza i\u00e7in \u00f6nce bir \u0130K m\u00fcd\u00fcr\u00fc i\u015fe al."); return false; }

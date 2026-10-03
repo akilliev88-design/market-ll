@@ -102,7 +102,7 @@ bool FMarketCompanyTest::RunTest(const FString& Parameters)
     // Chapter 7: a year in front on every measure ends in "Miras".
     FMarketState Lead = Online;
     Lead.Story.Chapter = 7;
-    Lead.MarketShare = 45.f;
+    Lead.MarketShare = 60.f; // M61: the leadership share is at most 60
     while (TotalStores(Lead) < 60) AddShop(Lead, TEXT("tr"), TEXT("ankara"));
     FMarketLoyalty L; L.CustomerId = 1; L.Satisfaction = 80.f; Lead.Loyalty.Add(L);
     Lead.Company.LeadershipDays = LeadershipGoalDays - 1;

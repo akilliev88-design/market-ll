@@ -1,3 +1,19 @@
+## 03.10.2026 — Claude Code — M61 ek: çevre payı / şehirdeki pay; M61b: hiçbir il ayrıcalıklı değil (derlenmedi)
+
+**İstek (Mustafa):** "Dükkânın çevresindeki payı diye belirtelim, şehirdeki pay çok ayrı bir şey, onu da belirtelim." Ardından: "Kırklareli de eski oyun kalıntısı; onun diğer illerden ayrıcalığı yok, diğer iller nasılsa onun da matematiği öyle olacak."
+
+**Yapılan (M61 ek):** `MarketCompany::ProvinceShare/ProvinceMarketDay`: ildeki son günün gelirimiz (ev ilindeyse aile dükkânı + o ildeki açık şubeler) / ilin nüfusu × kişi başı market harcaması × fiyat düzeyi. Rakipler › Yerel pazar kartı: "Çevre payı %X · dükkânın çevresindeki alışverişin bu kadarı bizden" ve "Şehirdeki pay (İl) %Y,YY · ilin bütün market alışverişinin bu kadarı bizden", açıklama metni farkı anlatıyor. Hedef/şart metinleri "çevre payı" (şube şartı, menü hedef listesi, hikâye hedefi, haftalık özet satırı).
+
+**Yapılan (M61b):** `MarketCountry::Resolve` 1,0 noktasını ülkenin ortanca ilinden alıyor (ortanca nüfus, ortanca zincir yoğunluğu; eşitlikte id sırası). `FProfile::MedianPopK/MedianDensity/MedianProvince`, `MarketCountry::MedianPopK`. Mağaza büyüklük çarpanındaki 341 (Kırklareli nüfusu) → ülkenin ortanca nüfusu (`MarketStoreDemand::Trips`, `MarketBranches::TripsOf`, bilinmeyen il). `MarketStart::LegacyProvince` → `FallbackProvince` (ortanca il). Bot `Options.Province` varsayılanı boş → ortanca il. `ulkeler.json`: 10 paketten `referencePopK`, TR'den `referenceProvince` kalktı; 10_ULKE_STANDARDI zorunlu alanlardan `referencePopK` çıktı. Türkiye'de ortanca il hesapla Çanakkale (486 bin) çıkıyor. Rekabet örnekleri (yeni / eski): İstanbul 1,50 / 1,46, Kırklareli 1,16 / 1,00, Bayburt 0,76 / 0,69.
+
+**Testler:** `Start` testi: yedek il = ortanca il, ortancanın altında ve üstünde eşit sayıda il, İstanbul ortanca ilden kalabalık (eski "Kırklareli 1,0" kontrolü kalktı). Pay eşikleri hedef aralığının dışına çekildi: Branches/StoreViews 40 → 55, Company liderlik 45 → 60, AutoPlayFinance 30/50 → 15/60. Test sayısı aynı (161).
+
+**Risk / varsayım:** E2 ayarı (`FamilySiteTrips` 0,72) Kırklareli'ye göre yapılmıştı. Varsayılan test dükkânı artık Çanakkale'de, rekabet biraz yüksek. FamilyBeforeAfter oranı 1,08'den biraz düşebilir; sınır 0,6–1,6, hedef ±%15. Ölçüme göre gerekirse ayar güncellenir. Ekran görüntüsü otomasyonu (`MarketMenuCapture`) ve testler Kırklareli'yi yalnız örnek il olarak kullanıyor, kural değil.
+
+**Doğrulama:** Derlenmedi.
+
+**Sıradaki:** Mustafa CLAUDE_KOS.cmd; sonra E3b.
+
 ## 03.10.2026 — Claude Code — M61: pay hedefi şehre göre (derlenmedi)
 
 **E3a sonucu (son.log, ba3ceae):** DERLE geçti; TEST 160 başarılı + 1 uyarılı, başarısız 0 (alt sınır 161); Smoke geçti. E3a bitti.

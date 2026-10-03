@@ -1,6 +1,6 @@
 {
   "schemaVersion": 1,
-  "note": "G-084/G-086 (karar L02-L14, Docs/Kurgu/03_MAGAZA_AGI.md): ulke paketleri. displayScale = ic birim basina yerel para; fxPerWorld = dunya birimi karsiligi yerel para; economy.character = istikrarli / oynak / yuksek_enflasyon. Zincir adlari kurgu (karar L12). provinces: il listesi (dizi) ya da il dosyasinin adi (TR: iller.json). regions: ana bolgeler (bolge direktoru); subregions: alt bolgeler (bolge muduru), her il tek alt bolgede; income alt bolgenin alim gucu. Il degerleri verilmezse nufustan turetilir: s = log2(nufus / referencePopK); gelir = alt bolge geliri x (1 + 0.03 s); kira = gelir^1.5 x (1 + 0.1 s); rekabet = (1 + 0.08 s), TR'de zincir yogunlugu ile. Varsayilan baslangic ili yok (Mustafa 29.09.2026). holidays: rule = fixed | easter | nth | lunar; kind = national | feast. sundayClosed: pazar ve resmi tatilde kapali. D3 (M52, alanlar Docs/Kurgu/10_ULKE_STANDARDI.md 3): defaultCountry, giants, continent, economy.curve, habits.cardShareByYear, calendar (showHolidayNames, school), holidays[].table/fastDays/butcherPeak, realChainNames, roster, regionalSuffixes, localSuffixes, firmWords, names.staff, names.managers.",
+  "note": "G-084/G-086 (karar L02-L14, Docs/Kurgu/03_MAGAZA_AGI.md): ulke paketleri. displayScale = ic birim basina yerel para; fxPerWorld = dunya birimi karsiligi yerel para; economy.character = istikrarli / oynak / yuksek_enflasyon. Zincir adlari kurgu (karar L12). provinces: il listesi (dizi) ya da il dosyasinin adi (TR: iller.json). regions: ana bolgeler (bolge direktoru); subregions: alt bolgeler (bolge muduru), her il tek alt bolgede; income alt bolgenin alim gucu. Il degerleri verilmezse nufustan turetilir: s = log2(nufus / ulkenin ortanca il nufusu) (M61b: hicbir il ayricalikli degil); gelir = alt bolge geliri x (1 + 0.03 s); kira = gelir^1.5 x (1 + 0.1 s); rekabet = (1 + 0.08 s), TR'de zincir yogunlugu ile. Varsayilan baslangic ili yok (Mustafa 29.09.2026). holidays: rule = fixed | easter | nth | lunar; kind = national | feast. sundayClosed: pazar ve resmi tatilde kapali. D3 (M52, alanlar Docs/Kurgu/10_ULKE_STANDARDI.md 3): defaultCountry, giants, continent, economy.curve, habits.cardShareByYear, calendar (showHolidayNames, school), holidays[].table/fastDays/butcherPeak, realChainNames, roster, regionalSuffixes, localSuffixes, firmWords, names.staff, names.managers.",
   "defaultCountry": "tr",
   "giants": [
     {"id": "wallmark", "name": "Wallmark", "home": "ABD", "pack": "us", "archetype": "hyper", "revenueB": 447, "growth": 0.03},
@@ -120,8 +120,6 @@
         "amcan",
         "büyükannen"
       ],
-      "referencePopK": 341,
-      "referenceProvince": "kirklareli",
       "regions": [
         {
           "id": "marmara",
@@ -497,7 +495,6 @@
         "Oma",
         "Opa"
       ],
-      "referencePopK": 2500,
       "regions": [
         {
           "id": "nord",
@@ -770,7 +767,6 @@
         "grandmother",
         "grandfather"
       ],
-      "referencePopK": 5000,
       "regions": [
         {
           "id": "england",
@@ -1030,7 +1026,6 @@
         "grandmother",
         "grandfather"
       ],
-      "referencePopK": 5000,
       "regions": [
         {
           "id": "northeast",
@@ -1470,7 +1465,6 @@
       "climate": {"temperature": [5, 6, 9, 12, 15, 18, 20, 20, 17, 13, 8, 5], "rain": [40, 37, 38, 38, 40, 33, 30, 30, 32, 40, 42, 42]},
       "names": {"first": ["Camille", "Lucas", "Léa", "Hugo", "Manon", "Louis", "Chloé", "Thomas", "Inès", "Julien", "Sarah", "Nicolas", "Sophie", "Pierre", "Isabelle", "Antoine", "Nathalie", "Mathieu", "Céline", "Olivier", "Aurélie", "Laurent", "Emma", "Gabriel", "Jade", "Arthur", "Louise", "Raphaël", "Alice", "Paul", "Juliette", "Maxime", "Clara", "Théo", "Pauline", "Romain", "Marion", "Benoît", "Élodie", "Guillaume", "Margaux", "Vincent"], "last": ["Martin", "Bernard", "Dubois", "Thomas", "Robert", "Richard", "Petit", "Durand", "Leroy", "Moreau", "Simon", "Laurent", "Lefebvre", "Michel", "Garcia", "David", "Bertrand", "Roux", "Vincent", "Fournier", "Morel", "Girard", "André", "Lefèvre", "Mercier", "Dupont", "Lambert", "Bonnet", "François", "Martinez", "Legrand", "Garnier", "Faure", "Rousseau", "Blanc", "Guérin", "Muller", "Henry", "Roussel", "Nicolas", "Perrin", "Morin"]},
       "relatives": ["tante", "oncle", "grand-mère", "grand-père"],
-      "referencePopK": 3500,
       "regions": [
         {"id": "nord", "name": "Nord"},
         {"id": "ouest", "name": "Ouest"},
@@ -1544,7 +1538,6 @@
       "climate": {"temperature": [8, 9, 12, 14, 18, 23, 26, 26, 22, 17, 11, 8], "rain": [25, 23, 20, 25, 22, 12, 6, 8, 15, 25, 27, 27]},
       "names": {"first": ["Lucía", "Hugo", "María", "Pablo", "Paula", "Daniel", "Carmen", "Javier", "Laura", "Alejandro", "Marta", "David", "Ana", "Sergio", "Elena", "Carlos", "Isabel", "Manuel", "Cristina", "Jorge", "Rocío", "Raúl", "Sofía", "Martín", "Julia", "Adrián", "Alba", "Diego", "Irene", "Álvaro", "Sara", "Iván", "Noelia", "Rubén", "Nerea", "Óscar", "Beatriz", "Andrés", "Silvia", "Fernando", "Patricia", "Miguel"], "last": ["García", "Fernández", "González", "Rodríguez", "López", "Martínez", "Sánchez", "Pérez", "Gómez", "Martín", "Jiménez", "Ruiz", "Hernández", "Díaz", "Moreno", "Muñoz", "Álvarez", "Romero", "Navarro", "Torres", "Domínguez", "Vázquez", "Ramos", "Gil", "Ramírez", "Serrano", "Blanco", "Molina", "Morales", "Suárez", "Ortega", "Delgado", "Castro", "Ortiz", "Rubio", "Marín", "Sanz", "Núñez", "Iglesias", "Medina", "Garrido", "Cortés"]},
       "relatives": ["tía", "tío", "abuela", "abuelo"],
-      "referencePopK": 2200,
       "regions": [
         {"id": "norte", "name": "Norte"},
         {"id": "centro", "name": "Centro"},
@@ -1624,7 +1617,6 @@
       "climate": {"temperature": [-2, -1, 3, 9, 14, 17, 19, 19, 14, 9, 4, 0], "rain": [45, 40, 40, 38, 42, 42, 45, 40, 38, 40, 45, 48]},
       "names": {"first": ["Anna", "Piotr", "Katarzyna", "Krzysztof", "Magdalena", "Tomasz", "Agnieszka", "Paweł", "Joanna", "Michał", "Ewa", "Marcin", "Monika", "Jakub", "Aleksandra", "Łukasz", "Natalia", "Adam", "Karolina", "Marek", "Zofia", "Wojciech", "Maria", "Andrzej", "Barbara", "Grzegorz", "Małgorzata", "Kamil", "Dorota", "Rafał", "Justyna", "Mateusz", "Beata", "Dawid", "Elżbieta", "Bartosz", "Marta", "Szymon", "Iwona", "Robert", "Julia", "Filip"], "last": ["Nowak", "Kowalski", "Wiśniewski", "Wójcik", "Kamiński", "Lewandowski", "Zieliński", "Szymański", "Woźniak", "Dąbrowski", "Kozłowski", "Mazur", "Jankowski", "Kwiatkowski", "Krawczyk", "Piotrowski", "Grabowski", "Pawłowski", "Michalski", "Król", "Wieczorek", "Jabłoński", "Wróbel", "Nowakowski", "Majewski", "Olszewski", "Stępień", "Malinowski", "Jaworski", "Adamczyk", "Dudek", "Nowicki", "Pawlak", "Górski", "Witkowski", "Walczak", "Sikora", "Baran", "Rutkowski", "Michalak", "Szewczyk", "Ostrowski"]},
       "relatives": ["ciocia", "wujek", "babcia", "dziadek"],
-      "referencePopK": 2100,
       "regions": [
         {"id": "polnoc", "name": "Północ"},
         {"id": "zachod", "name": "Zachód"},
@@ -1701,7 +1693,6 @@
       "climate": {"temperature": [25, 25, 24, 22, 20, 19, 19, 20, 21, 23, 24, 25], "rain": [60, 55, 50, 35, 25, 18, 15, 15, 25, 40, 50, 58]},
       "names": {"first": ["Ana", "João", "Maria", "Pedro", "Juliana", "Lucas", "Fernanda", "Gabriel", "Camila", "Rafael", "Beatriz", "Thiago", "Larissa", "Mateus", "Patrícia", "Bruno", "Aline", "Felipe", "Renata", "Gustavo", "Letícia", "Rodrigo", "Mariana", "Diego", "Bianca", "Leonardo", "Carolina", "Vinícius", "Amanda", "Eduardo", "Natália", "Marcelo", "Vanessa", "Ricardo", "Priscila", "André", "Gabriela", "Daniel", "Luana", "Fábio", "Isabela", "Caio"], "last": ["Silva", "Santos", "Oliveira", "Souza", "Rodrigues", "Ferreira", "Alves", "Pereira", "Lima", "Gomes", "Costa", "Ribeiro", "Martins", "Carvalho", "Almeida", "Lopes", "Soares", "Fernandes", "Vieira", "Barbosa", "Rocha", "Dias", "Nascimento", "Andrade", "Moreira", "Nunes", "Marques", "Machado", "Mendes", "Freitas", "Cardoso", "Ramos", "Gonçalves", "Santana", "Teixeira", "Araújo", "Pinto", "Correia", "Moura", "Cavalcanti", "Monteiro", "Batista"]},
       "relatives": ["tia", "tio", "avó", "avô"],
-      "referencePopK": 7000,
       "regions": [
         {"id": "norte", "name": "Norte"},
         {"id": "nordeste", "name": "Nordeste"},
@@ -1791,7 +1782,6 @@
       "climate": {"temperature": [15, 17, 19, 21, 22, 21, 20, 20, 19, 18, 16, 15], "rain": [8, 8, 10, 18, 35, 60, 70, 68, 60, 30, 12, 8]},
       "names": {"first": ["María", "José", "Guadalupe", "Juan", "Fernanda", "Luis", "Sofía", "Carlos", "Ximena", "Miguel", "Valeria", "Jorge", "Daniela", "Alejandro", "Andrea", "Ricardo", "Gabriela", "Eduardo", "Mariana", "Arturo", "Alejandra", "Roberto", "Regina", "Santiago", "Camila", "Diego", "Renata", "Francisco", "Paola", "Javier", "Itzel", "Fernando", "Adriana", "Héctor", "Karla", "Raúl", "Diana", "Sergio", "Lucía", "Mateo", "Verónica", "Emiliano"], "last": ["Hernández", "García", "Martínez", "López", "González", "Pérez", "Rodríguez", "Sánchez", "Ramírez", "Cruz", "Flores", "Gómez", "Morales", "Vázquez", "Reyes", "Jiménez", "Torres", "Díaz", "Gutiérrez", "Ruiz", "Mendoza", "Aguilar", "Ortiz", "Moreno", "Castillo", "Romero", "Álvarez", "Méndez", "Chávez", "Rivera", "Juárez", "Ramos", "Domínguez", "Herrera", "Medina", "Castro", "Vargas", "Guzmán", "Velázquez", "Rojas", "Salazar", "Contreras"]},
       "relatives": ["tía", "tío", "abuela", "abuelo"],
-      "referencePopK": 3000,
       "regions": [
         {"id": "norte", "name": "Norte"},
         {"id": "occidente", "name": "Occidente"},
@@ -1891,7 +1881,6 @@
       "climate": {"temperature": [6, 6, 9, 14, 19, 22, 26, 27, 23, 18, 13, 8], "rain": [18, 22, 33, 35, 35, 45, 40, 33, 42, 35, 25, 17]},
       "names": {"first": ["Haruto", "Yui", "Sota", "Aoi", "Ren", "Hina", "Yuto", "Sakura", "Riku", "Mio", "Kenta", "Yuki", "Takumi", "Ayaka", "Daiki", "Misaki", "Shota", "Nanami", "Kazuki", "Mai", "Hiroshi", "Keiko", "Kaito", "Rin", "Yamato", "Saki", "Hayato", "Mei", "Kota", "Akari", "Yusuke", "Emi", "Naoki", "Asuka", "Ryota", "Kana", "Takeshi", "Megumi", "Satoshi", "Tomoko", "Koji", "Yoko"], "last": ["Sato", "Suzuki", "Takahashi", "Tanaka", "Watanabe", "Ito", "Yamamoto", "Nakamura", "Kobayashi", "Kato", "Yoshida", "Yamada", "Sasaki", "Yamaguchi", "Matsumoto", "Inoue", "Kimura", "Hayashi", "Shimizu", "Mori", "Abe", "Ikeda", "Hashimoto", "Yamashita", "Ishikawa", "Nakajima", "Maeda", "Fujita", "Ogawa", "Goto", "Okada", "Hasegawa", "Murakami", "Kondo", "Ishii", "Saito", "Sakamoto", "Endo", "Aoki", "Fujii", "Nishimura", "Fukuda"]},
       "relatives": ["oba", "oji", "sobo", "sofu"],
-      "referencePopK": 1900,
       "regions": [
         {"id": "kita", "name": "Hokkaido-Tohoku"},
         {"id": "kanto", "name": "Kanto"},

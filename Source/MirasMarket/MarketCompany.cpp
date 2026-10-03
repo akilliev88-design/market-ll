@@ -70,6 +70,30 @@ int64 MarketCompany::CountryMarketDay(const FMarketState& State)
     return FMath::Max<int64>(1, FMath::RoundToInt64(People * PerPerson * MarketPrices::ListLevel(FMath::Max(1, State.Day - 1))));
 }
 
+int64 MarketCompany::ProvinceMarketDay(const FMarketState& State, const FString& Country, const FString& Province)
+{
+    const FString Id = Country.IsEmpty() ? State.CountryId : Country;
+    const MarketCountry::FCity* City = MarketCountry::FindCity(Id, Province);
+    const int64 People = static_cast<int64>(FMath::Max(10, City ? City->PopulationK : 0)) * 1000;
+    const MarketCountry::FProfile* Pack = MarketCountry::Find(Id);
+    const double PerPerson = Pack && Pack->GroceryPerPersonDay > 0.0 ? Pack->GroceryPerPersonDay : 65.0 * (Pack ? Pack->WageFactor : 1.f);
+    return FMath::Max<int64>(1, FMath::RoundToInt64(People * PerPerson * MarketPrices::ListLevel(FMath::Max(1, State.Day - 1))));
+}
+
+float MarketCompany::ProvinceShare(const FMarketState& State, const FString& Country, const FString& Province)
+{
+    const FString Id = Country.IsEmpty() ? State.CountryId : Country;
+    int64 Revenue = 0;
+    if (Id == State.CountryId && Province == MarketStart::HomeProvince(State)) Revenue += FMath::Max<int64>(0, State.LastRevenue);
+    for (const FMarketBranch& B : State.Branches)
+    {
+        if (!IsOpen(B)) continue;
+        const MarketBranches::FSite Site = MarketBranches::SiteOf(State, B);
+        if (Site.Country == Id && Site.Province == Province) Revenue += FMath::Max<int64>(0, B.LastRevenue);
+    }
+    return FMath::Clamp(static_cast<float>(100.0 * static_cast<double>(Revenue) / static_cast<double>(ProvinceMarketDay(State, Id, Province))), 0.f, 100.f);
+}
+
 int64 MarketCompany::CountryRevenueToday(const FMarketState& State)
 {
     int64 Revenue = FMath::Max<int64>(0, State.LastRevenue);
