@@ -111,3 +111,6 @@ Yeni görev en alta eklenir; biten görev silinmez, durumu değişir. Kimlikler 
 | G-100 | Soğuk dolap/vitrinlerin üzerindeki kategori tabelası ve çıkıntılarını kaldır; kategoriler kalsın | Codex | Bitti | 03.10.2026: 17 ekipmanda levha/yazı kapalı; Blender kaynaklarında taşıyıcı yok. DERLE, TEST169/169, Smoke, Blender15/15 ve beş oyun görünümü geçti. |
 
 | G-101 | BUZ teşhir reyonlarını mevcut dolaplarla karşılaştır, eksik tipleri listele | Codex | Bitti (inceleme) | 03.10.2026: 12 dolap kaynağı/uasset mevcut; eksik biçim/varyantlar Docs/Environment/BUZ_EKSIK_TIPLER.md. Yeni üretim yapılmadı; mağaza düzenleme raf/kasa/aksesuar incelemesi de rapora eklendi. |
+
+| G-102 | BUZ ve mağaza düzenleme taramasındaki modelleri projeden bağımsız masaüstüne hazırla | Codex | Bitti (model teslimi) | 03.10.2026: Miras_Blender_Ekipman_2026-10-03; 28 yeni + 37 kopya, galeri, Blender/FBX/metadata/PNG. Yeni28 kontrol geçti; oyun aktarımı ayrı iş. |
+| G-103 | Kantarcı kategorilerini tara; mevcut türler dahil alternatif Blender modellerini masaüstüne hazırla | Codex | Bitti (model teslimi) | 04.10.2026: Miras_Kantarci_Alternatif_Modeller_2026-10-04; 24 özgün alternatif, 24/24 Blender/FBX kontrol, eksik dosya0, toplu galeri incelendi. Oyun değişmedi; aktarım, hareketli parçalar ve UCX ayrıntıları ayrı iş. |

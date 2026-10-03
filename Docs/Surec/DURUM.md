@@ -4,6 +4,8 @@ Son güncelleme: 03.10.2026 — Claude Code, akis-cc2: M54 + M58 + M59 yazıldı
 
 ## Kısaca
 
+**04.10.2026 — Codex / bağımsız Blender paketleri:** Mustafa, Claude ile çakışmaması için yeni model üretimini masaüstünde istedi. Önceki `C:\Users\mtass\Desktop\Miras_Blender_Ekipman_2026-10-03` paketi: 28 yeni + 37 mevcut kopya = 65 model. Yeni `C:\Users\mtass\Desktop\Miras_Kantarci_Alternatif_Modeller_2026-10-04`: katalog kategorilerinden esinlenen 24 özgün alternatif (mevcut türler de yeniden modellendi); Blender/FBX/metadata/PNG, galeri ve üretim betikleri. Kaynak/FBX kontrolü 24/24 geçti, toplu görsel incelendi; kategori tabelası/taşıyıcısı yok. Oyun kaynağı ve varlıkları değişmedi; yalnız devir belgeleri güncellendi. **Devam notu:** Oyuna aktarılmadı; aktarım sırasında basit UCX çarpışmaları, hareketli parçalar ve raf bölgeleri ayrıntılandırılacak. DERLE/TEST/Smoke bu bağımsız teslim için çalıştırılmadı.
+
 **03.10.2026 — Codex / BUZ mağaza düzenleme incelemesi:** Raf/kasa/manav/ekmek/sepet-araba temel modelleri var. Eksik özel ekipman: kasa önü teşhiri, depo rafı, tel askı/teşhir, bariyer/geçiş, tekerlekli sepet/çocuk-plastik araba ve uzman mağaza üniteleri. Resmi sayfalar doğrudan okunarak rapor BUZ_EKSIK_TIPLER.md'ye eklendi; kod/model değişmedi.
 
 **03.10.2026 — Codex / BUZ tip incelemesi:** 12 BUZ dolabının Blender/Unreal varlıkları mevcut. Eksik biçimler: METEOR dikey+yatay birleşik dondurucu, SENNA ada baş modülü, köşe/dönüşlü servis-pasta tezgâhları; üç kapılı içecek ve 2/4/5 kapılı dikey dondurucu varyantları; içten motorlu servis ailesine özel gövdeler. İnceleme raporu Docs/Environment/BUZ_EKSIK_TIPLER.md. Yeni model/kod üretilmedi; önceki DERLE/TEST169/Smoke doğrulaması değişmedi.

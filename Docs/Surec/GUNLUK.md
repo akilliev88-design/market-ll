@@ -1,3 +1,15 @@
+## 04.10.2026 — Codex — Masaüstü Blender paketleri ve Kantarcı alternatifleri
+
+**İstek:** Mustafa, Claude projede çalıştığı için modelleri masaüstüne istedi. BUZ taramasından sonra Kantarcı kataloğunu incelememizi ve bizde bulunan türleri de alternatif olarak yapmamızı istedi.
+
+**Yapılan:** Önceki bağımsız paket `C:\Users\mtass\Desktop\Miras_Blender_Ekipman_2026-10-03`: 28 yeni + 37 mevcut kopya; teslim tamam, oyuna aktarılmadı. Yeni paket `C:\Users\mtass\Desktop\Miras_Kantarci_Alternatif_Modeller_2026-10-04`: 24 yeni alternatif; metal/ahşap raflar, eğimli raf, gondol başı, tel kampanya havuzu, ayakkabı/kozmetik/züccaciye duvar ve adaları, elektronik masa/cihaz platformu, hırdavat, konsol/palet depo rafları, kasa/banko/turnike, araba/çekme sepeti ve ekmek rafı. Her model .blend, FBX, metadata ve PNG; GALERI.html, toplu JPG, manifest, doğrulama ve üretim betikleri. Oyun kaynaklarına/varlıklarına ve önceki pakete dokunulmadı.
+
+**Doğrulama:** Yeni paket Blender 5.2.2 ile 24/24 geçti: metre kaynak, zemin/yatay merkez orijini, uygulanmış ölçek, UV/parça grupları, geometri/malzeme, metadata ölçüleri, UCX, FBX birim/ölçü turu, önizleme ve tabela kapalı. Teslim dosyalarında eksik 0; toplu 24 görsel ve iki detay görüntüsü incelendi. Oyun değişmedi; DERLE/TEST/Smoke tekrarlanmadı. Bu belge kaydı oyun entegrasyonunun tamamlandığı anlamına gelmez.
+
+**Varsayım/sınır:** Kapsam erişilen katalog kategorilerinin oyun için uygun biçimleridir; bütün üretici SKU'larının kopyası değildir. Bazı alt galeriler doğrulama/timeout verdi; geometri özgün ve kategori referanslı, teknik CAD ölçüsü iddiası yok. Logo yok; kategori tabelası/taşıyıcı yok, fiyat çıtaları korunur. Hareketli parçalar rigli değil; basit dış zarf UCX ve taslak raf bölgeleri oyuna aktarımda yeniden değerlendirilecek.
+
+**Sıradaki:** Mustafa modelleri masaüstü galerisinden inceleyebilir. Oyun aktarımı sonraki ayrı iş; Claude'un mevcut işleri alınmadı.
+
 ## 03.10.2026 — Codex — BUZ mağaza düzenleme incelemesi
 
 **Yapılan:** Mustafa'nın ek bağlantısı ve raf/kasa/aksesuar alt sayfaları doğrudan HTTP ile okundu; proje ekipman metadata ve üreticileriyle karşılaştırıldı. Temel raf, kasa, ekmek, manav ve sepet/araba var; özel kasa önü, depo rafı, tel teşhir/askı, geçiş bariyeri ve alışveriş sepeti/araba varyantları eksik. Ayrıntı BUZ_EKSIK_TIPLER.md.
