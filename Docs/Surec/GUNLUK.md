@@ -1,3 +1,11 @@
+## 03.10.2026 — Codex — BUZ mağaza düzenleme incelemesi
+
+**Yapılan:** Mustafa'nın ek bağlantısı ve raf/kasa/aksesuar alt sayfaları doğrudan HTTP ile okundu; proje ekipman metadata ve üreticileriyle karşılaştırıldı. Temel raf, kasa, ekmek, manav ve sepet/araba var; özel kasa önü, depo rafı, tel teşhir/askı, geçiş bariyeri ve alışveriş sepeti/araba varyantları eksik. Ayrıntı BUZ_EKSIK_TIPLER.md.
+
+**Doğrulama:** Resmi sayfalardaki ürün adları ve proje envanteri okundu. Yalnız belge; kod/model değişmedi, derleme/test tekrarlanmadı.
+
+**Sıradaki:** Mustafa üretim kapsamını seçer; öneri kasa önü, depo rafı, tel sepet ve bariyer.
+
 ## 03.10.2026 — Codex — BUZ dolap tipleri eksik incelemesi
 
 **Yapılan:** Erişilebilen resmi alt sayfalar/ürün sonuçları ve önceki referans görselleri, mevcut 12 BUZ dolap modeliyle karşılaştırıldı. Eksik biçimler/varyantlar BUZ_EKSIK_TIPLER.md'de. Ana sayfa açılamadı; sonuç tüm SKU'ların eksiksiz taraması değil, doğrulanmış tip açıklarıdır.

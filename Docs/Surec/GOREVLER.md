@@ -110,4 +110,4 @@ Yeni görev en alta eklenir; biten görev silinmez, durumu değişir. Kimlikler 
 
 | G-100 | Soğuk dolap/vitrinlerin üzerindeki kategori tabelası ve çıkıntılarını kaldır; kategoriler kalsın | Codex | Bitti | 03.10.2026: 17 ekipmanda levha/yazı kapalı; Blender kaynaklarında taşıyıcı yok. DERLE, TEST169/169, Smoke, Blender15/15 ve beş oyun görünümü geçti. |
 
-| G-101 | BUZ teşhir reyonlarını mevcut dolaplarla karşılaştır, eksik tipleri listele | Codex | Bitti (inceleme) | 03.10.2026: 12 dolap kaynağı/uasset mevcut; eksik biçim/varyantlar Docs/Environment/BUZ_EKSIK_TIPLER.md. Yeni üretim yapılmadı. |
+| G-101 | BUZ teşhir reyonlarını mevcut dolaplarla karşılaştır, eksik tipleri listele | Codex | Bitti (inceleme) | 03.10.2026: 12 dolap kaynağı/uasset mevcut; eksik biçim/varyantlar Docs/Environment/BUZ_EKSIK_TIPLER.md. Yeni üretim yapılmadı; mağaza düzenleme raf/kasa/aksesuar incelemesi de rapora eklendi. |
