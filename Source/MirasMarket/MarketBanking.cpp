@@ -82,6 +82,18 @@ namespace MarketBankingLocal
     }
 
     // One month of a loan: interest, and the principal part (none in the grace or for a bond until its last month).
+    // E4b: one local unit of a loan's country in our money today (1 at home).
+    double FxOf(const FMarketState& State, const FMarketCorpLoan& L)
+    {
+        return L.Country.IsEmpty() || L.Country == State.CountryId ? 1.0 : MarketPrices::ToHome(State, L.Country, FMath::Max(1, State.Day));
+    }
+
+    int64 HomeOf(const FMarketState& State, const FMarketCorpLoan& L, int64 Local)
+    {
+        const double Fx = FxOf(State, L);
+        return Fx == 1.0 ? Local : FMath::RoundToInt64(static_cast<double>(Local) * Fx);
+    }
+
     void MonthDue(const FMarketCorpLoan& L, int64& OutInterest, int64& OutPrincipal)
     {
         OutInterest = FMath::RoundToInt64(L.Balance * MonthlyRate(L.YearRate));
@@ -226,7 +238,7 @@ bool MarketBanking::IsOpen(const FMarketState& State)
 int64 MarketBanking::Debt(const FMarketState& State)
 {
     int64 Total = State.Banking.LineDrawn;
-    for (const FMarketCorpLoan& L : State.Banking.Loans) Total += L.Balance;
+    for (const FMarketCorpLoan& L : State.Banking.Loans) Total += BalanceHome(State, L);
     return Total;
 }
 
@@ -329,13 +341,14 @@ bool MarketBanking::Repay(FMarketState& State, int32 LoanIndex, FString& OutMess
 {
     if (!State.Banking.Loans.IsValidIndex(LoanIndex)) { OutMessage = TEXT("B\u00f6yle bir kredi yok."); return false; }
     const FMarketCorpLoan L = State.Banking.Loans[LoanIndex];
-    const int64 Fee = FMath::RoundToInt64(L.Balance * EarlyRepayFee);
-    if (State.Cash < L.Balance + Fee) { OutMessage = FString::Printf(TEXT("Kapatmak i\u00e7in kasada %s gerekir."), *MarketCountry::Money(L.Balance + Fee)); return false; }
-    State.Cash -= L.Balance + Fee;
-    MarketBankingLocal::Book(State, MarketLedger::EAccount::LoanRepayment, -L.Balance);
+    const int64 Owed = BalanceHome(State, L); // E4b: abroad at the day's rate
+    const int64 Fee = FMath::RoundToInt64(Owed * EarlyRepayFee);
+    if (State.Cash < Owed + Fee) { OutMessage = FString::Printf(TEXT("Kapatmak i\u00e7in kasada %s gerekir."), *MarketCountry::Money(Owed + Fee)); return false; }
+    State.Cash -= Owed + Fee;
+    MarketBankingLocal::Book(State, MarketLedger::EAccount::LoanRepayment, -Owed);
     MarketBankingLocal::Book(State, MarketLedger::EAccount::BankFees, -Fee);
     State.Banking.Loans.RemoveAt(LoanIndex);
-    OutMessage = FString::Printf(TEXT("%s kredisi kapand\u0131: %s (erken kapama %s)."), *Bank(State, L.Bank).Name, *MarketCountry::Money(L.Balance), *MarketCountry::Money(Fee));
+    OutMessage = FString::Printf(TEXT("%s kredisi kapand\u0131: %s (erken kapama %s)."), *BankNameIn(State, L.Country, L.Bank), *MarketCountry::Money(Owed), *MarketCountry::Money(Fee));
     return true;
 }
 
@@ -380,7 +393,7 @@ bool MarketBanking::Restructure(FMarketState& State, int32 BankIndex, FString& O
     FMarketBankingState& B = State.Banking;
     if (BankIndex < 0 || BankIndex >= BankCount || Bank(State, BankIndex).bInvestmentOnly) { OutMessage = TEXT("Bu banka yap\u0131land\u0131rma yapmaz."); return false; }
     int64 Total = 0;
-    for (const FMarketCorpLoan& L : B.Loans) Total += L.Balance;
+    for (const FMarketCorpLoan& L : B.Loans) Total += BalanceHome(State, L); // E4b: loans abroad join at the day's rate
     if (B.Loans.Num() < 1 || Total <= 0) { OutMessage = TEXT("Yap\u0131land\u0131r\u0131lacak kredi yok."); return false; }
     if (Rating(State) == ERating::D && BankIndex != 0) { OutMessage = TEXT("Notun D iken yaln\u0131z yerel banka konu\u015fur."); return false; }
     const int64 Fee = FMath::RoundToInt64(Total * RestructureFee);
@@ -442,8 +455,9 @@ FString MarketBanking::Describe(const FMarketState& State, int32 LoanIndex)
     const FMarketCorpLoan& L = State.Banking.Loans[LoanIndex];
     const TCHAR* What = L.Kind == static_cast<uint8>(EKind::Bond) ? TEXT("tahvil") : L.Kind == static_cast<uint8>(EKind::Restructured) ? TEXT("yap\u0131land\u0131r\u0131lm\u0131\u015f")
         : L.Kind == static_cast<uint8>(EKind::Called) ? TEXT("geri \u00e7a\u011fr\u0131lan") : L.Kind == static_cast<uint8>(EKind::Acquisition) ? TEXT("sat\u0131n alma") : TEXT("yat\u0131r\u0131m");
-    FString Line = FString::Printf(TEXT("%s \u00b7 %s \u00b7 kalan %s \u00b7 y\u0131ll\u0131k %s \u00b7 %d/%d ay"), *Bank(State, L.Bank).Name, What, *MarketCountry::Money(L.Balance),
+    FString Line = FString::Printf(TEXT("%s \u00b7 %s \u00b7 kalan %s \u00b7 y\u0131ll\u0131k %s \u00b7 %d/%d ay"), *BankNameIn(State, L.Country, L.Bank), What, *MarketCountry::Money(BalanceHome(State, L)),
         *MarketBankingLocal::Percent(L.YearRate), L.PaidMonths, L.Months);
+    if (!L.Country.IsEmpty() && L.Country != State.CountryId) Line += FString::Printf(TEXT(" \u00b7 %s paras\u0131yla, g\u00fcn\u00fcn kuruyla"), *MarketCountry::FindOrDefault(L.Country).Name);
     if (L.PaidMonths < L.Grace) Line += FString::Printf(TEXT(" \u00b7 %d ay daha yaln\u0131z faiz"), L.Grace - L.PaidMonths);
     if (L.LateSince > 0) Line += TEXT(" \u00b7 GEC\u0130KMEDE");
     return Line;
@@ -474,6 +488,72 @@ FString MarketBanking::Summary(const FMarketState& State)
     return Text;
 }
 
+int64 MarketBanking::BalanceHome(const FMarketState& State, const FMarketCorpLoan& Loan)
+{
+    return MarketBankingLocal::HomeOf(State, Loan, Loan.Balance);
+}
+
+FString MarketBanking::BankNameIn(const FMarketState& State, const FString& Country, int32 BankIndex)
+{
+    if (Country.IsEmpty() || Country == State.CountryId) return Bank(State, BankIndex).Name;
+    const MarketCountry::FProfile& Pack = MarketCountry::FindOrDefault(Country);
+    return Pack.Banks.IsValidIndex(BankIndex) ? Pack.Banks[BankIndex] : Bank(State, BankIndex).Name;
+}
+
+bool MarketBanking::CanBorrowIn(const FMarketState& State, const FString& Country, int32 BankIndex, FString& OutReason)
+{
+    if (Country.IsEmpty() || Country == State.CountryId) return CanBorrow(State, BankIndex, OutReason);
+    if (BankIndex < 0 || BankIndex > 2) { OutReason = TEXT("Yurt d\u0131\u015f\u0131nda yerel, ticari ve yat\u0131r\u0131m bankas\u0131 kredi verir."); return false; }
+    const bool bCompany = State.Company.Subsidiaries.ContainsByPredicate([&Country](const FMarketSubsidiary& S) { return S.Country == Country; });
+    if (!bCompany) { OutReason = TEXT("O \u00fclkede \u015firketimiz yok: \u00f6nce bir ma\u011faza a\u00e7."); return false; }
+    return CanBorrow(State, BankIndex, OutReason);
+}
+
+int64 MarketBanking::OfferIn(const FMarketState& State, const FString& Country, int32 BankIndex)
+{
+    FString Why;
+    if (!CanBorrowIn(State, Country, BankIndex, Why)) return 0;
+    if (Country.IsEmpty() || Country == State.CountryId) return Offer(State, BankIndex);
+    int32 There = 0, All = 1; // the family shop counts at home
+    for (const FMarketBranch& B : State.Branches)
+    {
+        if (B.Stage != static_cast<uint8>(MarketBranches::EStage::Open)) continue;
+        ++All;
+        if (MarketBranches::CountryOf(State, B) == Country) ++There;
+    }
+    const double Share = FMath::Clamp(static_cast<double>(There) / All, 0.25, 1.0);
+    return FMath::RoundToInt64(Offer(State, BankIndex) * Share) / 10000 * 10000;
+}
+
+double MarketBanking::YearRateIn(const FMarketState& State, const FString& Country, int32 BankIndex)
+{
+    if (Country.IsEmpty() || Country == State.CountryId) return YearRate(State, BankIndex);
+    return FMath::Max(0.01, MarketPrices::LoanRate(Country, FMath::Max(1, State.Day)) + Bank(State, BankIndex).Spread + RatingSpread(Rating(State))
+        + (CovenantBroken(State) ? BreachPenalty : 0.f));
+}
+
+bool MarketBanking::BorrowIn(FMarketState& State, const FString& Country, int32 BankIndex, int32 Step, int32 Tenor, bool bGrace, FString& OutMessage)
+{
+    if (Country.IsEmpty() || Country == State.CountryId) return Borrow(State, BankIndex, Step, Tenor, bGrace, OutMessage);
+    if (!CanBorrowIn(State, Country, BankIndex, OutMessage)) return false;
+    const int64 Amount = OfferIn(State, Country, BankIndex) * FMath::Clamp(Step + 1, 1, 4) / 4 / 10000 * 10000;
+    if (Amount <= 0) { OutMessage = TEXT("Banka \u015fu an kredi vermiyor: bor\u00e7 \u015firketin kazanc\u0131na g\u00f6re zaten y\u00fcksek."); return false; }
+    const double Fx = MarketPrices::ToHome(State, Country, FMath::Max(1, State.Day));
+    const int64 Local = FMath::RoundToInt64(static_cast<double>(Amount) / FMath::Max(1e-9, Fx));
+    const int32 Months = FMath::Min(Tenors[FMath::Clamp(Tenor, 0, TenorCount - 1)], Bank(State, BankIndex).MaxTenor);
+    const int32 Grace = bGrace ? GraceMonths : 0;
+    const double Rate = YearRateIn(State, Country, BankIndex);
+    const int32 Index = MarketBankingLocal::AddLoan(State, BankIndex, EKind::Investment, Local, Rate, Months, Grace);
+    State.Banking.Loans[Index].Country = Country;
+    State.Cash += Amount;
+    MarketBankingLocal::Book(State, MarketLedger::EAccount::LoanIn, Amount);
+    const FMarketCorpLoan& L = State.Banking.Loans[Index];
+    OutMessage = FString::Printf(TEXT("%s: %s kredi kasada (%s paras\u0131yla). Y\u0131ll\u0131k faiz %s, %d ay%s, ayl\u0131k taksit bug\u00fcn\u00fcn kuruyla %s; kur de\u011fi\u015ftik\u00e7e taksit de de\u011fi\u015fir."),
+        *BankNameIn(State, Country, BankIndex), *MarketCountry::Money(Amount), *MarketCountry::FindOrDefault(Country).Name, *MarketBankingLocal::Percent(Rate), Months,
+        Grace > 0 ? *FString::Printf(TEXT(" (ilk %d ay yaln\u0131z faiz)"), Grace) : TEXT(""), *MarketCountry::Money(MarketBankingLocal::HomeOf(State, L, L.Installment)));
+    return true;
+}
+
 void MarketBanking::CloseDay(FMarketState& State)
 {
     using namespace MarketBankingLocal;
@@ -488,8 +568,9 @@ void MarketBanking::CloseDay(FMarketState& State)
         FMarketCorpLoan& L = B.Loans[I];
         if (Closed < L.NextDueDay) continue;
         int64 Interest = 0, Principal = 0;
-        MonthDue(L, Interest, Principal);
-        const int64 Due = Interest + Principal;
+        MonthDue(L, Interest, Principal); // local units abroad (E4b)
+        const int64 DueLocal = Interest + Principal;
+        const int64 Due = HomeOf(State, L, DueLocal);
         if (State.Cash + (B.bLineAuto ? LineRoom(State) : 0) < Due)
         {
             // Missed: a late fee joins the debt (C7: once, then once a month while it stays unpaid), the next try in
@@ -498,17 +579,18 @@ void MarketBanking::CloseDay(FMarketState& State)
             if (L.LateSince == 0) { L.LateSince = Closed; B.LateDays.Add(Closed); }
             L.NextDueDay = Closed + 7;
             if (!bFee) continue;
-            const int64 Fee = FMath::RoundToInt64(Due * LateFee);
+            const int64 Fee = FMath::RoundToInt64(DueLocal * LateFee);
             L.Balance += Fee;
-            Book(State, EAccount::Penalties, -Fee, false);
-            News.Add(FString::Printf(TEXT("%s: %s taksit \u00f6denemedi, %s gecikme fark\u0131 borca eklendi. Kredi notu bunu hat\u0131rlar."), *Bank(State, L.Bank).Name, *MarketCountry::Money(Due), *MarketCountry::Money(Fee)));
+            Book(State, EAccount::Penalties, -HomeOf(State, L, Fee), false);
+            News.Add(FString::Printf(TEXT("%s: %s taksit \u00f6denemedi, %s gecikme fark\u0131 borca eklendi. Kredi notu bunu hat\u0131rlar."), *BankNameIn(State, L.Country, L.Bank), *MarketCountry::Money(Due), *MarketCountry::Money(HomeOf(State, L, Fee))));
             continue;
         }
+        const int64 InterestHome = HomeOf(State, L, Interest);
         State.Cash -= Due;
         L.Balance -= Principal;
-        B.InterestPaid += Interest;
-        Book(State, EAccount::Interest, -Interest);
-        Book(State, EAccount::LoanRepayment, -Principal);
+        B.InterestPaid += InterestHome;
+        Book(State, EAccount::Interest, -InterestHome);
+        Book(State, EAccount::LoanRepayment, -(Due - InterestHome));
         ++L.PaidMonths;
         L.LateSince = 0;
         L.NextDueDay = L.StartDay + (L.PaidMonths + 1) * MonthDays;
@@ -517,7 +599,7 @@ void MarketBanking::CloseDay(FMarketState& State)
     for (int32 I = B.Loans.Num() - 1; I >= 0; --I)
     {
         if (B.Loans[I].Balance > 0) continue;
-        News.Add(FString::Printf(TEXT("%s kredisi bitti: son taksit \u00f6dendi."), *Bank(State, B.Loans[I].Bank).Name));
+        News.Add(FString::Printf(TEXT("%s kredisi bitti: son taksit \u00f6dendi."), *BankNameIn(State, B.Loans[I].Country, B.Loans[I].Bank)));
         B.Loans.RemoveAt(I);
     }
 
@@ -578,15 +660,17 @@ void MarketBanking::CloseDay(FMarketState& State)
     {
         int32 Biggest = INDEX_NONE;
         for (int32 I = 0; I < B.Loans.Num(); ++I)
-            if (B.Loans[I].Kind != static_cast<uint8>(EKind::Called) && (Biggest == INDEX_NONE || B.Loans[I].Balance > B.Loans[Biggest].Balance)) Biggest = I;
+            if (B.Loans[I].Kind != static_cast<uint8>(EKind::Called) && (Biggest == INDEX_NONE || BalanceHome(State, B.Loans[I]) > BalanceHome(State, B.Loans[Biggest]))) Biggest = I;
         if (Biggest != INDEX_NONE)
         {
             const int64 Part = B.Loans[Biggest].Balance / 4;
             B.Loans[Biggest].Balance -= Part;
             const int32 BankIndex = B.Loans[Biggest].Bank;
             const double Rate = B.Loans[Biggest].YearRate;
-            AddLoan(State, BankIndex, EKind::Called, Part, Rate, 1, 0);
-            News.Add(FString::Printf(TEXT("%s borcunun d\u00f6rtte birini (%s) 30 g\u00fcn i\u00e7inde geri istiyor."), *Bank(State, BankIndex).Name, *MarketCountry::Money(Part)));
+            const FString LoanCountry = B.Loans[Biggest].Country;
+            const int32 Called = AddLoan(State, BankIndex, EKind::Called, Part, Rate, 1, 0);
+            B.Loans[Called].Country = LoanCountry; // E4b: still owed in that money
+            News.Add(FString::Printf(TEXT("%s borcunun d\u00f6rtte birini (%s) 30 g\u00fcn i\u00e7inde geri istiyor."), *BankNameIn(State, LoanCountry, BankIndex), *MarketCountry::Money(BalanceHome(State, B.Loans[Called]))));
         }
     }
 }

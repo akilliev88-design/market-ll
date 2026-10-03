@@ -95,6 +95,19 @@ namespace MarketBanking
     int64 AcquisitionRoom(const FMarketState& State, int32 BankIndex, int64 TargetEbitda);
     bool FinanceAcquisition(FMarketState& State, int64 Amount, int64 TargetEbitda, FString& OutMessage);
 
+    // E4b (11_TEK_EKONOMI \u00a7E4.4): a loan from a bank of a country where we have a company (M65). It is owed in
+    // that country's money at that country's loan rate (+ the bank's and the rating's spread); every payment goes
+    // out at the day's exchange rate, so a falling currency makes the debt lighter and a rising one heavier. The
+    // country's banks lend against our stores there (their share of our stores, at least a quarter of the offer).
+    // Banks 0..2 (no development bank, no bond abroad).
+    bool CanBorrowIn(const FMarketState& State, const FString& Country, int32 BankIndex, FString& OutReason);
+    int64 OfferIn(const FMarketState& State, const FString& Country, int32 BankIndex);   // our money today
+    double YearRateIn(const FMarketState& State, const FString& Country, int32 BankIndex);
+    FString BankNameIn(const FMarketState& State, const FString& Country, int32 BankIndex);
+    bool BorrowIn(FMarketState& State, const FString& Country, int32 BankIndex, int32 Step, int32 Tenor, bool bGrace, FString& OutMessage);
+    // A loan's balance in our money today (abroad: at the day's rate).
+    int64 BalanceHome(const FMarketState& State, const FMarketCorpLoan& Loan);
+
     // The credit line.
     int64 LineLimitFor(const FMarketState& State);
     bool OpenLine(FMarketState& State, FString& OutMessage);

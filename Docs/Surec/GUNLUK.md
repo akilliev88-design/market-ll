@@ -1,3 +1,23 @@
+## 03.10.2026 — Claude Code — E4b: yurt dışı banka kredisi (derlenmedi)
+
+**Yapılan:**
+- `FMarketCorpLoan::Country`. Yurt dışı kredinin tutarları yerel birim.
+- `MarketBanking`:
+  - `FxOf/HomeOf` (yerel yardımcı); `BalanceHome`.
+  - `Debt`, `Repay` (kalan + %1 günün kuruyla), `Restructure` (hepsi kurla toplanıp yurt içi tek krediye), taksit (yerel taksit × kur; faiz ve anapara kurla deftere), gecikme farkı (yerel, deftere kurla), geri çağrılan kredi (aynı ülkenin parasıyla), `Describe` (banka adı o ülkenin, "o ülkenin parasıyla, günün kuruyla").
+  - Yeni `CanBorrowIn`, `OfferIn`, `YearRateIn`, `BankNameIn`, `BorrowIn`.
+- `MarketFinance` kurtarma planı borcu kurla sayıyor. Menüde kredi kapatma tutarı ve düğmenin açık olma şartı kurla.
+- Menü Şirket finansı: alt şirketi olan her ülke için bir satır (banka, teklif, o ülkenin faizi) ve "Kredi al" düğmesi (sorar; ticari banka, %100, 36 ay).
+- Kayıt sürümü 17.
+
+**Test:** yeni `MirasMarket.Banking.ForeignLoan`: şirket yokken kredi yok; kalkınma bankası yurt dışında yok; teklif şirket teklifini aşmaz; o ülkenin bankası ve faizi; kalan ve şirket borcu kurla; taksit günün kuruyla kasadan, borç yerel parada azalır (OLCUM satırı). Test.ps1 alt sınırı 168.
+
+**Varsayım:** yurt dışı kredide başvuru ve bekleme (M43) yok, anında verilir (menüde onay sorulur). Kredi limiti (revolving) yalnız yurt içi.
+
+**Doğrulama:** Derlenmedi.
+
+**Sıradaki:** Mustafa CLAUDE_KOS.cmd. E4 biter; sonraki iş için Mustafa'ya sorulacak.
+
 ## 03.10.2026 — Claude Code — M65 doğrulandı
 
 **son.log (f3398a5):** DERLE geçti; TEST 166 başarılı + 1 uyarılı, başarısız 0 (alt sınır 167); Smoke geçti. M65 bitti.

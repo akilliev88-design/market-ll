@@ -802,6 +802,9 @@ struct FMarketCorpLoan
     UPROPERTY() int32 NextDueDay = 0;
     UPROPERTY() int64 Installment = 0;   // after the grace (a bond: the monthly interest)
     UPROPERTY() int32 LateSince = 0;     // 0 = on time
+    // E4b (11_TEK_EKONOMI): the country of the bank (empty = the campaign's). A loan abroad is owed in that country's
+    // money: Principal, Balance and Installment are local units, paid at each day's exchange rate.
+    UPROPERTY() FString Country;
 };
 
 // C13 (M43): a loan application to a bank; the answer comes in a few days, an offer is open for a week.
@@ -917,7 +920,7 @@ struct FMarketState
     static constexpr int64 StockerDailyWage = 2000;
 
     // Save format version. 2 (G-076): story finale flags, test-mode mark. Older saves load and are migrated.
-    static constexpr int32 CurrentVersion = 16; // M65: subsidiaries; // E4: the exchange difference account; // E3c2c: branch staff are people; // M64: the father's favour is counted; // E3c2 (M27): branch goods use the family shop's record, the v0.1 staff flags are gone; older saves start a new game
+    static constexpr int32 CurrentVersion = 17; // E4b: loans abroad; // M65: subsidiaries; // E4: the exchange difference account; // E3c2c: branch staff are people; // M64: the father's favour is counted; // E3c2 (M27): branch goods use the family shop's record, the v0.1 staff flags are gone; older saves start a new game
     UPROPERTY() int32 Version = CurrentVersion;
     UPROPERTY() int32 Day = 1;
     UPROPERTY() int64 Cash = 35000;

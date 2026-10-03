@@ -1,8 +1,17 @@
 # Güncel durum
 
-Son güncelleme: 03.10.2026 — Claude Code, akis-cc2: M65 derlendi, testler ve Smoke geçti; sıradaki E4b
+Son güncelleme: 03.10.2026 — Claude Code, akis-cc2: E4b (ülkenin bankası) yazıldı, derlenmedi
 
 ## Kısaca
+
+**03.10.2026 — Claude Code / E4b (derlenmedi, `akis-cc2`):** Yurt dışında şirketimiz olan ülkenin bankasından kredi.
+- Kredi o ülkenin parasıyla tutuluyor ve o ülkenin faiziyle (+ banka + kredi notu farkı) işliyor.
+- Taksit, gecikme farkı, erken kapama ve yapılandırma günün kuruyla ödeniyor. Şirket borcu ve kredi notu bu kredileri kurla sayıyor.
+- Teklif o ülkedeki mağaza payımıza göre (en az dörtte bir); yalnız yerel, ticari ve yatırım bankası.
+- Menü: Şirket finansı kartında ülke ülke "Kredi al".
+- Kayıt sürümü 17. Yeni test `Banking.ForeignLoan`; Test.ps1 168.
+
+E4 tamam olacak. **Devam notu:** Mustafa derler; 11_TEK_EKONOMI E1–E4 bitince sıradaki iş Mustafa'ya sorulacak (bekleyenler: Y1 gerçek yıl temizliği, M54 oyuncu türleri, M58 pazar araştırması, M59 15–30 firma, D4/D6/D7/D8).
 
 **03.10.2026 — Claude Code / M65 doğrulandı (f3398a5):** DERLE geçti, TEST 166 + 1 uyarı, başarısız 0, Smoke geçti; OLCUM aynı. Sıradaki: E4b.
 

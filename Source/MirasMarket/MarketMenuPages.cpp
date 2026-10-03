@@ -2003,9 +2003,44 @@ TSharedRef<SWidget> SMarketMenu::BankingCard()
             + SHorizontalBox::Slot().FillWidth(1.f).VAlign(VAlign_Center)[ Label([G, Slot] { return G() ? MarketBanking::Describe(G()->State, Slot) : FString(); }, 10, ERole::Text, false, true) ]
             + SHorizontalBox::Slot().AutoWidth().VAlign(VAlign_Center).Padding(8.f, 0.f, 0.f, 0.f)
             [ RiskyButton([] { return FString(TEXT("Kapat")); },
-                [G, Slot] { return G() && G()->State.Banking.Loans.IsValidIndex(Slot) ? FString::Printf(TEXT("Kalan %s \u015fimdi \u00f6densin mi? Erken kapama %%1."), *MarketMenuUi::Tl(G()->State.Banking.Loans[Slot].Balance)) : FString(); },
+                [G, Slot] { return G() && G()->State.Banking.Loans.IsValidIndex(Slot) ? FString::Printf(TEXT("Kalan %s \u015fimdi \u00f6densin mi? Erken kapama %%1."), *MarketMenuUi::Tl(MarketBanking::BalanceHome(G()->State, G()->State.Banking.Loans[Slot]))) : FString(); },
                 [this, Slot] { Manage(TEXT("RepayCorpLoan"), Slot); },
-                [G, Slot] { return G() && G()->State.Banking.Loans.IsValidIndex(Slot) && G()->State.Cash >= G()->State.Banking.Loans[Slot].Balance + G()->State.Banking.Loans[Slot].Balance / 100; }) ]
+                [G, Slot] { return G() && G()->State.Banking.Loans.IsValidIndex(Slot) && G()->State.Cash >= MarketBanking::BalanceHome(G()->State, G()->State.Banking.Loans[Slot]) * 101 / 100; }) ]
+        ];
+    }
+
+    // E4b: the banks of the countries where we have a company lend in their own money (the commercial bank, the
+    // whole offer, 36 months; asks first). The payments follow the exchange rate.
+    TSharedRef<SVerticalBox> Abroad = SNew(SVerticalBox);
+    for (int32 Slot = 0; Slot < 8; ++Slot)
+    {
+        auto Country = [G, Slot]() -> FString
+        {
+            if (!G()) return FString();
+            int32 Seen = 0;
+            for (const FMarketSubsidiary& S : G()->State.Company.Subsidiaries)
+                if (S.Country != G()->State.CountryId && Seen++ == Slot) return S.Country;
+            return FString();
+        };
+        Abroad->AddSlot().AutoHeight().Padding(0.f, 2.f)
+        [
+            SNew(SHorizontalBox).Visibility_Lambda([Country] { return Country().IsEmpty() ? EVisibility::Collapsed : EVisibility::Visible; })
+            + SHorizontalBox::Slot().FillWidth(1.f).VAlign(VAlign_Center)
+            [ Label([G, Country]
+            {
+                const FString C = Country();
+                if (!G() || C.IsEmpty()) return FString();
+                FString Why;
+                if (!MarketBanking::CanBorrowIn(G()->State, C, 1, Why)) return FString::Printf(TEXT("%s: %s"), *MarketCountry::FindOrDefault(C).Name, *Why);
+                return FString::Printf(TEXT("%s \u00b7 %s: %s'e kadar, y\u0131ll\u0131k %%%.1f (o \u00fclkenin faizi), \u00f6deme o paran\u0131n kuruyla"), *MarketCountry::FindOrDefault(C).Name,
+                    *MarketBanking::BankNameIn(G()->State, C, 1), *MarketMenuUi::Tl(MarketBanking::OfferIn(G()->State, C, 1)), MarketBanking::YearRateIn(G()->State, C, 1) * 100.0);
+            }, 10, ERole::Text, false, true) ]
+            + SHorizontalBox::Slot().AutoWidth().VAlign(VAlign_Center).Padding(8.f, 0.f, 0.f, 0.f)
+            [ RiskyButton([] { return FString(TEXT("Kredi al")); },
+                [G, Country] { const FString C = Country(); return G() && !C.IsEmpty() ? FString::Printf(TEXT("%s: %s kredi al\u0131ns\u0131n m\u0131? 36 ay, taksitler o \u00fclkenin paras\u0131yla; kur d\u00fc\u015ferse taksit hafifler, y\u00fckselirse a\u011f\u0131rla\u015f\u0131r."),
+                    *MarketBanking::BankNameIn(G()->State, C, 1), *MarketMenuUi::Tl(MarketBanking::OfferIn(G()->State, C, 1))) : FString(); },
+                [G, Country] { FString Message; if (G() && MarketBanking::BorrowIn(G()->State, Country(), 1, 3, 1, false, Message)) G()->Notify(Message); else if (G()) G()->Notify(Message); },
+                [G, Country] { return G() && !Country().IsEmpty() && MarketBanking::OfferIn(G()->State, Country(), 1) > 0; }) ]
         ];
     }
 
@@ -2032,6 +2067,7 @@ TSharedRef<SWidget> SMarketMenu::BankingCard()
         [ SNew(SBox).Visibility_Lambda([G] { return G() && MarketMenuSimplifyUi::C5CommonBankLock(G()->State).IsEmpty() ? EVisibility::Visible : EVisibility::Collapsed; })[ Shape ] ]
         + SVerticalBox::Slot().AutoHeight()
         [ SNew(SBox).Visibility_Lambda([G] { return G() && MarketMenuSimplifyUi::C5CommonBankLock(G()->State).IsEmpty() ? EVisibility::Visible : EVisibility::Collapsed; })[ Banks ] ]
+        + SVerticalBox::Slot().AutoHeight().Padding(0.f, 8.f, 0.f, 0.f)[ Abroad ]
         + SVerticalBox::Slot().AutoHeight().Padding(0.f, 8.f, 0.f, 0.f)[ Apps ]
         + SVerticalBox::Slot().AutoHeight().Padding(0.f, 8.f, 0.f, 0.f)[ Loans ]
         + SVerticalBox::Slot().AutoHeight().Padding(0.f, 8.f, 0.f, 0.f)

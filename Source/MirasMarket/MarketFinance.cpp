@@ -470,7 +470,7 @@ TArray<FString> MarketFinance::Rescue(FMarketState& State, const TArray<FMarketP
         + MarketSuppliers::OpenBills(State) + FMath::Max<int64>(0, State.Books.TaxDue);
     const int64 Fresh = FMath::Max<int64>(0, (Working - State.Cash + 99) / 100 * 100);
     int64 Old = Debt(State) + State.Banking.LineDrawn;
-    for (const FMarketCorpLoan& L : State.Banking.Loans) Old += L.Balance;
+    for (const FMarketCorpLoan& L : State.Banking.Loans) Old += MarketBanking::BalanceHome(State, L); // E4b
     const double Rate = MarketPrices::LoanRate(State.Day) + RescueRateBonus + FMath::Min(RescueRepeatCap, RescueRepeatBonus * FMath::Max(0, State.Rescues - 1));
     const double Monthly = Rate / 12.0;
     const int64 Carry = FMath::RoundToInt64(MonthRevenue(State) * static_cast<double>(RescueCarryShare));
