@@ -5,6 +5,7 @@
 #include "MarketCompany.h"
 #include "MarketFranchise.h"
 #include "MarketStory.h"
+#include "MarketPrices.h"
 #include "Misc/AutomationTest.h"
 
 #if WITH_DEV_AUTOMATION_TESTS
@@ -151,14 +152,19 @@ bool FMarketFranchiseTest::RunTest(const FString& Parameters)
     TestTrue(TEXT("World card: the partner"), MarketCompany::CountryStatus(S, Abroad).Contains(F->Partner));
     TestTrue(TEXT("World card: home"), MarketCompany::CountryStatus(S, S.CountryId).Contains(TEXT("25 ma\u011faza")));
 
-    // Days pass: sales gather, a store comes every 45 days, the royalty comes on the first of the month.
+    // Days pass: sales gather, the royalty comes on the first of the month; a new store only once the partner has
+    // saved its opening (no day rule), and never past the room the country has.
     const int64 Cash = S.Cash;
-    const int32 Start = S.Day;
-    for (int32 D = 0; D < 80; ++D) { ++S.Day; S.DayNews.Reset(); MarketFranchise::CloseDay(S); }
+    for (int32 D = 0; D < 10; ++D) { ++S.Day; S.DayNews.Reset(); MarketFranchise::CloseDay(S); }
+    F = MarketFranchise::Find(S, Abroad);
+    TestEqual(TEXT("No store before the money is saved"), F->Stores, MarketFranchise::StartStores);
+    TestTrue(TEXT("Saving"), F->Savings > 0 && F->Savings < MarketFranchise::OpeningCost(S));
+    for (int32 D = 0; D < 400; ++D) { ++S.Day; S.DayNews.Reset(); MarketFranchise::CloseDay(S); }
     F = MarketFranchise::Find(S, Abroad);
     TestTrue(TEXT("A royalty came"), F->TotalRoyalty > 0 && S.Cash > Cash);
     TestTrue(TEXT("Less than the sales"), F->LastRoyalty < MarketFranchise::YearSales(S, Abroad) / 12);
-    TestEqual(TEXT("One store more after 45 days"), F->Stores, MarketFranchise::StartStores + (S.Day - 1 - Start) / MarketFranchise::GrowEvery);
+    TestTrue(TEXT("The partner grew from its own profit"), F->Stores > MarketFranchise::StartStores && F->Stores <= MarketFranchise::MaxStores(Abroad));
+    TestTrue(TEXT("Its stores share the country"), MarketFranchise::StoreDaySalesNow(S, *F) < FMath::RoundToInt64(MarketFranchise::StoreDaySales * MarketPrices::ListLevel(S.Day) * F->Quality / 100.0));
     const TArray<MarketChains::FStanding> Table = MarketChains::NationalTable(S, Abroad);
     const MarketChains::FStanding* Us = Table.FindByPredicate([](const MarketChains::FStanding& R) { return R.bUs; });
     TestTrue(TEXT("Our brand in the country's table"), Us && Us->Stores == F->Stores && Us->Revenue > 0.0);

@@ -450,6 +450,7 @@ struct FMarketFranchise
     UPROPERTY() int32 Stores = 0;           // partner stores under our brand
     UPROPERTY() int32 Quality = 100;        // the partner's hand, 80..120 (% of a typical store's sales)
     UPROPERTY() int64 MonthSales = 0;       // the running month's sales of the partner stores (home-level kurus)
+    UPROPERTY() int64 Savings = 0;          // the partner's profit kept for its next store (home-level kurus)
     UPROPERTY() int64 LastRoyalty = 0;      // last month's royalty (our money, before withholding)
     UPROPERTY() int64 TotalRoyalty = 0;
     UPROPERTY() bool bEnded = false;

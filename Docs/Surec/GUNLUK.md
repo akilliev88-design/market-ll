@@ -1,3 +1,13 @@
+## 04.10.2026 — Claude Code — Ortaklıkta gün kuralı kalktı (derlenmedi)
+
+**İstek (Mustafa):** "45 günde bir mağaza açmak saçma; ne zaman uygunsa o zaman açılır."
+
+**Yapılan (M67 güncellendi):** Ortak artık takvime göre değil, parası ve yeri olunca mağaza açıyor. Mağazaları satışının %3,5'ini biriktiriyor. Birikim bir mahalle mağazasının açılışına yetince ve ülkede yer varsa yeni mağazayı açıyor. Mağaza sayısı arttıkça her mağaza biraz daha az satıyor; bu yüzden büyüme kendiliğinden yavaşlıyor. İyi ortak (yüksek kalite) daha hızlı büyüyor. Kayda ortağın birikimi eklendi (sürüm 19 hiç derlenmediği için artırılmadı).
+
+**Doğrulama:** Derlenmedi. `Expansion.ScaleAndFranchise`: ilk 10 günde yeni mağaza yok; 400 günde ortak kendi kârıyla büyüyor, sınırı aşmıyor; mağaza başı satış ülke doldukça düşüyor.
+
+**Not:** son.log'da derleme yine başlamadı: yerel dal uzaktakiyle ayrışmış (yereldeki 1 commit). Elle birleştirme gerekiyor.
+
 ## 03.10.2026 — Claude Code — D7 ilk parça: dünya kartı (derlenmedi)
 
 **Yapılan:** Ana ekranda "Dünya" düğmesi ve kartı: 10 ülke kıtaya göre, her birinde ne durumdayız (mağaza, ortaklık, sıramız, araştırma, kapalıysa neden). Ülkeye tıklayınca il haritası açılır; araştırma, mağaza ve ortaklık oradan yapılır.
@@ -12,7 +22,7 @@
 
 **Yapılan (M67):** Yurt dışı artık 6. bölümü beklemiyor; ana ülkede 25 mağaza ve 5 il yetiyor (ülke müdürü atanabilecek büyüklük). Yeni giriş yolu: ortaklık. Yerel bir ortak mağazaları bizim adımızla açar, biz her ay satışlarının %4'ünü alırız; sürerken o ülkede kendi mağazamız olmaz, bitirmek bir yıllık kâr payı kadar tutar. 6. bölümün adı "Dünyaya Açılış".
 
-**Varsayımlar:** Ortaklık oranları (%4, 3 mağaza, 45 günde bir, sözleşme = pazar araştırması bedeli) benim önerim. İhracat/online yolu yazılmadı. Bot ortaklığı kullanmıyor (D8'de bakılır).
+**Varsayımlar:** Ortaklık oranları (%4, 3 mağaza, sözleşme = pazar araştırması bedeli) benim önerim. İhracat/online yolu yazılmadı. Bot ortaklığı kullanmıyor (D8'de bakılır).
 
 **Doğrulama:** Derlenmedi. Yeni test `MirasMarket.Expansion.ScaleAndFranchise`. Kayıt sürümü 19 (eski kayıt yüklenmez, M27). Test.ps1 171.
 

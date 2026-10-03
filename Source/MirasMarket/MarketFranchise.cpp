@@ -30,11 +30,17 @@ namespace MarketFranchiseLocal
         return Words.Num() > 0 ? Family + TEXT(" ") + Words[(H / 13u) % static_cast<uint32>(Words.Num())] : Family;
     }
 
-    // A day of the partner stores' sales (home-level kurus, like a branch's).
+    // A day of one store's sales with Stores of the brand in the country (home-level kurus, like a branch's).
+    int64 PerStore(const FMarketState& State, const FMarketFranchise& F, int32 Stores)
+    {
+        const float Fill = static_cast<float>(Stores) / static_cast<float>(FMath::Max(1, MarketFranchise::MaxStores(F.Country)));
+        const double Base = static_cast<double>(MarketFranchise::StoreDaySales) * MarketPrices::ListLevel(FMath::Max(1, State.Day)) * F.Quality / 100.0;
+        return FMath::RoundToInt64(Base * (1.0 - MarketFranchise::Crowding * FMath::Clamp(Fill, 0.f, 1.f)));
+    }
+
     int64 DaySales(const FMarketState& State, const FMarketFranchise& F)
     {
-        const double PerStore = static_cast<double>(MarketFranchise::StoreDaySales) * MarketPrices::ListLevel(FMath::Max(1, State.Day)) * F.Quality / 100.0;
-        return FMath::RoundToInt64(PerStore * F.Stores);
+        return PerStore(State, F, F.Stores) * F.Stores;
     }
 
     FString NameOf(const FString& Country) { return MarketCountry::FindOrDefault(Country).Name; }
@@ -48,6 +54,17 @@ const FMarketFranchise* MarketFranchise::Find(const FMarketState& State, const F
 int32 MarketFranchise::MaxStores(const FString& Country)
 {
     return FMath::Clamp(MarketCountry::PopulationK(Country) / 2000, 8, 60);
+}
+
+int64 MarketFranchise::StoreDaySalesNow(const FMarketState& State, const FMarketFranchise& F)
+{
+    return MarketFranchiseLocal::PerStore(State, F, F.Stores);
+}
+
+int64 MarketFranchise::OpeningCost(const FMarketState& State)
+{
+    const MarketBranches::FFormat& Kind = MarketBranches::FormatInfo(TEXT("mahalle"));
+    return FMath::RoundToInt64(static_cast<double>(Kind.FitOut + 2 * Kind.Rent) * MarketPrices::ListLevel(FMath::Max(1, State.Day)));
 }
 
 int64 MarketFranchise::Fee(const FMarketState& State, const FString& Country)
@@ -85,8 +102,8 @@ bool MarketFranchise::Sign(FMarketState& State, const FString& Country, FString&
     F.Quality = 80 + static_cast<int32>(MarketFranchiseLocal::Hash(State, Country, 0x0A11u) % 41u);
     State.Company.Franchises.Add(F);
     MarketLedger::AddStoreCost(State, Price, MarketLedger::HeadOfficeStore); // paid at the day close
-    OutMessage = FString::Printf(TEXT("%s ile ortakl\u0131k imzaland\u0131 (%s). %s ad\u0131m\u0131zla %d ma\u011fazayla ba\u015fl\u0131yor, %d g\u00fcnde bir yenisini a\u00e7ar; sat\u0131\u015flar\u0131n %%%.0f'\u00fc her ay bize gelir."),
-        *F.Partner, *MarketCountry::Money(Price), *MarketFranchiseLocal::NameOf(Country), StartStores, GrowEvery, 100.f * RoyaltyRate);
+    OutMessage = FString::Printf(TEXT("%s ile ortakl\u0131k imzaland\u0131 (%s). %s ad\u0131m\u0131zla %d ma\u011fazayla ba\u015fl\u0131yor; kazand\u0131k\u00e7a ve yer bulduk\u00e7a yenisini a\u00e7ar. Sat\u0131\u015flar\u0131n %%%.0f'\u00fc her ay bize gelir."),
+        *F.Partner, *MarketCountry::Money(Price), *MarketFranchiseLocal::NameOf(Country), StartStores, 100.f * RoyaltyRate);
     if (bFirst) MarketStory::AddMemory(State, FString::Printf(TEXT("ilk ortakl\u0131k: %s, %s"), *F.Partner, *MarketFranchiseLocal::NameOf(Country)));
     return true;
 }
@@ -148,10 +165,16 @@ void MarketFranchise::CloseDay(FMarketState& State)
     for (FMarketFranchise& F : State.Company.Franchises)
     {
         if (F.bEnded) continue;
-        if (Closed >= F.StartDay) F.MonthSales += MarketFranchiseLocal::DaySales(State, F);
-        const int32 Age = Closed - F.StartDay;
-        if (Age > 0 && Age % GrowEvery == 0 && F.Stores < MaxStores(F.Country))
+        if (Closed < F.StartDay) continue;
+        const int64 Sales = MarketFranchiseLocal::DaySales(State, F);
+        F.MonthSales += Sales;
+        F.Savings += FMath::RoundToInt64(static_cast<double>(Sales) * PartnerMargin);
+        // A new store when the partner can pay for it and one more would still sell well (no day rule).
+        const int64 Cost = OpeningCost(State);
+        const int64 Lone = MarketFranchiseLocal::PerStore(State, F, 0);
+        if (F.Savings >= Cost && F.Stores < MaxStores(F.Country) && MarketFranchiseLocal::PerStore(State, F, F.Stores + 1) >= FMath::RoundToInt64(Lone * MinStoreShare))
         {
+            F.Savings -= Cost;
             ++F.Stores;
             State.DayNews.Add(FString::Printf(TEXT("Orta\u011f\u0131m\u0131z %s (%s) ad\u0131m\u0131zla %d. ma\u011fazay\u0131 a\u00e7t\u0131."), *F.Partner, *MarketFranchiseLocal::NameOf(F.Country), F.Stores));
         }
