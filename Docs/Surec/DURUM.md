@@ -1,8 +1,12 @@
 # Güncel durum
 
-Son güncelleme: 03.10.2026 — Claude (Cowork), C15 derlendi; C15b yazıldı, derlenmedi
+Son güncelleme: 03.10.2026 — Claude (Cowork), dengeleme durdu; dünya yeniden tasarımı (M51) taslağı
 
 ## Kısaca
+
+**03.10.2026 — Claude / M51 dünya yeniden tasarımı (taslak):** Mustafa: oyun dünya çapında; oyuncu herhangi bir ülkede başlar ve hepsinde oynar; **dengeleme burada durdu**; tek ekonomi modeli; ~10 ülke; ülke müdürlerinin üstüne kademe. Bütün sistemin gözden geçirmesi ve faz planı `Docs/Kurgu/09_DUNYA_YENIDEN.md` (asıl sorunlar: tek fiyat eğrisi, iki ekonomi, kodda ~45 `"tr"` dalı, Türkiye hikâyesi, yurt dışı 6. bölümde ve tek kapı, yönetim ülkede bitiyor, menü ulusal). Mustafa'nın 5 kararı bekleniyor (§8). C15b (koşturulmadıysa koşturulmasın) ve C16 (M48–M50, Claude'da, cihaza gönderilmedi) bekletiliyor. Claude Code'a henüz iş verilmedi.
+
+**03.10.2026 — Claude / C16 (yazıldı, derlenmedi, cihaza gönderilmedi):** Mustafa: "oyun bir yerden sonra sadece şube açma hissi veriyor". Beş madde bölüşüldü: Claude Code (`akis-cc` dalı, `..\market-ll-cc` worktree) M46 mağaza portföyü + M47 krizlere/rakiplere cevap; Claude M48 il pazarı ve il atağı, M49 yol ayrımları (odak, büyüme modeli, büyük yatırım), M50 yollar. Yeni `MarketStrategy.*`, testler `Strategy.ProvincePush`, `Strategy.ForksAndPaths`; bağlantılar MarketBranches (müşteri, hizmet, raf fiyatı, depo kaybı, tadilat, kira, kötü yer, kapasite), MarketBanking (faiz), MarketDirector (komut `ProvincePush`, gün kapanışı), MarketEvents (`strategy.*`), menü Şirket sekmesi kartı, bot (seçim ve il atağı), bot raporu satırı. Kayıt sürümü 9 (Claude Code da 9 yapacak; birleşimde 10). C15b koşusu bitince birlikte gönderilecek.
 
 **03.10.2026 — Claude / C15b (derlenmedi):** C15 derlendi, TEST 159 + 1 uyarı, Smoke geçti. Normal çıktıları C14d ile bayt bayt aynı: büyüme zorlanması hiç devreye girmedi (kapasite 8 + mağaza/2 büyüyen ağla birlikte büyüdü). Zor tam güç fazla sert: temkinli 13/15/1, dengeli 11/1/1, ama atak 282–320 (düşük fiyatla). Rahat fazla kolay: temkinli 150–167, dengeli 236–254, atak 326–367. C15b: kapasite 6 + mağaza × 0,4 + 2 × müdür (müdür payı ≤ mağaza × 0,3); zorluk çarpanı şubeye yarı gücüyle (Rahat 1,05, Zor 0,96). Mustafa koşturacak.
 

@@ -100,6 +100,7 @@ Motor yolu: `C:\Program Files\Epic Games\UE_5.8` (UE 5.8.3). Farklıysa betikler
 - C++ kaynakları ASCII kalır. Türkçe metni yaz, sonra `python Tools/escape_unicode.py` çalıştır. Oyun HUD metinleri şimdilik ASCII Türkçedir.
 - `.uasset` dosyalarını metin gibi düzenleme. Varlıkları stüdyo veya editör Python betikleri üretir.
 - Yeni oyun kuralı = yeni test. Para/stok korunumu ve iki kez uygulama testleri öncelikli.
+- **Karar M52 — motor ülke bilmez:** kodda ülke kodu (`"tr"` vb.) ya da ülkeye özel dal yazılmaz; ülkeye özgü her sayı, ad, tarih ve alışkanlık ülke paketindedir (`Config/ulkeler.json`). Yeni ülke yalnız paketle eklenir. Ayrıntı `Docs/Kurgu/10_ULKE_STANDARDI.md`.
 - **Karar M27:** yayına kadar eski kayıt uyumu yok. `Migrate` ya da eski kayıt dalı yazılmaz; kayıt biçimi değişince `FMarketState::CurrentVersion` artar, eski kayıt yüklenmez.
 - Kutu ambalajında yüz ↔ UV eşlemesi yalnızca `FBoxPackageLayout` üzerinden yapılır; başka yerde koordinat kopyalama.
 
