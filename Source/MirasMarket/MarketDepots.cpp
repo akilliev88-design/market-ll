@@ -133,7 +133,7 @@ namespace MarketDepots
         Depot.Country = Country;
         Depot.Province = Province;
         Depot.OpenedDay = FMath::Max(1, State.Day);
-        Depot.Rent = FMath::RoundToInt64(static_cast<double>(MonthlyRent2011) * DepotRentFactor(State, Country, Province));
+        Depot.Rent = FMath::RoundToInt64(static_cast<double>(MonthlyRentStart) * DepotRentFactor(State, Country, Province));
         Depot.Capacity = DefaultCapacity;
         return Depot;
     }
@@ -300,13 +300,13 @@ float MarketDepots::TruckShortage(const FMarketState& State)
 int64 MarketDepots::BuildCost(const FMarketState& State, const FString& Country, const FString& Province)
 {
     const FString C = DepotCountry(State, Country);
-    return FMath::RoundToInt64(static_cast<double>(BuildCost2011) * DepotRentFactor(State, C, Province) * MarketPrices::ListLevel(State.Day));
+    return FMath::RoundToInt64(static_cast<double>(BuildCostStart) * DepotRentFactor(State, C, Province) * MarketPrices::ListLevel(State.Day));
 }
 
 int64 MarketDepots::MonthlyRent(const FMarketState& State, const FString& Country, const FString& Province)
 {
     const FString C = DepotCountry(State, Country);
-    return FMath::RoundToInt64(static_cast<double>(MonthlyRent2011) * DepotRentFactor(State, C, Province) * MarketPrices::ListLevel(State.Day));
+    return FMath::RoundToInt64(static_cast<double>(MonthlyRentStart) * DepotRentFactor(State, C, Province) * MarketPrices::ListLevel(State.Day));
 }
 
 bool MarketDepots::CanBuild(const FMarketState& State, const FString& Country, const FString& Province, FString& OutReason)

@@ -203,7 +203,7 @@ void MarketStory::CloseDay(FMarketState& State, const TArray<FMarketProduct>& Pr
     const int32 Closed = State.Day - 1;
     if (Closed < 1 || StoryClosed(State)) return;
     // Karar J02: the campaign's last day brings the finale if the Legacy one has not come.
-    if (MarketCalendar::DateOf(Closed).Year > FinalYear) { ReachFinale(State, EEnding::TimeUp); return; }
+    if (MarketCalendar::CampaignYear(Closed) > FinalYear) { ReachFinale(State, EEnding::TimeUp); return; }
     // Milestones.
     if (State.LastPurchases > 0 && !Has(State, BFirstOrder)) { Mark(State, BFirstOrder); AddMemory(State, TEXT("ilk sipari\u015f")); }
     if (State.LastProfit > 0 && !Has(State, BFirstProfit)) { Mark(State, BFirstProfit); AddMemory(State, TEXT("ilk k\u00e2rl\u0131 g\u00fcn")); }

@@ -6,22 +6,15 @@
 
 namespace MarketPrices
 {
-    struct FYearRates { int32 Year; double Inflation; double LoanRate; };
-    // The game's economy curve (karar A06, Mustafa 29.09.2026: fun over a one-to-one copy of history). It keeps the
-    // shape a Turkish player recognises - calm early 2010s, a jolt in 2018, a hard stretch in 2021-2023, a slow
-    // cool-down - but softer than the published figures (2022 is 30 %, not 64 %), so a player who knows the real
-    // numbers cannot read the future off them. The loan rate stays a few points above inflation.
-    const FYearRates Rates[] =
-    {
-        { 2011, 0.090, 0.15 }, { 2012, 0.070, 0.14 }, { 2013, 0.075, 0.13 }, { 2014, 0.080, 0.14 }, { 2015, 0.085, 0.15 },
-        { 2016, 0.090, 0.15 }, { 2017, 0.110, 0.17 }, { 2018, 0.160, 0.24 }, { 2019, 0.120, 0.19 }, { 2020, 0.130, 0.17 },
-        { 2021, 0.190, 0.24 }, { 2022, 0.300, 0.33 }, { 2023, 0.280, 0.32 }, { 2024, 0.220, 0.28 },
-        { 2025, 0.170, 0.24 }, { 2026, 0.140, 0.21 }, { 2027, 0.120, 0.18 }, { 2028, 0.100, 0.16 }, { 2029, 0.090, 0.15 },
-    };
+    struct FYearRates { double Inflation = 0.0; double LoanRate = 0.0; };
+    // Y1 (M60, M52): a hand-made economy curve (karar A06) is pack data now: "economy.curve" lists inflation and loan
+    // rate by campaign year (the Turkish pack keeps the old shape as its high-inflation character, not as dates).
+    // After its last year: "economy.curveAfter" (else 8 % / 14 %).
     constexpr double LaterInflation = 0.08;
     constexpr double LaterLoanRate = 0.14;
 
-    // Net monthly minimum wage of the first half of 2011 (TL). Afterwards it is raised every January and July to
+    // The start's net monthly minimum wage, the game's wage unit (packs scale it with wageFactor). Afterwards it is
+    // raised every January and July (of the internal calendar) to
     // the price level expected at the end of that half year, plus 0.5 % real growth a year: wages never fall behind
     // for long, and never run away from prices either.
     constexpr double StartWage = 658.95;
@@ -48,11 +41,26 @@ namespace MarketPrices
         return FMath::Clamp(Rate, -0.01, 0.6);
     }
 
-    const FYearRates* FindYear(int32 Year)
+    // The campaign's country's hand-made curve (the default pack's when none is active: tests and tools).
+    const MarketCountry::FProfile& CurvePack()
     {
-        for (const FYearRates& R : Rates) if (R.Year == Year) return &R;
-        return nullptr;
+        const MarketCountry::FProfile& Active = MarketCountry::Active();
+        return Active.CurveInflation.Num() > 0 ? Active : MarketCountry::Default();
     }
+
+    // The curve's rates of a calendar year of the internal calendar (false: past its end, or no curve).
+    bool FindYear(int32 Year, FYearRates& Out)
+    {
+        const MarketCountry::FProfile& P = CurvePack();
+        const int32 Index = Year - MarketCalendar::StartYear; // campaign year - 1
+        if (!P.CurveInflation.IsValidIndex(Index) || !P.CurveLoan.IsValidIndex(Index)) return false;
+        Out.Inflation = P.CurveInflation[Index];
+        Out.LoanRate = P.CurveLoan[Index];
+        return true;
+    }
+
+    double AfterInflation() { const MarketCountry::FProfile& P = CurvePack(); return P.CurveInflation.Num() > 0 ? P.CurveAfterInflation : LaterInflation; }
+    double AfterLoanRate() { const MarketCountry::FProfile& P = CurvePack(); return P.CurveInflation.Num() > 0 ? P.CurveAfterLoan : LaterLoanRate; }
 }
 
 void MarketPrices::SetEconomy(double InflationMean, double InflationVol, double LoanSpread, bool bShocks, int32 Seed)
@@ -69,15 +77,16 @@ double MarketPrices::YearlyInflation(int32 Year)
 {
     // B4: the eras of the campaign (MarketEras) carry the inflation peaks; the built-in curve holds the unshifted
     // plan's peaks, so they are taken out and the campaign's put in (no shift: the same curve as before).
-    if (Year < 2011) return 0.08;
+    if (Year < MarketCalendar::StartYear) return LaterInflation;
     const double Era = MarketEras::InflationBump(Year);
     if (Economy().bOn) return FMath::Clamp(CustomInflation(Year) + Era, -0.01, 0.9);
-    if (const FYearRates* R = FindYear(Year))
+    FYearRates R;
+    if (FindYear(Year, R))
     {
         const double BuiltIn = MarketEras::BuiltInBump(Year);
-        return Era == BuiltIn ? R->Inflation : FMath::Clamp(R->Inflation - BuiltIn + Era, -0.01, 0.9);
+        return Era == BuiltIn ? R.Inflation : FMath::Clamp(R.Inflation - BuiltIn + Era, -0.01, 0.9);
     }
-    return LaterInflation + Era;
+    return AfterInflation() + Era;
 }
 
 double MarketPrices::DailyGrowth(int32 GameDay)
@@ -111,7 +120,7 @@ double MarketPrices::ListLevel(int32 GameDay)
 double MarketPrices::MinimumWage(int32 GameDay)
 {
     const MarketCalendar::FDate Date = MarketCalendar::DateOf(GameDay);
-    if (Date.Year == 2011 && Date.Month <= 6) return StartWage;
+    if (Date.Year == MarketCalendar::StartYear && Date.Month <= 6) return StartWage; // the first half of the first year
     // End of the running half year: 1 July or 1 January of the next year.
     const int32 HalfEnd = Date.Month <= 6 ? MarketCalendar::GameDayOf(Date.Year, 7, 1) : MarketCalendar::GameDayOf(Date.Year + 1, 1, 1);
     const int32 HalfStart = Date.Month <= 6 ? MarketCalendar::GameDayOf(Date.Year, 1, 1) : MarketCalendar::GameDayOf(Date.Year, 7, 1);
@@ -129,23 +138,24 @@ double MarketPrices::LoanRate(int32 GameDay)
     const int32 Year = MarketCalendar::DateOf(GameDay).Year;
     // B4: banks follow the eras' inflation peaks one to one.
     if (Economy().bOn) return FMath::Max(0.02, YearlyInflation(Year) + Economy().Spread);
-    const double Era = Year >= 2011 ? MarketEras::InflationBump(Year) : 0.0;
-    if (const FYearRates* R = FindYear(Year))
+    const double Era = Year >= MarketCalendar::StartYear ? MarketEras::InflationBump(Year) : 0.0;
+    FYearRates R;
+    if (FindYear(Year, R))
     {
         const double BuiltIn = MarketEras::BuiltInBump(Year);
-        return Era == BuiltIn ? R->LoanRate : FMath::Max(0.02, R->LoanRate - BuiltIn + Era);
+        return Era == BuiltIn ? R.LoanRate : FMath::Max(0.02, R.LoanRate - BuiltIn + Era);
     }
-    return LaterLoanRate + Era;
+    return AfterLoanRate() + Era;
 }
 
-int64 MarketPrices::Scaled(int64 Kurus2011, int32 GameDay)
+int64 MarketPrices::Scaled(int64 KurusStart, int32 GameDay)
 {
-    return FMath::RoundToInt64(static_cast<double>(Kurus2011) * ListLevel(GameDay));
+    return FMath::RoundToInt64(static_cast<double>(KurusStart) * ListLevel(GameDay));
 }
 
-int64 MarketPrices::WageScaled(int64 Kurus2011, int32 GameDay)
+int64 MarketPrices::WageScaled(int64 KurusStart, int32 GameDay)
 {
-    return FMath::RoundToInt64(static_cast<double>(Kurus2011) * WageIndex(GameDay));
+    return FMath::RoundToInt64(static_cast<double>(KurusStart) * WageIndex(GameDay));
 }
 
 // ---------------------------------------------------------------------------------------------------------------
@@ -168,7 +178,7 @@ namespace MarketPricesCountry
         uint32 Seed = 0;
         double Mean = 0.02, Vol = 0.01, Spread = 0.03;
         bool bShocks = false;
-        int32 FirstYear = 2011;
+        int32 FirstYear = MarketCalendar::StartYear;
         TArray<double> YearStart;   // price level on 1 January of FirstYear + i (FirstYear itself: the start day)
     };
 
@@ -265,14 +275,14 @@ double MarketPrices::LoanRate(const FString& Country, int32 GameDay)
     return FMath::Max(0.02, MarketPricesCountry::ForeignInflation(F, MarketCalendar::DateOf(GameDay).Year) + F.Spread);
 }
 
-int64 MarketPrices::Scaled(const FString& Country, int64 Kurus2011, int32 GameDay)
+int64 MarketPrices::Scaled(const FString& Country, int64 KurusStart, int32 GameDay)
 {
-    return FMath::RoundToInt64(static_cast<double>(Kurus2011) * ListLevel(Country, GameDay));
+    return FMath::RoundToInt64(static_cast<double>(KurusStart) * ListLevel(Country, GameDay));
 }
 
-int64 MarketPrices::WageScaled(const FString& Country, int64 Kurus2011, int32 GameDay)
+int64 MarketPrices::WageScaled(const FString& Country, int64 KurusStart, int32 GameDay)
 {
-    return FMath::RoundToInt64(static_cast<double>(Kurus2011) * WageIndex(Country, GameDay));
+    return FMath::RoundToInt64(static_cast<double>(KurusStart) * WageIndex(Country, GameDay));
 }
 
 double MarketPrices::ToHome(const FMarketState& State, const FString& Country, int32 GameDay)

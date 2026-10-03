@@ -53,8 +53,8 @@ namespace MarketCountry
 
     void ApplyEconomy(const FProfile& P, int32 Seed)
     {
-        // A pack with "curve": "builtin" (Turkey) keeps the prototype's own curve (karar A06); every other pack gets a
-        // generated curve.
+        // A pack with a hand-made curve (Turkey; Y1: pack data) uses it (karar A06); every other pack gets a generated
+        // curve.
         if (P.bBuiltinCurve) MarketPrices::ClearEconomy();
         else MarketPrices::SetEconomy(P.InflationMean, P.InflationVol, P.LoanSpread, P.Character == ECharacter::Volatile || P.Character == ECharacter::HighInflation, Seed);
         // B4: the country's eras without a campaign shift (MarketEras::Activate puts the campaign's plan in).
@@ -106,8 +106,25 @@ bool MarketCountry::Parse(const FString& Json, TArray<FProfile>& OutProfiles, TA
             (*Economy)->TryGetNumberField(TEXT("inflationMean"), P.InflationMean);
             (*Economy)->TryGetNumberField(TEXT("inflationVol"), P.InflationVol);
             (*Economy)->TryGetNumberField(TEXT("loanSpread"), P.LoanSpread);
-            FString Curve;
-            P.bBuiltinCurve = (*Economy)->TryGetStringField(TEXT("curve"), Curve) && Curve == TEXT("builtin"); // D3
+            // Y1 (M60): the hand-made curve, [inflation, loan] per campaign year.
+            const TArray<TSharedPtr<FJsonValue>>* Curve = nullptr;
+            if ((*Economy)->TryGetArrayField(TEXT("curve"), Curve))
+                for (const TSharedPtr<FJsonValue>& Year : *Curve)
+                {
+                    const TArray<TSharedPtr<FJsonValue>>* Pair = nullptr;
+                    if (Year.IsValid() && Year->TryGetArray(Pair) && Pair->Num() == 2)
+                    {
+                        P.CurveInflation.Add((*Pair)[0]->AsNumber());
+                        P.CurveLoan.Add((*Pair)[1]->AsNumber());
+                    }
+                }
+            const TArray<TSharedPtr<FJsonValue>>* After = nullptr;
+            if ((*Economy)->TryGetArrayField(TEXT("curveAfter"), After) && After->Num() == 2)
+            {
+                P.CurveAfterInflation = (*After)[0]->AsNumber();
+                P.CurveAfterLoan = (*After)[1]->AsNumber();
+            }
+            P.bBuiltinCurve = P.CurveInflation.Num() > 0;
             double Number = 0.0;
             if ((*Economy)->TryGetNumberField(TEXT("wageFactor"), Number)) P.WageFactor = static_cast<float>(Number);
             if ((*Economy)->TryGetNumberField(TEXT("rentFactor"), Number)) P.RentFactor = static_cast<float>(Number);

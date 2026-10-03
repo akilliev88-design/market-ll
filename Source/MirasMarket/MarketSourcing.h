@@ -21,7 +21,7 @@ namespace MarketSourcing
     constexpr int32 LineCount = static_cast<int32>(ELine::Count);
     constexpr int32 TierCount = static_cast<int32>(ETier::Count);
     constexpr float MaxVolumeDiscount = 0.12f;
-    constexpr int64 BaseVolume2011 = 400000;     // a small shop's 30-day purchases at the start level (4.000 TL)
+    constexpr int64 BaseVolumeStart = 400000;     // a small shop's 30-day purchases at the start level (4.000 TL)
 
     FString LineName(ELine Line);
     FString TierName(ETier Tier);

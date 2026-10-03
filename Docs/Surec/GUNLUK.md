@@ -1,3 +1,15 @@
+## 04.10.2026 — Claude Code — Y1: gerçek yıl kalıntıları (derlenmedi)
+
+**son.log (1127163):** DERLE geçti; TEST 172 başarılı, uyarı 0, başarısız 0; Smoke geçti. D7 bitti.
+
+**İstek (Mustafa):** "Bundan sonraki aşamada kalıntıları sil (Y1) ve D8 işini yap."
+
+**Yapılan (Y1, M60):** Oyunda gerçek yıla bağlı kural kalmadı. Dönem olayları, salgın ve hikâyenin sonu "kampanyanın kaçıncı yılı" ile yazılıyor. Türkiye'ye özgü elle yapılmış enflasyon eğrisi motordan ülke paketine taşındı (M52 ile de uyumlu). Koddaki "2011" adları "başlangıç" oldu, eski kayıt kalıntısı yorumlar temizlendi. Takvimin içindeki sabit tarih yalnız hafta günü ve bayram hesabı için kaldı (M60 buna izin veriyor).
+
+**Doğrulama:** Derlenmedi. Davranış değişmemeli: aynı sayılar, aynı günler. Ölçümler önceki turla aynı çıkmalı.
+
+**Sıradaki:** D8 (bot ve denge).
+
 ## 04.10.2026 — Claude Code — D7 kalanı: dünya haritası ve M53 (derlenmedi)
 
 **İstek (Mustafa):** "1'den devam et, D8'e geçeriz."

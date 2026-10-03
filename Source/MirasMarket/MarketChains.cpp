@@ -491,7 +491,7 @@ float MarketChains::PressureFactor(const FMarketState& State, const FString& InC
 {
     const FString Country = MarketChainsLocal::CountryOf(State, InCountry);
     const float* Base = State.Rivals.Baseline.Find(MarketChainsLocal::Key(Country, Province));
-    if (!Base) return 1.f; // country not seeded yet (older save before its first close)
+    if (!Base) return 1.f; // country not seeded yet (before its first close)
     const float Now = WeightedIn(State, Country, Province);
     const float Factor = FMath::Clamp(FMath::Sqrt((Now + 1.f) / (*Base + 1.f)), 0.6f, 1.8f);
     return Factor * (WarIn(State, Country, Province, Day) != INDEX_NONE ? WarPressure : 1.f);

@@ -21,7 +21,7 @@ namespace MarketStory
     enum class EEnding : uint8 { None = 0, Sold, Legacy, TimeUp };
     // Karar J02: the campaign's last day (31.12.2040). If the Legacy finale has not come by then, the time-up
     // finale does. Either way it is shown once and the game goes on without new story content.
-    constexpr int32 FinalYear = 2040;
+    constexpr int32 FinalYear = 30;   // Y1 (M60): the campaign year after which the story closes (karar J02)
     // B1 (#45): chapter 5 goal, percent of the country's grocery retail by revenue (karar bekliyor: Mustafa).
     constexpr float NationalShareGoal = 0.1f;
 

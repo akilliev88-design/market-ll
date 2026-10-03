@@ -126,7 +126,7 @@ float MarketSourcing::VolumeDiscount(const FMarketState& State)
 {
     int64 Volume = 0;
     for (const FMarketSupplierAccount& A : State.SupplierAccounts) Volume += A.Volume30;
-    const double Base = FMath::Max(1.0, BaseVolume2011 * MarketPrices::ListLevel(State.Day));
+    const double Base = FMath::Max(1.0, BaseVolumeStart * MarketPrices::ListLevel(State.Day));
     if (Volume <= Base) return 0.f;
     return FMath::Clamp(0.03f * static_cast<float>(FMath::Log2(static_cast<double>(Volume) / Base)), 0.f, MaxVolumeDiscount);
 }

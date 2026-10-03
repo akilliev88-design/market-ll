@@ -18,7 +18,7 @@ namespace
     constexpr float WorkerThinkSeconds = 1.2f;
     constexpr float BoxPersonLift = 65.f;     // box people are centred, MetaHumans stand on their feet
 
-    // The person behind a walking worker (MarketStaff). Older saves without a roster: nullptr = v0.1 worker.
+    // The person behind a walking worker (MarketStaff). nullptr = nobody on the roster behind it (a bare worker).
     const FMarketEmployee* WorkerPerson(const FMarketState& State, const FMarketWorker& Worker)
     {
         return State.Staff.FindByPredicate([&Worker](const FMarketEmployee& E) { return E.Id == Worker.EmployeeId; });

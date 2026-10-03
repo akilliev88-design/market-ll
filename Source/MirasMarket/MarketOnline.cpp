@@ -35,16 +35,17 @@ namespace MarketOnlineLocal
     }
 
     FString Tl(int64 Kurus) { return MarketCountry::Money(Kurus); }
-    int32 DateDay(int32 Year, int32 Month, int32 Day) { return MarketCalendar::GameDayOf(Year, Month, Day); }
+    // Y1 (M60): a date in a campaign year (the epidemic's anchors: year 10 and 11).
+    int32 DateDay(int32 CampaignYear, int32 Month, int32 Day) { return MarketCalendar::GameDayOfCampaign(CampaignYear, Month, Day); }
     double LevelOn(int32 Day) { return MarketPrices::ListLevel(FMath::Max(1, Day)); }
     int64 AtLevel(int64 Kurus, int32 Day) { return FMath::RoundToInt64(Kurus * LevelOn(Day)); }
     int64 WageAt(int64 Kurus, int32 Day) { return FMath::RoundToInt64(Kurus * MarketPrices::WageIndex(FMath::Max(1, Day))); }
 
-    // The 2020-2021 period is different in every campaign: when it starts, how long the panic lasts, which closure
+    // The epidemic period (years 10-11 of the plan) is different in every campaign: when it starts, how long the panic lasts, which closure
     // days come and how long the full closure is come from the seed.
     uint32 Roll(const FMarketState& State, uint32 Salt, int32 Extra = 0) { return Mix(State.RivalSeed, Extra, Salt); }
     int32 PanicEnd(const FMarketState& State) { return MarketOnline::PandemicStart(State) + 1 + 8 + static_cast<int32>(Roll(State, 0x9A01u) % 7u); }
-    int32 ClosureStart(const FMarketState& State) { return DateDay(2021, 4, 15) + MarketEras::PandemicShiftDays(State) + static_cast<int32>(Roll(State, 0x9A02u) % 21u); }
+    int32 ClosureStart(const FMarketState& State) { return DateDay(11, 4, 15) + MarketEras::PandemicShiftDays(State) + static_cast<int32>(Roll(State, 0x9A02u) % 21u); }
     int32 ClosureEnd(const FMarketState& State) { return ClosureStart(State) + 10 + static_cast<int32>(Roll(State, 0x9A03u) % 11u); }
     bool IsPanic(const FMarketState& State, int32 GameDay) { return GameDay > MarketOnline::PandemicStart(State) && GameDay < PanicEnd(State); }
 
@@ -474,12 +475,12 @@ float MarketOnline::OnlineShare(const FMarketState& State, int32 GameDay, const 
 int32 MarketOnline::PandemicStart(const FMarketState& State)
 {
     // B4: the epidemic comes when the campaign's eras say (MarketEras; no shift without MarketEras::Setup).
-    return MarketOnlineLocal::DateDay(2020, 3, 1) + MarketEras::PandemicShiftDays(State) + static_cast<int32>(MarketOnlineLocal::Roll(State, 0x9A00u) % 21u);
+    return MarketOnlineLocal::DateDay(10, 3, 1) + MarketEras::PandemicShiftDays(State) + static_cast<int32>(MarketOnlineLocal::Roll(State, 0x9A00u) % 21u);
 }
 
 int32 MarketOnline::PandemicEnd(const FMarketState& State)
 {
-    return MarketOnlineLocal::DateDay(2021, 5, 20) + MarketEras::PandemicShiftDays(State) + static_cast<int32>(MarketOnlineLocal::Roll(State, 0x9A04u) % 50u);
+    return MarketOnlineLocal::DateDay(11, 5, 20) + MarketEras::PandemicShiftDays(State) + static_cast<int32>(MarketOnlineLocal::Roll(State, 0x9A04u) % 50u);
 }
 
 bool MarketOnline::IsPandemic(const FMarketState& State, int32 GameDay)

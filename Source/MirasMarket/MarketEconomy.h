@@ -47,7 +47,7 @@ struct FMarketProduct
     // G-078: retail data (products.json "retail", all optional; 0 / -1 = use the category's default).
     UPROPERTY() FString Subcategory;     // e.g. "gazl\u0131", "su", "\u00e7ay": substitution and campaign scope
     UPROPERTY() float Kvi = 0.f;         // 0..1: how well shoppers know its price (bread, milk, tea = 1)
-    UPROPERTY() float VatRate = -1.f;    // e.g. 0.08 food, 0.18 cleaning (2011)
+    UPROPERTY() float VatRate = -1.f;    // e.g. 0.08 food, 0.18 cleaning (at the start)
     UPROPERTY() int32 ShelfLifeDays = 0; // days a batch can be sold; 0 = group default (MarketGoods)
     UPROPERTY() float Elasticity = 0.f;  // price/promotion sensitivity (1.5 staples .. 4 snacks); 0 = group default
     UPROPERTY() float Stockpile = -1.f;  // how much shoppers stock up on a deal (0.2 milk .. 1.5 detergent)
@@ -80,7 +80,7 @@ struct FMarketStock
     UPROPERTY() int32 Incoming = 0;
     UPROPERTY() int64 Price = 0;
     // Units that physically fit this product's shelf block (planogram facings x depth).
-    // Older saves have no value and load as the v0.1 default.
+    // No value: the default.
     UPROPERTY() int32 Capacity = 24;
     // Shoppers of the running day and of the last closed day (the day report reads Yesterday).
     UPROPERTY() FMarketDemandStats Today;
@@ -90,7 +90,7 @@ struct FMarketStock
     UPROPERTY() int32 Received = 0;
     // G-078 (#26): weighted average purchase cost of the units held (shelf, depot, dock, on the way), in kurus.
     // The cost of goods sold and the waste use it, so a price rise or a cheaper deal changes only new purchases.
-    // 0 = unknown (older saves, the inherited stock): today's catalog cost is used until the first purchase.
+    // 0 = unknown (the inherited stock): today's catalog cost is used until the first purchase.
     UPROPERTY() int64 AvgCost = 0;
     // G-078 shopper memory (MarketPromotions): how often it has been on a deal lately (decaying day count; many
     // deals teach shoppers to wait for the next one) and what they stocked up at home on the last deal (the
@@ -357,7 +357,7 @@ struct FMarketBranch
     UPROPERTY() int64 WeekProfit = 0;
     UPROPERTY() int64 Last30Profit = 0;  // running sum over about 30 days
     // G-086b (Docs/Kurgu/03_MAGAZA_AGI.md \u00a74.1, MarketManagers.h): the manager's hidden style (MarketManagers::EStyle;
-    // 0 = an older save, seeded once), morale (-1 = an older save), warnings, the day they took over (0 = long ago:
+    // 0 = not set yet, seeded once), morale (-1 = not set yet), warnings, the day they took over (0 = long ago:
     // no settling-in week), weekly marks in a row, the last bonus and warning, the day the till was found short.
     UPROPERTY() uint8 ManagerStyle = 0;
     UPROPERTY() float ManagerMorale = -1.f;
@@ -372,7 +372,7 @@ struct FMarketBranch
     // derives it once from the skill (+5..20, at most 95).
     UPROPERTY() int32 ManagerPotential = 0;
     // G-088 stage C (MarketStoreViews.h): the ready-made store view signed for this branch and a copy of its
-    // measured size (lengths in metres, areas in m2). Empty view = an older save: the format's nominal store.
+    // measured size (lengths in metres, areas in m2). Empty view: the format's nominal store.
     UPROPERTY() FString StoreView;
     UPROPERTY() float ViewShelfM = 0.f;
     UPROPERTY() float ViewCoolerM = 0.f;
@@ -494,7 +494,7 @@ struct FMarketManager
     UPROPERTY() int32 WarnedDay = 0;
     UPROPERTY() bool bPromoted = false;     // came up from a store manager
     // G-086b ek (M19, M21): hidden style (MarketManagers::EStyle; the family shop's manager runs the shop by it;
-    // 0 = an older save, seeded once) and hidden ceiling of skill (55..95; 0 = an older save, derived once).
+    // 0 = not set yet, seeded once) and hidden ceiling of skill (55..95; 0 = not set yet, derived once).
     UPROPERTY() uint8 Style = 0;
     UPROPERTY() int32 Potential = 0;
 };
@@ -960,13 +960,13 @@ struct FMarketState
     UPROPERTY() bool bRealBrands = false;   // karar L12: fictional brands close to the real ones; F8 shows real names (development)
     // G-076: true once free test controls (F2/F3, free orders) were used in this campaign; shown in the menu.
     UPROPERTY() bool bUsedTestMode = false;
-    // G-078 (#5): the campaign's own shelf plan (planograms.json text), written at every save. Empty in older saves:
+    // G-078 (#5): the campaign's own shelf plan (planograms.json text), written at every save. Empty:
     // they keep Config/planograms.json.
     UPROPERTY() FString PlanogramJson;
     // G-084: the country pack (Config/ulkeler.json) and start city of the campaign. Older saves: Turkey.
     UPROPERTY() FString CountryId = TEXT("tr");
     UPROPERTY() FString CityId;
-    // G-084: who left the shop (MarketStart.h: teyze, dayi, hala, amca, buyukanne). Empty in older saves = the father.
+    // G-084: who left the shop (MarketStart.h: teyze, dayi, hala, amca, buyukanne). Empty = the father.
     UPROPERTY() FString RelativeKey;
     UPROPERTY() int32 ProfitableDays = 0;
     UPROPERTY() float MarketShare = 25.f;
@@ -1103,7 +1103,7 @@ struct FMarketState
     UPROPERTY() FMarketGoals Goals;
     // ===== Ak\u0131\u015f B son =====
 
-    // Wages of everyone on the payroll (paid days off included). Staff empty = the v0.1 flags (older saves, tests).
+    // Wages of everyone on the payroll (paid days off included).
     int64 DailyPayroll() const;
 
     void Initialize(const TArray<FMarketProduct>& Products);

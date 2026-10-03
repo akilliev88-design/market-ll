@@ -25,22 +25,23 @@ namespace MarketEras
     }
 
     // Extra yearly inflation of an era by years from its start (x strength). The unshifted high-inflation plan
-    // puts them on the built-in curve's peaks (MarketPrices: 2018 16 %, 2021-2024 19/30/28/22 %).
+    // puts them on the hand-made curve's peaks (the Turkish pack's curve: year 8 16 %, years 11-14 19/30/28/22 %).
     const double ShockBumps[] = { 0.05, 0.02 };
     const double HighBumps[] = { 0.07, 0.18, 0.16, 0.08 };
 
     struct FTemplate { EKind Kind; int32 Year, Month, Day; int32 EndYear, EndMonth, EndDay; int32 Wave; };
-    // The unshifted calendar of the plan (internal anchors only; never shown).
+    // Y1 (M60): the unshifted plan in campaign years (year 1 = the first); never shown.
     const FTemplate Templates[] =
     {
-        { EKind::CurrencyShock, 2018, 8, 10, 2019, 1, 31, 1 },
-        { EKind::Recession,     2019, 2, 1,  2019, 12, 31, 1 },
-        { EKind::Pandemic,      2020, 3, 1,  2021, 6, 15, 1 },
-        { EKind::HighInflation, 2021, 9, 1,  2023, 12, 31, 1 },
-        { EKind::Recovery,      2024, 3, 1,  2025, 2, 28, 1 },
-        { EKind::CurrencyShock, 2031, 5, 1,  2031, 10, 31, 2 },
-        { EKind::HighInflation, 2032, 1, 1,  2033, 6, 30, 2 },
+        { EKind::CurrencyShock, 8, 8, 10, 9, 1, 31, 1 },
+        { EKind::Recession,     9, 2, 1,  9, 12, 31, 1 },
+        { EKind::Pandemic,      10, 3, 1, 11, 6, 15, 1 },
+        { EKind::HighInflation, 11, 9, 1, 13, 12, 31, 1 },
+        { EKind::Recovery,      14, 3, 1, 15, 2, 28, 1 },
+        { EKind::CurrencyShock, 21, 5, 1, 21, 10, 31, 2 },
+        { EKind::HighInflation, 22, 1, 1, 23, 6, 30, 2 },
     };
+    constexpr int32 PandemicYear = 10; // the epidemic template's campaign year
 
     // How hard an era hits in a country character (0 = it does not come).
     float StrengthOf(ECharacter Character, EKind Kind, int32 Wave, int32 Seed)
@@ -165,9 +166,9 @@ TArray<MarketEras::FEra> MarketEras::Plan(ECharacter Character, int32 Seed, int3
         E.Kind = T.Kind;
         E.Wave = T.Wave;
         E.Strength = Strength;
-        E.StartYear = T.Year + ShiftYears;
-        E.StartDay = MarketCalendar::GameDayOf(T.Year + ShiftYears, T.Month, T.Day) + ShiftDays;
-        E.EndDay = MarketCalendar::GameDayOf(T.EndYear + ShiftYears, T.EndMonth, T.EndDay) + ShiftDays;
+        E.StartYear = MarketCalendar::StartYear + T.Year - 1 + ShiftYears; // the calendar year of the price curve's arithmetic
+        E.StartDay = MarketCalendar::GameDayOfCampaign(T.Year + ShiftYears, T.Month, T.Day) + ShiftDays;
+        E.EndDay = MarketCalendar::GameDayOfCampaign(T.EndYear + ShiftYears, T.EndMonth, T.EndDay) + ShiftDays;
         Result.Add(E);
     }
     return Result;
@@ -220,7 +221,7 @@ int32 MarketEras::PandemicShiftDays(const FMarketState& State)
 {
     const FMarketEras& E = State.Eras;
     if (!E.bPlanned) return 0;
-    return MarketCalendar::GameDayOf(2020 + E.ShiftYears, 3, 1) - MarketCalendar::GameDayOf(2020, 3, 1) + E.ShiftDays;
+    return MarketCalendar::GameDayOfCampaign(PandemicYear + E.ShiftYears, 3, 1) - MarketCalendar::GameDayOfCampaign(PandemicYear, 3, 1) + E.ShiftDays;
 }
 
 bool MarketEras::Current(const FMarketState& State, int32 GameDay, FEra& OutEra)

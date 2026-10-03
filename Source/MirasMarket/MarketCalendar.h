@@ -6,16 +6,19 @@
 namespace MarketCountry { struct FHoliday; }
 
 // The campaign calendar (G-061, Docs/Kurgu/00_KURGU_KITABI.md \u00a72). Independent of the world, tested
-// (MirasMarket.Calendar.*). Game day 1 = Monday 7 March 2011; a played day is a calendar day. Weekends are days
-// 6 and 7 of every week, as the rival news already assumed.
-// Everything that makes a day different lives here: season, weather (deterministic per campaign seed), real
-// 2011+ public holidays and bayrams, Ramadan, paydays and month end. The game asks three questions:
+// (MirasMarket.Calendar.*). Y1 (karar M60): the game has no real year. Inside, game day 1 sits on a fixed
+// calendar date (StartYear/StartMonth/StartDayOfMonth, a Monday) only so weekdays, month lengths, Easter and the
+// lunar feasts can be computed; that date is a tool and is never shown nor used as a rule. Rules and texts use the
+// campaign's own year (CampaignYear: 1, 2, 3...; "3. y\u0131l"). A played day is a calendar day; weekends are days
+// 6 and 7 of every week.
+// Everything that makes a day different lives here: season, weather (deterministic per campaign seed), the pack's
+// holidays and feasts, Ramadan, paydays and month end. The game asks three questions:
 //  TrafficFactor  - how many shoppers come (x rival traffic in MarketDirector)
 //  GroupFactor    - how much a demand group is wanted today (shopping list weights)
 //  BudgetFactor   - how full the wallets are (basket size)
 namespace MarketCalendar
 {
-    constexpr int32 StartYear = 2011;
+    constexpr int32 StartYear = 2011;   // internal anchor of the calendar arithmetic only (Y1, M60)
     constexpr int32 StartMonth = 3;
     constexpr int32 StartDayOfMonth = 7;
 
@@ -59,6 +62,10 @@ namespace MarketCalendar
     };
 
     FDate DateOf(int32 GameDay);
+    // Y1 (M60): the campaign's own year of a game day (1 = the first) and the game day of a date in a campaign year
+    // (month, day). Every yearly rule (economy curve, eras, the epidemic, the end of the story) is written in these.
+    int32 CampaignYear(int32 GameDay);
+    int32 GameDayOfCampaign(int32 CampaignYear, int32 Month, int32 Day);
     // Game day of a calendar date (may be < 1 for dates before the start).
     int32 GameDayOf(int32 Year, int32 Month, int32 Day);
     bool IsWeekend(int32 GameDay);

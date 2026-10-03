@@ -89,7 +89,7 @@ namespace MarketDepartmentsLocal
     {
         const FInfo& I = MarketDepartments::Info(Dept);
         const int32 Shoppers = B.LastShoppers > 0 ? B.LastShoppers : FMath::Max(30, MarketBranches::FormatInfo(B.Format).Trips / 5);
-        return FMath::RoundToInt64(Shoppers * MarketDepartments::Ticket2011 * MarketPrices::ListLevel(Day) * I.Ratio * (1.f - I.Margin));
+        return FMath::RoundToInt64(Shoppers * MarketDepartments::TicketStart * MarketPrices::ListLevel(Day) * I.Ratio * (1.f - I.Margin));
     }
 
     // Opens a department in a branch if the till allows. Returns the cost paid (-1 when it could not).
@@ -329,7 +329,7 @@ MarketDepartments::FDay MarketDepartments::Day(FMarketState& State, int32 Branch
     if (!State.Branches.IsValidIndex(BranchIndex)) return Out;
     FMarketBranch& B = State.Branches[BranchIndex];
     const int32 Format = FormatIndex(B.Format);
-    const double Ticket = Ticket2011 * MarketPrices::ListLevel(Closed);
+    const double Ticket = TicketStart * MarketPrices::ListLevel(Closed);
     const float Buying = 1.f - MarketSourcing::VolumeDiscount(State);
     const int32 Month = MarketCalendar::DateOf(Closed).Month;
     const FString Country = MarketBranches::CountryOf(State, B);

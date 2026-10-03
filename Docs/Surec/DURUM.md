@@ -1,8 +1,10 @@
 # Güncel durum
 
-Son güncelleme: 04.10.2026 — Claude Code, akis-cc2: D7 kalanı (dünya haritası, M53) (derlenmedi)
+Son güncelleme: 04.10.2026 — Claude Code, akis-cc2: Y1 gerçek yıl temizliği (derlenmedi)
 
 ## Kısaca
+
+**04.10.2026 — Claude Code / Y1 gerçek yıl temizliği (derlenmedi, `akis-cc2`, M60):** 1127163 (D7 kalanı) geçti: DERLE, TEST 172/172 (uyarı 0), Smoke. Y1: `MarketCalendar::CampaignYear` ve `GameDayOfCampaign`; dönem planı (kur şoku 8. yıl, durgunluk 9, salgın 10–11, yüksek enflasyon 11–13, toparlanma 14–15, ikinci dalga 21–23), salgın tarihleri ve hikâyenin sonu (30. yıl) kampanya yılıyla. Türkiye'nin elle yapılmış fiyat eğrisi motordan çıkıp pakete taşındı (`economy.curve` [enflasyon, faiz] × 19 yıl, `curveAfter`); sayılar aynı, davranış değişmemeli. `Kurus2011`, `Ticket2011`, `BuildCost2011`... "Start" oldu. Eski kayıt (older save, v0.1, Migrate) yorumları temizlendi. İçerideki sabit takvim tarihi yalnız hafta günü/bayram hesabı için kalıyor. Testler: takvim ve paket testine kontroller eklendi (sayı 172). **Devam notu:** Mustafa derler; ölçümler (OLCUM) önceki turla aynı çıkmalı. Sonra D8.
 
 **04.10.2026 — Claude Code / D7 kalanı: dünya haritası ve M53 (derlenmedi, `akis-cc2`):** (1) Yeni `SMarketWorldMap` (`MarketWorldMap.*`): Dünya kartının üstünde şematik harita; kıta başına yumuşak alan ve adı, her ülke nüfusuna göre bir nokta, renk durumumuz (koyu ana ülke, yeşil mağaza, mavi ortaklık, sarı araştırma, gri girilmedi), üstüne gelince alt satırda durum, tıklayınca il haritası. Konumlar ve ad yönü ülke paketinde (`world: x, y, label`). (2) M53: `MarketChains::Listed/ListedRank/OutsideText`, dünya ilk 50, ülke 10–30 (nüfusa göre); sıralar (haber, hatıra, hedefler, bot raporu) liste dışında 0; listeye ilk giriş hatıra; Rakipler sayfası en çok 30/50 satır ve "listede değilsin" satırı; dünya kartındaki sıra da listeden. Yeni test `Chains.ListedOnlyWhenPassed`; Test.ps1 172. **Devam notu:** Mustafa derler; sonra D8.
 

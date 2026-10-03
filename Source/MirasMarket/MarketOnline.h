@@ -31,7 +31,7 @@
 // Rivals: the country's chains go online in their own time (the assistant tells), the platform opens its own
 // market later and asks for more commission now and then (decision cards). An e-commerce manager raises the stars,
 // the picking and can keep the policy.
-// The epidemic (2020-2021 profile) is always part of the game now: panic buying, closure days with short hours, a
+// The epidemic (a two-year profile, campaign years 10-11 before the era shift) is always part of the game now: panic buying, closure days with short hours, a
 // full closure, orders jump. Dates differ in every campaign.
 namespace MarketOnline
 {

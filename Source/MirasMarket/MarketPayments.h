@@ -7,7 +7,7 @@
 // How shoppers pay (G-069, Docs/Kurgu/00_KURGU_KITABI.md \u00a76, karar C08). Independent of the world, tested
 // (MirasMarket.Payments.*).
 //  - Every basket is paid in cash, by card or with a meal card. How many want to pay by card follows the year
-//    (a quarter of baskets in 2011, most of them after the contactless years) and the kind of shopper
+//    (a quarter of baskets in the first year, most of them after the contactless years) and the kind of shopper
 //    (pensioners pay cash, office workers and students use cards; children always pay cash).
 //  - Without a POS terminal a card shopper either pays cash grudgingly or leaves the basket (35 %).
 //  - A POS costs a monthly rent and 1.8 % commission; the money arrives at the next day close. With cards

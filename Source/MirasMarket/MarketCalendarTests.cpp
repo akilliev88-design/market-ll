@@ -13,6 +13,10 @@ bool FMarketCalendarDatesTest::RunTest(const FString& Parameters)
     TestTrue(TEXT("Day 1 is Monday 7 March 2011"), First.Year == 2011 && First.Month == 3 && First.Day == 7 && First.Weekday == 0);
     TestTrue(TEXT("Days 6 and 7 are the weekend"), IsWeekend(6) && IsWeekend(7) && !IsWeekend(5) && !IsWeekend(8));
     TestEqual(TEXT("Round trip"), GameDayOf(2011, 3, 7), 1);
+    // Y1 (M60): rules use the campaign's own year.
+    TestEqual(TEXT("Day 1 is in year 1"), CampaignYear(1), 1);
+    TestEqual(TEXT("Campaign date round trip"), GameDayOfCampaign(1, 3, 7), 1);
+    TestEqual(TEXT("Year 10"), CampaignYear(GameDayOfCampaign(10, 3, 1)), 10);
     const FDate Leap = DateOf(GameDayOf(2012, 2, 29));
     TestTrue(TEXT("Leap day exists and is a Wednesday"), Leap.Month == 2 && Leap.Day == 29 && Leap.Weekday == 2);
     TestTrue(TEXT("New year"), DateOf(GameDayOf(2012, 1, 1)).Year == 2012);

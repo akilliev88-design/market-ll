@@ -30,9 +30,9 @@ namespace MarketEvents
     }
 
     // Today's price of an amount at the start price level (M24).
-    int64 Priced(const FMarketState& State, int64 Kurus2011)
+    int64 Priced(const FMarketState& State, int64 KurusStart)
     {
-        return FMath::RoundToInt64(Kurus2011 * MarketPrices::ListLevel(State.Day) / 50.0) * 50;
+        return FMath::RoundToInt64(KurusStart * MarketPrices::ListLevel(State.Day) / 50.0) * 50;
     }
 
     void RemoveModifiers(FMarketState& State, const FString& Source)

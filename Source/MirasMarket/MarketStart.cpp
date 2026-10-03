@@ -22,7 +22,7 @@ namespace MarketStart
     const FForms& FormsOf(const FString& Key)
     {
         for (const FForms& F : Forms) if (Key == F.Key) return F;
-        return Forms[0]; // older saves: the prototype's father
+        return Forms[0]; // no relative chosen: the father
     }
 
     uint32 StartMix(int32 Seed, uint32 Salt, uint32 Extra)

@@ -267,13 +267,13 @@ int32 MarketStoreAssign::WorkersFor(const FStoreMeasures& Stats, const FString& 
 int64 MarketStoreAssign::FitOutCost(const FStoreMeasures& Stats, const FString& Format, int32 GameDay)
 {
     const int64 Base = MarketBranches::FormatInfo(MarketStoreAssignLocal::FormatKey(Format)).FitOut;
-    const int64 Kurus2011 = FMath::RoundToInt64(static_cast<double>(Base) * static_cast<double>(FitOutFactor(Stats, Format)));
-    return MarketPrices::Scaled(Kurus2011, GameDay);
+    const int64 KurusStart = FMath::RoundToInt64(static_cast<double>(Base) * static_cast<double>(FitOutFactor(Stats, Format)));
+    return MarketPrices::Scaled(KurusStart, GameDay);
 }
 
 int64 MarketStoreAssign::BaseMonthlyRent(const FStoreMeasures& Stats, const FString& Format, int32 GameDay)
 {
     const int64 Base = MarketBranches::FormatInfo(MarketStoreAssignLocal::FormatKey(Format)).Rent;
-    const int64 Kurus2011 = FMath::RoundToInt64(static_cast<double>(Base) * static_cast<double>(RentFactor(Stats, Format)));
-    return MarketPrices::Scaled(Kurus2011, GameDay);
+    const int64 KurusStart = FMath::RoundToInt64(static_cast<double>(Base) * static_cast<double>(RentFactor(Stats, Format)));
+    return MarketPrices::Scaled(KurusStart, GameDay);
 }

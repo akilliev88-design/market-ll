@@ -14,7 +14,7 @@ struct FMarketBranch;
 //    into our own copy (the store kit's loaded templates are left alone). Tests set their own catalog.
 //  - The choice is saved per site in FMarketState::StoreViews (MarketStoreAssign::Assign) and the measures are
 //    copied into the branch when it is signed, so a save keeps its numbers even if magazalar.json changes.
-//  - No catalog, or a branch from an older save without a view: the format's nominal store, every factor 1.0.
+//  - No catalog, or a branch without a view: the format's nominal store, every factor 1.0.
 namespace MarketStoreViews
 {
     struct FView

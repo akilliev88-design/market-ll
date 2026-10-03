@@ -257,9 +257,9 @@ bool MarketCompany::Build(FMarketState& State, int32 What, FString& OutMessage)
 {
     FMarketCompany& C = State.Company;
     const int32 Stores = TotalStores(State);
-    auto Pay = [&](int64 Cost2011, const TCHAR* Name) -> bool
+    auto Pay = [&](int64 CostStart, const TCHAR* Name) -> bool
     {
-        const int64 Cost = Scaled(State, Cost2011);
+        const int64 Cost = Scaled(State, CostStart);
         if (State.Cash < Cost) { OutMessage = FString::Printf(TEXT("%s %s; kasada yok."), Name, *CompanyTl(Cost)); return false; }
         State.Cash -= Cost;
         MarketLedger::Post(State, MarketLedger::EAccount::Investment, -Cost, true, MarketLedger::HeadOfficeStore); // B2

@@ -31,7 +31,7 @@ namespace MarketDepartments
     constexpr int32 DeptCount = static_cast<int32>(EDept::Count);
     constexpr int32 FormatCount = 4;               // kucuk, mahalle, buyuk, hiper (MarketBranches::FormatIds)
     constexpr int32 RampDays = 30;
-    constexpr int64 Ticket2011 = 800;              // a shopper's packaged basket at the start level, kurus
+    constexpr int64 TicketStart = 800;              // a shopper's packaged basket at the start level, kurus
     constexpr float RefundShare = 0.6f;            // stock sold off when a department closes
 
     struct FInfo

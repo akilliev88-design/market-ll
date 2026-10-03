@@ -108,7 +108,7 @@ namespace MarketAutoPlayC
                 if(MarketDepartments::SpaceUsed(State,Format)+Info.Space>FMath::FloorToInt(MarketDepartments::SpaceCap(Format)*Policy.SpaceFraction))continue;
                 int64 Estimate=0;
                 for(const auto& Branch:State.Branches) if(Branch.Stage==static_cast<uint8>(MarketBranches::EStage::Open) && MarketDepartments::FormatIndex(Branch.Format)==Format)
-                    Estimate+=MarketDepartments::FitOutCost(D,Format,State.Day)+FMath::RoundToInt64(FMath::Max(30,Branch.LastShoppers>0?Branch.LastShoppers:MarketBranches::FormatInfo(Branch.Format).Trips/5)*MarketDepartments::Ticket2011*MarketPrices::ListLevel(State.Day)*Info.Ratio*(1.f-Info.Margin)*Info.StockDays);
+                    Estimate+=MarketDepartments::FitOutCost(D,Format,State.Day)+FMath::RoundToInt64(FMath::Max(30,Branch.LastShoppers>0?Branch.LastShoppers:MarketBranches::FormatInfo(Branch.Format).Trips/5)*MarketDepartments::TicketStart*MarketPrices::ListLevel(State.Day)*Info.Ratio*(1.f-Info.Margin)*Info.StockDays);
                 FString Reason;
                 if(State.Cash>=Estimate+Reserve && MarketDepartments::CanSet(State,D,Format,true,Reason) && Send(State,Products,TEXT("SetDepartment"),MarketDepartments::EncodeSet(D,Format,true),Stats))
                 { ++Opened; if(MarketDepartments::Stance(State,D)!=Policy.Stance)Send(State,Products,TEXT("SetDeptStance"),Candidate.Dept*10+Policy.Stance,Stats); }

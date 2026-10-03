@@ -93,7 +93,7 @@ namespace MarketManagers
     // D4: continent directors and the general manager hold one post for the whole company, whatever country is asked.
     bool IsCompanyLevel(ELevel Level) { return Level == ELevel::Continent || Level == ELevel::Chief; }
 
-    // M21: an older save's (or a promoted employee's) ceiling: the skill + 5..20, at most 95.
+    // M21: a promoted employee's ceiling: the skill + 5..20, at most 95.
     int32 DerivedPotential(int32 Skill, uint32 Roll)
     {
         return FMath::Min(SkillTop, Skill + 5 + static_cast<int32>(Roll % 16u));

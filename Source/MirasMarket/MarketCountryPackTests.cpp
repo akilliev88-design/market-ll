@@ -186,6 +186,10 @@ bool FMarketCountryTurkeyPackTest::RunTest(const FString& Parameters)
     const MarketCountry::FProfile& Tr = MarketCountry::Active();
     TestEqual(TEXT("Turkey is the default"), MarketCountry::DefaultId(), FString(TEXT("tr")));
     TestTrue(TEXT("Built-in price curve"), Tr.bBuiltinCurve);
+    // Y1 (M60): the hand-made curve is pack data by campaign year, the same numbers as the old table.
+    TestTrue(TEXT("Curve: 19 campaign years"), Tr.CurveInflation.Num() == 19 && Tr.CurveLoan.Num() == 19);
+    TestTrue(TEXT("Curve: year 8's jolt, year 12's peak"), Tr.CurveInflation.IsValidIndex(11) && FMath::IsNearlyEqual(Tr.CurveInflation[7], 0.16) && FMath::IsNearlyEqual(Tr.CurveInflation[11], 0.30));
+    TestTrue(TEXT("Curve: after its end"), FMath::IsNearlyEqual(Tr.CurveAfterInflation, 0.08) && FMath::IsNearlyEqual(Tr.CurveAfterLoan, 0.14));
     TestTrue(TEXT("Real chain names until the brand switch"), Tr.bRealChainNames);
     for (const int32 Key : { 101, 423, 501, 519, 830, 1029 })
         TestTrue(*FString::Printf(TEXT("National day %d"), Key), MarketCalendar::Info(GameDayOf(2013, Key / 100, Key % 100), 3).Has(ETag::NationalHoliday));

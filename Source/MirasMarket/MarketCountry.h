@@ -131,10 +131,14 @@ namespace MarketCountry
         double InflationMean = 0.14;
         double InflationVol = 0.06;
         double LoanSpread = 0.05;
-        // D3: "economy.curve": "builtin" keeps the game's own hand-made price curve (MarketPrices, karar A06); any
-        // other pack gets a curve generated from its inflation mean and swings. The bare struct keeps the built-in
-        // one (no pack file at all = the prototype); a parsed pack must ask for it.
-        bool bBuiltinCurve = true;
+        // D3/Y1 (M60): "economy.curve": a hand-made price curve, [inflation, loan rate] per campaign year (karar A06;
+        // MarketPrices), and "economy.curveAfter" for the years past it; a pack without one gets a curve generated
+        // from its inflation mean and swings. bBuiltinCurve: the pack has a hand-made curve.
+        bool bBuiltinCurve = false;
+        TArray<double> CurveInflation;
+        TArray<double> CurveLoan;
+        double CurveAfterInflation = 0.08;
+        double CurveAfterLoan = 0.14;
         float WageFactor = 1.f;
         // B1 (#45): what a person spends on groceries a day, internal kurus at the start price level ("economy":
         // "groceryPerPersonDay" in money units, e.g. 0.65). 0 = 65 x wageFactor. Calibrated so that a discounter
@@ -222,7 +226,7 @@ namespace MarketCountry
     FString ContinentName(const FString& Id);
     // All packs (loaded once); always contains the default country.
     const TArray<FProfile>& All();
-    // D3: the default country (ulkeler.json "defaultCountry", "tr"): older saves, automated runs, an unknown id.
+    // D3: the default country (ulkeler.json "defaultCountry", "tr"): automated runs, an unknown id.
     const FString& DefaultId();
     // D3: the default country's pack (never null: the bare prototype when the file has none).
     const FProfile& Default();

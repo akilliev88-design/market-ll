@@ -111,6 +111,16 @@ namespace MarketCalendar
     const TCHAR* WeekdayNames[7] = { TEXT("Pazartesi"), TEXT("Sal\u0131"), TEXT("\u00c7ar\u015famba"), TEXT("Per\u015fembe"), TEXT("Cuma"), TEXT("Cumartesi"), TEXT("Pazar") };
 }
 
+int32 MarketCalendar::CampaignYear(int32 GameDay)
+{
+    return DateOf(GameDay).Year - StartYear + 1;
+}
+
+int32 MarketCalendar::GameDayOfCampaign(int32 CampaignYear, int32 Month, int32 Day)
+{
+    return GameDayOf(StartYear + CampaignYear - 1, Month, Day);
+}
+
 MarketCalendar::FDate MarketCalendar::DateOf(int32 GameDay)
 {
     FDate Date;

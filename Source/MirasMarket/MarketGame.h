@@ -447,7 +447,7 @@ public:
     void ToggleMenuTheme();
     void LoadMenuSettings();
     void LoadCatalog();
-    // The catalog's 2011 costs and list prices; Products carries today's (MarketDirector::ApplyPrices).
+    // The catalog's start-level costs and list prices; Products carries today's (MarketDirector::ApplyPrices).
     TArray<FMarketProduct> CatalogBase;
     void RefreshPrices();
     void ApplyCapacities();
@@ -471,7 +471,7 @@ public:
     int32 ActiveSlot = 1;
     static FString SlotName(int32 Slot);     // save-game slot name (slot 1 keeps the old v1 file)
     bool SlotExists(int32 Slot) const;
-    FString SlotSummary(int32 Slot) const;   // cached: "Gun 42, 12 Nisan 2011" or "bos"
+    FString SlotSummary(int32 Slot) const;   // cached: "Gun 42, 12 Nisan, 1. yil" or "bos"
     TArray<FString> SlotSummaries;
     void RefreshSlotSummaries();
     void SelectSlot(int32 Slot);              // switch campaign: load it, or start a new one there

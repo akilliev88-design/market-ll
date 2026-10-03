@@ -80,7 +80,7 @@ namespace MarketChains
     void EnsureCountry(FMarketState& State, const FString& Country);
     // Local family chains of a province (made the first time we are there). Idempotent.
     void EnsureLocal(FMarketState& State, const FString& Country, const FString& Province);
-    // Every country we have a shop in plus the campaign's (older saves: called from CloseDay).
+    // Every country we have a shop in plus the campaign's (also called from CloseDay).
     void Ensure(FMarketState& State);
 
     // Stores of every chain in a province and their weight (a hypermarket counts more than a discounter).

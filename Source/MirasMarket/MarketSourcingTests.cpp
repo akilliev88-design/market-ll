@@ -98,7 +98,7 @@ bool FMarketSourcingVolumeTest::RunTest(const FString& Parameters)
     using namespace MarketSourcingTest;
     const TArray<FMarketProduct> Products = { Make(TEXT("su"), TEXT("icecek"), 100, 150) };
     FMarketState S = Start(Products);
-    const double Base = MarketSourcing::BaseVolume2011 * MarketPrices::ListLevel(S.Day);
+    const double Base = MarketSourcing::BaseVolumeStart * MarketPrices::ListLevel(S.Day);
     FMarketSupplierAccount& A = S.SupplierAccounts.AddDefaulted_GetRef();
     A.Volume30 = FMath::RoundToInt64(Base * 0.5);
     TestEqual(TEXT("A small shop has no buying power"), MarketSourcing::VolumeDiscount(S), 0.f);

@@ -140,5 +140,5 @@ Kod taramasında bulunanlar. Hepsi D2 (tek ekonomi modeli) içinde kaldırılır
 | K4 | **Eski kayıt uyumu**: `MarketManagers::Migrate` (her gün çağrılıyor), `MarketStaff` "Staff boş = v0.1 bayrakları", depoların alt bölge göçü, "older save" dalları, `bSecondStore` | M27 eski kayıt uyumunu kaldırdı ama kod duruyor; `Migrate` her gün çalışıp gizli değerleri tohumluyor | Kalkar; değerler kişi/şube yaratılırken verilir. `bSecondStore` yerine şube sayısı |
 | K5 | **v0.1 "ikinci şube" kuralları** (`MarketCampaign::ExpandCash/ExpandProfitableDays/ExpandShare`, `EExpandBlock`) | İlk şubenin şartı hâlâ bunlardan | Evrensel hikâyenin 2. bölüm hedefleri olarak kalır ama paraya bağlı şart (ExpandCash) kalkar; açılış maliyetini zaten `CanExpand` ölçüyor |
 | K6 | **`BranchResult` defter hesabı** ("v0.1 second store") | Tek bir yerde kullanılıyor | Kalkar |
-| K7 | **Yerleşik Türkiye ekonomi eğrisi** (`MarketPrices::Rates[]`, `StartWage`) ve Türkiye dalları (~45) | Türkiye paketin dışında özel | Pakete (D1, D3) |
-| K8 | **"2011" adları** (`Kurus2011`, `CatalogBase`) | Yalnız ad (M24) | Ad olarak kalabilir; yeni kodda "başlangıç düzeyi" denir |
+| K7 | **(Y1: eğri pakete taşındı)** **Yerleşik Türkiye ekonomi eğrisi** (`MarketPrices::Rates[]`, `StartWage`) ve Türkiye dalları (~45) | Türkiye paketin dışında özel | Pakete (D1, D3) |
+| K8 | **(Y1: adlar "Start" oldu)** **"2011" adları** (`Kurus2011`, `CatalogBase`) | Yalnız ad (M24) | Ad olarak kalabilir; yeni kodda "başlangıç düzeyi" denir |

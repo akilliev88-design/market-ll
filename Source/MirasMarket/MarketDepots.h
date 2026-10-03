@@ -42,15 +42,15 @@ namespace MarketDepots
     constexpr int32 SameRegionKm = 350;
     constexpr int32 OtherRegionKm = 700;
     constexpr int32 MinStores = 4;              // shops of the company before the first depot
-    constexpr int64 BuildCost2011 = 3000000;    // 30 000 TL x the province's rent (x the list level)
-    constexpr int64 MonthlyRent2011 = 600000;   // 6 000 TL a month x the province's rent (x the list level)
+    constexpr int64 BuildCostStart = 3000000;    // 30 000 TL x the province's rent (x the list level)
+    constexpr int64 MonthlyRentStart = 600000;   // 6 000 TL a month x the province's rent (x the list level)
 
     // Kilometres between two provinces' centres of a country (0 for the same province; the fallback without a map).
     float DistanceKm(const FString& Country, const FString& FromProvince, const FString& ToProvince);
     // Share of the goods the road adds (0 up to FreeKm).
     float DistanceCost(float Km);
 
-    // Depots (State.Company.DepotSites; older saves' sub-region depots count until Migrate moves them).
+    // Depots (State.Company.DepotSites).
     int32 Count(const FMarketState& State);
     // Index into State.Company.DepotSites (INDEX_NONE: none). Country empty = the campaign's.
     int32 Find(const FMarketState& State, const FString& Country, const FString& Province);

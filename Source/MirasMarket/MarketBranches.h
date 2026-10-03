@@ -135,7 +135,7 @@ namespace MarketBranches
     int32 ShopsIn(const FMarketState& State, const FString& Country, const FString& Province);
     // Provinces of a country with a shop of ours (home first). Country empty = the campaign's.
     TArray<FString> ProvincesWithShops(const FMarketState& State, const FString& Country = FString());
-    // The branch's country id (older saves: the campaign's).
+    // The branch's country id (empty: the campaign's).
     FString CountryOf(const FMarketState& State, const FMarketBranch& Branch);
 
     // Menu command argument for a place and a type: (country index x 1000 + province index) x 10 + type index,

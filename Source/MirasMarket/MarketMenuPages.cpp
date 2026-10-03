@@ -261,10 +261,10 @@ namespace MarketMenuPagesUi
     }
 
     // Today's money for an amount at the game-start price level (loans, flyers, web shop set-up), rounded to whole
-    // lira (M24: "2011" names the start level in code only).
-    int64 Today(const FMarketState& State, int64 Kurus2011)
+    // lira (M24/Y1: "Start" names the start level in code only).
+    int64 Today(const FMarketState& State, int64 KurusStart)
     {
-        return FMath::RoundToInt64(static_cast<double>(Kurus2011) * MarketPrices::ListLevel(State.Day) / 100.0) * 100;
+        return FMath::RoundToInt64(static_cast<double>(KurusStart) * MarketPrices::ListLevel(State.Day) / 100.0) * 100;
     }
 
     // G-086b: a branch's day in one line without its manager (the manager has a line of his own; his skill stays
