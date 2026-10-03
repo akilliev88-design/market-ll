@@ -119,10 +119,10 @@ Kıtalar: Avrupa 6, Amerika 3, Asya 1. Alternatif olarak Japonya yerine Hindista
 | D1 | Ülke başına ekonomi (S1): fiyat/ücret/faiz `(Ülke, Gün)`, ana para birimi defteri, kur farkı | Claude |
 | D2 | Tek mağaza ekonomisi (S2, §5) ve prototip kalıntılarının temizliği (§10, K1–K6) | Claude |
 | D3 | Türkiye dallarını pakete taşıma (S3), ülke paketi şemasını genişletme | Claude Code (yerel arama ve taşıma işi, testlerle) |
-| D4 | Yönetim kademesi: kıta direktörü, genel müdür (S6) — **kod yazıldı, M66 (derlenmedi)** | Claude |
+| D4 | Yönetim kademesi: kıta direktörü, genel müdür (S6) — **bitti, M66 (60f3129)** | Claude |
 | D5 | 6 yeni ülke paketi verisi (iller, bölgeler, tatiller, isimler, zincir kadroları, ekonomi) | Claude Code (veri) + Claude (kontrol) |
-| D6 | Yurt dışına giriş yolları ve bölüm yapısı (S4, S5) — **kod yazıldı, M67 (derlenmedi)**: ölçek kapısı, ortaklık, 6. bölüm "Dünyaya Açılış" | Claude |
-| D7 | Dünya haritası ve menü (S7); dünya ve ülke tablolarına liste dışı başlangıç (M53: listedekileri geçince gireriz) — **ilk parça yazıldı (derlenmedi)**: ana ekranda "Dünya" çipi ve kartı (ülkeler kıtaya göre, durumumuz, tıklayınca il haritası). Çizili dünya haritası ve M53 kalıyor | Codex / Claude Code (arayüz), Claude (metin) |
+| D6 | Yurt dışına giriş yolları ve bölüm yapısı (S4, S5) — **bitti, M67 (60f3129)**: ölçek kapısı, ortaklık, 6. bölüm "Dünyaya Açılış" | Claude |
+| D7 | Dünya haritası ve menü (S7); dünya ve ülke tablolarına liste dışı başlangıç (M53: listedekileri geçince gireriz) — **ilk parça bitti (60f3129)**: ana ekranda "Dünya" çipi ve kartı (ülkeler kıtaya göre, durumumuz, tıklayınca il haritası). Çizili dünya haritası ve M53 kalıyor | Codex / Claude Code (arayüz), Claude (metin) |
 | D8 | Bot ve hedefler yeniden; dengeleme yeniden başlar | Claude |
 | D9 | Orta oyun (C16, Mustafa 03.10.2026): M46 mağaza portföyü (karne, yenile, tür değiştir, taşı, eskime) ve M47 krizlere ve rakip hamlelerine cevap — Claude Code'a verilecek; M48–M50 (il pazarı ve il atağı, yol ayrımları, yollar) — Claude'da yazılı, bekliyor. D1 (ülke başına dönem olayları) ve D2 (tek mağaza modeli) bitince yeni modele bağlanır; yol ayrımlarına "yurt dışı yolu", yollara "dünya markası" eklenir | Claude Code + Claude |
 

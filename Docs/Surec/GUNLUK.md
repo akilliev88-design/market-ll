@@ -1,3 +1,11 @@
+## 04.10.2026 — Claude Code — D4, D6, D7 ilk parça doğrulandı
+
+**son.log (60f3129):** DERLE geçti; TEST 170 başarılı + 1 uyarılı, başarısız 0 (alt sınır 171); Smoke geçti. OLCUM önceki turla aynı.
+
+**Dal:** Mustafa'nın yerelindeki iki Codex commit'i (a6f8ecc BUZ ekipman karşılaştırması, 3945b76 Blender paketleri teslimi) `codex-yerel` dalı üzerinden alınıp `akis-cc2` ile birleştirildi; DURUM/GÜNLÜK çakışmalarında iki tarafın notları da korundu. `codex-yerel` silinebilir.
+
+**Sıradaki:** D7 kalanı (çizili dünya haritası, M53 listeye girerek başlama) ya da D8 (bot yurt dışı ve ortaklık, denge).
+
 ## 04.10.2026 — Claude Code — Ortaklıkta gün kuralı kalktı (derlenmedi)
 
 **İstek (Mustafa):** "45 günde bir mağaza açmak saçma; ne zaman uygunsa o zaman açılır."

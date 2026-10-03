@@ -1,8 +1,10 @@
 # Güncel durum
 
-Son güncelleme: 03.10.2026 — Claude Code, akis-cc2: D4 + D6 + D7 ilk parça (derlenmedi)
+Son güncelleme: 04.10.2026 — Claude Code, akis-cc2: D4 + D6 + D7 ilk parça derlendi, testler ve Smoke geçti
 
 ## Kısaca
+
+**04.10.2026 — Claude Code / D4 + D6 + D7 ilk parça doğrulandı (60f3129, Codex'in iki commit'iyle birleşmiş):** DERLE geçti, TEST 170 + 1 uyarı (171), başarısız 0, Smoke geçti. OLCUM değişmedi (firma sayıları, ciro oranı 1,045, rakip fiyat düzeyi 0,974). Kıta direktörü/genel müdür, ölçekle açılan yurt dışı, ortaklık (gün kuralı yok) ve dünya kartı tamam. Sıradaki: D7 kalanı (çizili dünya haritası, M53) ya da D8 (bot ve denge); Mustafa seçer.
 
 **03.10.2026 — Claude Code / D7 ilk parça: dünya kartı (derlenmedi, `akis-cc2`):** Ana ekrandaki ülke çiplerinin başına "Dünya" çipi (yurt dışı açılınca görünür). Açılan kart ülkeleri kıtaya göre listeler, her satırda durumumuz (`MarketCompany::CountryStatus`: ana ülke, mağaza sayısı, ortaklık, ülke tablosundaki sıramız, tescilli ad; girilmediyse araştırma durumu; kapalıysa neden). Satıra tıklayınca o ülkenin il haritası açılır. Satırlar karede bir kez hesaplanır. Testler `Expansion.ScaleAndFranchise` içine eklendi (sayı değişmedi, 171). Kalan: çizili dünya haritası ve M53 (listeye girerek başlama). **Devam notu:** Mustafa D4 + D6 + D7'yi birlikte derler.
 
