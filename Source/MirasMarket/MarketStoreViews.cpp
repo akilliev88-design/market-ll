@@ -105,6 +105,7 @@ TArray<FString> MarketStoreViews::IdsFor(const FString& Format)
 {
     TArray<FString> Ids;
     for (const FView& V : Catalog()) if (V.Format == Format) Ids.Add(V.Id);
+    if (Ids.Num() == 0 && MarketBranches::BaseFormat(Format) != Format) return IdsFor(MarketBranches::BaseFormat(Format)); // M54
     Ids.Sort();
     return Ids;
 }

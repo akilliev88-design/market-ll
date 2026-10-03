@@ -29,6 +29,7 @@
 #include "MarketFreshness.h"
 #include "MarketSubsidiaries.h"
 #include "MarketDemand.h"
+#include "MarketResearch.h"
 
 namespace MarketBranches
 {
@@ -140,6 +141,26 @@ const TArray<FString>& MarketBranches::FormatIds()
     return Ids;
 }
 
+const TArray<FString>& MarketBranches::AllFormatIds()
+{
+    static const TArray<FString> Ids = { TEXT("kucuk"), TEXT("mahalle"), TEXT("buyuk"), TEXT("hiper"), TEXT("yakin"), TEXT("toptan") };
+    return Ids;
+}
+
+TArray<FString> MarketBranches::FormatsIn(const FString& Country)
+{
+    TArray<FString> Out = FormatIds();
+    for (const FString& Extra : MarketCountry::FindOrDefault(Country).PlayerFormats)
+        if (AllFormatIds().Contains(Extra)) Out.AddUnique(Extra);
+    return Out;
+}
+
+FString MarketBranches::BaseFormat(const FString& Format)
+{
+    const FFormat& Kind = FormatInfo(Format);
+    return Kind.Base ? FString(Kind.Base) : FString(Kind.Id);
+}
+
 const MarketBranches::FFormat& MarketBranches::FormatInfo(const FString& Id)
 {
     //                                 id               name                                     short                    fit-out  wk  service price trips rent    weight run   pop  depot chapter
@@ -152,7 +173,13 @@ const MarketBranches::FFormat& MarketBranches::FormatInfo(const FString& Id)
     static const FFormat Neighbourhood = { TEXT("mahalle"), TEXT("mahalle marketi"), TEXT("Mahalle"), 400000, 3, 1.0f, 1.0f, 240, 60000, 1.f, 1.f, 0, false, 0 };
     static const FFormat Super = { TEXT("buyuk"), TEXT("s\u00fcpermarket"), TEXT("S\u00fcpermarket"), 3000000, 6, 1.1f, 1.0f, 520, 225000, 1.5f, 2.f, 0, false, 0 };
     static const FFormat Hyper = { TEXT("hiper"), TEXT("hipermarket"), TEXT("Hipermarket"), 7000000, 14, 1.15f, 0.98f, 1600, 750000, 3.f, 3.f, 500, true, 5 }; // C3 (A6): 20 -> 14 workers, running 5 -> 3
-    return Id == TEXT("kucuk") ? Discount : Id == TEXT("buyuk") ? Super : Id == TEXT("hiper") ? Hyper : Neighbourhood;
+    // M54: a convenience store: small, open long, few lines, dear but quick; many of them, a small catchment each.
+    // A cash-and-carry: big, cheap, sells by the case to tradesmen and big families, only in big provinces.
+    static const FFormat Convenience = [] { FFormat F = { TEXT("yakin"), TEXT("yak\u0131n market"), TEXT("Yak\u0131n"), 180000, 2, 1.05f, 1.12f, 260, 40000, 0.6f, 0.9f, 0, false, 0 };
+        F.Basket = 0.55f; F.Tolerance = 0.15f; F.Base = TEXT("kucuk"); return F; }();
+    static const FFormat CashCarry = [] { FFormat F = { TEXT("toptan"), TEXT("toptan perakende"), TEXT("Toptan"), 5000000, 10, 0.85f, 0.9f, 700, 500000, 2.5f, 2.5f, 400, true, 5 };
+        F.Basket = 2.5f; F.Tolerance = 0.f; F.Base = TEXT("hiper"); return F; }();
+    return Id == TEXT("kucuk") ? Discount : Id == TEXT("buyuk") ? Super : Id == TEXT("hiper") ? Hyper : Id == TEXT("yakin") ? Convenience : Id == TEXT("toptan") ? CashCarry : Neighbourhood;
 }
 
 FString MarketBranches::CountryOf(const FMarketState& State, const FMarketBranch& Branch)
@@ -263,7 +290,7 @@ int32 MarketBranches::EncodeSite(const FString& Country, const FString& Province
     const int32 C = All.IndexOfByPredicate([&Country](const MarketCountry::FProfile& P) { return P.Id == Country; });
     if (C == INDEX_NONE) return INDEX_NONE;
     const int32 P = All[C].Cities.IndexOfByPredicate([&Province](const MarketCountry::FCity& City) { return City.Id == Province; });
-    const int32 F = FormatIds().IndexOfByKey(Format);
+    const int32 F = AllFormatIds().IndexOfByKey(Format); // M54
     if (P == INDEX_NONE || P >= 1000 || F == INDEX_NONE) return INDEX_NONE;
     return (C * 1000 + P) * 10 + F;
 }
@@ -273,10 +300,10 @@ bool MarketBranches::DecodeSite(int32 Arg, FString& OutCountry, FString& OutProv
     if (Arg < 0) return false;
     const TArray<MarketCountry::FProfile>& All = MarketCountry::All();
     const int32 F = Arg % 10, P = (Arg / 10) % 1000, C = Arg / 10000;
-    if (!All.IsValidIndex(C) || !All[C].Cities.IsValidIndex(P) || !FormatIds().IsValidIndex(F)) return false;
+    if (!All.IsValidIndex(C) || !All[C].Cities.IsValidIndex(P) || !AllFormatIds().IsValidIndex(F)) return false;
     OutCountry = All[C].Id;
     OutProvince = All[C].Cities[P].Id;
-    OutFormat = FormatIds()[F];
+    OutFormat = AllFormatIds()[F];
     return true;
 }
 
@@ -370,6 +397,7 @@ bool MarketBranches::CanOpen(const FMarketState& State, const TArray<FMarketProd
     const FSite Site = SiteOf(State, Country, Province);
     const FFormat& Kind = FormatInfo(Format);
     if (!Site.bValid) { OutReason = TEXT("Bu il bilinmiyor."); return false; }
+    if (!FormatsIn(Site.Country).Contains(Format)) { OutReason = FString::Printf(TEXT("Bu \u00fclkenin pazar\u0131nda %s yok."), Kind.Name); return false; } // M54
     if (State.Day < State.RescueUntil) { OutReason = FString::Printf(TEXT("Kurtarma plan\u0131 s\u00fcr\u00fcyor: %d g\u00fcn daha yeni \u015fube yok."), State.RescueUntil - State.Day); return false; } // C7
     if (ShopsIn(State, Site.Country, Site.Province) >= Room(Site)) { OutReason = FString::Printf(TEXT("%s'de yeni ma\u011faza i\u00e7in yer kalmad\u0131 (en \u00e7ok %d)."), *Site.Name, Room(Site)); return false; }
     if (OpenCount(State) == 0)
@@ -389,6 +417,7 @@ bool MarketBranches::CanOpen(const FMarketState& State, const TArray<FMarketProd
         return false;
     }
     if (Site.bAbroad && !MarketCompany::ChapterOpen(State, 6)) { OutReason = FString::Printf(TEXT("Yurt d\u0131\u015f\u0131 i\u00e7in \"%s\" b\u00f6l\u00fcm\u00fc a\u00e7\u0131lmal\u0131."), *MarketStory::ChapterTitle(6)); return false; }
+    if (Site.bAbroad && !MarketResearch::AllowsEntry(State, Site.Country, OutReason)) return false; // M58: a market study first
     if (Kind.Chapter > 0 && !MarketCompany::ChapterOpen(State, Kind.Chapter)) { OutReason = FString::Printf(TEXT("%s i\u00e7in \"%s\" b\u00f6l\u00fcm\u00fc a\u00e7\u0131lmal\u0131."), Kind.Short, *MarketStory::ChapterTitle(Kind.Chapter)); return false; }
     if (Site.PopulationK < Kind.MinPopulationK) { OutReason = FString::Printf(TEXT("%s yaln\u0131z n\u00fcfusu %d binin \u00fcst\u00fcndeki illere a\u00e7\u0131l\u0131r."), Kind.Short, Kind.MinPopulationK); return false; }
     float DepotKm = 0.f; // G-089: a depot of the country within range (the home province's short range does not apply)
@@ -721,7 +750,8 @@ void MarketBranches::CloseDay(FMarketState& State, const TArray<FMarketProduct>&
         // tolerance and the purchasing power.
         const float RivalNow = MarketChains::RivalPriceFactor(State, Where.Country, Where.Province, Closed);
         const float SharePercent = MarketStoreDemand::Share(State, Store, Closed) * 100.f;
-        const double Tolerance = MarketProductDemand::MixTolerance(DefaultMix) + MarketProductDemand::IncomeTolerance(Where.Income) + MarketSimulation::ToleranceBonus(State);
+        const double Tolerance = MarketProductDemand::MixTolerance(DefaultMix) + MarketProductDemand::IncomeTolerance(Where.Income) + MarketSimulation::ToleranceBonus(State)
+            + Kind.Tolerance; // M54: convenience is paid for
         // What they want, what is on the shelf.
         int64 Revenue = 0, Cogs = 0, WasteCost = 0;
         int32 DayEmpty = 0, DaySold = 0;
@@ -739,7 +769,7 @@ void MarketBranches::CloseDay(FMarketState& State, const TArray<FMarketProduct>&
             const float Cut = FMath::Max(Item->MarkdownUntil >= Closed ? Item->Markdown / 100.f : 0.f, PromoCut);
             const int64 Price = FMath::Max<int64>(5, FMath::RoundToInt64(Products[I].BasePrice * B.PriceIndex * (1.0 - Cut) / 5.0) * 5);
             const double Accept = MarketProductDemand::AcceptanceFactor(MarketDemand::PriceRatio(Price, MarketDemand::RivalPrice(Products[I], RivalNow)), SharePercent, Tolerance, Products[I]);
-            const int32 Want = FMath::RoundToInt32(Shoppers * UnitsPerShopper * RealSpend * WishToday[I] * Where.Income * (bFresh ? FreshDemand : 1.f) * (1.f + 2.5f * Cut)
+            const int32 Want = FMath::RoundToInt32(Shoppers * UnitsPerShopper * Kind.Basket * RealSpend * WishToday[I] * Where.Income * (bFresh ? FreshDemand : 1.f) * (1.f + 2.5f * Cut)
                 * PromoPull * MarketStory::IdentityDemand(State, Group) * static_cast<float>(Accept)); // M38: the company's identity
             const int32 Take = Item->Capacity > 0 ? FMath::Min(Want, Item->Shelf) : 0;
             Item->Shelf -= Take;

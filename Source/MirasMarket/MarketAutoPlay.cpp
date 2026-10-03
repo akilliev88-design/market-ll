@@ -1,5 +1,6 @@
 #include "MarketAutoPlay.h"
 #include "MarketCampaign.h"
+#include "MarketResearch.h"
 #include "MarketTuning.h"
 #include "MarketSimulation.h"
 #include "MarketOrderAdvice.h"
@@ -233,6 +234,17 @@ namespace MarketAutoPlay
             for (const MarketCountry::FProfile& Country : MarketCountry::All())
             {
                 if (Country.Id != State.CountryId && !MarketCompany::ChapterOpen(State, 6)) continue;
+                if (Country.Id != State.CountryId && MarketResearch::Status(State, Country.Id) != MarketResearch::EStatus::NotNeeded
+                    && MarketResearch::Status(State, Country.Id) != MarketResearch::EStatus::Ready)
+                {
+                    // M58: a market study first, one at a time, once the head office can follow a new country.
+                    const bool bRunning = State.Company.Research.ContainsByPredicate([&State](const FMarketResearch& R) { return State.Day < R.ReadyDay; });
+                    FString Why;
+                    if (!bRunning && MarketStaff::HasHr(State) && MarketStaff::HasAccountant(State) && MarketResearch::CanStart(State, Country.Id, Why)
+                        && MarketAutoPlayFinance::CanExpand(State, MarketResearch::Cost(State, Country.Id), 0, Cushion))
+                        MarketResearch::Start(State, Country.Id, Why);
+                    continue;
+                }
                 for (const MarketCountry::FCity& Province : Country.Cities)
                 {
                     const auto Site = MarketBranches::SiteOf(State, Country.Id, Province.Id);

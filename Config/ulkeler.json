@@ -83,7 +83,11 @@
         {"id": "carrefoursa", "name": "CarreFive SA", "boss": "Emre Çeliktaş", "archetype": "hyper", "stores": 250, "price": 1.03, "service": 1.05, "aggression": 0.3, "ambition": 0.4},
         {"id": "kipa", "name": "Tesko Kupa", "boss": "Burak Akyüz", "archetype": "hyper", "stores": 170, "price": 1.02, "service": 1.0, "aggression": 0.2, "ambition": 0.25, "region": "ege"},
         {"id": "onur", "name": "Onar Market", "boss": "Onur Karaca", "archetype": "regional", "stores": 150, "price": 0.99, "service": 1.0, "aggression": 0.4, "ambition": 0.5, "region": "marmara"},
-        {"id": "metro", "name": "Metra Toptan", "boss": "Klaus Weber", "archetype": "wholesale", "stores": 30, "price": 0.95, "service": 0.9, "aggression": 0.2, "ambition": 0.3}
+        {"id": "metro", "name": "Metra Toptan", "boss": "Klaus Weber", "archetype": "wholesale", "stores": 30, "price": 0.95, "service": 0.9, "aggression": 0.2, "ambition": 0.3},
+        {"id": "file", "name": "FİLO Market", "boss": "Selim Gürsoy", "archetype": "discount", "stores": 900, "price": 0.92, "service": 0.82, "aggression": 0.5, "ambition": 0.6},
+        {"id": "macro", "name": "Makro Center", "boss": "Ayşe Demirel", "archetype": "premium", "stores": 80, "price": 1.12, "service": 1.25, "aggression": 0.2, "ambition": 0.3},
+        {"id": "hakmar", "name": "Hakmart", "boss": "Rıza Ekinci", "archetype": "regional", "stores": 380, "price": 0.96, "service": 0.9, "aggression": 0.4, "ambition": 0.6, "region": "marmara"},
+        {"id": "bizim", "name": "Bizimkiler Toptan", "boss": "Cengiz Aksoy", "archetype": "wholesale", "stores": 160, "price": 0.88, "service": 0.75, "aggression": 0.3, "ambition": 0.4}
       ],
       "banks": ["Esnaf Kredi Bankası", "Anadolu Ticaret Bankası", "Boğaziçi Yatırım Bankası", "Kalkınma ve Yatırım Bankası"],
       "online": { "platform": "Kapıda", "plateau": 0.09 },
@@ -465,7 +469,13 @@
         {"id": "edecka", "name": "Edecka", "boss": "Markus Hahn", "archetype": "super", "stores": 11000, "price": 1.04, "service": 1.1, "aggression": 0.4, "ambition": 0.4},
         {"id": "rewa", "name": "Rewa", "boss": "Anna Keller", "archetype": "super", "stores": 6000, "price": 1.03, "service": 1.05, "aggression": 0.5, "ambition": 0.5},
         {"id": "kauffeld", "name": "Kauffeld", "boss": "Jonas Wolf", "archetype": "hyper", "stores": 660, "price": 0.97, "service": 0.95, "aggression": 0.4, "ambition": 0.4},
-        {"id": "nettol", "name": "Nettol", "boss": "Petra Lang", "archetype": "discount", "stores": 4200, "price": 0.9, "service": 0.78, "aggression": 0.5, "ambition": 0.5}
+        {"id": "nettol", "name": "Nettol", "boss": "Petra Lang", "archetype": "discount", "stores": 4200, "price": 0.9, "service": 0.78, "aggression": 0.5, "ambition": 0.5},
+        {"id": "penni", "name": "Penni", "boss": "Ute Wagner", "archetype": "discount", "stores": 2100, "price": 0.89, "service": 0.78, "aggression": 0.5, "ambition": 0.5},
+        {"id": "norma_de", "name": "Normal", "boss": "Jens Krüger", "archetype": "discount", "stores": 1400, "price": 0.9, "service": 0.78, "aggression": 0.4, "ambition": 0.4},
+        {"id": "globos", "name": "Globos", "boss": "Heike Becker", "archetype": "hyper", "stores": 50, "price": 0.96, "service": 1.0, "aggression": 0.3, "ambition": 0.4, "region": "west"},
+        {"id": "tegutto", "name": "Teguto", "boss": "Rainer Fuchs", "archetype": "regional", "stores": 280, "price": 1.06, "service": 1.15, "aggression": 0.2, "ambition": 0.3, "region": "sued"},
+        {"id": "metra_de", "name": "Metra Großhandel", "boss": "Frank Haas", "archetype": "wholesale", "stores": 100, "price": 0.87, "service": 0.75, "aggression": 0.3, "ambition": 0.3},
+        {"id": "kiosk24", "name": "Späti 24", "boss": "Mehmet Yalçın", "archetype": "convenience", "stores": 900, "price": 1.18, "service": 0.95, "aggression": 0.3, "ambition": 0.6}
       ],
       "banks": ["Stadtsparkasse Lindenau", "Hansa Handelsbank", "Rheinische Investitionsbank", "Förderbank Mittelland"],
       "online": { "platform": "Flinkly", "plateau": 0.05 },
@@ -738,7 +748,13 @@
         {"id": "morrisen", "name": "Morrisen", "boss": "Jack Pike", "archetype": "super", "stores": 500, "price": 1.0, "service": 1.0, "aggression": 0.4, "ambition": 0.3, "region": "england"},
         {"id": "koop", "name": "Ko-op", "boss": "Sophie Reed", "archetype": "regional", "stores": 2600, "price": 1.06, "service": 1.0, "aggression": 0.3, "ambition": 0.3},
         {"id": "alda_gb", "name": "Alda", "boss": "Karl Brenner", "archetype": "discount", "stores": 900, "price": 0.88, "service": 0.8, "aggression": 0.6, "ambition": 0.8},
-        {"id": "lidel_gb", "name": "Lidel", "boss": "Dieter Schwarm", "archetype": "fastDiscount", "stores": 800, "price": 0.89, "service": 0.82, "aggression": 0.7, "ambition": 0.8}
+        {"id": "lidel_gb", "name": "Lidel", "boss": "Dieter Schwarm", "archetype": "fastDiscount", "stores": 800, "price": 0.89, "service": 0.82, "aggression": 0.7, "ambition": 0.8},
+        {"id": "waitroze", "name": "Waitroze", "boss": "Charlotte Hale", "archetype": "premium", "stores": 330, "price": 1.15, "service": 1.3, "aggression": 0.2, "ambition": 0.3},
+        {"id": "icelander", "name": "Icelander", "boss": "Gareth Price", "archetype": "discount", "stores": 950, "price": 0.93, "service": 0.82, "aggression": 0.4, "ambition": 0.5},
+        {"id": "emandess", "name": "M and S Food", "boss": "Victoria Lane", "archetype": "premium", "stores": 600, "price": 1.18, "service": 1.25, "aggression": 0.2, "ambition": 0.3},
+        {"id": "ourbargain", "name": "B and N Bargains", "boss": "Liam Carter", "archetype": "discount", "stores": 650, "price": 0.9, "service": 0.75, "aggression": 0.5, "ambition": 0.6},
+        {"id": "bookerz", "name": "Bookerz Wholesale", "boss": "Neil Hart", "archetype": "wholesale", "stores": 190, "price": 0.88, "service": 0.75, "aggression": 0.3, "ambition": 0.3},
+        {"id": "sparr_gb", "name": "Sparr", "boss": "Owen Hughes", "archetype": "convenience", "stores": 2300, "price": 1.14, "service": 0.95, "aggression": 0.3, "ambition": 0.4}
       ],
       "banks": ["Thamesmoor Building Society", "Albion Commercial Bank", "Northgate Investment Bank", "Enterprise Development Bank"],
       "online": { "platform": "Dashby", "plateau": 0.12 },
@@ -998,7 +1014,12 @@
         {"id": "publick", "name": "Publick", "boss": "Todd Jones", "archetype": "regional", "stores": 1100, "price": 1.02, "service": 1.2, "aggression": 0.3, "ambition": 0.4, "region": "south"},
         {"id": "costko", "name": "Costko", "boss": "Craig Jelly", "archetype": "club", "stores": 440, "price": 0.9, "service": 0.9, "aggression": 0.4, "ambition": 0.4},
         {"id": "alda_us", "name": "Alda", "boss": "Karl Brenner", "archetype": "discount", "stores": 1250, "price": 0.88, "service": 0.8, "aggression": 0.6, "ambition": 0.7},
-        {"id": "traders", "name": "Traders Jo", "boss": "Dan Bane", "archetype": "premium", "stores": 360, "price": 1.08, "service": 1.3, "aggression": 0.3, "ambition": 0.4}
+        {"id": "traders", "name": "Traders Jo", "boss": "Dan Bane", "archetype": "premium", "stores": 360, "price": 1.08, "service": 1.3, "aggression": 0.3, "ambition": 0.4},
+        {"id": "target_us", "name": "Targit", "boss": "Megan Doyle", "archetype": "hyper", "stores": 1950, "price": 1.0, "service": 1.05, "aggression": 0.4, "ambition": 0.5},
+        {"id": "heb", "name": "HEV", "boss": "Charles Butt", "archetype": "regional", "stores": 420, "price": 0.98, "service": 1.2, "aggression": 0.4, "ambition": 0.5, "region": "south"},
+        {"id": "aholdo", "name": "Stop and Shopp", "boss": "Robert Lane", "archetype": "super", "stores": 780, "price": 1.04, "service": 1.0, "aggression": 0.3, "ambition": 0.4, "region": "northeast"},
+        {"id": "dollarg", "name": "Dollar Generale", "boss": "Brian King", "archetype": "convenience", "stores": 19000, "price": 1.08, "service": 0.8, "aggression": 0.5, "ambition": 0.7},
+        {"id": "wholefuds", "name": "Whole Fuds", "boss": "Diane Brooks", "archetype": "premium", "stores": 530, "price": 1.22, "service": 1.3, "aggression": 0.2, "ambition": 0.4}
       ],
       "banks": ["Main Street Savings", "Lakeshore National Bank", "Hudson Capital Bank", "Federal Development Bank"],
       "online": { "platform": "Grabit", "plateau": 0.1 },
@@ -1427,6 +1448,7 @@
     },
     {
       "id": "fr",
+      "playerFormats": ["yakin"],
       "company": {"legalForms": ["Distribution SAS", "Commerce SARL", "Marchés SAS", "Distribution SA"], "setupCost": 30000.00, "dividendWithholding": 0.05},
       "name": "Fransa",
       "continent": "avrupa",
@@ -1463,7 +1485,10 @@
         {"id": "lidel_fr", "name": "Lidel", "boss": "Dieter Schwarm", "archetype": "fastDiscount", "stores": 1500, "price": 0.89, "service": 0.82, "aggression": 0.7, "ambition": 0.7},
         {"id": "alda_fr", "name": "Alda", "boss": "Karl Brenner", "archetype": "discount", "stores": 900, "price": 0.88, "service": 0.8, "aggression": 0.5, "ambition": 0.5},
         {"id": "petitcasinot", "name": "Petit Casinot", "boss": "Raymond Fabre", "archetype": "convenience", "stores": 4000, "price": 1.08, "service": 1.0, "aggression": 0.3, "ambition": 0.3},
-        {"id": "monoprice", "name": "Monoprice", "boss": "Hélène Vautrin", "archetype": "premium", "stores": 300, "price": 1.1, "service": 1.25, "aggression": 0.3, "ambition": 0.4, "region": "nord"}
+        {"id": "monoprice", "name": "Monoprice", "boss": "Hélène Vautrin", "archetype": "premium", "stores": 300, "price": 1.1, "service": 1.25, "aggression": 0.3, "ambition": 0.4, "region": "nord"},
+        {"id": "intermarche2", "name": "Netto Marché", "boss": "Pierre Morel", "archetype": "discount", "stores": 320, "price": 0.9, "service": 0.8, "aggression": 0.4, "ambition": 0.4},
+        {"id": "cora", "name": "Korra", "boss": "Sylvie Dubois", "archetype": "hyper", "stores": 60, "price": 0.97, "service": 1.0, "aggression": 0.3, "ambition": 0.3, "region": "est"},
+        {"id": "grandfrais", "name": "Grand Frè", "boss": "Luc Bernard", "archetype": "premium", "stores": 300, "price": 1.1, "service": 1.2, "aggression": 0.3, "ambition": 0.6}
       ],
       "banks": ["Caisse Mutuelle du Bocage", "Banque Commerciale de Lutèce", "Rive Gauche Investissement", "Banque de Développement des Territoires"],
       "online": {"platform": "Pressto", "plateau": 0.09},
@@ -1537,7 +1562,11 @@
         {"id": "eroskin", "name": "Eroskin", "boss": "Koldo Etxeberri", "archetype": "regional", "stores": 1000, "price": 1.03, "service": 1.0, "aggression": 0.3, "ambition": 0.3, "region": "norte"},
         {"id": "consumo", "name": "Consumo", "boss": "Pilar Montsant", "archetype": "regional", "stores": 700, "price": 1.02, "service": 1.05, "aggression": 0.3, "ambition": 0.4, "region": "este"},
         {"id": "alcampa", "name": "Alcampa", "boss": "Nuria Calvet", "archetype": "hyper", "stores": 70, "price": 0.96, "service": 0.95, "aggression": 0.3, "ambition": 0.3},
-        {"id": "elcortejo", "name": "El Cortejo", "boss": "Gonzalo Viñas", "archetype": "premium", "stores": 90, "price": 1.12, "service": 1.3, "aggression": 0.2, "ambition": 0.3}
+        {"id": "elcortejo", "name": "El Cortejo", "boss": "Gonzalo Viñas", "archetype": "premium", "stores": 90, "price": 1.12, "service": 1.3, "aggression": 0.2, "ambition": 0.3},
+        {"id": "ahorramas", "name": "Ahorramás", "boss": "Javier Ruiz", "archetype": "regional", "stores": 270, "price": 0.97, "service": 0.95, "aggression": 0.4, "ambition": 0.5, "region": "centro"},
+        {"id": "bonpreu", "name": "Bonpreu", "boss": "Jordi Puig", "archetype": "regional", "stores": 230, "price": 1.0, "service": 1.05, "aggression": 0.3, "ambition": 0.4, "region": "este"},
+        {"id": "gadis", "name": "Gadís", "boss": "Xosé Varela", "archetype": "regional", "stores": 230, "price": 1.0, "service": 1.0, "aggression": 0.3, "ambition": 0.4, "region": "norte"},
+        {"id": "makro_es", "name": "Makro", "boss": "Elena Navarro", "archetype": "wholesale", "stores": 37, "price": 0.87, "service": 0.75, "aggression": 0.3, "ambition": 0.3}
       ],
       "banks": ["Caja Rural del Duero", "Banco Mercantil Ibérico", "Meseta Inversiones", "Banco de Fomento Regional"],
       "online": {"platform": "Llévalo", "plateau": 0.05},
@@ -1582,6 +1611,7 @@
     },
     {
       "id": "pl",
+      "playerFormats": ["yakin"],
       "company": {"legalForms": ["Handel Sp. z o.o.", "Dystrybucja Sp. z o.o.", "Sklepy S.A.", "Market Sp. z o.o."], "setupCost": 15000.00, "dividendWithholding": 0.05},
       "name": "Polonya",
       "continent": "avrupa",
@@ -1617,7 +1647,11 @@
         {"id": "kauffeld_pl", "name": "Kauffeld", "boss": "Jonas Wolf", "archetype": "hyper", "stores": 230, "price": 0.96, "service": 0.95, "aggression": 0.4, "ambition": 0.4},
         {"id": "auchamp_pl", "name": "Auchamp", "boss": "Bastien Roche", "archetype": "hyper", "stores": 90, "price": 0.97, "service": 0.95, "aggression": 0.3, "ambition": 0.3},
         {"id": "stokrotek", "name": "Stokrotek", "boss": "Leszek Wróbelski", "archetype": "super", "stores": 800, "price": 1.0, "service": 1.0, "aggression": 0.4, "ambition": 0.5, "region": "wschod"},
-        {"id": "lewiatanek", "name": "Lewiatanek", "boss": "Ewa Mrozek", "archetype": "family", "stores": 3000, "price": 1.04, "service": 1.0, "aggression": 0.2, "ambition": 0.3}
+        {"id": "lewiatanek", "name": "Lewiatanek", "boss": "Ewa Mrozek", "archetype": "family", "stores": 3000, "price": 1.04, "service": 1.0, "aggression": 0.2, "ambition": 0.3},
+        {"id": "netto_pl", "name": "Netto", "boss": "Lars Nielsen", "archetype": "discount", "stores": 400, "price": 0.91, "service": 0.8, "aggression": 0.5, "ambition": 0.6},
+        {"id": "polomarket", "name": "Polomarket", "boss": "Zenon Wiśniewski", "archetype": "regional", "stores": 400, "price": 0.97, "service": 0.92, "aggression": 0.4, "ambition": 0.5, "region": "polnoc"},
+        {"id": "aldi_pl", "name": "Alda", "boss": "Karl Brenner", "archetype": "discount", "stores": 250, "price": 0.9, "service": 0.8, "aggression": 0.4, "ambition": 0.6},
+        {"id": "makro_pl", "name": "Makro", "boss": "Piotr Nowak", "archetype": "wholesale", "stores": 30, "price": 0.88, "service": 0.75, "aggression": 0.3, "ambition": 0.3}
       ],
       "banks": ["Bank Spółdzielczy Mazury", "Bank Handlowy Wisła", "Bałtyk Inwestycje", "Bank Rozwoju Regionów"],
       "online": {"platform": "Zakupek", "plateau": 0.05},
@@ -1659,6 +1693,7 @@
     },
     {
       "id": "br",
+      "playerFormats": ["toptan"],
       "company": {"legalForms": ["Comércio Ltda.", "Supermercados Ltda.", "Distribuidora S.A.", "Alimentos Ltda."], "setupCost": 20000.00, "dividendWithholding": 0.0},
       "name": "Brezilya",
       "continent": "amerika",
@@ -1694,7 +1729,11 @@
         {"id": "paodemel", "name": "Pão de Mel", "boss": "Otávio Bragança", "archetype": "premium", "stores": 180, "price": 1.1, "service": 1.25, "aggression": 0.3, "ambition": 0.4, "region": "sudeste"},
         {"id": "mateux", "name": "Mateux", "boss": "Raimundo Matias", "archetype": "regional", "stores": 250, "price": 0.97, "service": 0.95, "aggression": 0.6, "ambition": 0.7, "region": "nordeste"},
         {"id": "zaffira", "name": "Zaffira", "boss": "Enzo Zaffira", "archetype": "regional", "stores": 40, "price": 1.05, "service": 1.2, "aggression": 0.3, "ambition": 0.4, "region": "sul"},
-        {"id": "diaz_br", "name": "Díaz", "boss": "Íñigo Salvat", "archetype": "discount", "stores": 600, "price": 0.92, "service": 0.78, "aggression": 0.5, "ambition": 0.5}
+        {"id": "diaz_br", "name": "Díaz", "boss": "Íñigo Salvat", "archetype": "discount", "stores": 600, "price": 0.92, "service": 0.78, "aggression": 0.5, "ambition": 0.5},
+        {"id": "assai2", "name": "Atakarejo", "boss": "Paulo Mendes", "archetype": "cashCarry", "stores": 80, "price": 0.86, "service": 0.72, "aggression": 0.5, "ambition": 0.6, "region": "nordeste"},
+        {"id": "guanabara", "name": "Guanabará", "boss": "Rogério Lima", "archetype": "regional", "stores": 30, "price": 0.95, "service": 0.9, "aggression": 0.4, "ambition": 0.4, "region": "sudeste"},
+        {"id": "savegnago", "name": "Savegnagu", "boss": "Fernanda Rocha", "archetype": "regional", "stores": 60, "price": 1.0, "service": 1.0, "aggression": 0.3, "ambition": 0.4, "region": "sudeste"},
+        {"id": "oxxo_br", "name": "OXO Brasil", "boss": "Carlos Ruiz", "archetype": "convenience", "stores": 500, "price": 1.15, "service": 0.9, "aggression": 0.4, "ambition": 0.8}
       ],
       "banks": ["Cooperativa de Crédito Serrana", "Banco Comercial Paulistano", "Atlântico Investimentos", "Banco de Desenvolvimento Regional"],
       "online": {"platform": "Rapidinho", "plateau": 0.04},
@@ -1749,6 +1788,7 @@
     },
     {
       "id": "mx",
+      "playerFormats": ["yakin"],
       "company": {"legalForms": ["Comercial S.A. de C.V.", "Tiendas S.A. de C.V.", "Abarrotes S. de R.L.", "Distribuidora S.A. de C.V."], "setupCost": 15000.00, "dividendWithholding": 0.1},
       "name": "Meksika",
       "continent": "amerika",
@@ -1784,7 +1824,10 @@
         {"id": "oxo", "name": "OXO", "boss": "Patricio Lozada", "archetype": "convenience", "stores": 18000, "price": 1.1, "service": 0.95, "aggression": 0.6, "ambition": 0.9},
         {"id": "costko_mx", "name": "Costko", "boss": "Craig Jelly", "archetype": "club", "stores": 40, "price": 0.9, "service": 0.9, "aggression": 0.4, "ambition": 0.4},
         {"id": "hev_mx", "name": "HEV", "boss": "Dwight Hale", "archetype": "regional", "stores": 70, "price": 1.02, "service": 1.2, "aggression": 0.4, "ambition": 0.5, "region": "norte"},
-        {"id": "tres_e", "name": "Tiendas 3E", "boss": "Samir Haddad", "archetype": "discount", "stores": 1500, "price": 0.87, "service": 0.72, "aggression": 0.6, "ambition": 0.8}
+        {"id": "tres_e", "name": "Tiendas 3E", "boss": "Samir Haddad", "archetype": "discount", "stores": 1500, "price": 0.87, "service": 0.72, "aggression": 0.6, "ambition": 0.8},
+        {"id": "lacomer", "name": "Fresko", "boss": "Ana Torres", "archetype": "premium", "stores": 70, "price": 1.15, "service": 1.25, "aggression": 0.2, "ambition": 0.3},
+        {"id": "calimax", "name": "Kalimax", "boss": "Jorge Ramírez", "archetype": "regional", "stores": 110, "price": 0.98, "service": 0.95, "aggression": 0.3, "ambition": 0.4, "region": "norte"},
+        {"id": "sevenmx", "name": "Seven & Me México", "boss": "Hiro Tanaka", "archetype": "convenience", "stores": 1900, "price": 1.14, "service": 0.95, "aggression": 0.4, "ambition": 0.6}
       ],
       "banks": ["Caja Popular del Bajío", "Banco Comercial del Anáhuac", "Sierra Madre Inversiones", "Banco de Fomento Nacional"],
       "online": {"platform": "Mandadito", "plateau": 0.04},
@@ -1844,6 +1887,7 @@
     },
     {
       "id": "jp",
+      "playerFormats": ["yakin"],
       "company": {"legalForms": ["Shoten K.K.", "Store K.K.", "Ryutsu K.K.", "Shoji G.K."], "setupCost": 35000.00, "dividendWithholding": 0.05},
       "name": "Japonya",
       "continent": "asya",
@@ -1884,7 +1928,11 @@
         {"id": "itoyokodo", "name": "Ito-Yokodo", "boss": "Goro Ishiyama", "archetype": "hyper", "stores": 130, "price": 1.02, "service": 1.1, "aggression": 0.3, "ambition": 0.3},
         {"id": "lifu", "name": "Lifu", "boss": "Noboru Fujikawa", "archetype": "super", "stores": 280, "price": 1.0, "service": 1.05, "aggression": 0.4, "ambition": 0.4, "region": "kanto"},
         {"id": "gyomusupa", "name": "Gyomu Supa", "boss": "Isamu Kuroda", "archetype": "discount", "stores": 900, "price": 0.88, "service": 0.75, "aggression": 0.5, "ambition": 0.6},
-        {"id": "triall", "name": "Triall", "boss": "Hajime Tsukada", "archetype": "discount", "stores": 280, "price": 0.89, "service": 0.78, "aggression": 0.6, "ambition": 0.7, "region": "nishi"}
+        {"id": "triall", "name": "Triall", "boss": "Hajime Tsukada", "archetype": "discount", "stores": 280, "price": 0.89, "service": 0.78, "aggression": 0.6, "ambition": 0.7, "region": "nishi"},
+        {"id": "ministop", "name": "Ministep", "boss": "Kenji Sato", "archetype": "convenience", "stores": 2000, "price": 1.12, "service": 1.0, "aggression": 0.3, "ambition": 0.4},
+        {"id": "summit", "name": "Sumito", "boss": "Yuki Nakamura", "archetype": "super", "stores": 120, "price": 1.05, "service": 1.15, "aggression": 0.3, "ambition": 0.4, "region": "kanto"},
+        {"id": "okuwa", "name": "Okuwo", "boss": "Takeshi Mori", "archetype": "regional", "stores": 160, "price": 1.0, "service": 1.05, "aggression": 0.3, "ambition": 0.4, "region": "kinki"},
+        {"id": "donki", "name": "Don Kiyote", "boss": "Hiroshi Ito", "archetype": "discount", "stores": 600, "price": 0.92, "service": 0.9, "aggression": 0.6, "ambition": 0.7}
       ],
       "banks": ["Midorigawa Shinkin", "Kaisei Ginko", "Asahigawa Toshi Ginko", "Chiiki Kaihatsu Ginko"],
       "online": {"platform": "Netsupa", "plateau": 0.07},

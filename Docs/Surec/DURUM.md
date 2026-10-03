@@ -1,8 +1,17 @@
 # Güncel durum
 
-Son güncelleme: 03.10.2026 — Claude Code, akis-cc2: E4b (ülkenin bankası) yazıldı, derlenmedi
+Son güncelleme: 03.10.2026 — Claude Code, akis-cc2: M54 + M58 + M59 yazıldı, derlenmedi (E4 bitti)
 
 ## Kısaca
+
+**03.10.2026 — Claude Code / M54 + M58 + M59 (derlenmedi, `akis-cc2`):** c43791b (E4b) geçti: TEST 168, 0 başarısız, Smoke. E1–E4 tamam. Mustafa üç işi istedi.
+- **M54:** yeni türler `yakin` (yakın market: küçük, pahalı ama kabul gören, küçük sepet) ve `toptan` (toptan perakende: büyük, ucuz, koli sepeti, büyük il, depo, 5. bölüm). `AllFormatIds`, `FormatsIn(ülke)` (paket `playerFormats`: FR/PL/MX/JP yakın market, BR toptan), `BaseFormat` (hazır mağaza, ölçü ve reyon için kucuk/hiper). `FFormat::Basket/Tolerance/Base`. `CanOpen` ülkede olmayan türü reddeder. Menüde iki yeni tür kartı, yalnız o ülkede.
+- **M58:** yeni `MarketResearch`: ücret = mahalle açılışı × ülke büyüklüğü (0,5–2), 30–45 gün, rapor gelince haber, 365 gün geçerli, sonra yenisi. İlk mağaza ve yurt dışı zincir alımı için şart. Şubeler sayfasında durum, rapor ve "Pazar araştırması" düğmesi. Bot da yaptırır (aynı anda bir tane).
+- **M59:** her pakete ulusal zincir eklendi (12; GB 13). Bölgesel zincirler artık her ülkede (`bolge.<ülke>.<alt bölge>`). Ülke tablosunda 15–30 firma.
+
+Kayıt sürümü 18. Yeni test `Expansion.TypesStudiesAndFirms` (OLCUM: ülke başına firma sayısı); PackStandard 10–14 ulusal zincir; Test.ps1 169.
+
+Risk: bot yurt dışına araştırmayla geç girer (denge, D8); zincir sayısı arttığı için ilk dükkânın rakip fiyat düzeyi biraz değişebilir. **Devam notu:** Mustafa derler.
 
 **03.10.2026 — Claude Code / E4b (derlenmedi, `akis-cc2`):** Yurt dışında şirketimiz olan ülkenin bankasından kredi.
 - Kredi o ülkenin parasıyla tutuluyor ve o ülkenin faiziyle (+ banka + kredi notu farkı) işliyor.

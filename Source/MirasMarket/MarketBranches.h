@@ -36,6 +36,12 @@ namespace MarketBranches
         int32 MinPopulationK = 0;        // hypermarket: only in big provinces
         bool bNeedsDepot = false;        // hypermarket: a depot of the country within 600 km (G-089)
         int32 Chapter = 0;               // hypermarket: from "Ulke Capinda" (5)
+        // M54: what a shopper puts in the basket (x UnitsPerShopper; a convenience store sells a few items, a
+        // cash-and-carry by the case) and how much dearer shelves its shoppers accept (added to the tolerance;
+        // convenience is paid for).
+        float Basket = 1.f;
+        float Tolerance = 0.f;
+        const TCHAR* Base = nullptr;     // M54: the ready-made store type it uses (views, measures, departments); null = itself
     };
 
     // Where a branch is. Country: the pack id (empty = the campaign's country).
@@ -83,7 +89,14 @@ namespace MarketBranches
     constexpr int32 PeoplePerStoreK = 40;    // room for one of our shops per 40 000 people (at least 2)
     constexpr int32 PeoplePerSlotK = 80;     // above one shop per 80 000 people ours start to share customers
 
-    const TArray<FString>& FormatIds();      // kucuk, mahalle, buyuk, hiper
+    const TArray<FString>& FormatIds();      // kucuk, mahalle, buyuk, hiper (every country; the store kits)
+    // M54 (Mustafa 03.10.2026): + yakin (convenience store, kombini) and toptan (cash-and-carry, atacarejo). Menu and
+    // command arguments index this list.
+    const TArray<FString>& AllFormatIds();
+    // The types a player may open in Country: the four everywhere, plus what its market knows (pack "playerFormats").
+    TArray<FString> FormatsIn(const FString& Country);
+    // The ready-made store type a format uses (yakin -> kucuk, toptan -> hiper; the four: themselves).
+    FString BaseFormat(const FString& Format);
     const FFormat& FormatInfo(const FString& Id);
     constexpr double FirstBranchFitOut = 0.4; // C12 (M42): the first neighbourhood branch at home costs 40 % of its fit-out
 

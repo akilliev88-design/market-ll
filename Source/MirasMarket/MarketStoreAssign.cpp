@@ -13,7 +13,7 @@ namespace MarketStoreAssignLocal
     // Unknown formats count as mahalle (as MarketBranches::FormatInfo does).
     FString FormatKey(const FString& Format)
     {
-        const FString Key = Part(Format);
+        const FString Key = Part(MarketBranches::BaseFormat(Format)); // M54: new types use a ready-made store type
         return (Key == TEXT("kucuk") || Key == TEXT("buyuk") || Key == TEXT("hiper")) ? Key : FString(TEXT("mahalle"));
     }
 

@@ -8,6 +8,7 @@
 #include "MarketStoreAssign.h"
 #include "MarketStaff.h"
 #include "MarketSubsidiaries.h"
+#include "MarketResearch.h"
 
 namespace MarketChainsLocal
 {
@@ -354,8 +355,8 @@ void MarketChains::EnsureCountry(FMarketState& State, const FString& InCountry)
             if (Country == G.HomePack && (Chain.Name == G.Name || Chain.Id == G.Id)) Chain.Home = G.Id;
         Seed(Chain, Row.StartStores, Row.HomeRegion, FString());
     }
-    // The campaign's country: one regional chain in every sub-region that has room for it.
-    if (Country == State.CountryId)
+    // M59: every country has a regional chain in every sub-region that has room for it (before: only the
+    // campaign's country), so a country's retail table holds 15-30 firms.
     {
         // D3: the pack's words for a regional chain ("Market", "Gross", ...; a pack without them: the default one's).
         const TArray<FString>& Words = Pack->RegionalSuffixes.Num() > 0 ? Pack->RegionalSuffixes : MarketCountry::Default().RegionalSuffixes;
@@ -368,7 +369,7 @@ void MarketChains::EnsureCountry(FMarketState& State, const FString& InCountry)
             int32 PopK = 0;
             for (const FString& P : Sub.Provinces) if (const MarketCountry::FCity* City = MarketCountry::FindCity(Country, P)) PopK += City->PopulationK;
             FMarketChain Chain;
-            Chain.Id = TEXT("bolge.") + Sub.Id; Chain.Country = Country;
+            Chain.Id = Country == State.CountryId ? TEXT("bolge.") + Sub.Id : TEXT("bolge.") + Country + TEXT(".") + Sub.Id; Chain.Country = Country;
             Chain.Name = Sub.Name + Suffix[Hash(Sub.Id) % Suffix.Num()];
             Chain.Boss = PersonName(State, Country, Hash(Chain.Id));
             Chain.Archetype = static_cast<uint8>(EArchetype::Regional);
@@ -920,6 +921,7 @@ bool MarketChains::CanBuy(const FMarketState& State, int32 ChainIndex, FString& 
     const FMarketChain& C = State.Rivals.Chains[ChainIndex];
     if (C.bGone) { OutReason = FString::Printf(TEXT("%s art\u0131k yok."), *C.Name); return false; }
     if (!C.bForSale) { OutReason = FString::Printf(TEXT("%s sat\u0131l\u0131k de\u011fil."), *C.Name); return false; }
+    if (C.Country != State.CountryId && !MarketResearch::AllowsEntry(State, C.Country, OutReason)) return false; // M58
     if (C.bExitSale && C.Country != State.CountryId)
     {
         // M30: a giant's arm leaving the country is a door into it, from the world chapter on.

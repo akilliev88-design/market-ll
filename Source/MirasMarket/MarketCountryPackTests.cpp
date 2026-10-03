@@ -63,12 +63,12 @@ bool FMarketCountryPackStandardTest::RunTest(const FString& Parameters)
     // currency).
     struct FExpect { const TCHAR* Id; int32 Provinces; int32 Regions; int32 Subs; int32 Holidays; int32 Chains; const TCHAR* Currency; };
     const FExpect Expected[] = {
-        { TEXT("fr"), 13, 4, 6, 10, 9, TEXT("EUR") },
-        { TEXT("es"), 17, 4, 8, 10, 8, TEXT("EUR") },
-        { TEXT("pl"), 16, 5, 5, 10, 8, TEXT("PLN") },
-        { TEXT("br"), 27, 5, 7, 10, 8, TEXT("BRL") },
-        { TEXT("mx"), 32, 4, 8, 9, 9, TEXT("MXN") },
-        { TEXT("jp"), 47, 5, 10, 15, 8, TEXT("JPY") },
+        { TEXT("fr"), 13, 4, 6, 10, 12, TEXT("EUR") },
+        { TEXT("es"), 17, 4, 8, 10, 12, TEXT("EUR") },
+        { TEXT("pl"), 16, 5, 5, 10, 12, TEXT("PLN") },
+        { TEXT("br"), 27, 5, 7, 10, 12, TEXT("BRL") },
+        { TEXT("mx"), 32, 4, 8, 9, 12, TEXT("MXN") },
+        { TEXT("jp"), 47, 5, 10, 15, 12, TEXT("JPY") },
     };
     for (const FExpect& E : Expected)
     {
@@ -101,7 +101,7 @@ bool FMarketCountryPackStandardTest::RunTest(const FString& Parameters)
         TestFalse(*(W + TEXT("grocer and market")), P.GrocerName.IsEmpty() || P.MarketName.IsEmpty());
         for (const TCHAR* Key : { TEXT("bim"), TEXT("a101"), TEXT("sok"), TEXT("migros") })
             TestTrue(*(W + TEXT("street chain ") + Key), P.Chains.Contains(Key) && !P.Chains[Key].IsEmpty());
-        TestTrue(*(W + TEXT("at least three national chains")), P.Roster.Num() >= 3);
+        TestTrue(*(W + TEXT("10-14 national chains (M59)")), P.Roster.Num() >= 10 && P.Roster.Num() <= 14);
         for (const FRosterRow& Row : P.Roster)
         {
             MarketChains::EArchetype Archetype = MarketChains::EArchetype::Super;

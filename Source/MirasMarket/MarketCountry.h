@@ -140,6 +140,9 @@ namespace MarketCountry
         // founding one costs, internal kurus at the start level ("setupCost" in money units); DividendWithholding:
         // the tax on a month's profit sent to a parent company abroad ("dividendWithholding", 0..0.5).
         TArray<FString> LegalForms;
+        // M54: store types the player may open here on top of the four everywhere ("playerFormats": "yakin" where
+        // convenience stores are a market of their own, "toptan" where cash-and-carry is).
+        TArray<FString> PlayerFormats;
         double SetupCost = 0.0;
         float DividendWithholding = 0.f;
         // B3 (#39): the employer's social security share on wages ("economy": "employerSocialRate"; Turkey 0.225 as

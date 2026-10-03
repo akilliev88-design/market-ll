@@ -427,12 +427,24 @@ struct FMarketSubsidiary
     UPROPERTY() int64 TotalTransferred = 0;
 };
 
+// M58: a market study of a country before entering it (MarketResearch.h).
+USTRUCT()
+struct FMarketResearch
+{
+    GENERATED_BODY()
+    UPROPERTY() FString Country;
+    UPROPERTY() int32 StartDay = 0;
+    UPROPERTY() int32 ReadyDay = 0;         // the report comes at this day's close; valid for a year after it
+    UPROPERTY() int64 Cost = 0;
+};
+
 USTRUCT()
 struct FMarketCompany
 {
     GENERATED_BODY()
     UPROPERTY() FString BrandName = TEXT("Miras"); // M65: the short name everyone uses (signs, news, lists)
     UPROPERTY() TArray<FMarketSubsidiary> Subsidiaries; // M65: the parent (own country) and one per country entered
+    UPROPERTY() TArray<FMarketResearch> Research;        // M58: market studies of countries not entered yet
     UPROPERTY() TArray<FMarketDepot> DepotSites; // G-089: depots in provinces (MarketDepots.h)
     UPROPERTY() int32 Trucks = 0;
     UPROPERTY() bool bCentralBuying = false;  // buying for all stores at once
@@ -920,7 +932,7 @@ struct FMarketState
     static constexpr int64 StockerDailyWage = 2000;
 
     // Save format version. 2 (G-076): story finale flags, test-mode mark. Older saves load and are migrated.
-    static constexpr int32 CurrentVersion = 17; // E4b: loans abroad; // M65: subsidiaries; // E4: the exchange difference account; // E3c2c: branch staff are people; // M64: the father's favour is counted; // E3c2 (M27): branch goods use the family shop's record, the v0.1 staff flags are gone; older saves start a new game
+    static constexpr int32 CurrentVersion = 18; // M54/M58/M59; // E4b: loans abroad; // M65: subsidiaries; // E4: the exchange difference account; // E3c2c: branch staff are people; // M64: the father's favour is counted; // E3c2 (M27): branch goods use the family shop's record, the v0.1 staff flags are gone; older saves start a new game
     UPROPERTY() int32 Version = CurrentVersion;
     UPROPERTY() int32 Day = 1;
     UPROPERTY() int64 Cash = 35000;

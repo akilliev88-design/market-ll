@@ -162,8 +162,9 @@ const MarketDepartments::FInfo& MarketDepartments::Info(EDept Dept)
 
 FString MarketDepartments::Name(EDept Dept) { return Info(Dept).Name; }
 
-int32 MarketDepartments::FormatIndex(const FString& Format)
+int32 MarketDepartments::FormatIndex(const FString& InFormat)
 {
+    const FString Format = MarketBranches::BaseFormat(InFormat); // M54: a convenience store as a discounter, a cash-and-carry as a hypermarket
     if (Format == TEXT("kucuk")) return 0;
     if (Format == TEXT("buyuk")) return 2;
     if (Format == TEXT("hiper")) return 3;

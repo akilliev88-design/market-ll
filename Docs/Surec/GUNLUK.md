@@ -1,3 +1,43 @@
+## 03.10.2026 — Claude Code — M54, M58, M59 (derlenmedi)
+
+**E4b sonucu (c43791b):** DERLE geçti; TEST 168 başarılı, 0 uyarı, 0 başarısız; Smoke geçti. OLCUM: kur 1,1262; yerel taksit 106.619 → bizim paramızla 120.070. E4 bitti; 11_TEK_EKONOMI E1–E4 tamam.
+
+**İstek (Mustafa):** M54, M58, M59.
+
+**M54 — yakın market ve toptan perakende:**
+- `MarketBranches`:
+  - `FFormat`'a `Basket` (sepet çarpanı), `Tolerance` (fiyat hoşgörüsü eki) ve `Base` (hazır mağaza türü) eklendi.
+  - Yeni türler: `yakin` (açılış 1.800 TL, 2 kişi, fiyat 1,12, hoşgörü +0,15, sepet 0,55, ağırlık 0,6) ve `toptan` (50.000 TL, 10 kişi, fiyat 0,90, sepet 2,5, nüfus 400 bin, depo, 5. bölüm).
+  - `AllFormatIds` (menü ve komut argümanları), `FormatsIn`, `BaseFormat`; `EncodeSite/DecodeSite` 6 türle.
+  - `CanOpen` ülkede olmayan türü reddeder.
+  - Şube günü: istek × `Basket`, hoşgörü + `Tolerance`.
+- `MarketDepartments::FormatIndex`, `MarketStoreAssign::FormatKey` ve `MarketStoreViews::IdsFor` ana türü kullanır (görünüm, ölçü, reyon).
+- Paket: `playerFormats` (FR, PL, MX, JP `yakin`; BR `toptan`).
+- Menü: Şubeler › il kartında iki yeni tür, yalnız o ülkede.
+
+**M58 — pazar araştırması:**
+- Yeni `MarketResearch.h/.cpp`, `FMarketResearch` (`Company.Research`).
+- `Status` (gerekmez / yok / sürüyor / hazır / eskidi), `AllowsEntry`, `Cost` (mahalle açılışı = tadilat + 2 kira × liste düzeyi × ülke büyüklüğü 0,5–2, o ülkenin parasıyla), `Days` (30 + nüfus/20 milyon, en çok 45), `CanStart` (6. bölüm, kasa), `Start` (masraf gün sonunda merkez gideri), `Report` (en iyi 3 il, ilk 4 zincirin mağaza payı, ülkeye özgü tür), `StatusText`, `CloseDay` (rapor haberi).
+- Şart: `MarketBranches::CanOpen` yurt dışında, `MarketChains::CanBuy` yabancı zincirde.
+- `MarketDirector` gün sonunda çağırır. Menü: il kartında durum satırı ve düğme (sorar).
+- Bot: yurt dışı il ararken araştırması olmayan ülke için (İK ve mali müşavir varken, kasa yetiyorsa, aynı anda bir tane) araştırma başlatır.
+
+**M59 — 15–30 firma:**
+- `ulkeler.json` roster: TR +4 (FİLO, Makro Center, Hakmart, Bizimkiler Toptan), DE +6, GB +6, US +5, FR +3, ES +4, PL +4, BR +4, MX +3, JP +4. Hepsi kurgu adlar.
+- `MarketChains::EnsureCountry`: bölgesel zincir her ülkede (2+ ilçeli alt bölge); kampanya ülkesinde id aynı, diğerlerinde `bolge.<ülke>.<alt bölge>`.
+- Beklenen ülke tablosu: TR 30, DE 16, GB 16, US 21, FR 17, ES 16, PL 17, BR 18, MX 20, JP 21.
+
+**Testler:** yeni `MirasMarket.Expansion.TypesStudiesAndFirms`; `PackStandard` 10–14 ulusal zincir ve yeni paketlerin zincir sayıları 12. Test.ps1 alt sınırı 169. Kayıt sürümü 18.
+
+**Varsayımlar:**
+- Yakın market ve toptan perakendenin 3B mağazası yok; ucuzcu ve hipermarket görünümünü kullanıyorlar (Codex ileride ayrı görünüm ekleyebilir).
+- Toptan perakendenin esnaf ağırlıklı müşteri karışımı henüz yok (sepet büyüklüğüyle temsil ediliyor).
+- Pazar araştırması kampanya ülkesi dışındaki her ülke için, o ülkede şirket kurulana kadar.
+
+**Doğrulama:** Derlenmedi.
+
+**Sıradaki:** Mustafa CLAUDE_KOS.cmd.
+
 ## 03.10.2026 — Claude Code — E4b: yurt dışı banka kredisi (derlenmedi)
 
 **Yapılan:**

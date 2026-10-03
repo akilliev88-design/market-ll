@@ -39,6 +39,7 @@
 #include "MarketRumors.h"
 #include "Widgets/Input/SEditableTextBox.h"
 #include "MarketSubsidiaries.h"
+#include "MarketResearch.h"
 #include "Widgets/Layout/SSpacer.h"
 #include "Widgets/Images/SImage.h"
 #include "Widgets/Input/SButton.h"
@@ -3014,6 +3015,11 @@ TSharedRef<SWidget> SMarketMenu::ProvinceCard()
     Types->AddSlot(1, 0)[ TypeCard(TEXT("mahalle"), TEXT("dengeli")) ];
     Types->AddSlot(0, 1)[ TypeCard(TEXT("buyuk"), TEXT("geni\u015f \u00fcr\u00fcn")) ];
     Types->AddSlot(1, 1)[ TypeCard(TEXT("hiper"), TEXT("b\u00fcy\u00fck il")) ];
+    // M54: the country's own store types (convenience stores, cash-and-carry) where its market has them.
+    Types->AddSlot(0, 2)[ SNew(SBox).Visibility_Lambda([this] { return MarketBranches::FormatsIn(ShownCountry()).Contains(TEXT("yakin")) ? EVisibility::Visible : EVisibility::Collapsed; })
+        [ TypeCard(TEXT("yakin"), TEXT("k\u00fc\u00e7\u00fck, pahal\u0131, \u00e7ok \u015fube")) ] ];
+    Types->AddSlot(1, 2)[ SNew(SBox).Visibility_Lambda([this] { return MarketBranches::FormatsIn(ShownCountry()).Contains(TEXT("toptan")) ? EVisibility::Visible : EVisibility::Collapsed; })
+        [ TypeCard(TEXT("toptan"), TEXT("koli sat\u0131\u015f\u0131, b\u00fcy\u00fck il")) ] ];
 
     TSharedRef<SWidget> Body = SNew(SVerticalBox)
         // Where, and the way out.
@@ -3044,6 +3050,23 @@ TSharedRef<SWidget> SMarketMenu::ProvinceCard()
             ]
         ]
         + SVerticalBox::Slot().AutoHeight().Padding(0.f, 20.f, 0.f, 0.f)[ Tiles ]
+        // M58: a country not entered yet needs a market study first (its status, the report, the button).
+        + SVerticalBox::Slot().AutoHeight().Padding(0.f, 14.f, 0.f, 0.f)
+        [
+            SNew(SHorizontalBox)
+            .Visibility_Lambda([this, G] { return G() && MarketResearch::Status(G()->State, ShownCountry()) != MarketResearch::EStatus::NotNeeded ? EVisibility::Visible : EVisibility::Collapsed; })
+            + SHorizontalBox::Slot().FillWidth(1.f).VAlign(VAlign_Center)
+            [ TextPx([this, G] { return G() ? MarketResearch::StatusText(G()->State, ShownCountry()) : FString(); }, 12.f, [] { return ERole::Text; }, false, true) ]
+            + SHorizontalBox::Slot().AutoWidth().VAlign(VAlign_Center).Padding(10.f, 0.f, 0.f, 0.f)
+            [ Button([] { return FString(TEXT("Pazar ara\u015ft\u0131rmas\u0131")); }, [this, G]
+            {
+                if (!G()) return;
+                const FString Country = ShownCountry();
+                Ask(FString::Printf(TEXT("%s i\u00e7in pazar ara\u015ft\u0131rmas\u0131 yapt\u0131r\u0131ls\u0131n m\u0131? %s, %d g\u00fcn s\u00fcrer; rapor bir y\u0131l ge\u00e7erli."),
+                    *MarketCountry::FindOrDefault(Country).Name, *MarketMenuUi::Tl(MarketResearch::Cost(G()->State, Country)), MarketResearch::Days(G()->State, Country)),
+                    [this, G, Country] { FString Message; if (G()) { MarketResearch::Start(G()->State, Country, Message); G()->Notify(Message); } });
+            }, false, [this, G] { FString Why; return G() && MarketResearch::CanStart(G()->State, ShownCountry(), Why); }) ]
+        ]
         // Our shops.
         + SVerticalBox::Slot().AutoHeight().Padding(0.f, 20.f, 0.f, 6.f)
         [
