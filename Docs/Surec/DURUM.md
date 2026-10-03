@@ -4,6 +4,12 @@ Son güncelleme: 03.10.2026 — Claude (Cowork), C15 derlendi; C15b yazıldı, d
 
 ## Kısaca
 
+<!-- D3D5:BEGIN (Claude Code, akis-cc) -->
+**03.10.2026 — Claude Code (bulut) / D3 + D5 (derlenmedi, dal `akis-cc`):** D3: koddaki Türkiye dalları (tatiller/bayramlar/Ramazan, okul günleri, kart eğrisi, yerleşik fiyat eğrisi, gerçek zincir adı, ulusal zincir kadrosu, dünya devleri, isim havuzları, kasap zirvesi, bölge zinciri ve firma sözcükleri, harita ülkesi, varsayılan ülke) `Config/ulkeler.json`'a taşındı; kodda ülke kodu yalnız varsayılanda. D5: Fransa, İspanya, Polonya, Brezilya, Meksika, Japonya paketleri. Yeni testler `Country.PackStandard`, `Country.SmokeEveryPack`, `Country.TurkeyFromPack`. Bulutta Unreal yok: **derlenmedi, test edilmedi**; Cowork Mustafa'nın bilgisayarında DERLE + TEST koşturacak. Ayrıntı `Docs/Surec/akislar/D3_D5_cc_teslim.md`.
+
+**Devam notu (D3/D5):** Kod yazıldı, commit'li (`akis-cc`). GitHub'a gönderme 403 ile reddedildi (Claude GitHub erişimi); izin düzelince push. Sıradaki: DERLE, TEST (yeni 3 test dahil), Smoke; görev belgesi ve `10_ULKE_STANDARDI.md` gelince karşılaştırma.
+<!-- D3D5:END -->
+
 **03.10.2026 — Claude / C15b (derlenmedi):** C15 derlendi, TEST 159 + 1 uyarı, Smoke geçti. Normal çıktıları C14d ile bayt bayt aynı: büyüme zorlanması hiç devreye girmedi (kapasite 8 + mağaza/2 büyüyen ağla birlikte büyüdü). Zor tam güç fazla sert: temkinli 13/15/1, dengeli 11/1/1, ama atak 282–320 (düşük fiyatla). Rahat fazla kolay: temkinli 150–167, dengeli 236–254, atak 326–367. C15b: kapasite 6 + mağaza × 0,4 + 2 × müdür (müdür payı ≤ mağaza × 0,3); zorluk çarpanı şubeye yarı gücüyle (Rahat 1,05, Zor 0,96). Mustafa koşturacak.
 
 **03.10.2026 — Claude / C15 (derlenmedi, C14e ile birlikte):** Mustafa C14e'yi koşturmadı; ikisi tek koşuda. M45 (Mustafa: hızlı büyüyen büyüyebilsin ama riski yüksek olsun): yönetim kapasitesi = 8 + mağaza/2 + 3 × il/bölge/ülke müdürü (yıllık sözleşme); aşılınca yeni şube %60 × zorlanma ihtimalle zayıf yer (müşteri ×0,75 kalıcı), genç şubelerde hizmet −%12 × zorlanma, ana ekranda uyarı; temkinli/dengeli bot bekler, atak devam eder. `MarketBranches::GrowthStrain/GrowthCapacity/SignedLastYear/GrowthStrainText`, `FMarketBranch::SignedDay/bHasty`, kayıt sürümü 8, yeni test `Branches.GrowthStrain`, Test.ps1 alt sınırı 160. Mustafa koşturacak.

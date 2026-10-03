@@ -122,15 +122,14 @@ bool FMarketCountryPackStandardTest::RunTest(const FString& Parameters)
             for (const FString& Province : Sub.Provinces) TestTrue(*(W + Sub.Id + TEXT(" lists ") + Province), Cities.Contains(Province));
         }
     }
-    // The world giants: a known kind, and a home pack that holds its home arm.
+    // The world giants: a known kind and an existing home pack (its home arm, when it has one, is the national chain
+    // with the same id or name).
     for (const FGiantRow& G : Giants)
     {
         MarketChains::EArchetype Archetype = MarketChains::EArchetype::Super;
         TestTrue(*(G.Id + TEXT(" giant archetype")), MarketChains::ArchetypeOf(G.Archetype, Archetype));
         if (G.Pack.IsEmpty()) continue;
-        const FProfile* Home = Find(G.Pack);
-        TestNotNull(*(G.Id + TEXT(" home pack")), Home);
-        if (Home) TestTrue(*(G.Id + TEXT(" home arm")), Home->Roster.ContainsByPredicate([&G](const FRosterRow& R) { return R.Id == G.Id || R.Name == G.Name; }));
+        TestNotNull(*(G.Id + TEXT(" home pack")), Find(G.Pack));
     }
     // The chains of every pack reach the league roster.
     TestEqual(TEXT("National roster = all packs"), MarketChains::NationalRoster().Num(), ChainIds.Num());

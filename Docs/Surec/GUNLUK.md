@@ -1,3 +1,17 @@
+<!-- D3D5:BEGIN (Claude Code, akis-cc) -->
+## 03.10.2026 — Claude Code (bulut) — D3 Türkiye pakete, D5 altı yeni ülke (derlenmedi)
+
+**Yapılan (D3):** Türkiye'ye özel kod dalları ülke paketine taşındı: `MarketCalendar` (resmî günler, bayramlar ay takvimi tablosuyla, Ramazan, okul günleri, bayram adı gösterimi; yeni `HolidayStart`), `MarketDepartments` (kasap zirvesi `butcherPeak`), `MarketPayments` (`cardShareByYear`), `MarketCountry` (`curve: builtin`, `DefaultId/Default/FindOrDefault/MapCountry/HasMap`, `ParseGiants/Giants`, etkin ülke baştan TR paketi), `MarketCompetitors` (`realChainNames`), `MarketChains` (kadro ve devler paketten, bölge zinciri sözcükleri), `MarketStaff`/`MarketManagers` (isim havuzları), `MarketCast` (firma sözcükleri), `MarketMenuPages` (harita ülkesi), `MarketStart`/`MarketEras` (varsayılan ülke). TR paketine 1 Mayıs, 19 Mayıs, 30 Ağustos eklendi (eskiden kodda).
+
+**Yapılan (D5):** `fr`, `es`, `pl`, `br`, `mx`, `jp` paketleri (kurgu zincir, banka, platform ve patron adları; il/bölge; tatil; okul; iklim; ekonomi karakteri). Kombini/yakın market → `regional`, atacarejo → `wholesale`, Meksika bodega → `discount` (Cowork türleri ekleyecek). CarreFive'ın evi Fransa, Aeonn/Seven & Me'ninki Japonya.
+
+**Doğrulama:** Derlenmedi, test edilmedi (bulutta Unreal yok). JSON Python'la ayrıştırıldı ve PackStandard kuralları Python'da ön kontrol edildi (10 paket geçti). `Tools/escape_unicode.py --check` temiz. Yeni testler `MirasMarket.Country.PackStandard`, `MirasMarket.Country.SmokeEveryPack`, `MirasMarket.Country.TurkeyFromPack`.
+
+**Varsayımlar:** Görev belgesi ve `10_ULKE_STANDARDI.md` GitHub'da yoktu; Mustafa'nın sohbet özetiyle çalışıldı. Test.ps1 alt sınırı 160'ta bırakıldı. Yeni ülkeler uzun koşuda (8. yıl sonrası) devlerin yeni ülke seçimini etkiler.
+
+**Sıradaki:** Cowork: `akis-cc` birleştirme, DERLE + TEST + Smoke. Teslim notu `Docs/Surec/akislar/D3_D5_cc_teslim.md`.
+<!-- D3D5:END -->
+
 ## 03.10.2026 — Claude (Cowork) — C15 sonucu ve C15b (derlenmedi)
 
 **Doğrulama (Mustafa, 289adde):** DERLE, TEST 159 + 1 motor uyarısı (yeni `Branches.GrowthStrain` geçti), Smoke geçti. Bot 882/1177/713 sn.
