@@ -1,3 +1,9 @@
+## 03.10.2026 — Claude Code — E3b doğrulandı
+
+**son.log (3d8edf1):** DERLE geçti; TEST 161 başarılı + 1 uyarılı, başarısız 0 (alt sınır 162); Smoke geçti. OLCUM: tek tek alan / beklenen: 0,831/0,831, 0,361/0,362, 0,061/0,061. Aile dükkânı 90 gün ciro oranı 1,035 (E3b öncesiyle aynı, dükkânın sonuçları değişmedi). E3b bitti; 11_TEK_EKONOMI'de "bitti".
+
+**Sıradaki:** E3c (tek mağaza kaydı).
+
 ## 03.10.2026 — Claude Code — E3b: ortak ürün isteği (derlenmedi)
 
 **Karar (Mustafa, M62):** iki seçenekten "ortak ürün isteği": dükkânımızda müşteriler tek tek kalır, istek ve fiyat kabulü tek yerde, şubeler toplu kullanır.

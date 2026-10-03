@@ -1,8 +1,10 @@
 # Güncel durum
 
-Son güncelleme: 03.10.2026 — Claude Code, akis-cc2: E3b (ortak ürün isteği) yazıldı, derlenmedi
+Son güncelleme: 03.10.2026 — Claude Code, akis-cc2: E3b derlendi, testler ve Smoke geçti; sıradaki E3c
 
 ## Kısaca
+
+**03.10.2026 — Claude Code / E3b doğrulandı (3d8edf1):** DERLE geçti, TEST 161 + 1 uyarı, başarısız 0, Smoke geçti. OLCUM: 2.000 müşterinin tek tek kararı şubenin beklenen değeriyle aynı (oran 1,029 → 0,831/0,831; 1,132 → 0,361/0,362; 1,235 → 0,061/0,061); aile dükkânı ciro oranı 1,035 değişmedi. Sıradaki: E3c.
 
 **03.10.2026 — Claude Code / E3b ortak ürün isteği (derlenmedi, `akis-cc2`):** Mustafa "ortak ürün isteği"ni seçti (M62). Yeni `MarketProductDemand`: `DayFactor` (takvim × salgın alımı; `MarketOnline::GroupFactorOn` eklendi), `SegmentWish`, `MixWishes`, `MixTolerance`, `IncomeTolerance`, `Acceptance` (= `MarketDemand::BuyChanceFor`), `AcceptanceFactor` (eşitlikte 1). İlk dükkân: `MarketCustomers::BuildList` ve `MarketDemand::Decide` bunu kullanıyor, sonuç aynı. Şube: `Wishes` = `MixWishes`, her ürünün isteği × fiyat kabulü (şube fiyatı / ilin zincir fiyatı, şubenin çevre payı, karışımın hoşgörüsü + gelir + zorluk). Yeni test `ProductDemand.OneWishForAll`; Test.ps1 162. Risk: şube satışları fiyata göre biraz oynar (eşitlikte aynı, mahalle müdürü hedefinde ~%2 düşük, ucuzcuda ~%3 yüksek); şube testleri ya da bot buna takılabilir. **Devam notu:** Mustafa derler; sonra E3c.
 
