@@ -1,8 +1,10 @@
 # Güncel durum
 
-Son güncelleme: 03.10.2026 — Claude (Cowork), dengeleme durdu; dünya yeniden tasarımı (M51) taslağı
+Son güncelleme: 03.10.2026 — Claude (Cowork), D1+D2 teknik tasarımı yazıldı (11_TEK_EKONOMI.md), kod henüz yok
 
 ## Kısaca
+
+**03.10.2026 — Claude / devam notu (D1+D2):** Kararlar M51 (dünya), M52 (motor ülke bilmez, `10_ULKE_STANDARDI.md`), M53 (listeye girerek başla). Claude Code bulutta `akis-cc` dalında D3 (Türkiye dallarını pakete) + D5 (6 yeni ülke) yapıyor; görev `Docs/Surec/akislar/D3_D5_claude_code.md`, teslim `D3_D5_cc_teslim.md` (derleyemez; derleme Mustafa'da). Claude'un işi D1+D2: teknik tasarım ve faz planı **`Docs/Kurgu/11_TEK_EKONOMI.md`** (E1 ülke başına fiyat → E2 tek talep ve tek rekabet, MarketRivals/MarketCompetitors pay modeli kalkar → E3 tek satış ve tek mağaza kaydı, eski kayıt kalıntıları kalkar → E4 yabancı mağazanın parası ve kur farkı). **Henüz kod yazılmadı; sıradaki adım E1.** Bekleyen C16 kodu (M48–M50) `Docs/Surec/bekleyen/C16/` (derlemeye girmeyen .txt kopyalar). Claude'un limiti biterse: Claude Code bu notu, 11_TEK_EKONOMI.md §2 ve §4'ü okuyup E1'den devam eder.
 
 **03.10.2026 — Claude / M51 dünya yeniden tasarımı (taslak):** Mustafa: oyun dünya çapında; oyuncu herhangi bir ülkede başlar ve hepsinde oynar; **dengeleme burada durdu**; tek ekonomi modeli; ~10 ülke; ülke müdürlerinin üstüne kademe. Bütün sistemin gözden geçirmesi ve faz planı `Docs/Kurgu/09_DUNYA_YENIDEN.md` (asıl sorunlar: tek fiyat eğrisi, iki ekonomi, kodda ~45 `"tr"` dalı, Türkiye hikâyesi, yurt dışı 6. bölümde ve tek kapı, yönetim ülkede bitiyor, menü ulusal). Mustafa'nın 5 kararı bekleniyor (§8). C15b (koşturulmadıysa koşturulmasın) ve C16 (M48–M50, Claude'da, cihaza gönderilmedi) bekletiliyor. Claude Code'a henüz iş verilmedi.
 

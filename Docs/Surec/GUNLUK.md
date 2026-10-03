@@ -1,3 +1,13 @@
+## 03.10.2026 — Claude (Cowork) — Ülke standardı (M52), liste dışı başlangıç (M53), tek ekonomi tasarımı
+
+**Mustafa:** "Yaptığımız şeyleri standart yap ki sonradan ülke eklemek istediğimizde sorun olmasın; oyunun arkasındaki aklı standartlaştır. Oyunun ilk kalıntıları duruyorsa kaldıralım." · "Oyuna ilk başladığımızda top 50 sonuncusu olmayalım; listede değiliz, sonradan listedekileri geçince giriyoruz. Aynısı ülke içinde." · "İşi kaydederek git; limit biterse Claude Code'a atıp oradan devam edebileyim." Claude Code bulutta çalışıyor (GitHub), D3+D5 promptu ve bulut eki verildi.
+
+**Yapılan:** `Docs/Kurgu/10_ULKE_STANDARDI.md` (ilke, standart kavramlar, paket şeması, otomatik doğrulama ve duman testi, yeni ülke ekleme adımları); AGENTS.md §5'e M52 kuralı. 09_DUNYA_YENIDEN.md §10: 8 prototip kalıntısı (MarketRivals hâlâ ilk dükkânın trafiğini çarpıyor; MarketCompetitors ayrı pay modeli; ilk dükkânın ayrı ekonomisi ve 55 görsel müşteri ölçeği; her gün çalışan `MarketManagers::Migrate` ve diğer eski kayıt dalları; v0.1 ikinci şube şartları; BranchResult; yerleşik Türkiye eğrisi). `Docs/Kurgu/11_TEK_EKONOMI.md`: bugünkü kodun okuması ve E1–E4 faz planı (her faz test ölçütleriyle). Bekleyen C16 kodu `Docs/Surec/bekleyen/C16/`'ya kaydedildi (.txt). Kararlar M52, M53.
+
+**Doğrulama:** Yalnız belge; kod değişmedi.
+
+**Sıradaki:** E1 (ülke başına fiyat düzeyi, ücret, faiz; `ToHome` kur çarpanı).
+
 ## 03.10.2026 — Claude (Cowork) — Dünya yeniden tasarımı (M51), dengeleme durdu
 
 **Mustafa:** "Biz bu oyunu sadece ülke bazında yapıyormuşuz hissi veriyor; dünya çapı en önemli şey." Ardından: "Şu ana kadarki sistemin hepsini bir oyuncu oyundaki dünyanın herhangi bir ülkesinde başlayabilir veya oynayabilir mantığıyla yapıyoruz. Dengeleme işini burada bırakalım çünkü büyük bir değişiklik yapıyoruz. Ekonomi modelini tekleme gibi bir şey yapacaktık, onu da yapalım. Oyundaki tüm sistemi gözden geçirmemiz gerekir; ülke müdürlerini de birilerine bağlamamız gerekecek. 25 ülke çok, 10 tane mi yapsak." Claude Code'a henüz iş verilmedi (C16 bölüşüm promptu kullanılmadı).
