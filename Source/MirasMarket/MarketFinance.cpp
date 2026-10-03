@@ -442,7 +442,7 @@ TArray<FString> MarketFinance::Rescue(FMarketState& State, const TArray<FMarketP
 
         const int32 HrBefore = State.Staff.Num();
         State.Staff.RemoveAll([](const FMarketEmployee& E) { return MarketStaff::RoleOf(E) == MarketStaff::ERole::HrManager; });
-        if (State.Staff.Num() < HrBefore) { MarketStaff::SyncCounts(State); Lines.Add(TEXT("\u0130K m\u00fcd\u00fcr\u00fc ayr\u0131ld\u0131: tek d\u00fckk\u00e2nda i\u015fi yok.")); }
+        if (State.Staff.Num() < HrBefore) { Lines.Add(TEXT("\u0130K m\u00fcd\u00fcr\u00fc ayr\u0131ld\u0131: tek d\u00fckk\u00e2nda i\u015fi yok.")); }
 
         // The family shop keeps its best few.
         TArray<int32> Workers;
@@ -454,7 +454,6 @@ TArray<FString> MarketFinance::Rescue(FMarketState& State, const TArray<FMarketP
             TArray<int32> Going(Workers.GetData() + RescueKeepStaff, Workers.Num() - RescueKeepStaff);
             Going.Sort([](int32 A, int32 B) { return A > B; });
             for (const int32 I : Going) State.Staff.RemoveAt(I);
-            MarketStaff::SyncCounts(State);
             Lines.Add(FString::Printf(TEXT("Aile d\u00fckk\u00e2n\u0131nda kasa ve rafta %d ki\u015fi kald\u0131; %d ki\u015fi \u00fccreti \u00f6denemedi\u011fi i\u00e7in ayr\u0131ld\u0131."), RescueKeepStaff, Going.Num()));
         }
     }

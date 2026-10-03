@@ -33,4 +33,18 @@ namespace MarketFreshness
 
     // Day close (after FMarketState::CloseDay, before the books): match batches, spoil the expired ones, donate.
     void CloseDay(FMarketState& State, const TArray<FMarketProduct>& Products);
+
+    // E3c2 (M63): one batch rule for every store (the family shop's State.Batches, a branch's own Batches).
+    // Held: the units of product Id the store holds now; Arrived: units that came in since the last match. New units
+    // become a batch sellable for Life days from Day; units that left came from the oldest batches (FEFO). Expired
+    // batches (last day before Day) are waste; under the donation policy a batch on its last day (Day) is given away.
+    // The caller takes Wasted + Donated units out of its stock.
+    struct FBatchDay
+    {
+        int32 Wasted = 0;
+        int32 Donated = 0;
+    };
+    FBatchDay MatchBatches(TArray<FMarketBatch>& Batches, const FString& Id, int32 Held, int32 Arrived, int32 Life, int32 Day, EPolicy Policy);
+    // Units of Id in Batches whose last sellable day is Day.
+    int32 LastDayUnitsIn(const TArray<FMarketBatch>& Batches, const FString& Id, int32 Day);
 }

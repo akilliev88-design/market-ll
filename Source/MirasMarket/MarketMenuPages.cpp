@@ -1548,7 +1548,7 @@ TSharedRef<SWidget> SMarketMenu::StaffPage()
                     + SVerticalBox::Slot().AutoHeight().Padding(0.f, 6.f, 0.f, 4.f)
                     [ Label([G] { return G() ? FString::Printf(TEXT("%d ki\u015fi \u00b7 ayda %s"), G()->State.Staff.Num(), *MarketMenuUi::Tl(G()->State.DailyPayroll() * 30)) : FString(); }, 18, ERole::Text, true) ]
                     + SVerticalBox::Slot().AutoHeight()
-                    [ Label([G] { return G() ? FString::Printf(TEXT("Bug\u00fcn kasada: %s \u00b7 reyonda %d g\u00f6revli"), G()->State.bCashier ? TEXT("kasiyer") : TEXT("sen (E)"), G()->State.Stockers) : FString(); }, 10, ERole::Muted, false, true) ]
+                    [ Label([G] { return G() ? FString::Printf(TEXT("Bug\u00fcn kasada: %s \u00b7 reyonda %d g\u00f6revli"), MarketStaff::CashierOnDuty(G()->State) ? TEXT("kasiyer") : TEXT("sen (E)"), MarketStaff::StockersOnDuty(G()->State)) : FString(); }, 10, ERole::Muted, false, true) ]
                     + SVerticalBox::Slot().AutoHeight().Padding(0.f, 4.f, 0.f, 0.f)
                     [ Label([G] { return G() ? G()->WorkerSummary() : FString(); }, 10, ERole::Muted, false, true) ])
             ]

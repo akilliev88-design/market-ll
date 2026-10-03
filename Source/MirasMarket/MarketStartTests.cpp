@@ -43,8 +43,8 @@ bool FMarketStartTest::RunTest(const FString& Parameters)
     TestEqual(TEXT("Three people"), S.Staff.Num(), 3);
     TestEqual(TEXT("One cashier"), MarketStaff::Count(S, MarketStaff::ERole::Cashier), 1);
     TestEqual(TEXT("Two stockers"), MarketStaff::Count(S, MarketStaff::ERole::Stocker), 2);
-    TestTrue(TEXT("Cashier on duty"), S.bCashier);
-    TestEqual(TEXT("Stockers on duty"), S.Stockers, 2);
+    TestTrue(TEXT("Cashier on duty"), MarketStaff::CashierOnDuty(S));
+    TestEqual(TEXT("Stockers on duty"), MarketStaff::StockersOnDuty(S), 2);
     int64 Payroll = 0;
     for (const FMarketEmployee& E : S.Staff) Payroll += E.DailyWage;
     TestTrue(TEXT("Wages are paid"), Payroll > 0);

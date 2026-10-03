@@ -257,16 +257,18 @@ void MarketStaff::AddStartingStaff(FMarketState& State, int32 Cashiers, int32 St
     };
     for (int32 I = 0; I < FMath::Clamp(Cashiers, 0, MaxCashiers); ++I) Add(0);
     for (int32 I = 0; I < FMath::Clamp(Stockers, 0, FMarketState::MaxStockers); ++I) Add(1);
-    SyncCounts(State);
 }
 
-void MarketStaff::SyncCounts(FMarketState& State)
+bool MarketStaff::CashierOnDuty(const FMarketState& State)
 {
-    if (State.Staff.Num() == 0 && State.Candidates.Num() == 0 && State.NextEmployeeId == 1) return; // v0.1 state: flags are the truth
-    State.bCashier = OnDutyAt(State, ERole::Cashier, 0) != nullptr;
+    return OnDutyAt(State, ERole::Cashier, 0) != nullptr;
+}
+
+int32 MarketStaff::StockersOnDuty(const FMarketState& State)
+{
     int32 Stockers = 0;
-    while (OnDutyAt(State, ERole::Stocker, Stockers)) ++Stockers;
-    State.Stockers = FMath::Min(Stockers, FMarketState::MaxStockers);
+    while (Stockers < FMarketState::MaxStockers && OnDutyAt(State, ERole::Stocker, Stockers)) ++Stockers;
+    return Stockers;
 }
 
 void MarketStaff::EnsureCandidates(FMarketState& State)
@@ -319,7 +321,6 @@ bool MarketStaff::Hire(FMarketState& State, int32 CandidateIndex, FString& OutMe
     Hired.Fatigue = 0.f;
     State.Staff.Add(Hired);
     State.Candidates.RemoveAt(CandidateIndex);
-    SyncCounts(State);
     const TCHAR* Duty = Role == ERole::Cashier ? TEXT("Kasada \u00f6deme al\u0131r; yo\u011fun g\u00fcnler onu yorar.")
         : Role == ERole::Stocker ? TEXT("Raflar\u0131 depodan doldurur, rafta olmayan \u00fcr\u00fcn\u00fc reyonuna dizer.")
         : TEXT("Her g\u00fcn en mutsuz \u00e7al\u0131\u015fanla konu\u015fur, yorgunlara izin ayarlar, ayr\u0131lan\u0131n yerine aday bulur.");
@@ -391,7 +392,6 @@ bool MarketStaff::Fire(FMarketState& State, int32 EmployeeId, FString& OutMessag
     State.Staff.RemoveAt(Index);
     // Colleagues notice.
     for (FMarketEmployee& E : State.Staff) if (IsShopRole(RoleOf(E))) E.Morale = FMath::Max(0.f, E.Morale - 3.f);
-    SyncCounts(State);
     OutMessage = Severance > 0
         ? (Seniority > 0 ? FString::Printf(TEXT("%s i\u015ften \u00e7\u0131kar\u0131ld\u0131. \u0130hbar ve k\u0131dem tazminat\u0131 %s \u00f6dendi."), *Leaving.Name, *Tl(Severance))
                          : FString::Printf(TEXT("%s i\u015ften \u00e7\u0131kar\u0131ld\u0131. \u0130hbar tazminat\u0131 %s \u00f6dendi."), *Leaving.Name, *Tl(Severance)))
@@ -429,7 +429,6 @@ bool MarketStaff::GiveDayOff(FMarketState& State, int32 EmployeeId, bool bShopOp
     if (E->OffDay == Day) { OutMessage = FString::Printf(TEXT("%s zaten %d. g\u00fcn izinli."), *E->Name, Day); return false; }
     E->OffDay = Day;
     E->Morale = FMath::Min(100.f, E->Morale + 4.f);
-    SyncCounts(State);
     const TCHAR* Cover = RoleOf(*E) == ERole::Cashier && Count(State, ERole::Cashier) < 2 ? TEXT(" O g\u00fcn kasay\u0131 sen al\u0131rs\u0131n (E).") : TEXT("");
     OutMessage = FString::Printf(TEXT("%s %d. g\u00fcn izinli; dinlenip geri gelir (\u00fccretli izin).%s"), *E->Name, Day, Cover);
     return true;
@@ -494,7 +493,7 @@ void MarketStaff::CloseDay(FMarketState& State)
     State.LastTaxPaid = 0;
     State.LastPenalty = 0;
     const int32 Closed = State.Day - 1;
-    if (Closed < 1) { SyncCounts(State); return; }
+    if (Closed < 1) return;
     TArray<FString>& News = State.StaffNews;
     auto Worked = [Closed](const FMarketEmployee& E) { return WorksOn(E, Closed); };
     const FMarketEmployee* HrToday = State.Staff.FindByPredicate([&](const FMarketEmployee& E) { return RoleOf(E) == ERole::HrManager && Worked(E); });
@@ -765,7 +764,6 @@ void MarketStaff::CloseDay(FMarketState& State)
     // 8. The hiring pool: weekly without HR, every three days with HR.
     const int32 Interval = HasHr(State) ? 3 : 7;
     if (Closed % Interval == 0) RefreshPool(State);
-    SyncCounts(State);
 }
 
 FString MarketStaff::ReportText(const FMarketState& State)

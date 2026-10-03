@@ -3,6 +3,7 @@
 // -MirasCapture (visual review): five 1280x720 screenshots once shaders and exposure have settled.
 
 #include "MarketGame.h"
+#include "MarketStaff.h"
 #include "MarketStoreKit.h"
 #include "ProductCatalog.h"
 #include "HAL/FileManager.h"
@@ -133,7 +134,7 @@ bool AMarketGameMode::TickAutomation()
             if (!Require(OrderedUnits > 0 && State.Stock[0].Incoming == OrderedUnits && State.Cash == CashBeforeOrder - Products[0].Cost * OrderedUnits, TEXT("multi-product office order"))) return false;
             const int64 CashBeforeHire = State.Cash;
             Command("Hire");
-            if (!Require(State.bCashier && State.Cash == CashBeforeHire - 12000, TEXT("hire cashier"))) return false;
+            if (!Require(MarketStaff::CashierOnDuty(State) && State.Cash == CashBeforeHire - 12000, TEXT("hire cashier"))) return false;
             // New campaigns deliberately start empty. Use normal warehouse transfers here so the
             // smoke scenario can still exercise customer sales without changing player startup.
             for (int32 ProductIndex = 0; ProductIndex < State.Stock.Num(); ++ProductIndex)
@@ -163,7 +164,7 @@ bool AMarketGameMode::TickAutomation()
             const int64 SavedCash = State.Cash;
             State.Cash = 0;
             LoadCampaign();
-            if (!Require(State.Cash == SavedCash && State.bCashier, TEXT("disk save and load"))) return false;
+            if (!Require(State.Cash == SavedCash && MarketStaff::CashierOnDuty(State), TEXT("disk save and load"))) return false;
             UE_LOG(LogTemp, Display, TEXT("MirasMarket smoke PASSED: player, restock, multi-order, rear-door receiving, hiring, %d customer sales, day close, disk save/load."), State.LastServed);
             SmokeStage = 2;
             FPlatformMisc::RequestExitWithStatus(false, 0);

@@ -1,3 +1,29 @@
+## 03.10.2026 — Claude Code — E3c2a: personel bayrakları kalktı, şubelerde tazelik (derlenmedi)
+
+**Karar (Mustafa, M63):** şube personeli kişi kişi; şube malı toptancı hesabından; şubede parti parti tazelik. Üç tura bölündü: a (bayraklar + tazelik), b (toptancı), c (personel).
+
+**Yapılan (E3c2a):**
+- `FMarketState::bCashier/Stockers` silindi (kayıt sürümü 12). Yeni `MarketStaff::CashierOnDuty`, `StockersOnDuty` (en çok `MaxStockers`). `SyncCounts` ve 9 çağrısı silindi. `DailyPayroll` yalnız kadroyu topluyor. `IsStructurallyValid` sayı kontrolü kalktı.
+- Okuyan yerler güncellendi: MarketGame (kasiyer), MarketWorkers (görevli sayısı), MarketAutomation (smoke), MarketMenuPages (Personel kartı), MarketAutoPlay (kasiyer alımı).
+- `MarketFreshness::MatchBatches`, `LastDayUnitsIn`, `FBatchDay`: ortak parti kuralı. Dükkânın `CloseDay`'i bunu çağırıyor; fire haberi parti başına değil ürün başına tek satır.
+- `FMarketBranch::Batches`. Şube günü:
+  - teslimat `Received`'e yazılıyor;
+  - satışta son günü gelen birimler önce ve indirim politikasında %30 ucuz;
+  - satıştan sonra `MatchBatches` (gün = State.Day); fire maliyeti ürün maliyetinden; bağış şube memnuniyetini biraz artırıyor.
+- Raf ömrü = ürün ömrü / (soğuk oda × soğuk zincir (süt) × müdür tarzı (dikkatli 0,875, normal 1, cömert 1,25) × depo özeni (1–1,25)), en az 1 gün. Eski günlük fire oranı ve zar atışı kalktı.
+- Şube kapanınca `Batches` siliniyor (mal dükkâna eskisi gibi taşınıyor).
+
+**Testler:**
+- Yeni `MirasMarket.Freshness.OneRuleEveryStore`: FEFO, son gün, fire, bağış, açılış stoğu, eldekinden fazla fire olmaz.
+- `Economy.SaveRoundTrip`, `ProgressAndStorageLimit` ve görevli testi kişi ekleyerek; `Staff`, `Start` testleri yeni fonksiyonlarla.
+- Test.ps1 alt sınırı 163.
+
+**Risk:** bozulmayan ürünlerde artık şube firesi yok; cömert müdürün fazlası sipariş fazlası ve kısa raf ömrü olarak görünür. `Branches` testindeki "cömert müdür daha çok atar" kontrolü aynı gün için eşit çıkabilir (≥ 0 kontrolü geçer).
+
+**Doğrulama:** Derlenmedi.
+
+**Sıradaki:** Mustafa CLAUDE_KOS.cmd; sonra E3c2b.
+
 ## 03.10.2026 — Claude Code — E3c1 doğrulandı
 
 **son.log (f070d14):** DERLE geçti; TEST 161 başarılı + 1 uyarılı, başarısız 0; Smoke geçti. OLCUM satırlarının hepsi E3b turuyla aynı: kayıt birleşimi davranışı değiştirmedi. E3c1 bitti.

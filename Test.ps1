@@ -7,6 +7,6 @@ $reportFile = Get-Item -LiteralPath "$PSScriptRoot\Saved\TestReports\index.json"
 if ($reportFile.LastWriteTime -lt $testStartedAt) { throw 'Yeni test raporu olusmadi.' }
 $testReport = Get-Content -LiteralPath $reportFile.FullName -Raw | ConvertFrom-Json
 $completedTests = $testReport.succeeded + $testReport.succeededWithWarnings
-if ($testReport.failed -ne 0 -or $testReport.notRun -ne 0 -or $testReport.inProcess -ne 0 -or $completedTests -lt 162) {
+if ($testReport.failed -ne 0 -or $testReport.notRun -ne 0 -or $testReport.inProcess -ne 0 -or $completedTests -lt 163) {
     throw 'Tum testler basariyla tamamlanmadi; Saved/TestReports klasorunu inceleyin.'
 }

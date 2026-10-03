@@ -92,7 +92,7 @@ bool AMarketGameMode::CommitPlan(FString& OutError)
 
 void AMarketGameMode::SyncWorkers()
 {
-    const int32 Wanted = FMath::Clamp(State.Stockers, 0, FMarketState::MaxStockers);
+    const int32 Wanted = MarketStaff::StockersOnDuty(State);
     // Worker I walks for the I-th stocker on duty. When that person changed (day off, left, fired) the workers
     // from there on are sent home and spawned again with the right names.
     int32 Keep = FMath::Min(Workers.Num(), Wanted);
@@ -345,7 +345,7 @@ void AMarketGameMode::WorkerAtShelf(FMarketWorker& Worker)
 
 void AMarketGameMode::TickWorkers(float DeltaTime)
 {
-    if (Workers.Num() != FMath::Clamp(State.Stockers, 0, FMarketState::MaxStockers)) SyncWorkers();
+    if (Workers.Num() != MarketStaff::StockersOnDuty(State)) SyncWorkers();
     if (WorkerPlanVersion != ArrangeVersion) { WorkerPlanVersion = ArrangeVersion; Unplaceable.Reset(); } // new plan, new room
     const APlayerCameraManager* Camera = UGameplayStatics::GetPlayerCameraManager(this, 0);
     for (int32 Index = 0; Index < Workers.Num(); ++Index)

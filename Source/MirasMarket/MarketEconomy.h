@@ -149,8 +149,7 @@ struct FMarketDayRecord
 };
 
 // One person on the payroll or in the hiring pool (MarketStaff.h). Skill/Speed/Stamina are learned by the player
-// only through the HR manager; Honesty is never shown. Older saves have no employees and are migrated from the
-// bCashier/Stockers flags (MarketStaff::Migrate).
+// only through the HR manager; Honesty is never shown.
 USTRUCT()
 struct FMarketEmployee
 {
@@ -349,6 +348,7 @@ struct FMarketBranch
     UPROPERTY() float Maturity = 0.f;    // 0..1: the district's habit of shopping here
     UPROPERTY() float Satisfaction = 55.f;
     UPROPERTY() TArray<FMarketStock> Items; // E3c: the same product record as the family shop (FMarketStock::Empty)
+    UPROPERTY() TArray<FMarketBatch> Batches; // E3c2 (M63): its perishable goods in batches, the family shop's rule (MarketFreshness)
     UPROPERTY() int64 LastRevenue = 0;
     UPROPERTY() int64 LastProfit = 0;
     UPROPERTY() int32 LastShoppers = 0;
@@ -897,14 +897,11 @@ struct FMarketState
     static constexpr int64 StockerDailyWage = 2000;
 
     // Save format version. 2 (G-076): story finale flags, test-mode mark. Older saves load and are migrated.
-    static constexpr int32 CurrentVersion = 11; // E3c (M27): branch goods use the family shop's product record; older saves start a new game
+    static constexpr int32 CurrentVersion = 12; // E3c2 (M27): branch goods use the family shop's record, the v0.1 staff flags are gone; older saves start a new game
     UPROPERTY() int32 Version = CurrentVersion;
     UPROPERTY() int32 Day = 1;
     UPROPERTY() int64 Cash = 35000;
     UPROPERTY() TArray<FMarketStock> Stock;
-    UPROPERTY() bool bCashier = false;
-    // Shelf staff count (older saves load 0).
-    UPROPERTY() int32 Stockers = 0;
     UPROPERTY() bool bRealBrands = false;   // karar L12: fictional brands close to the real ones; F8 shows real names (development)
     // G-076: true once free test controls (F2/F3, free orders) were used in this campaign; shown in the menu.
     UPROPERTY() bool bUsedTestMode = false;
@@ -956,8 +953,8 @@ struct FMarketState
     // Every closed day, oldest first (MarketCampaign::CloseDay). Kept for ten game years at most.
     UPROPERTY() TArray<FMarketDayRecord> History;
     UPROPERTY() TArray<FMarketLoyalty> Loyalty;
-    // People (MarketStaff.h). bCashier/Stockers above are kept in step with the roster by MarketStaff::SyncCounts:
-    // they say who is ON DUTY today, which is what the world (till, walking workers) needs.
+    // People (MarketStaff.h). Who is on duty today comes from the roster (MarketStaff::CashierOnDuty, StockersOnDuty;
+    // E3c2: the v0.1 bCashier/Stockers flags are gone).
     UPROPERTY() TArray<FMarketEmployee> Staff;
     UPROPERTY() TArray<FMarketEmployee> Candidates;
     UPROPERTY() int32 NextEmployeeId = 1;

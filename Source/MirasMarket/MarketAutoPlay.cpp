@@ -97,7 +97,7 @@ namespace MarketAutoPlay
                 if(MarketStaff::RoleOf(State.Candidates[I])==Role && MarketAutoPlayFinance::WorthHiring(State,Benefit,State.Candidates[I].DailyWage,MarketStaff::HireCostOn(Role,State.Day)))
                 {MarketStaff::Hire(State,I,Message);break;}
         };
-        if(Days>=7 && (!State.bCashier || State.LastLostWaiting>0))Hire(MarketStaff::ERole::Cashier,QueueBenefit);
+        if(Days>=7 && (!MarketStaff::CashierOnDuty(State) || State.LastLostWaiting>0))Hire(MarketStaff::ERole::Cashier,QueueBenefit);
         if(Days>=7 && ShelfBenefit>0)Hire(MarketStaff::ERole::Stocker,ShelfBenefit);
         if (State.Cash > Reserve * 2 && !MarketStaff::HasAccountant(State)) MarketStaff::HireAccountant(State, Message);
         for (const FMarketEmployee& Employee : State.Staff)

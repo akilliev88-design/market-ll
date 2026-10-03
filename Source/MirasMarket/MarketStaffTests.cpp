@@ -60,7 +60,7 @@ bool FMarketStaffPeopleTest::RunTest(const FString& Parameters)
     const int64 CashBefore = S.Cash;
     TestTrue(TEXT("H hires the best cashier"), MarketStaff::HireBest(S, ERole::Cashier, Message));
     TestEqual(TEXT("Hiring costs 120 TL as before"), S.Cash, CashBefore - MarketStaff::HireCost);
-    TestTrue(TEXT("The till has a cashier today"), S.bCashier);
+    TestTrue(TEXT("The till has a cashier today"), MarketStaff::CashierOnDuty(S));
     TestEqual(TEXT("The candidate left the pool"), S.Candidates.Num(), MarketStaff::PoolSize - 1);
     const int32 CashierId = S.Staff[0].Id;
     TestEqual(TEXT("Payroll is the person's wage"), S.DailyPayroll(), S.Staff[0].DailyWage);
@@ -76,9 +76,9 @@ bool FMarketStaffPeopleTest::RunTest(const FString& Parameters)
 
     // A day off: the player works the till, the person rests and comes back.
     TestTrue(TEXT("Day off given"), MarketStaff::GiveDayOff(S, CashierId, false, Message));
-    TestFalse(TEXT("Nobody at the till on the day off"), S.bCashier);
+    TestFalse(TEXT("Nobody at the till on the day off"), MarketStaff::CashierOnDuty(S));
     PlayDay(S, 20000, 40);
-    TestTrue(TEXT("Back at the till the next day"), S.bCashier);
+    TestTrue(TEXT("Back at the till the next day"), MarketStaff::CashierOnDuty(S));
     TestEqual(TEXT("Nothing worked, nothing learned"), S.Staff[0].DaysWorked, 0);
 
     // Busy days make a cashier tired.
@@ -236,14 +236,12 @@ bool FMarketStaffTillHrTest::RunTest(const FString& Parameters)
     S.Staff.Add(Person(S, ERole::Stocker, 60, 80, 5000));
     TestFalse(TEXT("HR locked with two people"), MarketStaff::HrUnlocked(S));
     for (int32 More = 0; More < 6; ++More) S.Staff.Add(Person(S, More % 2 ? ERole::Stocker : ERole::Cashier, 60, 80, 2000));
-    MarketStaff::SyncCounts(S);
     TestTrue(TEXT("HR unlocked with eight"), MarketStaff::HrUnlocked(S));
     // Keep the original two-stocker replacement scenario; two open branches also unlock HR.
     S.Staff.SetNum(2);
     S.Staff.Add(Person(S, ERole::Cashier, 60, 80, 2000));
     FMarketBranch OpenBranch; OpenBranch.Stage = static_cast<uint8>(MarketBranches::EStage::Open);
     S.Branches.Add(OpenBranch); S.Branches.Add(OpenBranch);
-    MarketStaff::SyncCounts(S);
     TestTrue(TEXT("HR unlocked with two open branches"), MarketStaff::HrUnlocked(S));
     MarketStaff::EnsureCandidates(S);
     TestTrue(TEXT("HR manager offered"), MarketStaff::RoleOf(S.Candidates[2]) == ERole::HrManager);
@@ -268,7 +266,7 @@ bool FMarketStaffTillHrTest::RunTest(const FString& Parameters)
     TestNull(TEXT("The leaver is gone"), MarketStaff::FindEmployee(S, LeaverId));
     TestNotNull(TEXT("HR hired the replacement"), MarketStaff::FindEmployee(S, GoodId));
     TestEqual(TEXT("Still two stockers"), MarketStaff::Count(S, ERole::Stocker), 2);
-    TestEqual(TEXT("One of them works tomorrow"), S.Stockers, 1);
+    TestEqual(TEXT("One of them works tomorrow"), MarketStaff::StockersOnDuty(S), 1);
     TestTrue(TEXT("HR reports"), AnyNews(S, TEXT("\u0130K:")));
     TestTrue(TEXT("Negotiated wage"), MarketStaff::FindEmployee(S, GoodId)->DailyWage < 3000);
     return true;

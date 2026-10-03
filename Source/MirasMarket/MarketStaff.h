@@ -87,8 +87,10 @@ namespace MarketStaff
     // G-084 (karar L03): the people who come with an inherited shop. Ordinary candidates (random skill, fair wage),
     // hired on the current day without a hiring cost.
     void AddStartingStaff(FMarketState& State, int32 Cashiers, int32 Stockers);
-    // bCashier = a cashier works today, Stockers = stockers working today (the world spawns them).
-    void SyncCounts(FMarketState& State);
+    // Who works today (E3c2: from the roster, no stored flags): a cashier at the till, the stockers the world
+    // spawns (at most FMarketState::MaxStockers).
+    bool CashierOnDuty(const FMarketState& State);
+    int32 StockersOnDuty(const FMarketState& State);
     // Fills the hiring pool when it is empty (always at least one cashier and one stocker candidate).
     void EnsureCandidates(FMarketState& State);
     // One line for the menu; the HR manager shows exact values and a reference note.

@@ -26,6 +26,7 @@
 #include "MarketSimulation.h"
 #include "MarketStoreDemand.h"
 #include "MarketProductDemand.h"
+#include "MarketFreshness.h"
 #include "MarketDemand.h"
 
 namespace MarketBranches
@@ -463,6 +464,7 @@ bool MarketBranches::Close(FMarketState& State, const TArray<FMarketProduct>& Pr
     MarketLedger::Post(State, MarketLedger::EAccount::Shrinkage, -SoldValue, false, BranchIndex); // the lost half (sold at half the cost)
     MarketDepartments::CloseAll(State, BranchIndex); // M26: its departments sell their stock off
     B.Items.Reset();
+    B.Batches.Reset();
     OutMessage = FString::Printf(TEXT("%s kapand\u0131. Depozito geri al\u0131nd\u0131, %d \u00fcr\u00fcn ana depoya ta\u015f\u0131nd\u0131."), *B.Name, Moved);
     if (Sold > 0) OutMessage += FString::Printf(TEXT(" Depoya s\u0131\u011fmayan %d \u00fcr\u00fcn toptanc\u0131ya yar\u0131 fiyat\u0131na verildi (%s)."), Sold, *BranchTl(SoldValue));
     return true;
@@ -489,7 +491,6 @@ bool MarketBranches::Promote(FMarketState& State, int32 EmployeeId, int32 Branch
     MarketManagers::InitStoreManager(State, B, BranchIndex); // G-086b
     OutMessage = FString::Printf(TEXT("%s art\u0131k %s m\u00fcd\u00fcr\u00fc (ayda %s)."), *E->Name, *B.Name, *BranchTl(B.ManagerWage * 30));
     State.Staff.RemoveAll([EmployeeId](const FMarketEmployee& X) { return X.Id == EmployeeId; });
-    MarketStaff::SyncCounts(State);
     return true;
 }
 
@@ -616,7 +617,7 @@ void MarketBranches::CloseDay(FMarketState& State, const TArray<FMarketProduct>&
             MarketDepots::RecordLoss(State, Link.Depot, ShortCost, SkimCost);
             DepotLoss = ShortCost + SkimCost;
         }
-        for (FMarketStock& Item : B.Items) { Item.Shelf += Item.Incoming; Item.Incoming = 0; }
+        for (FMarketStock& Item : B.Items) { Item.Shelf += Item.Incoming; Item.Received += Item.Incoming; Item.Incoming = 0; } // E3c2: arrivals form tomorrow's batches
         // G-086b: what the manager brings today (effective skill, style, honesty, the hierarchy above).
         const MarketManagers::FBranchRule Rule = MarketManagers::RuleFor(State, Index, Span);
 
@@ -649,6 +650,13 @@ void MarketBranches::CloseDay(FMarketState& State, const TArray<FMarketProduct>&
         const float FreshDemand = MarketStoreAssign::FreshFactor(Measures, B.Format);
         const float FreshSpoil = MarketStoreAssign::SpoilFactor(Measures, B.Format);
         const float ColdChain = MarketSourcing::DairySpoilFactor(State); // G-083: a distributor keeps the cold chain
+        // E3c2 (M63): perishables follow the family shop's batch rule (MarketFreshness). What used to be a daily waste
+        // rate now shortens the shelf life: a crowded cold room, a broken cold chain, a careless (generous) manager who
+        // does not rotate the old goods to the front, a depot that handles goods badly.
+        const MarketFreshness::EPolicy Policy = static_cast<MarketFreshness::EPolicy>(State.FreshPolicy);
+        const float StyleLife = 0.75f + 0.25f * Rule.WasteRate / 0.006f;
+        const float DepotLife = 1.f + 0.25f * Link.ExtraWaste / MarketDepots::MaxExtraWaste;
+        int32 DayDonated = 0;
 
         // C10 knob (default off): a shopper's basket grows with the real wage (wages / prices), elasticity RealSpend.
         const float RealSpend = FMath::Pow(static_cast<float>(MarketPrices::WageIndex(Closed) / FMath::Max(0.01, MarketPrices::ListLevel(Closed))), MarketTuning::Get(TEXT("RealSpend"), 0.f));
@@ -684,16 +692,24 @@ void MarketBranches::CloseDay(FMarketState& State, const TArray<FMarketProduct>&
             DaySold += Take;
             DayEmpty += Want - Take;
             Item->IdleDays = Take == 0 && Item->Shelf > 0 ? Item->IdleDays + 1 : 0;
-            Revenue += Price * Take;
+            // The last-day units of an old batch go first and 30 % cheaper under the markdown policy (FEFO).
+            const int32 Marked = Policy == MarketFreshness::EPolicy::Markdown ? FMath::Min(Take, MarketFreshness::LastDayUnitsIn(B.Batches, Item->Id, Closed)) : 0;
+            Revenue += Price * (Take - Marked) + FMath::RoundToInt64(Price * (100 - MarketFreshness::MarkdownPercent) / 100.0) * Marked;
             Cogs += Products[I].Cost * Take;
-            // G-086b: waste follows the manager's style (a generous one keeps more on hand and throws more away).
-            const float SpoilExact = Item->Shelf * (Rule.WasteRate + Link.ExtraWaste) * (bFresh ? FreshSpoil : 1.f) * (Group == MarketGoods::EGroup::Dairy ? ColdChain : 1.f); // G-089: the depot's handling
-            int32 Spoil = FMath::FloorToInt32(SpoilExact);
-            if ((BranchMix(State.RivalSeed, Closed, 0x5F01u + Index * 131u + I) % 1000u) < static_cast<uint32>((SpoilExact - Spoil) * 1000.f)) ++Spoil;
-            Spoil = FMath::Clamp(Spoil, 0, Item->Shelf);
-            Item->Shelf -= Spoil;
-            WasteCost += Products[I].Cost * Spoil;
+            const int32 Life = MarketGoods::ShelfLifeDays(Products[I]);
+            if (Life <= 0) { Item->Received = 0; continue; }
+            const float LifeCut = (bFresh ? FreshSpoil : 1.f) * (Group == MarketGoods::EGroup::Dairy ? ColdChain : 1.f) * StyleLife * DepotLife;
+            const int32 BranchLife = FMath::Max(1, FMath::FloorToInt32(Life / FMath::Max(0.5f, LifeCut)));
+            const int32 ArrivedUnits = Item->Received;
+            Item->Received = 0;
+            const MarketFreshness::FBatchDay Fresh = MarketFreshness::MatchBatches(B.Batches, Item->Id, Item->Shelf, ArrivedUnits, BranchLife, State.Day, Policy);
+            const int32 Removed = FMath::Min(Item->Shelf, Fresh.Wasted + Fresh.Donated);
+            Item->Shelf -= Removed;
+            WasteCost += Products[I].Cost * Removed;
+            DayDonated += FMath::Min(Removed, Fresh.Donated);
         }
+        B.Batches.RemoveAll([](const FMarketBatch& Batch) { return Batch.Units <= 0; });
+        if (DayDonated > 0) B.Satisfaction = FMath::Min(100.f, B.Satisfaction + FMath::Min(2.f, DayDonated * 0.1f)); // the district notices
         // Logistics and buying power of the company (G-086: depots per sub-region, trucks, central buying, own
         // brand, a new country's first months).
         // Positive: freight, customs, a new country's learning; negative: rebates of depots and central buying.

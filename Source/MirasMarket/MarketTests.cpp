@@ -427,7 +427,7 @@ bool FMarketSaveTest::RunTest(const FString& Parameters)
     Save->State.Order(0, Catalog);
     Save->State.Stock[0].Dock = 3;
     Save->State.bRealBrands = true;
-    Save->State.bCashier = true;
+    { FMarketEmployee Cashier; Cashier.Id = 1; Cashier.DailyWage = 2000; Save->State.Staff.Add(Cashier); }
     TArray<uint8> Bytes;
     TestTrue(TEXT("Serialize save into memory"), UGameplayStatics::SaveGameToMemory(Save, Bytes));
     auto* Restored = Cast<UMarketSave>(UGameplayStatics::LoadGameFromMemory(Bytes));
@@ -436,7 +436,7 @@ bool FMarketSaveTest::RunTest(const FString& Parameters)
     TestEqual(TEXT("Pending shipment survives round trip"), Restored->State.Stock[0].Incoming, 12);
     TestEqual(TEXT("Rear-door stock survives round trip"), Restored->State.Stock[0].Dock, 3);
     TestTrue(TEXT("Brand presentation survives round trip"), Restored->State.bRealBrands);
-    TestTrue(TEXT("Employee survives round trip"), Restored->State.bCashier);
+    TestTrue(TEXT("Employee survives round trip"), Restored->State.Staff.Num() == 1 && Restored->State.Staff[0].DailyWage == 2000);
     TestTrue(TEXT("Current catalog validates"), Restored->State.IsValidFor(Catalog));
     Restored->State.Stock[0].Shelf = -1;
     TestFalse(TEXT("Corrupt negative stock rejected"), Restored->State.IsValidFor(Catalog));
@@ -452,7 +452,7 @@ bool FMarketProgressTest::RunTest(const FString& Parameters)
     auto Catalog = TestCatalog(); FMarketState S; S.Initialize(Catalog);
     S.Stock[0].Warehouse = 120;
     TestFalse(TEXT("Warehouse capacity includes pending deliveries"), S.Order(0, Catalog));
-    S.Revenue = 20000; S.CostOfGoods = 10000; S.bCashier = true;
+    S.Revenue = 20000; S.CostOfGoods = 10000; { FMarketEmployee Cashier; Cashier.Id = 1; Cashier.DailyWage = 2000; S.Staff.Add(Cashier); }
     S.Served = 30; S.Lost = 0;
     S.CloseDay();
     TestEqual(TEXT("Staff cost counted"), S.LastOperatingCost, int64(4200));
@@ -700,12 +700,10 @@ bool FMarketStaffTest::RunTest(const FString& Parameters)
     S.Stock[0].Shelf = 0;
     TestEqual(TEXT("A worker moves one unit at a time"), S.Restock(0, 1), 1);
     TestEqual(TEXT("Depot -> shelf"), S.Stock[0].Shelf, 1);
-    S.Stockers = 2;
+    for (int32 W = 0; W < 2; ++W) { FMarketEmployee Worker; Worker.Id = W + 1; Worker.Role = 1; Worker.DailyWage = FMarketState::StockerDailyWage; S.Staff.Add(Worker); }
     S.CloseDay();
     TestEqual(TEXT("Workers are paid every day"), S.LastOperatingCost, int64(2200 + 2 * FMarketState::StockerDailyWage));
     TestTrue(TEXT("Save with two workers is valid"), S.IsStructurallyValid());
-    S.Stockers = FMarketState::MaxStockers + 1;
-    TestFalse(TEXT("Too many workers rejected"), S.IsStructurallyValid());
     return true;
 }
 IMPLEMENT_SIMPLE_AUTOMATION_TEST(FMarketDemandTest, "MirasMarket.Customers.PriceAndDemand", EAutomationTestFlags::EditorContext | EAutomationTestFlags::EngineFilter)

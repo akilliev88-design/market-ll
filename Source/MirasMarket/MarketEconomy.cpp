@@ -129,7 +129,6 @@ bool FMarketState::SellBasket(const TArray<FMarketSaleLine>& Lines, const TArray
 
 int64 FMarketState::DailyPayroll() const
 {
-    if (Staff.Num() == 0) return (bCashier ? 2000 : 0) + FMath::Clamp(Stockers, 0, MaxStockers) * StockerDailyWage;
     int64 Total = 0;
     for (const FMarketEmployee& Employee : Staff) Total += FMath::Max<int64>(0, Employee.DailyWage);
     return Total;
@@ -251,7 +250,7 @@ int32 FMarketState::DeliveryUnits() const
 bool FMarketState::IsStructurallyValid() const
 {
     if (InheritedDebt < 0 || DebtClearedDay < 0 || WeekDebtPaid < 0 || LastWeekNumber < 0) return false;
-    if (Version != CurrentVersion || Day < 1 || !FMath::IsFinite(MarketShare) || MarketShare < 5 || MarketShare > 65 || Stockers < 0 || Stockers > MaxStockers) return false;
+    if (Version != CurrentVersion || Day < 1 || !FMath::IsFinite(MarketShare) || MarketShare < 5 || MarketShare > 65) return false;
     TSet<FString> Seen;
     for (const auto& Item : Stock)
     {

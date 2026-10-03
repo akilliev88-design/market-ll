@@ -25,11 +25,64 @@ namespace MarketFreshness
     FString Shown(const FMarketProduct& P) { return P.RealName.IsEmpty() ? P.Id : P.RealName; }
 }
 
-int32 MarketFreshness::LastDayUnits(const FMarketState& State, const FString& ProductId)
+int32 MarketFreshness::LastDayUnitsIn(const TArray<FMarketBatch>& Batches, const FString& Id, int32 Day)
 {
     int32 Units = 0;
-    for (const FMarketBatch& B : State.Batches) if (B.ProductId == ProductId && B.ExpiresDay == State.Day) Units += B.Units;
+    for (const FMarketBatch& B : Batches) if (B.ProductId == Id && B.ExpiresDay == Day) Units += B.Units;
     return Units;
+}
+
+int32 MarketFreshness::LastDayUnits(const FMarketState& State, const FString& ProductId)
+{
+    return LastDayUnitsIn(State.Batches, ProductId, State.Day);
+}
+
+MarketFreshness::FBatchDay MarketFreshness::MatchBatches(TArray<FMarketBatch>& Batches, const FString& Id, int32 Held, int32 Arrived, int32 Life, int32 Day, EPolicy Policy)
+{
+    FBatchDay Out;
+    Held = FMath::Max(0, Held);
+    Arrived = FMath::Max(0, Arrived);
+    // Units that arrived since the last match form a new batch; what left the store (sold, broken, thrown away)
+    // left from the oldest batches. Counting arrivals separately matters: a store that sells 12 and receives 12
+    // every day holds the same number, but its milk is new every day.
+    int32 InBatches = 0;
+    for (const FMarketBatch& B : Batches) if (B.ProductId == Id) InBatches += B.Units;
+    const int32 Left = InBatches + Arrived - Held;
+    const int32 Fresh = Arrived + FMath::Max(0, -Left); // units no batch recorded (an opening stock, goods put on a shelf without a delivery) count as new too
+    if (Left > 0)
+    {
+        int32 Gone = FMath::Min(Left, InBatches);
+        Batches.Sort([](const FMarketBatch& A, const FMarketBatch& B) { return A.ExpiresDay < B.ExpiresDay; }); // oldest first
+        for (FMarketBatch& B : Batches)
+        {
+            if (B.ProductId != Id || Gone <= 0) continue;
+            const int32 Take = FMath::Min(Gone, B.Units);
+            B.Units -= Take;
+            Gone -= Take;
+        }
+    }
+    if (Fresh > 0)
+    {
+        FMarketBatch New;
+        New.ProductId = Id;
+        New.Units = FMath::Min(Fresh, Held);
+        New.ExpiresDay = Day + FMath::Max(1, Life) - 1; // arrived at this close: sellable for Life days from Day
+        if (New.Units > 0) Batches.Add(New);
+    }
+    int32 HeldLeft = Held;
+    for (FMarketBatch& B : Batches)
+    {
+        if (B.ProductId != Id || B.Units <= 0) continue;
+        const bool bExpired = B.ExpiresDay < Day;
+        const bool bDonate = !bExpired && Policy == EPolicy::Donate && B.ExpiresDay == Day;
+        if (!bExpired && !bDonate) continue;
+        const int32 Removed = FMath::Min(B.Units, HeldLeft);
+        B.Units = 0;
+        HeldLeft -= Removed;
+        if (bDonate) Out.Donated += Removed;
+        else Out.Wasted += Removed;
+    }
+    return Out;
 }
 
 int32 MarketFreshness::MarkdownUnitsLeft(const FMarketState& State, int32 Index)
@@ -86,52 +139,17 @@ void MarketFreshness::CloseDay(FMarketState& State, const TArray<FMarketProduct>
         FMarketStock& Item = State.Stock[I];
         const int32 Life = MarketGoods::ShelfLifeDays(Products[I]);
         if (Life <= 0) { Item.Received = 0; continue; }
-        // Units that arrived since the last close form a new batch; what left the shop (sold, broken, thrown away)
-        // left from the oldest batches. Counting arrivals separately matters: a shop that sells 12 and receives 12
-        // every day holds the same number, but its milk is new every day.
-        int32 InBatches = 0;
-        for (const FMarketBatch& B : State.Batches) if (B.ProductId == Item.Id) InBatches += B.Units;
-        const int32 Now = Held(Item);
-        const int32 Arrived = FMath::Max(0, Item.Received);
+        // E3c2: the batch rule every store shares (MatchBatches); the family shop takes the units from the shelf
+        // front first, then the depot, then the door.
+        const int32 Arrived = Item.Received;
         Item.Received = 0;
-        const int32 Left = InBatches + Arrived - Now;
-        const int32 Fresh = Arrived + FMath::Max(0, -Left); // units no batch recorded (the inherited stock, goods put on a shelf without a delivery) count as new too
-        if (Left > 0)
-        {
-            int32 Gone = FMath::Min(Left, InBatches);
-            // Oldest first.
-            State.Batches.Sort([](const FMarketBatch& A, const FMarketBatch& B) { return A.ExpiresDay < B.ExpiresDay; });
-            for (FMarketBatch& B : State.Batches)
-            {
-                if (B.ProductId != Item.Id || Gone <= 0) continue;
-                const int32 Take = FMath::Min(Gone, B.Units);
-                B.Units -= Take;
-                Gone -= Take;
-            }
-        }
-        if (Fresh > 0)
-        {
-            FMarketBatch New;
-            New.ProductId = Item.Id;
-            New.Units = FMath::Min(Fresh, Now);
-            New.ExpiresDay = State.Day + Life - 1; // arrived at this close: sellable for Life days from tomorrow
-            if (New.Units > 0) State.Batches.Add(New);
-        }
-        // Expired batches become waste; last-day batches are given away under the donation policy.
-        for (FMarketBatch& B : State.Batches)
-        {
-            if (B.ProductId != Item.Id || B.Units <= 0) continue;
-            const bool bExpired = B.ExpiresDay < State.Day;
-            const bool bDonate = !bExpired && State.FreshPolicy == static_cast<uint8>(EPolicy::Donate) && B.ExpiresDay == State.Day;
-            if (!bExpired && !bDonate) continue;
-            const int32 Removed = RemoveUnits(Item, B.Units);
-            B.Units = 0;
-            if (Removed <= 0) continue;
-            State.LastWasteUnits += Removed;
-            State.LastWasteCost += State.UnitCost(I, Products) * Removed;
-            if (bDonate) Donated += Removed;
-            else Spoiled.Add(FString::Printf(TEXT("%d %s"), Removed, *Shown(Products[I])));
-        }
+        const FBatchDay Day = MatchBatches(State.Batches, Item.Id, Held(Item), Arrived, Life, State.Day, static_cast<EPolicy>(State.FreshPolicy));
+        const int32 Removed = RemoveUnits(Item, Day.Wasted + Day.Donated);
+        if (Removed <= 0) continue;
+        State.LastWasteUnits += Removed;
+        State.LastWasteCost += State.UnitCost(I, Products) * Removed;
+        Donated += FMath::Min(Removed, Day.Donated);
+        if (Removed > Day.Donated) Spoiled.Add(FString::Printf(TEXT("%d %s"), Removed - Day.Donated, *Shown(Products[I])));
     }
     // Batches of products that left the catalog or stopped spoiling are dropped.
     State.Batches.RemoveAll([&State, &Products](const FMarketBatch& B)

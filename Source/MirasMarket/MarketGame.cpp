@@ -1,5 +1,6 @@
 #include "MarketGame.h"
 #include "MarketChains.h"
+#include "MarketStaff.h"
 #include "MarketTelevisionDisplay.h"
 #include "MarketSimulation.h"
 #include "MarketWorldText.h"
@@ -1497,7 +1498,7 @@ void AMarketGameMode::Tick(float DeltaTime)
         }
         ++I;
     }
-    if (State.bCashier)
+    if (MarketStaff::CashierOnDuty(State))
     {
         // The cashier's pace depends on the person (speed, routine, fatigue) and on the basket size (MarketStaff).
         AutoCheckoutTimer += DeltaTime;
