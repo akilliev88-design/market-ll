@@ -1,8 +1,10 @@
 # Güncel durum
 
-Son güncelleme: 03.10.2026 — Claude Code, akis-cc2: E2b yazıldı, derlenmedi (E2a derlendi)
+Son güncelleme: 03.10.2026 — Claude Code, akis-cc2: E2 bitti (derlendi, test ve Smoke geçti); E3 başlıyor
 
 ## Kısaca
+
+**03.10.2026 — Claude Code / E2 doğrulandı (e851b3f):** DERLE geçti, TEST 162 + 1 uyarı (163/163), Smoke geçti. OLCUM: ilk dükkânın 90 günlük cirosu eski modelin 1,083 katı (hedef ±%15 ✓), müşteri 4.323 → 4.485; ilk dükkânın pay hedefi %26,7 (hikâyenin %35 hedefi çabayla); ilin rakip fiyat düzeyi 0,966; gün 20 gerçek müşteri 52 (görsel ölçek 55). Sıradaki: E3.
 
 **03.10.2026 — Claude Code / E2b (derlenmedi, `akis-cc2`):** E2a derlendi (TEST 165 + 1 uyarı, Smoke geçti); ölçüm: yeni formül ilk dükkâna 1,40 kat müşteri → `FamilySiteTrips` 0,72. E2b: ilk dükkânın trafiği tek formülden (anahtar kalktı), rakip fiyatı ilin zincirlerinden (`MarketChains::RivalPriceFactor`, savaş fiyatı dahil), yerel pay formülden; `MarketRivals` ve `MarketCompetitors` silindi (Bereket, sokak zincirleri, bakkal/pazar varlıkları, günlük rakip haberleri); M57: karşı dükkân ve Nermin/Selim/Cem/Kadir sahneleri, satış teklifi ve Sattın sonu kalktı; 2. bölüm "Kök Salmak", hedefi kimlik seçimi (10. günden sorulur); personel ayartma `MarketChains::Poach`; zincirler ilk günden (`MarketStart::Setup`); yerel aile zinciri adları pakette (`localSuffixes`); menüde rakip kartları ilin ilk 3 zinciri; kayıt sürümü 9. Testler: `StoreDemand.OneRivalModel` (yeni), `FamilyBeforeAfter` (ölçülen eski sayıya karşı), hikâye testi yeni akışa; silinen 4 test (Competitors 2, Street 1, Rivals.News 1); Test.ps1 163. **Devam notu:** Mustafa derler; sonra E3.
 

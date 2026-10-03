@@ -1,3 +1,11 @@
+## 03.10.2026 — Claude Code — E2 doğrulandı
+
+**son.log (e851b3f):** DERLE geçti; TEST 162 başarılı + 1 uyarılı, başarısız 0 (alt sınır 163); Smoke geçti. OLCUM: 90 gün ciro 7.341.275 → 7.952.830 (oran 1,083, hedef ±%15 içinde), müşteri 4.323 → 4.485; ilk dükkân pay hedefi %26,7; rakip fiyat düzeyi 0,966; gün 20 gerçek müşteri 52.
+
+**Sonuç:** E2 (tek talep, tek rakip modeli, M57) bitti. 11_TEK_EKONOMI'de E2 "bitti" işaretlendi.
+
+**Sıradaki:** E3 (tek satış ve tek mağaza kaydı).
+
 ## 03.10.2026 — Claude Code — E2b: tek rakip modeli, karşı dükkân ve karakterler kalktı (derlenmedi)
 
 **E2a sonucu (son.log, ba4cf33):** DERLE geçti, TEST 165 + 1 uyarı, Smoke geçti. OLCUM: 90 gün ciro eski 7.341.275, yeni 10.264.930 (oran 1,398); müşteri 4.323 → 6.031; gün 20'de aile dükkânının gerçek müşterisi 73 (görsel ölçek 55).
