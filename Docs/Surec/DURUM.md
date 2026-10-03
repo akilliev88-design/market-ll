@@ -1,8 +1,10 @@
 # Güncel durum
 
-Son güncelleme: 03.10.2026 — Claude Code, akis-cc2: E3c2b ve M64 derlendi; E3c2c (kişi kişi şube personeli) yazıldı, derlenmedi
+Son güncelleme: 03.10.2026 — Claude Code, akis-cc2: E3 bitti (986e2d5 derlendi, testler ve Smoke geçti); sıradaki E4
 
 ## Kısaca
+
+**03.10.2026 — Claude Code / E3 bitti (986e2d5):** DERLE geçti, TEST 164 + 1 uyarı, başarısız 0, Smoke geçti; OLCUM aynı. E3c2c ile E3 (tek satış ve tek mağaza kaydı) tamamlandı. Sıradaki: E4.
 
 **03.10.2026 — Claude Code / E3c2c (derlenmedi, `akis-cc2`):** 80dbc42 turu (E3c2b + M64) geçti: DERLE, TEST 163 + 1 uyarı, 0 başarısız, Smoke; OLCUM aynı.
 
