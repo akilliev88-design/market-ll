@@ -4,6 +4,8 @@ Son güncelleme: 03.10.2026 — Claude Code, akis-cc2: birleşim + adım 2 + E2a
 
 ## Kısaca
 
+**03.10.2026 — Mustafa kararları (Claude Code yazdı):** M54 yakın market ve toptan perakende oyuncuya da açık, yalnız o türün olduğu ülkelerde (paket alanı `playerFormats`, E3'ten sonra). M55 süre hedefi: ilk şube 1. saat, ilk yurt dışı ~8–12. saat (5–7. yıl), 30. yıl ~35–45 saat, dünya birinciliği iyi oyunla ~30–40 saat; D8'de bot ölçer. M56 son yok: dünya birinciliği kutlama, oyun bütün sistemleriyle sürer, 2040 sınırı kalkar (J02 değişti).
+
 **03.10.2026 — Claude Code / E2a (derlenmedi, `akis-cc2`):** tek müşteri formülü `MarketStoreDemand` (gidiş × pay × alışkanlık × yamyamlık; pay = çekim / (çekim + rekabet × zincir baskısı)). Şube günü onu çağırır (sonuç aynı olmalı). İlk dükkânın gerçek müşterisi `FamilyShoppers` ile hesaplanıyor ama `UnifiedDemand` anahtarı kapalı (oyun eskisi gibi). Ölçüm testleri `StoreDemand.SameFormulaFamilyAndBranch`, `StoreDemand.FamilyBeforeAfter` (90 gün eski/yeni ciro oranı `OLCUM` satırında); Test.ps1 166. **Devam notu:** Mustafa derleyip son.log'u verecek; OLCUM oranına göre `FamilyTrips` konacak, sonra E2b (eski modelin silinmesi, Bereket MarketChains'e, MarketGame aynı sayıyı kullanır).
 
 **03.10.2026 — Claude Code / adım 2 (derlenmedi, `akis-cc2`):** yeni zincir arketipleri `Convenience` (yakın market, kombini; biçim küçük) ve `CashCarry` (toptan perakende, atacarejo; biçim hiper), enum sonuna eklendi. Paketlerde FR Petit Casinot, PL Żabik, MX OXO, JP Seven & Me/FamilyMarto/Lawsun → `convenience`; BR Atacadeo/Asaí → `cashCarry`; dev Seven & Me `convenience`. PackStandard'a yeni türlerin satırları. Sıradaki: E2.

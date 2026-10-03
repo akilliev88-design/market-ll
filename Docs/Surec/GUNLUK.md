@@ -1,3 +1,11 @@
+## 03.10.2026 — Claude Code — Mustafa'nın üç kararı (M54–M56)
+
+**Kararlar:** M54 yakın market (kombini) ve toptan perakende (atacarejo) oyuncuya da açık, ama yalnız o türün pazarında olduğu ülkelerde; tür listesi ülke paketinden (`playerFormats`). M55 oyun süresi: dengeli oyuncu ilk şubeyi ilk saatte, ilk yurt dışını 8–12. saatte, 30. yılı 35–45 saatte görür; dünya birinciliği iyi oyunla 30–40 saat, "60 saat sürmesin". M56 son yok: "Miras" birinciliği bir kutlama, oyun bütün sistemleriyle sürer; J02 değişti, 2040 sınırı kalkacak, J03 (sattın) kalır.
+
+**Yapılan:** Yalnız belge (01_KARARLAR M54–M56, J02 notu, DURUM).
+
+**Sıradaki:** son.log → derleme düzeltmeleri → E2b.
+
 ## 03.10.2026 — Claude Code — E2a: tek müşteri formülü (derlenmedi)
 
 **Yapılan:** Yeni `MarketStoreDemand.h/.cpp`: `FStoreDay` (ülke, il, tür, fiyat endeksi, doluluk, hizmet, memnuniyet, olgunlaşma, ilk hafta, aceleyle seçilmiş yer, mağazanın kendi çekim/gidiş çarpanı), `Trips`, `Pull`, `Share`, `Cannibalization`, `Shoppers`; `FamilyDay` (ilk dükkânın raf fiyatı, dünkü raf ve kuyruk, müşteri memnuniyeti; kampanya, olay ve kart çarpanları gidişe), `FamilyShoppers`, `Unified()`. `MarketBranches::CloseDay` müşteri hesabını bu fonksiyona bıraktı (ifade sırası korundu; sonuç bit bit aynı olmalı), eski yerel `Cannibalization` silindi. `MarketDirector::TrafficFactor(State, Aisles, Products)`: `UnifiedDemand` açıksa gerçek müşteri / 55. `MarketSimulation::PlayDay` bu çağrıyı kullanır. Testler `MirasMarket.StoreDemand.SameFormulaFamilyAndBranch` (aynı koşulda ilk dükkân ve şube ±%5, fiyat/doluluk/olgunlaşma yönü), `MirasMarket.StoreDemand.FamilyBeforeAfter` (90 gün eski ve yeni yol, ciro oranı raporlanır, yalnız 0,5–2 dışı başarısız). `ozet.ps1` `OLCUM` satırlarını yazar. Test.ps1 alt sınırı 166.
