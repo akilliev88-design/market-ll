@@ -1,3 +1,27 @@
+## 03.10.2026 — Claude (Cowork) — C15: hızlı büyüme riski (M45), C14e ile birlikte (derlenmedi)
+
+**Karar (Mustafa):** "Hızlı oynayan büyüyebilir ama riske girme ihtimali de yüksek olur, bu dengeyi tutturalım." C14e koşturulmadı; C14e (M44, zorluk müşteri çarpanı şubelere) ve C15 tek koşuda.
+
+**Yapılan (M45):** `MarketBranches`: son 365 günün kira sözleşmeleri (`SignedDay`) / kapasite (8 + açık mağaza/2 + 3 × il, alt bölge, bölge, ülke müdürü) − 1 = zorlanma (0–1). `Open`: zorlanmada yeni şube %60 × zorlanma ihtimalle `bHasty` (müşteri ×0,75 kalıcı; açılış haberinde söylenir; açılış mesajında risk yüzdesi). Şube günü: 180 günden genç şubede hizmet × (1 − 0,12 × zorlanma). `Todos`: "Büyüme yönetimin önünde" (sözleşme, kapasite, risk, çözüm: il/bölge/ülke müdürü). Bot: temkinli ve dengeli zorlanma olacaksa bekler (rapora "yönetim yetişmiyor, bekliyor"), atak açar. Kayıt sürümü 8.
+
+**Doğrulama:** Derlenmedi. Yeni test `MirasMarket.Branches.GrowthStrain`; Test.ps1 alt sınırı 160.
+
+**Sıradaki:** Mustafa `CLAUDE_KOS.cmd` (C15_N/R/Z). Beklenen: atak büyük ama dalgalı, dengeli/temkinli aynı yerde, Zor şubelerde sertleşmiş.
+
+## 03.10.2026 — Claude (Cowork) — C14d sonucu ve C14e (derlenmedi)
+
+**Doğrulama (Mustafa):** C14d DERLE, TEST 158 + 1 uyarı. Bot süresi Normal 923, Rahat 1115, Zor 652 sn (atak 300 mağazayla uzun sürüyor).
+
+**Sonuç (10. yıl mağaza):** Normal — temkinli 95/79/81 (40–80, biraz üstünde), dengeli 143/102/140 (80–150 ✓ 3/3), 3. yıl 12–13, sıra 9–10, atak 310/302/324 (120–220 ✗ üstünde). Rahat — dengeli 212/185/93, atak 303–381. Zor — temkinli 4/69/12, dengeli 96/25/16, atak 294/294/293. Kurtarma 0. Zor atak 22: 294 mağaza, kasa 28 milyon, şubeler 10 yılda +211 milyon; 148 açılış küçük türe inerek.
+
+**Bulgu:** Takılma botun süpermarket beklemesiydi; çözüldü. Ama Zor şubelerde hiç işlemiyor: `MarketSimulation::TrafficFactor` (Zor 0,92) yalnız aile dükkânının trafiğinde (`MarketDirector`), `MarketBranches` uzak şube gününde yok; Zor'un şubeye tek etkisi kira/tadilat ×1,15.
+
+**C14e (M44, oyun kuralı):** `MarketBranches` şube günü alışveriş sayısı × `MarketSimulation::TrafficFactor` (Rahat 1,10, Normal 1, Zor 0,92).
+
+**Açık konu (Mustafa'ya):** Atak bot Normal'de 300+ mahalle/süpermarket açıyor ve batmıyor; "hız riskli olmalı" ilkesine göre fazla kolay. Seçenekler: bir ilde çok mağazanın birbirini yemesini (yamyamlık) sertleştirmek, hızlı açılışta yönetim/denetim maliyeti, ya da atak hedefini yükseltmek.
+
+**Sıradaki:** Mustafa `CLAUDE_KOS.cmd` (C14e_N/R/Z).
+
 ## 03.10.2026 — Claude (Cowork) — C14c sonucu ve C14d (derlenmedi)
 
 **Düzeltme:** C14 girişindeki "süpermarket 520 bin nüfus" yanlış: `FFormat` sırasında 520 süpermarketin günlük alışveriş sayısı (`Trips`). Süpermarketin nüfus sınırı yok; hipermarket 500 bin nüfus, 600 km içinde depo ve 5. bölüm ister (Mustafa sordu, 03.10.2026).

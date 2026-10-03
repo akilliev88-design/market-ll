@@ -415,6 +415,8 @@ struct FMarketBranch
     UPROPERTY() int32 VisitedDay = 0;      // C3: the player last walked through it (MarketBranches::Visit)
     UPROPERTY() int32 LossMonths = 0;      // M33: months in a row in the red after its first three months
     UPROPERTY() int32 QuietUntil = 0;      // M33: a turned-down closing proposal: none before this day
+    UPROPERTY() int32 SignedDay = 0;       // C15 (M45): the lease was signed (MarketBranches::Open); acquired shops 0
+    UPROPERTY() uint8 bHasty = 0;          // C15 (M45): picked while growth outran management: a weaker site, found out at the opening
 };
 
 // G-089 (karar M23): a big depot in a province (MarketDepots.h). It serves our branches of its country within
@@ -923,7 +925,7 @@ struct FMarketState
     static constexpr int64 StockerDailyWage = 2000;
 
     // Save format version. 2 (G-076): story finale flags, test-mode mark. Older saves load and are migrated.
-    static constexpr int32 CurrentVersion = 7; // C13 (M27): loan applications, bids, rumours; older saves start a new game
+    static constexpr int32 CurrentVersion = 8; // C15 (M27): growth strain (SignedDay, bHasty); older saves start a new game
     UPROPERTY() int32 Version = CurrentVersion;
     UPROPERTY() int32 Day = 1;
     UPROPERTY() int64 Cash = 35000;

@@ -304,6 +304,35 @@ int64 MarketBranches::OpeningCost(const FMarketState& State, const TArray<FMarke
         + FitOutCost(State, Site, Kind, MarketStoreAssign::FitOutFactor(Measures, Kind.Id)) + StockCost(Probe, Products);
 }
 
+int32 MarketBranches::SignedLastYear(const FMarketState& State)
+{
+    int32 Count = 0;
+    for (const FMarketBranch& B : State.Branches) if (B.SignedDay > 0 && B.SignedDay > State.Day - StrainWindowDays) ++Count;
+    return Count;
+}
+
+int32 MarketBranches::GrowthCapacity(const FMarketState& State)
+{
+    int32 Managers = 0;
+    for (const FMarketManager& M : State.Management.Managers)
+        if (M.Level >= static_cast<uint8>(MarketManagers::ELevel::Province) && M.Level <= static_cast<uint8>(MarketManagers::ELevel::Country)) ++Managers;
+    return StrainBase + OpenCount(State) / 2 + StrainPerManager * Managers;
+}
+
+float MarketBranches::GrowthStrain(const FMarketState& State, int32 ExtraSigned)
+{
+    const int32 Capacity = FMath::Max(1, GrowthCapacity(State));
+    return FMath::Clamp(static_cast<float>(SignedLastYear(State) + ExtraSigned) / Capacity - 1.f, 0.f, 1.f);
+}
+
+FString MarketBranches::GrowthStrainText(const FMarketState& State)
+{
+    const float Strain = GrowthStrain(State);
+    if (Strain <= 0.f) return FString();
+    return FString::Printf(TEXT("Son 12 ayda %d kira s\u00f6zle\u015fmesi, y\u00f6netimin takip edebilece\u011fi %d. Yeni a\u00e7\u0131lan \u015fubenin zay\u0131f yer \u00e7\u0131kma ihtimali %%%.0f, yeni \u015fubelerde hizmet %%%.0f d\u00fc\u015f\u00fck. \u0130l, b\u00f6lge ya da \u00fclke m\u00fcd\u00fcr\u00fc kapasiteyi art\u0131r\u0131r."),
+        SignedLastYear(State), GrowthCapacity(State), HastyChance * Strain * 100.f, YoungServiceLoss * Strain * 100.f);
+}
+
 int32 MarketBranches::OpenCount(const FMarketState& State)
 {
     int32 Count = 0;
@@ -367,12 +396,17 @@ bool MarketBranches::Open(FMarketState& State, const TArray<FMarketProduct>& Pro
     State.Cash -= 2 * Branch.Rent;
     MarketLedger::Post(State, MarketLedger::EAccount::Investment, -2 * Branch.Rent, true, State.Branches.Num()); // C3: the deposit
     const bool bFirst = IsFirstBranch(State, Site, Kind);
+    // C15 (M45): a site picked while the growth outruns the management may prove weaker (told at the opening).
+    const float Strain = GrowthStrain(State, 1);
+    Branch.SignedDay = State.Day;
+    Branch.bHasty = Strain > 0.f && (BranchMix(State.RivalSeed, State.Day, 0x4A57u + static_cast<uint32>(State.Branches.Num()) * 17u) % 1000u) < static_cast<uint32>(HastyChance * Strain * 1000.f) ? 1 : 0;
     MarketLedger::AddStoreCost(State, FitOutCost(State, Site, Kind, MarketStoreAssign::FitOutFactor(Measures, Kind.Id)), State.Branches.Num()); // C10: the branch's own books
     State.Branches.Add(Branch);
     State.bSecondStore = true;
     OutMessage = FString::Printf(TEXT("%s: kira s\u00f6zle\u015fmesi imzaland\u0131 (depozito %s), tadilat ba\u015flad\u0131 (%d g\u00fcn). Raflar senin kurallar\u0131nla otomatik planland\u0131."),
         *Branch.Name, *BranchTl(2 * Branch.Rent), RenovationDays);
     if (bFirst) OutMessage += TEXT(" Kom\u015fu esnaf\u0131n bo\u015falan d\u00fckk\u00e2n\u0131: raflar\u0131 ve tezg\u00e2h\u0131 duruyor, tadilat ucuza geldi.");
+    if (Strain > 0.f) OutMessage += FString::Printf(TEXT(" B\u00fcy\u00fcme y\u00f6netimin \u00f6n\u00fcnde: yer se\u00e7imi aceleye geldi, %%%.0f ihtimalle beklenenden zay\u0131f \u00e7\u0131kar."), HastyChance * Strain * 100.f);
     if (Site.bAbroad && !State.Branches.ContainsByPredicate([&State, &Site](const FMarketBranch& B) { return &B != &State.Branches.Last() && CountryOf(State, B) == Site.Country; }))
     {
         const MarketCountry::FProfile* Pack = MarketCountry::Find(Site.Country);
@@ -538,6 +572,7 @@ void MarketBranches::CloseDay(FMarketState& State, const TArray<FMarketProduct>&
     if (Closed < 1) return;
     TArray<FString>& News = State.DayNews;
     const int32 Span = MarketManagers::SpanPenalty(State); // the player's span of control, once for the day
+    const float Strain = GrowthStrain(State); // C15 (M45): once for the day
     const double Level = MarketPrices::ListLevel(State.Day);
     const TArray<float> WishToday = Wishes(State, Products, Closed);
     // G-089: where every branch gets its goods today (nearest depot, its efficiency, the trucks), once for the day.
@@ -578,6 +613,7 @@ void MarketBranches::CloseDay(FMarketState& State, const TArray<FMarketProduct>&
             for (FMarketBranchItem& Item : B.Items) Item.Units = FMath::Max(Item.Units, Item.Capacity);
             B.Stage = static_cast<uint8>(EStage::Open);
             B.OpenedDay = State.Day;
+            if (B.bHasty) News.Add(FString::Printf(TEXT("%s: a\u00e7\u0131l\u0131\u015f haz\u0131rl\u0131\u011f\u0131nda anla\u015f\u0131ld\u0131, yer aceleyle se\u00e7ilmi\u015f (arka sokak, az ge\u00e7en var). M\u00fc\u015fteri d\u00f6rtte bir az olacak."), *B.Name));
             News.Add(FString::Printf(TEXT("%s YARIN A\u00c7ILIYOR! A\u00e7\u0131l\u0131\u015f sto\u011fu raflarda (%s). \u0130lk hafta merak edenler gelir; kal\u0131c\u0131 m\u00fc\u015fteri bir ayda olu\u015fur."), *B.Name, *BranchTl(Bill)));
             continue;
         }
@@ -613,7 +649,8 @@ void MarketBranches::CloseDay(FMarketState& State, const TArray<FMarketProduct>&
         int32 Sold = 0, Empty = 0;
         for (const FMarketBranchItem& Item : B.Items) { Sold += Item.LastSold; Empty += Item.LastEmpty; }
         const float Availability = Sold + Empty > 0 ? FMath::Clamp(static_cast<float>(Sold) / (Sold + Empty), 0.2f, 1.f) : 0.9f;
-        const float Service = Kind.Service * (B.ManagerName.IsEmpty() ? 0.9f : 1.f);
+        const float Service = Kind.Service * (B.ManagerName.IsEmpty() ? 0.9f : 1.f)
+            * (Closed - B.OpenedDay < YoungDays ? 1.f - YoungServiceLoss * Strain : 1.f); // C15 (M45): thin management for the new ones
         const float Pull = FMath::Exp(-(B.PriceIndex - 1.f) / MarketCompetitors::PriceSensitivity) * Availability * Service *
             (0.8f + B.Satisfaction / 250.f) * (0.9f + 0.4f * B.Maturity) * (State.Day - B.OpenedDay < 7 ? 1.3f : 1.f) * MarketCompany::TrafficBonus(State)
             * MarketDepartments::PullFactor(B, Closed); // M26: fresh bread, a good butcher
@@ -621,7 +658,8 @@ void MarketBranches::CloseDay(FMarketState& State, const TArray<FMarketProduct>&
         const float Share = Pull / (Pull + MarketTuning::Get(TEXT("BranchCompetition"), 3.f) * Where.Competition * MarketChains::PressureFactor(State, Where.Country, Where.Province, Closed));
         const float Trips = MarketCalendar::ClosedByLaw(Closed) ? 0.f : TripsOf(Where, Kind) * MarketCalendar::TrafficFactor(Closed, State.RivalSeed)
             * MarketOnline::StoreTrafficFactorOn(State, Closed, Where.Country) // M32: trips gone online, the epidemic's closure days
-            * MarketAdvertising::TrafficFactor(State, Where.Country); // M34: the company's ads
+            * MarketAdvertising::TrafficFactor(State, Where.Country) // M34: the company's ads
+            * MarketSimulation::TrafficFactor(State) * (B.bHasty ? HastyTrips : 1.f); // C14e: the difficulty's shoppers reach the branches too (before only the family shop)
         const int32 Arrived = FMath::RoundToInt32(Trips * Share * (0.5f + 0.5f * B.Maturity) * Cannibalization(State, Index, Where));
         // G-088 C: the store's tills. Too few lanes lose shoppers in the queue; roomy ones keep a few more.
         const MarketStoreAssign::FStoreMeasures Measures = MarketStoreViews::MeasuresOf(B);

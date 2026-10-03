@@ -57,6 +57,22 @@ namespace MarketBranches
     constexpr int32 RenovationDays = 5;
     constexpr int32 PermitDays = 3;
     constexpr int32 MaturityDays = 30;
+
+    // C15 (M45): growth faster than management can follow. Leases signed in the last year against what the company
+    // can follow (8 + half its shops + 3 for every province/region/country manager). Above it the strain (0..1)
+    // makes a new site a hasty pick with chance HastyChance x strain (a quarter fewer shoppers, for good), and young
+    // branches (under YoungDays) serve worse. Fast growth stays possible; it is a gamble the player can see.
+    constexpr int32 StrainWindowDays = 365;
+    constexpr int32 StrainBase = 8;
+    constexpr int32 StrainPerManager = 3;
+    constexpr float HastyChance = 0.6f;
+    constexpr float HastyTrips = 0.75f;
+    constexpr int32 YoungDays = 180;
+    constexpr float YoungServiceLoss = 0.12f;
+    int32 SignedLastYear(const FMarketState& State);
+    int32 GrowthCapacity(const FMarketState& State);
+    float GrowthStrain(const FMarketState& State, int32 ExtraSigned = 0);
+    FString GrowthStrainText(const FMarketState& State); // empty when growth is within reach
     constexpr float UnitsPerShopper = 2.2f;
     constexpr int32 PeoplePerStoreK = 40;    // room for one of our shops per 40 000 people (at least 2)
     constexpr int32 PeoplePerSlotK = 80;     // above one shop per 80 000 people ours start to share customers

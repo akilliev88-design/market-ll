@@ -1,8 +1,12 @@
 # Güncel durum
 
-Son güncelleme: 03.10.2026 — Claude (Cowork), C14c derlendi; C14d yazıldı, derlenmedi
+Son güncelleme: 03.10.2026 — Claude (Cowork), C14e + C15 (M44, M45) yazıldı, derlenmedi
 
 ## Kısaca
+
+**03.10.2026 — Claude / C15 (derlenmedi, C14e ile birlikte):** Mustafa C14e'yi koşturmadı; ikisi tek koşuda. M45 (Mustafa: hızlı büyüyen büyüyebilsin ama riski yüksek olsun): yönetim kapasitesi = 8 + mağaza/2 + 3 × il/bölge/ülke müdürü (yıllık sözleşme); aşılınca yeni şube %60 × zorlanma ihtimalle zayıf yer (müşteri ×0,75 kalıcı), genç şubelerde hizmet −%12 × zorlanma, ana ekranda uyarı; temkinli/dengeli bot bekler, atak devam eder. `MarketBranches::GrowthStrain/GrowthCapacity/SignedLastYear/GrowthStrainText`, `FMarketBranch::SignedDay/bHasty`, kayıt sürümü 8, yeni test `Branches.GrowthStrain`, Test.ps1 alt sınırı 160. Mustafa koşturacak.
+
+**03.10.2026 — Claude / C14e (derlenmedi):** C14d derlendi (158 + 1 uyarı). Küçük türe inmek takılmayı çözdü: Normal dengeli 143/102/140 ✓, temkinli 95/79/81, atak 310/302/324 (hedef 120–220, üstünde); Rahat dengeli 93–212; Zor dengeli 96/25/16, temkinli 4/69/12, **atak 293–294** (Normal'den fazla!). Sebep: zorluğun müşteri çarpanı yalnız aile dükkânına uygulanıyordu, şubeler Zor'da Normal kadar kazanıyordu. C14e (M44, oyun kuralı): müşteri çarpanı (Rahat 1,10, Zor 0,92) şubelere de uygulanır. Atak botun 300 mağazası ayrıca konuşulacak (Mustafa). Mustafa koşturacak.
 
 **03.10.2026 — Claude / C14d (derlenmedi):** C14c derlendi (158 + 1 uyarı). Sonuç neredeyse aynı (Normal dengeli 154/92/84, Zor dengeli 56/8/33). Yeni rapor nedeni gösterdi: takılan koşular yıllarca süpermarket/hiper parası bekliyor ("para yetmiyor, açılışın yarısı bile yok (büyük)"), mahalle marketine yetecek parası varken. C14d (bot): seçilen türe para ya da il yetmezse aynı turda bir küçük türe iner; açılış maliyeti tür başına bir kez hesaplanır (C14c koşusu 3 il × maliyet yüzünden Rahat'ta 293 → 1416 sn sürdü). Mustafa koşturacak.
 

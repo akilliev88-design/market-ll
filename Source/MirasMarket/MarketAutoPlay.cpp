@@ -179,6 +179,8 @@ namespace MarketAutoPlay
             Command(State, Products, TEXT("TakeLoan"), 2, Run);
         // C14c: why a growth turn ends without a shop (the report lists these under the postponed decisions).
         if (State.Cash <= Reserve) { ++Run.C.Blocked.FindOrAdd(TEXT("B\u00fcy\u00fcme turu: kasa yede\u011fin alt\u0131nda")); return; }
+        // C15 (M45): the careful and the balanced player read the menu's warning and wait for management; the bold one takes the gamble.
+        if (Profile.Style != EStyle::Bold && MarketBranches::GrowthStrain(State, 1) > 0.f) { ++Run.C.Blocked.FindOrAdd(TEXT("B\u00fcy\u00fcme turu: y\u00f6netim yeti\u015fmiyor, bekliyor")); return; }
         const int32 Stores = MarketCompany::TotalStores(State);
         if (Stores >= Profile.DepotAt && MarketDepots::Count(State) == 0)
         {

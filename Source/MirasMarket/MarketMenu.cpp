@@ -322,6 +322,10 @@ const TArray<FMarketTodo>& AMarketGameMode::Todos() const
                 *MarketCountry::Money(Chain.BidAgreed), Chain.BidAcceptedUntil - State.Day + 1), SMarketMenu::Branches);
             break;
         }
+    { // C15 (M45): growth ahead of management
+        const FString Strain = MarketBranches::GrowthStrainText(State);
+        if (!Strain.IsEmpty()) Add(1, TEXT("B\u00fcy\u00fcme y\u00f6netimin \u00f6n\u00fcnde"), Strain, SMarketMenu::Branches);
+    }
     if (State.TroubleStage > 0)
         Add(2, TEXT("Nakit s\u0131k\u0131nt\u0131s\u0131"), TEXT("Kasa eksiye d\u00fc\u015ft\u00fc. Finans sayfas\u0131nda kredi ve giderlere bak."), SMarketMenu::Finance);
     // The product whose price scares most shoppers away (only on shelves).
