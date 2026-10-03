@@ -87,6 +87,27 @@ namespace MarketStaff
     // G-084 (karar L03): the people who come with an inherited shop. Ordinary candidates (random skill, fair wage),
     // hired on the current day without a hiring cost.
     void AddStartingStaff(FMarketState& State, int32 Cashiers, int32 Stockers);
+    // E3c2c (M63): the people of a branch (FMarketBranch::Staff), cashiers and stockers like the family shop's,
+    // hired, replaced and looked after by the store manager (better candidates with the company's HR manager).
+    // StaffBranch fills the store's positions (B.Workers: half of them, at least one, at the tills) and books the
+    // hiring cost to the branch; returns the number hired.
+    // bWithCost false: the people came with a bought store (no hiring cost).
+    int32 StaffBranch(FMarketState& State, int32 BranchIndex, bool bWithCost = true);
+    // The branch's wages today (every person on its payroll).
+    int64 BranchWages(const FMarketBranch& Branch);
+    // x the store's service from its people: skill, morale and fatigue of those on duty (1 for an average team; an
+    // empty or exhausted team serves worse, a skilled happy one better), 0.75..1.15.
+    float BranchService(const FMarketBranch& Branch, int32 Day);
+    // A branch's closed day for its people: the minimum wage, the tills (honest mistakes, a dishonest cashier), fatigue
+    // and learning (a rota gives each person one day off a week), morale, notices and leaving; the manager replaces
+    // who left. Returns the till difference (the caller books it) and fills the counts for the weekly line.
+    struct FBranchStaffDay
+    {
+        int64 TillDifference = 0;
+        int32 Left = 0;
+        int32 Hired = 0;
+    };
+    FBranchStaffDay BranchDay(FMarketState& State, int32 BranchIndex, int32 Served, int64 Revenue, int32 UnitsSold, int32 Closed);
     // Who works today (E3c2: from the roster, no stored flags): a cashier at the till, the stockers the world
     // spawns (at most FMarketState::MaxStockers).
     bool CashierOnDuty(const FMarketState& State);

@@ -259,6 +259,141 @@ void MarketStaff::AddStartingStaff(FMarketState& State, int32 Cashiers, int32 St
     for (int32 I = 0; I < FMath::Clamp(Stockers, 0, FMarketState::MaxStockers); ++I) Add(1);
 }
 
+namespace MarketStaff
+{
+    // E3c2c: a branch's rota: every person has one day off a week (spread by the person's id).
+    bool OnBranchDuty(const FMarketEmployee& E, int32 Day)
+    {
+        return E.HiredDay <= Day && (Day + E.Id) % 7 != 0;
+    }
+
+    // A new person for a branch position: the candidate rules; with the company's HR manager the best of three.
+    FMarketEmployee BranchCandidate(FMarketState& State, ERole Role, const FString& Country)
+    {
+        const int32 Slot = Role == ERole::Cashier ? 0 : 1;
+        FMarketEmployee Best = MakeCandidate(State, Slot);
+        if (HasHr(State))
+            for (int32 More = 0; More < 2; ++More)
+            {
+                FMarketEmployee Other = MakeCandidate(State, Slot);
+                if (Other.Skill > Best.Skill && !ReferenceWarns(Other)) Best = Other;
+            }
+        Best.HiredDay = State.Day;
+        // A store abroad hires people of its own country (the country pack's staff names, M52).
+        if (!Country.IsEmpty() && Country != State.CountryId)
+        {
+            TArray<FString> First, Last;
+            StaffNames(MarketCountry::FindOrDefault(Country), First, Last);
+            const uint32 Roll = Mix(State.RivalSeed ^ 0x6A11, Best.Id, 0x5EEDu);
+            if (First.Num() > 0 && Last.Num() > 0)
+                Best.Name = First[Roll % static_cast<uint32>(First.Num())] + TEXT(" ") + Last[(Roll >> 11) % static_cast<uint32>(Last.Num())];
+        }
+        return Best;
+    }
+
+    int32 BranchCashiers(const FMarketBranch& B)
+    {
+        return FMath::Max(1, B.Workers / 2);
+    }
+}
+
+int32 MarketStaff::StaffBranch(FMarketState& State, int32 BranchIndex, bool bWithCost)
+{
+    if (!State.Branches.IsValidIndex(BranchIndex)) return 0;
+    int32 Hired = 0;
+    for (int32 Guard = 0; Guard < 64 && State.Branches[BranchIndex].Staff.Num() < State.Branches[BranchIndex].Workers; ++Guard)
+    {
+        const FMarketBranch& B = State.Branches[BranchIndex];
+        int32 Cashiers = 0;
+        for (const FMarketEmployee& E : B.Staff) if (RoleOf(E) == ERole::Cashier) ++Cashiers;
+        const ERole Role = Cashiers < BranchCashiers(B) ? ERole::Cashier : ERole::Stocker;
+        FMarketEmployee New = BranchCandidate(State, Role, MarketBranches::CountryOf(State, B));
+        State.Branches[BranchIndex].Staff.Add(New);
+        if (bWithCost) MarketLedger::AddStoreCost(State, HireCostOn(Role, State.Day), BranchIndex); // C10: the hiring cost
+        ++Hired;
+    }
+    return Hired;
+}
+
+int64 MarketStaff::BranchWages(const FMarketBranch& Branch)
+{
+    int64 Total = 0;
+    for (const FMarketEmployee& E : Branch.Staff) Total += FMath::Max<int64>(0, E.DailyWage);
+    return Total;
+}
+
+float MarketStaff::BranchService(const FMarketBranch& Branch, int32 Day)
+{
+    if (Branch.Workers <= 0) return 1.f;
+    float Skill = 0.f, Morale = 0.f, Fatigue = 0.f;
+    int32 On = 0;
+    for (const FMarketEmployee& E : Branch.Staff)
+    {
+        if (!OnBranchDuty(E, Day)) continue;
+        Skill += E.Skill; Morale += E.Morale; Fatigue += E.Fatigue; ++On;
+    }
+    // The rota keeps about six of seven people on duty; fewer than that is a thin team.
+    const float Cover = FMath::Clamp(On / FMath::Max(1.f, Branch.Workers * 6.f / 7.f), 0.f, 1.f);
+    if (On == 0) return 0.75f;
+    Skill /= On; Morale /= On; Fatigue /= On;
+    const float Team = 1.f + 0.15f * (Skill - 50.f) / 50.f + 0.1f * (Morale - 70.f) / 30.f - 0.1f * FMath::Max(0.f, Fatigue - 50.f) / 50.f;
+    return FMath::Clamp(Team * (0.8f + 0.2f * Cover), 0.75f, 1.15f);
+}
+
+MarketStaff::FBranchStaffDay MarketStaff::BranchDay(FMarketState& State, int32 BranchIndex, int32 Served, int64 Revenue, int32 UnitsSold, int32 Closed)
+{
+    FBranchStaffDay Out;
+    if (!State.Branches.IsValidIndex(BranchIndex)) return Out;
+    const bool bHr = HasHr(State);
+    {
+        FMarketBranch& B = State.Branches[BranchIndex];
+        const int64 Minimum = MinimumDailyWage(Closed);
+        for (FMarketEmployee& E : B.Staff) if (E.DailyWage < Minimum) E.DailyWage = Minimum;
+        // 1. The tills: the cashiers on duty share the day's shoppers (the family shop's rule).
+        int32 Cashiers = 0, Stockers = 0;
+        for (const FMarketEmployee& E : B.Staff)
+        {
+            if (!OnBranchDuty(E, Closed)) continue;
+            if (RoleOf(E) == ERole::Cashier) ++Cashiers; else ++Stockers;
+        }
+        const int32 ServedShare = Cashiers > 0 ? Served / Cashiers : 0;
+        const int64 RevenueShare = Cashiers > 0 ? Revenue / Cashiers : 0;
+        const int32 UnitsShare = Stockers > 0 ? UnitsSold / Stockers : 0;
+        for (FMarketEmployee& E : B.Staff)
+        {
+            const bool bOn = OnBranchDuty(E, Closed);
+            if (bOn && RoleOf(E) == ERole::Cashier) Out.TillDifference += TillDifference(State, E, Closed, ServedShare, RevenueShare);
+            // 2. Fatigue and learning: a busy store tires a thin team (the load is capped; a day off a week rests).
+            if (bOn)
+            {
+                float Load = RoleOf(E) == ERole::Cashier ? 10.f + 0.3f * FMath::Min(ServedShare, 60) : 10.f + 0.05f * FMath::Min(UnitsShare, 360);
+                Load *= 1.4f - FMath::Clamp(E.Stamina, 0, 100) * 0.008f;
+                E.Fatigue = FMath::Clamp(E.Fatigue + Load - 20.f, 0.f, 100.f);
+                ++E.DaysWorked;
+                if (E.Skill < 90 && E.DaysWorked % 3 == 0) ++E.Skill;
+            }
+            else E.Fatigue = FMath::Max(0.f, E.Fatigue - 45.f);
+            // 3. Morale: wage against the market, fatigue, the company's HR, the manager (a skilled one keeps the team).
+            const float WageRatio = static_cast<float>(E.DailyWage) / static_cast<float>(FMath::Max<int64>(1, FairWage(RoleOf(E), E.Skill, State.Day)));
+            const float Boss = B.ManagerName.IsEmpty() ? -5.f : (B.ManagerSkill - 50) * 0.1f;
+            const float Target = 60.f + (WageRatio - 1.f) * 100.f - FMath::Max(0.f, E.Fatigue - 50.f) * 0.6f + (bHr ? 5.f : 0.f) + Boss;
+            E.Morale = FMath::Clamp(E.Morale + (Target - E.Morale) * 0.2f, 0.f, 100.f);
+        }
+        // 4. Leaving: notices that ran out, then new notices after three unhappy days (never out of the blue).
+        for (int32 I = B.Staff.Num() - 1; I >= 0; --I)
+            if (B.Staff[I].LeaveDay > 0 && B.Staff[I].LeaveDay <= Closed) { B.Staff.RemoveAt(I); ++Out.Left; }
+        for (FMarketEmployee& E : B.Staff)
+        {
+            E.LowMoraleDays = E.Morale < 30.f ? E.LowMoraleDays + 1 : 0;
+            if (E.LeaveDay == 0 && E.LowMoraleDays >= 3) E.LeaveDay = State.Day + NoticeDays - 1;
+            else if (E.LeaveDay > 0 && E.Morale >= 45.f) E.LeaveDay = 0;
+        }
+    }
+    // 5. The manager fills the empty positions (B may move: StaffBranch adds people).
+    Out.Hired = StaffBranch(State, BranchIndex);
+    return Out;
+}
+
 bool MarketStaff::CashierOnDuty(const FMarketState& State)
 {
     return OnDutyAt(State, ERole::Cashier, 0) != nullptr;

@@ -340,7 +340,8 @@ struct FMarketBranch
     UPROPERTY() int32 StageUntil = 0;
     UPROPERTY() int32 OpenedDay = 0;
     UPROPERTY() int64 Rent = 0;          // per month, kurus at the time of signing
-    UPROPERTY() int32 Workers = 0;
+    UPROPERTY() int32 Workers = 0;        // the positions the store needs (MarketStoreAssign::WorkersFor)
+    UPROPERTY() TArray<FMarketEmployee> Staff; // E3c2c (M63): the people in those positions (cashiers and stockers), run by the manager
     UPROPERTY() FString ManagerName;
     UPROPERTY() int32 ManagerSkill = 0;  // 0 = no manager: the player's standing orders
     UPROPERTY() int32 ManagerHonesty = 70;
@@ -898,7 +899,7 @@ struct FMarketState
     static constexpr int64 StockerDailyWage = 2000;
 
     // Save format version. 2 (G-076): story finale flags, test-mode mark. Older saves load and are migrated.
-    static constexpr int32 CurrentVersion = 13; // M64: the father's favour is counted; // E3c2 (M27): branch goods use the family shop's record, the v0.1 staff flags are gone; older saves start a new game
+    static constexpr int32 CurrentVersion = 14; // E3c2c: branch staff are people; // M64: the father's favour is counted; // E3c2 (M27): branch goods use the family shop's record, the v0.1 staff flags are gone; older saves start a new game
     UPROPERTY() int32 Version = CurrentVersion;
     UPROPERTY() int32 Day = 1;
     UPROPERTY() int64 Cash = 35000;

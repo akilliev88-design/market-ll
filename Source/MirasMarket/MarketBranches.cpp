@@ -420,6 +420,7 @@ int32 MarketBranches::AddAcquired(FMarketState& State, const TArray<FMarketProdu
     State.Branches.Add(Branch);
     const int32 Index = State.Branches.Num() - 1;
     MarketManagers::HireStoreManager(State, Index);
+    MarketStaff::StaffBranch(State, Index, false); // E3c2c: the chain's people stay with the store
     return Index;
 }
 
@@ -463,9 +464,17 @@ bool MarketBranches::Close(FMarketState& State, const TArray<FMarketProduct>& Pr
     MarketLedger::Post(State, MarketLedger::EAccount::Divestment, SoldValue, true, BranchIndex);
     MarketLedger::Post(State, MarketLedger::EAccount::Shrinkage, -SoldValue, false, BranchIndex); // the lost half (sold at half the cost)
     MarketDepartments::CloseAll(State, BranchIndex); // M26: its departments sell their stock off
+    // E3c2c (M63): its people are let go with their notice and seniority pay.
+    int64 Severance = 0;
+    for (const FMarketEmployee& E : B.Staff) Severance += MarketStaff::SeverancePay(State, E);
+    State.Cash -= Severance;
+    MarketLedger::Post(State, MarketLedger::EAccount::Severance, -Severance, true, BranchIndex);
+    const int32 LetGo = B.Staff.Num();
+    B.Staff.Reset();
     B.Items.Reset();
     B.Batches.Reset();
     OutMessage = FString::Printf(TEXT("%s kapand\u0131. Depozito geri al\u0131nd\u0131, %d \u00fcr\u00fcn ana depoya ta\u015f\u0131nd\u0131."), *B.Name, Moved);
+    if (LetGo > 0) OutMessage += FString::Printf(TEXT(" %d \u00e7al\u0131\u015fan\u0131n tazminat\u0131 \u00f6dendi (%s)."), LetGo, *BranchTl(Severance));
     if (Sold > 0) OutMessage += FString::Printf(TEXT(" Depoya s\u0131\u011fmayan %d \u00fcr\u00fcn toptanc\u0131ya yar\u0131 fiyat\u0131na verildi (%s)."), Sold, *BranchTl(SoldValue));
     return true;
 }
@@ -576,7 +585,7 @@ void MarketBranches::CloseDay(FMarketState& State, const TArray<FMarketProduct>&
         {
             B.Stage = static_cast<uint8>(EStage::Hiring);
             B.Workers = MarketStoreAssign::WorkersFor(MarketStoreViews::MeasuresOf(B), B.Format); // G-088 C: the store's size and tills
-            MarketLedger::AddStoreCost(State, MarketStaff::HireCostOn(MarketStaff::ERole::Cashier, Closed) * B.Workers, Index); // C10
+            MarketStaff::StaffBranch(State, Index); // E3c2c (M63): people, each with a hiring cost (C10)
             if (B.ManagerName.IsEmpty()) MarketManagers::HireStoreManager(State, Index); // G-086b ek (M22): a name never used before
             News.Add(FString::Printf(TEXT("%s: ruhsat \u00e7\u0131kt\u0131. %d \u00e7al\u0131\u015fan i\u015fe al\u0131nd\u0131; m\u00fcd\u00fcr %s (beceri %d)."), *B.Name, B.Workers, *B.ManagerName, B.ManagerSkill));
             continue;
@@ -626,7 +635,7 @@ void MarketBranches::CloseDay(FMarketState& State, const TArray<FMarketProduct>&
         int32 Sold = 0, Empty = 0;
         for (const FMarketStock& Item : B.Items) { Sold += Item.Yesterday.Sold; Empty += Item.Yesterday.Empty; }
         const float Availability = Sold + Empty > 0 ? FMath::Clamp(static_cast<float>(Sold) / (Sold + Empty), 0.2f, 1.f) : 0.9f;
-        const float Service = Kind.Service * (B.ManagerName.IsEmpty() ? 0.9f : 1.f)
+        const float Service = Kind.Service * (B.ManagerName.IsEmpty() ? 0.9f : 1.f) * MarketStaff::BranchService(B, Closed) // E3c2c: its people
             * (Closed - B.OpenedDay < YoungDays ? 1.f - YoungServiceLoss * Strain : 1.f); // C15 (M45): thin management for the new ones
         // E2: the same shopper formula as every store (MarketStoreDemand).
         MarketStoreDemand::FStoreDay Store;
@@ -717,14 +726,18 @@ void MarketBranches::CloseDay(FMarketState& State, const TArray<FMarketProduct>&
         // A dishonest manager keeps a little of the till.
         const int64 Skim = Revenue * Rule.SkimPermille / 1000;
         const int64 RentDay = FMath::RoundToInt64(B.Rent * MarketPrices::ListLevel(State.Day) / MarketPrices::ListLevel(FMath::Max(1, B.OpenedDay)) / 30.0);
-        const int64 WagesDay = B.Workers * MarketStaff::FairWage(MarketStaff::ERole::Cashier, 50, State.Day) + B.ManagerWage;
+        const int64 WagesDay = MarketStaff::BranchWages(B) + B.ManagerWage; // E3c2c: every person's own wage
         const int64 SocialDay = MarketStaff::EmployerShare(WagesDay); // C3 (B3): the employer's social security share
         const int64 RunningDay = FMath::RoundToInt64(1500 * Level * Kind.Running);
         const int64 Opex = RentDay + WagesDay + SocialDay + RunningDay;
         // M26: the branch's departments (they book their own lines; their goods are bought and paid the same day).
         const MarketDepartments::FDay Dept = MarketDepartments::Day(State, Index, Shoppers, Where.Income, Closed);
-        const int64 Profit = Revenue - Skim - Cogs - Logistics - Opex - WasteCost - DepotLoss + Dept.Profit; // waste, depot losses: goods already paid
-        State.Cash += Revenue - Skim - Logistics - Opex + Dept.Cash; // goods were paid when ordered; the family shop's till stays separate
+        // E3c2c (M63): the people's day (tills, fatigue, morale, leaving; the manager replaces who left).
+        const MarketStaff::FBranchStaffDay People = MarketStaff::BranchDay(State, Index, Shoppers, Revenue, DaySold, Closed);
+        const int64 Till = People.TillDifference;
+        const int64 Profit = Revenue - Skim - Cogs - Logistics - Opex - WasteCost - DepotLoss + Dept.Profit + Till; // waste, depot losses: goods already paid
+        State.Cash += Revenue - Skim - Logistics - Opex + Dept.Cash + Till; // goods were paid when ordered; the family shop's till stays separate
+        MarketLedger::Post(State, MarketLedger::EAccount::Shrinkage, Till, true, Index); // the tills' difference
         State.Books.PeriodPurchases += Dept.Purchases; // VAT paid on the department goods
         // C3 (B2): the branch's day line by line (Store = the branch).
         {

@@ -1,8 +1,20 @@
 # Güncel durum
 
-Son güncelleme: 03.10.2026 — Claude Code, akis-cc2: E3c2b ve M64 (babanın hatırı üç kez) yazıldı, derlenmedi
+Son güncelleme: 03.10.2026 — Claude Code, akis-cc2: E3c2b ve M64 derlendi; E3c2c (kişi kişi şube personeli) yazıldı, derlenmedi
 
 ## Kısaca
+
+**03.10.2026 — Claude Code / E3c2c (derlenmedi, `akis-cc2`):** 80dbc42 turu (E3c2b + M64) geçti: DERLE, TEST 163 + 1 uyarı, 0 başarısız, Smoke; OLCUM aynı.
+
+E3c2c: şube kasiyer ve görevlileri kişi oldu (`FMarketBranch::Staff`; `Workers` artık kadro sayısı).
+- `MarketStaff::StaffBranch`: kadroyu doldurur; yarısı, en az bir kişi kasada; işe alım maliyeti şubeye yazılır; satın alınan zincirin insanları maliyetsiz kalır; yurt dışında o ülkenin adları; İK varsa üç adaydan en iyisi.
+- `BranchWages`: herkesin kendi ücreti, eski "kişi × ortalama ücret" yerine.
+- `BranchService`: beceri, moral, yorgunluk ve nöbet hizmete girer (0,75–1,15).
+- `BranchDay`: asgari ücret, kasa farkı (dükkânın kuralı; kayıp hesabına), yorgunluk ve öğrenme (haftada bir izin), moral (ücret, yorgunluk, İK, müdürün becerisi), istifa; müdür boşalanı aynı gün doldurur.
+- Şube kapanınca çalışanlara tazminat ödenir.
+- Kayıt sürümü 14. Yeni test `Staff.BranchPeople`; Test.ps1 165.
+
+Risk: şube ücretleri ve hizmeti kişilere göre değiştiği için bot dengesi oynayabilir; kalabalık şubede az kasiyer yorulup istifa edebilir. Menüde şube personeli listesi henüz yok (yalnız etkileri görünür). **Devam notu:** Mustafa derler; E3 bitince E4.
 
 **03.10.2026 — Claude Code / M64 (derlenmedi, `akis-cc2`):** Mustafa: "babanın hatırına" veresiye sınırsız olmasın; üç hak, sayaç gösterilmez, üçüncüde "bu son". `FMarketSupplierAccount::LifelineUses`, `MarketSuppliers::LifelineMax` = 3; üç farklı haber metni (yakınının adı `MarketStart::Relative` ile); toptan perakendeciye geçince hatır biter. `Suppliers.Lifeline` testine üç hak ve "bu son" kontrolü eklendi. Kayıt sürümü 13. **Devam notu:** Mustafa derler (E3c2b ile birlikte); sonra E3c2c.
 

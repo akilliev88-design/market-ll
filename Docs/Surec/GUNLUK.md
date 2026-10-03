@@ -1,3 +1,30 @@
+## 03.10.2026 — Claude Code — E3c2c: şube çalışanları kişi kişi (derlenmedi)
+
+**80dbc42 sonucu:** DERLE geçti; TEST 163 başarılı + 1 uyarılı, başarısız 0; Smoke geçti. E3c2b ve M64 bitti.
+
+**Yapılan:**
+- `FMarketBranch::Staff` (`TArray<FMarketEmployee>`). `Workers` artık doldurulacak kadro sayısı.
+- `MarketStaff`:
+  - `StaffBranch(State, şube, maliyetli mi)`: kadroyu doldurur; kasiyer sayısı en az 1, kadronun yarısı; dükkânın aday kuralı; İK varsa 3 adaydan en becerikli, referansı kötü olmayan; işe alım maliyeti şubeye. Şube başka ülkedeyse ad o ülke paketinden.
+  - `BranchWages`.
+  - `BranchService`: 1 + 0,15 × (beceri − 50)/50 + 0,1 × (moral − 70)/30 − 0,1 × (yorgunluk − 50)⁺/50, nöbetteki kişi oranıyla, 0,75–1,15; kimse yoksa 0,75.
+  - `BranchDay`: asgari ücret; kasiyerlerin kasa farkı (`TillDifference`); yorgunluk (kasiyer 10 + 0,3 × müşteri payı, en çok 60 müşteri; görevli 10 + 0,05 × birim payı; dayanıklılık); izinli gün −45; 3 günde bir öğrenme; moral hedefi = 60 + ücret oranı − yorgunluk + İK 5 + müdür ((beceri − 50) × 0,1; müdürsüz −5); 3 mutsuz günde istifa, ihbar 2 gün, moral 45'e çıkarsa geri alır; müdür boşalanı aynı gün doldurur.
+- Nöbet: herkes haftada bir gün izinli (gün + id, 7'ye göre).
+- `MarketBranches`:
+  - ruhsattan sonra `StaffBranch`; zincir satın alınca `StaffBranch(..., false)`;
+  - hizmet × `BranchService`; ücret = `BranchWages` + müdür;
+  - gün sonu `BranchDay`, kasa farkı kâra, kasaya ve `Shrinkage` hesabına yazılır;
+  - şube kapanınca tazminat (`SeverancePay`, `Severance` hesabı) ve mesajda tutarı.
+- Kayıt sürümü 14.
+
+**Test:** yeni `MirasMarket.Staff.BranchPeople`: 4 kişi, 2 kasiyer, ayrı kimlik, ücret toplamı; iyi takım > kötü takım hizmeti, boş şube 0,75; ihbarı biten ayrılır, yerine aynı gün biri gelir, asgari ücret korunur; mutsuz takım istifa eder; yurt dışı şubede yerel ad. Test.ps1 alt sınırı 165.
+
+**Varsayım:** şube personeli menüde liste olarak henüz gösterilmiyor (M63'teki "oyuncu menüden bakar" sonraki menü işi). Şube başına haftalık ayrılan sayısı haftalık satıra eklenmedi.
+
+**Doğrulama:** Derlenmedi.
+
+**Sıradaki:** Mustafa CLAUDE_KOS.cmd; geçerse E3 biter, sonra E4 (yabancı mağazanın parası).
+
 ## 03.10.2026 — Claude Code — M64: babanın hatırı üç kez (derlenmedi)
 
 **İstek (Mustafa):** "Babanın hatırına" veresiye kalıntı mı? Hikâyeye uydurulsun. Seçenek "3 hak" seçildi, ama "2 hak kaldı" gibi bir sayaç yazmasın; sonuncuda "bu son" desin.
