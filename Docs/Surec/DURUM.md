@@ -4,6 +4,8 @@ Son güncelleme: 03.10.2026 — Claude Code, akis-cc2: birleşim + adım 2 + E2a
 
 ## Kısaca
 
+**03.10.2026 — Mustafa kararı M60 (Claude Code yazdı):** oyunda gerçek yıl yok; içsel takvim yalnız hesap aracı. Gerçek yıla bağlı kalıntılar (dönem olaylarının sabit yılları, salgın tarihi, online dönem yılları, fiyat eğrisinin tarih biçimi, "2011" adları) E2b'den sonra Y1 adımında kampanya yılına bağlanacak.
+
 **03.10.2026 — Mustafa kararları (Claude Code yazdı):** M57 karşı dükkân (Bereket/Kadir) ve hikâye karakterleri (Nermin teyze, Selim, Cem) kalkar; E2b'de. M58 yeni ülkeye girmeden ücretli pazar araştırması, 365 gün geçerli; D6'da. M59 her ülkede 15–30 firma (ulusal 10–14, bölgesel her ülkede, yerel aile zincirleri, dünya devleri), dünya liginde 100+; E2b'den sonra.
 
 **03.10.2026 — Mustafa kararları (Claude Code yazdı):** M54 yakın market ve toptan perakende oyuncuya da açık, yalnız o türün olduğu ülkelerde (paket alanı `playerFormats`, E3'ten sonra). M55 süre hedefi: ilk şube 1. saat, ilk yurt dışı ~8–12. saat (5–7. yıl), 30. yıl ~35–45 saat, dünya birinciliği iyi oyunla ~30–40 saat; D8'de bot ölçer. M56 son yok: dünya birinciliği kutlama, oyun bütün sistemleriyle sürer, 2040 sınırı kalkar (J02 değişti).

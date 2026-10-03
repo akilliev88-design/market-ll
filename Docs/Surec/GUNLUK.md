@@ -1,3 +1,11 @@
+## 03.10.2026 — Claude Code — karar M60 (gerçek yıl yok)
+
+**Karar (Mustafa):** "2011 eski oyun kalıntısı; oyunda yıl yok." Oyuncu gerçek yıl görmüyor (tarih yazısı zaten "3. yıl"), ama bazı kurallar hâlâ gerçek tarihe bağlı. Taramada bulunanlar: `MarketEras` sabit dönem planı (2018, 2019, 2020, 2021–23, 2024, 2031–33), `MarketOnline` salgın başlangıcı (gerçek 1 Mart 2020 + kaydırma), online dönem yılları, yerleşik fiyat eğrisinin yıl yıl biçimi (`MarketPrices`), `MarketCompetitors` Şok açılışı (15 Temmuz 2011) ve yıl hesabı (E2b'de zaten siliniyor), "2011" değişken adları. Hepsi Y1 adımında kampanya yılına bağlanacak.
+
+**Yapılan:** Yalnız belge (M60, L06 notu, M59 metni).
+
+**Sıradaki:** son.log → derleme düzeltmeleri → E2b → Y1.
+
 ## 03.10.2026 — Claude Code — kararlar M57–M59
 
 **Kararlar (Mustafa):** M57 karşı dükkân hikâyesi ve bütün karakter sahneleri (Nermin teyze, Selim, Cem, Kadir) kalkar; E2'deki "Bereket zincir modeline taşınır" maddesi iptal. M58 yabancı ülkeye girişten önce ücretli pazar araştırması, 365 gün geçerli, girilmezse yeniden. M59 ülke başına 15–30 firma, dünya liginde 100+.
