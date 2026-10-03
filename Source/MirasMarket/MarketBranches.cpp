@@ -652,7 +652,7 @@ void MarketBranches::CloseDay(FMarketState& State, const TArray<FMarketProduct>&
         Store.Satisfaction = B.Satisfaction;
         Store.Maturity = B.Maturity;
         Store.bNew = State.Day - B.OpenedDay < 7;
-        Store.bHasty = B.bHasty;
+        Store.bHasty = B.bHasty != 0;
         Store.PullExtra = MarketDepartments::PullFactor(B, Closed); // M26: fresh bread, a good butcher
         const int32 Arrived = MarketStoreDemand::Shoppers(State, Store, Closed);
         // G-088 C: the store's tills. Too few lanes lose shoppers in the queue; roomy ones keep a few more.

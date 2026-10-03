@@ -1,3 +1,9 @@
+## 03.10.2026 — Claude Code — ilk derleme turu: 1 hata düzeltildi
+
+**son.log (Mustafa, 02018be):** derleme tek hatayla kırıldı: `MarketBranches.cpp(655)` C4800, `uint8 bHasty` doğrudan `bool`'a atanmış (E2a). Düzeltildi (`!= 0`). Test raporu eskiydi (derleme olmadığı için önceki tur, 159 + 1 uyarı); Smoke atlandı.
+
+**Sıradaki:** Mustafa yeniden CLAUDE_KOS.cmd.
+
 ## 03.10.2026 — Claude Code — karar M60 (gerçek yıl yok)
 
 **Karar (Mustafa):** "2011 eski oyun kalıntısı; oyunda yıl yok." Oyuncu gerçek yıl görmüyor (tarih yazısı zaten "3. yıl"), ama bazı kurallar hâlâ gerçek tarihe bağlı. Taramada bulunanlar: `MarketEras` sabit dönem planı (2018, 2019, 2020, 2021–23, 2024, 2031–33), `MarketOnline` salgın başlangıcı (gerçek 1 Mart 2020 + kaydırma), online dönem yılları, yerleşik fiyat eğrisinin yıl yıl biçimi (`MarketPrices`), `MarketCompetitors` Şok açılışı (15 Temmuz 2011) ve yıl hesabı (E2b'de zaten siliniyor), "2011" değişken adları. Hepsi Y1 adımında kampanya yılına bağlanacak.
