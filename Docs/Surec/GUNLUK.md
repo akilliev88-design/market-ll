@@ -1,3 +1,16 @@
+## 03.10.2026 — Claude Code — M54, M58, M59 doğrulandı; dal birleşmesi
+
+**son.log (685f279):** DERLE geçti; TEST 168 başarılı + 1 uyarılı, başarısız 0 (alt sınır 169); Smoke geçti. OLCUM: firma sayıları TR 30, DE 16, GB 16, US 21, FR 17, ES 16, PL 17, BR 18, MX 20, JP 21 (hedef 15–30 ✓). Aile dükkânı 90 gün ciro oranı 1,045, rakip fiyat düzeyi 0,974: zincir sayısı artınca biraz değişti, hedef içinde. M54, M58, M59 bitti.
+
+**Önceki iki tur (yeniden yazıldı, birleşmede kaybolmuştu):**
+- c1c7cd4 turunda derleme "dosya başka bir işlem tarafından kullanılıyor" diyerek yapılmadı. Testler eski derlemeyle koştu (`PackStandard` yeni veriyle başarısız).
+- `Saved/Claude/adim.cmd` artık derlemeden önce eski logu siler ve "Result: Succeeded" yoksa testleri koşturmaz (93a0897).
+- Sonraki turda git ayrıştı: Mustafa'nın yerelinde Codex'in iki commit'i vardı (e072c8f soğuk dolap tabelaları, 5201779 BUZ eksik tipler), uzakta 93a0897. Mustafa `git merge` ile birleştirdi; DURUM/GÜNLÜK çakışmasında yereldeki hâl tutuldu (`--ours`), birleşik dal gönderildi (685f279).
+
+**Not:** Codex artık `akis-cc2` üzerinde commit atıyor; ayrışma olmasın diye Codex'in commit'lerini Mustafa'nın göndermesi (push) gerekiyor, yoksa is.cmd'nin düz çekme adımı yine durur.
+
+**Sıradaki:** Mustafa'ya sorulacak iş (Y1 gerçek yıl temizliği, D4 kıta müdürleri, D6 evrensel hikâye, D7 dünya haritası, D8 bot ve denge).
+
 ## 03.10.2026 — Codex — BUZ dolap tipleri eksik incelemesi
 
 **Yapılan:** Erişilebilen resmi alt sayfalar/ürün sonuçları ve önceki referans görselleri, mevcut 12 BUZ dolap modeliyle karşılaştırıldı. Eksik biçimler/varyantlar BUZ_EKSIK_TIPLER.md'de. Ana sayfa açılamadı; sonuç tüm SKU'ların eksiksiz taraması değil, doğrulanmış tip açıklarıdır.

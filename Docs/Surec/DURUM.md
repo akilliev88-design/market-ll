@@ -1,8 +1,10 @@
 # Güncel durum
 
-Son güncelleme: 03.10.2026 — Claude Code, akis-cc2: M54 + M58 + M59 yazıldı, derlenmedi (E4 bitti)
+Son güncelleme: 03.10.2026 — Claude Code, akis-cc2: M54/M58/M59 derlendi, testler ve Smoke geçti
 
 ## Kısaca
+
+**03.10.2026 — Claude Code / M54 + M58 + M59 doğrulandı (685f279, Codex'in iki commit'iyle birleşmiş):** DERLE geçti, TEST 168 + 1 uyarı (169), başarısız 0, Smoke geçti. OLCUM: ülke başına firma TR 30, DE 16, GB 16, US 21, FR 17, ES 16, PL 17, BR 18, MX 20, JP 21. Ciro oranı 1,045, rakip fiyat düzeyi 0,974 (daha çok zincir). Önceki tur (c1c7cd4) dosya kilidi yüzünden derlenmemişti; `adim.cmd` artık derleme sonucu yoksa testleri koşturmaz. Mustafa'nın yerelindeki Codex commit'i `akis-cc2` ile ayrışınca elle birleştirildi; DURUM/GÜNLÜK çakışmasında yereldeki hâl tutuldu, kaybolan not buraya ve GÜNLÜK'e yeniden yazıldı. Sıradaki: Mustafa'ya sorulacak (Y1, D4, D6, D7, D8).
 
 **03.10.2026 — Codex / BUZ tip incelemesi:** 12 BUZ dolabının Blender/Unreal varlıkları mevcut. Eksik biçimler: METEOR dikey+yatay birleşik dondurucu, SENNA ada baş modülü, köşe/dönüşlü servis-pasta tezgâhları; üç kapılı içecek ve 2/4/5 kapılı dikey dondurucu varyantları; içten motorlu servis ailesine özel gövdeler. İnceleme raporu Docs/Environment/BUZ_EKSIK_TIPLER.md. Yeni model/kod üretilmedi; önceki DERLE/TEST169/Smoke doğrulaması değişmedi.
 
