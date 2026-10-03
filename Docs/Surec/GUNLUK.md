@@ -1,3 +1,11 @@
+## 03.10.2026 — Claude (Cowork) — E1: her ülkenin kendi fiyatı (derlenmedi)
+
+**Yapılan:** `MarketPrices.h/.cpp`: ülke parametreli fiyat düzeyi, liste düzeyi, ücret endeksi (aynı yarıyıl kuralı), faiz, `Scaled/WageScaled`; `IsHome`; `ToHome` (`MarketCountry::FxRate` ve gösterim ölçeğiyle; başlangıçta 1); `RealToHome`. Yabancı ekonomi paketten, kampanya tohumu ^ ülke anahtarıyla; yıl başı düzeyleri 2070'e kadar önbellekte. Tek parametreli eski fonksiyonlar "kampanya ülkesi" olarak kaldı. Yeni test dosyası `MarketPricesCountryTests.cpp` (`MirasMarket.Prices.EveryCountryItsOwn`). Test.ps1 161.
+
+**Doğrulama:** Derlenmedi. Oyun davranışı değişmemeli (yeni fonksiyonları henüz kimse çağırmıyor).
+
+**Sıradaki:** Mustafa `CLAUDE_KOS.cmd` (kaydet + GitHub'a gönder + DERLE + TEST). Sonra E2.
+
 ## 03.10.2026 — Claude (Cowork) — Ülke standardı (M52), liste dışı başlangıç (M53), tek ekonomi tasarımı
 
 **Mustafa:** "Yaptığımız şeyleri standart yap ki sonradan ülke eklemek istediğimizde sorun olmasın; oyunun arkasındaki aklı standartlaştır. Oyunun ilk kalıntıları duruyorsa kaldıralım." · "Oyuna ilk başladığımızda top 50 sonuncusu olmayalım; listede değiliz, sonradan listedekileri geçince giriyoruz. Aynısı ülke içinde." · "İşi kaydederek git; limit biterse Claude Code'a atıp oradan devam edebileyim." Claude Code bulutta çalışıyor (GitHub), D3+D5 promptu ve bulut eki verildi.

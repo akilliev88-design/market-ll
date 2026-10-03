@@ -2,6 +2,8 @@
 
 #include "CoreMinimal.h"
 
+struct FMarketState;
+
 // Long-term economy of the country (Docs/Kurgu/00_KURGU_KITABI.md \u00a72): consumer price inflation, the minimum wage
 // and the loan interest rate by calendar year. The curve is the game's own (karar A06): it has the
 // shape of 2011-2029 Turkey but softer peaks; the minimum wage follows prices with a little real growth. Independent of the world.
@@ -33,4 +35,24 @@ namespace MarketPrices
     void SetEconomy(double InflationMean, double InflationVol, double LoanSpread, bool bShocks, int32 Seed);
     void ClearEconomy();
     bool HasCustomEconomy();
+
+    // E1 (M51, Docs/Kurgu/11_TEK_EKONOMI.md): every country has its own economy. Country "" or the campaign's own
+    // country (MarketCountry::Active) = the functions above (its curve, its eras). Any other country: its pack's
+    // economy (mean, volatility, shocks for swingy economies, loan spread), seeded by the campaign and the country.
+    // The single-argument functions above mean "the campaign's country" and are kept for the code not yet moved.
+    bool IsHome(const FString& Country);
+    double YearlyInflation(const FString& Country, int32 Year);
+    double PriceLevel(const FString& Country, int32 GameDay);
+    double ListLevel(const FString& Country, int32 GameDay);
+    double WageIndex(const FString& Country, int32 GameDay);
+    double LoanRate(const FString& Country, int32 GameDay);
+    int64 Scaled(const FString& Country, int64 Kurus2011, int32 GameDay);
+    int64 WageScaled(const FString& Country, int64 Kurus2011, int32 GameDay);
+    // E1: a local amount of a country in the campaign's own money on a game day, through the exchange rates
+    // (MarketCountry::FxRate). 1 at the start and for the own country; drifts with the inflation gap and the
+    // currency's wobble. E4 converts a foreign store's day with it.
+    double ToHome(const FMarketState& State, const FString& Country, int32 GameDay);
+    // E1: the same in real terms (ToHome x the country's price level / the own one): 1 when the exchange rate only
+    // followed the inflation gap; above or below 1 is the currency risk of a foreign store.
+    double RealToHome(const FMarketState& State, const FString& Country, int32 GameDay);
 }

@@ -2,6 +2,7 @@
 #include "MarketCalendar.h"
 #include "MarketEras.h"
 #include "MarketTuning.h"
+#include "MarketCountry.h"
 
 namespace MarketPrices
 {
@@ -145,4 +146,155 @@ int64 MarketPrices::Scaled(int64 Kurus2011, int32 GameDay)
 int64 MarketPrices::WageScaled(int64 Kurus2011, int32 GameDay)
 {
     return FMath::RoundToInt64(static_cast<double>(Kurus2011) * WageIndex(GameDay));
+}
+
+// ---------------------------------------------------------------------------------------------------------------
+// E1 (M51): an economy per country
+
+namespace MarketPricesCountry
+{
+    using namespace MarketPrices;
+    constexpr int32 LastYear = 2070;
+
+    uint32 Key(const FString& Country)
+    {
+        uint32 Hash = 2166136261u;
+        for (const TCHAR C : Country) { Hash ^= static_cast<uint32>(C); Hash *= 16777619u; }
+        return Hash;
+    }
+
+    struct FForeign
+    {
+        uint32 Seed = 0;
+        double Mean = 0.02, Vol = 0.01, Spread = 0.03;
+        bool bShocks = false;
+        int32 FirstYear = 2011;
+        TArray<double> YearStart;   // price level on 1 January of FirstYear + i (FirstYear itself: the start day)
+    };
+
+    // The country's economy, built once per campaign seed (a new campaign or a new pack gives a new one).
+    const FForeign& Foreign(const FString& Country)
+    {
+        static TMap<FString, FForeign> Cache;
+        const uint32 Seed = static_cast<uint32>(MarketCountry::ActiveSeed()) ^ Key(Country);
+        FForeign* Found = Cache.Find(Country);
+        if (Found && Found->Seed == Seed) return *Found;
+        FForeign F;
+        F.Seed = Seed;
+        if (const MarketCountry::FProfile* Pack = MarketCountry::Find(Country))
+        {
+            F.Mean = Pack->InflationMean;
+            F.Vol = FMath::Max(0.0, Pack->InflationVol);
+            F.Spread = Pack->LoanSpread;
+            F.bShocks = Pack->Character != MarketCountry::ECharacter::Stable;
+        }
+        F.FirstYear = MarketCalendar::DateOf(1).Year;
+        double Level = 1.0;
+        for (int32 Year = F.FirstYear; Year <= LastYear; ++Year)
+        {
+            F.YearStart.Add(Level);
+            const int32 From = FMath::Max(1, MarketCalendar::GameDayOf(Year, 1, 1));
+            const int32 To = MarketCalendar::GameDayOf(Year + 1, 1, 1);
+            double Rate = F.Mean + F.Vol * (0.6 * Wobble(F.Seed, Year, 1u) + 0.4 * Wobble(F.Seed, Year - 1, 1u));
+            if (F.bShocks && Wobble(F.Seed, Year, 7u) > 0.8) Rate += F.Vol * 2.5;
+            Rate = FMath::Clamp(Rate, -0.01, 0.6);
+            Level *= FMath::Pow(1.0 + Rate, (To - From) / 365.0);
+        }
+        return Cache.Add(Country, F);
+    }
+
+    double ForeignInflation(const FForeign& F, int32 Year)
+    {
+        const int32 I = Year - F.FirstYear;
+        if (!F.YearStart.IsValidIndex(I) || !F.YearStart.IsValidIndex(I + 1)) return F.Mean;
+        const int32 Days = MarketCalendar::GameDayOf(Year + 1, 1, 1) - FMath::Max(1, MarketCalendar::GameDayOf(Year, 1, 1));
+        return FMath::Pow(F.YearStart[I + 1] / F.YearStart[I], 365.0 / FMath::Max(1, Days)) - 1.0;
+    }
+
+    double ForeignLevel(const FForeign& F, int32 GameDay)
+    {
+        if (GameDay <= 1) return 1.0;
+        const int32 Year = MarketCalendar::DateOf(GameDay).Year;
+        const int32 I = FMath::Clamp(Year - F.FirstYear, 0, F.YearStart.Num() - 1);
+        const int32 From = FMath::Max(1, MarketCalendar::GameDayOf(Year, 1, 1));
+        return F.YearStart[I] * FMath::Pow(1.0 + ForeignInflation(F, Year), (GameDay - From) / 365.0);
+    }
+}
+
+bool MarketPrices::IsHome(const FString& Country)
+{
+    return Country.IsEmpty() || Country == MarketCountry::Active().Id;
+}
+
+double MarketPrices::YearlyInflation(const FString& Country, int32 Year)
+{
+    if (IsHome(Country)) return YearlyInflation(Year);
+    return MarketPricesCountry::ForeignInflation(MarketPricesCountry::Foreign(Country), Year);
+}
+
+double MarketPrices::PriceLevel(const FString& Country, int32 GameDay)
+{
+    if (IsHome(Country)) return PriceLevel(GameDay);
+    return MarketPricesCountry::ForeignLevel(MarketPricesCountry::Foreign(Country), GameDay);
+}
+
+double MarketPrices::ListLevel(const FString& Country, int32 GameDay)
+{
+    if (IsHome(Country)) return ListLevel(GameDay);
+    const MarketCalendar::FDate Date = MarketCalendar::DateOf(GameDay);
+    return PriceLevel(Country, FMath::Max(1, MarketCalendar::GameDayOf(Date.Year, Date.Month, 1)));
+}
+
+double MarketPrices::WageIndex(const FString& Country, int32 GameDay)
+{
+    if (IsHome(Country)) return WageIndex(GameDay);
+    // The same rule as at home: raised every January and July to the price level expected at the end of the half
+    // year, plus the real growth.
+    const MarketCalendar::FDate Date = MarketCalendar::DateOf(GameDay);
+    if (Date.Year == MarketCalendar::DateOf(1).Year && Date.Month <= 6) return 1.0;
+    const int32 HalfEnd = Date.Month <= 6 ? MarketCalendar::GameDayOf(Date.Year, 7, 1) : MarketCalendar::GameDayOf(Date.Year + 1, 1, 1);
+    const int32 HalfStart = Date.Month <= 6 ? MarketCalendar::GameDayOf(Date.Year, 1, 1) : MarketCalendar::GameDayOf(Date.Year, 7, 1);
+    const double Years = (HalfStart - 1) / 365.0;
+    return PriceLevel(Country, HalfEnd) * FMath::Pow(1.0 + MarketTuning::Get(TEXT("RealWageGrowth"), static_cast<float>(RealWageGrowth)), Years);
+}
+
+double MarketPrices::LoanRate(const FString& Country, int32 GameDay)
+{
+    if (IsHome(Country)) return LoanRate(GameDay);
+    const MarketPricesCountry::FForeign& F = MarketPricesCountry::Foreign(Country);
+    return FMath::Max(0.02, MarketPricesCountry::ForeignInflation(F, MarketCalendar::DateOf(GameDay).Year) + F.Spread);
+}
+
+int64 MarketPrices::Scaled(const FString& Country, int64 Kurus2011, int32 GameDay)
+{
+    return FMath::RoundToInt64(static_cast<double>(Kurus2011) * ListLevel(Country, GameDay));
+}
+
+int64 MarketPrices::WageScaled(const FString& Country, int64 Kurus2011, int32 GameDay)
+{
+    return FMath::RoundToInt64(static_cast<double>(Kurus2011) * WageIndex(Country, GameDay));
+}
+
+double MarketPrices::ToHome(const FMarketState& State, const FString& Country, int32 GameDay)
+{
+    if (IsHome(Country)) return 1.0;
+    const FString Home = MarketCountry::Active().Id;
+    auto Value = [&State, &Country, &Home](int32 Day)
+    {
+        // Local money per internal unit / local money per world unit = world units per internal unit; their ratio is
+        // what one internal unit of the country buys of the own one.
+        const MarketCountry::FProfile* C = MarketCountry::Find(Country);
+        const MarketCountry::FProfile* H = MarketCountry::Find(Home);
+        const double CScale = C ? C->DisplayScale : 1.0, HScale = H ? H->DisplayScale : 1.0;
+        const double CWorld = CScale / FMath::Max(0.0001, MarketCountry::FxRate(State, Country, Day));
+        const double HWorld = HScale / FMath::Max(0.0001, MarketCountry::FxRate(State, Home, Day));
+        return CWorld / FMath::Max(1e-12, HWorld);
+    };
+    return Value(FMath::Max(1, GameDay)) / FMath::Max(1e-12, Value(1));
+}
+
+double MarketPrices::RealToHome(const FMarketState& State, const FString& Country, int32 GameDay)
+{
+    if (IsHome(Country)) return 1.0;
+    return ToHome(State, Country, GameDay) * PriceLevel(Country, GameDay) / FMath::Max(1e-9, PriceLevel(GameDay));
 }

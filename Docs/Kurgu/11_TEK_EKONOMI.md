@@ -36,7 +36,7 @@
 
 ## 2. Fazlar (her biri ayrı derleme turu; her turda TEST + Smoke + kısa bot)
 
-### Faz E1 — Ülke başına fiyat (D1, çekirdek)
+### Faz E1 — Ülke başına fiyat (D1, çekirdek) — yazıldı 03.10.2026, derlenmedi
 
 1. `MarketPrices`'a ülke parametresi:
    - `PriceLevel(Country, Day)`, `ListLevel(Country, Day)`, `WageIndex(Country, Day)`, `LoanRate(Country, Day)`, `Scaled(Country, ...)`, `WageScaled(Country, ...)`.
