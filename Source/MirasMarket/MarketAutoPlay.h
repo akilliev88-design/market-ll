@@ -50,6 +50,7 @@ namespace MarketAutoPlay
         int32 Stores = 1, Provinces = 1, Workers = 0;
         float Share = 0;
         int32 NationalRank = 0, WorldRank = 0;
+        int32 Countries = 1;             // D8: countries with our own shops or a partner, the home one included
     };
     struct FRun
     {
@@ -71,6 +72,10 @@ namespace MarketAutoPlay
         TArray<FString> Issues;
         int64 BackgroundNet = 0;
         int32 RejectedDecisions = 0;
+        // D8 (M55): commands that went through per campaign year (a proxy of the player's clicks) and the months in
+        // which a decision card stopped the fast-forward (key: campaign year x 100 + month).
+        TMap<int32, int32> YearCommands;
+        TSet<int32> StoppedMonths;
     };
     struct FReport
     {

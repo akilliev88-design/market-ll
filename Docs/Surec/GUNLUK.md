@@ -1,3 +1,13 @@
+## 04.10.2026 — Claude Code — D8 ilk tur: son yok, bot yurt dışı ve süre raporu (derlenmedi)
+
+**Yapılan:** Oyunun 30. yılda biten son günü kalktı (M56); dünya birinciliği bir kutlama, sonra oyun sürer. Bot yurt dışına ortaklıkla da giriyor (temkinli her yerde, dengeli başka kıtada). Bot raporu her yıl için mağaza, ülke, dünya sırası, kaç komut verildiği ve kaç ayın karar kartı çıkmadan geçtiğini gösteriyor; hedeflerle karşılaştırıyor (M55). Bir sonraki CLAUDE_KOS koşusu derleme ve testten sonra 30 yıllık bot koşusunu da yapar.
+
+**Varsayım:** "Yılda komut sayısı" oyuncunun tıklamasına yakın bir ölçü; gerçek saat Mustafa'nın denemesiyle ölçülecek.
+
+**Doğrulama:** Derlenmedi. Sayılar bot koşusundan gelecek.
+
+**Sıradaki:** Bot sonucuna göre denge (ilk yurt dışı yılı, ülke sayısı, dünya sırası).
+
 ## 04.10.2026 — Claude Code — Y1: gerçek yıl kalıntıları (derlenmedi)
 
 **son.log (1127163):** DERLE geçti; TEST 172 başarılı, uyarı 0, başarısız 0; Smoke geçti. D7 bitti.

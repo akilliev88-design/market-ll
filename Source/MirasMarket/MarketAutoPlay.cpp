@@ -1,6 +1,7 @@
 #include "MarketAutoPlay.h"
 #include "MarketCampaign.h"
 #include "MarketResearch.h"
+#include "MarketFranchise.h"
 #include "MarketTuning.h"
 #include "MarketSimulation.h"
 #include "MarketOrderAdvice.h"
@@ -47,6 +48,7 @@ namespace MarketAutoPlay
         FString Message;
         const bool Done = MarketDirector::Command(State, Products, Action, Arg, Message);
         if (!Done) ++Run.RejectedDecisions;
+        else ++Run.YearCommands.FindOrAdd(MarketCalendar::CampaignYear(FMath::Max(1, State.Day))); // D8 (M55)
         return Done;
     }
     void ResolveChoices(FMarketState& State, const TArray<FMarketProduct>& Products, const FProfile& Profile, FRun& Run)
@@ -55,6 +57,10 @@ namespace MarketAutoPlay
         {
             const FMarketDecision* Pending = MarketEvents::Pending(State);
             if (!Pending) break;
+            {
+                const MarketCalendar::FDate Date = MarketCalendar::DateOf(FMath::Max(1, State.Day));
+                Run.StoppedMonths.Add(MarketCalendar::CampaignYear(FMath::Max(1, State.Day)) * 100 + Date.Month); // D8 (M55)
+            }
             const FMarketDecision Choice = *Pending;
             // Never sell the campaign or accept a gift of emergency debt for the debt-free profile.
             int32 Option = Choice.DefaultOption;
@@ -237,6 +243,17 @@ namespace MarketAutoPlay
             for (const MarketCountry::FProfile& Country : MarketCountry::All())
             {
                 if (Country.Id != State.CountryId && !MarketCompany::AbroadOpen(State)) continue; // D6 (M67)
+                if (MarketFranchise::Find(State, Country.Id)) continue; // a partner runs this country
+                // D8 (M67): the careful player enters a studied country through a partner; the balanced one does so on
+                // another continent; the bold one opens its own stores.
+                if (Country.Id != State.CountryId && MarketResearch::Status(State, Country.Id) == MarketResearch::EStatus::Ready
+                    && (Profile.Style == EStyle::Careful || (Profile.Style == EStyle::Balanced && Country.Continent != MarketCountry::FindOrDefault(State.CountryId).Continent)))
+                {
+                    FString Why;
+                    if (MarketFranchise::CanSign(State, Country.Id, Why) && MarketAutoPlayFinance::CanExpand(State, MarketFranchise::Fee(State, Country.Id), 0, Cushion))
+                        MarketFranchise::Sign(State, Country.Id, Why);
+                    continue;
+                }
                 if (Country.Id != State.CountryId && MarketResearch::Status(State, Country.Id) != MarketResearch::EStatus::NotNeeded
                     && MarketResearch::Status(State, Country.Id) != MarketResearch::EStatus::Ready)
                 {
@@ -398,6 +415,7 @@ namespace MarketAutoPlay
         Value.Stores = MarketCompany::TotalStores(State); Value.Provinces = MarketCompany::Provinces(State);
         Value.Share = MarketCompany::NationalShare(State);
         Value.NationalRank=State.Rivals.NationalRank; Value.WorldRank=State.Rivals.LeagueRank;
+        Value.Countries = 1 + MarketCompany::ForeignPresence(State);
         Value.Workers = State.Staff.Num() + State.Management.Managers.Num();
         for (const FMarketBranch& Branch : State.Branches)
             if (Branch.Stage == static_cast<uint8>(MarketBranches::EStage::Open)) Value.Workers += Branch.Workers + (!Branch.ManagerName.IsEmpty() ? 1 : 0);
@@ -413,7 +431,15 @@ namespace MarketAutoPlay
         for (const FMarketManager& Manager : State.Management.Managers) HasProvinceManager |= Manager.Level == static_cast<uint8>(MarketManagers::ELevel::Province);
         Mark(TEXT("Ilk il muduru"), HasProvinceManager);
         Mark(TEXT("5 il"), MarketCompany::Provinces(State) >= 5);
-        Mark(TEXT("Ikinci ulke"), MarketCompany::ForeignCountries(State) > 0);
+        Mark(TEXT("Ikinci ulke"), MarketCompany::ForeignPresence(State) > 0); // D8: a partner counts
+        Mark(TEXT("Ilk ortaklik"), State.Company.Franchises.Num() > 0);
+        Mark(TEXT("3 ulke"), MarketCompany::ForeignPresence(State) >= 2);
+        bool HasContinent = false;
+        for (const FMarketManager& Manager : State.Management.Managers) HasContinent |= Manager.Level == static_cast<uint8>(MarketManagers::ELevel::Continent);
+        Mark(TEXT("Kita direktoru"), HasContinent);
+        Mark(TEXT("Dunya listesine giris"), State.Rivals.LeagueRank > 0); // M53: the first 50
+        Mark(TEXT("Dunyada ilk 10"), State.Rivals.LeagueRank > 0 && State.Rivals.LeagueRank <= 10);
+        Mark(TEXT("Dunya birincisi"), State.Rivals.LeagueRank == 1);
     }
     FReport Run(const FOptions& Options, const TArray<FMarketProduct>& Base, const TArray<int32>& Capacities, int32 RestoreSeed)
     {
@@ -547,6 +573,35 @@ namespace MarketAutoPlay
                 Output += FString::Printf(TEXT("%s,%d,%d,%lld,%lld,%lld,%lld,%d,%d,%.8f,%d,%d,%d\n"), *Trial.Profile, Trial.Seed, Value.Day, Value.Cash, Value.Debt, Value.Profit, Value.Revenue, Value.Stores, Value.Provinces, Value.Share, Value.Workers, Value.NationalRank,Value.WorldRank);
         return Output;
     }
+    // D8 (M55): the year by year picture against the play-time targets (first abroad in years 5-7, 6-8 countries and
+    // the world's first 10 by year 30), with the commands a year (a proxy of the player's clicks) and the months that
+    // went by without a decision card stopping the fast-forward.
+    FString TimeTable(const FRun& Trial)
+    {
+        FString Text = TEXT("\nOyun suresi ve hedefler (M55):\n\n| Yil | Magaza | Ulke | Dunya sirasi | Komut | Durmadan gecen ay |\n|---:|---:|---:|---:|---:|---:|\n");
+        TMap<int32, FRow> YearEnd;
+        for (const FRow& Value : Trial.Daily) YearEnd.Add(MarketCalendar::CampaignYear(FMath::Max(1, Value.Day)), Value);
+        TArray<int32> Years; YearEnd.GetKeys(Years); Years.Sort();
+        for (const int32 Year : Years)
+        {
+            int32 Stopped = 0;
+            for (int32 Month = 1; Month <= 12; ++Month) if (Trial.StoppedMonths.Contains(Year * 100 + Month)) ++Stopped;
+            const FRow& Value = YearEnd[Year];
+            const int32* Commands = Trial.YearCommands.Find(Year);
+            Text += FString::Printf(TEXT("| %d | %d | %d | %s | %d | %d |\n"), Year, Value.Stores, Value.Countries,
+                Value.WorldRank > 0 ? *FString::FromInt(Value.WorldRank) : TEXT("liste disi"), Commands ? *Commands : 0, 12 - Stopped);
+        }
+        const int32* Abroad = Trial.Milestones.Find(TEXT("Ikinci ulke"));
+        const int32 AbroadYear = Abroad ? MarketCalendar::CampaignYear(FMath::Max(1, *Abroad)) : 0;
+        const FRow* Year30 = YearEnd.Find(30);
+        Text += FString::Printf(TEXT("\n- Ilk yurt disi: %s (hedef 5-7. yil) -> %s.\n"), AbroadYear > 0 ? *FString::Printf(TEXT("%d. yil"), AbroadYear) : TEXT("yok"),
+            AbroadYear >= 5 && AbroadYear <= 7 ? TEXT("hedefte") : AbroadYear > 0 && AbroadYear < 5 ? TEXT("erken") : TEXT("gec ya da yok"));
+        if (Year30)
+            Text += FString::Printf(TEXT("- 30. yil: %d ulke (hedef 6-8) -> %s; dunya sirasi %s (hedef ilk 10) -> %s.\n"), Year30->Countries,
+                Year30->Countries >= 6 && Year30->Countries <= 8 ? TEXT("hedefte") : Year30->Countries < 6 ? TEXT("az") : TEXT("cok"),
+                Year30->WorldRank > 0 ? *FString::FromInt(Year30->WorldRank) : TEXT("liste disi"), Year30->WorldRank > 0 && Year30->WorldRank <= 10 ? TEXT("hedefte") : TEXT("geride"));
+        return Text;
+    }
     FString ReportMoney(const FReport& Report, int64 Amount)
     {
         const MarketCountry::FProfile* Country = MarketCountry::Find(Report.Options.Country);
@@ -579,11 +634,12 @@ namespace MarketAutoPlay
         for (const FRun& Trial : Report.Runs)
         {
             Text += FString::Printf(TEXT("\n### %s / tohum %d\n\n"), *Trial.Profile, Trial.Seed);
-            for (const TCHAR* Name : { TEXT("Ilk sube"), TEXT("5 magaza"), TEXT("Ilk depo"), TEXT("Ilk il muduru"), TEXT("5 il"), TEXT("Ikinci ulke") })
+            for (const TCHAR* Name : { TEXT("Ilk sube"), TEXT("5 magaza"), TEXT("Ilk depo"), TEXT("Ilk il muduru"), TEXT("5 il"), TEXT("Ikinci ulke"), TEXT("Ilk ortaklik"), TEXT("3 ulke"), TEXT("Kita direktoru"), TEXT("Dunya listesine giris"), TEXT("Dunyada ilk 10"), TEXT("Dunya birincisi") })
             {
                 const int32* Day = Trial.Milestones.Find(Name);
-                Text += Day ? FString::Printf(TEXT("- %s: %d. gun.\n"), Name, *Day) : FString::Printf(TEXT("- %s: bu kosuda ulasilmadi.\n"), Name);
+                Text += Day ? FString::Printf(TEXT("- %s: %d. gun (%d. yil).\n"), Name, *Day, MarketCalendar::CampaignYear(FMath::Max(1, *Day))) : FString::Printf(TEXT("- %s: bu kosuda ulasilmadi.\n"), Name);
             }
+            Text += TimeTable(Trial);
             TArray<FString> Names; Trial.Expenses.GetKeys(Names);
             Names.Sort([&](const FString& Left, const FString& Right) { const int64 A = Trial.Expenses[Left], B = Trial.Expenses[Right]; return A == B ? Left < Right : A > B; });
             Text += TEXT("\nEn buyuk 5 yuk (nakit gideri, stok yatirimi ve fire ayri anlam tasir):\n\n");

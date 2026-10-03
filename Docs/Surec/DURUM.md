@@ -1,8 +1,10 @@
 # Güncel durum
 
-Son güncelleme: 04.10.2026 — Claude Code, akis-cc2: Y1 gerçek yıl temizliği (derlenmedi)
+Son güncelleme: 04.10.2026 — Claude Code, akis-cc2: Y1 + D8 ilk tur (derlenmedi; bot koşusu is.cmd içinde)
 
 ## Kısaca
+
+**04.10.2026 — Claude Code / D8 ilk tur (derlenmedi, `akis-cc2`):** (1) M56: kampanyanın 30. yıl sonu kalktı; "Miras" (dünya birinciliği) bir kez gösterilen kutlama kartı, oyun sürer; ritim koruyucusu sonra da çalışır. (2) Bot: araştırması hazır ülkeye temkinli oyuncu her yerde, dengeli oyuncu başka kıtada ortaklıkla girer; cesur kendi mağazasıyla. Kıta direktörü/genel müdürü zaten atıyordu. (3) Rapor: yeni kilometre taşları (ilk ortaklık, 3 ülke, kıta direktörü, dünya listesine giriş, dünyada ilk 10, dünya birincisi; gün ve yıl), her koşuda "Oyun süresi ve hedefler (M55)" tablosu: yıl, mağaza, ülke, dünya sırası, yıllık komut, karar kartı çıkmadan geçen ay; hedeflerle karşılaştırma. (4) `adim.cmd` derleme/test/smoke sonrası 30 yıllık bot koşusunu (3 tarz × 1 tohum, `Saved/AutoPlay/C10/D8`) çalıştırıp özet satırlarını son.log'a yazar; uzun sürebilir. **Devam notu:** Mustafa CLAUDE_KOS ile derler ve botu koşturur; sonuca göre denge ayarı (D8 ikinci tur).
 
 **04.10.2026 — Claude Code / Y1 gerçek yıl temizliği (derlenmedi, `akis-cc2`, M60):** 1127163 (D7 kalanı) geçti: DERLE, TEST 172/172 (uyarı 0), Smoke. Y1: `MarketCalendar::CampaignYear` ve `GameDayOfCampaign`; dönem planı (kur şoku 8. yıl, durgunluk 9, salgın 10–11, yüksek enflasyon 11–13, toparlanma 14–15, ikinci dalga 21–23), salgın tarihleri ve hikâyenin sonu (30. yıl) kampanya yılıyla. Türkiye'nin elle yapılmış fiyat eğrisi motordan çıkıp pakete taşındı (`economy.curve` [enflasyon, faiz] × 19 yıl, `curveAfter`); sayılar aynı, davranış değişmemeli. `Kurus2011`, `Ticket2011`, `BuildCost2011`... "Start" oldu. Eski kayıt (older save, v0.1, Migrate) yorumları temizlendi. İçerideki sabit takvim tarihi yalnız hafta günü/bayram hesabı için kalıyor. Testler: takvim ve paket testine kontroller eklendi (sayı 172). **Devam notu:** Mustafa derler; ölçümler (OLCUM) önceki turla aynı çıkmalı. Sonra D8.
 

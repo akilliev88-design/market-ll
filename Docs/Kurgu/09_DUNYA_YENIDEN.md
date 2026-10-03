@@ -123,7 +123,7 @@ Kıtalar: Avrupa 6, Amerika 3, Asya 1. Alternatif olarak Japonya yerine Hindista
 | D5 | 6 yeni ülke paketi verisi (iller, bölgeler, tatiller, isimler, zincir kadroları, ekonomi) | Claude Code (veri) + Claude (kontrol) |
 | D6 | Yurt dışına giriş yolları ve bölüm yapısı (S4, S5) — **bitti, M67 (60f3129)**: ölçek kapısı, ortaklık, 6. bölüm "Dünyaya Açılış" | Claude |
 | D7 | Dünya haritası ve menü (S7); dünya ve ülke tablolarına liste dışı başlangıç (M53: listedekileri geçince gireriz) — **ilk parça bitti (60f3129)**: ana ekranda "Dünya" çipi ve kartı. **Kalanı yazıldı (derlenmedi)**: kartın üstünde şematik dünya haritası (kıta alanları, ülke noktaları, renk = durumumuz) ve M53 | Codex / Claude Code (arayüz), Claude (metin) |
-| D8 | Bot ve hedefler yeniden; dengeleme yeniden başlar | Claude |
+| D8 | Bot ve hedefler yeniden; dengeleme yeniden başlar — **ilk tur yazıldı (derlenmedi)**: M56 son yok, bot ortaklık ve yurt dışı kilometre taşları, M55 süre tablosu; 30 yıllık bot koşusu is.cmd içinde | Claude |
 | D9 | Orta oyun (C16, Mustafa 03.10.2026): M46 mağaza portföyü (karne, yenile, tür değiştir, taşı, eskime) ve M47 krizlere ve rakip hamlelerine cevap — Claude Code'a verilecek; M48–M50 (il pazarı ve il atağı, yol ayrımları, yollar) — Claude'da yazılı, bekliyor. D1 (ülke başına dönem olayları) ve D2 (tek mağaza modeli) bitince yeni modele bağlanır; yol ayrımlarına "yurt dışı yolu", yollara "dünya markası" eklenir | Claude Code + Claude |
 
 D1 ve D2 birbirine bağlı ve çekirdekte; D3 ile D5 bağımsız yürüyebilir. Bekleyen C16 kodu (M48–M50) D2'den sonra yeni modele bağlanır.

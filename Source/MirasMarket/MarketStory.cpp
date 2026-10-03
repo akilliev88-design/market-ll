@@ -192,7 +192,9 @@ bool MarketStory::ReachFinale(FMarketState& State, EEnding Ending)
     const FString Text = bLegacy
         ? FString::Printf(TEXT("%s eski tabelan\u0131n \u00f6n\u00fcnde durup g\u00fcl\u00fcmsedi. Devrald\u0131\u011f\u0131n d\u00fckk\u00e2n art\u0131k herkesin bildi\u011fi bir isim. "), *MarketStart::Relative(State, MarketStart::ECase::Plain, true)) + Summary
         : TEXT("Y\u0131llar ge\u00e7ti; defterin son sayfas\u0131na geldin. ") + Summary;
-    MarketEvents::Offer(State, StoryDecision(State, TEXT("story.finale"), bLegacy ? TEXT("Son: Miras") : TEXT("Son: Defterin son sayfas\u0131"), Text,
+    // M56: "Miras" is a celebration and a milestone, not an end: everything goes on and the first place can be lost.
+    MarketEvents::Offer(State, StoryDecision(State, TEXT("story.finale"), bLegacy ? TEXT("Miras") : TEXT("Defterin son sayfas\u0131"),
+        bLegacy ? Text + TEXT(" Oyun s\u00fcr\u00fcyor: rakipler birincili\u011fi geri almaya \u00e7al\u0131\u015facak.") : Text,
         { FString(TEXT("Oynamaya devam et")) }, 0, 7));
     return true;
 }
@@ -202,8 +204,7 @@ void MarketStory::CloseDay(FMarketState& State, const TArray<FMarketProduct>& Pr
     (void)Products;
     const int32 Closed = State.Day - 1;
     if (Closed < 1 || StoryClosed(State)) return;
-    // Karar J02: the campaign's last day brings the finale if the Legacy one has not come.
-    if (MarketCalendar::CampaignYear(Closed) > FinalYear) { ReachFinale(State, EEnding::TimeUp); return; }
+    // M56 (Mustafa 03.10.2026: "son falan olmas\u0131n"): no last day; the calendar runs on.
     // Milestones.
     if (State.LastPurchases > 0 && !Has(State, BFirstOrder)) { Mark(State, BFirstOrder); AddMemory(State, TEXT("ilk sipari\u015f")); }
     if (State.LastProfit > 0 && !Has(State, BFirstProfit)) { Mark(State, BFirstProfit); AddMemory(State, TEXT("ilk k\u00e2rl\u0131 g\u00fcn")); }

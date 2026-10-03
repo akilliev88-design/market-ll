@@ -694,7 +694,7 @@ void MarketGoals::CloseDay(FMarketState& State, const TArray<FMarketProduct>& Pr
     // Rhythm guard: a quiet stretch brings a pleasant or interesting event.
     if (State.Decisions.Num() > 0) S.LastLivelyDay = FMath::Max(S.LastLivelyDay, Closed);
     S.BadEventDays.RemoveAll([Closed](int32 Day) { return Day <= Closed - 7; });
-    if (Closed - S.LastLivelyDay >= QuietDays(State) && !MarketStory::StoryClosed(State))
+    if (Closed - S.LastLivelyDay >= QuietDays(State) && !State.Story.bCampaignOver) // M56: the rhythm goes on after "Miras"
     {
         const TCHAR* Pleasant[] = { TEXT("event.fair"), TEXT("event.newbuilding"), TEXT("event.wedding"), TEXT("event.derby") };
         const int32 Count = static_cast<int32>(UE_ARRAY_COUNT(Pleasant));
