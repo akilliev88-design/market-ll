@@ -25,7 +25,9 @@
 //    chains for sale we can buy, rank changes as news.
 namespace MarketChains
 {
-    enum class EArchetype : uint8 { Discount = 0, FastDiscount, Super, Hyper, Premium, Regional, Family, Wholesale, Club, Count };
+    // Convenience (D5/M52: kombini, yakin market; Japan, Mexico, Poland) and CashCarry (toptan perakende, atacarejo;
+    // Brazil) were added at the end: the saved values of the others stay.
+    enum class EArchetype : uint8 { Discount = 0, FastDiscount, Super, Hyper, Premium, Regional, Family, Wholesale, Club, Convenience, CashCarry, Count };
     enum class EScope : uint8 { Local = 0, Regional, National, Foreign };
 
     constexpr int32 TurnDays = 30;           // every chain decides once a month

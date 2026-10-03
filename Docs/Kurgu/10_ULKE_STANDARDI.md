@@ -51,7 +51,7 @@ D3 ile eklenen alanlar (Claude Code, 03.10.2026; hepsi isteğe bağlı, yoksa mo
 | `firmWords.wholesale` / `.cashCarry` | toptancı firma sözcükleri ("Gıda Dağıtım", "Toptan") | varsayılan ülkeninki |
 | `names.staff.first/last`, `names.managers.first/last` | personel ve müdür için ayrı isim havuzları | `names.first/last` |
 
-Zincir arketipleri (`roster[].archetype`, `giants[].archetype`): `discount`, `fastDiscount`, `super`, `hyper`, `premium`, `regional`, `family`, `wholesale`, `club` (eklenecek: yakın market, toptan perakende).
+Zincir arketipleri (`roster[].archetype`, `giants[].archetype`): `discount`, `fastDiscount`, `super`, `hyper`, `premium`, `regional`, `family`, `wholesale` (toptan market), `club`, `convenience` (yakın market, kombini; mağaza biçimi küçük), `cashCarry` (toptan perakende, atacarejo; biçimi hiper).
 
 Alanların tam listesi ve varsayılanları `MarketCountry::FProfile` başlık dosyasındaki yorumlardır; şema değişirse `ulkeler.json`'un `note` alanı ve bu belge birlikte güncellenir.
 

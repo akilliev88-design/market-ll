@@ -112,7 +112,7 @@ namespace MarketCompetitorsLocal
         {
         case MarketCompetitors::ECompany::Bim: return { EArchetype::Discount, EArchetype::FastDiscount, EArchetype::Regional };
         case MarketCompetitors::ECompany::A101: return { EArchetype::FastDiscount, EArchetype::Discount, EArchetype::Regional };
-        case MarketCompetitors::ECompany::Sok: return { EArchetype::Discount, EArchetype::Regional, EArchetype::FastDiscount, EArchetype::Family };
+        case MarketCompetitors::ECompany::Sok: return { EArchetype::Discount, EArchetype::Regional, EArchetype::FastDiscount, EArchetype::Family, EArchetype::Convenience };
         case MarketCompetitors::ECompany::Migros: return { EArchetype::Super, EArchetype::Premium, EArchetype::Hyper, EArchetype::Regional };
         default: return {};
         }

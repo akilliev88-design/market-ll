@@ -38,7 +38,12 @@ namespace MarketChainsLocal
             { 40000.f, 0.8f, 0.20f, 0.03f, TEXT("mahalle"), TEXT("aile marketi"), 0.f, 0 },
             { 1200000.f, 8.f, 0.10f, 0.02f, TEXT("hiper"), TEXT("toptan market"), 0.2f, 500 },
             { 1500000.f, 15.f, 0.11f, 0.03f, TEXT("hiper"), TEXT("\u00fcyelikli depo market"), 0.6f, 800 },
+            // Convenience: a small store open long hours, few shelves, high margin, everywhere (kombini).
+            { 25000.f, 0.5f, 0.28f, 0.15f, TEXT("kucuk"), TEXT("yak\u0131n market"), 0.2f, 0 },
+            // CashCarry: a warehouse store selling by the case to families and traders alike (atacarejo).
+            { 700000.f, 6.f, 0.12f, 0.06f, TEXT("hiper"), TEXT("toptan perakende"), -0.3f, 200 },
         };
+        static_assert(UE_ARRAY_COUNT(Table) == static_cast<int32>(EArchetype::Count), "one row per archetype");
         return Table[FMath::Clamp(static_cast<int32>(Archetype), 0, static_cast<int32>(EArchetype::Count) - 1)];
     }
 
@@ -225,8 +230,9 @@ namespace MarketChainsLocal
 
 bool MarketChains::ArchetypeOf(const FString& Text, EArchetype& OutArchetype)
 {
-    static const TCHAR* Names[static_cast<int32>(EArchetype::Count)] = { TEXT("discount"), TEXT("fastDiscount"), TEXT("super"), TEXT("hyper"),
-        TEXT("premium"), TEXT("regional"), TEXT("family"), TEXT("wholesale"), TEXT("club") };
+    static const TCHAR* Names[] = { TEXT("discount"), TEXT("fastDiscount"), TEXT("super"), TEXT("hyper"),
+        TEXT("premium"), TEXT("regional"), TEXT("family"), TEXT("wholesale"), TEXT("club"), TEXT("convenience"), TEXT("cashCarry") };
+    static_assert(UE_ARRAY_COUNT(Names) == static_cast<int32>(EArchetype::Count), "one name per archetype");
     for (int32 A = 0; A < static_cast<int32>(EArchetype::Count); ++A)
         if (Text.Equals(Names[A], ESearchCase::IgnoreCase)) { OutArchetype = static_cast<EArchetype>(A); return true; }
     return false;

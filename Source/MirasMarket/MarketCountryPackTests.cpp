@@ -158,6 +158,19 @@ bool FMarketCountryPackStandardTest::RunTest(const FString& Parameters)
         if (G.Pack.IsEmpty()) continue;
         TestNotNull(*(G.Id + TEXT(" home pack")), Find(G.Pack));
     }
+    // Adim 2: the two kinds the new countries needed (kombini, atacarejo) are real archetypes with a store format.
+    using MarketChains::EArchetype;
+    TestEqual(TEXT("Convenience store format"), MarketChains::FormatOf(EArchetype::Convenience), FString(TEXT("kucuk")));
+    TestEqual(TEXT("Cash and carry store format"), MarketChains::FormatOf(EArchetype::CashCarry), FString(TEXT("hiper")));
+    TestFalse(TEXT("Names of the new kinds"), MarketChains::ArchetypeName(EArchetype::Convenience).IsEmpty() || MarketChains::ArchetypeName(EArchetype::CashCarry).IsEmpty());
+    auto HasKind = [](const TCHAR* Country, EArchetype Kind)
+    {
+        for (const MarketChains::FRosterChain& Row : MarketChains::NationalRoster()) if (Row.Country == Country && Row.Archetype == Kind) return true;
+        return false;
+    };
+    TestTrue(TEXT("Japan: kombini chains"), HasKind(TEXT("jp"), EArchetype::Convenience));
+    TestTrue(TEXT("Brazil: atacarejo chains"), HasKind(TEXT("br"), EArchetype::CashCarry));
+    TestFalse(TEXT("Turkey keeps its kinds"), HasKind(TEXT("tr"), EArchetype::Convenience) || HasKind(TEXT("tr"), EArchetype::CashCarry));
     // The chains of every pack reach the league roster.
     TestEqual(TEXT("National roster = all packs"), MarketChains::NationalRoster().Num(), ChainIds.Num());
     return true;

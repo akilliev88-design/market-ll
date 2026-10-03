@@ -1,8 +1,10 @@
 # Güncel durum
 
-Son güncelleme: 03.10.2026 — Claude Code, akis-cc2: E1 + D3/D5 birleşimi, derlenmedi
+Son güncelleme: 03.10.2026 — Claude Code, akis-cc2: birleşim + adım 2, derlenmedi
 
 ## Kısaca
+
+**03.10.2026 — Claude Code / adım 2 (derlenmedi, `akis-cc2`):** yeni zincir arketipleri `Convenience` (yakın market, kombini; biçim küçük) ve `CashCarry` (toptan perakende, atacarejo; biçim hiper), enum sonuna eklendi. Paketlerde FR Petit Casinot, PL Żabik, MX OXO, JP Seven & Me/FamilyMarto/Lawsun → `convenience`; BR Atacadeo/Asaí → `cashCarry`; dev Seven & Me `convenience`. PackStandard'a yeni türlerin satırları. Sıradaki: E2.
 
 **03.10.2026 — Claude Code / birleşim temizliği (derlenmedi, dal `akis-cc2`):** main (E1) + akis-cc (D3/D5) birleşti. `FxRate` yabancı ülkede `MarketPrices::YearlyInflation(ülke, yıl)`; paketlere `continent`, yeni ülkelerde 42 ad/soyad, DE/GB/US müdür havuzları 40+, Brezilya yüksek enflasyon, İspanya oynak, `groceryPerPersonDay`; PackStandard ≥8 il, ≥40 ad, kıta, yeni ülkelerin sayıları; `Test.ps1` alt sınırı 164; `10_ULKE_STANDARDI.md` §3 yeni alanlar. Derleme betikleri `Saved/Claude/is.cmd` (sabit: git pull + adim.cmd), `adim.cmd`, `ozet.ps1`. Sıradaki: Mustafa derler; sonra adım 2 (kombini ve toptan perakende arketipleri).
 

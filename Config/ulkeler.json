@@ -13,7 +13,7 @@
     {"id": "alda", "name": "Alda", "home": "Almanya", "pack": "de", "archetype": "discount", "revenueB": 73, "growth": 0.04},
     {"id": "aeonn", "name": "Aeonn", "home": "Japonya", "pack": "jp", "archetype": "super", "revenueB": 60, "growth": 0.02},
     {"id": "edecka", "name": "Edecka", "home": "Almanya", "pack": "de", "archetype": "super", "revenueB": 55, "growth": 0.02},
-    {"id": "sevenme", "name": "Seven & Me", "home": "Japonya", "pack": "jp", "archetype": "regional", "revenueB": 56, "growth": 0.03},
+    {"id": "sevenme", "name": "Seven & Me", "home": "Japonya", "pack": "jp", "archetype": "convenience", "revenueB": 56, "growth": 0.03},
     {"id": "ahald", "name": "Ahald", "home": "Hollanda", "pack": "", "archetype": "super", "revenueB": 40, "growth": 0.02}
   ],
   "countries": [
@@ -1457,7 +1457,7 @@
         {"id": "auchamp", "name": "Auchamp", "boss": "Bastien Roche", "archetype": "hyper", "stores": 140, "price": 0.97, "service": 0.95, "aggression": 0.3, "ambition": 0.3},
         {"id": "lidel_fr", "name": "Lidel", "boss": "Dieter Schwarm", "archetype": "fastDiscount", "stores": 1500, "price": 0.89, "service": 0.82, "aggression": 0.7, "ambition": 0.7},
         {"id": "alda_fr", "name": "Alda", "boss": "Karl Brenner", "archetype": "discount", "stores": 900, "price": 0.88, "service": 0.8, "aggression": 0.5, "ambition": 0.5},
-        {"id": "petitcasinot", "name": "Petit Casinot", "boss": "Raymond Fabre", "archetype": "regional", "stores": 4000, "price": 1.08, "service": 1.0, "aggression": 0.3, "ambition": 0.3},
+        {"id": "petitcasinot", "name": "Petit Casinot", "boss": "Raymond Fabre", "archetype": "convenience", "stores": 4000, "price": 1.08, "service": 1.0, "aggression": 0.3, "ambition": 0.3},
         {"id": "monoprice", "name": "Monoprice", "boss": "Hélène Vautrin", "archetype": "premium", "stores": 300, "price": 1.1, "service": 1.25, "aggression": 0.3, "ambition": 0.4, "region": "nord"}
       ],
       "banks": ["Caisse Mutuelle du Bocage", "Banque Commerciale de Lutèce", "Rive Gauche Investissement", "Banque de Développement des Territoires"],
@@ -1604,7 +1604,7 @@
       "firmWords": {"wholesale": "Dystrybucja", "cashCarry": "Hurtownia"},
       "roster": [
         {"id": "biedronia", "name": "Biedronia", "boss": "Rui Carvalhal", "archetype": "discount", "stores": 2700, "price": 0.9, "service": 0.8, "aggression": 0.7, "ambition": 0.7},
-        {"id": "zabik", "name": "Żabik", "boss": "Zbigniew Ostrowiak", "archetype": "regional", "stores": 6000, "price": 1.08, "service": 0.95, "aggression": 0.6, "ambition": 0.8},
+        {"id": "zabik", "name": "Żabik", "boss": "Zbigniew Ostrowiak", "archetype": "convenience", "stores": 6000, "price": 1.08, "service": 0.95, "aggression": 0.6, "ambition": 0.8},
         {"id": "lidel_pl", "name": "Lidel", "boss": "Dieter Schwarm", "archetype": "fastDiscount", "stores": 700, "price": 0.89, "service": 0.82, "aggression": 0.7, "ambition": 0.7},
         {"id": "dinoz", "name": "Dinoz", "boss": "Henryk Dobrzański", "archetype": "regional", "stores": 1300, "price": 0.96, "service": 0.95, "aggression": 0.5, "ambition": 0.7, "region": "zachod"},
         {"id": "kauffeld_pl", "name": "Kauffeld", "boss": "Jonas Wolf", "archetype": "hyper", "stores": 230, "price": 0.96, "service": 0.95, "aggression": 0.4, "ambition": 0.4},
@@ -1679,8 +1679,8 @@
       "regionalSuffixes": ["Supermercados", "Mercado", "Atacado", "Alimentos"],
       "firmWords": {"wholesale": "Distribuidora", "cashCarry": "Atacadista"},
       "roster": [
-        {"id": "atacadeo", "name": "Atacadeo", "boss": "Osvaldo Brandão", "archetype": "wholesale", "stores": 300, "price": 0.92, "service": 0.85, "aggression": 0.7, "ambition": 0.8},
-        {"id": "asai", "name": "Asaí", "boss": "Adalberto Queiroz", "archetype": "wholesale", "stores": 260, "price": 0.92, "service": 0.85, "aggression": 0.7, "ambition": 0.8},
+        {"id": "atacadeo", "name": "Atacadeo", "boss": "Osvaldo Brandão", "archetype": "cashCarry", "stores": 300, "price": 0.92, "service": 0.85, "aggression": 0.7, "ambition": 0.8},
+        {"id": "asai", "name": "Asaí", "boss": "Adalberto Queiroz", "archetype": "cashCarry", "stores": 260, "price": 0.92, "service": 0.85, "aggression": 0.7, "ambition": 0.8},
         {"id": "carrefive_br", "name": "CarreFive", "boss": "Thierry Lamarque", "archetype": "hyper", "stores": 150, "price": 0.98, "service": 1.0, "aggression": 0.5, "ambition": 0.5},
         {"id": "extra", "name": "Extrá", "boss": "Sérgio Vasconcelos", "archetype": "super", "stores": 250, "price": 1.01, "service": 1.0, "aggression": 0.4, "ambition": 0.4},
         {"id": "paodemel", "name": "Pão de Mel", "boss": "Otávio Bragança", "archetype": "premium", "stores": 180, "price": 1.1, "service": 1.25, "aggression": 0.3, "ambition": 0.4, "region": "sudeste"},
@@ -1772,7 +1772,7 @@
         {"id": "soriano", "name": "Soriano", "boss": "Fausto Sorianez", "archetype": "hyper", "stores": 800, "price": 0.97, "service": 0.95, "aggression": 0.4, "ambition": 0.4},
         {"id": "chedrahui", "name": "Chedrahui", "boss": "Elías Chedrahui", "archetype": "super", "stores": 300, "price": 0.99, "service": 1.0, "aggression": 0.4, "ambition": 0.5, "region": "sureste"},
         {"id": "lacomerciante", "name": "La Comerciante", "boss": "Ignacio Zubiaurre", "archetype": "premium", "stores": 80, "price": 1.1, "service": 1.25, "aggression": 0.3, "ambition": 0.3, "region": "centro"},
-        {"id": "oxo", "name": "OXO", "boss": "Patricio Lozada", "archetype": "regional", "stores": 18000, "price": 1.1, "service": 0.95, "aggression": 0.6, "ambition": 0.9},
+        {"id": "oxo", "name": "OXO", "boss": "Patricio Lozada", "archetype": "convenience", "stores": 18000, "price": 1.1, "service": 0.95, "aggression": 0.6, "ambition": 0.9},
         {"id": "costko_mx", "name": "Costko", "boss": "Craig Jelly", "archetype": "club", "stores": 40, "price": 0.9, "service": 0.9, "aggression": 0.4, "ambition": 0.4},
         {"id": "hev_mx", "name": "HEV", "boss": "Dwight Hale", "archetype": "regional", "stores": 70, "price": 1.02, "service": 1.2, "aggression": 0.4, "ambition": 0.5, "region": "norte"},
         {"id": "tres_e", "name": "Tiendas 3E", "boss": "Samir Haddad", "archetype": "discount", "stores": 1500, "price": 0.87, "service": 0.72, "aggression": 0.6, "ambition": 0.8}
@@ -1868,9 +1868,9 @@
       "firmWords": {"wholesale": "Shokuhin", "cashCarry": "Oroshiuri"},
       "roster": [
         {"id": "aeonn", "name": "Aeonn", "boss": "Shigeru Aoyama", "archetype": "super", "stores": 2500, "price": 1.0, "service": 1.05, "aggression": 0.5, "ambition": 0.6},
-        {"id": "sevenme", "name": "Seven & Me", "boss": "Tetsuo Kanemura", "archetype": "regional", "stores": 21000, "price": 1.12, "service": 1.1, "aggression": 0.6, "ambition": 0.7},
-        {"id": "familymarto", "name": "FamilyMarto", "boss": "Hideki Morioka", "archetype": "regional", "stores": 16000, "price": 1.12, "service": 1.05, "aggression": 0.6, "ambition": 0.6},
-        {"id": "lawsun", "name": "Lawsun", "boss": "Masato Uchida", "archetype": "regional", "stores": 14000, "price": 1.12, "service": 1.05, "aggression": 0.5, "ambition": 0.6},
+        {"id": "sevenme", "name": "Seven & Me", "boss": "Tetsuo Kanemura", "archetype": "convenience", "stores": 21000, "price": 1.12, "service": 1.1, "aggression": 0.6, "ambition": 0.7},
+        {"id": "familymarto", "name": "FamilyMarto", "boss": "Hideki Morioka", "archetype": "convenience", "stores": 16000, "price": 1.12, "service": 1.05, "aggression": 0.6, "ambition": 0.6},
+        {"id": "lawsun", "name": "Lawsun", "boss": "Masato Uchida", "archetype": "convenience", "stores": 14000, "price": 1.12, "service": 1.05, "aggression": 0.5, "ambition": 0.6},
         {"id": "itoyokodo", "name": "Ito-Yokodo", "boss": "Goro Ishiyama", "archetype": "hyper", "stores": 130, "price": 1.02, "service": 1.1, "aggression": 0.3, "ambition": 0.3},
         {"id": "lifu", "name": "Lifu", "boss": "Noboru Fujikawa", "archetype": "super", "stores": 280, "price": 1.0, "service": 1.05, "aggression": 0.4, "ambition": 0.4, "region": "kanto"},
         {"id": "gyomusupa", "name": "Gyomu Supa", "boss": "Isamu Kuroda", "archetype": "discount", "stores": 900, "price": 0.88, "service": 0.75, "aggression": 0.5, "ambition": 0.6},

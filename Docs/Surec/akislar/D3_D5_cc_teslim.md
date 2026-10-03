@@ -29,14 +29,18 @@ Davranış: Türkiye'de aynı kalmalı. Etkin ülke artık oyun başlamadan önc
 
 `fr` Fransa (EUR, 13 bölge), `es` İspanya (EUR, 17), `pl` Polonya (PLN, 16), `br` Brezilya (BRL, 27), `mx` Meksika (MXN, 32), `jp` Japonya (JPY, 47). Her pakette: para, ekonomi karakteri, alışkanlık, geleneksel ticaret ve pazar günü, sokak zinciri adları, 8–9 kurgu ulusal zincir (kurgu patronlar), tatiller (Paskalya'ya bağlı günler, Carnaval, Día de Muertos, Obon/Shogatsu…), okul günleri, 4 kurgu banka, teslimat platformu, iklim, isim ve müdür havuzları, akrabalar, bölge/alt bölge/il.
 
-### Mağaza türü eşlemeleri (Cowork'un ekleyeceği türler)
+### Mağaza türleri (akis-cc2 adım 2 ile kalıcı)
 
-| Gerçek tür | Örnek | Eşlenen arketip | Yakın mağaza biçimi |
+İlk teslimde geçici eşleme vardı (kombini → `regional`, atacarejo → `wholesale`). Adım 2'de iki yeni arketip eklendi ve paketler onlara geçti:
+
+| Gerçek tür | Örnek | Arketip | Mağaza biçimi |
 |---|---|---|---|
-| Kombini / yakın market | JP Seven & Me, FamilyMarto, Lawsun; MX OXO; PL Żabik; FR Petit Casinot | `regional` (bölge kısıtı yok) | `kucuk` |
-| Atacarejo (perakende toptan) | BR Atacadeo, Asaí | `wholesale` | `hiper` |
+| Kombini / yakın market | JP Seven & Me, FamilyMarto, Lawsun; MX OXO; PL Żabik; FR Petit Casinot | `convenience` (yeni; ciro 25.000/gün, ağırlık 0,5, brüt %28) | `kucuk` |
+| Atacarejo (toptan perakende) | BR Atacadeo, Asaí | `cashCarry` (yeni; ciro 700.000/gün, ağırlık 6, brüt %12, en az 200 bin nüfus) | `hiper` |
 | Bodega (MX indirim) | Bodegón Aurora | `discount` | `kucuk` |
-| Gyomu süper (iş süpermarketi) | JP Gyomu Supa | `discount` | `kucuk` |
+| Gyomu süper | JP Gyomu Supa | `discount` | `kucuk` |
+
+Dünya devi Seven & Me de `convenience`. Oyuncunun açabileceği mağaza türleri (kucuk/mahalle/buyuk/hiper) değişmedi; yakın market ve toptan perakendeyi oyuncu türü olarak eklemek ayrı bir karar.
 
 ### Bilinen etkiler
 

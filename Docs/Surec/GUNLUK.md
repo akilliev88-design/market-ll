@@ -1,3 +1,13 @@
+## 03.10.2026 — Claude Code — adım 2: yakın market ve toptan perakende (derlenmedi)
+
+**Yapılan:** `MarketChains::EArchetype`'a `Convenience` ve `CashCarry` (sona; kayıtlı değerler aynı). Ekonomi tablosu: yakın market 25.000/gün, ağırlık 0,5, brüt %28, büyüme 0,15, biçim `kucuk`; toptan perakende 700.000/gün, ağırlık 6, brüt %12, en az 200 bin nüfus, düşük gelirli ili sever, biçim `hiper`. Tablo ve ad listesine `static_assert` (her arketipe bir satır). `ArchetypeOf`: `convenience`, `cashCarry`. Sokak modelinde Şok yuvası en son yakın marketi de alır (E2'de bu model kalkıyor). Paketler: FR Petit Casinot, PL Żabik, MX OXO, JP Seven & Me/FamilyMarto/Lawsun → convenience; BR Atacadeo/Asaí → cashCarry; dev Seven & Me convenience. Testler PackStandard içinde (yeni test yok).
+
+**Doğrulama:** Derlenmedi.
+
+**Karar bekleyen (Mustafa):** Oyuncunun kendisi yakın market ya da toptan perakende açabilsin mi? Şimdilik yalnız rakip zincir türü.
+
+**Sıradaki:** E2.
+
 ## 03.10.2026 — Claude Code — birleşim temizliği: E1 + D3/D5 (derlenmedi)
 
 **Yapılan:** `akis-cc2` = main (E1) + `akis-cc` (D3/D5) birleşimi; DURUM/GUNLUK/KARARLAR/GÖREVLER çakışmaları iki taraf korunarak çözüldü, D3D5 blokları E1 girişlerinin altında. `MarketCountry::FxRate` yabancı ülkede paket ortalaması yerine `MarketPrices::YearlyInflation(ülke, yıl)` (E1 ile tutarlı kur). Görev belgesi ve `10_ULKE_STANDARDI.md` ile karşılaştırınca eksikler kapandı: `continent` (FProfile + ayrıştırma + test), yeni 6 ülkede 42 ad / 42 soyad, DE/GB/US müdür havuzu ≥40, Brezilya yüksek enflasyon, İspanya oynak, yeni ülkelere `groceryPerPersonDay`; PackStandard: ≥8 il, ≥40 ad ve soyad (ad ya da müdür havuzu), kıta, yeni ülkelerin il/bölge/alt bölge/tatil/zincir/para beklenen değerleri. `Test.ps1` alt sınırı 164. `10_ULKE_STANDARDI.md` §3'e yeni alan tablosu, `ulkeler.json` note, 09 §4 notu, teslim notuna ülke özeti.
