@@ -1,3 +1,9 @@
+## 03.10.2026 — Claude Code — E3c1 doğrulandı
+
+**son.log (f070d14):** DERLE geçti; TEST 161 başarılı + 1 uyarılı, başarısız 0; Smoke geçti. OLCUM satırlarının hepsi E3b turuyla aynı: kayıt birleşimi davranışı değiştirmedi. E3c1 bitti.
+
+**Sıradaki:** E3c2.
+
 ## 03.10.2026 — Claude Code — E3c1: şubelerin ürün kaydı dükkânın kaydı oldu (derlenmedi)
 
 **Neden bölündü:** E3c'nin ikinci yarısı (tazelik, toptancı siparişi, kişi kişi personelin şubeye açılması, v0.1 personel bayraklarının kalkması) davranış değiştirir. Önce davranışı değiştirmeyen kayıt birleşimi ayrı derlensin.

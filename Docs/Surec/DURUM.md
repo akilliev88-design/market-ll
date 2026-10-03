@@ -1,8 +1,10 @@
 # Güncel durum
 
-Son güncelleme: 03.10.2026 — Claude Code, akis-cc2: E3c1 (şube ürün kaydı = dükkân kaydı) yazıldı, derlenmedi
+Son güncelleme: 03.10.2026 — Claude Code, akis-cc2: E3c1 derlendi, testler ve Smoke geçti; sıradaki E3c2
 
 ## Kısaca
+
+**03.10.2026 — Claude Code / E3c1 doğrulandı (f070d14):** DERLE geçti, TEST 161 + 1 uyarı, başarısız 0, Smoke geçti; bütün OLCUM satırları önceki turla aynı (davranış değişmedi). Sıradaki: E3c2.
 
 **03.10.2026 — Claude Code / E3c1 tek ürün kaydı (derlenmedi, `akis-cc2`):** E3c ikiye bölündü. E3c1 yalnız kayıt birleşimi, davranış aynı. `FMarketBranchItem` silindi; `FMarketBranch::Items` artık `TArray<FMarketStock>`. Eşleme: ProductId → Id, Units → Shelf, LastSold/LastEmpty → Yesterday.Sold/Empty. `FMarketStock`'a Markdown/MarkdownUntil ve `Empty(id)` eklendi (Warehouse 0, Capacity 0). 18 dosyada 82 satır mekanik değişti; kayıt sürümü 11. Test sayısı aynı (162). **Devam notu:** Mustafa derler; sonra E3c2 (tazelik, toptancı siparişi, kişi kişi personel şubeye; v0.1 `bCashier/Stockers` kalkar).
 
