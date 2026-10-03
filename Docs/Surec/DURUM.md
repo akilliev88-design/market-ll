@@ -1,8 +1,10 @@
 # Güncel durum
 
-Son güncelleme: 03.10.2026 — Claude Code, akis-cc2: M54/M58/M59 derlendi, testler ve Smoke geçti
+Son güncelleme: 03.10.2026 — Claude Code, akis-cc2: D4 kıta direktörü ve genel müdür (derlenmedi)
 
 ## Kısaca
+
+**03.10.2026 — Claude Code / D4 kıta direktörü ve genel müdür (derlenmedi, `akis-cc2`, M66):** `MarketManagers` iki yeni kademe: `ELevel::Continent` (alan = paketteki kıta) ve `ELevel::Chief` (genel müdür, alan "merkez"). Şirket 3 ülkede olunca kıta direktörü atanabilir; birden çok ülkemiz olan kıtada zorunlu (yokken ülke müdürleri −8 beceri, haftalık haber, menü bildirimi). Genel müdür isteğe bağlı, 2 kıta direktöründen sonra. Bağlılık zinciri: mağaza → il → bölge → direktör → ülke → kıta → genel müdür → oyuncu; depo müdürü ülke müdürü yoksa yukarıya. Maliyet etkisi kıta %0,5, genel müdür %0,3. Ücret ülke müdürü bandının 1,6 / 2,4 katı, ağla büyür. Kıta adları `ulkeler.json` → `continents` (`MarketCountry::Continents/ContinentOf/ContinentName`). Menü: Yönetim ağacının başında iki satır, açıklamalar; bot gerektiğinde atar. Kayıt sürümü değişmedi (yeni değerler). Yeni test `Managers.ContinentAndChief`; Test.ps1 170. **Devam notu:** Mustafa derler; ardından D6.
 
 **03.10.2026 — Claude Code / M54 + M58 + M59 doğrulandı (685f279, Codex'in iki commit'iyle birleşmiş):** DERLE geçti, TEST 168 + 1 uyarı (169), başarısız 0, Smoke geçti. OLCUM: ülke başına firma TR 30, DE 16, GB 16, US 21, FR 17, ES 16, PL 17, BR 18, MX 20, JP 21. Ciro oranı 1,045, rakip fiyat düzeyi 0,974 (daha çok zincir). Önceki tur (c1c7cd4) dosya kilidi yüzünden derlenmemişti; `adim.cmd` artık derleme sonucu yoksa testleri koşturmaz. Mustafa'nın yerelindeki Codex commit'i `akis-cc2` ile ayrışınca elle birleştirildi; DURUM/GÜNLÜK çakışmasında yereldeki hâl tutuldu, kaybolan not buraya ve GÜNLÜK'e yeniden yazıldı. Sıradaki: Mustafa'ya sorulacak (Y1, D4, D6, D7, D8).
 

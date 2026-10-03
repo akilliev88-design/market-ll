@@ -386,6 +386,20 @@ namespace MarketMenuPagesUi
             }
             Rows.Add(Family);
         }
+        // D4: the optional general manager and the continent directors above the countries.
+        AddLevel(ELevel::Chief, State.CountryId, FString(), 0);
+        {
+            const TArray<FString> Missing = MarketManagers::ContinentsMissingDirector(State);
+            for (const FString& Continent : MarketCountry::Continents())
+            {
+                if (MarketManagers::CountriesOn(State, Continent) == 0) continue;
+                FTierRow Row;
+                Row.Tier = ELevel::Continent; Row.Country = State.CountryId; Row.Area = Continent; Row.Depth = 0;
+                Row.Manager = MarketManagers::FindManager(State, ELevel::Continent, State.CountryId, Continent);
+                Row.bRequired = Row.Manager == INDEX_NONE && Missing.Contains(Continent);
+                if (Row.Manager != INDEX_NONE || Row.bRequired || CanFill(ELevel::Continent, State.CountryId, Continent)) Rows.Add(Row);
+            }
+        }
         for (const FString& Country : Countries)
         {
             const MarketCountry::FProfile* Pack = MarketCountry::Find(Country);
@@ -3647,7 +3661,7 @@ TSharedRef<SWidget> SMarketMenu::CandidateCards(TFunction<int32()> Target, TFunc
                 ELevel Level = ELevel::Province;
                 FString Country, Area;
                 if (!MarketManagers::DecodeArea(Key, Level, Country, Area)) return;
-                const FString Post = Level == ELevel::FamilyShop ? MarketManagers::LevelName(Level)
+                const FString Post = Level == ELevel::FamilyShop || Level == ELevel::Chief ? MarketManagers::LevelName(Level)
                     : Level == ELevel::Depot ? FString::Printf(TEXT("%s deposunun m\u00fcd\u00fcr\u00fc"), *MarketManagers::AreaName(ELevel::Province, Country, Area))
                     : MarketManagers::AreaName(Level, Country, Area) + TEXT(" ") + MarketManagers::LevelName(Level);
                 Question = FString::Printf(TEXT("%s, %s olsun mu? Ayl\u0131k \u00fccreti %s; g\u00f6revden almak %d g\u00fcnl\u00fck tazminat ister."),
@@ -3745,6 +3759,8 @@ TSharedRef<SWidget> SMarketMenu::ManagementTab()
         case ELevel::Region: return TEXT("B\u00f6lge direkt\u00f6r\u00fc ana b\u00f6lgedeki b\u00f6lge m\u00fcd\u00fcrlerini denetler; depolar\u0131n ortak plan\u0131yla +%0,5 marj getirir.");
         case ELevel::Country: return TEXT("\u00dclke m\u00fcd\u00fcr\u00fc a\u011f\u0131n tepesinde durur: o \u00fclkede sana ba\u011fl\u0131 ki\u015fi say\u0131s\u0131n\u0131 tek ba\u015f\u0131na 1'e indirir, ama pahal\u0131d\u0131r; maa\u015f\u0131 a\u011f b\u00fcy\u00fcd\u00fck\u00e7e artar (az ma\u011fazada band\u0131n %30'u, 30 ma\u011fazada tam\u0131). \u00dclkede 5 ilde ma\u011fazan olunca atanabilir (aile d\u00fckk\u00e2n\u0131n\u0131n ili dahil). \u015eirket ikinci \u00fclkeye girince her \u00fclkede zorunlu; yurt d\u0131\u015f\u0131nda maliyeti %1 d\u00fc\u015f\u00fcr\u00fcr.");
         case ELevel::FamilyShop: return TEXT("Aile d\u00fckk\u00e2n\u0131n\u0131n m\u00fcd\u00fcr\u00fc senin yerine sipari\u015f verir, zamm\u0131 rafa yans\u0131t\u0131r, raflar\u0131 doldurtur. Tarz\u0131 ve becerisi dolulu\u011fu ve fireyi belirler. Sana ba\u011fl\u0131 5 ki\u015fiden biri say\u0131l\u0131r.");
+        case ELevel::Continent: return TEXT("K\u0131ta direkt\u00f6r\u00fc k\u0131tadaki \u00fclke m\u00fcd\u00fcrlerini y\u00f6netir: onlar art\u0131k sana de\u011fil ona ba\u011fl\u0131d\u0131r, i\u015fleri onun g\u00fcc\u00fc kadar iyi gider; k\u0131tadaki ma\u011fazalar\u0131n maliyeti %0,5'e kadar d\u00fc\u015fer (ortak al\u0131m). \u015eirket 3 \u00fclkeye girince atanabilir; birden \u00e7ok \u00fclken olan k\u0131tada zorunludur (yokken o \u00fclkelerin m\u00fcd\u00fcrleri 8 beceri kaybeder). \u0130lk iki \u00fclkenin m\u00fcd\u00fcrleri sana ba\u011fl\u0131 kalabilir.");
+        case ELevel::Chief: return TEXT("Genel m\u00fcd\u00fcr iste\u011fe ba\u011fl\u0131d\u0131r: k\u0131ta direkt\u00f6rleri ona ba\u011flan\u0131r, sana do\u011frudan ba\u011fl\u0131 ki\u015fi say\u0131s\u0131 d\u00fc\u015fer, b\u00fct\u00fcn ma\u011fazalar\u0131n maliyeti %0,3'e kadar azal\u0131r. En pahal\u0131 y\u00f6neticidir. 2 k\u0131ta direkt\u00f6r\u00fc atand\u0131ktan sonra gelebilir.");
         case ELevel::Depot: return TEXT("Depo m\u00fcd\u00fcr\u00fc deponun verimini belirler: becerisi fireyi, eksik/k\u0131r\u0131k teslimat\u0131 ve raf bulunurlu\u011funu etkiler. M\u00fcd\u00fcrs\u00fcz depo yar\u0131 verimle \u00e7al\u0131\u015f\u0131r. \u00dclke m\u00fcd\u00fcr\u00fcne, o yoksa sana ba\u011fl\u0131d\u0131r.");
         default: return FString();
         }
@@ -3774,6 +3790,8 @@ TSharedRef<SWidget> SMarketMenu::ManagementTab()
             if (!R) return FString();
             if (R->Tier == ELevel::FamilyShop) return FString::Printf(TEXT("Aile d\u00fckk\u00e2n\u0131 (%s)"), *MarketManagers::AreaName(ELevel::Province, R->Country, R->Area));
             if (R->Tier == ELevel::Depot) return MarketManagers::AreaName(ELevel::Province, R->Country, R->Area) + TEXT(" deposu");
+            if (R->Tier == ELevel::Chief) return TEXT("Genel m\u00fcd\u00fcr");
+            if (R->Tier == ELevel::Continent) return MarketManagers::AreaName(R->Tier, R->Country, R->Area) + TEXT(" k\u0131ta direkt\u00f6r\u00fc");
             return MarketManagers::AreaName(R->Tier == ELevel::Store ? ELevel::Province : R->Tier, R->Country, R->Area);
         };
         auto MainText = [G, Row, Kind, Person, Where]() -> FString
@@ -3818,6 +3836,7 @@ TSharedRef<SWidget> SMarketMenu::ManagementTab()
             if (!R || !G()) return FString();
             if (Kind() == 0) return MarketManagers::DescribeManager(G()->State, R->Manager);
             if (Kind() == 3) return R->Lock + TEXT("\n\n") + Blurb(R->Tier);
+            if (Kind() == 1 && (R->Tier == ELevel::Continent || R->Tier == ELevel::Chief)) return TEXT("Ata: 3 d\u0131\u015f aday aras\u0131ndan se\u00e7.\n\n") + Blurb(R->Tier);
             if (Kind() == 1 && R->Tier == ELevel::FamilyShop) return TEXT("M\u00fcd\u00fcr ata: 3 d\u0131\u015f aday aras\u0131ndan se\u00e7.\n\n") + Blurb(R->Tier);
             if (Kind() == 1) return TEXT("Ata: 3 d\u0131\u015f aday aras\u0131ndan se\u00e7 ya da bir ma\u011faza m\u00fcd\u00fcr\u00fcn\u00fc terfi ettir.\n\n") + Blurb(R->Tier);
             return TEXT("Ma\u011faza m\u00fcd\u00fcrlerine Ma\u011fazalar sekmesinden prim ver, uyar ya da de\u011fi\u015ftir.");

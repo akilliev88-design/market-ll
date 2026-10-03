@@ -30,7 +30,11 @@ namespace MarketManagers
 {
     // Depot: the manager of a big depot in a province (M23, G-089: MarketDepots; Area = the depot's province). He
     // answers to the country manager, else to the player (never to a province or sub-region manager).
-    enum class ELevel : uint8 { Store = 0, Province = 1, SubRegion = 2, Region = 3, Country = 4, FamilyShop = 5, Depot = 6 };
+    // D4 (09_DUNYA_YENIDEN 6, 8.3): above the country managers a continent director (Area = the continent id of the
+    // packs; once the company is in 3+ countries, required for a continent with 2+ of our countries; a country alone
+    // on its continent may keep its country manager under the player) and an optional general manager (Chief, Area
+    // "merkez"; once 2 continent directors are appointed). Both are home-country hires; Country holds the campaign's.
+    enum class ELevel : uint8 { Store = 0, Province = 1, SubRegion = 2, Region = 3, Country = 4, FamilyShop = 5, Depot = 6, Continent = 7, Chief = 8 };
     // Hidden style of a store manager: careful (small stock, little waste, now and then an empty shelf),
     // generous (full shelves, more waste), price-minded (follows the rivals, may squeeze the margin).
     enum class EStyle : uint8 { Unknown = 0, Careful = 1, Generous = 2, PriceMinded = 3 };
@@ -52,6 +56,9 @@ namespace MarketManagers
     constexpr int32 CountryProvinces = 5;           // provinces with our shops in a country for a country manager (M20)
     constexpr int32 CountryFullShops = 30;          // C11 (M40): a country manager's full band from 30 shops in the country
     constexpr float CountryMinScale = 0.3f;         // C11 (M40): a 5-province chain of a few shops pays 30 % of the band
+    constexpr int32 ContinentCountries = 3;         // D4: countries of the company before a continent director
+    constexpr int32 ChiefContinents = 2;            // D4: continent directors before a general manager
+    constexpr int32 MissingContinentPenalty = 8;    // D4: a country manager's skill lost without his required continent director
     constexpr int32 SkillTop = 95;                  // nobody's skill grows past this (M21)
     constexpr int32 PotentialMin = 55;              // a new candidate's ceiling: 55..95
     constexpr int32 CandidateCount = 3;             // outside candidates offered for every appointment (M22)
@@ -142,6 +149,13 @@ namespace MarketManagers
     // Company in two or more countries: every country needs a country manager. Countries still missing one.
     bool CountryManagerRequired(const FMarketState& State);
     TArray<FString> CountriesMissingManager(const FMarketState& State);
+
+    // D4: the company is in 3+ countries (a continent director can come); the continents with 2+ of our countries
+    // and no director (required); our countries (with a live shop, the home country always) on a continent.
+    bool ContinentRequired(const FMarketState& State);
+    TArray<FString> ContinentsMissingDirector(const FMarketState& State);
+    int32 CountriesOn(const FMarketState& State, const FString& Continent);
+    int32 ContinentDirectors(const FMarketState& State);
 
     // Wage a day of an appointed manager at today's wage level; the band's start-level wage for a level and skill.
     int64 DailyWage(const FMarketState& State, const FMarketManager& Manager);

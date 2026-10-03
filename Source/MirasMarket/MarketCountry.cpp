@@ -24,6 +24,13 @@ namespace MarketCountry
         return Rows;
     }
 
+    // D4: continent names of the pack file (root "continents": id -> name).
+    TMap<FString, FString>& ContinentNamesRef()
+    {
+        static TMap<FString, FString> Names;
+        return Names;
+    }
+
     FProfile& ActiveRef()
     {
         // D3: until a campaign sets its country the default pack is active (the Turkish rules are its data).
@@ -324,7 +331,18 @@ const TArray<MarketCountry::FProfile>& MarketCountry::All()
             TSharedPtr<FJsonObject> Root;
             const TSharedRef<TJsonReader<>> Reader = TJsonReaderFactory<>::Create(Json);
             FString Id;
-            if (FJsonSerializer::Deserialize(Reader, Root) && Root.IsValid() && Root->TryGetStringField(TEXT("defaultCountry"), Id) && !Id.IsEmpty()) DefaultIdRef() = Id;
+            if (FJsonSerializer::Deserialize(Reader, Root) && Root.IsValid())
+            {
+                if (Root->TryGetStringField(TEXT("defaultCountry"), Id) && !Id.IsEmpty()) DefaultIdRef() = Id;
+                const TArray<TSharedPtr<FJsonValue>>* Continents = nullptr;
+                if (Root->TryGetArrayField(TEXT("continents"), Continents))
+                    for (const TSharedPtr<FJsonValue>& Value : *Continents)
+                    {
+                        const TSharedPtr<FJsonObject> O = Value.IsValid() ? Value->AsObject() : nullptr;
+                        FString Key, Name;
+                        if (O.IsValid() && O->TryGetStringField(TEXT("id"), Key) && O->TryGetStringField(TEXT("name"), Name) && !Key.IsEmpty()) ContinentNamesRef().Add(Key, Name);
+                    }
+            }
         }
         for (const FString& Error : Errors) UE_LOG(LogTemp, Warning, TEXT("MirasMarket countries: %s"), *Error);
         if (!Profiles.ContainsByPredicate([](const FProfile& P) { return P.Id == DefaultIdRef(); }))
@@ -364,6 +382,26 @@ const TArray<MarketCountry::FGiantRow>& MarketCountry::Giants()
 {
     All();
     return GiantsRef();
+}
+
+TArray<FString> MarketCountry::Continents()
+{
+    TArray<FString> List;
+    for (const FProfile& P : All()) if (!P.Continent.IsEmpty()) List.AddUnique(P.Continent);
+    return List;
+}
+
+FString MarketCountry::ContinentOf(const FString& Country)
+{
+    const FProfile* Pack = Find(Country);
+    return Pack ? Pack->Continent : FString();
+}
+
+FString MarketCountry::ContinentName(const FString& Id)
+{
+    All();
+    if (const FString* Name = ContinentNamesRef().Find(Id)) return *Name;
+    return Id.IsEmpty() ? Id : Id.Left(1).ToUpper() + Id.Mid(1);
 }
 
 const MarketCountry::FProfile* MarketCountry::Find(const FString& Id)

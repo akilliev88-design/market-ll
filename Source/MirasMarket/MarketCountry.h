@@ -210,6 +210,11 @@ namespace MarketCountry
     bool ParseGiants(const FString& Json, TArray<FGiantRow>& OutGiants, TArray<FString>& OutErrors);
     // The world giants of Config/ulkeler.json (loaded with All()).
     const TArray<FGiantRow>& Giants();
+    // D4: the continents of the packs in file order, a country's continent ("" unknown) and a continent's name
+    // (ulkeler.json root "continents", else the id with a capital letter).
+    TArray<FString> Continents();
+    FString ContinentOf(const FString& Country);
+    FString ContinentName(const FString& Id);
     // All packs (loaded once); always contains the default country.
     const TArray<FProfile>& All();
     // D3: the default country (ulkeler.json "defaultCountry", "tr"): older saves, automated runs, an unknown id.

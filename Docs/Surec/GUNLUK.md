@@ -1,3 +1,15 @@
+## 03.10.2026 — Claude Code — D4: kıta direktörü ve genel müdür (derlenmedi)
+
+**İstek (Mustafa):** "d4 d6 ile devam et, d7 fazla olmasa onu da yaparsın."
+
+**Yapılan:** Yönetim ağacına ülke müdürlerinin üstünde iki kademe (M66). Kıta direktörü şirket 3 ülkeye girince atanır, birden çok ülkemiz olan kıtada zorunludur; genel müdür 2 kıta direktöründen sonra isteğe bağlıdır. Her ikisi de dışarıdan 3 aday arasından seçilir (mağaza müdürü terfi edemez). Kıta adları ülke dosyasına eklendi (Avrupa, Amerika, Asya-Pasifik). Menüde ağacın en üstünde; bildirim listesinde eksik kıta direktörü; bot gerektiğinde atar.
+
+**Varsayım:** Kıtasında tek ülkemiz olan ülkenin müdürü oyuncuya bağlı kalabilir (o kıtada direktör zorunlu değil, isteğe bağlı). "Genel müdür rutin kararları verir" (otomatik mod) bu turda yazılmadı.
+
+**Doğrulama:** Derlenmedi. Yeni test `MirasMarket.Managers.ContinentAndChief` (3. ülkede zorunluluk, bağlılık, ceza, maliyet, genel müdürle doğrudan bağlı sayısının 1'e inmesi, menü argümanı, görevden alınca bir üste bağlanma). Test.ps1 alt sınırı 170.
+
+**Sıradaki:** D6 (yurt dışına giriş yolları ve bölüm yapısı).
+
 ## 03.10.2026 — Claude Code — M54, M58, M59 doğrulandı; dal birleşmesi
 
 **son.log (685f279):** DERLE geçti; TEST 168 başarılı + 1 uyarılı, başarısız 0 (alt sınır 169); Smoke geçti. OLCUM: firma sayıları TR 30, DE 16, GB 16, US 21, FR 17, ES 16, PL 17, BR 18, MX 20, JP 21 (hedef 15–30 ✓). Aile dükkânı 90 gün ciro oranı 1,045, rakip fiyat düzeyi 0,974: zincir sayısı artınca biraz değişti, hedef içinde. M54, M58, M59 bitti.

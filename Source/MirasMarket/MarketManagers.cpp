@@ -75,14 +75,23 @@ namespace MarketManagers
         return First[Start % F] + TEXT(" ") + Last[Start / F];
     }
 
-    // The area an appointment really means (a country's own id, the family shop's home province).
+    // D4: the general manager's area (one for the company).
+    const TCHAR* const ChiefArea = TEXT("merkez");
+
+    // The area an appointment really means (a country's own id, the family shop's home province, the country's
+    // continent, the general manager's single post).
     FString ResolveArea(const FMarketState& State, ELevel Level, const FString& Country, const FString& Area)
     {
         if (!Area.IsEmpty()) return Area;
         if (Level == ELevel::Country) return Country.IsEmpty() ? State.CountryId : Country;
         if (Level == ELevel::FamilyShop) return MarketStart::HomeProvince(State);
+        if (Level == ELevel::Continent) return MarketCountry::ContinentOf(Country.IsEmpty() ? State.CountryId : Country);
+        if (Level == ELevel::Chief) return ChiefArea;
         return Area;
     }
+
+    // D4: continent directors and the general manager hold one post for the whole company, whatever country is asked.
+    bool IsCompanyLevel(ELevel Level) { return Level == ELevel::Continent || Level == ELevel::Chief; }
 
     // M21: an older save's (or a promoted employee's) ceiling: the skill + 5..20, at most 95.
     int32 DerivedPotential(int32 Skill, uint32 Roll)
@@ -161,6 +170,8 @@ namespace MarketManagers
         case ELevel::SubRegion: { FChain Chain; Chain.Country = M.Country; Chain.Sub = M.Area; Chain.Region = ParentOfSub(M.Country, M.Area); return Chain; }
         case ELevel::Region: { FChain Chain; Chain.Country = M.Country; Chain.Region = M.Area; return Chain; }
         case ELevel::Country: { FChain Chain; Chain.Country = M.Country; return Chain; }
+        case ELevel::Continent:
+        case ELevel::Chief: { FChain Chain; Chain.Country = M.Country; return Chain; }
         default: return ChainOfProvince(M.Country, M.Area);
         }
     }
@@ -178,6 +189,8 @@ namespace MarketManagers
         case ELevel::SubRegion: return Chain.Sub;
         case ELevel::Region: return Chain.Region;
         case ELevel::Country: return Chain.Country;
+        case ELevel::Continent:
+        case ELevel::Chief: return FString(); // nobody is promoted from a shop to these
         default: return Chain.Province;
         }
     }
@@ -192,6 +205,14 @@ namespace MarketManagers
             const int32 Found = FindManager(State, static_cast<ELevel>(L), Chain.Country, Area);
             if (Found != INDEX_NONE) return Found;
         }
+        // D4: the continent director of the chain's country, then the general manager.
+        if (FromRank < static_cast<int32>(ELevel::Continent))
+        {
+            const FString Continent = MarketCountry::ContinentOf(Chain.Country);
+            const int32 Found = Continent.IsEmpty() ? INDEX_NONE : FindManager(State, ELevel::Continent, Chain.Country, Continent);
+            if (Found != INDEX_NONE) return Found;
+        }
+        if (FromRank < static_cast<int32>(ELevel::Chief)) return FindManager(State, ELevel::Chief, Chain.Country, ChiefArea);
         return INDEX_NONE;
     }
 
@@ -207,7 +228,11 @@ namespace MarketManagers
     // province or sub-region manager does not run a depot), else to the player.
     int32 BossOfManager(const FMarketState& State, const FMarketManager& M)
     {
-        if (M.Level == static_cast<uint8>(ELevel::Depot)) return FindManager(State, ELevel::Country, M.Country, M.Country);
+        if (M.Level == static_cast<uint8>(ELevel::Depot))
+        {
+            const int32 Head = FindManager(State, ELevel::Country, M.Country, M.Country);
+            return Head != INDEX_NONE ? Head : BossIn(State, static_cast<int32>(ELevel::Country), ChainOfProvince(M.Country, M.Area)); // D4: else above
+        }
         return BossIn(State, Rank(static_cast<ELevel>(M.Level)), ChainOfManager(M));
     }
 
@@ -230,6 +255,12 @@ namespace MarketManagers
     bool CountryMissing(const FMarketState& State, const FString& Country)
     {
         return CountryManagerRequired(State) && FindManager(State, ELevel::Country, Country, Country) == INDEX_NONE;
+    }
+
+    // D4: the country's continent needs a director and has none.
+    bool ContinentMissing(const FMarketState& State, const FString& Country)
+    {
+        return ContinentsMissingDirector(State).Contains(MarketCountry::ContinentOf(Country));
     }
 
     int32 MoraleSkill(float Morale)
@@ -258,7 +289,8 @@ namespace MarketManagers
         const int32 Boss = BossOfManager(State, M);
         if (Boss == INDEX_NONE) Skill -= Span;
         else Skill += FMath::RoundToInt32(5.f * StrengthOf(State, Boss, Span));
-        if (M.Level != static_cast<uint8>(ELevel::Country) && CountryMissing(State, M.Country)) Skill -= MissingCountryPenalty;
+        if (M.Level != static_cast<uint8>(ELevel::Country) && !IsCompanyLevel(static_cast<ELevel>(M.Level)) && CountryMissing(State, M.Country)) Skill -= MissingCountryPenalty;
+        if (M.Level == static_cast<uint8>(ELevel::Country) && ContinentMissing(State, M.Country)) Skill -= MissingContinentPenalty;
         return FMath::Clamp(Skill, 0, 100);
     }
 
@@ -331,7 +363,7 @@ namespace MarketManagers
     FString TitleOf(const FMarketManager& M)
     {
         const ELevel Level = static_cast<ELevel>(M.Level);
-        if (Level == ELevel::FamilyShop) return LevelName(Level);
+        if (Level == ELevel::FamilyShop || Level == ELevel::Chief) return LevelName(Level);
         return AreaName(Level, M.Country, M.Area) + TEXT(" ") + LevelName(Level);
     }
 
@@ -351,6 +383,8 @@ FString MarketManagers::LevelName(ELevel Level)
     case ELevel::Country: return TEXT("\u00fclke m\u00fcd\u00fcr\u00fc");
     case ELevel::FamilyShop: return TEXT("aile d\u00fckk\u00e2n\u0131 m\u00fcd\u00fcr\u00fc");
     case ELevel::Depot: return TEXT("depo m\u00fcd\u00fcr\u00fc");
+    case ELevel::Continent: return TEXT("k\u0131ta direkt\u00f6r\u00fc");
+    case ELevel::Chief: return TEXT("genel m\u00fcd\u00fcr");
     default: return TEXT("ma\u011faza m\u00fcd\u00fcr\u00fc");
     }
 }
@@ -403,6 +437,10 @@ float MarketManagers::WageScale(const FMarketState& State, ELevel Level, const F
 {
     if (Level == ELevel::Country) return CountryWageScale(State, Country);
     if (Level == ELevel::Depot) return MarketDepots::Scale(State, MarketDepots::Find(State, Country, Area)); // C13 (M43)
+    // D4: like the country manager's (M40): half the band at first, the full band with 3 countries on the continent
+    // and with 6 countries for the general manager.
+    if (Level == ELevel::Continent) return FMath::Clamp(static_cast<float>(CountriesOn(State, Area)) / 3.f, 0.5f, 1.f);
+    if (Level == ELevel::Chief) return FMath::Clamp(static_cast<float>(CountriesWithShops(State).Num()) / 6.f, 0.5f, 1.f);
     return 1.f;
 }
 
@@ -429,6 +467,8 @@ FString MarketManagers::AreaName(ELevel Level, const FString& Country, const FSt
     const MarketCountry::FProfile* Pack = MarketCountry::Find(Country);
     switch (Level)
     {
+    case ELevel::Continent: return MarketCountry::ContinentName(Area);
+    case ELevel::Chief: return TEXT("\u015eirket");
     case ELevel::Country: return Pack ? Pack->Name : Country;
     case ELevel::Region:
     {
@@ -451,10 +491,11 @@ FString MarketManagers::AreaName(ELevel Level, const FString& Country, const FSt
 int32 MarketManagers::FindManager(const FMarketState& State, ELevel Level, const FString& Country, const FString& Area)
 {
     const FString C = CountryOr(State, Country);
-    const FString A = Level == ELevel::Country && Area.IsEmpty() ? C : Level == ELevel::FamilyShop && Area.IsEmpty() ? MarketStart::HomeProvince(State) : Area;
+    const FString A = ResolveArea(State, Level, C, Area);
+    const bool bAnyCountry = IsCompanyLevel(Level);
     const TArray<FMarketManager>& List = State.Management.Managers;
     for (int32 I = 0; I < List.Num(); ++I)
-        if (List[I].Level == static_cast<uint8>(Level) && List[I].Country == C && List[I].Area == A) return I;
+        if (List[I].Level == static_cast<uint8>(Level) && (bAnyCountry || List[I].Country == C) && List[I].Area == A) return I;
     return INDEX_NONE;
 }
 
@@ -512,7 +553,7 @@ int32 MarketManagers::BossOf(const FMarketState& State, const FPerson& Person)
 TArray<MarketManagers::FPerson> MarketManagers::DirectReports(const FMarketState& State)
 {
     TArray<FPerson> List;
-    const ELevel Order[7] = { ELevel::Country, ELevel::Region, ELevel::SubRegion, ELevel::Province, ELevel::Depot, ELevel::FamilyShop, ELevel::Store };
+    const ELevel Order[9] = { ELevel::Chief, ELevel::Continent, ELevel::Country, ELevel::Region, ELevel::SubRegion, ELevel::Province, ELevel::Depot, ELevel::FamilyShop, ELevel::Store };
     for (const ELevel Level : Order)
         for (const FPerson& Person : People(State, Level))
             if (BossOf(State, Person) == INDEX_NONE) List.Add(Person);
@@ -563,6 +604,8 @@ int32 MarketManagers::RequiredSkill(const FMarketState& State, int32 ManagerInde
     case ELevel::SubRegion: return 45 + 2 * ProvinceManagersIn(State, M.Country, M.Area);
     case ELevel::Region: return 50 + 3 * SubManagersIn(State, M.Country, M.Area);
     case ELevel::Country: return 55;
+    case ELevel::Continent: return 60 + 2 * CountriesOn(State, M.Area);
+    case ELevel::Chief: return 65 + 2 * ContinentDirectors(State);
     case ELevel::Depot: // G-089: a busier depot needs a better manager
     {
         const int32 Depot = MarketDepots::Find(State, M.Country, M.Area);
@@ -647,6 +690,12 @@ float MarketManagers::CostAdjust(const FMarketState& State, const FMarketBranch&
     if (Director != INDEX_NONE) Adjust -= 0.005f * StrengthOf(State, Director, Span);       // depots planned together
     const int32 Head = FindManager(State, ELevel::Country, Chain.Country, Chain.Country);
     if (Head != INDEX_NONE && Site.bAbroad) Adjust -= 0.01f * StrengthOf(State, Head, Span); // knows the wholesalers
+    // D4: a continent director buys for all his countries together; the general manager plans the whole company.
+    const FString Continent = MarketCountry::ContinentOf(Chain.Country);
+    const int32 Over = Continent.IsEmpty() ? INDEX_NONE : FindManager(State, ELevel::Continent, Chain.Country, Continent);
+    if (Over != INDEX_NONE) Adjust -= 0.005f * StrengthOf(State, Over, Span);
+    const int32 Chief = FindManager(State, ELevel::Chief, Chain.Country, ChiefArea);
+    if (Chief != INDEX_NONE) Adjust -= 0.003f * StrengthOf(State, Chief, Span);
     return Adjust;
 }
 
@@ -665,6 +714,39 @@ TArray<FString> MarketManagers::CountriesMissingManager(const FMarketState& Stat
     return Missing;
 }
 
+bool MarketManagers::ContinentRequired(const FMarketState& State)
+{
+    return CountriesWithShops(State).Num() >= ContinentCountries;
+}
+
+int32 MarketManagers::CountriesOn(const FMarketState& State, const FString& Continent)
+{
+    int32 Count = 0;
+    if (Continent.IsEmpty()) return 0;
+    for (const FString& C : CountriesWithShops(State)) if (MarketCountry::ContinentOf(C) == Continent) ++Count;
+    return Count;
+}
+
+int32 MarketManagers::ContinentDirectors(const FMarketState& State)
+{
+    int32 Count = 0;
+    for (const FMarketManager& M : State.Management.Managers) if (M.Level == static_cast<uint8>(ELevel::Continent)) ++Count;
+    return Count;
+}
+
+TArray<FString> MarketManagers::ContinentsMissingDirector(const FMarketState& State)
+{
+    TArray<FString> Missing;
+    if (!ContinentRequired(State)) return Missing;
+    for (const FString& C : CountriesWithShops(State))
+    {
+        const FString Continent = MarketCountry::ContinentOf(C);
+        if (Continent.IsEmpty() || Missing.Contains(Continent) || CountriesOn(State, Continent) < 2) continue;
+        if (FindManager(State, ELevel::Continent, C, Continent) == INDEX_NONE) Missing.Add(Continent);
+    }
+    return Missing;
+}
+
 int64 MarketManagers::BaseWageFor(ELevel Level, int32 Skill, const FString& Country)
 {
     const double T = FMath::Clamp((Skill - 30) / 60.0, 0.0, 1.0);
@@ -679,6 +761,13 @@ int64 MarketManagers::BaseWageFor(ELevel Level, int32 Skill, const FString& Coun
     {
         const MarketCountry::FProfile* Pack = MarketCountry::Find(Country);
         Wage = 25000.0 * (0.9 + 0.2 * T) * FMath::Max(0.5, Pack ? static_cast<double>(Pack->WageFactor) : 1.0);
+        break;
+    }
+    case ELevel::Continent: // D4: home-country hires, paid on the home pack's wage level
+    case ELevel::Chief:
+    {
+        const MarketCountry::FProfile* Pack = MarketCountry::Find(Country);
+        Wage = (Level == ELevel::Chief ? 60000.0 : 40000.0) * (0.9 + 0.2 * T) * FMath::Max(0.5, Pack ? static_cast<double>(Pack->WageFactor) : 1.0);
         break;
     }
     default: break;
@@ -817,7 +906,7 @@ bool MarketManagers::CanAppoint(const FMarketState& State, ELevel Level, const F
     const FString C = CountryOr(State, Country);
     const MarketCountry::FProfile* Pack = MarketCountry::Find(C);
     if (!Pack) { OutReason = TEXT("B\u00f6yle bir \u00fclke yok."); return false; }
-    const FString A = Level == ELevel::Country && Area.IsEmpty() ? C : Level == ELevel::FamilyShop && Area.IsEmpty() ? MarketStart::HomeProvince(State) : Area;
+    const FString A = ResolveArea(State, Level, C, Area);
     const FString Where = AreaName(Level, C, A);
     if (const FMarketManager* Existing = ManagerOf(State, Level, C, A))
     {
@@ -889,8 +978,36 @@ bool MarketManagers::CanAppoint(const FMarketState& State, ELevel Level, const F
         }
         break;
     }
+    case ELevel::Continent:
+    {
+        // D4 (8.3): from the third country on; the first two countries' managers answer to the player.
+        if (!MarketCountry::Continents().Contains(A)) { OutReason = TEXT("B\u00f6yle bir k\u0131ta yok."); return false; }
+        const int32 Countries = CountriesWithShops(State).Num();
+        if (Countries < ContinentCountries)
+        {
+            OutReason = FString::Printf(TEXT("\u015eirket %d \u00fclkede; k\u0131ta direkt\u00f6r\u00fc %d \u00fclkeden sonra gelir (ilk iki \u00fclkenin \u00fclke m\u00fcd\u00fcrleri sana ba\u011fl\u0131d\u0131r)."), Countries, ContinentCountries);
+            return false;
+        }
+        if (CountriesOn(State, A) == 0) { OutReason = FString::Printf(TEXT("%s ma\u011fazan yok."), *Locative(Where)); return false; }
+        break;
+    }
+    case ELevel::Chief:
+    {
+        const int32 Directors = ContinentDirectors(State);
+        if (Directors < ChiefContinents)
+        {
+            OutReason = FString::Printf(TEXT("Genel m\u00fcd\u00fcr k\u0131ta direkt\u00f6rlerini y\u00f6netir; \u00f6nce en az %d k\u0131ta direkt\u00f6r\u00fc ata (\u015fimdi %d)."), ChiefContinents, Directors);
+            return false;
+        }
+        break;
+    }
     default:
         OutReason = TEXT("Ma\u011faza m\u00fcd\u00fcr\u00fcn\u00fc \u015fubenin kendisinden de\u011fi\u015ftir.");
+        return false;
+    }
+    if (FromBranch != INDEX_NONE && IsCompanyLevel(Level))
+    {
+        OutReason = TEXT("Bu g\u00f6reve bir ma\u011faza m\u00fcd\u00fcr\u00fc terfi edemez; d\u0131\u015far\u0131dan biri gelir.");
         return false;
     }
     if (FromBranch != INDEX_NONE)
@@ -1153,6 +1270,8 @@ TArray<FString> MarketManagers::Suggestions(const FMarketState& State)
     TArray<FString> Urgent, Later;
     for (const FString& C : CountriesMissingManager(State))
         Urgent.Add(FString::Printf(TEXT("\u015eirket birden \u00e7ok \u00fclkede: %s i\u00e7in \u00fclke m\u00fcd\u00fcr\u00fc ata (zorunlu)."), *AreaName(ELevel::Country, C, C)));
+    for (const FString& K : ContinentsMissingDirector(State))
+        Urgent.Add(FString::Printf(TEXT("\u015eirket %d \u00fclkede: %s i\u00e7in k\u0131ta direkt\u00f6r\u00fc ata (zorunlu)."), CountriesWithShops(State).Num(), *MarketCountry::ContinentName(K)));
     const int32 Direct = DirectCount(State);
     if (Direct > SpanLimit) Urgent.Add(SpanText(State) + TEXT(" Bir \u00fcst kademe ata."));
     for (const FMarketBranch& B : State.Branches)
@@ -1211,6 +1330,9 @@ TArray<FString> MarketManagers::Suggestions(const FMarketState& State)
             if (Provinces >= CountryProvinces && FindManager(State, ELevel::Country, C, C) == INDEX_NONE)
                 Later.Add(FString::Printf(TEXT("%s %d ilde ma\u011fazan var: \u00fclke m\u00fcd\u00fcr\u00fc atayabilirsin."), *Locative(AreaName(ELevel::Country, C, C)), Provinces));
         }
+    // D4: the general manager is optional; he can come once two continent directors are in place.
+    if (ContinentDirectors(State) >= ChiefContinents && FindManager(State, ELevel::Chief, State.CountryId, ChiefArea) == INDEX_NONE)
+        Later.Add(FString::Printf(TEXT("%d k\u0131ta direkt\u00f6r\u00fcn var: istersen bir genel m\u00fcd\u00fcr ata (iste\u011fe ba\u011fl\u0131; k\u0131ta direkt\u00f6rleri ona ba\u011flan\u0131r)."), ContinentDirectors(State)));
     // M20: the country manager is named only once that level can be seen (5 provinces or two countries).
     if (Direct == SpanLimit)
     {
@@ -1242,6 +1364,7 @@ int32 MarketManagers::EncodeArea(ELevel Level, const FString& Country, const FSt
     case ELevel::Depot: A = All[C].Cities.IndexOfByPredicate([&Area](const MarketCountry::FCity& X) { return X.Id == Area; }); break;
     case ELevel::SubRegion: A = All[C].SubRegions.IndexOfByPredicate([&Area](const MarketCountry::FRegion& X) { return X.Id == Area; }); break;
     case ELevel::Region: A = All[C].Regions.IndexOfByPredicate([&Area](const MarketCountry::FRegion& X) { return X.Id == Area; }); break;
+    case ELevel::Continent: A = MarketCountry::Continents().IndexOfByKey(Area.IsEmpty() ? All[C].Continent : Area); break;
     default: break;
     }
     if (A == INDEX_NONE || A >= 1000) return INDEX_NONE;
@@ -1253,7 +1376,7 @@ bool MarketManagers::DecodeArea(int32 Arg, ELevel& OutLevel, FString& OutCountry
     if (Arg < 0) return false;
     const TArray<MarketCountry::FProfile>& All = MarketCountry::All();
     const int32 A = Arg % 1000, C = (Arg / 1000) % 100, L = Arg / 100000;
-    if (L < static_cast<int32>(ELevel::Province) || L > static_cast<int32>(ELevel::Depot) || !All.IsValidIndex(C)) return false;
+    if (L < static_cast<int32>(ELevel::Province) || L > static_cast<int32>(ELevel::Chief) || !All.IsValidIndex(C)) return false;
     OutLevel = static_cast<ELevel>(L);
     OutCountry = All[C].Id;
     switch (OutLevel)
@@ -1263,6 +1386,14 @@ bool MarketManagers::DecodeArea(int32 Arg, ELevel& OutLevel, FString& OutCountry
     case ELevel::SubRegion: if (!All[C].SubRegions.IsValidIndex(A)) return false; OutArea = All[C].SubRegions[A].Id; break;
     case ELevel::Region: if (!All[C].Regions.IsValidIndex(A)) return false; OutArea = All[C].Regions[A].Id; break;
     case ELevel::Country: OutArea = All[C].Id; break;
+    case ELevel::Continent:
+    {
+        const TArray<FString> Continents = MarketCountry::Continents();
+        if (!Continents.IsValidIndex(A)) return false;
+        OutArea = Continents[A];
+        break;
+    }
+    case ELevel::Chief: OutArea = ChiefArea; break;
     default: OutArea.Reset(); break; // family shop: the home province
     }
     return true;
@@ -1362,6 +1493,15 @@ void MarketManagers::CloseDay(FMarketState& State)
         }
     }
     else Team.MissingCountryDays = 0;
+    // D4: a continent with 2+ of our countries and no director (weekly).
+    const TArray<FString> NoDirector = ContinentsMissingDirector(State);
+    if (NoDirector.Num() > 0 && Closed % 7 == 0)
+    {
+        TArray<FString> Names;
+        for (const FString& K : NoDirector) Names.Add(MarketCountry::ContinentName(K));
+        News.Add(FString::Printf(TEXT("\u015eirket %d \u00fclkede: birden \u00e7ok \u00fclkemiz olan k\u0131taya bir k\u0131ta direkt\u00f6r\u00fc gerekir (eksik: %s). Atanana kadar oradaki \u00fclke m\u00fcd\u00fcrleri zay\u0131f \u00e7al\u0131\u015f\u0131r."),
+            CountriesWithShops(State).Num(), *FString::Join(Names, TEXT(", "))));
+    }
 
     // Store managers: morale drifts to what their situation gives; the player's span and a missing country manager
     // cost satisfaction slowly.
@@ -1392,12 +1532,13 @@ void MarketManagers::CloseDay(FMarketState& State)
     for (FMarketManager& M : Team.Managers)
     {
         const ELevel Tier = static_cast<ELevel>(M.Level);
-        if (Tier != ELevel::Country && Tier != ELevel::Depot) continue;
+        if (Tier != ELevel::Country && Tier != ELevel::Depot && !IsCompanyLevel(Tier)) continue;
         const int64 Band = FMath::RoundToInt64(static_cast<double>(BaseWageFor(Tier, M.Skill, M.Country)) * WageScale(State, Tier, M.Country, M.Area) / 50.0) * 50;
         if (Band <= M.BaseWage) continue;
         M.BaseWage = Band;
         if (Tier == ELevel::Country) News.Add(FString::Printf(TEXT("%s: \u015firket b\u00fcy\u00fcd\u00fc, \u00fclke m\u00fcd\u00fcr\u00fcn\u00fcn maa\u015f\u0131 i\u015finin b\u00fcy\u00fckl\u00fc\u011f\u00fcne g\u00f6re artt\u0131."), *M.Name));
-        else News.Add(FString::Printf(TEXT("%s: depo b\u00fcy\u00fcd\u00fc, depo m\u00fcd\u00fcr\u00fcn\u00fcn maa\u015f\u0131 artt\u0131."), *M.Name));
+        else if (Tier == ELevel::Depot) News.Add(FString::Printf(TEXT("%s: depo b\u00fcy\u00fcd\u00fc, depo m\u00fcd\u00fcr\u00fcn\u00fcn maa\u015f\u0131 artt\u0131."), *M.Name));
+        else News.Add(FString::Printf(TEXT("%s (%s): \u015firket yeni \u00fclkelere girdi, maa\u015f\u0131 i\u015finin b\u00fcy\u00fckl\u00fc\u011f\u00fcne g\u00f6re artt\u0131."), *M.Name, *TitleOf(M)));
     }
 
     // Weekly marks: growth, tiredness, leaving; the province manager warns, proposes and catches a skimmer.

@@ -601,4 +601,68 @@ bool FMarketManagersNamesTest::RunTest(const FString& Parameters)
     return true;
 }
 
+// D4 (09_DUNYA_YENIDEN 6, 8.3): continent directors from the third country, required where 2+ of our countries share
+// a continent; the optional general manager over 2 continent directors; the player's span shrinks.
+IMPLEMENT_SIMPLE_AUTOMATION_TEST(FMarketManagersContinentTest, "MirasMarket.Managers.ContinentAndChief", EAutomationTestFlags::EditorContext | EAutomationTestFlags::EngineFilter)
+bool FMarketManagersContinentTest::RunTest(const FString& Parameters)
+{
+    using namespace MarketManagers;
+    using namespace MarketManagersTest;
+    FMarketState S = MakeState();
+    FString Message;
+    AddShop(S, TEXT("tekirdag"));
+    AddShop(S, TEXT("by"), 60, 80, TEXT("de"));
+    TestFalse(TEXT("Two countries: no continent director yet"), CanAppoint(S, ELevel::Continent, TEXT("tr"), TEXT("avrupa"), INDEX_NONE, Message));
+    TestEqual(TEXT("Two countries: none required"), ContinentsMissingDirector(S).Num(), 0);
+    TestTrue(TEXT("Turkey's country manager"), Appoint(S, ELevel::Country, TEXT("tr"), FString(), INDEX_NONE, Message));
+    TestTrue(TEXT("Germany's country manager"), Appoint(S, ELevel::Country, TEXT("de"), FString(), INDEX_NONE, Message));
+    TestEqual(TEXT("The first two country managers answer to the player"), DirectCount(S), 2);
+
+    AddShop(S, TEXT("ct"), 60, 80, TEXT("us"));
+    TestTrue(TEXT("Three countries"), ContinentRequired(S));
+    TestTrue(TEXT("Europe needs a director"), ContinentsMissingDirector(S).Contains(TEXT("avrupa")));
+    TestFalse(TEXT("America alone does not"), ContinentsMissingDirector(S).Contains(TEXT("amerika")));
+    const int32 TrHead = FindManager(S, ELevel::Country, TEXT("tr"), TEXT("tr"));
+    const int32 Before = EffectiveManagerSkill(S, TrHead);
+    TestTrue(TEXT("Urgent suggestion"), Suggestions(S).ContainsByPredicate([](const FString& L) { return L.Contains(TEXT("k\u0131ta direkt\u00f6r\u00fc")); }));
+    TestTrue(TEXT("A shop manager cannot be promoted to it"), !CanAppoint(S, ELevel::Continent, TEXT("tr"), TEXT("avrupa"), 0, Message));
+    TestTrue(TEXT("Europe's director"), AppointCandidate(S, ELevel::Continent, TEXT("tr"), TEXT("avrupa"), 0, Message));
+    TestEqual(TEXT("Found from any country"), FindManager(S, ELevel::Continent, TEXT("de"), TEXT("avrupa")), FindManager(S, ELevel::Continent, TEXT("tr"), TEXT("avrupa")));
+    TestEqual(TEXT("Same area resolved from the country"), FindManager(S, ELevel::Continent, TEXT("de"), FString()), FindManager(S, ELevel::Continent, TEXT("tr"), TEXT("avrupa")));
+    TestEqual(TEXT("None missing"), ContinentsMissingDirector(S).Num(), 0);
+    TestTrue(TEXT("The penalty is gone"), EffectiveManagerSkill(S, TrHead) >= Before + MissingContinentPenalty - 5);
+    FPerson Head;
+    Head.Level = ELevel::Country;
+    Head.Manager = TrHead;
+    TestEqual(TEXT("Turkey's country manager answers to the director"), BossOf(S, Head), FindManager(S, ELevel::Continent, TEXT("tr"), TEXT("avrupa")));
+    TestTrue(TEXT("Shops under him cost a little less"), CostAdjust(S, S.Branches[0]) < 0.f);
+
+    TestFalse(TEXT("One director: no general manager"), CanAppoint(S, ELevel::Chief, TEXT("tr"), FString(), INDEX_NONE, Message));
+    TestTrue(TEXT("America may get one"), CanAppoint(S, ELevel::Continent, TEXT("tr"), TEXT("amerika"), INDEX_NONE, Message));
+    TestFalse(TEXT("Asia has no shop"), CanAppoint(S, ELevel::Continent, TEXT("tr"), TEXT("asya"), INDEX_NONE, Message));
+    TestTrue(TEXT("America's director"), AppointCandidate(S, ELevel::Continent, TEXT("tr"), TEXT("amerika"), 0, Message));
+    TestEqual(TEXT("Two directors and the US country level"), ContinentDirectors(S), 2);
+    TestTrue(TEXT("General manager possible"), CanAppoint(S, ELevel::Chief, TEXT("tr"), FString(), INDEX_NONE, Message));
+    TestTrue(TEXT("Suggested as optional"), Suggestions(S).ContainsByPredicate([](const FString& L) { return L.Contains(TEXT("genel m\u00fcd\u00fcr")); }));
+    const int32 DirectBefore = DirectCount(S);
+    TestTrue(TEXT("General manager"), AppointCandidate(S, ELevel::Chief, TEXT("tr"), FString(), 0, Message));
+    TestEqual(TEXT("Only he answers to the player"), DirectCount(S), 1);
+    TestTrue(TEXT("Fewer people than before"), DirectCount(S) < DirectBefore);
+    const int32 Chief = FindManager(S, ELevel::Chief, TEXT("de"), FString());
+    TestTrue(TEXT("The general manager is the costliest"), Chief != INDEX_NONE && S.Management.Managers[Chief].BaseWage > S.Management.Managers[TrHead].BaseWage);
+    TestEqual(TEXT("Title"), MarketManagers::DescribeManager(S, Chief).Contains(TEXT("genel m\u00fcd\u00fcr")), true);
+
+    // Menu arguments round-trip.
+    ELevel Level = ELevel::Store;
+    FString Country, Area;
+    TestTrue(TEXT("Continent decodes"), DecodeArea(EncodeArea(ELevel::Continent, TEXT("tr"), TEXT("amerika")), Level, Country, Area) && Level == ELevel::Continent && Area == TEXT("amerika"));
+    TestTrue(TEXT("Chief decodes"), DecodeArea(EncodeArea(ELevel::Chief, TEXT("tr"), FString()), Level, Country, Area) && Level == ELevel::Chief);
+
+    // Dismissing the director puts the country managers back under the general manager.
+    TestTrue(TEXT("Dismiss Europe's director"), Dismiss(S, FindManager(S, ELevel::Continent, TEXT("tr"), TEXT("avrupa")), Message));
+    TestEqual(TEXT("Turkey's country manager now under the general manager"), BossOf(S, Head), FindManager(S, ELevel::Chief, TEXT("tr"), FString()));
+    TestTrue(TEXT("Europe misses its director again"), ContinentsMissingDirector(S).Contains(TEXT("avrupa")));
+    return true;
+}
+
 #endif

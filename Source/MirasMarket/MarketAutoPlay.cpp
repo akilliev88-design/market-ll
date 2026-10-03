@@ -162,6 +162,9 @@ namespace MarketAutoPlay
             for (const MarketCountry::FRegion& Region : Country.Regions) Appoint(MarketManagers::ELevel::Region, Country.Id, Region.Id);
             Appoint(MarketManagers::ELevel::Country, Country.Id, Country.Id);
         }
+        // D4: continent directors where required or possible; the optional general manager only past the span.
+        for (const FString& Continent : MarketCountry::Continents()) Appoint(MarketManagers::ELevel::Continent, State.CountryId, Continent);
+        if (MarketManagers::DirectCount(State) > MarketManagers::SpanLimit) Appoint(MarketManagers::ELevel::Chief, State.CountryId, FString());
         for (int32 Index = 0; Index < State.Company.DepotSites.Num(); ++Index)
         {
             const FMarketDepot& Depot = State.Company.DepotSites[Index];

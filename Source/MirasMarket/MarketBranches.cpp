@@ -366,7 +366,7 @@ int32 MarketBranches::GrowthCapacity(const FMarketState& State)
 {
     int32 Managers = 0;
     for (const FMarketManager& M : State.Management.Managers)
-        if (M.Level >= static_cast<uint8>(MarketManagers::ELevel::Province) && M.Level <= static_cast<uint8>(MarketManagers::ELevel::Country)) ++Managers;
+        if ((M.Level >= static_cast<uint8>(MarketManagers::ELevel::Province) && M.Level <= static_cast<uint8>(MarketManagers::ELevel::Country)) || M.Level >= static_cast<uint8>(MarketManagers::ELevel::Continent)) ++Managers; // D4: continent directors and the general manager too
     const int32 Open = OpenCount(State);
     return StrainBase + FMath::FloorToInt32(Open * StrainShopShare) + FMath::Min(StrainPerManager * Managers, FMath::FloorToInt32(Open * StrainManagerShare));
 }

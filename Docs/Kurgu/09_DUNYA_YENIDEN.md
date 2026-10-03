@@ -119,7 +119,7 @@ Kıtalar: Avrupa 6, Amerika 3, Asya 1. Alternatif olarak Japonya yerine Hindista
 | D1 | Ülke başına ekonomi (S1): fiyat/ücret/faiz `(Ülke, Gün)`, ana para birimi defteri, kur farkı | Claude |
 | D2 | Tek mağaza ekonomisi (S2, §5) ve prototip kalıntılarının temizliği (§10, K1–K6) | Claude |
 | D3 | Türkiye dallarını pakete taşıma (S3), ülke paketi şemasını genişletme | Claude Code (yerel arama ve taşıma işi, testlerle) |
-| D4 | Yönetim kademesi: kıta direktörü, genel müdür (S6) | Claude |
+| D4 | Yönetim kademesi: kıta direktörü, genel müdür (S6) — **kod yazıldı, M66 (derlenmedi)** | Claude |
 | D5 | 6 yeni ülke paketi verisi (iller, bölgeler, tatiller, isimler, zincir kadroları, ekonomi) | Claude Code (veri) + Claude (kontrol) |
 | D6 | Yurt dışına giriş yolları ve bölüm yapısı (S4, S5) | Claude |
 | D7 | Dünya haritası ve menü (S7); dünya ve ülke tablolarına liste dışı başlangıç (M53: listedekileri geçince gireriz) | Codex / Claude Code (arayüz), Claude (metin) |

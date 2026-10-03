@@ -352,6 +352,10 @@ const TArray<FMarketTodo>& AMarketGameMode::Todos() const
     for (const FString& Missing : MarketManagers::CountriesMissingManager(State))
         Add(2, TEXT("\u00dclke m\u00fcd\u00fcr\u00fc yok: ") + MarketManagers::AreaName(MarketManagers::ELevel::Country, Missing, Missing),
             TEXT("\u015eirket birden \u00e7ok \u00fclkede: her \u00fclkeye bir \u00fclke m\u00fcd\u00fcr\u00fc gerekir. Yokken oradaki m\u00fcd\u00fcrlerin becerisi 10 puan d\u00fc\u015fer. Ma\u011fazalar \u203a Y\u00f6netim."), SMarketMenu::Branches);
+    for (const FString& Continent : MarketManagers::ContinentsMissingDirector(State))
+        Add(2, TEXT("K\u0131ta direkt\u00f6r\u00fc yok: ") + MarketCountry::ContinentName(Continent),
+            FString::Printf(TEXT("\u015eirket %d \u00fclkeden fazlas\u0131nda: birden \u00e7ok \u00fclken olan k\u0131taya bir k\u0131ta direkt\u00f6r\u00fc gerekir. Yokken oradaki \u00fclke m\u00fcd\u00fcrlerinin becerisi %d puan d\u00fc\u015fer. Ma\u011fazalar \u203a Y\u00f6netim."),
+                MarketManagers::ContinentCountries - 1, MarketManagers::MissingContinentPenalty), SMarketMenu::Branches);
     const int32 Direct = MarketManagers::DirectCount(State);
     if (Direct > MarketManagers::SpanLimit)
         Add(2, FString::Printf(TEXT("Sana do\u011frudan %d ki\u015fi ba\u011fl\u0131 (s\u0131n\u0131r %d)"), Direct, MarketManagers::SpanLimit),
