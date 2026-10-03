@@ -1,8 +1,10 @@
 # Güncel durum
 
-Son güncelleme: 03.10.2026 — Claude Code, akis-cc2: E4a derlendi; M65 (alt şirketler, marka ve tescilli ad) yazıldı, derlenmedi
+Son güncelleme: 03.10.2026 — Claude Code, akis-cc2: M65 derlendi, testler ve Smoke geçti; sıradaki E4b
 
 ## Kısaca
+
+**03.10.2026 — Claude Code / M65 doğrulandı (f3398a5):** DERLE geçti, TEST 166 + 1 uyarı, başarısız 0, Smoke geçti; OLCUM aynı. Sıradaki: E4b.
 
 **03.10.2026 — Claude Code / M65 (derlenmedi, `akis-cc2`):** 7ff3b9a (E4a) geçti: DERLE, TEST 165 + 1 uyarı, 0 başarısız, Smoke.
 

@@ -1,3 +1,9 @@
+## 03.10.2026 — Claude Code — M65 doğrulandı
+
+**son.log (f3398a5):** DERLE geçti; TEST 166 başarılı + 1 uyarılı, başarısız 0 (alt sınır 167); Smoke geçti. M65 bitti.
+
+**Sıradaki:** E4b (kredi o ülkenin bankasından).
+
 ## 03.10.2026 — Claude Code — M65: alt şirketler, marka ve tescilli ad (derlenmedi)
 
 **E4a sonucu (7ff3b9a):** DERLE geçti; TEST 165 başarılı + 1 uyarılı, başarısız 0; Smoke geçti. E4a bitti.
