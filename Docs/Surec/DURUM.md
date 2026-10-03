@@ -1,8 +1,10 @@
 # Güncel durum
 
-Son güncelleme: 03.10.2026 — Claude Code, akis-cc2: E3c2a (personel bayrakları, ortak tazelik) yazıldı, derlenmedi
+Son güncelleme: 03.10.2026 — Claude Code, akis-cc2: E3c2a derlendi, testler ve Smoke geçti; sıradaki E3c2b
 
 ## Kısaca
+
+**03.10.2026 — Claude Code / E3c2a doğrulandı (92a7a06):** DERLE geçti, TEST 162 + 1 uyarı, başarısız 0, Smoke geçti; OLCUM satırları aynı (aile dükkânı değişmedi). Sıradaki: E3c2b.
 
 **03.10.2026 — Claude Code / E3c2a (derlenmedi, `akis-cc2`):** Mustafa'nın üç cevabı M63: kişi kişi şube personeli, toptancı hesabından şube malı, şubede parti parti tazelik. E3c2 üç tura bölündü. E3c2a:
 - `bCashier`/`Stockers` kayıttan kalktı. Kimin çalıştığını `MarketStaff::CashierOnDuty`/`StockersOnDuty` kadrodan sayıyor; `SyncCounts`, `DailyPayroll`'un personelsiz yolu ve geçerlilik kontrolündeki sayı kalktı. Dünya (MarketGame, MarketWorkers, MarketAutomation), menü ve bot yeni fonksiyonları kullanıyor.

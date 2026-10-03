@@ -1,3 +1,9 @@
+## 03.10.2026 — Claude Code — E3c2a doğrulandı
+
+**son.log (92a7a06):** DERLE geçti; TEST 162 başarılı + 1 uyarılı, başarısız 0 (alt sınır 163); Smoke geçti. OLCUM satırları önceki turla aynı. E3c2a bitti.
+
+**Sıradaki:** E3c2b (şube siparişi toptancı hesabından).
+
 ## 03.10.2026 — Claude Code — E3c2a: personel bayrakları kalktı, şubelerde tazelik (derlenmedi)
 
 **Karar (Mustafa, M63):** şube personeli kişi kişi; şube malı toptancı hesabından; şubede parti parti tazelik. Üç tura bölündü: a (bayraklar + tazelik), b (toptancı), c (personel).
