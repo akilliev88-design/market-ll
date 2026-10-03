@@ -40,6 +40,7 @@
 #include "Widgets/Input/SEditableTextBox.h"
 #include "MarketSubsidiaries.h"
 #include "MarketResearch.h"
+#include "MarketFranchise.h"
 #include "Widgets/Layout/SSpacer.h"
 #include "Widgets/Images/SImage.h"
 #include "Widgets/Input/SButton.h"
@@ -2722,8 +2723,8 @@ TSharedRef<SWidget> SMarketMenu::RegionChips()
                 [ Chip(Region.Name, [this, RegionId] { return MapRegion == RegionId; }, [this, RegionId] { MapRegion = MapRegion == RegionId ? FString() : RegionId; }) ] ];
         }
     }
-    // Other countries: from chapter 6 or once the company has a shop abroad.
-    auto Abroad = [G] { return G() && (MarketCompany::ChapterOpen(G()->State, 6) || MarketCompany::ForeignCountries(G()->State) > 0); };
+    // Other countries: D6 (M67) once the company is big enough at home or is already abroad.
+    auto Abroad = [G] { return G() && MarketCompany::AbroadOpen(G()->State); };
     Row->AddSlot().AutoWidth().VAlign(VAlign_Center).Padding(4.f, 0.f, 8.f, 0.f)
     [
         SNew(SBox).WidthOverride(1.f).HeightOverride(18.f).Visibility_Lambda([Abroad] { return Abroad() ? EVisibility::Visible : EVisibility::Collapsed; })
@@ -3080,6 +3081,39 @@ TSharedRef<SWidget> SMarketMenu::ProvinceCard()
                     *MarketCountry::FindOrDefault(Country).Name, *MarketMenuUi::Tl(MarketResearch::Cost(G()->State, Country)), MarketResearch::Days(G()->State, Country)),
                     [this, G, Country] { FString Message; if (G()) { MarketResearch::Start(G()->State, Country, Message); G()->Notify(Message); } });
             }, false, [this, G] { FString Why; return G() && MarketResearch::CanStart(G()->State, ShownCountry(), Why); }) ]
+        ]
+        // D6 (M67): a partner under our brand, the second way into a country (status and the two buttons).
+        + SVerticalBox::Slot().AutoHeight().Padding(0.f, 10.f, 0.f, 0.f)
+        [
+            SNew(SHorizontalBox)
+            .Visibility_Lambda([this, G] { return G() && ShownCountry() != G()->State.CountryId && MarketCompany::AbroadOpen(G()->State) ? EVisibility::Visible : EVisibility::Collapsed; })
+            + SHorizontalBox::Slot().FillWidth(1.f).VAlign(VAlign_Center)
+            [ TextPx([this, G] { return G() ? MarketFranchise::StatusText(G()->State, ShownCountry()) : FString(); }, 12.f, [] { return ERole::Text; }, false, true) ]
+            + SHorizontalBox::Slot().AutoWidth().VAlign(VAlign_Center).Padding(10.f, 0.f, 0.f, 0.f)
+            [
+                SNew(SBox).Visibility_Lambda([this, G] { return G() && !MarketFranchise::Find(G()->State, ShownCountry()) ? EVisibility::Visible : EVisibility::Collapsed; })
+                .ToolTip(Tip([this, G] { FString Why; return G() && !MarketFranchise::CanSign(G()->State, ShownCountry(), Why) ? Why : FString(TEXT("Yerel bir ortak ma\u011fazalar\u0131 bizim ad\u0131m\u0131zla a\u00e7ar; risk ve kazan\u00e7 k\u00fc\u00e7\u00fckt\u00fcr.")); }))
+                [ Button([] { return FString(TEXT("Ortakl\u0131kla gir")); }, [this, G]
+                {
+                    if (!G()) return;
+                    const FString Country = ShownCountry();
+                    Ask(FString::Printf(TEXT("%s i\u00e7in yerel bir ortakla s\u00f6zle\u015fme imzalans\u0131n m\u0131? S\u00f6zle\u015fme ve marka tescili %s. Ortak ad\u0131m\u0131zla %d ma\u011fazayla ba\u015flar, sat\u0131\u015f\u0131n %%%.0f'\u00fc bize gelir; s\u00fcrerken orada kendi ma\u011fazan olmaz."),
+                        *MarketCountry::FindOrDefault(Country).Name, *MarketMenuUi::Tl(MarketFranchise::Fee(G()->State, Country)), MarketFranchise::StartStores, 100.f * MarketFranchise::RoyaltyRate),
+                        [this, G, Country] { FString Message; if (G()) { MarketFranchise::Sign(G()->State, Country, Message); G()->Notify(Message); } });
+                }, false, [this, G] { FString Why; return G() && MarketFranchise::CanSign(G()->State, ShownCountry(), Why); }) ]
+            ]
+            + SHorizontalBox::Slot().AutoWidth().VAlign(VAlign_Center).Padding(10.f, 0.f, 0.f, 0.f)
+            [
+                SNew(SBox).Visibility_Lambda([this, G] { return G() && MarketFranchise::Find(G()->State, ShownCountry()) ? EVisibility::Visible : EVisibility::Collapsed; })
+                [ Button([] { return FString(TEXT("Ortakl\u0131\u011f\u0131 bitir")); }, [this, G]
+                {
+                    if (!G()) return;
+                    const FString Country = ShownCountry();
+                    Ask(FString::Printf(TEXT("Ortakl\u0131k bitsin mi? Tazminat %s (bir y\u0131ll\u0131k k\u00e2r pay\u0131). Ortak ma\u011fazalar\u0131n\u0131 kendi ad\u0131na \u00e7evirir; sonra orada kendi ma\u011fazan\u0131 a\u00e7abilirsin."),
+                        *MarketMenuUi::Tl(MarketFranchise::EndCost(G()->State, Country))),
+                        [this, G, Country] { FString Message; if (G()) { MarketFranchise::End(G()->State, Country, Message); G()->Notify(Message); } });
+                }) ]
+            ]
         ]
         // Our shops.
         + SVerticalBox::Slot().AutoHeight().Padding(0.f, 20.f, 0.f, 6.f)

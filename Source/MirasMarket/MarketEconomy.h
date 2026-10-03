@@ -438,6 +438,24 @@ struct FMarketResearch
     UPROPERTY() int64 Cost = 0;
 };
 
+// D6 (M67): a master franchise in a country: a local partner opens stores under our brand and pays a royalty
+// (MarketFranchise.h).
+USTRUCT()
+struct FMarketFranchise
+{
+    GENERATED_BODY()
+    UPROPERTY() FString Country;
+    UPROPERTY() FString Partner;            // the partner company's name ("Schmidt Markt")
+    UPROPERTY() int32 StartDay = 0;
+    UPROPERTY() int32 Stores = 0;           // partner stores under our brand
+    UPROPERTY() int32 Quality = 100;        // the partner's hand, 80..120 (% of a typical store's sales)
+    UPROPERTY() int64 MonthSales = 0;       // the running month's sales of the partner stores (home-level kurus)
+    UPROPERTY() int64 LastRoyalty = 0;      // last month's royalty (our money, before withholding)
+    UPROPERTY() int64 TotalRoyalty = 0;
+    UPROPERTY() bool bEnded = false;
+    UPROPERTY() int32 EndDay = 0;
+};
+
 USTRUCT()
 struct FMarketCompany
 {
@@ -445,6 +463,7 @@ struct FMarketCompany
     UPROPERTY() FString BrandName = TEXT("Miras"); // M65: the short name everyone uses (signs, news, lists)
     UPROPERTY() TArray<FMarketSubsidiary> Subsidiaries; // M65: the parent (own country) and one per country entered
     UPROPERTY() TArray<FMarketResearch> Research;        // M58: market studies of countries not entered yet
+    UPROPERTY() TArray<FMarketFranchise> Franchises;     // D6 (M67): partners abroad under our brand
     UPROPERTY() TArray<FMarketDepot> DepotSites; // G-089: depots in provinces (MarketDepots.h)
     UPROPERTY() int32 Trucks = 0;
     UPROPERTY() bool bCentralBuying = false;  // buying for all stores at once
@@ -932,7 +951,7 @@ struct FMarketState
     static constexpr int64 StockerDailyWage = 2000;
 
     // Save format version. 2 (G-076): story finale flags, test-mode mark. Older saves load and are migrated.
-    static constexpr int32 CurrentVersion = 18; // M54/M58/M59; // E4b: loans abroad; // M65: subsidiaries; // E4: the exchange difference account; // E3c2c: branch staff are people; // M64: the father's favour is counted; // E3c2 (M27): branch goods use the family shop's record, the v0.1 staff flags are gone; older saves start a new game
+    static constexpr int32 CurrentVersion = 19; // D6: franchises; // M54/M58/M59; // E4b: loans abroad; // M65: subsidiaries; // E4: the exchange difference account; // E3c2c: branch staff are people; // M64: the father's favour is counted; // E3c2 (M27): branch goods use the family shop's record, the v0.1 staff flags are gone; older saves start a new game
     UPROPERTY() int32 Version = CurrentVersion;
     UPROPERTY() int32 Day = 1;
     UPROPERTY() int64 Cash = 35000;

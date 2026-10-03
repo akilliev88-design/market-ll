@@ -30,6 +30,7 @@
 #include "MarketStoreDemand.h"
 #include "MarketStart.h"
 #include "MarketResearch.h"
+#include "MarketFranchise.h"
 
 float MarketDirector::TrafficFactor(const FMarketState& State, const TArray<FMarketProduct>& Products)
 {
@@ -367,6 +368,7 @@ void MarketDirector::CloseDay(FMarketState& State, const TArray<FMarketProduct>&
     MarketCompany::CloseDay(State);              // stores in other cities, depot, trucks, leadership (G-072)
     MarketSubsidiaries::CloseDay(State);         // M65: our companies abroad send the month's profit to the parent
     MarketResearch::CloseDay(State);             // M58: market studies that are ready today
+    MarketFranchise::CloseDay(State);            // D6 (M67): partner stores under our brand, the month's royalty
     MarketPayments::CloseDay(State);             // card money arrives, commissions and POS rent (G-069)
     MarketOnline::CloseDay(State, Products);     // M32: online orders of every shop, per province (after the branches)
     MarketAdvertising::CloseDay(State);          // M34: the company's ads: their cost, what stays in minds, the month's mix

@@ -1,8 +1,10 @@
 # Güncel durum
 
-Son güncelleme: 03.10.2026 — Claude Code, akis-cc2: D4 kıta direktörü ve genel müdür (derlenmedi)
+Son güncelleme: 03.10.2026 — Claude Code, akis-cc2: D4 + D6 (derlenmedi)
 
 ## Kısaca
+
+**03.10.2026 — Claude Code / D6 yurt dışı kapısı ve ortaklık (derlenmedi, `akis-cc2`, M67):** 6. bölüm kilidi kalktı: yurt dışı `MarketCompany::AbroadOpen` (ana ülkede 25 mağaza, 5 il; bir kez girilince açık). Beş yerdeki bölüm kontrolü (`CanOpen`, zincir çıkış satışı, `MarketResearch::CanStart`, bot, menü) buna bağlandı. Yeni `MarketFranchise` (ortaklık): araştırması hazır, kendi mağazamız olmayan ülkede ortak adımızla 3 mağaza açar, 45 günde bir +1 (8–60), ay başı satışın %4'ü kâr payı (stopaj kesilir, `OtherIncome`), bitirme tazminatı bir yıllık kâr payı. Ülke tablosu ve dünya ligi ortak mağazaları markamıza sayar. 6. bölüm "Dünyaya Açılış", hedefleri ortaklığı da sayar. Menü: Şubeler sayfasında araştırma satırının altında ortaklık satırı ("Ortaklıkla gir", "Ortaklığı bitir"). Kayıt sürümü 19. Yeni test `Expansion.ScaleAndFranchise`; `TypesStudiesAndFirms` ölçek için ev mağazaları ekliyor. Test.ps1 171. **Devam notu:** Mustafa derler (D4 ile birlikte). Risk: bot yurt dışına daha erken (25 mağaza) çıkar.
 
 **03.10.2026 — Claude Code / D4 kıta direktörü ve genel müdür (derlenmedi, `akis-cc2`, M66):** `MarketManagers` iki yeni kademe: `ELevel::Continent` (alan = paketteki kıta) ve `ELevel::Chief` (genel müdür, alan "merkez"). Şirket 3 ülkede olunca kıta direktörü atanabilir; birden çok ülkemiz olan kıtada zorunlu (yokken ülke müdürleri −8 beceri, haftalık haber, menü bildirimi). Genel müdür isteğe bağlı, 2 kıta direktöründen sonra. Bağlılık zinciri: mağaza → il → bölge → direktör → ülke → kıta → genel müdür → oyuncu; depo müdürü ülke müdürü yoksa yukarıya. Maliyet etkisi kıta %0,5, genel müdür %0,3. Ücret ülke müdürü bandının 1,6 / 2,4 katı, ağla büyür. Kıta adları `ulkeler.json` → `continents` (`MarketCountry::Continents/ContinentOf/ContinentName`). Menü: Yönetim ağacının başında iki satır, açıklamalar; bot gerektiğinde atar. Kayıt sürümü değişmedi (yeni değerler). Yeni test `Managers.ContinentAndChief`; Test.ps1 170. **Devam notu:** Mustafa derler; ardından D6.
 

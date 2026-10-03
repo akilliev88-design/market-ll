@@ -1,3 +1,13 @@
+## 03.10.2026 — Claude Code — D6: yurt dışı kapısı ve ortaklık (derlenmedi)
+
+**Yapılan (M67):** Yurt dışı artık 6. bölümü beklemiyor; ana ülkede 25 mağaza ve 5 il yetiyor (ülke müdürü atanabilecek büyüklük). Yeni giriş yolu: ortaklık. Yerel bir ortak mağazaları bizim adımızla açar, biz her ay satışlarının %4'ünü alırız; sürerken o ülkede kendi mağazamız olmaz, bitirmek bir yıllık kâr payı kadar tutar. 6. bölümün adı "Dünyaya Açılış".
+
+**Varsayımlar:** Ortaklık oranları (%4, 3 mağaza, 45 günde bir, sözleşme = pazar araştırması bedeli) benim önerim. İhracat/online yolu yazılmadı. Bot ortaklığı kullanmıyor (D8'de bakılır).
+
+**Doğrulama:** Derlenmedi. Yeni test `MirasMarket.Expansion.ScaleAndFranchise`. Kayıt sürümü 19 (eski kayıt yüklenmez, M27). Test.ps1 171.
+
+**Sıradaki:** D7 dünya görünümü (küçükse).
+
 ## 03.10.2026 — Claude Code — D4: kıta direktörü ve genel müdür (derlenmedi)
 
 **İstek (Mustafa):** "d4 d6 ile devam et, d7 fazla olmasa onu da yaparsın."

@@ -72,7 +72,7 @@ bool MarketResearch::CanStart(const FMarketState& State, const FString& Country,
     const EStatus S = Status(State, Country);
     if (S == EStatus::NotNeeded) { OutReason = TEXT("Bu \u00fclke i\u00e7in ara\u015ft\u0131rma gerekmez."); return false; }
     if (S == EStatus::Running || S == EStatus::Ready) { OutReason = TEXT("Ge\u00e7erli bir ara\u015ft\u0131rma zaten var."); return false; }
-    if (!MarketCompany::ChapterOpen(State, 6)) { OutReason = FString::Printf(TEXT("Yurt d\u0131\u015f\u0131 i\u00e7in \u00f6nce \"%s\" b\u00f6l\u00fcm\u00fc a\u00e7\u0131lmal\u0131."), *MarketStory::ChapterTitle(6)); return false; }
+    if (!MarketCompany::AbroadOpen(State)) { OutReason = MarketCompany::AbroadLock(State); return false; } // D6 (M67)
     if (State.Cash < Cost(State, Country)) { OutReason = FString::Printf(TEXT("Ara\u015ft\u0131rma i\u00e7in kasada %s gerekir."), *MarketCountry::Money(Cost(State, Country))); return false; }
     return true;
 }

@@ -70,7 +70,7 @@ Başarısızlık hikâyeyi bitirmez. Her bölümün **hedefleri** state'ten öl�
 | 3 | **İkinci Tabela** (İlçe) | Tek kişi her işe yetişemez | 2. ve 3. şube · ilk müdür · oyuncusuz geçen bir gün | Şube yönetimi, stratejik ilerletme, İK müdürü |
 | 4 | **Trakya** (Bölge) | Hacim artar, sevkiyat yetişmez | 8 şube, 2 il · bölge deposu · ilk kamyon | Merkezi satın alma, doğrudan üretici anlaşmaları |
 | 5 | **Tabela Türkiye'de** (Ulusal) | Büyüme ile kontrol | 50 şube · özel marka · ulusal pazar payı %2 | Yatırımcı/borç/halka arz yolları, bölge müdürlükleri |
-| 6 | **Sınırın Ötesi** (Uluslararası) | Başka pazarda yeniden öğrenmek | Bulgaristan pilotu kârlı · 2. ülke | Ülke profilleri, kur |
+| 6 | **Dünyaya Açılış** (Uluslararası; D6/M67: ana ülkede 25 mağaza ve 5 ille açılır) | Başka pazarda yeniden öğrenmek | Bulgaristan pilotu kârlı · 2. ülke | Ülke profilleri, kur |
 | 7 | **Miras** (Liderlik) | Büyükken dayanıklı kalmak | Birden çok ölçütte birkaç yıl liderlik | Serbest oyun, alternatif sonlar |
 
 **Sat ya da devam et (Bölüm 2):** 10. gün civarında (en geç borç kapanınca) Kadir Bereketoğlu dükkânı ister. Teklif, dükkânın o günkü değerine göre hesaplanır. Oyuncu satarsa "Sattın" sonu gösterilir ve hatıralara yazılır, sonra seçim gelir: **"Rüyaymış: dükkâna dön"** (satış parası gelmemiş olur, kimlik seçimiyle hikâye sürer; 3 gün içinde seçilmezse bu olur) ya da **"Burada bitsin"** (serbest oyun). Son görülür ama oyuncu kaybetmez. Devam ederse **strateji kimliğini** seçer:

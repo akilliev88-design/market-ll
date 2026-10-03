@@ -45,6 +45,14 @@ namespace MarketCompany
     // Day close (after every revenue is booked): moves the smoothed revenue a thirtieth towards the day's.
     void TrackNationalRevenue(FMarketState& State);
     bool ChapterOpen(const FMarketState& State, int32 Chapter);
+    // D6 (M67, 09_DUNYA_YENIDEN 8.2): the way abroad opens with the company's scale, not a chapter: 25 shops in the
+    // home country (the family shop counts) in 5 provinces (a country manager can be appointed). Once a foreign
+    // country is entered (own store, chain or partner) it stays open. AbroadLock: why not yet ("" when open).
+    constexpr int32 AbroadHomeShops = 25;
+    bool AbroadOpen(const FMarketState& State);
+    FString AbroadLock(const FMarketState& State);
+    // Foreign countries with our own shops or a partner under our brand.
+    int32 ForeignPresence(const FMarketState& State);
 
     // Depots (G-089: MarketDepots, depots in provinces). HasDepot: a depot in a province of the sub-region.
     bool HasDepot(const FMarketState& State, const FString& Country, const FString& SubRegion);

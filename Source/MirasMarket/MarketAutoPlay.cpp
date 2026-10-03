@@ -236,7 +236,7 @@ namespace MarketAutoPlay
             TArray<MarketBranches::FSite> Sites;
             for (const MarketCountry::FProfile& Country : MarketCountry::All())
             {
-                if (Country.Id != State.CountryId && !MarketCompany::ChapterOpen(State, 6)) continue;
+                if (Country.Id != State.CountryId && !MarketCompany::AbroadOpen(State)) continue; // D6 (M67)
                 if (Country.Id != State.CountryId && MarketResearch::Status(State, Country.Id) != MarketResearch::EStatus::NotNeeded
                     && MarketResearch::Status(State, Country.Id) != MarketResearch::EStatus::Ready)
                 {

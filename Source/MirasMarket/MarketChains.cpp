@@ -8,6 +8,7 @@
 #include "MarketStoreAssign.h"
 #include "MarketStaff.h"
 #include "MarketSubsidiaries.h"
+#include "MarketFranchise.h"
 #include "MarketResearch.h"
 
 namespace MarketChainsLocal
@@ -593,6 +594,7 @@ int64 MarketChains::OurYearRevenue(const FMarketState& State, const FString& InC
     }
     for (int32 I = 0; I < State.Rivals.Chains.Num(); ++I) // M30: subsidiaries
         if (!State.Rivals.Chains[I].bGone && State.Rivals.Chains[I].bOurs && State.Rivals.Chains[I].Country == Country) Sum += YearRevenue(State, I);
+    Sum += MarketFranchise::YearSales(State, Country); // D6 (M67): partner stores under our brand count as the brand's sales
     return Sum;
 }
 
@@ -633,7 +635,10 @@ TArray<MarketChains::FStanding> MarketChains::NationalTable(const FMarketState& 
     if (Country == State.CountryId) ++Us.Stores;
     const int32 Subsidiary = SubsidiaryStores(State, Country);
     Us.Stores += Subsidiary;
-    Us.Detail = Subsidiary > 0 ? FString::Printf(TEXT("biz \u00b7 %d ma\u011faza (%d ba\u011fl\u0131 \u015firkette)"), Us.Stores, Subsidiary) : FString::Printf(TEXT("biz \u00b7 %d ma\u011faza"), Us.Stores);
+    const int32 Partner = MarketFranchise::StoresIn(State, Country); // D6 (M67)
+    Us.Stores += Partner;
+    Us.Detail = Subsidiary > 0 ? FString::Printf(TEXT("biz \u00b7 %d ma\u011faza (%d ba\u011fl\u0131 \u015firkette)"), Us.Stores, Subsidiary)
+        : Partner > 0 ? FString::Printf(TEXT("biz \u00b7 %d ma\u011faza (orta\u011f\u0131m\u0131z\u0131n)"), Us.Stores) : FString::Printf(TEXT("biz \u00b7 %d ma\u011faza"), Us.Stores);
     Us.Revenue = static_cast<double>(OurYearRevenue(State, Country));
     if (Us.Stores > 0) Table.Add(Us);
     Table.StableSort([](const FStanding& A, const FStanding& B) { return A.Revenue > B.Revenue; });
@@ -674,6 +679,7 @@ TArray<MarketChains::FStanding> MarketChains::WorldTable(const FMarketState& Sta
     Ours.Add(State.CountryId);
     for (const FMarketBranch& B : State.Branches) if (B.Stage == static_cast<uint8>(MarketBranches::EStage::Open)) Ours.AddUnique(MarketBranches::CountryOf(State, B));
     for (const FMarketChain& C : Chains) if (!C.bGone && C.bOurs) Ours.AddUnique(C.Country); // M30
+    for (const FString& Country : MarketFranchise::Countries(State)) Ours.AddUnique(Country); // D6 (M67)
     for (const FString& Country : Ours) Us.Revenue += ToWorld(State, Country, OurYearRevenue(State, Country));
     Us.Detail = Ours.Num() > 1 ? FString::Printf(TEXT("%d \u00fclke"), Ours.Num()) : FString(TEXT("biz"));
     Table.Add(Us);
@@ -925,7 +931,7 @@ bool MarketChains::CanBuy(const FMarketState& State, int32 ChainIndex, FString& 
     if (C.bExitSale && C.Country != State.CountryId)
     {
         // M30: a giant's arm leaving the country is a door into it, from the world chapter on.
-        if (!MarketCompany::ChapterOpen(State, 6)) { OutReason = FString::Printf(TEXT("Yurt d\u0131\u015f\u0131 i\u00e7in \"%s\" b\u00f6l\u00fcm\u00fc a\u00e7\u0131lmal\u0131."), *MarketStory::ChapterTitle(6)); return false; }
+        if (!MarketCompany::AbroadOpen(State)) { OutReason = MarketCompany::AbroadLock(State); return false; } // D6 (M67)
     }
     else if (C.Country != State.CountryId && !State.Branches.ContainsByPredicate([&State, &C](const FMarketBranch& B) { return MarketBranches::CountryOf(State, B) == C.Country; }))
     {

@@ -72,7 +72,7 @@ FString MarketStory::ChapterTitle(int32 Chapter)
     case 3: return TEXT("\u0130kinci Tabela");
     case 4: return TEXT("\u0130ller");
     case 5: return TEXT("\u00dclke \u00c7ap\u0131nda");
-    case 6: return TEXT("S\u0131n\u0131r\u0131n \u00d6tesi");
+    case 6: return TEXT("D\u00fcnyaya A\u00e7\u0131l\u0131\u015f"); // D6: one universal story; the way abroad opens with scale
     case 7: return TEXT("Miras");
     default: return TEXT("Serbest oyun");
     }
@@ -146,8 +146,10 @@ TArray<MarketStory::FObjective> MarketStory::Objectives(const FMarketState& Stat
         bool bPilot = false;
         for (const FMarketBranch& B : State.Branches)
             if (B.Stage == static_cast<uint8>(MarketBranches::EStage::Open) && MarketBranches::CountryOf(State, B) != State.CountryId && State.Day - B.OpenedDay >= 30 && B.Last30Profit > 0) bPilot = true;
-        Add(TEXT("Yurt d\u0131\u015f\u0131ndaki ilk ma\u011faza 30 g\u00fcnde k\u00e2rl\u0131"), bPilot);
-        Add(FString::Printf(TEXT("\u0130kinci yabanc\u0131 \u00fclke (\u015fu an %d)"), MarketCompany::ForeignCountries(State)), MarketCompany::ForeignCountries(State) >= 2);
+        // D6 (M67): a partner's first royalty counts as a first foothold too.
+        const bool bRoyalty = State.Company.Franchises.ContainsByPredicate([](const FMarketFranchise& F) { return F.TotalRoyalty > 0; });
+        Add(TEXT("Yurt d\u0131\u015f\u0131nda ilk ad\u0131m: ma\u011faza 30 g\u00fcnde k\u00e2rl\u0131 ya da orta\u011f\u0131n ilk k\u00e2r pay\u0131"), bPilot || bRoyalty);
+        Add(FString::Printf(TEXT("\u0130kinci yabanc\u0131 \u00fclke (\u015fu an %d)"), MarketCompany::ForeignPresence(State)), MarketCompany::ForeignPresence(State) >= 2);
         break;
     }
     case 7:

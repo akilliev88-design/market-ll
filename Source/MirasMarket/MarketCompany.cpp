@@ -5,6 +5,7 @@
 #include "MarketBranches.h"
 #include "MarketCalendar.h"
 #include "MarketDepots.h"
+#include "MarketFranchise.h"
 #include "MarketManagers.h"
 #include "MarketPrices.h"
 #include "MarketStaff.h"
@@ -118,6 +119,32 @@ float MarketCompany::NationalShare(const FMarketState& State)
 bool MarketCompany::ChapterOpen(const FMarketState& State, int32 Chapter)
 {
     return State.Story.Chapter >= Chapter;   // chapters only grow (1..7); the finale keeps what was open
+}
+
+bool MarketCompany::AbroadOpen(const FMarketState& State)
+{
+    if (ForeignPresence(State) > 0) return true;
+    return MarketManagers::ShopsInCountry(State, State.CountryId) >= AbroadHomeShops
+        && MarketManagers::ProvincesWithShops(State, State.CountryId) >= MarketManagers::CountryProvinces;
+}
+
+FString MarketCompany::AbroadLock(const FMarketState& State)
+{
+    if (AbroadOpen(State)) return FString();
+    return FString::Printf(TEXT("Yurt d\u0131\u015f\u0131 i\u00e7in ana \u00fclkede en az %d ma\u011faza (\u015fu an %d) ve %d ilde ma\u011faza (\u015fu an %d) gerekir: \u00f6nce bir \u00fclke m\u00fcd\u00fcr\u00fc atanabilecek b\u00fcy\u00fckl\u00fc\u011fe gel."),
+        AbroadHomeShops, MarketManagers::ShopsInCountry(State, State.CountryId), MarketManagers::CountryProvinces, MarketManagers::ProvincesWithShops(State, State.CountryId));
+}
+
+int32 MarketCompany::ForeignPresence(const FMarketState& State)
+{
+    TArray<FString> Seen;
+    for (const FMarketBranch& B : State.Branches)
+    {
+        const FString Country = MarketBranches::CountryOf(State, B);
+        if (IsOpen(B) && Country != State.CountryId) Seen.AddUnique(Country);
+    }
+    for (const FMarketFranchise& F : State.Company.Franchises) if (!F.bEnded) Seen.AddUnique(F.Country);
+    return Seen.Num();
 }
 
 bool MarketCompany::HasDepot(const FMarketState& State, const FString& Country, const FString& SubRegion)

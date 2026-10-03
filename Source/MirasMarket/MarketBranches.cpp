@@ -27,6 +27,7 @@
 #include "MarketStoreDemand.h"
 #include "MarketProductDemand.h"
 #include "MarketFreshness.h"
+#include "MarketFranchise.h"
 #include "MarketSubsidiaries.h"
 #include "MarketDemand.h"
 #include "MarketResearch.h"
@@ -416,7 +417,8 @@ bool MarketBranches::CanOpen(const FMarketState& State, const TArray<FMarketProd
         OutReason = TEXT("Ev ilinin d\u0131\u015f\u0131nda ma\u011faza i\u00e7in \u0130K m\u00fcd\u00fcr\u00fc ve mali m\u00fc\u015favir gerekir.");
         return false;
     }
-    if (Site.bAbroad && !MarketCompany::ChapterOpen(State, 6)) { OutReason = FString::Printf(TEXT("Yurt d\u0131\u015f\u0131 i\u00e7in \"%s\" b\u00f6l\u00fcm\u00fc a\u00e7\u0131lmal\u0131."), *MarketStory::ChapterTitle(6)); return false; }
+    if (Site.bAbroad && !MarketCompany::AbroadOpen(State)) { OutReason = MarketCompany::AbroadLock(State); return false; } // D6 (M67): scale, not a chapter
+    if (Site.bAbroad && MarketFranchise::Find(State, Site.Country)) { OutReason = FString::Printf(TEXT("%s: bu \u00fclkede ma\u011fazalar\u0131 orta\u011f\u0131m\u0131z a\u00e7\u0131yor; kendi ma\u011fazan i\u00e7in \u00f6nce ortakl\u0131\u011f\u0131 bitir."), *MarketCountry::FindOrDefault(Site.Country).Name); return false; }
     if (Site.bAbroad && !MarketResearch::AllowsEntry(State, Site.Country, OutReason)) return false; // M58: a market study first
     if (Kind.Chapter > 0 && !MarketCompany::ChapterOpen(State, Kind.Chapter)) { OutReason = FString::Printf(TEXT("%s i\u00e7in \"%s\" b\u00f6l\u00fcm\u00fc a\u00e7\u0131lmal\u0131."), Kind.Short, *MarketStory::ChapterTitle(Kind.Chapter)); return false; }
     if (Site.PopulationK < Kind.MinPopulationK) { OutReason = FString::Printf(TEXT("%s yaln\u0131z n\u00fcfusu %d binin \u00fcst\u00fcndeki illere a\u00e7\u0131l\u0131r."), Kind.Short, Kind.MinPopulationK); return false; }
