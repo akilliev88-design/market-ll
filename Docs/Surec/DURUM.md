@@ -1,8 +1,10 @@
 # Güncel durum
 
-Son güncelleme: 04.10.2026 — Claude Code, akis-cc2: D4 + D6 + D7 ilk parça derlendi, testler ve Smoke geçti
+Son güncelleme: 04.10.2026 — Claude Code, akis-cc2: D7 kalanı (dünya haritası, M53) (derlenmedi)
 
 ## Kısaca
+
+**04.10.2026 — Claude Code / D7 kalanı: dünya haritası ve M53 (derlenmedi, `akis-cc2`):** (1) Yeni `SMarketWorldMap` (`MarketWorldMap.*`): Dünya kartının üstünde şematik harita; kıta başına yumuşak alan ve adı, her ülke nüfusuna göre bir nokta, renk durumumuz (koyu ana ülke, yeşil mağaza, mavi ortaklık, sarı araştırma, gri girilmedi), üstüne gelince alt satırda durum, tıklayınca il haritası. Konumlar ve ad yönü ülke paketinde (`world: x, y, label`). (2) M53: `MarketChains::Listed/ListedRank/OutsideText`, dünya ilk 50, ülke 10–30 (nüfusa göre); sıralar (haber, hatıra, hedefler, bot raporu) liste dışında 0; listeye ilk giriş hatıra; Rakipler sayfası en çok 30/50 satır ve "listede değilsin" satırı; dünya kartındaki sıra da listeden. Yeni test `Chains.ListedOnlyWhenPassed`; Test.ps1 172. **Devam notu:** Mustafa derler; sonra D8.
 
 **04.10.2026 — Claude Code / D4 + D6 + D7 ilk parça doğrulandı (60f3129, Codex'in iki commit'iyle birleşmiş):** DERLE geçti, TEST 170 + 1 uyarı (171), başarısız 0, Smoke geçti. OLCUM değişmedi (firma sayıları, ciro oranı 1,045, rakip fiyat düzeyi 0,974). Kıta direktörü/genel müdür, ölçekle açılan yurt dışı, ortaklık (gün kuralı yok) ve dünya kartı tamam. Sıradaki: D7 kalanı (çizili dünya haritası, M53) ya da D8 (bot ve denge); Mustafa seçer.
 

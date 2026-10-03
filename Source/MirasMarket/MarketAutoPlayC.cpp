@@ -202,7 +202,7 @@ namespace MarketAutoPlayC
         if(Day==MarketCalendar::GameDayOf(MarketCalendar::StartYear+Year,MarketCalendar::StartMonth,MarketCalendar::StartDayOfMonth)-1)
         {
             const auto World=MarketChains::WorldTable(State); const auto National=MarketChains::NationalTable(State,State.CountryId);
-            FYear Row;Row.Year=Year;Row.Day=Day;Row.World=MarketChains::OurRank(World);Row.National=MarketChains::OurRank(National);Row.Stores=Stores;
+            FYear Row;Row.Year=Year;Row.Day=Day;Row.World=MarketChains::ListedRank(World,MarketChains::WorldListSize);Row.National=MarketChains::ListedRank(National,MarketChains::NationalListSize(State.CountryId));Row.Stores=Stores;
             if(!World.IsEmpty())Row.LeaderWorld=World[0].Revenue;
             for(const auto& Entry:World)if(Entry.bUs)Row.OurWorld=Entry.Revenue;
             Stats.Years.Add(Row);

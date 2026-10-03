@@ -127,6 +127,15 @@ namespace MarketChains
     // The world league: giants + national chains of our countries + us, by revenue in world units.
     TArray<FStanding> WorldTable(const FMarketState& State);
     int32 OurRank(const TArray<FStanding>& Table);
+    // M53 (Mustafa 03.10.2026): the lists show only their first rows (the world league its 50, a country 10-30 by
+    // its people); we are on a list only once our revenue passed its last row (who then drops out). Listed: the rows
+    // shown (fewer when the table has fewer rivals); ListedRank: our place on it (0 = not on the list); OutsideText:
+    // "Listede de\u011filsin: 50. s\u0131radaki X ile aran\u0131zda ... var" ("" when on it).
+    constexpr int32 WorldListSize = 50;
+    int32 NationalListSize(const FString& Country);
+    TArray<FStanding> Listed(const TArray<FStanding>& Full, int32 Cap);
+    int32 ListedRank(const TArray<FStanding>& Full, int32 Cap);
+    FString OutsideText(const TArray<FStanding>& Full, int32 Cap, bool bWorld);
 
     // Buying a chain that is for sale (M30: whole, see below). Price: 8 months of its revenue; a giant leaving the
     // country (bExitSale) sells for 6 months, even where we have no store yet: a way into a new country.

@@ -115,6 +115,11 @@ namespace MarketCountry
         FString Name = TEXT("T\u00fcrkiye");
         FString NameEn = TEXT("Turkey");
         FString Continent;              // D3/M51: "avrupa", "amerika", "asya"... (continent director, D4)
+        // D7: the country's place on the schematic world map ("world": x 0..100, y 0..50, roughly geographic but
+        // spread so names do not touch) and the side its name sits on ("below", "above", "left", "right"). x < 0: not drawn.
+        float WorldX = -1.f;
+        float WorldY = -1.f;
+        FString WorldLabel = TEXT("below");
         FString CurrencyCode = TEXT("TRY");
         FString CurrencySymbol = TEXT("TL");
         FString CurrencyName = TEXT("T\u00fcrk liras\u0131");

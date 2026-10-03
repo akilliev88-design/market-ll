@@ -1,3 +1,15 @@
+## 04.10.2026 — Claude Code — D7 kalanı: dünya haritası ve M53 (derlenmedi)
+
+**İstek (Mustafa):** "1'den devam et, D8'e geçeriz."
+
+**Yapılan:** Dünya kartına şematik bir harita: kıtalar yumuşak alanlar, her ülke bir nokta (büyüklük nüfus, renk bizim durumumuz). Gerçek ülke sınırları yok; konumlar kabaca coğrafi ama isimler çakışmasın diye açılmış (ülke paketinde). M53: dünya ligi ilk 50'yi, ülke listesi nüfusa göre 10–30 firmayı gösterir; listenin sonuncusunu ciroda geçene kadar listede değiliz, menü kime ne kadar kaldığını söyler; ilk giriş hatıra olur.
+
+**Varsayım:** Ülke listesi boyu = 10 + nüfus(milyon)/5, en çok 30; ülkede daha az firma varsa liste o kadar.
+
+**Doğrulama:** Derlenmedi. Yeni test `MirasMarket.Chains.ListedOnlyWhenPassed`. Test.ps1 172.
+
+**Sıradaki:** D8 (bot ve denge).
+
 ## 04.10.2026 — Claude Code — D4, D6, D7 ilk parça doğrulandı
 
 **son.log (60f3129):** DERLE geçti; TEST 170 başarılı + 1 uyarılı, başarısız 0 (alt sınır 171); Smoke geçti. OLCUM önceki turla aynı.

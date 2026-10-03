@@ -1,6 +1,7 @@
 #include "MarketChains.h"
 #include "MarketBranches.h"
 #include "MarketEconomy.h"
+#include "MarketCountry.h"
 #include "Misc/AutomationTest.h"
 
 #if WITH_DEV_AUTOMATION_TESTS
@@ -240,6 +241,43 @@ bool FMarketChainsSubsidiaryTest::RunTest(const FString& Parameters)
     const int64 Eight = MarketChains::Price(S, Bin);
     S.Rivals.Chains[Bin].bExitSale = true;
     TestTrue(TEXT("Exit sale is cheaper"), FMath::Abs(MarketChains::Price(S, Bin) - Eight * 6 / 8) <= 1);
+    return true;
+}
+
+// M53: the lists show their first rows; we are on one only once we passed its last row.
+IMPLEMENT_SIMPLE_AUTOMATION_TEST(FMarketChainsListedTest, "MirasMarket.Chains.ListedOnlyWhenPassed", EAutomationTestFlags::EditorContext | EAutomationTestFlags::EngineFilter)
+bool FMarketChainsListedTest::RunTest(const FString& Parameters)
+{
+    using MarketChains::FStanding;
+    auto Table = [](double Ours)
+    {
+        TArray<FStanding> Rows;
+        for (int32 I = 0; I < 60; ++I) { FStanding R; R.Name = FString::Printf(TEXT("Zincir %d"), I + 1); R.Revenue = 1000.0 - 10.0 * I; Rows.Add(R); }
+        FStanding Us; Us.bUs = true; Us.Name = TEXT("Biz"); Us.Revenue = Ours; Rows.Add(Us);
+        Rows.StableSort([](const FStanding& A, const FStanding& B) { return A.Revenue > B.Revenue; });
+        return Rows;
+    };
+    const TArray<FStanding> Small = Table(400.0); // 61st in the full table, behind the 50th (510)
+    TestEqual(TEXT("Fifty shown"), MarketChains::Listed(Small, 50).Num(), 50);
+    TestEqual(TEXT("Not on the list"), MarketChains::ListedRank(Small, 50), 0);
+    TestTrue(TEXT("Raw rank still counted"), MarketChains::OurRank(Small) > 50);
+    TestTrue(TEXT("Says who to pass"), MarketChains::OutsideText(Small, 50, true).Contains(TEXT("Zincir 50")));
+    const TArray<FStanding> Passed = Table(515.0); // past the 50th (510), behind the 49th (520)
+    TestEqual(TEXT("On it as 50th"), MarketChains::ListedRank(Passed, 50), 50);
+    TestEqual(TEXT("Still fifty rows"), MarketChains::Listed(Passed, 50).Num(), 50);
+    TestFalse(TEXT("The old 50th dropped out"), MarketChains::Listed(Passed, 50).ContainsByPredicate([](const FStanding& R) { return R.Name == TEXT("Zincir 50"); }));
+    TestTrue(TEXT("Nothing to say on it"), MarketChains::OutsideText(Passed, 50, true).IsEmpty());
+    // A short table: the list is its rivals; we pass the last one to get on it.
+    TArray<FStanding> Few;
+    for (int32 I = 0; I < 3; ++I) { FStanding R; R.Revenue = 300.0 - 100.0 * I; Few.Add(R); }
+    FStanding Us; Us.bUs = true; Us.Revenue = 50.0; Few.Add(Us);
+    TestEqual(TEXT("Three rivals, three rows"), MarketChains::Listed(Few, 20).Num(), 3);
+    TestEqual(TEXT("Behind the third: off"), MarketChains::ListedRank(Few, 20), 0);
+    Few.Last().Revenue = 150.0;
+    Few.StableSort([](const FStanding& A, const FStanding& B) { return A.Revenue > B.Revenue; });
+    TestEqual(TEXT("Past the third: on as third"), MarketChains::ListedRank(Few, 20), 3);
+    for (const MarketCountry::FProfile& P : MarketCountry::All())
+        TestTrue(*(P.Id + TEXT(": a country's list is 10-30")), MarketChains::NationalListSize(P.Id) >= 10 && MarketChains::NationalListSize(P.Id) <= 30);
     return true;
 }
 

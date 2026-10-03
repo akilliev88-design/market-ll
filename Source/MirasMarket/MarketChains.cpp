@@ -693,6 +693,44 @@ int32 MarketChains::OurRank(const TArray<FStanding>& Table)
     return Index == INDEX_NONE ? 0 : Index + 1;
 }
 
+int32 MarketChains::NationalListSize(const FString& Country)
+{
+    return FMath::Clamp(10 + MarketCountry::PopulationK(MarketCountry::FindOrDefault(Country).Id) / 5000, 10, 30);
+}
+
+TArray<MarketChains::FStanding> MarketChains::Listed(const TArray<FStanding>& Full, int32 Cap)
+{
+    const int32 Us = Full.IndexOfByPredicate([](const FStanding& S) { return S.bUs; });
+    const int32 Rivals = Full.Num() - (Us != INDEX_NONE ? 1 : 0);
+    if (Rivals <= 0) return Full;
+    const int32 Size = FMath::Min(FMath::Max(1, Cap), Rivals);
+    TArray<FStanding> Rows;
+    const bool bIn = Us != INDEX_NONE && Us < Size && Full[Us].Revenue > 0.0;
+    for (const FStanding& Row : Full)
+    {
+        if (Rows.Num() >= Size) break;
+        if (Row.bUs && !bIn) continue;
+        Rows.Add(Row);
+    }
+    return Rows;
+}
+
+int32 MarketChains::ListedRank(const TArray<FStanding>& Full, int32 Cap)
+{
+    return OurRank(Listed(Full, Cap));
+}
+
+FString MarketChains::OutsideText(const TArray<FStanding>& Full, int32 Cap, bool bWorld)
+{
+    const TArray<FStanding> Rows = Listed(Full, Cap);
+    const FStanding* Us = Full.FindByPredicate([](const FStanding& S) { return S.bUs; });
+    if (!Us || Rows.Num() == 0 || OurRank(Rows) > 0) return FString();
+    const FStanding& Last = Rows.Last();
+    const double Gap = FMath::Max(0.0, Last.Revenue - Us->Revenue);
+    const FString Amount = bWorld ? FString::Printf(TEXT("%.2f milyar"), Gap / 1.0e9) : MarketCountry::Money(static_cast<int64>(Gap));
+    return FString::Printf(TEXT("Listede de\u011filsin (ilk %d): %d. s\u0131radaki %s ile aran\u0131zda y\u0131ll\u0131k %s ciro var."), Rows.Num(), Rows.Num(), *Last.Name, *Amount);
+}
+
 // ---------------------------------------------------------------------------------------------------------------
 // Buying a chain
 
@@ -1499,8 +1537,13 @@ namespace MarketChainsLocal
         FMarketChainsState& R = State.Rivals;
         if (Day - R.LastLeagueDay < MarketChains::TurnDays) return;
         R.LastLeagueDay = Day;
-        const int32 National = MarketChains::OurRank(MarketChains::NationalTable(State, State.CountryId));
-        const int32 World = MarketChains::OurRank(MarketChains::WorldTable(State));
+        // M53: our place on the lists (0 = not on them yet); getting on one is remembered.
+        const int32 National = MarketChains::ListedRank(MarketChains::NationalTable(State, State.CountryId), MarketChains::NationalListSize(State.CountryId));
+        const int32 World = MarketChains::ListedRank(MarketChains::WorldTable(State), MarketChains::WorldListSize);
+        if (National > 0 && R.BestNationalRank == 0)
+            MarketStory::AddMemory(State, FString::Printf(TEXT("\u00fclkenin ilk %d perakendecisi listesine girdik (%d. s\u0131ra)"), MarketChains::NationalListSize(State.CountryId), National));
+        if (World > 0 && R.BestLeagueRank == 0)
+            MarketStory::AddMemory(State, FString::Printf(TEXT("d\u00fcnya perakende ligine (ilk %d) girdik: %d. s\u0131ra"), MarketChains::WorldListSize, World));
         if (National > 0 && R.NationalRank > 0 && National < R.NationalRank && National <= 10)
             News.Add(FString::Printf(TEXT("\u00dclkede perakendeciler aras\u0131nda %d. s\u0131raya \u00e7\u0131kt\u0131n."), National));
         if (World > 0 && R.LeagueRank > 0 && World < R.LeagueRank && World <= 25)

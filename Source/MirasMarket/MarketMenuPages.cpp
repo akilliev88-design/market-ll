@@ -41,6 +41,7 @@
 #include "MarketSubsidiaries.h"
 #include "MarketResearch.h"
 #include "MarketFranchise.h"
+#include "MarketWorldMap.h"
 #include "Widgets/Layout/SSpacer.h"
 #include "Widgets/Images/SImage.h"
 #include "Widgets/Input/SButton.h"
@@ -1273,8 +1274,10 @@ TSharedRef<SWidget> SMarketMenu::RivalsPage()
     {
         uint64 Frame = 0;
         bool bFilled = false;
-        TArray<MarketChains::FStanding> National;
+        TArray<MarketChains::FStanding> National;      // M53: the rows shown (the list's first N)
         TArray<MarketChains::FStanding> World;
+        TArray<MarketChains::FStanding> NationalFull;  // every retailer, us included
+        TArray<MarketChains::FStanding> WorldFull;
     };
     TSharedRef<FTableCache> Tables = MakeShared<FTableCache>();
     auto Fill = [G, Tables]()
@@ -1282,8 +1285,10 @@ TSharedRef<SWidget> SMarketMenu::RivalsPage()
         if (Tables->bFilled && Tables->Frame == GFrameCounter) return;
         Tables->bFilled = true;
         Tables->Frame = GFrameCounter;
-        Tables->National = G() ? MarketChains::NationalTable(G()->State, G()->State.CountryId) : TArray<MarketChains::FStanding>();
-        Tables->World = G() ? MarketChains::WorldTable(G()->State) : TArray<MarketChains::FStanding>();
+        Tables->NationalFull = G() ? MarketChains::NationalTable(G()->State, G()->State.CountryId) : TArray<MarketChains::FStanding>();
+        Tables->WorldFull = G() ? MarketChains::WorldTable(G()->State) : TArray<MarketChains::FStanding>();
+        Tables->National = G() ? MarketChains::Listed(Tables->NationalFull, MarketChains::NationalListSize(G()->State.CountryId)) : TArray<MarketChains::FStanding>();
+        Tables->World = MarketChains::Listed(Tables->WorldFull, MarketChains::WorldListSize);
     };
     auto RowOf = [Tables, Fill](bool bWorld, int32 Slot) -> const MarketChains::FStanding*
     {
@@ -1393,9 +1398,13 @@ TSharedRef<SWidget> SMarketMenu::RivalsPage()
         if (!G()) return FString();
         Fill();
         const int32 Rank = MarketChains::OurRank(bWorld ? Tables->World : Tables->National);
-        // C5 (A menu list): with no revenue yet a rank means nothing ("1. s\u0131radas\u0131n" on day one).
+        // M53: off the list, how far its last row is.
         if (!MarketMenuSimplifyUi::C5UsRanked(bWorld ? Tables->World : Tables->National))
-            return FString(TEXT("Hen\u00fcz s\u0131ralamaya girmedin: ciro olu\u015ftuk\u00e7a listede yerini al\u0131rs\u0131n."));
+        {
+            const FString Outside = MarketChains::OutsideText(bWorld ? Tables->WorldFull : Tables->NationalFull,
+                bWorld ? MarketChains::WorldListSize : MarketChains::NationalListSize(G()->State.CountryId), bWorld);
+            return Outside.IsEmpty() ? FString(TEXT("Hen\u00fcz s\u0131ralamaya girmedin: ciro olu\u015ftuk\u00e7a listede yerini al\u0131rs\u0131n.")) : Outside;
+        }
         const FMarketChainsState& R = G()->State.Rivals;
         const int32 Best = bWorld ? R.BestLeagueRank : R.BestNationalRank;
         return Rank > 0 ? FString::Printf(TEXT("%d. s\u0131radas\u0131n%s"), Rank, Best > 0 && Best < Rank ? *FString::Printf(TEXT(" \u00b7 en iyi %d."), Best) : TEXT("")) : FString(TEXT("Hen\u00fcz s\u0131ralamada de\u011filsin."));
@@ -1410,7 +1419,7 @@ TSharedRef<SWidget> SMarketMenu::RivalsPage()
             Fill();
             return MarketMenuSimplifyUi::C5UsRanked(bWorld ? Tables->World : Tables->National) ? EVisibility::Collapsed : EVisibility::Visible;
         })
-        [ Label([] { return FString(TEXT("Sen hen\u00fcz bu listede yoksun: ciron olu\u015funca kendi s\u0131ran\u0131 al\u0131rs\u0131n.")); }, 10, ERole::Muted, false, true) ];
+        [ Label([] { return FString(TEXT("Sen hen\u00fcz bu listede yoksun: listenin sonuncusunu ciroda ge\u00e7ince girersin.")); }, 10, ERole::Muted, false, true) ];
     };
 
     TSharedRef<SWidget> Nationwide = SNew(SScrollBox)
@@ -1436,7 +1445,7 @@ TSharedRef<SWidget> SMarketMenu::RivalsPage()
         [ Card(SNew(SVerticalBox)
             + SVerticalBox::Slot().AutoHeight().Padding(0.f, 0.f, 0.f, 6.f)[ Section(TEXT("ZINC\u0130RLER VE B\u0130Z")) ]
             + SVerticalBox::Slot().AutoHeight().Padding(0.f, 0.f, 0.f, 4.f)[ RankNote(false) ]
-            + SVerticalBox::Slot().AutoHeight()[ TableRows(false, 16) ]) ]
+            + SVerticalBox::Slot().AutoHeight()[ TableRows(false, 30) ]) ]
     ];
 
     TSharedRef<SWidget> World = SNew(SScrollBox)
@@ -1454,8 +1463,8 @@ TSharedRef<SWidget> SMarketMenu::RivalsPage()
                 TArray<FString> Parts;
                 for (const MarketCountry::FProfile& Pack : MarketCountry::All())
                     if (Pack.Id != G()->State.CountryId) Parts.Add(FString::Printf(TEXT("%s %d"), *Pack.Name, MarketCompany::CountryStores(G()->State, Pack.Id)));
-                return FString::Printf(TEXT("Yurt d\u0131\u015f\u0131ndaki ma\u011fazalar\u0131m\u0131z: %s. Yurt d\u0131\u015f\u0131 6. b\u00f6l\u00fcmde a\u00e7\u0131l\u0131r; yeni \u00fclkede ilk %d g\u00fcn marj d\u00fc\u015f\u00fck kal\u0131r."),
-                    *FString::Join(Parts, TEXT(", ")), MarketCompany::LearningDays);
+                return FString::Printf(TEXT("Yurt d\u0131\u015f\u0131ndaki ma\u011fazalar\u0131m\u0131z: %s. Yurt d\u0131\u015f\u0131 ana \u00fclkede %d ma\u011faza ve %d ille a\u00e7\u0131l\u0131r; yeni \u00fclkede ilk %d g\u00fcn marj d\u00fc\u015f\u00fck kal\u0131r."),
+                    *FString::Join(Parts, TEXT(", ")), MarketCompany::AbroadHomeShops, MarketManagers::CountryProvinces, MarketCompany::LearningDays);
             }, 10, ERole::Muted, false, true) ]
             + SVerticalBox::Slot().AutoHeight().Padding(0.f, 4.f, 0.f, 0.f)
             [ More([] { return FString(TEXT("Lig y\u0131ll\u0131k ciroyla, t\u00fcm \u00fclkeler i\u00e7in ortak birimde s\u0131ralan\u0131r (enflasyondan ar\u0131nd\u0131r\u0131lm\u0131\u015f). D\u00fcnya devleri her y\u0131l b\u00fcy\u00fcr ve zaman zaman oldu\u011fun \u00fclkelere girer.")); }) ]) ]
@@ -1463,7 +1472,7 @@ TSharedRef<SWidget> SMarketMenu::RivalsPage()
         [ Card(SNew(SVerticalBox)
             + SVerticalBox::Slot().AutoHeight().Padding(0.f, 0.f, 0.f, 6.f)[ Section(TEXT("SIRALAMA")) ]
             + SVerticalBox::Slot().AutoHeight().Padding(0.f, 0.f, 0.f, 4.f)[ RankNote(true) ]
-            + SVerticalBox::Slot().AutoHeight()[ TableRows(true, 25) ]) ]
+            + SVerticalBox::Slot().AutoHeight()[ TableRows(true, MarketChains::WorldListSize) ]) ]
     ];
 
     return SNew(SVerticalBox)
@@ -2805,10 +2814,43 @@ TSharedRef<SWidget> SMarketMenu::WorldCard()
             ];
         }
     }
+    // D7: the schematic map above the list: a dot a country, its colour our standing there.
+    auto DotRole = [G](const FString& Country) -> ERole
+    {
+        if (!G()) return ERole::Line;
+        const FMarketState& S = G()->State;
+        if (Country == S.CountryId) return ERole::Primary;
+        if (MarketCompany::CountryStores(S, Country) > 0) return ERole::Good;
+        if (MarketFranchise::Find(S, Country)) return ERole::Info;
+        const MarketResearch::EStatus Study = MarketResearch::Status(S, Country);
+        if (Study == MarketResearch::EStatus::Running || Study == MarketResearch::EStatus::Ready) return ERole::Warn;
+        return ERole::Line;
+    };
+    TSharedPtr<SMarketWorldMap> WorldMap;
+    TSharedRef<SWidget> MapView = SNew(SBox).HeightOverride(280.f)
+    [
+        SAssignNew(WorldMap, SMarketWorldMap)
+        .DotColor([this, DotRole](const FString& Country) { return Color(DotRole(Country)); })
+        .IsSelected([this](const FString& Country) { return ShownCountry() == Country; })
+        .OnPick([this](const FString& Country) { MapCountry = Country; MapRegion.Reset(); MapProvinceId.Reset(); bWorldOpen = false; })
+        .AreaColor([this] { return Color(ERole::Inset); })
+        .TextColor([this] { return Color(ERole::Text); })
+        .MutedColor([this] { return Color(ERole::Muted); })
+    ];
+    TWeakPtr<SMarketWorldMap> WeakMap = WorldMap;
+    auto HoverLine = [LineOf, WeakMap]() -> FString
+    {
+        const TSharedPtr<SMarketWorldMap> Map = WeakMap.Pin();
+        if (!Map.IsValid() || Map->GetHovered().IsEmpty())
+            return FString(TEXT("Renkler: koyu ana \u00fclke \u00b7 ye\u015fil ma\u011fazam\u0131z var \u00b7 mavi ortakl\u0131k \u00b7 sar\u0131 pazar ara\u015ft\u0131rmas\u0131 \u00b7 gri girilmedi."));
+        return MarketCountry::FindOrDefault(Map->GetHovered()).Name + TEXT(": ") + LineOf(Map->GetHovered());
+    };
     return Card(SNew(SVerticalBox)
         + SVerticalBox::Slot().AutoHeight().Padding(0.f, 0.f, 0.f, 2.f)[ Section(TEXT("D\u00dcNYA")) ]
         + SVerticalBox::Slot().AutoHeight()[ Label([] { return FString(TEXT("Bir \u00fclkeye t\u0131kla: il haritas\u0131 a\u00e7\u0131l\u0131r; ara\u015ft\u0131rma, ma\u011faza ve ortakl\u0131k oradan.")); }, 9, ERole::Muted, false, true) ]
-        + SVerticalBox::Slot().AutoHeight()[ SNew(SBox).MaxDesiredHeight(520.f)[ SNew(SScrollBox) + SScrollBox::Slot()[ Rows ] ] ]);
+        + SVerticalBox::Slot().AutoHeight().Padding(0.f, 6.f, 0.f, 0.f)[ MapView ]
+        + SVerticalBox::Slot().AutoHeight().Padding(0.f, 4.f, 0.f, 4.f)[ Label(HoverLine, 10, ERole::Text, false, true) ]
+        + SVerticalBox::Slot().AutoHeight()[ SNew(SBox).MaxDesiredHeight(260.f)[ SNew(SScrollBox) + SScrollBox::Slot()[ Rows ] ] ]);
 }
 
 TSharedRef<SWidget> SMarketMenu::Assistant()

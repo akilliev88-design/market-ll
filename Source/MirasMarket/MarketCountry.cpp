@@ -77,6 +77,13 @@ bool MarketCountry::Parse(const FString& Json, TArray<FProfile>& OutProfiles, TA
         O->TryGetStringField(TEXT("name"), P.Name);
         O->TryGetStringField(TEXT("nameEn"), P.NameEn);
         O->TryGetStringField(TEXT("continent"), P.Continent);
+        const TSharedPtr<FJsonObject>* World = nullptr;
+        if (O->TryGetObjectField(TEXT("world"), World))
+        {
+            double X = -1.0, Y = -1.0;
+            if ((*World)->TryGetNumberField(TEXT("x"), X) && (*World)->TryGetNumberField(TEXT("y"), Y)) { P.WorldX = static_cast<float>(X); P.WorldY = static_cast<float>(Y); }
+            (*World)->TryGetStringField(TEXT("label"), P.WorldLabel);
+        }
         O->TryGetNumberField(TEXT("displayScale"), P.DisplayScale);
         O->TryGetNumberField(TEXT("fxPerWorld"), P.FxPerWorld);
         if (!(P.DisplayScale > 0.0)) { OutErrors.Add(P.Id + TEXT(": displayScale gecersiz.")); P.DisplayScale = 1.0; }

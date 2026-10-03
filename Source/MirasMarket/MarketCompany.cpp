@@ -163,8 +163,9 @@ FString MarketCompany::CountryStatus(const FMarketState& State, const FString& C
     if (Own > 0 || Partner)
     {
         const TArray<MarketChains::FStanding> Table = MarketChains::NationalTable(State, Country);
-        const int32 Rank = Table.IndexOfByPredicate([](const MarketChains::FStanding& R) { return R.bUs; });
-        if (Rank != INDEX_NONE) Parts.Add(FString::Printf(TEXT("\u00fclkede %d. / %d"), Rank + 1, Table.Num()));
+        const int32 Cap = MarketChains::NationalListSize(Country);
+        const int32 Rank = MarketChains::ListedRank(Table, Cap); // M53
+        Parts.Add(Rank > 0 ? FString::Printf(TEXT("\u00fclke listesinde %d."), Rank) : FString::Printf(TEXT("\u00fclkenin ilk %d listesinde de\u011fil"), MarketChains::Listed(Table, Cap).Num()));
         if (!bHome && Own > 0) Parts.Add(MarketSubsidiaries::LegalName(State, Country));
         return FString::Join(Parts, TEXT(" \u00b7 "));
     }
