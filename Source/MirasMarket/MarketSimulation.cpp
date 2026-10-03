@@ -184,7 +184,7 @@ MarketSimulation::FDay MarketSimulation::PlayDay(FMarketState& State, const TArr
     }
     FillShelves(State);
     // The world's crowd limit: nine people inside turn the next one away at the door (about 1 in 25 on busy days).
-    const float Traffic = MarketDirector::TrafficFactor(State, Aisles);
+    const float Traffic = MarketDirector::TrafficFactor(State, Aisles, Products); // E2a: the one store formula when switched on
     // G-084: a day the law keeps shops shut (Germany: Sundays, holidays) has no shoppers; wages and rent still run.
     Day.Shoppers = MarketCalendar::ClosedByLaw(State.Day) ? 0 : FMath::Max(0, FMath::RoundToInt(ShoppersPerDay * Traffic));
     const int32 Crowded = Traffic > 1.3f ? Day.Shoppers / 25 : 0;

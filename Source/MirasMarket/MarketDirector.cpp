@@ -27,6 +27,7 @@
 #include "MarketAdvertising.h"
 #include "MarketCommand.h"
 #include "MarketRumors.h"
+#include "MarketStoreDemand.h"
 
 float MarketDirector::TrafficFactor(const FMarketState& State, const TArray<FString>& Aisles)
 {
@@ -35,6 +36,12 @@ float MarketDirector::TrafficFactor(const FMarketState& State, const TArray<FStr
         * MarketEvents::Factor(State, MarketEvents::EModifier::Traffic) * MarketBranches::MainShopFactor(State)
         * MarketOnline::StoreTrafficFactor(State) * MarketPayments::TrafficFactor(State) * MarketSimulation::TrafficFactor(State)
         * MarketAdvertising::TrafficFactor(State); // M34: the company's advertising
+}
+
+float MarketDirector::TrafficFactor(const FMarketState& State, const TArray<FString>& Aisles, const TArray<FMarketProduct>& Products)
+{
+    if (!MarketStoreDemand::Unified()) return TrafficFactor(State, Aisles);
+    return static_cast<float>(MarketStoreDemand::FamilyShoppers(State, Products, State.Day)) / static_cast<float>(MarketSimulation::ShoppersPerDay);
 }
 
 double MarketDirector::ToleranceBonus(const FMarketState& State, const FMarketProduct& Product)

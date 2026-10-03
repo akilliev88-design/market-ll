@@ -25,6 +25,7 @@
 #include "MarketPromotions.h"
 #include "MarketTuning.h"
 #include "MarketSimulation.h"
+#include "MarketStoreDemand.h"
 
 namespace MarketBranches
 {
@@ -53,19 +54,6 @@ namespace MarketBranches
     bool SameSite(const FMarketState& State, const FMarketBranch& B, const FString& Country, const FString& Province)
     {
         return CountryOf(State, B) == Country && (B.Province.IsEmpty() ? MarketStart::HomeProvince(State) : B.Province) == Province;
-    }
-
-    // Our other open shops in the province take customers once the province is full.
-    float Cannibalization(const FMarketState& State, int32 Self, const FSite& Site)
-    {
-        float Others = Site.bHome ? 1.f : 0.f; // the family shop
-        for (int32 I = 0; I < State.Branches.Num(); ++I)
-        {
-            const FMarketBranch& B = State.Branches[I];
-            if (I != Self && IsOpenStage(B) && SameSite(State, B, Site.Country, Site.Province)) Others += FormatInfo(B.Format).Weight;
-        }
-        const float Slots = FMath::Max(1.f, static_cast<float>(Site.PopulationK) / PeoplePerSlotK);
-        return 1.f / (1.f + 0.6f * Others / Slots);
     }
 
     // Share of the province's wishes for each product (segment mix x taste x calendar).
@@ -652,16 +640,21 @@ void MarketBranches::CloseDay(FMarketState& State, const TArray<FMarketProduct>&
         const float Availability = Sold + Empty > 0 ? FMath::Clamp(static_cast<float>(Sold) / (Sold + Empty), 0.2f, 1.f) : 0.9f;
         const float Service = Kind.Service * (B.ManagerName.IsEmpty() ? 0.9f : 1.f)
             * (Closed - B.OpenedDay < YoungDays ? 1.f - YoungServiceLoss * Strain : 1.f); // C15 (M45): thin management for the new ones
-        const float Pull = FMath::Exp(-(B.PriceIndex - 1.f) / MarketCompetitors::PriceSensitivity) * Availability * Service *
-            (0.8f + B.Satisfaction / 250.f) * (0.9f + 0.4f * B.Maturity) * (State.Day - B.OpenedDay < 7 ? 1.3f : 1.f) * MarketCompany::TrafficBonus(State)
-            * MarketDepartments::PullFactor(B, Closed); // M26: fresh bread, a good butcher
-        // Akis C2b: the province's chains against the start, a price war against us on top.
-        const float Share = Pull / (Pull + MarketTuning::Get(TEXT("BranchCompetition"), 3.f) * Where.Competition * MarketChains::PressureFactor(State, Where.Country, Where.Province, Closed));
-        const float Trips = MarketCalendar::ClosedByLaw(Closed) ? 0.f : TripsOf(Where, Kind) * MarketCalendar::TrafficFactor(Closed, State.RivalSeed)
-            * MarketOnline::StoreTrafficFactorOn(State, Closed, Where.Country) // M32: trips gone online, the epidemic's closure days
-            * MarketAdvertising::TrafficFactor(State, Where.Country) // M34: the company's ads
-            * (1.f + (MarketSimulation::TrafficFactor(State) - 1.f) * BranchDifficultyShare) * (B.bHasty ? HastyTrips : 1.f); // C14e/C15b: the difficulty's shoppers reach the branches too (before only the family shop)
-        const int32 Arrived = FMath::RoundToInt32(Trips * Share * (0.5f + 0.5f * B.Maturity) * Cannibalization(State, Index, Where));
+        // E2: the same shopper formula as every store (MarketStoreDemand).
+        MarketStoreDemand::FStoreDay Store;
+        Store.Country = Where.Country;
+        Store.Province = Where.Province;
+        Store.Format = B.Format;
+        Store.Self = Index;
+        Store.PriceIndex = B.PriceIndex;
+        Store.Availability = Availability;
+        Store.Service = Service;
+        Store.Satisfaction = B.Satisfaction;
+        Store.Maturity = B.Maturity;
+        Store.bNew = State.Day - B.OpenedDay < 7;
+        Store.bHasty = B.bHasty;
+        Store.PullExtra = MarketDepartments::PullFactor(B, Closed); // M26: fresh bread, a good butcher
+        const int32 Arrived = MarketStoreDemand::Shoppers(State, Store, Closed);
         // G-088 C: the store's tills. Too few lanes lose shoppers in the queue; roomy ones keep a few more.
         const MarketStoreAssign::FStoreMeasures Measures = MarketStoreViews::MeasuresOf(B);
         const int32 Shoppers = FMath::RoundToInt32(Arrived * MarketStoreAssign::QueueFactor(Measures, B.Format, static_cast<float>(Arrived)));

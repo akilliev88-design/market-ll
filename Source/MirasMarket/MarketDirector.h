@@ -11,6 +11,9 @@ namespace MarketDirector
 {
     // Shopper traffic today: calendar (weekday, weather, paydays, bayrams) x rival news.
     float TrafficFactor(const FMarketState& State, const TArray<FString>& Aisles);
+    // E2a: with the products the family shop's traffic can come from the one store formula (MarketStoreDemand) when
+    // MarketStoreDemand::Unified() is on: its real shoppers / MarketSimulation::ShoppersPerDay. Off: as above.
+    float TrafficFactor(const FMarketState& State, const TArray<FString>& Aisles, const TArray<FMarketProduct>& Products);
     // What shoppers think the rivals charge for an aisle today, relative to the list price (MarketCompetitors).
     float RivalPriceFactor(const FMarketState& State, const TArray<FString>& Aisles, const FString& Category);
     // Extra price tolerance of shoppers for a product today (the shop's identity, events), added to the segment's.

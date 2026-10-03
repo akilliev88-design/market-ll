@@ -1,3 +1,15 @@
+## 03.10.2026 — Claude Code — E2a: tek müşteri formülü (derlenmedi)
+
+**Yapılan:** Yeni `MarketStoreDemand.h/.cpp`: `FStoreDay` (ülke, il, tür, fiyat endeksi, doluluk, hizmet, memnuniyet, olgunlaşma, ilk hafta, aceleyle seçilmiş yer, mağazanın kendi çekim/gidiş çarpanı), `Trips`, `Pull`, `Share`, `Cannibalization`, `Shoppers`; `FamilyDay` (ilk dükkânın raf fiyatı, dünkü raf ve kuyruk, müşteri memnuniyeti; kampanya, olay ve kart çarpanları gidişe), `FamilyShoppers`, `Unified()`. `MarketBranches::CloseDay` müşteri hesabını bu fonksiyona bıraktı (ifade sırası korundu; sonuç bit bit aynı olmalı), eski yerel `Cannibalization` silindi. `MarketDirector::TrafficFactor(State, Aisles, Products)`: `UnifiedDemand` açıksa gerçek müşteri / 55. `MarketSimulation::PlayDay` bu çağrıyı kullanır. Testler `MirasMarket.StoreDemand.SameFormulaFamilyAndBranch` (aynı koşulda ilk dükkân ve şube ±%5, fiyat/doluluk/olgunlaşma yönü), `MirasMarket.StoreDemand.FamilyBeforeAfter` (90 gün eski ve yeni yol, ciro oranı raporlanır, yalnız 0,5–2 dışı başarısız). `ozet.ps1` `OLCUM` satırlarını yazar. Test.ps1 alt sınırı 166.
+
+**Neden ikiye bölündü:** Eski modeli silmeden önce yeni formülün ilk dükkânda ne kadar müşteri verdiğini ölçmek gerekiyor (hedef ±%15). Bulutta oyunu çalıştıramıyorum; ölçümü bu derleme verecek.
+
+**Varsayımlar:** Ortak formülde zorluk yarım güçle (şubedeki gibi) ve yamyamlık 0,6 katsayısıyla (şubedeki gibi) giriyor; ilk dükkânda ikisi de eskiden farklıydı. Dengeleme durduğu için (M51) bunu kabul edilebilir saydım. MarketGame (Codex alanı) henüz eski trafik çağrısını kullanıyor; E2b'de bağlanacak.
+
+**Doğrulama:** Derlenmedi.
+
+**Sıradaki:** Mustafa CLAUDE_KOS.cmd → son.log; E2b.
+
 ## 03.10.2026 — Claude Code — adım 2: yakın market ve toptan perakende (derlenmedi)
 
 **Yapılan:** `MarketChains::EArchetype`'a `Convenience` ve `CashCarry` (sona; kayıtlı değerler aynı). Ekonomi tablosu: yakın market 25.000/gün, ağırlık 0,5, brüt %28, büyüme 0,15, biçim `kucuk`; toptan perakende 700.000/gün, ağırlık 6, brüt %12, en az 200 bin nüfus, düşük gelirli ili sever, biçim `hiper`. Tablo ve ad listesine `static_assert` (her arketipe bir satır). `ArchetypeOf`: `convenience`, `cashCarry`. Sokak modelinde Şok yuvası en son yakın marketi de alır (E2'de bu model kalkıyor). Paketler: FR Petit Casinot, PL Żabik, MX OXO, JP Seven & Me/FamilyMarto/Lawsun → convenience; BR Atacadeo/Asaí → cashCarry; dev Seven & Me convenience. Testler PackStandard içinde (yeni test yok).
