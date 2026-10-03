@@ -104,3 +104,5 @@ Yeni görev en alta eklenir; biten görev silinmez, durumu değişir. Kimlikler 
 
 | G-097 | C10 tek değişkenli denge deneyleri, gider dağılımı ve kurtarma doğrulaması | Codex / Claude | Bitti (Codex deney teslimi) | 02.10.2026: DERLE +TEST157/157 +Smoke; 75kampanya/295.890gün/0fark; C10_deney_raporu.md +C10_veri. Birleşim mağaza üst hedefini aşıyor, ilk dükkân reel kâr hedefi açık. Claude: İK/müşavir maaş dağılımı ve kurtarma kalan sabit gider bütçesi; D2 sonraki taban adayı. |
 | G-098 | C11: ülke müdürü maaşı ağ büyüklüğüyle (M40), İK/müşavir merkez defterinde, kurtarma bütçesine merkez giderleri, reel ücret %0,5; akis-a birleşimi | Claude | Bitti | 02.10.2026: DERLE +TEST157/157 +Smoke; bot C11_E0 9 koşu kurtarma0, çöküş yok. Rapor akislar/C11_rapor.md |
+
+| G-099 | Yerel projeyi Mustafa'nın belirttiği GitHub deposuna gönder | Codex | Bitti | 03.10.2026: cloud/main 2684b27 seviyesine gönderildi; kaynak değişmedi, E1 derlenmedi. |

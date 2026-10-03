@@ -1,3 +1,11 @@
+## 03.10.2026 — Codex — GitHub gönderimi
+
+**Yapılan:** Mustafa'nın belirttiği https://github.com/akilliev88-design/market-ll deposuna yerel main gönderildi; uzak main 324384d → 2684b27. Mevcut kayıtlar ve .gitignore kuralları kullanıldı; kaynak kod değiştirilmedi.
+
+**Doğrulama:** git push cloud main başarılı. Derleme/test çalıştırılmadı; E1'in derlenmedi notu korunur.
+
+**Sıradaki:** E1 derleme/test ve E2, mevcut Claude iş planına göre.
+
 ## 03.10.2026 — Claude (Cowork) — E1: her ülkenin kendi fiyatı (derlenmedi)
 
 **Yapılan:** `MarketPrices.h/.cpp`: ülke parametreli fiyat düzeyi, liste düzeyi, ücret endeksi (aynı yarıyıl kuralı), faiz, `Scaled/WageScaled`; `IsHome`; `ToHome` (`MarketCountry::FxRate` ve gösterim ölçeğiyle; başlangıçta 1); `RealToHome`. Yabancı ekonomi paketten, kampanya tohumu ^ ülke anahtarıyla; yıl başı düzeyleri 2070'e kadar önbellekte. Tek parametreli eski fonksiyonlar "kampanya ülkesi" olarak kaldı. Yeni test dosyası `MarketPricesCountryTests.cpp` (`MirasMarket.Prices.EveryCountryItsOwn`). Test.ps1 161.
