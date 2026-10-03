@@ -1,3 +1,21 @@
+## 03.10.2026 — Claude Code — E3c2b: şube siparişi toptancı hesabından (derlenmedi)
+
+**Yapılan:**
+- Yeni `MarketSuppliers::OnBranchOrder(State, tutar)`: mevcut toptancının hesabına hacim ekler. Vade varsa (güven ≥ 60, gecikmiş fatura yok) kasadan alınan parayı geri verir, `SupplierCredit` kaydı ve vadeli fatura yazar. Vade yoksa peşin kalır. Babanın hatırına veresiye (C9) şubeye uygulanmaz.
+- `MarketBranches::CloseDay` müdür siparişi:
+  - kampanya ülkesinde ve deposuz şube toptancıdan alır;
+  - vade varken bütçe = kasa + `OrderAllowance`, açık faturalar her şubeyle düşer;
+  - depolu şube merkezi alım (peşin, hacim sayılır); yurt dışı şube peşin.
+- Faturalar, gecikme cezası, güven ve vadenin kapanması dükkânın mevcut kurallarıyla işler (aynı `Payables`).
+
+**Test:** yeni `MirasMarket.Suppliers.BranchOrdersOnTheShopAccount`: vadesiz peşin + hacim, vadeli fatura (7 gün) ve kasa geri, gecikmiş faturada yine peşin. Test.ps1 alt sınırı 164.
+
+**Varsayım:** şubeye ayrı toptancı hesabı açılmadı; şirketin tek hesabı var ("tek tedarik kuralı"). Toptancı minibüsünün eksik/kırık mal riski şubeye eklenmedi (depo yoksa minibüs maliyeti zaten var).
+
+**Doğrulama:** Derlenmedi.
+
+**Sıradaki:** Mustafa CLAUDE_KOS.cmd; sonra E3c2c.
+
 ## 03.10.2026 — Claude Code — E3c2a doğrulandı
 
 **son.log (92a7a06):** DERLE geçti; TEST 162 başarılı + 1 uyarılı, başarısız 0 (alt sınır 163); Smoke geçti. OLCUM satırları önceki turla aynı. E3c2a bitti.

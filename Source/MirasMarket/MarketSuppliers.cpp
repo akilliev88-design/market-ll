@@ -171,6 +171,24 @@ FString MarketSuppliers::OnOrder(FMarketState& State, int64 Bill)
     return FString::Printf(TEXT("%s vadeli yazd\u0131: %s, %d. g\u00fcn \u00f6denecek."), *Info(Supplier).Contact, *SupplierTl(Bill), Payable.DueDay);
 }
 
+int64 MarketSuppliers::OnBranchOrder(FMarketState& State, int64 Bill)
+{
+    if (Bill <= 0) return 0;
+    const ESupplier Supplier = Current(State);
+    FMarketSupplierAccount& A = Account(State, Supplier);
+    A.Volume30 += Bill;   // more shops, better purchase terms
+    const int32 Terms = TermsDays(State, Supplier);
+    if (Terms <= 0) return 0;
+    State.Cash += Bill;
+    MarketLedger::Post(State, MarketLedger::EAccount::SupplierCredit, Bill); // C3 (B2): bought on terms
+    FMarketPayable Payable;
+    Payable.Supplier = static_cast<uint8>(Supplier);
+    Payable.Amount = Bill;
+    Payable.DueDay = State.Day + Terms;
+    State.Payables.Add(Payable);
+    return Bill;
+}
+
 bool MarketSuppliers::Switch(FMarketState& State, ESupplier Supplier, FString& OutMessage)
 {
     if (Supplier == Current(State)) { OutMessage = FString::Printf(TEXT("Zaten %s ile \u00e7al\u0131\u015f\u0131yorsun."), *Info(Supplier).Name); return false; }

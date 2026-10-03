@@ -67,6 +67,11 @@ namespace MarketSuppliers
     // After FMarketState::SubmitOrder succeeded with Bill: counts the volume and, with terms, gives the cash back
     // and writes the bill to be paid later. Returns a Turkish line for the player ("" = nothing to add).
     FString OnOrder(FMarketState& State, int64 Bill);
+    // E3c2b (M63): a branch's order from the current wholesaler, on the family shop's account (the same volume,
+    // terms, bills, late fees and trust). With terms the cash the order took goes back and a bill waits; without
+    // terms it was paid in cash. No lifeline: that is the father's wholesaler's favour to the family shop.
+    // Returns the amount bought on terms (0 = paid in cash).
+    int64 OnBranchOrder(FMarketState& State, int64 Bill);
     // G-077 (#33): how much more than the cash in the till the current wholesaler lets us order on terms today:
     // 500 TL (at today's list level) + half of the last 30 days' purchases, minus the open bills. 0 without terms.
     int64 OrderAllowance(const FMarketState& State);

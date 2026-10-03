@@ -1,8 +1,10 @@
 # Güncel durum
 
-Son güncelleme: 03.10.2026 — Claude Code, akis-cc2: E3c2a derlendi, testler ve Smoke geçti; sıradaki E3c2b
+Son güncelleme: 03.10.2026 — Claude Code, akis-cc2: E3c2b (şube siparişi toptancı hesabından) yazıldı, derlenmedi
 
 ## Kısaca
+
+**03.10.2026 — Claude Code / E3c2b (derlenmedi, `akis-cc2`):** Kampanya ülkesindeki deposuz şube artık dükkânın toptancısından aynı hesapla sipariş veriyor: `MarketSuppliers::OnBranchOrder` hacmi sayıyor, vade varsa parayı geri verip fatura yazıyor. Vade varken şube bütçesi = kasa + `OrderAllowance` (açık faturalar sınırı düşürür). Depo varsa merkezi alım (peşin, hacim sayılır); yurt dışı şube peşin; babanın hatırına veresiye yalnız dükkânda. Yeni test `Suppliers.BranchOrdersOnTheShopAccount`; Test.ps1 164. Risk: vadeli şube siparişleri faturaları büyütür, gecikme olursa vade dükkân için de kapanır (aynı hesap). **Devam notu:** Mustafa derler; sonra E3c2c (kişi kişi şube personeli).
 
 **03.10.2026 — Claude Code / E3c2a doğrulandı (92a7a06):** DERLE geçti, TEST 162 + 1 uyarı, başarısız 0, Smoke geçti; OLCUM satırları aynı (aile dükkânı değişmedi). Sıradaki: E3c2b.
 

@@ -758,8 +758,12 @@ void MarketBranches::CloseDay(FMarketState& State, const TArray<FMarketProduct>&
         const float Error = (100 - FMath::Clamp(Rule.Skill, 0, 100)) / 100.f * 0.4f * Rule.ErrorFactor;
         const float Tomorrow = MarketCalendar::TrafficFactor(State.Day, State.RivalSeed) / FMath::Max(0.3f, MarketCalendar::TrafficFactor(Closed, State.RivalSeed));
         const bool bTight = State.Cash < Opex * 3; // short of money: the manager orders half
-        // Never more than the till holds; nothing when the company is already in the red.
-        const int64 Budget = FMath::Max<int64>(0, State.Cash);
+        // Never more than the till holds; nothing when the company is already in the red. E3c2b (M63): a branch
+        // in the campaign's country without a depot orders from the family shop's wholesaler and gets its terms
+        // (the open bills cap them); a depot buys centrally, a branch abroad pays in cash.
+        const bool bFromWholesaler = Link.Depot == INDEX_NONE && !Where.bAbroad;
+        const bool bTerms = bFromWholesaler && MarketSuppliers::TermsDays(State, MarketSuppliers::Current(State)) > 0;
+        const int64 Budget = FMath::Max<int64>(0, State.Cash) + (bTerms ? MarketSuppliers::OrderAllowance(State) : 0);
         // G-088 C: what fits behind the shop (half a shelf more at the nominal stock room).
         const float StockRoom = 1.f + 0.5f * MarketStoreAssign::BackroomFactor(Measures, B.Format);
         int64 Bill = 0;
@@ -781,7 +785,8 @@ void MarketBranches::CloseDay(FMarketState& State, const TArray<FMarketProduct>&
         State.Cash -= Bill;
         State.Purchases += Bill;
         MarketLedger::Post(State, MarketLedger::EAccount::Purchases, -Bill, true, Index); // C3: the manager's order, bought during the close
-        MarketSuppliers::Account(State, MarketSuppliers::Current(State)).Volume30 += Bill; // more shops, better purchase terms
+        if (bFromWholesaler) MarketSuppliers::OnBranchOrder(State, Bill); // volume, terms and the bill on the shop's account
+        else MarketSuppliers::Account(State, MarketSuppliers::Current(State)).Volume30 += Bill; // central buying still counts for the terms
         if (Rule.bFollowsRivals)
         {
             // A good (or price-minded) manager keeps prices at the market type's place against the rivals; the
