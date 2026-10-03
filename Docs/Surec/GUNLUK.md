@@ -1,3 +1,13 @@
+## 03.10.2026 — Claude Code — kararlar M57–M59
+
+**Kararlar (Mustafa):** M57 karşı dükkân hikâyesi ve bütün karakter sahneleri (Nermin teyze, Selim, Cem, Kadir) kalkar; E2'deki "Bereket zincir modeline taşınır" maddesi iptal. M58 yabancı ülkeye girişten önce ücretli pazar araştırması, 365 gün geçerli, girilmezse yeniden. M59 ülke başına 15–30 firma, dünya liginde 100+.
+
+**Bulgu (M52 kalıntısı):** `MarketChains::EnsureLocal` yerel aile zinciri adlarına Türkçe ek koyuyor (" Gıda", " Kardeşler") her ülkede; E2b'de pakete taşınacak. Brezilya'nın ulusal kadrosu toplam 2.030 mağaza (atacarejo ağırlıklı), M59 ile genişleyecek.
+
+**Yapılan:** Yalnız belge.
+
+**Sıradaki:** son.log → derleme düzeltmeleri → E2b (M57 dahil).
+
 ## 03.10.2026 — Claude Code — Mustafa'nın üç kararı (M54–M56)
 
 **Kararlar:** M54 yakın market (kombini) ve toptan perakende (atacarejo) oyuncuya da açık, ama yalnız o türün pazarında olduğu ülkelerde; tür listesi ülke paketinden (`playerFormats`). M55 oyun süresi: dengeli oyuncu ilk şubeyi ilk saatte, ilk yurt dışını 8–12. saatte, 30. yılı 35–45 saatte görür; dünya birinciliği iyi oyunla 30–40 saat, "60 saat sürmesin". M56 son yok: "Miras" birinciliği bir kutlama, oyun bütün sistemleriyle sürer; J02 değişti, 2040 sınırı kalkacak, J03 (sattın) kalır.
