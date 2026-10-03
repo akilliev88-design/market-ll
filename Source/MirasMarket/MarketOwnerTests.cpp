@@ -108,6 +108,19 @@ bool FMarketSupplierLifelineTest::RunTest(const FString& Parameters)
     MarketSuppliers::OnOrder(S, FMath::Min<int64>(Room, 20000));
     TestTrue(TEXT("Written on short terms"), S.Payables.Num() == BillsBefore + 1 && S.Payables.Last().DueDay == S.Day + MarketSuppliers::LifelineTerms);
     TestEqual(TEXT("Once a week"), MarketSuppliers::LifelineAllowance(S), int64(0));
+    // M64: three times in a campaign; the third time is announced as the last.
+    for (int32 Use = 2; Use <= MarketSuppliers::LifelineMax; ++Use)
+    {
+        S.Day += MarketSuppliers::LifelineEvery;
+        S.Payables.Reset();
+        TestTrue(*FString::Printf(TEXT("Favour %d"), Use), MarketSuppliers::LifelineAllowance(S) > 0);
+        S.DayNews.Reset();
+        MarketSuppliers::OnOrder(S, 10000);
+    }
+    TestTrue(TEXT("The last one is said to be the last"), S.DayNews.ContainsByPredicate([](const FString& Line) { return Line.Contains(TEXT("bu son")); }));
+    S.Day += MarketSuppliers::LifelineEvery;
+    S.Payables.Reset();
+    TestEqual(TEXT("No fourth time"), MarketSuppliers::LifelineAllowance(S), int64(0));
     return true;
 }
 

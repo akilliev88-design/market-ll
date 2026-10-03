@@ -1,3 +1,23 @@
+## 03.10.2026 — Claude Code — M64: babanın hatırı üç kez (derlenmedi)
+
+**İstek (Mustafa):** "Babanın hatırına" veresiye kalıntı mı? Hikâyeye uydurulsun. Seçenek "3 hak" seçildi, ama "2 hak kaldı" gibi bir sayaç yazmasın; sonuncuda "bu son" desin.
+
+**Açıklama:** prototip kalıntısı değil. C9'da bot denemesinden eklenen güvenlik ağı: parası biten dükkân sipariş veremeyince raf boşalıyor, satış bitiyor ve dükkân batmaya sürükleniyordu. Hikâyeyle çelişmiyor (anne baba emekli, toptancı babayı yıllardır tanıyor), ama sınırsız olması yapaydı.
+
+**Yapılan:**
+- `FMarketSupplierAccount::LifelineUses` alanı, `MarketSuppliers::LifelineMax = 3`. `LifelineAllowance` üç kullanımdan sonra 0.
+- `OnOrder` her kullanımda sayar ve üç ayrı haber yazar: 1. hatır, 2. baban aradı, 3. bu son. Yakının adı `MarketStart::Relative` ile; toptancı adamının adı ülke paketinden (Selim değil, M57).
+- `Switch`: toptan perakendeciye geçince hatır biter.
+- Kayıt sürümü 13.
+
+**Test:** `MirasMarket.Suppliers.Lifeline`: ikinci ve üçüncü hak var, üçüncüde "bu son" haberi çıkıyor, dördüncüsü yok.
+
+**Varsayım:** hak yalnız otomatik açılır (nakit sıkıntısında sipariş verilince); elle kullanma düğmesi eklenmedi.
+
+**Doğrulama:** Derlenmedi.
+
+**Sıradaki:** Mustafa CLAUDE_KOS.cmd (E3c2b + M64); sonra E3c2c.
+
 ## 03.10.2026 — Claude Code — E3c2b: şube siparişi toptancı hesabından (derlenmedi)
 
 **Yapılan:**

@@ -1,8 +1,10 @@
 # Güncel durum
 
-Son güncelleme: 03.10.2026 — Claude Code, akis-cc2: E3c2b (şube siparişi toptancı hesabından) yazıldı, derlenmedi
+Son güncelleme: 03.10.2026 — Claude Code, akis-cc2: E3c2b ve M64 (babanın hatırı üç kez) yazıldı, derlenmedi
 
 ## Kısaca
+
+**03.10.2026 — Claude Code / M64 (derlenmedi, `akis-cc2`):** Mustafa: "babanın hatırına" veresiye sınırsız olmasın; üç hak, sayaç gösterilmez, üçüncüde "bu son". `FMarketSupplierAccount::LifelineUses`, `MarketSuppliers::LifelineMax` = 3; üç farklı haber metni (yakınının adı `MarketStart::Relative` ile); toptan perakendeciye geçince hatır biter. `Suppliers.Lifeline` testine üç hak ve "bu son" kontrolü eklendi. Kayıt sürümü 13. **Devam notu:** Mustafa derler (E3c2b ile birlikte); sonra E3c2c.
 
 **03.10.2026 — Claude Code / E3c2b (derlenmedi, `akis-cc2`):** Kampanya ülkesindeki deposuz şube artık dükkânın toptancısından aynı hesapla sipariş veriyor: `MarketSuppliers::OnBranchOrder` hacmi sayıyor, vade varsa parayı geri verip fatura yazıyor. Vade varken şube bütçesi = kasa + `OrderAllowance` (açık faturalar sınırı düşürür). Depo varsa merkezi alım (peşin, hacim sayılır); yurt dışı şube peşin; babanın hatırına veresiye yalnız dükkânda. Yeni test `Suppliers.BranchOrdersOnTheShopAccount`; Test.ps1 164. Risk: vadeli şube siparişleri faturaları büyütür, gecikme olursa vade dükkân için de kapanır (aynı hesap). **Devam notu:** Mustafa derler; sonra E3c2c (kişi kişi şube personeli).
 

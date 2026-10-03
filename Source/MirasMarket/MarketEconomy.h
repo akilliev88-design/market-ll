@@ -186,6 +186,7 @@ struct FMarketSupplierAccount
     UPROPERTY() int32 OnTime = 0;
     UPROPERTY() int32 Late = 0;
     UPROPERTY() int32 LifelineDay = 0;  // C9: the last day the father's wholesaler gave goods in a cash crisis
+    UPROPERTY() int32 LifelineUses = 0; // M64: times the father's name opened the door (MarketSuppliers::LifelineMax in a campaign)
 };
 
 // A bill bought on payment terms, due at the close of DueDay.
@@ -897,7 +898,7 @@ struct FMarketState
     static constexpr int64 StockerDailyWage = 2000;
 
     // Save format version. 2 (G-076): story finale flags, test-mode mark. Older saves load and are migrated.
-    static constexpr int32 CurrentVersion = 12; // E3c2 (M27): branch goods use the family shop's record, the v0.1 staff flags are gone; older saves start a new game
+    static constexpr int32 CurrentVersion = 13; // M64: the father's favour is counted; // E3c2 (M27): branch goods use the family shop's record, the v0.1 staff flags are gone; older saves start a new game
     UPROPERTY() int32 Version = CurrentVersion;
     UPROPERTY() int32 Day = 1;
     UPROPERTY() int64 Cash = 35000;

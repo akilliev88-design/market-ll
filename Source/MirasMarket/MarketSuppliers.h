@@ -39,6 +39,9 @@ namespace MarketSuppliers
     constexpr int32 LifelineTerms = 3;
     constexpr int32 LifelineEvery = 7;
     constexpr int32 LifelineMaxLate = 14;
+    // M64 (Mustafa 03.10.2026): the father's name opens the door three times in a campaign, never shown as a count;
+    // the third time the salesman says it is the last. Leaving the father's wholesaler for the cash-and-carry ends it.
+    constexpr int32 LifelineMax = 3;
     int64 LifelineAllowance(const FMarketState& State);   // #41: the late fee runs five days at most (about 10 %), then only the trust suffers
 
     FInfo Info(ESupplier Supplier);
