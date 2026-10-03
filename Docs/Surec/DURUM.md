@@ -1,8 +1,10 @@
 # Güncel durum
 
-Son güncelleme: 03.10.2026 — Claude Code, akis-cc2: D4 + D6 (derlenmedi)
+Son güncelleme: 03.10.2026 — Claude Code, akis-cc2: D4 + D6 + D7 ilk parça (derlenmedi)
 
 ## Kısaca
+
+**03.10.2026 — Claude Code / D7 ilk parça: dünya kartı (derlenmedi, `akis-cc2`):** Ana ekrandaki ülke çiplerinin başına "Dünya" çipi (yurt dışı açılınca görünür). Açılan kart ülkeleri kıtaya göre listeler, her satırda durumumuz (`MarketCompany::CountryStatus`: ana ülke, mağaza sayısı, ortaklık, ülke tablosundaki sıramız, tescilli ad; girilmediyse araştırma durumu; kapalıysa neden). Satıra tıklayınca o ülkenin il haritası açılır. Satırlar karede bir kez hesaplanır. Testler `Expansion.ScaleAndFranchise` içine eklendi (sayı değişmedi, 171). Kalan: çizili dünya haritası ve M53 (listeye girerek başlama). **Devam notu:** Mustafa D4 + D6 + D7'yi birlikte derler.
 
 **03.10.2026 — Claude Code / D6 yurt dışı kapısı ve ortaklık (derlenmedi, `akis-cc2`, M67):** 6. bölüm kilidi kalktı: yurt dışı `MarketCompany::AbroadOpen` (ana ülkede 25 mağaza, 5 il; bir kez girilince açık). Beş yerdeki bölüm kontrolü (`CanOpen`, zincir çıkış satışı, `MarketResearch::CanStart`, bot, menü) buna bağlandı. Yeni `MarketFranchise` (ortaklık): araştırması hazır, kendi mağazamız olmayan ülkede ortak adımızla 3 mağaza açar, 45 günde bir +1 (8–60), ay başı satışın %4'ü kâr payı (stopaj kesilir, `OtherIncome`), bitirme tazminatı bir yıllık kâr payı. Ülke tablosu ve dünya ligi ortak mağazaları markamıza sayar. 6. bölüm "Dünyaya Açılış", hedefleri ortaklığı da sayar. Menü: Şubeler sayfasında araştırma satırının altında ortaklık satırı ("Ortaklıkla gir", "Ortaklığı bitir"). Kayıt sürümü 19. Yeni test `Expansion.ScaleAndFranchise`; `TypesStudiesAndFirms` ölçek için ev mağazaları ekliyor. Test.ps1 171. **Devam notu:** Mustafa derler (D4 ile birlikte). Risk: bot yurt dışına daha erken (25 mağaza) çıkar.
 

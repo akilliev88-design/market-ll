@@ -53,6 +53,9 @@ namespace MarketCompany
     FString AbroadLock(const FMarketState& State);
     // Foreign countries with our own shops or a partner under our brand.
     int32 ForeignPresence(const FMarketState& State);
+    // D7: one line about a country for the world card ("Ana \u00fclke \u00b7 31 ma\u011faza \u00b7 \u00fclkede 4. / 18",
+    // "ortakl\u0131k: ...", "ara\u015ft\u0131rma s\u00fcr\u00fcyor (12 g\u00fcn)", "kapal\u0131 ...").
+    FString CountryStatus(const FMarketState& State, const FString& Country);
 
     // Depots (G-089: MarketDepots, depots in provinces). HasDepot: a depot in a province of the sub-region.
     bool HasDepot(const FMarketState& State, const FString& Country, const FString& SubRegion);

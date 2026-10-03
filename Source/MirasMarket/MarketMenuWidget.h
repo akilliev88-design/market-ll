@@ -83,6 +83,7 @@ private:
     FString MapCountry;
     FString MapRegion;
     FString MapProvinceId;
+    bool bWorldOpen = false;        // D7: the world card over the main map
     bool bSettingsOpen = false;
     bool bDecisionsOpen = false;
     bool bMoreOpen = false;         // the dock's "Di\u011fer" card
@@ -240,6 +241,7 @@ private:
     TSharedRef<SWidget> HomePage();       // G-086 main screen: the map is the stage
     TSharedRef<SWidget> HomeMap();
     TSharedRef<SWidget> RegionChips();    // the country and its main regions (a click zooms the map)
+    TSharedRef<SWidget> WorldCard();      // D7: every country by continent with our standing there (a click opens its map)
     TSharedRef<SWidget> ProvinceCard();   // the province panel (slides in on the right)
     TSharedRef<SWidget> Assistant();      // the one most important thing today
     TSharedRef<SWidget> BranchesPage();   // Magazalar

@@ -2536,6 +2536,9 @@ TSharedRef<SWidget> SMarketMenu::HomePage()
         + SOverlay::Slot().HAlign(HAlign_Center).VAlign(VAlign_Bottom).Padding(0.f, 0.f, 0.f, LayerTrayBottom) // C3 (A istek 2) / C5: above the dock
         [ SNew(SBox).Visibility_Lambda([HasMap] { return HasMap() ? EVisibility::Visible : EVisibility::Hidden; })[ Tray(LayerTray) ] ]
         + SOverlay::Slot().HAlign(HAlign_Center).VAlign(VAlign_Top).Padding(0.f, 84.f, 0.f, 0.f)[ RegionChips() ]
+        // D7: the world card under the chips.
+        + SOverlay::Slot().HAlign(HAlign_Center).VAlign(VAlign_Top).Padding(0.f, 128.f, 0.f, 0.f)
+        [ SNew(SBox).WidthOverride(620.f).Visibility_Lambda([this] { return bWorldOpen ? EVisibility::Visible : EVisibility::Collapsed; })[ WorldCard() ] ]
         + SOverlay::Slot().HAlign(HAlign_Left).VAlign(VAlign_Bottom).Padding(24.f, 0.f, 0.f, 28.f)[ Assistant() ]
         // C3 (B6): the goals at three scales, always in sight on the main screen.
         + SOverlay::Slot().HAlign(HAlign_Left).VAlign(VAlign_Top).Padding(24.f, 128.f, 0.f, 0.f)
@@ -2709,6 +2712,12 @@ TSharedRef<SWidget> SMarketMenu::RegionChips()
         ];
     };
     TSharedRef<SHorizontalBox> Row = SNew(SHorizontalBox);
+    // D7: the world card, once the way abroad is open.
+    Row->AddSlot().AutoWidth().Padding(0.f, 0.f, 4.f, 0.f)
+    [
+        SNew(SBox).Visibility_Lambda([G] { return G() && MarketCompany::AbroadOpen(G()->State) ? EVisibility::Visible : EVisibility::Collapsed; })
+        [ Chip(TEXT("D\u00fcnya"), [this] { return bWorldOpen; }, [this] { bWorldOpen = !bWorldOpen; }) ]
+    ];
     for (const MarketCountry::FProfile& Pack : MarketCountry::All())
     {
         const FString PackId = Pack.Id;
@@ -2736,10 +2745,70 @@ TSharedRef<SWidget> SMarketMenu::RegionChips()
         Row->AddSlot().AutoWidth().Padding(0.f, 0.f, 4.f, 0.f)
         [
             SNew(SBox).Visibility_Lambda([this, Abroad, PackId] { return Abroad() && ShownCountry() != PackId ? EVisibility::Visible : EVisibility::Collapsed; })
-            [ Chip(Pack.Name, [] { return false; }, [this, PackId] { MapCountry = PackId; MapRegion.Reset(); MapProvinceId.Reset(); }) ]
+            [ Chip(Pack.Name, [] { return false; }, [this, PackId] { MapCountry = PackId; MapRegion.Reset(); MapProvinceId.Reset(); bWorldOpen = false; }) ]
         ];
     }
     return Raised(SNew(SBorder).BorderImage(&RoundBrush).BorderBackgroundColor(Col(ERole::Solid)).Padding(FMargin(4.f))[ Row ]);
+}
+
+TSharedRef<SWidget> SMarketMenu::WorldCard()
+{
+    // D7: the countries of the packs by continent; ours first in mind: our shops, a partner, a study, or why closed.
+    // The lines are built once a frame (the country tables are not free).
+    auto G = [this] { return Game.Get(); };
+    struct FWorldCache
+    {
+        uint64 Frame = 0;
+        bool bFilled = false;
+        TMap<FString, FString> Lines;
+    };
+    TSharedRef<FWorldCache> Cache = MakeShared<FWorldCache>();
+    auto LineOf = [G, Cache](const FString& Country) -> FString
+    {
+        if (!G()) return FString();
+        if (!Cache->bFilled || Cache->Frame != GFrameCounter)
+        {
+            Cache->bFilled = true;
+            Cache->Frame = GFrameCounter;
+            Cache->Lines.Reset();
+            for (const MarketCountry::FProfile& P : MarketCountry::All()) Cache->Lines.Add(P.Id, MarketCompany::CountryStatus(G()->State, P.Id));
+        }
+        const FString* Line = Cache->Lines.Find(Country);
+        return Line ? *Line : FString();
+    };
+    TSharedRef<SVerticalBox> Rows = SNew(SVerticalBox);
+    TArray<FString> Continents = MarketCountry::Continents();
+    Continents.Add(FString()); // packs without a continent
+    for (const FString& Continent : Continents)
+    {
+        TArray<const MarketCountry::FProfile*> Packs;
+        for (const MarketCountry::FProfile& P : MarketCountry::All()) if (P.Continent == Continent && P.Cities.Num() > 0) Packs.Add(&P);
+        if (Packs.Num() == 0) continue;
+        Rows->AddSlot().AutoHeight().Padding(0.f, 8.f, 0.f, 2.f)
+        [ Label([Continent] { return Continent.IsEmpty() ? FString(TEXT("Di\u011fer")) : MarketCountry::ContinentName(Continent); }, 10, ERole::Muted, true) ];
+        for (const MarketCountry::FProfile* P : Packs)
+        {
+            const FString Id = P->Id;
+            const FString Name = P->Name;
+            Rows->AddSlot().AutoHeight().Padding(0.f, 2.f)
+            [
+                SNew(SButton).ButtonStyle(&RoundStyle).IsFocusable(false).ContentPadding(FMargin(10.f, 5.f))
+                .ButtonColorAndOpacity_Lambda([this, Id] { return FSlateColor(ShownCountry() == Id ? Color(ERole::Inset) : FLinearColor::Transparent); })
+                .OnClicked_Lambda([this, Id] { MapCountry = Id; MapRegion.Reset(); MapProvinceId.Reset(); bWorldOpen = false; return FReply::Handled(); })
+                [
+                    SNew(SHorizontalBox)
+                    + SHorizontalBox::Slot().AutoWidth().VAlign(VAlign_Center)
+                    [ SNew(SBox).WidthOverride(150.f)[ Label([Name] { return Name; }, 11, ERole::Text, true) ] ]
+                    + SHorizontalBox::Slot().FillWidth(1.f).VAlign(VAlign_Center)
+                    [ Label([LineOf, Id] { return LineOf(Id); }, 10, ERole::Muted, false, true) ]
+                ]
+            ];
+        }
+    }
+    return Card(SNew(SVerticalBox)
+        + SVerticalBox::Slot().AutoHeight().Padding(0.f, 0.f, 0.f, 2.f)[ Section(TEXT("D\u00dcNYA")) ]
+        + SVerticalBox::Slot().AutoHeight()[ Label([] { return FString(TEXT("Bir \u00fclkeye t\u0131kla: il haritas\u0131 a\u00e7\u0131l\u0131r; ara\u015ft\u0131rma, ma\u011faza ve ortakl\u0131k oradan.")); }, 9, ERole::Muted, false, true) ]
+        + SVerticalBox::Slot().AutoHeight()[ SNew(SBox).MaxDesiredHeight(520.f)[ SNew(SScrollBox) + SScrollBox::Slot()[ Rows ] ] ]);
 }
 
 TSharedRef<SWidget> SMarketMenu::Assistant()

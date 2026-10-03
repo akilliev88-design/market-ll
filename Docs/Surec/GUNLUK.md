@@ -1,3 +1,13 @@
+## 03.10.2026 — Claude Code — D7 ilk parça: dünya kartı (derlenmedi)
+
+**Yapılan:** Ana ekranda "Dünya" düğmesi ve kartı: 10 ülke kıtaya göre, her birinde ne durumdayız (mağaza, ortaklık, sıramız, araştırma, kapalıysa neden). Ülkeye tıklayınca il haritası açılır; araştırma, mağaza ve ortaklık oradan yapılır.
+
+**Bilerek bırakılan:** Çizili dünya haritası (ülke şekilleri, görsel iş) ve M53 (ilk başta listede olmamak, listedekileri geçince girmek). İkisi de D7'nin kalanı.
+
+**Doğrulama:** Derlenmedi. `Expansion.ScaleAndFranchise` testine dünya kartı satırları için üç kontrol eklendi.
+
+**Sıradaki:** Mustafa D4 + D6 + D7'yi derler; sonra D7 kalanı ya da D8.
+
 ## 03.10.2026 — Claude Code — D6: yurt dışı kapısı ve ortaklık (derlenmedi)
 
 **Yapılan (M67):** Yurt dışı artık 6. bölümü beklemiyor; ana ülkede 25 mağaza ve 5 il yetiyor (ülke müdürü atanabilecek büyüklük). Yeni giriş yolu: ortaklık. Yerel bir ortak mağazaları bizim adımızla açar, biz her ay satışlarının %4'ünü alırız; sürerken o ülkede kendi mağazamız olmaz, bitirmek bir yıllık kâr payı kadar tutar. 6. bölümün adı "Dünyaya Açılış".

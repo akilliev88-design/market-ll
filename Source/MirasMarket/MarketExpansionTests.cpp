@@ -128,6 +128,7 @@ bool FMarketFranchiseTest::RunTest(const FString& Parameters)
     TestFalse(TEXT("It says why"), MarketCompany::AbroadLock(S).IsEmpty());
     TestFalse(TEXT("No study yet"), MarketResearch::CanStart(S, Abroad, Why));
     TestFalse(TEXT("No partner yet"), MarketFranchise::CanSign(S, Abroad, Why));
+    TestTrue(TEXT("World card: closed"), MarketCompany::CountryStatus(S, Abroad).StartsWith(TEXT("kapal\u0131")));
     TestEqual(TEXT("Chapter 6 is the world's"), MarketStory::ChapterTitle(6), FString(TEXT("D\u00fcnyaya A\u00e7\u0131l\u0131\u015f")));
 
     MarketExpansionTest::GrowHome(S);
@@ -147,6 +148,8 @@ bool FMarketFranchiseTest::RunTest(const FString& Parameters)
     TestFalse(TEXT("Not twice"), MarketFranchise::CanSign(S, Abroad, Why));
     TestEqual(TEXT("A foreign country now"), MarketCompany::ForeignPresence(S), 1);
     TestEqual(TEXT("No own store abroad"), MarketCompany::ForeignCountries(S), 0);
+    TestTrue(TEXT("World card: the partner"), MarketCompany::CountryStatus(S, Abroad).Contains(F->Partner));
+    TestTrue(TEXT("World card: home"), MarketCompany::CountryStatus(S, S.CountryId).Contains(TEXT("25 ma\u011faza")));
 
     // Days pass: sales gather, a store comes every 45 days, the royalty comes on the first of the month.
     const int64 Cash = S.Cash;

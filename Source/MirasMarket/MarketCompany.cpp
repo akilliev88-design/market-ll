@@ -5,6 +5,9 @@
 #include "MarketBranches.h"
 #include "MarketCalendar.h"
 #include "MarketDepots.h"
+#include "MarketSubsidiaries.h"
+#include "MarketResearch.h"
+#include "MarketChains.h"
 #include "MarketFranchise.h"
 #include "MarketManagers.h"
 #include "MarketPrices.h"
@@ -145,6 +148,36 @@ int32 MarketCompany::ForeignPresence(const FMarketState& State)
     }
     for (const FMarketFranchise& F : State.Company.Franchises) if (!F.bEnded) Seen.AddUnique(F.Country);
     return Seen.Num();
+}
+
+FString MarketCompany::CountryStatus(const FMarketState& State, const FString& Country)
+{
+    TArray<FString> Parts;
+    const bool bHome = Country == State.CountryId;
+    int32 Own = bHome ? 1 : 0; // the family shop
+    for (const FMarketBranch& B : State.Branches) if (IsOpen(B) && MarketBranches::CountryOf(State, B) == Country) ++Own;
+    const FMarketFranchise* Partner = MarketFranchise::Find(State, Country);
+    if (bHome) Parts.Add(TEXT("Ana \u00fclke"));
+    if (Own > 0) Parts.Add(FString::Printf(TEXT("%d ma\u011faza"), Own));
+    if (Partner) Parts.Add(FString::Printf(TEXT("ortakl\u0131k: %s, %d ma\u011faza"), *Partner->Partner, Partner->Stores));
+    if (Own > 0 || Partner)
+    {
+        const TArray<MarketChains::FStanding> Table = MarketChains::NationalTable(State, Country);
+        const int32 Rank = Table.IndexOfByPredicate([](const MarketChains::FStanding& R) { return R.bUs; });
+        if (Rank != INDEX_NONE) Parts.Add(FString::Printf(TEXT("\u00fclkede %d. / %d"), Rank + 1, Table.Num()));
+        if (!bHome && Own > 0) Parts.Add(MarketSubsidiaries::LegalName(State, Country));
+        return FString::Join(Parts, TEXT(" \u00b7 "));
+    }
+    if (!AbroadOpen(State)) return FString::Printf(TEXT("kapal\u0131: ana \u00fclkede %d ma\u011faza ve %d il gerekir"), AbroadHomeShops, MarketManagers::CountryProvinces);
+    const FMarketResearch* Study = State.Company.Research.FindByPredicate([&Country](const FMarketResearch& R) { return R.Country == Country; });
+    switch (MarketResearch::Status(State, Country))
+    {
+    case MarketResearch::EStatus::Running: return FString::Printf(TEXT("girilmedi \u00b7 pazar ara\u015ft\u0131rmas\u0131 s\u00fcr\u00fcyor (%d g\u00fcn)"), Study ? Study->ReadyDay - State.Day : 0);
+    case MarketResearch::EStatus::Ready: return TEXT("girilmedi \u00b7 ara\u015ft\u0131rma haz\u0131r: ma\u011faza, zincir ya da ortakl\u0131kla girilebilir");
+    case MarketResearch::EStatus::Expired: return TEXT("girilmedi \u00b7 ara\u015ft\u0131rman\u0131n s\u00fcresi doldu");
+    case MarketResearch::EStatus::NotNeeded: return TEXT("\u015firketimiz var, a\u00e7\u0131k ma\u011fazam\u0131z yok");
+    default: return TEXT("girilmedi \u00b7 \u00f6nce pazar ara\u015ft\u0131rmas\u0131");
+    }
 }
 
 bool MarketCompany::HasDepot(const FMarketState& State, const FString& Country, const FString& SubRegion)
