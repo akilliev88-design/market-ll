@@ -59,12 +59,18 @@ namespace MarketBranches
     constexpr int32 MaturityDays = 30;
 
     // C15 (M45): growth faster than management can follow. Leases signed in the last year against what the company
-    // can follow (8 + half its shops + 3 for every province/region/country manager). Above it the strain (0..1)
+    // can follow (6 + 40 % of its shops + 2 for every province/region/country manager, the managers' part at most
+    // 30 % of the shops; C15b: the first rule, 8 + half + 3 each, never bit). Above it the strain (0..1)
     // makes a new site a hasty pick with chance HastyChance x strain (a quarter fewer shoppers, for good), and young
     // branches (under YoungDays) serve worse. Fast growth stays possible; it is a gamble the player can see.
     constexpr int32 StrainWindowDays = 365;
-    constexpr int32 StrainBase = 8;
-    constexpr int32 StrainPerManager = 3;
+    constexpr int32 StrainBase = 6;
+    constexpr int32 StrainPerManager = 2;
+    constexpr float StrainShopShare = 0.4f;     // of the open shops
+    constexpr float StrainManagerShare = 0.3f;  // the managers' part, at most this share of the open shops
+    // C15b (M44): the difficulty's shopper factor reaches a branch at half strength (full strength made Zor kill
+    // the careful and balanced networks and Rahat double them; branch margins are thin).
+    constexpr float BranchDifficultyShare = 0.5f;
     constexpr float HastyChance = 0.6f;
     constexpr float HastyTrips = 0.75f;
     constexpr int32 YoungDays = 180;

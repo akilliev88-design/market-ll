@@ -38,8 +38,8 @@ bool FMarketGrowthStrainTest::RunTest(const FString& Parameters)
     TestEqual(TEXT("Old leases left out"), MarketBranches::SignedLastYear(S), 4);
     AddShops(S, 16, 60);
     const int32 Capacity = MarketBranches::GrowthCapacity(S);
-    TestEqual(TEXT("Capacity: base and half the shops"), Capacity, MarketBranches::StrainBase + 30 / 2);
-    // 20 leases against 23: calm enough. Twenty more in the last months (40 against 33): strained.
+    TestEqual(TEXT("Capacity: base and half the shops"), Capacity, MarketBranches::StrainBase + 12);
+    // 20 leases against 18: a little strained. Twenty more in the last months (40 against 26): strained.
     AddShops(S, 20, 20);
     const float Strain = MarketBranches::GrowthStrain(S);
     TestTrue(TEXT("Fast growth strains the management"), Strain > 0.f && Strain <= 1.f);
@@ -53,7 +53,7 @@ bool FMarketGrowthStrainTest::RunTest(const FString& Parameters)
         M.Level = static_cast<uint8>(MarketManagers::ELevel::Province);
         M.Name = FString::Printf(TEXT("Il mudur %d"), I);
     }
-    TestEqual(TEXT("Managers add capacity"), MarketBranches::GrowthCapacity(S), Capacity + 10 + 4 * MarketBranches::StrainPerManager);
+    TestEqual(TEXT("Managers add capacity"), MarketBranches::GrowthCapacity(S), Capacity + 8 + 4 * MarketBranches::StrainPerManager);
     TestTrue(TEXT("Less strain with managers"), MarketBranches::GrowthStrain(S) < Strain);
     return true;
 }

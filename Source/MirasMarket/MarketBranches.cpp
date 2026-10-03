@@ -316,7 +316,8 @@ int32 MarketBranches::GrowthCapacity(const FMarketState& State)
     int32 Managers = 0;
     for (const FMarketManager& M : State.Management.Managers)
         if (M.Level >= static_cast<uint8>(MarketManagers::ELevel::Province) && M.Level <= static_cast<uint8>(MarketManagers::ELevel::Country)) ++Managers;
-    return StrainBase + OpenCount(State) / 2 + StrainPerManager * Managers;
+    const int32 Open = OpenCount(State);
+    return StrainBase + FMath::FloorToInt32(Open * StrainShopShare) + FMath::Min(StrainPerManager * Managers, FMath::FloorToInt32(Open * StrainManagerShare));
 }
 
 float MarketBranches::GrowthStrain(const FMarketState& State, int32 ExtraSigned)
@@ -659,7 +660,7 @@ void MarketBranches::CloseDay(FMarketState& State, const TArray<FMarketProduct>&
         const float Trips = MarketCalendar::ClosedByLaw(Closed) ? 0.f : TripsOf(Where, Kind) * MarketCalendar::TrafficFactor(Closed, State.RivalSeed)
             * MarketOnline::StoreTrafficFactorOn(State, Closed, Where.Country) // M32: trips gone online, the epidemic's closure days
             * MarketAdvertising::TrafficFactor(State, Where.Country) // M34: the company's ads
-            * MarketSimulation::TrafficFactor(State) * (B.bHasty ? HastyTrips : 1.f); // C14e: the difficulty's shoppers reach the branches too (before only the family shop)
+            * (1.f + (MarketSimulation::TrafficFactor(State) - 1.f) * BranchDifficultyShare) * (B.bHasty ? HastyTrips : 1.f); // C14e/C15b: the difficulty's shoppers reach the branches too (before only the family shop)
         const int32 Arrived = FMath::RoundToInt32(Trips * Share * (0.5f + 0.5f * B.Maturity) * Cannibalization(State, Index, Where));
         // G-088 C: the store's tills. Too few lanes lose shoppers in the queue; roomy ones keep a few more.
         const MarketStoreAssign::FStoreMeasures Measures = MarketStoreViews::MeasuresOf(B);

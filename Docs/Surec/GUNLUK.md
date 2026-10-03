@@ -1,3 +1,15 @@
+## 03.10.2026 — Claude (Cowork) — C15 sonucu ve C15b (derlenmedi)
+
+**Doğrulama (Mustafa, 289adde):** DERLE, TEST 159 + 1 motor uyarısı (yeni `Branches.GrowthStrain` geçti), Smoke geçti. Bot 882/1177/713 sn.
+
+**Sonuç (10. yıl mağaza):** Normal — C14d ile birebir aynı (temkinli 95/79/81, dengeli 143/102/140, atak 310/302/324): zorlanma hiç oluşmadı; kapasite (8 + açık mağaza/2) büyüyen ağla birlikte büyüdüğü için atak bile altında kaldı. Rahat — temkinli 167/157/150, dengeli 243/254/236, atak 326–367 (hepsi hedefin üstünde). Zor — temkinli 13/15/1, dengeli 11/1/1 (bir kurtarma), atak 320/293/282.
+
+**Bulgu:** Zorluğun müşteri çarpanı şubeye tam güçle (±%8–10) fazla: şube marjı ince, temkinli/dengeli Zor'da çöküyor, Rahat'ta ikiye katlanıyor. Atak Zor'da düşük fiyatla (0,82–0,95) yine 300'e çıkıyor.
+
+**C15b:** Kapasite = 6 + ⌊açık × 0,4⌋ + min(2 × müdür, ⌊açık × 0,3⌋). Şube müşteri çarpanı = 1 + (zorluk çarpanı − 1) × 0,5 (Rahat 1,05, Zor 0,96). Test beklentileri güncellendi.
+
+**Sıradaki:** Mustafa `CLAUDE_KOS.cmd` (C15b_N/R/Z).
+
 ## 03.10.2026 — Claude (Cowork) — C15: hızlı büyüme riski (M45), C14e ile birlikte (derlenmedi)
 
 **Karar (Mustafa):** "Hızlı oynayan büyüyebilir ama riske girme ihtimali de yüksek olur, bu dengeyi tutturalım." C14e koşturulmadı; C14e (M44, zorluk müşteri çarpanı şubelere) ve C15 tek koşuda.
