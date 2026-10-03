@@ -7,6 +7,7 @@
 #include "MarketCompany.h"
 #include "MarketStoreAssign.h"
 #include "MarketStaff.h"
+#include "MarketSubsidiaries.h"
 
 namespace MarketChainsLocal
 {
@@ -614,6 +615,7 @@ TArray<MarketChains::FStanding> MarketChains::NationalTable(const FMarketState& 
         if (C.bGone || C.bOurs || C.Country != Country || TotalStores(C) < 3) continue;
         FStanding Row;
         Row.Name = C.Name;
+        Row.LegalName = MarketSubsidiaries::ChainLegalName(C); // M65: the country's table shows the registered name too
         Row.Stores = TotalStores(C);
         Row.Detail = FString::Printf(TEXT("%s \u00b7 %d ma\u011faza"), *ArchetypeName(static_cast<EArchetype>(C.Archetype)), Row.Stores);
         Row.Revenue = static_cast<double>(YearRevenue(State, I));
@@ -623,7 +625,8 @@ TArray<MarketChains::FStanding> MarketChains::NationalTable(const FMarketState& 
     }
     FStanding Us;
     Us.bUs = true;
-    Us.Name = TEXT("Miras");
+    Us.Name = MarketSubsidiaries::Brand(State);
+    Us.LegalName = MarketSubsidiaries::LegalName(State, Country); // M65
     for (const FMarketBranch& B : State.Branches)
         if (B.Stage == static_cast<uint8>(MarketBranches::EStage::Open) && MarketBranches::CountryOf(State, B) == Country) ++Us.Stores;
     if (Country == State.CountryId) ++Us.Stores;
@@ -665,7 +668,7 @@ TArray<MarketChains::FStanding> MarketChains::WorldTable(const FMarketState& Sta
     }
     FStanding Us;
     Us.bUs = true;
-    Us.Name = TEXT("Miras");
+    Us.Name = MarketSubsidiaries::Brand(State); // M65: the world knows the brand
     TArray<FString> Ours;
     Ours.Add(State.CountryId);
     for (const FMarketBranch& B : State.Branches) if (B.Stage == static_cast<uint8>(MarketBranches::EStage::Open)) Ours.AddUnique(MarketBranches::CountryOf(State, B));

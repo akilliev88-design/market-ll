@@ -19,6 +19,7 @@
   "countries": [
     {
       "id": "tr",
+      "company": {"legalForms": ["Gıda Ticaret A.Ş.", "Mağazacılık A.Ş.", "Gıda Pazarlama Ltd. Şti.", "Ticaret Ltd. Şti."], "setupCost": 15000.00, "dividendWithholding": 0.1},
       "name": "Türkiye",
       "continent": "avrupa",
       "nameEn": "Turkey",
@@ -381,6 +382,7 @@
     },
     {
       "id": "de",
+      "company": {"legalForms": ["Handels GmbH", "Lebensmittel GmbH", "Märkte GmbH & Co. KG", "Handels AG"], "setupCost": 30000.00, "dividendWithholding": 0.05},
       "name": "Almanya",
       "continent": "avrupa",
       "nameEn": "Germany",
@@ -648,6 +650,7 @@
     },
     {
       "id": "gb",
+      "company": {"legalForms": ["Stores Ltd", "Retail Ltd", "Foods Ltd", "Retail plc"], "setupCost": 30000.00, "dividendWithholding": 0.0},
       "name": "Birleşik Krallık",
       "continent": "avrupa",
       "nameEn": "United Kingdom",
@@ -904,6 +907,7 @@
     },
     {
       "id": "us",
+      "company": {"legalForms": ["Stores Inc.", "Markets LLC", "Food Stores Inc.", "Retail Corp."], "setupCost": 25000.00, "dividendWithholding": 0.05},
       "name": "Amerika Birleşik Devletleri",
       "continent": "amerika",
       "nameEn": "United States",
@@ -1423,6 +1427,7 @@
     },
     {
       "id": "fr",
+      "company": {"legalForms": ["Distribution SAS", "Commerce SARL", "Marchés SAS", "Distribution SA"], "setupCost": 30000.00, "dividendWithholding": 0.05},
       "name": "Fransa",
       "continent": "avrupa",
       "nameEn": "France",
@@ -1497,6 +1502,7 @@
     },
     {
       "id": "es",
+      "company": {"legalForms": ["Supermercados S.L.", "Distribución S.A.", "Alimentación S.L.", "Comercial S.A."], "setupCost": 25000.00, "dividendWithholding": 0.05},
       "name": "İspanya",
       "continent": "avrupa",
       "nameEn": "Spain",
@@ -1576,6 +1582,7 @@
     },
     {
       "id": "pl",
+      "company": {"legalForms": ["Handel Sp. z o.o.", "Dystrybucja Sp. z o.o.", "Sklepy S.A.", "Market Sp. z o.o."], "setupCost": 15000.00, "dividendWithholding": 0.05},
       "name": "Polonya",
       "continent": "avrupa",
       "nameEn": "Poland",
@@ -1652,6 +1659,7 @@
     },
     {
       "id": "br",
+      "company": {"legalForms": ["Comércio Ltda.", "Supermercados Ltda.", "Distribuidora S.A.", "Alimentos Ltda."], "setupCost": 20000.00, "dividendWithholding": 0.0},
       "name": "Brezilya",
       "continent": "amerika",
       "nameEn": "Brazil",
@@ -1741,6 +1749,7 @@
     },
     {
       "id": "mx",
+      "company": {"legalForms": ["Comercial S.A. de C.V.", "Tiendas S.A. de C.V.", "Abarrotes S. de R.L.", "Distribuidora S.A. de C.V."], "setupCost": 15000.00, "dividendWithholding": 0.1},
       "name": "Meksika",
       "continent": "amerika",
       "nameEn": "Mexico",
@@ -1835,6 +1844,7 @@
     },
     {
       "id": "jp",
+      "company": {"legalForms": ["Shoten K.K.", "Store K.K.", "Ryutsu K.K.", "Shoji G.K."], "setupCost": 35000.00, "dividendWithholding": 0.05},
       "name": "Japonya",
       "continent": "asya",
       "nameEn": "Japan",

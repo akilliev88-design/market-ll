@@ -1,3 +1,33 @@
+## 03.10.2026 — Claude Code — M65: alt şirketler, marka ve tescilli ad (derlenmedi)
+
+**E4a sonucu (7ff3b9a):** DERLE geçti; TEST 165 başarılı + 1 uyarılı, başarısız 0; Smoke geçti. E4a bitti.
+
+**İstek (Mustafa):** her ülkeye girince alt şirket; her ülkenin hesabı ana şirkete gider; adı oyuncu girebilir, ülkeye özgü ekler otomatik gelir ve değiştirilebilir; herkes kısa adı söyler (Migros örneği); ülke listelerinde ülkeye özgü ad, genel listede normal ad; rakipler için de.
+
+**Yapılan:**
+- `MarketEconomy.h`: `FMarketSubsidiary`, `FMarketCompany::BrandName` ve `Subsidiaries`; kayıt sürümü 16.
+- `MarketCountry`: paket alanı `company` (`legalForms`, `setupCost`, `dividendWithholding`) → `FProfile::LegalForms/SetupCost/DividendWithholding`. `ulkeler.json`'da 10 ülkeye blok eklendi (TR "Gıda Ticaret A.Ş."…, DE "Handels GmbH"…, GB "Stores Ltd"…, US "Stores Inc."…, FR "Distribution SAS"…, ES "Supermercados S.L."…, PL "Handel Sp. z o.o."…, BR "Comércio Ltda."…, MX "Comercial S.A. de C.V."…, JP "Shoten K.K."…).
+- Yeni `MarketSubsidiaries.h/.cpp`: `Brand/SetBrand`, `SuggestedNames`, `DefaultLegalName`, `LegalName/SetLegalName` (1–60 harf, boşluk temizliği), `NextSuggestion`, `SetupCost` (kurulum × liste düzeyi, E4 ile o ülkenin parası), `Ensure` (ana şirket maliyetsiz; alt şirket haberi ve masrafı merkez giderine), `ChainLegalName` (zincir id'sine göre sabit tür), `CloseDay` (ay başı: o ülkedeki şube mağazalarının geçen ay `Statement` net kârı; kârdan stopaj kasadan çıkar ve `Withholding`'e yazılır; zarar haberi).
+- Bağlantılar:
+  - `MarketStart::Setup` ana şirketi kurar;
+  - `MarketBranches::Open` ve `AddAcquired` o ülkenin şirketini kurar; `OpeningCost` kuruluş masrafını içerir;
+  - `MarketDirector::CloseDay` `MarketSubsidiaries::CloseDay`'i defter kapanmadan önce çağırır.
+- `MarketLedger`: `EAccount::Withholding` ("Kâr transferi stopajı").
+- `MarketChains`: `FStanding::LegalName`; `NationalTable` rakiplerde ve bizde tescilli adı doldurur, bizim adımız marka; `WorldTable` marka. Menüde ulusal tablo satırının alt yazısı "tescilli ad · tür · mağaza".
+- Menü Finans: "ŞİRKETLER" kartı (marka kutusu; en çok 12 şirket satırı: ülke, ad kutusu, "Başka öneri", aylık özet; açıklama).
+- AGENTS haritası, 10_ULKE_STANDARDI alan tablosu, KARARLAR M65.
+
+**Test:** yeni `MirasMarket.Subsidiaries.BrandCompaniesAndTransfers`: ana şirket adı ve maliyetsizlik; yabancı alt şirket, masraf, tür; öneri, geçersiz adlar, boşluk temizliği; marka değişince adlar; rakip tescilli adı ve kararlılığı; ay başı aktarım, stopaj, kasadan yalnız vergi çıkması. Test.ps1 alt sınırı 167.
+
+**Varsayımlar:**
+- Kasa tek (konsolide); alt şirketin "hesabı" o ülkedeki mağazaların defter satırları. Aktarım nakit taşımaz, stopaj gerçek giderdir.
+- Satın alınan zincirler (bOurs) kendi adlarıyla çalışmaya devam eder, aktarım hesabına girmez.
+- Haberler ve müşteriler markayı söyler; tescilli ad yalnız ülke tablosunda, Finans kartında ve kuruluş/aktarım haberlerinde.
+
+**Doğrulama:** Derlenmedi.
+
+**Sıradaki:** Mustafa CLAUDE_KOS.cmd; sonra E4b.
+
 ## 03.10.2026 — Claude Code — E4a: yabancı mağazanın parası (derlenmedi)
 
 **Yapılan:**

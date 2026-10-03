@@ -38,6 +38,7 @@
 #include "MarketOwner.h"
 #include "MarketRumors.h"
 #include "Widgets/Input/SEditableTextBox.h"
+#include "MarketSubsidiaries.h"
 #include "Widgets/Layout/SSpacer.h"
 #include "Widgets/Images/SImage.h"
 #include "Widgets/Input/SButton.h"
@@ -1305,7 +1306,8 @@ TSharedRef<SWidget> SMarketMenu::RivalsPage()
                             SNew(SVerticalBox)
                             + SVerticalBox::Slot().AutoHeight()[ TextPx([Row] { const MarketChains::FStanding* R = Row(); return R ? (R->bNemesis ? R->Name + TEXT(" \u00b7 ezeli rakip") : R->Name) : FString(); }, 13.f,
                                 [Row] { const MarketChains::FStanding* R = Row(); return R && R->bUs ? ERole::Accent : ERole::Text; }, true) ]
-                            + SVerticalBox::Slot().AutoHeight()[ TextPx([Row] { const MarketChains::FStanding* R = Row(); return R ? R->Detail : FString(); }, 10.f, [] { return ERole::Muted; }) ]
+                            // M65: a country's own table shows the registered name before the kind (the world league only the brand).
+                            + SVerticalBox::Slot().AutoHeight()[ TextPx([Row] { const MarketChains::FStanding* R = Row(); return R ? (R->LegalName.IsEmpty() ? R->Detail : R->LegalName + TEXT(" \u00b7 ") + R->Detail) : FString(); }, 10.f, [] { return ERole::Muted; }) ]
                         ]
                         + SHorizontalBox::Slot().AutoWidth().VAlign(VAlign_Center).Padding(10.f, 0.f)
                         [
@@ -1811,12 +1813,89 @@ TSharedRef<SWidget> SMarketMenu::FinancePage()
         [ More([G] { return FString(TEXT("Oyun bitmez, ama her ad\u0131m \u00f6nceden s\u00f6ylenir: 1 g\u00fcn uyar\u0131, 3 g\u00fcn toptanc\u0131 vadeyi kapat\u0131r, 7 g\u00fcn se\u00e7im (acil kredi ya da depoyu yar\u0131 fiyat\u0131na satmak), 14 g\u00fcn depo yar\u0131 fiyat\u0131na gider, 30 g\u00fcn banka uyar\u0131r, 60 g\u00fcn kurtarma plan\u0131 uygulan\u0131r. Kasa art\u0131ya ge\u00e7ince biter."))
             + (G() ? FString::Printf(TEXT("\n\nKira: bina annenle baban\u0131n; d\u00fckk\u00e2n her g\u00fcn %s kira \u00f6der (ilin mahalle marketi kiras\u0131, emekli gelirleri). Bu bir gider: k\u00e2r\u0131 da azalt\u0131r."), *MarketMenuUi::Tl(MarketFinance::RentToday(G()->State))) : FString()); }) ]);
 
+    // M65: our companies: the brand everybody says, the parent company and a subsidiary in every country entered.
+    // The registered names can be written freely; "Ba\u015fka \u00f6neri" walks through the country's usual forms.
+    TSharedRef<SVerticalBox> CompanyRows = SNew(SVerticalBox);
+    for (int32 Slot = 0; Slot < 12; ++Slot)
+    {
+        auto Sub = [G, Slot]() -> const FMarketSubsidiary* { return G() && G()->State.Company.Subsidiaries.IsValidIndex(Slot) ? &G()->State.Company.Subsidiaries[Slot] : nullptr; };
+        CompanyRows->AddSlot().AutoHeight().Padding(0.f, 8.f, 0.f, 0.f)
+        [
+            SNew(SBox).Visibility_Lambda([Sub] { return Sub() ? EVisibility::Visible : EVisibility::Collapsed; })
+            [
+                SNew(SVerticalBox)
+                + SVerticalBox::Slot().AutoHeight()
+                [
+                    SNew(SHorizontalBox)
+                    + SHorizontalBox::Slot().AutoWidth().VAlign(VAlign_Center).Padding(0.f, 0.f, 8.f, 0.f)
+                    [
+                        SNew(SBox).WidthOverride(120.f)
+                        [ Label([G, Sub] { const FMarketSubsidiary* S = Sub(); if (!S || !G()) return FString();
+                            const MarketCountry::FProfile* P = MarketCountry::Find(S->Country);
+                            return (P ? P->Name : S->Country) + (S->Country == G()->State.CountryId ? FString(TEXT(" \u00b7 ana \u015firket")) : FString()); }, 11, ERole::Muted) ]
+                    ]
+                    + SHorizontalBox::Slot().FillWidth(1.f).VAlign(VAlign_Center)
+                    [
+                        SNew(SEditableTextBox).Font(MarketMenuUi::MenuFont(false, 11))
+                        .Text_Lambda([Sub] { const FMarketSubsidiary* S = Sub(); return FText::FromString(S ? S->LegalName : FString()); })
+                        .OnTextCommitted_Lambda([G, Slot](const FText& Text, ETextCommit::Type)
+                        {
+                            if (!G() || !G()->State.Company.Subsidiaries.IsValidIndex(Slot)) return;
+                            FString Message;
+                            if (MarketSubsidiaries::SetLegalName(G()->State, G()->State.Company.Subsidiaries[Slot].Country, Text.ToString(), Message)) G()->Notify(Message);
+                        })
+                    ]
+                    + SHorizontalBox::Slot().AutoWidth().VAlign(VAlign_Center).Padding(8.f, 0.f, 0.f, 0.f)
+                    [ Button([] { return FString(TEXT("Ba\u015fka \u00f6neri")); }, [G, Slot]
+                    {
+                        if (!G() || !G()->State.Company.Subsidiaries.IsValidIndex(Slot)) return;
+                        const FString Country = G()->State.Company.Subsidiaries[Slot].Country;
+                        FString Message;
+                        if (MarketSubsidiaries::SetLegalName(G()->State, Country, MarketSubsidiaries::NextSuggestion(G()->State, Country), Message)) G()->Notify(Message);
+                    }) ]
+                ]
+                + SVerticalBox::Slot().AutoHeight().Padding(128.f, 2.f, 0.f, 0.f)
+                [ Label([G, Sub]
+                {
+                    const FMarketSubsidiary* S = Sub();
+                    if (!S || !G()) return FString();
+                    if (S->Country == G()->State.CountryId) return FString::Printf(TEXT("Yurt d\u0131\u015f\u0131ndaki \u015firketlerin k\u00e2r\u0131 buraya gelir. Toplam gelen %s."),
+                        *MarketMenuUi::Tl([&]{ int64 Sum = 0; for (const FMarketSubsidiary& X : G()->State.Company.Subsidiaries) Sum += X.TotalTransferred; return Sum; }()));
+                    return FString::Printf(TEXT("%d. g\u00fcn kuruldu \u00b7 ge\u00e7en ay %s \u00b7 ana \u015firkete %s \u00b7 stopaj %s"), S->FoundedDay,
+                        *MarketMenuUi::Tl(S->LastMonthProfit), *MarketMenuUi::Tl(S->LastTransfer), *MarketMenuUi::Tl(S->LastWithheld));
+                }, 10, ERole::Muted) ]
+            ]
+        ];
+    }
+    TSharedRef<SWidget> Companies = Card(SNew(SVerticalBox)
+        + SVerticalBox::Slot().AutoHeight()[ Section(TEXT("\u015e\u0130RKETLER")) ]
+        + SVerticalBox::Slot().AutoHeight().Padding(0.f, 6.f, 0.f, 0.f)
+        [
+            SNew(SHorizontalBox)
+            + SHorizontalBox::Slot().AutoWidth().VAlign(VAlign_Center).Padding(0.f, 0.f, 8.f, 0.f)
+            [ SNew(SBox).WidthOverride(120.f)[ Fixed(TEXT("Marka"), 11, ERole::Muted) ] ]
+            + SHorizontalBox::Slot().FillWidth(1.f).VAlign(VAlign_Center)
+            [
+                SNew(SEditableTextBox).Font(MarketMenuUi::MenuFont(true, 12))
+                .Text_Lambda([G] { return FText::FromString(G() ? MarketSubsidiaries::Brand(G()->State) : FString()); })
+                .OnTextCommitted_Lambda([G](const FText& Text, ETextCommit::Type)
+                {
+                    FString Message;
+                    if (G() && MarketSubsidiaries::SetBrand(G()->State, Text.ToString(), Message)) G()->Notify(Message);
+                })
+            ]
+        ]
+        + SVerticalBox::Slot().AutoHeight()[ CompanyRows ]
+        + SVerticalBox::Slot().AutoHeight().Padding(0.f, 8.f, 0.f, 0.f)
+        [ More([] { return FString(TEXT("Herkes markay\u0131 s\u00f6yler: tabelada, haberde, d\u00fcnya s\u0131ralamas\u0131nda. Tescilli ad, bir \u00fclkenin kendi perakende listesinde ve defterde g\u00f6r\u00fcn\u00fcr. Yeni bir \u00fclkeye ilk ma\u011faza a\u00e7\u0131l\u0131nca orada bir \u015firket kurulur (kurulu\u015f masraf\u0131 a\u00e7\u0131l\u0131\u015f maliyetine eklenir). Her ay ba\u015f\u0131nda o \u015firketin k\u00e2r\u0131 ana \u015firkete aktar\u0131l\u0131r; o \u00fclke bir stopaj vergisi al\u0131r.")); }) ]);
+
     return SNew(SScrollBox)
     + SScrollBox::Slot()
     [
         SNew(SVerticalBox)
         + SVerticalBox::Slot().AutoHeight()[ Top ]
         + SVerticalBox::Slot().AutoHeight().Padding(0.f, 12.f, 0.f, 0.f)[ OwnerCard ]
+        + SVerticalBox::Slot().AutoHeight().Padding(0.f, 12.f, 0.f, 0.f)[ Companies ]
         // C5 (A istek 3): the company's rating, banks and limit first; the family shop's loan after it.
         + SVerticalBox::Slot().AutoHeight().Padding(0.f, 12.f, 0.f, 0.f)[ BankingCard() ]
         // M36: no credit book: the family shop's loan sits next to the tax.

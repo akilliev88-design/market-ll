@@ -411,10 +411,28 @@ struct FMarketDepot
 };
 
 // The company beyond the family shop (MarketCompany.h). Older saves: nothing built.
+// M65 (Mustafa 03.10.2026): our company in a country. The campaign's own country holds the parent company; every
+// other country we enter gets a subsidiary with its own registered name and its own accounts (its stores'
+// statements), whose month profit goes to the parent (MarketSubsidiaries.h).
+USTRUCT()
+struct FMarketSubsidiary
+{
+    GENERATED_BODY()
+    UPROPERTY() FString Country;
+    UPROPERTY() FString LegalName;          // the registered name ("Miras Handels GmbH"); the player may change it
+    UPROPERTY() int32 FoundedDay = 0;
+    UPROPERTY() int64 LastMonthProfit = 0;  // its stores' net result of the last closed month, our money
+    UPROPERTY() int64 LastTransfer = 0;     // what reached the parent after the withholding tax
+    UPROPERTY() int64 LastWithheld = 0;
+    UPROPERTY() int64 TotalTransferred = 0;
+};
+
 USTRUCT()
 struct FMarketCompany
 {
     GENERATED_BODY()
+    UPROPERTY() FString BrandName = TEXT("Miras"); // M65: the short name everyone uses (signs, news, lists)
+    UPROPERTY() TArray<FMarketSubsidiary> Subsidiaries; // M65: the parent (own country) and one per country entered
     UPROPERTY() TArray<FMarketDepot> DepotSites; // G-089: depots in provinces (MarketDepots.h)
     UPROPERTY() int32 Trucks = 0;
     UPROPERTY() bool bCentralBuying = false;  // buying for all stores at once
@@ -899,7 +917,7 @@ struct FMarketState
     static constexpr int64 StockerDailyWage = 2000;
 
     // Save format version. 2 (G-076): story finale flags, test-mode mark. Older saves load and are migrated.
-    static constexpr int32 CurrentVersion = 15; // E4: the exchange difference account; // E3c2c: branch staff are people; // M64: the father's favour is counted; // E3c2 (M27): branch goods use the family shop's record, the v0.1 staff flags are gone; older saves start a new game
+    static constexpr int32 CurrentVersion = 16; // M65: subsidiaries; // E4: the exchange difference account; // E3c2c: branch staff are people; // M64: the father's favour is counted; // E3c2 (M27): branch goods use the family shop's record, the v0.1 staff flags are gone; older saves start a new game
     UPROPERTY() int32 Version = CurrentVersion;
     UPROPERTY() int32 Day = 1;
     UPROPERTY() int64 Cash = 35000;

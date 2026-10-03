@@ -1,5 +1,6 @@
 #include "MarketDirector.h"
 #include "MarketProductDemand.h"
+#include "MarketSubsidiaries.h"
 #include "MarketCountry.h"
 #include "MarketCalendar.h"
 #include "MarketStaff.h"
@@ -363,6 +364,7 @@ void MarketDirector::CloseDay(FMarketState& State, const TArray<FMarketProduct>&
     MarketBrands::CloseDay(State, Products);     // brands: sales, deals, trust, offers (karar M25)
     MarketSourcing::CloseDay(State, Products);   // supply lines: the month's minimums (G-083)
     MarketCompany::CloseDay(State);              // stores in other cities, depot, trucks, leadership (G-072)
+    MarketSubsidiaries::CloseDay(State);         // M65: our companies abroad send the month's profit to the parent
     MarketPayments::CloseDay(State);             // card money arrives, commissions and POS rent (G-069)
     MarketOnline::CloseDay(State, Products);     // M32: online orders of every shop, per province (after the branches)
     MarketAdvertising::CloseDay(State);          // M34: the company's ads: their cost, what stays in minds, the month's mix

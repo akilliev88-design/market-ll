@@ -135,6 +135,13 @@ namespace MarketCountry
         // "groceryPerPersonDay" in money units, e.g. 0.65). 0 = 65 x wageFactor. Calibrated so that a discounter
         // of the game (about 900 a day) holds what one store of the country's biggest chain holds in reality.
         double GroceryPerPersonDay = 0.0;
+        // M65 (Mustafa 03.10.2026): a company of this country ("company": {...}). LegalForms: what follows the brand in
+        // a company's registered name ("Gida Ticaret A.S.", "Handels GmbH"), the first is the default; SetupCost: what
+        // founding one costs, internal kurus at the start level ("setupCost" in money units); DividendWithholding:
+        // the tax on a month's profit sent to a parent company abroad ("dividendWithholding", 0..0.5).
+        TArray<FString> LegalForms;
+        double SetupCost = 0.0;
+        float DividendWithholding = 0.f;
         // B3 (#39): the employer's social security share on wages ("economy": "employerSocialRate"; Turkey 0.225 as
         // a game value) and the seniority pay per full year of service when a worker is let go ("severanceDaysPerYear";
         // Turkey 30 days' wage, 0 = none).

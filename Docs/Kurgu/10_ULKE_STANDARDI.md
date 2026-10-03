@@ -51,6 +51,7 @@ D3 ile eklenen alanlar (Claude Code, 03.10.2026; hepsi isteğe bağlı, yoksa mo
 | `localSuffixes[]` | yerel aile zinciri adının sözcükleri ("Gıda", "Kardeşler") | varsayılan ülkeninki |
 | `firmWords.wholesale` / `.cashCarry` | toptancı firma sözcükleri ("Gıda Dağıtım", "Toptan") | varsayılan ülkeninki |
 | `names.staff.first/last`, `names.managers.first/last` | personel ve müdür için ayrı isim havuzları | `names.first/last` |
+| `company.legalForms[]`, `company.setupCost`, `company.dividendWithholding` | M65: şirket türleri (tescilli adın sonu, ilki varsayılan), şirket kuruluş masrafı (para birimi, başlangıç düzeyi), yurt dışına kâr aktarımı stopajı (0–0,5) | varsayılan ülkeninki |
 
 Zincir arketipleri (`roster[].archetype`, `giants[].archetype`): `discount`, `fastDiscount`, `super`, `hyper`, `premium`, `regional`, `family`, `wholesale` (toptan market), `club`, `convenience` (yakın market, kombini; mağaza biçimi küçük), `cashCarry` (toptan perakende, atacarejo; biçimi hiper).
 

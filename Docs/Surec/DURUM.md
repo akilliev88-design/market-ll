@@ -1,8 +1,24 @@
 # Güncel durum
 
-Son güncelleme: 03.10.2026 — Claude Code, akis-cc2: E4a (yabancı mağazanın parası) yazıldı, derlenmedi
+Son güncelleme: 03.10.2026 — Claude Code, akis-cc2: E4a derlendi; M65 (alt şirketler, marka ve tescilli ad) yazıldı, derlenmedi
 
 ## Kısaca
+
+**03.10.2026 — Claude Code / M65 (derlenmedi, `akis-cc2`):** 7ff3b9a (E4a) geçti: DERLE, TEST 165 + 1 uyarı, 0 başarısız, Smoke.
+
+Mustafa: her ülkede alt şirket, kendi hesabı, ana şirkete aktarım; oyuncu adı yazabilsin, ülkeye özgü ekler otomatik; herkes kısa adı söyler; ülke listesinde ülkeye özgü ad, genel listede normal ad; rakipler de.
+
+Yeni `MarketSubsidiaries`:
+- Marka `Company.BrandName` (varsayılan "Miras").
+- `FMarketSubsidiary`: ülke, tescilli ad, kuruluş günü, geçen ay kâr / aktarım / stopaj, toplam aktarım.
+- Tescilli ad = marka + paketteki `company.legalForms`; serbest yazım; "Başka öneri" düğmesi; marka değişince adlar da değişir.
+- İlk mağazada kuruluş: `SetupCost` açılış maliyetine eklenir, masraf merkez gideri.
+- Ay başında o ülkedeki mağazaların geçen ay net kârı ana şirkete aktarılır; stopaj yeni `EAccount::Withholding` hesabına yazılır.
+- Rakip tescilli adı `ChainLegalName`.
+- Ulusal tabloda "marka" + altta tescilli ad; dünya tablosunda marka (eski sabit "Miras" kalktı).
+- Finans sayfasında "ŞİRKETLER" kartı: marka kutusu, her şirket için ad kutusu, öneri düğmesi, aylık özet.
+
+Paketler: 10 ülkeye `company` bloğu. Kayıt sürümü 16. Yeni test `Subsidiaries.BrandCompaniesAndTransfers`; Test.ps1 167. **Devam notu:** Mustafa derler; sonra E4b (ülkenin bankası).
 
 **03.10.2026 — Claude Code / E4a (derlenmedi, `akis-cc2`):** Yurt dışı şube kendi ülkesinin parasıyla çalışıyor.
 - `MarketBranches::MoneyOf` üç çarpan veriyor: Goods (ülkenin liste düzeyi / bizimki), Wages (ücret endeksi oranı), Fx (`MarketPrices::ToHome`).

@@ -27,6 +27,7 @@
 #include "MarketStoreDemand.h"
 #include "MarketProductDemand.h"
 #include "MarketFreshness.h"
+#include "MarketSubsidiaries.h"
 #include "MarketDemand.h"
 
 namespace MarketBranches
@@ -323,7 +324,8 @@ int64 MarketBranches::OpeningCost(const FMarketState& State, const TArray<FMarke
     const FSite Site = SiteOf(State, Probe);
     const MarketStoreAssign::FStoreMeasures Measures = MarketStoreViews::MeasuresOf(Probe);
     return 2 * FMath::RoundToInt64(MonthlyRent(State, Site, Kind, Level) * MarketStoreAssign::RentFactor(Measures, Kind.Id))
-        + FitOutCost(State, Site, Kind, MarketStoreAssign::FitOutFactor(Measures, Kind.Id)) + StockCost(Probe, Products);
+        + FitOutCost(State, Site, Kind, MarketStoreAssign::FitOutFactor(Measures, Kind.Id)) + StockCost(Probe, Products)
+        + MarketSubsidiaries::SetupCost(State, Site.Country); // M65: the first store in a country founds our company there
 }
 
 int32 MarketBranches::SignedLastYear(const FMarketState& State)
@@ -425,6 +427,7 @@ bool MarketBranches::Open(FMarketState& State, const TArray<FMarketProduct>& Pro
     Branch.SignedDay = State.Day;
     Branch.bHasty = Strain > 0.f && (BranchMix(State.RivalSeed, State.Day, 0x4A57u + static_cast<uint32>(State.Branches.Num()) * 17u) % 1000u) < static_cast<uint32>(HastyChance * Strain * 1000.f) ? 1 : 0;
     MarketLedger::AddStoreCost(State, FitOutCost(State, Site, Kind, MarketStoreAssign::FitOutFactor(Measures, Kind.Id)), State.Branches.Num()); // C10: the branch's own books
+    MarketSubsidiaries::Ensure(State, Site.Country); // M65: our company in the country (abroad: a subsidiary, its founding cost)
     State.Branches.Add(Branch);
     OutMessage = FString::Printf(TEXT("%s: kira s\u00f6zle\u015fmesi imzaland\u0131 (depozito %s), tadilat ba\u015flad\u0131 (%d g\u00fcn). Raflar senin kurallar\u0131nla otomatik planland\u0131."),
         *Branch.Name, *BranchTl(2 * Branch.Rent), RenovationDays);
@@ -464,6 +467,7 @@ int32 MarketBranches::AddAcquired(FMarketState& State, const TArray<FMarketProdu
     const int32 Index = State.Branches.Num() - 1;
     MarketManagers::HireStoreManager(State, Index);
     MarketStaff::StaffBranch(State, Index, false); // E3c2c: the chain's people stay with the store
+    MarketSubsidiaries::Ensure(State, Site.Country); // M65
     return Index;
 }
 

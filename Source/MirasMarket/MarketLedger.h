@@ -134,6 +134,7 @@ namespace MarketLedger
         DepartmentMaster, // changing a department's master (notice, transfer, the new one's fee)
         SourcingFees,     // supply line fees and the shortfall of a minimum purchase
         FxDifference,     // E4: the exchange difference on stores' assets abroad (no cash; + gain, - loss)
+        Withholding,      // M65: the tax on a subsidiary's profit sent to the parent company
         // Balance sheet movements (cash, no profit)
         Purchases,        // goods bought for cash (they become stock)
         SupplierCredit,   // bought on terms (+) and paid later (-)

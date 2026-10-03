@@ -101,6 +101,14 @@ bool MarketCountry::Parse(const FString& Json, TArray<FProfile>& OutProfiles, TA
             if ((*Economy)->TryGetNumberField(TEXT("employerSocialRate"), Number)) P.EmployerSocialRate = FMath::Clamp(static_cast<float>(Number), 0.f, 0.6f); // B3
             if ((*Economy)->TryGetNumberField(TEXT("severanceDaysPerYear"), Number)) P.SeveranceDaysPerYear = FMath::Clamp(FMath::RoundToInt32(Number), 0, 90);
         }
+        const TSharedPtr<FJsonObject>* Company = nullptr;
+        if (O->TryGetObjectField(TEXT("company"), Company) && Company && Company->IsValid()) // M65
+        {
+            (*Company)->TryGetStringArrayField(TEXT("legalForms"), P.LegalForms);
+            double Number = 0.0;
+            if ((*Company)->TryGetNumberField(TEXT("setupCost"), Number) && Number > 0.0) P.SetupCost = Number * 100.0;
+            if ((*Company)->TryGetNumberField(TEXT("dividendWithholding"), Number)) P.DividendWithholding = FMath::Clamp(static_cast<float>(Number), 0.f, 0.5f);
+        }
         const TSharedPtr<FJsonObject>* Habits = nullptr;
         if (O->TryGetObjectField(TEXT("habits"), Habits) && Habits && Habits->IsValid())
         {

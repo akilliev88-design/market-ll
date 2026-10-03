@@ -96,6 +96,7 @@ FString MarketLedger::AccountName(EAccount Account)
     case EAccount::DepartmentMaster: return TEXT("Reyon ustas\u0131 de\u011fi\u015fimi");
     case EAccount::SourcingFees: return TEXT("Tedarik \u00fccretleri");
     case EAccount::FxDifference: return TEXT("Kur fark\u0131");
+    case EAccount::Withholding: return TEXT("K\u00e2r transferi stopaj\u0131");
     case EAccount::DepartmentPurchases: return TEXT("Reyon mal al\u0131m\u0131");
     case EAccount::DepartmentFitOut: return TEXT("Reyon tadilat\u0131");
     case EAccount::ChainPurchase: return TEXT("Zincir sat\u0131n alma");

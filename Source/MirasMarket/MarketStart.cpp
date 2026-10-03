@@ -4,6 +4,7 @@
 #include "MarketStaff.h"
 #include "MarketFinance.h"
 #include "MarketOwner.h"
+#include "MarketSubsidiaries.h"
 
 namespace MarketStart
 {
@@ -61,6 +62,7 @@ void MarketStart::Setup(FMarketState& State, const FString& CountryId, const FSt
     State.InheritedDebt = State.StartDebt;
     MarketEras::Setup(State); // C3 (B4): this campaign's eras, shifted by the seed
     MarketChains::Ensure(State); // E2: the province's chains are there from the first day (the shoppers' rivals)
+    MarketSubsidiaries::Ensure(State, State.CountryId, false); // M65: the parent company
 }
 
 int32 MarketStart::StockShelvesPartly(FMarketState& State, int32 Seed)

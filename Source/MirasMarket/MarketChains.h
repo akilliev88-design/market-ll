@@ -113,7 +113,8 @@ namespace MarketChains
 
     struct FStanding
     {
-        FString Name;
+        FString Name;                    // M65: the name everybody uses (our brand, the chain's name)
+        FString LegalName;               // M65: the registered name, shown in a country's own table (empty in the world league)
         FString Detail;                  // "indirim marketi \u00b7 3.512 ma\u011faza" / "ABD"
         double Revenue = 0.0;            // a year: kurus (national table) or world units (league)
         int32 Stores = 0;
