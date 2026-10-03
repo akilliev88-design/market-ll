@@ -355,7 +355,7 @@ namespace MarketAutoPlay
         for (const FMarketBranch& Branch : State.Branches)
         {
             Check(FMath::IsFinite(Branch.Satisfaction) && Branch.Satisfaction >= 0 && Branch.Satisfaction <= 100, TEXT("Sube memnuniyeti gecersiz."));
-            for (const FMarketBranchItem& Item : Branch.Items) Check(Item.Units >= 0 && Item.Incoming >= 0, TEXT("Subede negatif stok var."));
+            for (const FMarketStock& Item : Branch.Items) Check(Item.Shelf >= 0 && Item.Incoming >= 0, TEXT("Subede negatif stok var."));
         }
         for (const FMarketEmployee& Person : State.Staff)
             Check(FMath::IsFinite(Person.Morale) && FMath::IsFinite(Person.Fatigue) && Person.Morale >= 0 && Person.Morale <= 100 && Person.Fatigue >= 0 && Person.Fatigue <= 100, TEXT("Calisan durumu gecersiz."));

@@ -93,8 +93,8 @@ bool FMarketStoreViewsAssignTest::RunTest(const FString& Parameters)
     TestTrue(TEXT("Smaller store, lower rent"), Small.Branches[SmallIndex].Rent < Nominal.Branches[NominalIndex].Rent);
     TestTrue(TEXT("Smaller store, cheaper to open"), Small.OtherCosts < Nominal.OtherCosts);
     int32 SmallUnits = 0, NominalUnits = 0;
-    for (const FMarketBranchItem& Item : Small.Branches[SmallIndex].Items) SmallUnits += Item.Capacity;
-    for (const FMarketBranchItem& Item : Nominal.Branches[NominalIndex].Items) NominalUnits += Item.Capacity;
+    for (const FMarketStock& Item : Small.Branches[SmallIndex].Items) SmallUnits += Item.Capacity;
+    for (const FMarketStock& Item : Nominal.Branches[NominalIndex].Items) NominalUnits += Item.Capacity;
     TestTrue(TEXT("Shorter shelves hold less"), SmallUnits < NominalUnits);
 
     // The cost preview matches what opening takes (deposit + fit-out).

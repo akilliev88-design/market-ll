@@ -5,12 +5,12 @@ IMPLEMENT_SIMPLE_AUTOMATION_TEST(FBranchVisitProjection, "MirasMarket.BranchVisi
 bool FBranchVisitProjection::RunTest(const FString& Parameters)
 {
     FMarketState State; FMarketBranch Branch;
-    FMarketBranchItem Item; Item.ProductId = TEXT("tea"); Item.Units = 12; Item.Capacity = 24; Branch.Items.Add(Item);
+    FMarketStock Item = FMarketStock::Empty(); Item.Id = TEXT("tea"); Item.Shelf = 12; Item.Capacity = 24; Branch.Items.Add(Item);
     State.Branches.Add(Branch); const auto Before = MarketBranchVisit::StateBytes(State);
     TestEqual(TEXT("Half stock shows half of visual shelf"), MarketBranchVisit::Fill(State.Branches[0],TEXT("tea")),.5f);
     TestEqual(TEXT("Absent product leaves shelf empty"), MarketBranchVisit::Fill(Branch,TEXT("missing")),0.f);
-    Branch.Items[0].Units = 0; TestEqual(TEXT("Empty shelf stays empty"),MarketBranchVisit::Fill(Branch,TEXT("tea")),0.f);
-    Branch.Items[0].Units = 99; TestEqual(TEXT("Over-capacity is bounded visually"),MarketBranchVisit::Fill(Branch,TEXT("tea")),1.f);
+    Branch.Items[0].Shelf = 0; TestEqual(TEXT("Empty shelf stays empty"),MarketBranchVisit::Fill(Branch,TEXT("tea")),0.f);
+    Branch.Items[0].Shelf = 99; TestEqual(TEXT("Over-capacity is bounded visually"),MarketBranchVisit::Fill(Branch,TEXT("tea")),1.f);
     Branch.LastShoppers = 120; Branch.LastQueueLost = 15; Branch.Workers = 3;
     TestEqual(TEXT("Visit shoppers follow last-day traffic"),MarketBranchVisit::Shoppers(Branch),6);
     TestEqual(TEXT("Queue follows last-day queue losses"),MarketBranchVisit::Queue(Branch),3);

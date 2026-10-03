@@ -107,7 +107,7 @@ namespace MarketAutoPlayCommand
         }
         Stats.BeforeAds.Reset();for(const auto& Country:State.Advertising.Countries)Stats.BeforeAds.Add(Country.Country,Country);
         Stats.BeforeMarkdown.Reset();for(int32 BranchIndex=0;BranchIndex<State.Branches.Num();++BranchIndex)
-            for(const auto& Item:State.Branches[BranchIndex].Items)Stats.BeforeMarkdown.Add(FString::FromInt(BranchIndex)+TEXT("|")+Item.ProductId,Item.MarkdownUntil);
+            for(const auto& Item:State.Branches[BranchIndex].Items)Stats.BeforeMarkdown.Add(FString::FromInt(BranchIndex)+TEXT("|")+Item.Id,Item.MarkdownUntil);
         Track(State,Stats);
     }
     void Observe(const FMarketState& State,int32 Year,FStats& Stats)
@@ -135,7 +135,7 @@ namespace MarketAutoPlayCommand
         bool Cleared=false;
         for(int32 BranchIndex=0;BranchIndex<State.Branches.Num();++BranchIndex)
             for(const auto& Item:State.Branches[BranchIndex].Items)
-            {const FString Key=FString::FromInt(BranchIndex)+TEXT("|")+Item.ProductId;
+            {const FString Key=FString::FromInt(BranchIndex)+TEXT("|")+Item.Id;
                 if(Item.Markdown>0 && Item.MarkdownUntil>Stats.BeforeMarkdown.FindRef(Key) && Item.MarkdownUntil==Day+7)
                 {++Stats.ClearanceItems;Cleared=true;Event(Stats,Day,TEXT("stok_eritme"),Key,Item.Markdown);}}
         if(Cleared)++Stats.ClearanceWeeks;

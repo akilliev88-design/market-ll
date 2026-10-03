@@ -74,9 +74,9 @@ namespace MarketBrandsLocal
             if (B.Stage == static_cast<uint8>(MarketBranches::EStage::Closed)) continue;
             for (int32 I = 0; I < Products.Num(); ++I)
             {
-                const FMarketBranchItem* Item = B.Items.IsValidIndex(I) && B.Items[I].ProductId == Products[I].Id ? &B.Items[I]
-                    : B.Items.FindByPredicate([&Products, I](const FMarketBranchItem& It) { return It.ProductId == Products[I].Id; });
-                if (Item) Cap[I] += Shown(Item->Capacity, Item->Units);
+                const FMarketStock* Item = B.Items.IsValidIndex(I) && B.Items[I].Id == Products[I].Id ? &B.Items[I]
+                    : B.Items.FindByPredicate([&Products, I](const FMarketStock& It) { return It.Id == Products[I].Id; });
+                if (Item) Cap[I] += Shown(Item->Capacity, Item->Shelf);
             }
         }
         return Cap;
@@ -319,8 +319,8 @@ void MarketBrands::CloseDay(FMarketState& State, const TArray<FMarketProduct>& P
         for (const FMarketBranch& B : State.Branches)
         {
             if (B.Stage != static_cast<uint8>(MarketBranches::EStage::Open)) continue;
-            const FMarketBranchItem* Item = B.Items.IsValidIndex(I) && B.Items[I].ProductId == P.Id ? &B.Items[I] : nullptr;
-            if (Item) Sales += FMath::RoundToInt64(static_cast<double>(Item->LastSold) * P.BasePrice * B.PriceIndex);
+            const FMarketStock* Item = B.Items.IsValidIndex(I) && B.Items[I].Id == P.Id ? &B.Items[I] : nullptr;
+            if (Item) Sales += FMath::RoundToInt64(static_cast<double>(Item->Yesterday.Sold) * P.BasePrice * B.PriceIndex);
         }
         if (Sales > 0) R.MonthSales.FindOrAdd(P.Brand) += Sales;
     }

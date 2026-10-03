@@ -54,7 +54,7 @@ bool AMarketGameMode::TickBranchVisitReview()
         Branch.Country = TEXT("tr"); Branch.Province = TEXT("kirklareli"); Branch.Workers = 3; Branch.LastShoppers = 120; Branch.LastQueueLost = 15; Branch.ManagerName = TEXT("Ayse"); Branch.OpenedDay = 1; Branch.Satisfaction = 20; Branch.Last30Profit = -100000;
         TArray<FString> Errors; if (!MarketStoreKit::Load(Errors)) return Fail(TEXT("store catalog"));
         const auto Ids = MarketStoreViews::IdsFor(Branch.Format); if (Ids.IsEmpty()) return Fail(TEXT("no branch view")); Branch.StoreView = Ids[0];
-        for(int32 Index=0;Index<Products.Num();++Index) { FMarketBranchItem Item; Item.ProductId=Products[Index].Id; Item.LastEmpty=10; Item.Capacity=24; Item.Units=Index%3==0?0:Index%3==1?12:24; Branch.Items.Add(Item); }
+        for(int32 Index=0;Index<Products.Num();++Index) { FMarketStock Item = FMarketStock::Empty(); Item.Id=Products[Index].Id; Item.Yesterday.Empty=10; Item.Capacity=24; Item.Shelf=Index%3==0?0:Index%3==1?12:24; Branch.Items.Add(Item); }
         State.Branches.Add(Branch);
         R.Before = MarketBranchVisit::StateBytes(State); R.Player = Pawn->GetActorTransform(); R.Control = PC->GetControlRotation();
         R.Plan = MarketPlanogram::Serialize(Planogram); R.DayTime = DayTime; R.Test = bTestMode; R.Saves = MarketVisitReview::SaveFiles();

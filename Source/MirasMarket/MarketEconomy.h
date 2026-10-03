@@ -98,6 +98,21 @@ struct FMarketStock
     UPROPERTY() float PromoHeat = 0.f;
     UPROPERTY() int32 IdleDays = 0;          // M38: days in a row it was on hand and nobody bought it (the manager's clearance)
     UPROPERTY() float Pantry = 0.f;
+    // M33: a store manager's clearance (a slow item marked down for a week; branches).
+    UPROPERTY() uint8 Markdown = 0;          // percent off
+    UPROPERTY() int32 MarkdownUntil = 0;
+
+    // E3c (11_TEK_EKONOMI): one product record for every store. The family shop's rows start with the inherited
+    // stock in the back room; a branch's rows start empty and keep all their goods on the shelves (Shelf; the
+    // branch has no separate back room), yesterday's sales and empty-shelf wishes in Yesterday.
+    static FMarketStock Empty(const FString& InId = FString())
+    {
+        FMarketStock Row;
+        Row.Id = InId;
+        Row.Warehouse = 0;
+        Row.Capacity = 0;
+        return Row;
+    }
 };
 
 // A small, stable neighbourhood pool makes repeat shoppers meaningful without saving world actors.
@@ -298,23 +313,6 @@ struct FMarketLoan
     UPROPERTY() int32 LateSince = 0;     // C7: first missed day (0 = on time); a late fee once a month, not every day
 };
 
-// One product in a branch that is not visited (MarketBranches.h).
-USTRUCT()
-struct FMarketBranchItem
-{
-    GENERATED_BODY()
-    UPROPERTY() FString ProductId;
-    UPROPERTY() int32 Units = 0;         // shelf + back room
-    UPROPERTY() int32 Capacity = 0;      // from the branch's automatic shelf plan (MarketLayout)
-    UPROPERTY() int32 Incoming = 0;      // ordered by the manager, arrives at the next close
-    UPROPERTY() int32 LastSold = 0;
-    UPROPERTY() int32 LastEmpty = 0;
-    // M33: the store manager's clearance (a slow item marked down for a week).
-    UPROPERTY() int32 IdleDays = 0;      // days in a row with goods on the shelf and none sold
-    UPROPERTY() uint8 Markdown = 0;      // percent off
-    UPROPERTY() int32 MarkdownUntil = 0;
-};
-
 // A branch of the company, simulated from the same rules without walking customers (MarketBranches.h).
 // Karar M26: a department running in a branch (MarketDepartments.h).
 USTRUCT()
@@ -350,7 +348,7 @@ struct FMarketBranch
     UPROPERTY() float PriceIndex = 1.f;  // shelf prices / list price
     UPROPERTY() float Maturity = 0.f;    // 0..1: the district's habit of shopping here
     UPROPERTY() float Satisfaction = 55.f;
-    UPROPERTY() TArray<FMarketBranchItem> Items;
+    UPROPERTY() TArray<FMarketStock> Items; // E3c: the same product record as the family shop (FMarketStock::Empty)
     UPROPERTY() int64 LastRevenue = 0;
     UPROPERTY() int64 LastProfit = 0;
     UPROPERTY() int32 LastShoppers = 0;
@@ -899,7 +897,7 @@ struct FMarketState
     static constexpr int64 StockerDailyWage = 2000;
 
     // Save format version. 2 (G-076): story finale flags, test-mode mark. Older saves load and are migrated.
-    static constexpr int32 CurrentVersion = 10; // E3a (M27): the v0.1 second store flag left the save; older saves start a new game
+    static constexpr int32 CurrentVersion = 11; // E3c (M27): branch goods use the family shop's product record; older saves start a new game
     UPROPERTY() int32 Version = CurrentVersion;
     UPROPERTY() int32 Day = 1;
     UPROPERTY() int64 Cash = 35000;

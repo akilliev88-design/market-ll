@@ -271,7 +271,7 @@ namespace MarketMenuPagesUi
         const FMarketBranch& B = State.Branches[BranchIndex];
         if (B.Stage != static_cast<uint8>(MarketBranches::EStage::Open)) return MarketBranches::Summary(State, BranchIndex, Products);
         int32 Capacity = 0, Units = 0;
-        for (const FMarketBranchItem& Item : B.Items) { Capacity += Item.Capacity; Units += FMath::Min(Item.Units, Item.Capacity); }
+        for (const FMarketStock& Item : B.Items) { Capacity += Item.Capacity; Units += FMath::Min(Item.Shelf, Item.Capacity); }
         return FString::Printf(TEXT("%s \u00b7 karne %s \u00b7 %d. g\u00fcn \u00b7 d\u00fcn %d m\u00fc\u015fteri, net %s \u00b7 raf %%%d dolu"), *B.Name, *MarketBranches::Grade(State, BranchIndex),
             State.Day - B.OpenedDay, B.LastShoppers, *MarketMenuUi::Tl(B.LastProfit), Capacity > 0 ? Units * 100 / Capacity : 0);
     }

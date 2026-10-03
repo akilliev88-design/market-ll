@@ -136,13 +136,13 @@ bool FMarketBranchesTest::RunTest(const FString& Parameters)
     TestTrue(TEXT("Open in the home province"), Open(S, Products, TEXT("tr"), TEXT("kirklareli"), TEXT("mahalle"), Message));
     TestTrue(TEXT("A branch exists"), S.Branches.Num() == 1 && S.Branches[0].Stage == static_cast<uint8>(EStage::Renovation));
     int64 OpeningStock = 0;
-    for (const FMarketBranchItem& Item : S.Branches[0].Items)
-        for (const FMarketProduct& Product : Products) if (Product.Id == Item.ProductId) OpeningStock += static_cast<int64>(Item.Capacity) * Product.Cost;
+    for (const FMarketStock& Item : S.Branches[0].Items)
+        for (const FMarketProduct& Product : Products) if (Product.Id == Item.Id) OpeningStock += static_cast<int64>(Item.Capacity) * Product.Cost;
     TestEqual(TEXT("View-specific opening cost is deposit + fit-out + stock"), Cost, 2 * S.Branches[0].Rent + S.OtherCosts + OpeningStock);
     TestEqual(TEXT("In its province"), S.Branches[0].Province, FString(TEXT("kirklareli")));
     TestTrue(TEXT("Named after the province and type"), S.Branches[0].Name.Contains(TEXT("Mahalle 1")));
     TestEqual(TEXT("Family shop + branch"), ShopsIn(S, TEXT("tr"), TEXT("kirklareli")), 2);
-    TestTrue(TEXT("Shelves planned"), S.Branches[0].Items.ContainsByPredicate([](const FMarketBranchItem& I) { return I.Capacity > 0; }));
+    TestTrue(TEXT("Shelves planned"), S.Branches[0].Items.ContainsByPredicate([](const FMarketStock& I) { return I.Capacity > 0; }));
     TestTrue(TEXT("Not open yet: no effect on the family shop"), MainShopFactor(S) >= 1.f);
     {
         FString Country, Province, Format;
@@ -154,7 +154,7 @@ bool FMarketBranchesTest::RunTest(const FString& Parameters)
     for (int32 D = 0; D < 20 && S.Branches[0].Stage != static_cast<uint8>(EStage::Open); ++D) Close(S, Products);
     TestEqual(TEXT("Open"), S.Branches[0].Stage, static_cast<uint8>(EStage::Open));
     TestFalse(TEXT("A manager was hired"), S.Branches[0].ManagerName.IsEmpty());
-    TestTrue(TEXT("Stocked"), S.Branches[0].Items.ContainsByPredicate([](const FMarketBranchItem& I) { return I.Units > 0; }));
+    TestTrue(TEXT("Stocked"), S.Branches[0].Items.ContainsByPredicate([](const FMarketStock& I) { return I.Shelf > 0; }));
     TestTrue(TEXT("Now it takes a little from the family shop"), MainShopFactor(S) < 1.f);
     FMarketState Second = S;
     TestFalse(TEXT("Third shop needs HR"), [&] { Open(Second, Products, TEXT("tr"), TEXT("kirklareli"), TEXT("kucuk"), Message); return CanOpen(Second, Products, TEXT("tr"), TEXT("kirklareli"), TEXT("kucuk"), Message); }());
@@ -165,7 +165,7 @@ bool FMarketBranchesTest::RunTest(const FString& Parameters)
     TestTrue(TEXT("Shoppers come"), Branch.LastShoppers > 20);
     TestTrue(TEXT("Revenue"), Branch.LastRevenue > 0);
     TestTrue(TEXT("Habit built in a month"), Branch.Maturity >= 1.f);
-    TestTrue(TEXT("The manager keeps it stocked"), Branch.Items.ContainsByPredicate([](const FMarketBranchItem& I) { return I.Capacity > 0 && I.Units > 0; }));
+    TestTrue(TEXT("The manager keeps it stocked"), Branch.Items.ContainsByPredicate([](const FMarketStock& I) { return I.Capacity > 0 && I.Shelf > 0; }));
     TestTrue(TEXT("Branch result reaches the day's net"), S.LastBranchProfit == Branch.LastProfit);
     TestFalse(TEXT("Summary"), Summary(S, 0, Products).IsEmpty());
     TestTrue(TEXT("A weekly mark"), Grade(S, 0) != TEXT("-"));
@@ -179,15 +179,15 @@ bool FMarketBranchesTest::RunTest(const FString& Parameters)
         GenerousDay.Branches[0].ManagerStyle = static_cast<uint8>(MarketManagers::EStyle::Generous);
         MarketBranches::CloseDay(CarefulDay, Products);
         MarketBranches::CloseDay(GenerousDay, Products);
-        const TArray<FMarketBranchItem>& KeptItems = CarefulDay.Branches[0].Items;
-        const TArray<FMarketBranchItem>& WastedItems = GenerousDay.Branches[0].Items;
+        const TArray<FMarketStock>& KeptItems = CarefulDay.Branches[0].Items;
+        const TArray<FMarketStock>& WastedItems = GenerousDay.Branches[0].Items;
         int32 MoreThrown = 0;
         int64 ThrownCost = 0;
         for (int32 K = 0; K < KeptItems.Num() && K < WastedItems.Num(); ++K)
         {
-            const FString& ItemId = KeptItems[K].ProductId;
+            const FString& ItemId = KeptItems[K].Id;
             const FMarketProduct* Goods = Products.FindByPredicate([&ItemId](const FMarketProduct& X) { return X.Id == ItemId; });
-            const int32 Diff = KeptItems[K].Units - WastedItems[K].Units;
+            const int32 Diff = KeptItems[K].Shelf - WastedItems[K].Shelf;
             MoreThrown += Diff;
             if (Goods) ThrownCost += Goods->Cost * Diff;
         }

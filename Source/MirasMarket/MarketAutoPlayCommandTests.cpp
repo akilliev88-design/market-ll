@@ -44,7 +44,7 @@ bool FMarketBotCommandBooks::RunTest(const FString& Parameters)
     using namespace MarketAutoPlayCommand;
     FMarketState State;State.CountryId=TEXT("tr");State.CityId=TEXT("kirklareli");State.Day=MarketCalendar::GameDayOf(2012,1,31);
     FMarketAdCountry Ad;Ad.Country=State.CountryId;Ad.MonthChannelSpend={100,200,0,0,0,10};Ad.MonthUplift=200;Ad.Stock={20,10,0,0,0,7};State.Advertising.Countries.Add(Ad);
-    FMarketBranch Branch;FMarketBranchItem Item;Item.ProductId=TEXT("tea");Branch.Items.Add(Item);State.Branches.Add(Branch);
+    FMarketBranch Branch;FMarketStock Item = FMarketStock::Empty();Item.Id=TEXT("tea");Branch.Items.Add(Item);State.Branches.Add(Branch);
     FStats Stats;BeginDay(State,Stats);++State.Day;
     auto& Country=State.Advertising.Countries[0];Country.PrevChannelSpend={150,230,0,0,0,20};Country.PrevUplift=1100;Country.MonthChannelSpend.Init(0,6);Country.MonthUplift=0;
     State.Branches[0].Items[0].Markdown=20;State.Branches[0].Items[0].MarkdownUntil=State.Day-1+7;

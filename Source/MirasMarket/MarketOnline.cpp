@@ -143,10 +143,10 @@ namespace MarketOnlineLocal
         return INDEX_NONE;
     }
 
-    FMarketBranchItem* ItemAt(FMarketBranch& B, const TArray<FMarketProduct>& Products, int32 Index)
+    FMarketStock* ItemAt(FMarketBranch& B, const TArray<FMarketProduct>& Products, int32 Index)
     {
-        if (B.Items.IsValidIndex(Index) && B.Items[Index].ProductId == Products[Index].Id) return &B.Items[Index];
-        return B.Items.FindByPredicate([&Products, Index](const FMarketBranchItem& It) { return It.ProductId == Products[Index].Id; });
+        if (B.Items.IsValidIndex(Index) && B.Items[Index].Id == Products[Index].Id) return &B.Items[Index];
+        return B.Items.FindByPredicate([&Products, Index](const FMarketStock& It) { return It.Id == Products[Index].Id; });
     }
 
     int32 RivalStage(const FMarketState& State, const FMarketChain& C, int32 Day)
@@ -1190,7 +1190,7 @@ void MarketOnline::CloseDay(FMarketState& State, const TArray<FMarketProduct>& P
         for (int32 I = 0; I < Products.Num(); ++I)
         {
             bool bCarried;
-            if (Branch) { const FMarketBranchItem* Item = ItemAt(*Branch, Products, I); bCarried = Item && Item->Capacity > 0; }
+            if (Branch) { const FMarketStock* Item = ItemAt(*Branch, Products, I); bCarried = Item && Item->Capacity > 0; }
             else bCarried = State.Stock.IsValidIndex(I) && State.Stock[I].Capacity > 0;   // B1 (#30): only what the shop carries
             if (!Products[I].bActive || !bCarried) continue;
             Weights[I] = MarketCalendar::CategoryFactor(Closed, State.RivalSeed, Products[I].Category) * GroupFactor(State, MarketGoods::Classify(Products[I].Category));
@@ -1199,7 +1199,7 @@ void MarketOnline::CloseDay(FMarketState& State, const TArray<FMarketProduct>& P
         if (Total <= 0.f) continue;
         auto Available = [&State, Branch, &Products](int32 I) -> int32
         {
-            if (Branch) { const FMarketBranchItem* Item = ItemAt(*Branch, Products, I); return Item ? Item->Units : 0; }
+            if (Branch) { const FMarketStock* Item = ItemAt(*Branch, Products, I); return Item ? Item->Shelf : 0; }
             return State.Stock[I].Warehouse + State.Stock[I].Shelf;
         };
 
@@ -1261,9 +1261,9 @@ void MarketOnline::CloseDay(FMarketState& State, const TArray<FMarketProduct>& P
                 int64 Price, Cost;
                 if (Branch)
                 {
-                    FMarketBranchItem* Item = ItemAt(*Branch, Products, Index);
-                    Item->Units -= Wanted;
-                    Item->LastSold += Wanted;
+                    FMarketStock* Item = ItemAt(*Branch, Products, Index);
+                    Item->Shelf -= Wanted;
+                    Item->Yesterday.Sold += Wanted;
                     Price = FMath::Max<int64>(5, FMath::RoundToInt64(Products[Index].BasePrice * Branch->PriceIndex / 5.0) * 5);
                     Cost = Products[Index].Cost;
                 }

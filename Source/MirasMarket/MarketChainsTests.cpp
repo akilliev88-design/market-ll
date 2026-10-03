@@ -139,7 +139,7 @@ bool FMarketChainsWarTest::RunTest(const FString& Parameters)
     TestTrue(TEXT("Bought"), MarketChains::Buy(S, Catalog(), Local, Why));
     TestTrue(TEXT("Its stores are our branches now"), S.Branches.Num() > Branches);
     TestTrue(TEXT("The new branch is open and stocked"), S.Branches.Last().Stage == static_cast<uint8>(MarketBranches::EStage::Open)
-        && S.Branches.Last().Items.ContainsByPredicate([](const FMarketBranchItem& I) { return I.Units > 0; }));
+        && S.Branches.Last().Items.ContainsByPredicate([](const FMarketStock& I) { return I.Shelf > 0; }));
     TestTrue(TEXT("It cost money"), S.Cash < Cash);
     TestTrue(TEXT("The chain is ours (merged, or what did not fit runs as our subsidiary)"), S.Rivals.Chains[Local].bGone || S.Rivals.Chains[Local].bOurs);
     TestFalse(TEXT("Not twice"), MarketChains::CanBuy(S, Local, Why));

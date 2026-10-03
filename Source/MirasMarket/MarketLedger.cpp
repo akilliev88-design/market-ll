@@ -314,10 +314,10 @@ MarketLedger::FBalance MarketLedger::Balance(const FMarketState& State, const TA
     {
         if (Branch.Stage == static_cast<uint8>(MarketBranches::EStage::Closed)) continue;
         B.Deposits += 2 * Branch.Rent;
-        for (const FMarketBranchItem& Item : Branch.Items)
+        for (const FMarketStock& Item : Branch.Items)
         {
-            const FMarketProduct* P = Products.FindByPredicate([&Item](const FMarketProduct& X) { return X.Id == Item.ProductId; });
-            if (P) B.BranchStock += static_cast<int64>(FMath::Max(0, Item.Units + Item.Incoming)) * P->Cost;
+            const FMarketProduct* P = Products.FindByPredicate([&Item](const FMarketProduct& X) { return X.Id == Item.Id; });
+            if (P) B.BranchStock += static_cast<int64>(FMath::Max(0, Item.Shelf + Item.Incoming)) * P->Cost;
         }
     }
     B.DepartmentStock = MarketDepartments::StockValue(State); // C3 (M26)

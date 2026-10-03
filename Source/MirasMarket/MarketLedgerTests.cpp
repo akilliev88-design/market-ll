@@ -147,7 +147,7 @@ bool FMarketLedgerBalanceTest::RunTest(const FString& Parameters)
     FMarketLoan Loan; Loan.Principal = 50000; Loan.Remaining = 45000; S.Loans.Add(Loan);
     S.Books.TaxDue = 1200;
     FMarketBranch Branch; Branch.Stage = static_cast<uint8>(MarketBranches::EStage::Open); Branch.Rent = 60000;
-    FMarketBranchItem Item; Item.ProductId = TEXT("cola"); Item.Units = 20; Branch.Items.Add(Item);
+    FMarketStock Item = FMarketStock::Empty(); Item.Id = TEXT("cola"); Item.Shelf = 20; Branch.Items.Add(Item);
     S.Branches.Add(Branch);
     FMarketBranch Gone = Branch; Gone.Stage = static_cast<uint8>(MarketBranches::EStage::Closed); S.Branches.Add(Gone);
 

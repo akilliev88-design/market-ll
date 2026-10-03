@@ -25,8 +25,8 @@ namespace MarketBranchVisit
     float Fill(const FMarketBranch& Branch, const FString& ProductId)
     {
         int64 Units = 0, Capacity = 0;
-        for (const FMarketBranchItem& Item : Branch.Items) if (Item.ProductId == ProductId)
-        { Units += FMath::Max(0, Item.Units); Capacity += FMath::Max(0, Item.Capacity); }
+        for (const FMarketStock& Item : Branch.Items) if (Item.Id == ProductId)
+        { Units += FMath::Max(0, Item.Shelf); Capacity += FMath::Max(0, Item.Capacity); }
         return Capacity > 0 ? FMath::Clamp(static_cast<float>(Units) / Capacity, 0.f, 1.f) : 0.f;
     }
     int32 Shoppers(const FMarketBranch& Branch) { return FMath::Clamp(FMath::DivideAndRoundUp(FMath::Max(0, Branch.LastShoppers), 20), 0, 24); }
@@ -115,8 +115,8 @@ bool AMarketGameMode::StartBranchVisit(int32 BranchIndex)
     // the same ToPlanogram convention as StoreCategoryOverrides; never rewrite the family's overrides.
     for (const FPlanogramFixture& Fixture : Store->Fixtures)
     {
-        if (Branch.Items.ContainsByPredicate([&](const FMarketBranchItem& Item)
-        { const auto* Product = Products.FindByPredicate([&](const FMarketProduct& P) { return P.Id == Item.ProductId; }); return Product && Product->Category == Fixture.Category; }))
+        if (Branch.Items.ContainsByPredicate([&](const FMarketStock& Item)
+        { const auto* Product = Products.FindByPredicate([&](const FMarketProduct& P) { return P.Id == Item.Id; }); return Product && Product->Category == Fixture.Category; }))
             Overrides.Add(Fixture.Id, Fixture.Category);
     }
     auto VisitPlan = MarketStoreKit::ToPlanogram(*Store, Overrides); MarketStoreKit::Fill(VisitPlan, Products);

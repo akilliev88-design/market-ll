@@ -136,7 +136,7 @@ namespace MarketMenuCapture
             Branch.ManagerMorale=60; Branch.ManagerPotential=75; Branch.Maturity=1.f; Branch.Satisfaction=Index==3?35:75; Branch.PriceIndex=1.f;
             Branch.Rent=120000; Branch.LastShoppers=80+Index*30; Branch.LastQueueLost=Index==3?15:0; Branch.LastRevenue=50000+Index*10000; Branch.LastProfit=Index==3?-6000:15000;
             Branch.Last30Revenue=Branch.LastRevenue*30; Branch.Last30Profit=Branch.LastProfit*30;
-            for(const auto& Product:Products) { FMarketBranchItem Item; Item.ProductId=Product.Id; Item.Capacity=24; Item.Units=Index==3?6:18; Item.LastSold=2; Item.LastEmpty=Index==3?4:0; Branch.Items.Add(Item); }
+            for(const auto& Product:Products) { FMarketStock Item = FMarketStock::Empty(); Item.Id=Product.Id; Item.Capacity=24; Item.Shelf=Index==3?6:18; Item.Yesterday.Sold=2; Item.Yesterday.Empty=Index==3?4:0; Branch.Items.Add(Item); }
             MarketStoreViews::AssignTo(State,Branch); State.Branches.Add(Branch);
         }
         FMarketDepot Depot; Depot.Country=State.CountryId; Depot.Province=TEXT("kirklareli"); Depot.OpenedDay=State.Day-90; Depot.Rent=600000; State.Company.DepotSites.Add(Depot);

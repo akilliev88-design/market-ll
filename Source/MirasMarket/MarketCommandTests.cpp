@@ -18,7 +18,7 @@ namespace MarketCommandTest
         B.Country = TEXT("tr"); B.Province = TEXT("tekirdag"); B.Name = TEXT("Tekirda\u011f Mahalle 1");
         B.Stage = static_cast<uint8>(MarketBranches::EStage::Open); B.OpenedDay = S.Day - 400;
         B.ManagerName = TEXT("Deneme \u015eube"); B.ManagerSkill = 80; B.ManagerStyle = static_cast<uint8>(MarketManagers::EStyle::PriceMinded);
-        for (int32 I = 0; I < 3; ++I) { FMarketBranchItem Item; Item.ProductId = FString::Printf(TEXT("p%d"), I); Item.Capacity = 40; Item.Units = 30; Item.IdleDays = 12; B.Items.Add(Item); }
+        for (int32 I = 0; I < 3; ++I) { FMarketStock Item = FMarketStock::Empty(); Item.Id = FString::Printf(TEXT("p%d"), I); Item.Capacity = 40; Item.Shelf = 30; Item.IdleDays = 12; B.Items.Add(Item); }
         S.Branches.Add(B);
         return S;
     }

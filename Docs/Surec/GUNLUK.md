@@ -1,3 +1,16 @@
+## 03.10.2026 — Claude Code — E3c1: şubelerin ürün kaydı dükkânın kaydı oldu (derlenmedi)
+
+**Neden bölündü:** E3c'nin ikinci yarısı (tazelik, toptancı siparişi, kişi kişi personelin şubeye açılması, v0.1 personel bayraklarının kalkması) davranış değiştirir. Önce davranışı değiştirmeyen kayıt birleşimi ayrı derlensin.
+
+**Yapılan:**
+- `MarketEconomy.h`: `FMarketBranchItem` silindi. `FMarketBranch::Items` artık `TArray<FMarketStock>`. `FMarketStock`'a `Markdown`, `MarkdownUntil` ve `static Empty(id)` eklendi (Warehouse 0, Capacity 0; dükkânın 32'lik açılış stoğu ve 24'lük raf varsayılanı şubeye geçmesin). `CurrentVersion` 11.
+- Eşleme: `ProductId` → `Id`, `Units` → `Shelf` (şubenin bütün malı rafta), `LastSold` → `Yesterday.Sold`, `LastEmpty` → `Yesterday.Empty`.
+- Değişen dosyalar (mekanik, 82 satır): MarketBranches, MarketOnline, MarketBrands, MarketLedger, MarketBranchVisit, MarketAutoPlay, MarketAutoPlayCommand, MarketMenuPages, MarketMenuCapture, MarketReviewAutomation ve 8 test dosyası. `FMarketBatch`'in aynı adlı alanlarına dokunulmadı (şube kapanınca malın dükkâna taşındığı satır elle kontrol edildi).
+
+**Doğrulama:** Derlenmedi. Davranış aynı olmalı: OLCUM satırları ve şube testleri önceki turla aynı çıkmalı.
+
+**Sıradaki:** Mustafa CLAUDE_KOS.cmd; sonra E3c2.
+
 ## 03.10.2026 — Claude Code — E3b doğrulandı
 
 **son.log (3d8edf1):** DERLE geçti; TEST 161 başarılı + 1 uyarılı, başarısız 0 (alt sınır 162); Smoke geçti. OLCUM: tek tek alan / beklenen: 0,831/0,831, 0,361/0,362, 0,061/0,061. Aile dükkânı 90 gün ciro oranı 1,035 (E3b öncesiyle aynı, dükkânın sonuçları değişmedi). E3b bitti; 11_TEK_EKONOMI'de "bitti".

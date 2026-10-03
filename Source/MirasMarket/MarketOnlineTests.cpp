@@ -43,7 +43,7 @@ namespace MarketOnlineTest
         B.Country = TEXT("tr"); B.Province = Province; B.Format = TEXT("mahalle"); B.Name = Province;
         B.Stage = static_cast<uint8>(MarketBranches::EStage::Open);
         B.Workers = 4; B.LastShoppers = 300; B.PriceIndex = 1.f;
-        for (const FMarketProduct& P : Products) { FMarketBranchItem Item; Item.ProductId = P.Id; Item.Capacity = 40; Item.Units = 40; B.Items.Add(Item); }
+        for (const FMarketProduct& P : Products) { FMarketStock Item = FMarketStock::Empty(); Item.Id = P.Id; Item.Capacity = 40; Item.Shelf = 40; B.Items.Add(Item); }
         S.Branches.Add(B);
     }
 
@@ -51,7 +51,7 @@ namespace MarketOnlineTest
     {
         int32 Sum = 0;
         for (const FMarketStock& Row : S.Stock) Sum += Row.Warehouse + Row.Shelf;
-        for (const FMarketBranch& B : S.Branches) for (const FMarketBranchItem& Item : B.Items) Sum += Item.Units;
+        for (const FMarketBranch& B : S.Branches) for (const FMarketStock& Item : B.Items) Sum += Item.Shelf;
         return Sum;
     }
 

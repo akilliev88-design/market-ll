@@ -64,9 +64,9 @@ namespace MarketBranches
         return MarketProductDemand::MixWishes(State, Products, DefaultMix, Day);
     }
 
-    FMarketBranchItem* ItemOf(FMarketBranch& Branch, const FString& ProductId)
+    FMarketStock* ItemOf(FMarketBranch& Branch, const FString& ProductId)
     {
-        return Branch.Items.FindByPredicate([&ProductId](const FMarketBranchItem& I) { return I.ProductId == ProductId; });
+        return Branch.Items.FindByPredicate([&ProductId](const FMarketStock& I) { return I.Id == ProductId; });
     }
 
     float TripsOf(const FSite& Site, const FFormat& Kind)
@@ -90,8 +90,8 @@ namespace MarketBranches
         Branch.Items.Reset();
         for (int32 I = 0; I < Products.Num(); ++I)
         {
-            FMarketBranchItem Item;
-            Item.ProductId = Products[I].Id;
+            FMarketStock Item = FMarketStock::Empty();
+            Item.Id = Products[I].Id;
             Item.Capacity = Capacities.IsValidIndex(I) ? Capacities[I] : 0;
             // G-088 C: the signed store's shelf front against the type's nominal store (0.6..1.5).
             if (Item.Capacity > 0) Item.Capacity = FMath::Max(1, FMath::RoundToInt32(Item.Capacity * Variety));
@@ -102,9 +102,9 @@ namespace MarketBranches
     int64 StockCost(const FMarketBranch& Branch, const TArray<FMarketProduct>& Products)
     {
         int64 Cost = 0;
-        for (const FMarketBranchItem& Item : Branch.Items)
+        for (const FMarketStock& Item : Branch.Items)
             for (const FMarketProduct& P : Products)
-                if (P.Id == Item.ProductId) { Cost += static_cast<int64>(FMath::Max(0, Item.Capacity - Item.Units)) * P.Cost; break; }
+                if (P.Id == Item.Id) { Cost += static_cast<int64>(FMath::Max(0, Item.Capacity - Item.Shelf)) * P.Cost; break; }
         return Cost;
     }
 
@@ -415,7 +415,7 @@ int32 MarketBranches::AddAcquired(FMarketState& State, const TArray<FMarketProdu
     Branch.Maturity = 0.6f;       // the district already shops there
     Branch.Satisfaction = 60.f;
     PlanShelves(State, Branch, Products);
-    for (FMarketBranchItem& Item : Branch.Items) Item.Units = Item.Capacity; // the goods came with the chain
+    for (FMarketStock& Item : Branch.Items) Item.Shelf = Item.Capacity; // the goods came with the chain
     State.Branches.Add(Branch);
     const int32 Index = State.Branches.Num() - 1;
     MarketManagers::HireStoreManager(State, Index);
@@ -434,14 +434,14 @@ bool MarketBranches::Close(FMarketState& State, const TArray<FMarketProduct>& Pr
     // the rest is sold to the wholesaler at half price.
     int32 Moved = 0, Sold = 0;
     int64 SoldValue = 0;
-    for (const FMarketBranchItem& Item : B.Items)
+    for (const FMarketStock& Item : B.Items)
     {
-        const int32 Units = Item.Units + Item.Incoming;
+        const int32 Units = Item.Shelf + Item.Incoming;
         if (Units <= 0) continue;
-        FMarketStock* Stock = State.Stock.FindByPredicate([&Item](const FMarketStock& S) { return S.Id == Item.ProductId; });
+        FMarketStock* Stock = State.Stock.FindByPredicate([&Item](const FMarketStock& S) { return S.Id == Item.Id; });
         const int32 Room = Stock ? FMath::Max(0, FMarketState::StorageCapacity - Stock->Warehouse - Stock->Dock - Stock->Incoming) : 0;
         const int32 Take = FMath::Min(Units, Room);
-        const FMarketProduct* Product = Products.FindByPredicate([&Item](const FMarketProduct& P) { return P.Id == Item.ProductId; });
+        const FMarketProduct* Product = Products.FindByPredicate([&Item](const FMarketProduct& P) { return P.Id == Item.Id; });
         if (Stock)
         {
             Stock->Warehouse += Take;
@@ -510,7 +510,7 @@ FString MarketBranches::Grade(const FMarketState& State, int32 BranchIndex)
     const FMarketBranch& B = State.Branches[BranchIndex];
     if (!IsOpenStage(B) || State.Day - B.OpenedDay < 7) return TEXT("-");
     int32 Sold = 0, Empty = 0;
-    for (const FMarketBranchItem& Item : B.Items) { Sold += Item.LastSold; Empty += Item.LastEmpty; }
+    for (const FMarketStock& Item : B.Items) { Sold += Item.Yesterday.Sold; Empty += Item.Yesterday.Empty; }
     const float Availability = Sold + Empty > 0 ? static_cast<float>(Sold) / (Sold + Empty) : 1.f;
     const double DailyRent = static_cast<double>(FMath::Max<int64>(1, B.Rent)) / 30.0;
     const float Money = FMath::Clamp(0.5f + static_cast<float>(B.Last30Profit / (30.0 * DailyRent * 4.0)), 0.f, 1.f);
@@ -532,7 +532,7 @@ FString MarketBranches::Summary(const FMarketState& State, int32 BranchIndex, co
     default: break;
     }
     int32 Capacity = 0, Units = 0, Carried = 0;
-    for (const FMarketBranchItem& Item : B.Items) { Capacity += Item.Capacity; Units += FMath::Min(Item.Units, Item.Capacity); if (Item.Capacity > 0) ++Carried; }
+    for (const FMarketStock& Item : B.Items) { Capacity += Item.Capacity; Units += FMath::Min(Item.Shelf, Item.Capacity); if (Item.Capacity > 0) ++Carried; }
     return FString::Printf(TEXT("%s \u00b7 karne %s \u00b7 %d. g\u00fcn \u00b7 d\u00fcn %d m\u00fc\u015fteri, ciro %s, net %s \u00b7 raf %%%d dolu, %d \u00fcr\u00fcn \u00b7 m\u00fcd\u00fcr %s \u00b7 al\u0131\u015fkanl\u0131k %%%.0f"),
         *B.Name, *Grade(State, BranchIndex), State.Day - B.OpenedDay, B.LastShoppers, *BranchTl(B.LastRevenue), *BranchTl(B.LastProfit),
         Capacity > 0 ? Units * 100 / Capacity : 0, Carried, B.ManagerName.IsEmpty() ? TEXT("yok (senin talimatlar\u0131n)")
@@ -586,7 +586,7 @@ void MarketBranches::CloseDay(FMarketState& State, const TArray<FMarketProduct>&
             State.Cash -= Bill;
             State.Purchases += Bill;
             MarketLedger::Post(State, MarketLedger::EAccount::Purchases, -Bill, true, Index); // C3: bought during the close
-            for (FMarketBranchItem& Item : B.Items) Item.Units = FMath::Max(Item.Units, Item.Capacity);
+            for (FMarketStock& Item : B.Items) Item.Shelf = FMath::Max(Item.Shelf, Item.Capacity);
             B.Stage = static_cast<uint8>(EStage::Open);
             B.OpenedDay = State.Day;
             if (B.bHasty) News.Add(FString::Printf(TEXT("%s: a\u00e7\u0131l\u0131\u015f haz\u0131rl\u0131\u011f\u0131nda anla\u015f\u0131ld\u0131, yer aceleyle se\u00e7ilmi\u015f (arka sokak, az ge\u00e7en var). M\u00fc\u015fteri d\u00f6rtte bir az olacak."), *B.Name));
@@ -605,7 +605,7 @@ void MarketBranches::CloseDay(FMarketState& State, const TArray<FMarketProduct>&
             int64 ShortCost = 0, SkimCost = 0;
             for (int32 I = 0; I < Products.Num(); ++I)
             {
-                FMarketBranchItem* Item = ItemOf(B, Products[I].Id);
+                FMarketStock* Item = ItemOf(B, Products[I].Id);
                 if (!Item || Item->Incoming <= 0) continue;
                 const int32 Short = MarketDepots::LostUnits(Item->Incoming, Link.ShortPermille, BranchMix(State.RivalSeed, Closed, 0xD390u + Index * 131u + I));
                 const int32 Taken = MarketDepots::LostUnits(Item->Incoming - Short, Link.SkimPermille, BranchMix(State.RivalSeed, Closed, 0xD391u + Index * 131u + I));
@@ -616,14 +616,14 @@ void MarketBranches::CloseDay(FMarketState& State, const TArray<FMarketProduct>&
             MarketDepots::RecordLoss(State, Link.Depot, ShortCost, SkimCost);
             DepotLoss = ShortCost + SkimCost;
         }
-        for (FMarketBranchItem& Item : B.Items) { Item.Units += Item.Incoming; Item.Incoming = 0; }
+        for (FMarketStock& Item : B.Items) { Item.Shelf += Item.Incoming; Item.Incoming = 0; }
         // G-086b: what the manager brings today (effective skill, style, honesty, the hierarchy above).
         const MarketManagers::FBranchRule Rule = MarketManagers::RuleFor(State, Index, Span);
 
         // Shoppers: the catchment's trips x our share x the calendar x habit x our shops nearby. A day the law
         // keeps shops shut (G-084) has none; the costs still run.
         int32 Sold = 0, Empty = 0;
-        for (const FMarketBranchItem& Item : B.Items) { Sold += Item.LastSold; Empty += Item.LastEmpty; }
+        for (const FMarketStock& Item : B.Items) { Sold += Item.Yesterday.Sold; Empty += Item.Yesterday.Empty; }
         const float Availability = Sold + Empty > 0 ? FMath::Clamp(static_cast<float>(Sold) / (Sold + Empty), 0.2f, 1.f) : 0.9f;
         const float Service = Kind.Service * (B.ManagerName.IsEmpty() ? 0.9f : 1.f)
             * (Closed - B.OpenedDay < YoungDays ? 1.f - YoungServiceLoss * Strain : 1.f); // C15 (M45): thin management for the new ones
@@ -663,7 +663,7 @@ void MarketBranches::CloseDay(FMarketState& State, const TArray<FMarketProduct>&
         int32 DayEmpty = 0, DaySold = 0;
         for (int32 I = 0; I < Products.Num(); ++I)
         {
-            FMarketBranchItem* Item = ItemOf(B, Products[I].Id);
+            FMarketStock* Item = ItemOf(B, Products[I].Id);
             if (!Item) continue;
             // G-088 C: dairy and ice cream follow the store's cold room (and spoil more when it is crowded).
             const MarketGoods::EGroup Group = MarketGoods::Classify(Products[I].Category);
@@ -677,21 +677,21 @@ void MarketBranches::CloseDay(FMarketState& State, const TArray<FMarketProduct>&
             const double Accept = MarketProductDemand::AcceptanceFactor(MarketDemand::PriceRatio(Price, MarketDemand::RivalPrice(Products[I], RivalNow)), SharePercent, Tolerance, Products[I]);
             const int32 Want = FMath::RoundToInt32(Shoppers * UnitsPerShopper * RealSpend * WishToday[I] * Where.Income * (bFresh ? FreshDemand : 1.f) * (1.f + 2.5f * Cut)
                 * PromoPull * MarketStory::IdentityDemand(State, Group) * static_cast<float>(Accept)); // M38: the company's identity
-            const int32 Take = Item->Capacity > 0 ? FMath::Min(Want, Item->Units) : 0;
-            Item->Units -= Take;
-            Item->LastSold = Take;
-            Item->LastEmpty = Want - Take;
+            const int32 Take = Item->Capacity > 0 ? FMath::Min(Want, Item->Shelf) : 0;
+            Item->Shelf -= Take;
+            Item->Yesterday.Sold = Take;
+            Item->Yesterday.Empty = Want - Take;
             DaySold += Take;
             DayEmpty += Want - Take;
-            Item->IdleDays = Take == 0 && Item->Units > 0 ? Item->IdleDays + 1 : 0;
+            Item->IdleDays = Take == 0 && Item->Shelf > 0 ? Item->IdleDays + 1 : 0;
             Revenue += Price * Take;
             Cogs += Products[I].Cost * Take;
             // G-086b: waste follows the manager's style (a generous one keeps more on hand and throws more away).
-            const float SpoilExact = Item->Units * (Rule.WasteRate + Link.ExtraWaste) * (bFresh ? FreshSpoil : 1.f) * (Group == MarketGoods::EGroup::Dairy ? ColdChain : 1.f); // G-089: the depot's handling
+            const float SpoilExact = Item->Shelf * (Rule.WasteRate + Link.ExtraWaste) * (bFresh ? FreshSpoil : 1.f) * (Group == MarketGoods::EGroup::Dairy ? ColdChain : 1.f); // G-089: the depot's handling
             int32 Spoil = FMath::FloorToInt32(SpoilExact);
             if ((BranchMix(State.RivalSeed, Closed, 0x5F01u + Index * 131u + I) % 1000u) < static_cast<uint32>((SpoilExact - Spoil) * 1000.f)) ++Spoil;
-            Spoil = FMath::Clamp(Spoil, 0, Item->Units);
-            Item->Units -= Spoil;
+            Spoil = FMath::Clamp(Spoil, 0, Item->Shelf);
+            Item->Shelf -= Spoil;
             WasteCost += Products[I].Cost * Spoil;
         }
         // Logistics and buying power of the company (G-086: depots per sub-region, trucks, central buying, own
@@ -749,12 +749,12 @@ void MarketBranches::CloseDay(FMarketState& State, const TArray<FMarketProduct>&
         int64 Bill = 0;
         for (int32 I = 0; I < Products.Num(); ++I)
         {
-            FMarketBranchItem* Item = ItemOf(B, Products[I].Id);
+            FMarketStock* Item = ItemOf(B, Products[I].Id);
             if (!Item || Item->Capacity <= 0) continue;
             const float Noise = (BranchMix(State.RivalSeed, Closed, 0x0DE7u + Index * 131u + I) % 2001u) / 1000.f - 1.f;
-            const float Expected = (Item->LastSold + Item->LastEmpty) * Tomorrow * (1.f + Error * Noise);
+            const float Expected = (Item->Yesterday.Sold + Item->Yesterday.Empty) * Tomorrow * (1.f + Error * Noise);
             const int32 Target = FMath::RoundToInt32(Rule.OrderFactor * FMath::Min(Item->Capacity * StockRoom, FMath::Max(static_cast<float>(Item->Capacity), Expected * 1.2f)));
-            int32 Order = FMath::Max(0, Target - Item->Units);
+            int32 Order = FMath::Max(0, Target - Item->Shelf);
             if (bTight) Order /= 2;
             if (Products[I].Cost > 0) Order = static_cast<int32>(FMath::Min<int64>(Order, FMath::Max<int64>(0, Budget - Bill) / Products[I].Cost));
             Order = FMath::Max(0, Order);
@@ -810,14 +810,14 @@ FString MarketBranches::Clearance(FMarketState& State, int32 BranchIndex, const 
     };
     for (int32 I = 0; I < B.Items.Num() && Marked < 3; ++I)
     {
-        FMarketBranchItem& Item = B.Items[I];
-        if (Item.MarkdownUntil >= Day || Item.IdleDays < 10 || Item.Units < FMath::Max(3, Item.Capacity / 2)) continue;
+        FMarketStock& Item = B.Items[I];
+        if (Item.MarkdownUntil >= Day || Item.IdleDays < 10 || Item.Shelf < FMath::Max(3, Item.Capacity / 2)) continue;
         int32 Cut = Wanted;
         if (Cut > 20) { if (Boss != INDEX_NONE) ++Approved; else Cut = 20; }
         Item.Markdown = static_cast<uint8>(Cut);
         Item.MarkdownUntil = Day + 7;
         Item.IdleDays = 0;
-        Goods.Add(FString::Printf(TEXT("%s %%%d"), *NameOf(Item.ProductId), Cut));
+        Goods.Add(FString::Printf(TEXT("%s %%%d"), *NameOf(Item.Id), Cut));
         ++Marked;
     }
     // A mistake: a weak manager marks down an item that sells.
@@ -825,11 +825,11 @@ FString MarketBranches::Clearance(FMarketState& State, int32 BranchIndex, const 
     {
         int32 Best = INDEX_NONE;
         for (int32 I = 0; I < B.Items.Num(); ++I)
-            if (B.Items[I].MarkdownUntil < Day && (Best == INDEX_NONE || B.Items[I].LastSold > B.Items[Best].LastSold)) Best = I;
-        if (Best != INDEX_NONE && B.Items[Best].LastSold > 0)
+            if (B.Items[I].MarkdownUntil < Day && (Best == INDEX_NONE || B.Items[I].Yesterday.Sold > B.Items[Best].Yesterday.Sold)) Best = I;
+        if (Best != INDEX_NONE && B.Items[Best].Yesterday.Sold > 0)
         {
             if (Boss != INDEX_NONE && BossSkill >= 50) ++TakenBack;
-            else { B.Items[Best].Markdown = 20; B.Items[Best].MarkdownUntil = Day + 7; Goods.Add(FString::Printf(TEXT("%s %%20"), *NameOf(B.Items[Best].ProductId))); ++Marked; }
+            else { B.Items[Best].Markdown = 20; B.Items[Best].MarkdownUntil = Day + 7; Goods.Add(FString::Printf(TEXT("%s %%20"), *NameOf(B.Items[Best].Id))); ++Marked; }
         }
     }
     if (Marked == 0 && TakenBack == 0) return FString();
@@ -872,9 +872,9 @@ bool MarketBranches::Visit(FMarketState& State, const TArray<FMarketProduct>& Pr
     float WorstFill = 1.f;
     for (int32 I = 0; I < Products.Num(); ++I)
     {
-        const FMarketBranchItem* Item = B.Items.FindByPredicate([&Products, I](const FMarketBranchItem& It) { return It.ProductId == Products[I].Id; });
+        const FMarketStock* Item = B.Items.FindByPredicate([&Products, I](const FMarketStock& It) { return It.Id == Products[I].Id; });
         if (!Item || Item->Capacity <= 0) continue;
-        const float Fill = static_cast<float>(Item->Units) / Item->Capacity;
+        const float Fill = static_cast<float>(Item->Shelf) / Item->Capacity;
         if (Fill < WorstFill) { WorstFill = Fill; Worst = I; }
     }
     if (Worst != INDEX_NONE && WorstFill < 0.3f) Parts.Add(FString::Printf(TEXT("%s raf\u0131 neredeyse bo\u015f."), *(State.bRealBrands ? Products[Worst].RealName : Products[Worst].FictionalName)));
