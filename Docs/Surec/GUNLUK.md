@@ -1,3 +1,9 @@
+## 03.10.2026 — Claude Code — M61/M61b doğrulandı
+
+**son.log (1493b04):** DERLE geçti; TEST 160 başarılı + 1 uyarılı, başarısız 0; Smoke geçti. OLCUM değişmedi (ciro oranı 1,035). M61 ve M61b bitti.
+
+**Sıradaki:** E3b (ilk dükkân ve şubeler için tek satış hesabı).
+
 ## 03.10.2026 — Claude Code — M61b sonucu ve test düzeltmesi (derlenmedi)
 
 **son.log (5d946cd):** DERLE geçti; TEST 159 başarılı + 1 uyarılı, 1 başarısız; Smoke geçti. OLCUM: 90 gün ciro eski 7.341.275 → yeni 7.600.665 (oran 1,035, hedef içinde; önce 1,083), müşteri 4.323 → 4.246; aile dükkânı pay hedefi %24,9 (ortanca il); şube pay hedefi %33; nötr pay en büyük şehir %20,6, en küçük %33,8; rakip fiyat düzeyi 0,976; gün 20 gerçek müşteri 49.

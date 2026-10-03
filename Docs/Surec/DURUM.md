@@ -1,8 +1,10 @@
 # Güncel durum
 
-Son güncelleme: 03.10.2026 — Claude Code, akis-cc2: E3a derlendi; M61/M61b (çevre payı, şehirdeki pay, ortanca il) yazıldı, derlenmedi
+Son güncelleme: 03.10.2026 — Claude Code, akis-cc2: E3a ve M61/M61b derlendi, testler ve Smoke geçti; sıradaki E3b
 
 ## Kısaca
+
+**03.10.2026 — Claude Code / M61 + M61b doğrulandı (1493b04):** DERLE geçti, TEST 160 + 1 uyarı, başarısız 0, Smoke geçti. OLCUM: 90 gün ciro oranı 1,035; ortanca ilde şube pay hedefi %33; nötr çevre payı en büyük şehirde %20,6, en küçükte %33,8. Sıradaki: E3b.
 
 **03.10.2026 — Claude Code / M61b düzeltme (derlenmedi, `akis-cc2`):** 5d946cd sonucu: DERLE geçti, TEST 159 + 1 uyarı, 1 başarısız (`Simulation.RoutineSkillAndImperfections`), Smoke geçti. Neden: test aile dükkânı müdürünü "kirklareli"ye atıyordu; varsayılan ev ili artık ortanca il olduğu için müdür bulunamadı. Düzeltme: müdür ev iline atanıyor (`MarketStart::HomeProvince`). OLCUM: 90 gün ciro oranı 1,035 (hedef ±%15 içinde); pay hedefi ortanca ilde %33, nötr pay en büyük şehirde %20,6, en küçükte %33,8. **Devam notu:** Mustafa derler; sonra E3b.
 
