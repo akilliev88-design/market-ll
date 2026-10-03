@@ -93,6 +93,7 @@
   ],
   "checkouts": 0,
   "planogram": {
+    "showCategorySign": false,
     "doubleSided": false,
     "widthCm": 198.0,
     "depthCm": 65.0,

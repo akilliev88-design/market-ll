@@ -36,6 +36,7 @@ const TMap<FString, FPlanogramEquipment>& StoreEquipment::Registry()
             E.SignZ = E.DimensionsCm.Z + 12;
             E.SignWidthCm = E.DimensionsCm.X - 10;
             (*Plan)->TryGetBoolField(TEXT("signOnTop"), E.bSignOnTop);
+            (*Plan)->TryGetBoolField(TEXT("showCategorySign"), E.bShowCategorySign);
             (*Plan)->TryGetNumberField(TEXT("signZ"), E.SignZ);
             (*Plan)->TryGetNumberField(TEXT("signY"), E.SignY);
             (*Plan)->TryGetNumberField(TEXT("signWidthCm"), E.SignWidthCm);

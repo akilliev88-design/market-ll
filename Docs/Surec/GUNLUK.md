@@ -1,3 +1,13 @@
+## 03.10.2026 — Codex — Soğuk dolapların üst kategori tabelalarını kaldır
+
+**İstek:** Mustafa, BUZ teşhir reyonlarından esinlenen dondurucu ve dolapların üstündeki kategori tabelası/çıkıntıları kalksın; kategorileri kalsın.
+
+**Yapılan:** 17 soğuk ekipman metadata dosyasına planogram.showCategorySign=false. Planogram ekipman tanımı ve StoreEquipment okuması; MarketGame ve MarketStoreBuild levha/yazı üretimini bu alanla kapatır. Alan verilmezse eski görünür davranış sürer. Her iki Blender üreticisinde yeniden üretim için aynı tercih kaydedilir. Blender geometri kaynaklarında tabela/taşıyıcı bulunmadığı doğrulandı; mesh/FBX/uasset değiştirilmedi. BLENDER_STANDARDI ve oyun görüntüsü güncellendi. Varsayım: istek BUZ soğuk dolap/vitrin ailesini ve önceki soğuk tezgâhları kapsar; mağazanın duvar bölüm tabelaları ayrı kalır.
+
+**Doğrulama:** DERLE başarılı. TEST 169/169 (168 temiz + 1 motor uyarısı), başarısız 0. Smoke başarılı. Blender check_display_cabinets 15/15; mahalle_01 beş görünüm PASSED, 01/04 PNG gözle incelendi. Kaynak tabanı c1c7cd4. İlk test sırasında Claude'un M54/M58/M59 kaydı geldi; eski derleme/yeni ülke verileri PackStandard uyuşmazlığı yarattı. Yeni taban tekrar derlendi ve bütün testler geçti; Claude dosyalarına müdahale edilmedi.
+
+**Sıradaki:** Mustafa oyunda dolapların tabelasız görünümünü deneyebilir. Bu işte açık adım yok.
+
 ## 03.10.2026 — Claude Code — M54, M58, M59 (derlenmedi)
 
 **E4b sonucu (c43791b):** DERLE geçti; TEST 168 başarılı, 0 uyarı, 0 başarısız; Smoke geçti. OLCUM: kur 1,1262; yerel taksit 106.619 → bizim paramızla 120.070. E4 bitti; 11_TEK_EKONOMI E1–E4 tamam.

@@ -114,7 +114,7 @@ bool MarketStoreKit::Build(UWorld* World,const FStoreTemplate& S,const FMarketPl
         const auto E=MarketPlanogram::Equipment(F.EquipmentId);
         Groups[F.EquipmentId]->AddInstance(FTransform(FRotator(0,F.Yaw+E.MeshYaw,0),F.Location));
         const auto* Planned=Filled.FindFixture(F.Id);
-        if(!Planned||E.Levels==0) continue;
+        if(!Planned||E.Levels==0||!E.bShowCategorySign) continue;
         const FTransform Xf(FRotator(0,F.Yaw,0),F.Location);
         // Opaque board separates the two gondola faces; the text material itself is two-sided.
         if (E.bSignOnTop) SignBoards->AddInstance(FTransform(FRotator(0,F.Yaw,0),Xf.TransformPosition(FVector(0,0,E.SignZ)),FVector(E.SignWidthCm/100,.025f,.22f)));

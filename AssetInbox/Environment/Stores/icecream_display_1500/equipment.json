@@ -26,6 +26,7 @@
   "zones": [],
   "checkouts": 0,
   "planogram": {
+    "showCategorySign": false,
     "doubleSided": false,
     "widthCm": 138.0,
     "depthCm": 80.0,

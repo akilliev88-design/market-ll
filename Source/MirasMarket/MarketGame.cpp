@@ -459,6 +459,7 @@ void AMarketGameMode::BuildStore()
                 SurfaceBox(P + FVector(0, -45, Z - 2), FVector(116, 1.8f, 4), EMarketSurface::PriceRail);
             }
         }
+        if (!Spec.bShowCategorySign) continue;
         // Category sign: on top of a gondola (readable from both aisles) or on a wall shelf's header.
         const FString SignText = MarketCatalog::UpperTurkish(Fixture.Label);
         if (Spec.bSignOnTop)

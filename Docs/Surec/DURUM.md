@@ -4,6 +4,8 @@ Son güncelleme: 03.10.2026 — Claude Code, akis-cc2: M54 + M58 + M59 yazıldı
 
 ## Kısaca
 
+**03.10.2026 — Codex / soğuk dolaplar tabelasız:** BUZ referanslı 12 soğuk dolap/vitrin ve önceki 5 soğuk ekipmanda kategori levhası/yazısı kapatıldı (planogram.showCategorySign=false); kategoriler, ürün alanları ve fiyat etiketleri korunur. Blender kaynaklarında tabela/taşıyıcı zaten yok; model/FBX yeniden üretilmedi. DERLE geçti; TEST 169/169 (168 temiz + 1 motor uyarısı), Smoke geçti; Blender 15/15 ve mahalle_01 beş oyun görünümü geçti. Son doğrulama c1c7cd4 kaynak tabanıyla; test sürerken gelen Claude kaydı nedeniyle eski derleme/yeni ülke verisi uyuşmazlığı yeniden derleme/test ile giderildi. Görüntü: Docs/Images/Stores/Cabinets/no_category_signs_store.png.
+
 **03.10.2026 — Claude Code / M54 + M58 + M59 (derlenmedi, `akis-cc2`):** c43791b (E4b) geçti: TEST 168, 0 başarısız, Smoke. E1–E4 tamam. Mustafa üç işi istedi.
 - **M54:** yeni türler `yakin` (yakın market: küçük, pahalı ama kabul gören, küçük sepet) ve `toptan` (toptan perakende: büyük, ucuz, koli sepeti, büyük il, depo, 5. bölüm). `AllFormatIds`, `FormatsIn(ülke)` (paket `playerFormats`: FR/PL/MX/JP yakın market, BR toptan), `BaseFormat` (hazır mağaza, ölçü ve reyon için kucuk/hiper). `FFormat::Basket/Tolerance/Base`. `CanOpen` ülkede olmayan türü reddeder. Menüde iki yeni tür kartı, yalnız o ülkede.
 - **M58:** yeni `MarketResearch`: ücret = mahalle açılışı × ülke büyüklüğü (0,5–2), 30–45 gün, rapor gelince haber, 365 gün geçerli, sonra yenisi. İlk mağaza ve yurt dışı zincir alımı için şart. Şubeler sayfasında durum, rapor ve "Pazar araştırması" düğmesi. Bot da yaptırır (aynı anda bir tane).

@@ -130,6 +130,8 @@ def equipment(e,s):
         materials=[m.name for m in model.data.materials],collision=dict(policy='custom_ucx',pieces=len(collisions)),zones=zones,
         checkouts=s.get('checkouts',0),planogram=dict(doubleSided=False,widthCm=s['size'][0]-8,depthCm=s['size'][1]-15,frontY=-s['size'][1]/2+8,meshYaw=180),
         lod=dict(naniteCandidate=True,lod1TriangleRatio=.5,lod2TriangleRatio=.2))
+    if f in ('cooler','freezer','deli','fish','butcher'):
+        metadata['planogram']['showCategorySign'] = False
     kit.save_asset(e,name,model,collisions,metadata,(w*1.3,-d*3,h*1.2),(0,0,h/2))
 
 def shell(s):

@@ -62,6 +62,7 @@ struct MIRASMARKET_API FPlanogramEquipment
     float SignY = 0.f;             // sign center |y| (0 = on top, both faces)
     float SignWidthCm = 112.f;
     bool bSignOnTop = true;
+    bool bShowCategorySign = true; // independent of the fixture's product category
     FVector DimensionsCm = FVector(120, 90, 160);
     FString Family;
     int32 CheckoutCount = 0;

@@ -139,6 +139,8 @@ for eid,label,f,w,d,h,style,levels,ref in SPECS:
     verts=[model.matrix_world@v.co for v in model.data.vertices];dims=[(max(v[i] for v in verts)-min(v[i] for v in verts))*1000 for i in range(3)]
     zones=[dict(id=f'front_l{i:02d}',face='front',level=i,centerCm=[0,0,z*100],usableWidthCm=w*100-12,usableDepthCm=d*100-20,clearanceHeightCm=(levels[i+1]-z)*100-4 if i+1<len(levels) else max(15,(h-z)*100-6)) for i,z in enumerate(levels)]
     meta=dict(schemaVersion=1,id=eid,displayName=label,mesh=name+'.fbx',unrealMesh=f'/Game/Stores/Equipment/{name}.{name}',family=f,dimensionsMm=dict(zip(['width','depth','height'],[round(v,2) for v in dims])),origin='floor_center',frontAxis='-Y',materials=[m.name for m in model.data.materials],collision=dict(policy='custom_ucx',pieces=len(cols)),zones=zones,checkouts=0,planogram=dict(doubleSided=False,widthCm=w*100-12,depthCm=d*100-20,frontY=-d*50+10,meshYaw=180),reference=dict(url='http://www.buzrefrigeration.com/tr/urunler/'+ref if ref else '',accuracy='Reference-inspired game model; dimensions are authored, not manufacturer specifications'),lod=dict(naniteCandidate=False,lod1TriangleRatio=.5,lod2TriangleRatio=.25))
+    if style in ('open','doors','service','island','cake','icecream'):
+        meta['planogram']['showCategorySign'] = False
     k.save_asset(eid,name,model,cols,meta,(w*1.25+1,-d*3.3-1,h*1.1+1),(0,0,h*.52))
     # Correct export without saving the temporary centimetre geometry into the source.
     bpy.ops.object.select_all(action='DESELECT')

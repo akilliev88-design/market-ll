@@ -27,6 +27,8 @@ AssetInbox/Environment/Shelves/Gondola_1200/
 
 `equipment.json` görünür modelden tahmin edilmeyecek oyun verilerini taşır: gerçek ölçü, müşteri cepheleri, sekiz raf yerleşim bölgesi, bağlantı noktaları, materyal yuvaları ve çarpışma politikası.
 
+`planogram.showCategorySign` ekipmanın üzerindeki kategori tabelasını açar/kapatır (alan yoksa açık). `false` olduğunda tabela levhası ve yazısı üretilmez; ekipmanın kategorisi, ürün yerleşimi ve fiyat etiketleri korunur. BUZ referanslı soğutucu, dondurucu ve soğuk servis vitrinleri ile önceki soğuk tezgâhlar tabelasızdır. Blender kaynaklarında ayrıca tabela veya tabela taşıyıcısı bulunmadığından bu değişiklik için model/FBX yeniden üretilmez. [Oyun içi kontrol görüntüsü](../Images/Stores/Cabinets/no_category_signs_store.png).
+
 ## Kalite kapısı
 
 1. Ölçü ve origin doğrulanır.
