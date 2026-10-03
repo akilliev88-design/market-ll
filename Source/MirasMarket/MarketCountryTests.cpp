@@ -15,7 +15,7 @@ bool FMarketCountryTest::RunTest(const FString& Parameters)
     // G-084 (karar L02-L06): country packs, the active currency and a country's own economy.
     using namespace MarketCountry;
     const FString Json = TEXT("{\"countries\":[")
-        TEXT("{\"id\":\"tr\",\"name\":\"Turkiye\",\"currency\":{\"code\":\"TRY\",\"symbol\":\"TL\",\"symbolBefore\":false,\"decimal\":\",\"},\"displayScale\":1,\"cities\":\"iller.json\"},")
+        TEXT("{\"id\":\"tr\",\"name\":\"Turkiye\",\"currency\":{\"code\":\"TRY\",\"symbol\":\"TL\",\"symbolBefore\":false,\"decimal\":\",\"},\"displayScale\":1,\"economy\":{\"curve\":\"builtin\"},\"cities\":\"iller.json\"},")
         TEXT("{\"id\":\"gb\",\"name\":\"UK\",\"currency\":{\"code\":\"GBP\",\"symbol\":\"GBP\",\"symbolBefore\":true,\"decimal\":\".\"},\"displayScale\":0.5,")
         TEXT("\"economy\":{\"character\":\"istikrarli\",\"inflationMean\":0.02,\"inflationVol\":0.01,\"loanSpread\":0.03},")
         TEXT("\"traditional\":{\"grocer\":\"Corner shops\",\"market\":\"Farmers market\",\"marketWeekday\":5},\"chains\":{\"bim\":\"Alda\"},")
@@ -43,8 +43,8 @@ bool FMarketCountryTest::RunTest(const FString& Parameters)
     TestTrue(TEXT("Stable prices rise slowly"), StableLevel > 1.0 && StableLevel < TurkishLevel && StableLevel < 1.6);
     TestTrue(TEXT("Loans above inflation"), MarketPrices::LoanRate(MarketCalendar::GameDayOf(2015, 5, 1)) > MarketPrices::YearlyInflation(2015));
 
-    // Back to the default so the other tests see the Turkish prototype.
-    SetActiveProfile(Profiles[0], 1);
+    // Back to the default so the other tests see the Turkish pack.
+    SetActive(DefaultId(), 1);
     TestFalse(TEXT("Restored"), MarketPrices::HasCustomEconomy());
     return true;
 }
@@ -114,7 +114,7 @@ bool FMarketCountryHolidayTest::RunTest(const FString& Parameters)
     TestTrue(TEXT("Americans pay by card more"), FMath::RoundToInt(MarketPayments::CardShare(Sunday) * 100.f) > TrCards);
 
     // Back to the Turkish prototype for the other tests.
-    SetActiveProfile(FProfile(), 1);
+    SetActive(DefaultId(), 1); // D3: the Turkish pack
     TestTrue(TEXT("Republic day again"), MarketCalendar::Info(MarketCalendar::GameDayOf(2011, 10, 29), 3).Has(ETag::NationalHoliday));
     return true;
 }
@@ -124,7 +124,7 @@ bool FMarketCountryFxTest::RunTest(const FString& Parameters)
 {
     using MarketCountry::FxRate;
     using MarketCountry::ToWorld;
-    MarketCountry::SetActiveProfile(MarketCountry::FProfile(), 1);
+    MarketCountry::SetActive(MarketCountry::DefaultId(), 1); // D3: the default pack (Turkey)
     FMarketState S; S.CountryId = TEXT("tr"); S.RivalSeed = 21;
     const MarketCountry::FProfile* Tr = MarketCountry::Find(TEXT("tr"));
     const MarketCountry::FProfile* De = MarketCountry::Find(TEXT("de"));

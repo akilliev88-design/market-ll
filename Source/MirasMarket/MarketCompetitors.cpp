@@ -204,9 +204,10 @@ FString MarketCompetitors::DisplayName(ECompany Company)
         }
     }
     const FString Id = ChainIdOf(Company);
-    // G-084: the country pack names its own chains and traditional trade.
-    const bool bHome = MarketCountry::Active().Id == TEXT("tr");
-    if (!Id.IsEmpty() && (bUseFictional || !bHome))
+    // G-084, D3: the country pack names its own chains and traditional trade; a pack with realChainNames (Turkey,
+    // karar A12) shows the real names until the brand switch asks for fictional ones.
+    const bool bReal = MarketCountry::Active().bRealChainNames;
+    if (!Id.IsEmpty() && (bUseFictional || !bReal))
     {
         const FString Local = MarketCountry::ChainName(Id);
         if (!Local.IsEmpty()) return Local;

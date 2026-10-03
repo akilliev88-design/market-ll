@@ -280,7 +280,7 @@ bool FMarketStaffWagesTest::RunTest(const FString& Parameters)
     // B3 (#39): the minimum wage floor, the employer's social security and the seniority pay.
     using namespace MarketStaffTest;
     using MarketStaff::ERole;
-    MarketCountry::SetActiveProfile(MarketCountry::FProfile(), 1);
+    MarketCountry::SetActive(MarketCountry::DefaultId(), 1); // D3: the default pack (Turkey)
     const int32 July = MarketCalendar::GameDayOf(2011, 7, 1);
     TestEqual(TEXT("Minimum a day at the start (658,95 / 30, up to 50 kurus)"), MarketStaff::MinimumDailyWage(1), int64(2200));
     TestTrue(TEXT("It rises in July"), MarketStaff::MinimumDailyWage(July) > MarketStaff::MinimumDailyWage(July - 1));
@@ -337,7 +337,7 @@ bool FMarketStaffWagesTest::RunTest(const FString& Parameters)
     TestEqual(TEXT("Lower share"), MarketStaff::EmployerShare(3000), int64(300));
     TestEqual(TEXT("No seniority pay"), MarketStaff::SeniorityPay(3000, 1, 1000), int64(0));
     TestTrue(TEXT("Minimum follows the wage level"), MarketStaff::MinimumDailyWage(1) >= 4350);
-    MarketCountry::SetActiveProfile(MarketCountry::FProfile(), 1);
+    MarketCountry::SetActive(MarketCountry::DefaultId(), 1); // D3: the default pack (Turkey)
     return true;
 }
 

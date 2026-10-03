@@ -30,6 +30,29 @@
 Zorunlu: `id`, `name`, `nameEn`, `continent`, `currency` (code, symbol, decimal, symbolBefore), `displayScale`, `fxPerWorld`, `economy`, `habits`, `holidays`, `chains`, `banks`, `names`, `relatives`, `referencePopK`, `regions`, `subregions`, `provinces` (liste ya da dosya adı).
 İsteğe bağlı (varsayılanı motorda): `traditional`, `online`, `climate`, `school`, `payments`, `feasts`, `kmPerMapUnit`.
 
+D3 ile eklenen alanlar (Claude Code, 03.10.2026; hepsi isteğe bağlı, yoksa motor varsayılanı):
+
+| Alan | Anlamı | Yoksa |
+|---|---|---|
+| kök `defaultCountry` | paket bulunamazsa ya da kayıtta ülke yoksa kullanılan ülke | `tr` |
+| kök `giants[]` | dünya devleri: `id`, `name`, `home` (menüdeki ülke adı), `pack` (ev paketi, boş olabilir), `archetype`, `revenueB`, `growth` | dev yok |
+| `continent` | kıta kimliği (`avrupa`, `amerika`, `asya`…); kıta direktörü (D4) | zorunlu |
+| `economy.curve` | `"builtin"` = oyunun el yapımı fiyat eğrisi (Türkiye); yoksa ortalama ± oynaklıktan üretilen eğri | üretilen eğri |
+| `economy.groceryPerPersonDay` | kişi başı günlük market harcaması (başlangıç düzeyinde, para birimi) | 0,65 × `wageFactor` |
+| `habits.cardShareByYear[]` | başlangıç yılından itibaren yıllık kartlı ödeme payı | `cardShare` + dünya eğilimi |
+| `calendar.showHolidayNames` | gün yazısında tatilin kendi adı ("Weihnachten") | `true` |
+| `calendar.school.start` / `.end` | okul açılışı / karne günü: `{month, weekday (0 = Pzt), n (5 = son)}` | yok |
+| `holidays[].table` | ay takvimi tablosu (`ramazan` \| `kurban`); `rule: lunar` için zorunlu | — |
+| `holidays[].fastDays` | bayramdan önceki oruç günleri (Ramazan etiketi) | 0 |
+| `holidays[].butcherPeak` | kasabın büyük haftası bu bayramdan önceki hafta | Noel haftası |
+| `realChainNames` | marka anahtarı kurgu demedikçe menüde gerçek zincir adları | `false` |
+| `roster[]` | ulusal zincirler: `id`, `name`, `boss`, `archetype`, `stores`, `price`, `service`, `aggression`, `ambition`, `region` (isteğe bağlı ana bölge) | zincir yok |
+| `regionalSuffixes[]` | bölge zinciri adının sözcükleri ("Market", "Gross"…) | varsayılan ülkeninki |
+| `firmWords.wholesale` / `.cashCarry` | toptancı firma sözcükleri ("Gıda Dağıtım", "Toptan") | varsayılan ülkeninki |
+| `names.staff.first/last`, `names.managers.first/last` | personel ve müdür için ayrı isim havuzları | `names.first/last` |
+
+Zincir arketipleri (`roster[].archetype`, `giants[].archetype`): `discount`, `fastDiscount`, `super`, `hyper`, `premium`, `regional`, `family`, `wholesale`, `club` (eklenecek: yakın market, toptan perakende).
+
 Alanların tam listesi ve varsayılanları `MarketCountry::FProfile` başlık dosyasındaki yorumlardır; şema değişirse `ulkeler.json`'un `note` alanı ve bu belge birlikte güncellenir.
 
 ## 4. Doğrulama standardı (her pakete otomatik)

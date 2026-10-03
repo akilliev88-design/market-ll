@@ -1,12 +1,20 @@
 # Güncel durum
 
-Son güncelleme: 03.10.2026 — Claude (Cowork), E1 yazıldı, derlenmedi
+Son güncelleme: 03.10.2026 — Claude Code, akis-cc2: E1 + D3/D5 birleşimi, derlenmedi
 
 ## Kısaca
+
+**03.10.2026 — Claude Code / birleşim temizliği (derlenmedi, dal `akis-cc2`):** main (E1) + akis-cc (D3/D5) birleşti. `FxRate` yabancı ülkede `MarketPrices::YearlyInflation(ülke, yıl)`; paketlere `continent`, yeni ülkelerde 42 ad/soyad, DE/GB/US müdür havuzları 40+, Brezilya yüksek enflasyon, İspanya oynak, `groceryPerPersonDay`; PackStandard ≥8 il, ≥40 ad, kıta, yeni ülkelerin sayıları; `Test.ps1` alt sınırı 164; `10_ULKE_STANDARDI.md` §3 yeni alanlar. Derleme betikleri `Saved/Claude/is.cmd` (sabit: git pull + adim.cmd), `adim.cmd`, `ozet.ps1`. Sıradaki: Mustafa derler; sonra adım 2 (kombini ve toptan perakende arketipleri).
 
 **03.10.2026 — Codex / GitHub gönderimi:** Mustafa'nın isteğiyle yerel main, https://github.com/akilliev88-design/market-ll deposuna gönderildi (2684b27). Kaynak değişmedi; mevcut E1 derlenmedi durumu korunur. Geçici ve derleme dosyaları .gitignore kapsamında dışarıda.
 
 **03.10.2026 — Claude / E1 (derlenmedi):** 11_TEK_EKONOMI.md Faz E1: `MarketPrices`'a ülke parametreli `YearlyInflation/PriceLevel/ListLevel/WageIndex/LoanRate/Scaled/WageScaled(Country, …)`, `IsHome`, `ToHome` (kurla ana paraya, başlangıçta 1) ve `RealToHome` (enflasyon farkı düşülmüş kur riski). Yabancı ülke ekonomisi paketten (ortalama, oynaklık, oynak ekonomide şok yılı, faiz farkı), kampanya tohumu + ülkeyle tohumlanır, yıl başı düzeyleri önbellekte. Kampanya ülkesi eskisi gibi. Yeni test `Prices.EveryCountryItsOwn`; Test.ps1 alt sınırı 161. Henüz hiçbir sistem yeni fonksiyonları çağırmıyor (E2–E4 çağıracak); oyun davranışı değişmedi. Not (D3 birleşimi): `MarketCountry::FxRate` yabancı ülkede paketin ortalama enflasyonunu kullanıyor; birleşimde `MarketPrices::YearlyInflation(Country, Year)`'a bağlanmalı.
+
+<!-- D3D5:BEGIN (Claude Code, akis-cc) -->
+**03.10.2026 — Claude Code (bulut) / D3 + D5 (derlenmedi, dal `akis-cc`):** D3: koddaki Türkiye dalları (tatiller/bayramlar/Ramazan, okul günleri, kart eğrisi, yerleşik fiyat eğrisi, gerçek zincir adı, ulusal zincir kadrosu, dünya devleri, isim havuzları, kasap zirvesi, bölge zinciri ve firma sözcükleri, harita ülkesi, varsayılan ülke) `Config/ulkeler.json`'a taşındı; kodda ülke kodu yalnız varsayılanda. D5: Fransa, İspanya, Polonya, Brezilya, Meksika, Japonya paketleri. Yeni testler `Country.PackStandard`, `Country.SmokeEveryPack`, `Country.TurkeyFromPack`. Bulutta Unreal yok: **derlenmedi, test edilmedi**; Cowork Mustafa'nın bilgisayarında DERLE + TEST koşturacak. Ayrıntı `Docs/Surec/akislar/D3_D5_cc_teslim.md`.
+
+**Devam notu (D3/D5):** Kod `akis-cc`'de; `akis-cc2`'de main (E1) ile birleşti. Sıradaki: DERLE, TEST (yeni 3 test dahil), Smoke.
+<!-- D3D5:END -->
 
 **03.10.2026 — Claude / devam notu (D1+D2):** Kararlar M51 (dünya), M52 (motor ülke bilmez, `10_ULKE_STANDARDI.md`), M53 (listeye girerek başla). Claude Code bulutta `akis-cc` dalında D3 (Türkiye dallarını pakete) + D5 (6 yeni ülke) yapıyor; görev `Docs/Surec/akislar/D3_D5_claude_code.md`, teslim `D3_D5_cc_teslim.md` (derleyemez; derleme Mustafa'da). Claude'un işi D1+D2: teknik tasarım ve faz planı **`Docs/Kurgu/11_TEK_EKONOMI.md`** (E1 ülke başına fiyat → E2 tek talep ve tek rekabet, MarketRivals/MarketCompetitors pay modeli kalkar → E3 tek satış ve tek mağaza kaydı, eski kayıt kalıntıları kalkar → E4 yabancı mağazanın parası ve kur farkı). **Henüz kod yazılmadı; sıradaki adım E1.** Bekleyen C16 kodu (M48–M50) `Docs/Surec/bekleyen/C16/` (derlemeye girmeyen .txt kopyalar). Claude'un limiti biterse: Claude Code bu notu, 11_TEK_EKONOMI.md §2 ve §4'ü okuyup E1'den devam eder.
 
@@ -61,7 +69,6 @@ Ana klasör kayıt6 son doğrulaması: DERLE49,61sn +TEST154/154 +Smoke PASSED; 
 **C5 M32 ilk doğrulama:** DERLE + TEST 140/140 + Smoke geçti; MarketOnline.cpp:573 tek namespace düzeltmesi, mantık değişmedi. Codex bundan sonra akis-a ayrı klasörde internet botu, uzun koşular ve üç dönem menü listesini yapacak; ana klasör Claude'a bırakıldı. Final devam notu akis-a Docs/Surec/akislar/A.md.
 
 **01.10.2026 — C4 finans doğrulaması (Codex):** Claude M28–M31 teslimi main'e alındı; DERLE + TEST **138/138** (137 temiz + bir motor HTTP uyarısı) + Smoke geçti. Claude derleme/test düzeltmesi **0**. Yeni finans botu/ağ yedeği/iki zararlı ayda kapatma/ilk 180 gün dökümü tamamlandı. Son 12 kampanya / 65.751 gün: stok/satış ve defter farkı **0**. Dengeli 10/20/30 ulusal **35/33/31**, dünya **25/32/32**; 30 yıl kurtarma **150/165/5**. Tam 180 günlük 22 mahalle şubesinin ortalama neti **7.718,32 TL**. Atak iki tohumda 146/159 mağaza; diğer yedi 10 yıllık koşu tek mağaza. Denge hedefi karşılanmadı. 92 menü PNG incelendi, kampanya değişmedi; üç ana C isteği harita alt menü çakışması, mali tutar kesilmesi, uzun kredi listesi. Rapor **Docs/Surec/akislar/C4_finans_rapor.md**; iki ham rapor ve 16 CSV. Sırada C/Mustafa'nın beş denge önerisi, gerçek marka raf doluluğu, kredi/kurtarma borcu kapsamı, M27 sürüm artışı ve menü isteklerini değerlendirmesi; kaynak sabitleri değiştirilmedi.
-
 
 **01.10.2026 — TV standı yüzey düzeltmesi (Codex):** Mustafa sabit kamerada yeni TV raflarının titrediğini bildirdi. Blender kaynaklarında podyum tabla/gövde üst yüzleri ile TV duvarı gövde/arka panel/yan kolonlarında aynı düzlemde yüz çakışması bulundu. Üç stand yeniden üretildi; tabla altında 4 mm açıklık, duvar parçalarında ayrık yüzler; raylar gövde dışına alındı ve etiket konumları güncellendi. LED/parlama korunuyor; genel Lumen ayarı değiştirilmedi. Yeni `check_tv_surfaces.py --strict`: üç kaynakta çakışma 0; Blender kaynak/FBX 8/8, Unreal üç stand ölçü/UCX aktarımı, DERLE, TEST 128/128 ve Smoke GEÇTİ. Üç sabit kamera PNG gözle incelendi; beş yüzey bölgesinde ortalama ardışık RGB farkı 0,52–1,68/255, büyük yüzey atlaması görülmedi. Ayrı TV ürünleri/katalog/kayıtlar değiştirilmedi. Oyuncunun gördüğü titremenin tamamen bittiği oyun içi tekrar gözlemle teyit edilmeli; geometri hatası giderildi.
 
@@ -167,14 +174,11 @@ Görsel ve raf dizme işleri yeterli seviyede; bir süre **donduruldu**. Önceli
 
 **01.10.2026 — Codex / C4:** C4_finans_rapor.md ve A.md C4 tesliminden devam edin. Kaynak DERLE + TEST 138/138 + Smoke geçti, Test.ps1 alt sınır 138. Son kaynak f1b9d75 yedek hesabı; teslim koşuları 155215/160337, önceki 153450/153911 final değildir. Menü galeri 20261001-154910/index.html, 92 PNG. C4 doğrulaması/rapor işi tamamlandı; C/Mustafa denge ve menü isteklerini uygulayacak. Finansman gerektiren alım/bağlı şirket dönüşüm-satışı doğal koşuda oluşmadı; Banking/Chains testleri geçti ancak dolu yaşam döngüsü ve görsel kapsamı ayrıca açılmalı. CurrentVersion hâlâ 3, kayıt biçimi için sonraki birleşimde tek artış gerekir. Bekleyen eski yamalar uygulanmadı ve yerinde bırakıldı. Tarihsel derlenmedi notları son C4 kaynakları için geçerli değildir.
 
-
 **01.10.2026 — Codex / G-092:** Model/kod işi derlendi ve doğrulandı. `MarketTelevisionDisplay.*`, iki Blender üreticisi ve `Tools/import_tv_displays.py`; üç stand ve beş ayrı TV. Katalogda henüz TV yok: Ürün Stüdyosu'nda metadata ölçüsü/mesh yoluyla yayımla; ID `AssetInbox/Products/Televisions/display.json` ile aynı olmalı. Teknoloji/Hz bilgisi bilinmediğinden profilde yalnız inç; gerçek ürüne göre girilecek. Claude'un katalog/ekonomi dosyaları değiştirilmedi. Ayrıntı ve kaynak linkleri `Docs/Environment/TELEVIZYON_TESHIRI.md` ve galeri. Genel sıradaki iş yine C3 denge/finans.
 
 **01.10.2026 — Codex / C3:** Doğrulama tamamlandı; A.md'de C3 bölümünden ve C3_30_yil_rapor.md'nin beş önerisinden devam edin. Menü otomasyonuna yeni mali dönemler/Rekorlar eklendi; Test.ps1 alt sınır 126. Source son hâli derlendi/test/smoke geçti, menü ve ziyaret de çalıştırıldı. Aşağıdaki derlenmedi notları tarihsel. Oturum sırasında gelen Docs/Surec/bekleyen/M28_M29_sirket_finansi.patch uygulanmadı; bir sonraki Claude işiyle karıştırılmamalı.
 
-
 **30.09.2026 — Codex / A0:** Main derlemesi GEÇTİ; TEST 84/84 (83 temiz + 1 motor bağlantı uyarısı), Smoke GEÇTİ (1 satış, gün kapama, sipariş/mal kabul, işe alma, disk kayıt/yükleme). Kaynak düzeltmesi gerekmedi. Test.ps1:9–10 alt sınır 46 → 84; uyarıyla başarılı testler toplama dahil. Aşama 0 commit/push sonrası A, akis-a worktree'de otomatik oyuncu ve zamanı yapacak. B/C sözleşmedeki kendi alanlarına başlayabilir. Önceki DERLENMEDİ notları tarihsel; bugünkü kaynaklar doğrulandı.
-
 
 **30.09.2026 gece — Claude (Cowork): M19–M23 menü denetimi bitti, M24 yazıldı — DERLENMEDİ. KALDIĞIM YER.**
 - **Menü denetimi (önceki oturumdan yarım kalan) tamamlandı.** `MarketMenuPages.cpp` (kademe ağacı, aday kartları, Depolar kartı, depo seçimi, şube satırındaki "mal nereden"), `MarketMenu.cpp` (`Todos` depo uyarıları), `MarketMap.*` (depo "D" kutusu, menzil halkası), `MarketMenuWidget.*` elle okundu; ayrıca betikle: çağrılan her `MarketDepots::/MarketManagers::/...` işlevinin başlıkta var olduğu ve argüman sayısı, menüdeki her `Manage("...")` eyleminin `MarketDirector::Command`'da karşılığı, `ERole` değerleri, yerel ad gölgelemesi (C4456/C4458) ve unity build ad çakışması, ASCII. **Hata bulunmadı**; derleme hâlâ gerekli.
@@ -189,7 +193,6 @@ Görsel ve raf dizme işleri yeterli seviyede; bir süre **donduruldu**. Önceli
 - Mantık denetimi yapıldı (8 düzeltme). **Menü denetimi yazma anında hâlâ çalışıyordu**; sonucu klasöre yazılmadı. Bulutta kalırsa kaybolur: menüde derleme hatası çıkarsa önce `MarketMenuPages.cpp`'ye bak.
 - Yapılmadı (sıradaki Claude): M24 — "2011" kavramı kalkar, oyunun kendi ekonomisi: belgelerde "2011 fiyatı" yerine "oyun başı fiyat düzeyi", kod yorumları; oyuncuya görünen gerçek dünya metinleri (`MarketRetail.cpp`:19 "2011'de ... aldı", :70 kaynak satırı) kaldırılacak. M19 kararı netleşti: aile dükkânı müdürü kendi hiyerarşisinde (ev ilinin il/bölge/ülke müdürüne bağlı; kimse yoksa oyuncuya) — kod böyle. Depo sayıları Mustafa onaylı. G-088 C bağlantısı (`MarketStoreAssign` + `MarketStoreKit`), `Docs/MENU.md` Yönetim/Depolar, `MarketBranches::Summary` gizli beceri.
 - **Codex'ten istenen:** `DERLE.cmd`, `TEST.cmd`, `SmokeTest.ps1`. Codex'in yeni dosyalarıyla (MarketStoreEditing/Geometry/Architecture) unity build ad çakışması denetlenmedi.
-
 
 **30.09.2026 — Codex: G-088 depo kapısı, kolon, duvar ve gezi kaydı.**
 
@@ -250,7 +253,6 @@ Görsel ve raf dizme işleri yeterli seviyede; bir süre **donduruldu**. Önceli
 - Yeni kaynaklar: `Tools/create_store_design.py`, `Tools/Blender/store_architecture.py`; çokgen/obstacle/section verisi `Config/magazalar.json`, okuyucu `MarketStoreKit`, kurucu `MarketStoreBuild`. DERLE GEÇTİ, TEST 54/54 GEÇTİ (1 motor HTTP yoklama zaman aşımı uyarısı), Smoke GEÇTİ; doğrulayıcı 4/4; 20 mağaza ve 5 aile görüntüsü incelendi. 1080p offscreen 90 FPS (müşterisiz).
 - Mustafa için `MAGAZA_GEZI.cmd`: doğrudan yürüyerek test gezisi; F10 sonraki, Shift+F10 önceki, F3/F7 rastgele doldur. `MarketStoreTour.cpp`; `StoreTourTest.ps1` dört mağazada zemin/dolum/para yalıtımı GEÇTİ. Ailede F2 + F7. Kampanya veya katalog yazılmaz; fiziksel raf yerleri korunur.
 - İnceleme: `Saved/Screenshots/Stores/PhaseA_R2_overview.png`, `<id>_QA_R2.png`; düz bakkal tavanı `Saved/Screenshots/MirasMarket.png`. API/komutlar `Docs/Environment/MAGAZA_KITI_UYGULAMA.md`. Yarım kaynak işi yok; kalan 16 mağaza **görsel onaydan sonra**.
-
 
 **30.09.2026 — Codex: G-088 ilk A teslimi (sonraki görsel revizyon üstte).**
 - Dört mağaza: `mahalle_01`, `kucuk_01`, `buyuk_01`, `hiper_01`; 18 ekipman, Türkçe offline font ve T ile yüz başına kategori seçimi. Aile ekipman düzeni korundu.

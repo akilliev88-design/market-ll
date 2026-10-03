@@ -52,6 +52,8 @@
 | **Bot** | Tek ülke | Yurt dışına çıkma kararı; hedefler: X. yılda ilk ülke, 30. yılda Y ülke, dünya sırası | Orta |
 | **Kayıt** | Sürüm 8–9 | Sürüm artar, eski kayıt yüklenmez (M27) | — |
 
+> D3/D5 (Claude Code, 03.10.2026): Türkiye dalları ülke paketine taşındı, 6 yeni ülke eklendi (10 ülke). Yeni paket alanları `10_ULKE_STANDARDI.md` §3; teslim `Docs/Surec/akislar/D3_D5_cc_teslim.md`.
+
 ## 5. Tek ekonomi modeli (S2)
 
 - **Bir mağazanın günü tek fonksiyon:** `MarketStoreDay::Run(State, Store, Products, Day)`. Bütün mağazalar için aynı hesap: il müşteri potansiyeli × pay (çekim / çekim + rekabet) × olgunlaşma × yamyamlık × raf doluluğu × hizmet × fiyat → satış, stok, fire, ücret, kira, giderler.

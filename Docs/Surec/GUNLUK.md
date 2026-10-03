@@ -1,3 +1,15 @@
+## 03.10.2026 — Claude Code — birleşim temizliği: E1 + D3/D5 (derlenmedi)
+
+**Yapılan:** `akis-cc2` = main (E1) + `akis-cc` (D3/D5) birleşimi; DURUM/GUNLUK/KARARLAR/GÖREVLER çakışmaları iki taraf korunarak çözüldü, D3D5 blokları E1 girişlerinin altında. `MarketCountry::FxRate` yabancı ülkede paket ortalaması yerine `MarketPrices::YearlyInflation(ülke, yıl)` (E1 ile tutarlı kur). Görev belgesi ve `10_ULKE_STANDARDI.md` ile karşılaştırınca eksikler kapandı: `continent` (FProfile + ayrıştırma + test), yeni 6 ülkede 42 ad / 42 soyad, DE/GB/US müdür havuzu ≥40, Brezilya yüksek enflasyon, İspanya oynak, yeni ülkelere `groceryPerPersonDay`; PackStandard: ≥8 il, ≥40 ad ve soyad (ad ya da müdür havuzu), kıta, yeni ülkelerin il/bölge/alt bölge/tatil/zincir/para beklenen değerleri. `Test.ps1` alt sınırı 164. `10_ULKE_STANDARDI.md` §3'e yeni alan tablosu, `ulkeler.json` note, 09 §4 notu, teslim notuna ülke özeti.
+
+**Derleme betikleri:** `Saved/Claude/is.cmd` artık sabit (fetch, `akis-cc2`'ye geç, pull, `adim.cmd`'yi çağır); turun adımları `adim.cmd` (DERLE, TEST, ozet.ps1, derleme geçtiyse Smoke); `ozet.ps1` derleme hatalarını ve başarısız testleri yazar. `Saved/` git dışı olduğu için üç dosya zorla eklendi.
+
+**Doğrulama:** Derlenmedi (bulut). JSON ayrıştırıldı; ASCII denetimi temiz.
+
+**Varsayım:** Türkiye kıtası `avrupa` (09 §7 tablosundaki sayımla). Türkiye'nin ad havuzu (10 ad, 8 soyad) değişmedi; 40 şartını müdür havuzu (57/44) karşılıyor, böylece Türkiye'de hikâye adları aynı kalıyor.
+
+**Sıradaki:** Mustafa: CLAUDE_KOS.cmd. Sonra adım 2 (kombini, toptan perakende).
+
 ## 03.10.2026 — Codex — GitHub gönderimi
 
 **Yapılan:** Mustafa'nın belirttiği https://github.com/akilliev88-design/market-ll deposuna yerel main gönderildi; uzak main 324384d → 2684b27. Mevcut kayıtlar ve .gitignore kuralları kullanıldı; kaynak kod değiştirilmedi.
@@ -13,6 +25,20 @@
 **Doğrulama:** Derlenmedi. Oyun davranışı değişmemeli (yeni fonksiyonları henüz kimse çağırmıyor).
 
 **Sıradaki:** Mustafa `CLAUDE_KOS.cmd` (kaydet + GitHub'a gönder + DERLE + TEST). Sonra E2.
+
+<!-- D3D5:BEGIN (Claude Code, akis-cc) -->
+## 03.10.2026 — Claude Code (bulut) — D3 Türkiye pakete, D5 altı yeni ülke (derlenmedi)
+
+**Yapılan (D3):** Türkiye'ye özel kod dalları ülke paketine taşındı: `MarketCalendar` (resmî günler, bayramlar ay takvimi tablosuyla, Ramazan, okul günleri, bayram adı gösterimi; yeni `HolidayStart`), `MarketDepartments` (kasap zirvesi `butcherPeak`), `MarketPayments` (`cardShareByYear`), `MarketCountry` (`curve: builtin`, `DefaultId/Default/FindOrDefault/MapCountry/HasMap`, `ParseGiants/Giants`, etkin ülke baştan TR paketi), `MarketCompetitors` (`realChainNames`), `MarketChains` (kadro ve devler paketten, bölge zinciri sözcükleri), `MarketStaff`/`MarketManagers` (isim havuzları), `MarketCast` (firma sözcükleri), `MarketMenuPages` (harita ülkesi), `MarketStart`/`MarketEras` (varsayılan ülke). TR paketine 1 Mayıs, 19 Mayıs, 30 Ağustos eklendi (eskiden kodda).
+
+**Yapılan (D5):** `fr`, `es`, `pl`, `br`, `mx`, `jp` paketleri (kurgu zincir, banka, platform ve patron adları; il/bölge; tatil; okul; iklim; ekonomi karakteri). Kombini/yakın market → `regional`, atacarejo → `wholesale`, Meksika bodega → `discount` (Cowork türleri ekleyecek). CarreFive'ın evi Fransa, Aeonn/Seven & Me'ninki Japonya.
+
+**Doğrulama:** Derlenmedi, test edilmedi (bulutta Unreal yok). JSON Python'la ayrıştırıldı ve PackStandard kuralları Python'da ön kontrol edildi (10 paket geçti). `Tools/escape_unicode.py --check` temiz. Yeni testler `MirasMarket.Country.PackStandard`, `MirasMarket.Country.SmokeEveryPack`, `MirasMarket.Country.TurkeyFromPack`.
+
+**Varsayımlar:** Görev belgesi ve `10_ULKE_STANDARDI.md` GitHub'da yoktu; Mustafa'nın sohbet özetiyle çalışıldı. Test.ps1 alt sınırı 160'ta bırakıldı. Yeni ülkeler uzun koşuda (8. yıl sonrası) devlerin yeni ülke seçimini etkiler.
+
+**Sıradaki:** Cowork: `akis-cc` birleştirme, DERLE + TEST + Smoke. Teslim notu `Docs/Surec/akislar/D3_D5_cc_teslim.md`.
+<!-- D3D5:END -->
 
 ## 03.10.2026 — Claude (Cowork) — Ülke standardı (M52), liste dışı başlangıç (M53), tek ekonomi tasarımı
 
@@ -351,8 +377,6 @@ En yeni giriş en üstte. Biçim: tarih — ajan — başlık, ardından **Yapı
 
 **Sıradaki:** C3_30_yil_rapor.md'deki beş denge önerisi ve A.md C3 menü istekleri C'de. İlk büyüme/toparlanma düzelmeden üst reyon/tedarik ve dünya ligi denge ayarları doğrulanmış sayılmaz. MarketBrands.cpp:67,75,334,365 kapasiteyle boş raflara da ödeme yapıyor; istismar/mantık hatası adayı olarak yazıldı, değiştirilmedi. Bekleyen M28_M29_sirket_finansi.patch oturum sırasında başka ajan tarafından geldi; uygulanmadı/commitlere alınmadı.
 
-
-
 ## 01.10.2026 — Claude Cowork / Akış C — C3 bağlama
 
 **Yapılan:** `akis-a` ve `claude/miras-market-akis-b-evw111` `main`e birleşti (Mustafa, 170b1c2; çakışma yok). C3: `MarketDirector` kalıcı sıra (BeginClose → Eras → sistemler → TrackNationalRevenue → EndClose → Goals), `BudgetFactor × MarketEras::BudgetFactor`, `VisitBranch` → `MarketBranches::Visit` (beceri 60 gün görünür, moral, boş raf ve kuyruk cümlesi). Defter `Post`ları: şube günü satır satır, açılış/kapanış/stok, toptancı vadesi ve gecikme farkı, müdür ücretleri, depo, Bereket, zincir alımı, marka ödemeleri, reyonlar (kendi kayıtları; `OtherCosts` çift ödemesi düzeltildi). Sigorta payı şube/müdür/reyon ücretlerinde, kıdem müdür çıkarmada. `MarketEras` çarpanları reyon talebi/ithal maliyet ve zincir ciro/açılış/satılık. `MarketGoals::OnLeagueYear` lig yılında. A6 ayarları uygulandı (lig ölçeği hariç). M27: Branches/Depots/StoreViews/Staff `Migrate` ve ölü alanlar silindi, `CurrentVersion` 3. Menü bağlamaları. Testler: Ledger.CashAudit artık fark 0 bekler; Depots.OldSaves ve iki test bloğu silindi; Managers ve Chains test beklentileri yeni kurallara uyarlandı. Test.ps1 alt sınırı 125.
@@ -360,7 +384,6 @@ En yeni giriş en üstte. Biçim: tarih — ajan — başlık, ardından **Yapı
 **Doğrulama:** Derlenmedi (bulut). Betik kontrolleri (ASCII, gölgeleme, argüman sayısı) ve ikinci bir ajanla satır satır derleme okuması: derleme hatası bulunmadı; bulunan iki test beklentisi ve dört mantık açığı düzeltildi.
 
 **Sıradaki:** Codex: DERLE + TEST + Smoke + uzun bot (prompt `codex_c3_dogrulama.md`). Sonra şirket finansı (yatırım kredisi) tasarımı.
-
 
 ## 30.09.2026 — Codex / Akış A — Aşama 0 doğrulaması
 
@@ -483,7 +506,6 @@ Ayrıntı ve kaldığım yer: DURUM.md devam notunun en üstü. Menü denetimi y
 **Devir**
 - A yeniden görsel onay bekliyor; B'ye yalnız Mustafa onayından sonra geçilecek. Atama/kayıt/menü/stats hesabı ve metadata staging bağlantısı Claude'da; sınırlar değişmedi.
 - Önceden bekleyen Claude değişiklikleri korundu; ortak kaynak/belgelerde yalnız bu revizyonun satırları commit'e seçildi. Kontroller ortak çalışma ağacında yapıldı.
-
 
 ## 30.09.2026 — Codex — G-088 Aşama A: dört mağaza, Türkçe tabela ve raf kategorisi
 

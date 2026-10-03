@@ -12,9 +12,22 @@
 
 namespace MarketCountry
 {
+    FString& DefaultIdRef()
+    {
+        static FString Id = TEXT("tr");
+        return Id;
+    }
+
+    TArray<FGiantRow>& GiantsRef()
+    {
+        static TArray<FGiantRow> Rows;
+        return Rows;
+    }
+
     FProfile& ActiveRef()
     {
-        static FProfile Profile;
+        // D3: until a campaign sets its country the default pack is active (the Turkish rules are its data).
+        static FProfile Profile = Default();
         return Profile;
     }
 
@@ -33,8 +46,9 @@ namespace MarketCountry
 
     void ApplyEconomy(const FProfile& P, int32 Seed)
     {
-        // Turkey keeps the prototype's own curve (karar A06); every other pack gets a generated curve.
-        if (P.Id == TEXT("tr")) MarketPrices::ClearEconomy();
+        // A pack with "curve": "builtin" (Turkey) keeps the prototype's own curve (karar A06); every other pack gets a
+        // generated curve.
+        if (P.bBuiltinCurve) MarketPrices::ClearEconomy();
         else MarketPrices::SetEconomy(P.InflationMean, P.InflationVol, P.LoanSpread, P.Character == ECharacter::Volatile || P.Character == ECharacter::HighInflation, Seed);
         // B4: the country's eras without a campaign shift (MarketEras::Activate puts the campaign's plan in).
         MarketEras::ActivateNominal(static_cast<MarketEras::ECharacter>(static_cast<uint8>(P.Character)));
@@ -55,6 +69,7 @@ bool MarketCountry::Parse(const FString& Json, TArray<FProfile>& OutProfiles, TA
         if (!O.IsValid() || !O->TryGetStringField(TEXT("id"), P.Id) || P.Id.IsEmpty()) { OutErrors.Add(TEXT("Kimliksiz ulke atlandi.")); continue; }
         O->TryGetStringField(TEXT("name"), P.Name);
         O->TryGetStringField(TEXT("nameEn"), P.NameEn);
+        O->TryGetStringField(TEXT("continent"), P.Continent);
         O->TryGetNumberField(TEXT("displayScale"), P.DisplayScale);
         O->TryGetNumberField(TEXT("fxPerWorld"), P.FxPerWorld);
         if (!(P.DisplayScale > 0.0)) { OutErrors.Add(P.Id + TEXT(": displayScale gecersiz.")); P.DisplayScale = 1.0; }
@@ -68,6 +83,7 @@ bool MarketCountry::Parse(const FString& Json, TArray<FProfile>& OutProfiles, TA
             FString Mark;
             if ((*Currency)->TryGetStringField(TEXT("decimal"), Mark) && Mark.Len() == 1) P.DecimalMark = Mark[0];
         }
+        P.bBuiltinCurve = false; // D3: only a pack that asks for it keeps the hand-made curve
         const TSharedPtr<FJsonObject>* Economy = nullptr;
         if (O->TryGetObjectField(TEXT("economy"), Economy) && Economy && Economy->IsValid())
         {
@@ -76,6 +92,8 @@ bool MarketCountry::Parse(const FString& Json, TArray<FProfile>& OutProfiles, TA
             (*Economy)->TryGetNumberField(TEXT("inflationMean"), P.InflationMean);
             (*Economy)->TryGetNumberField(TEXT("inflationVol"), P.InflationVol);
             (*Economy)->TryGetNumberField(TEXT("loanSpread"), P.LoanSpread);
+            FString Curve;
+            P.bBuiltinCurve = (*Economy)->TryGetStringField(TEXT("curve"), Curve) && Curve == TEXT("builtin"); // D3
             double Number = 0.0;
             if ((*Economy)->TryGetNumberField(TEXT("wageFactor"), Number)) P.WageFactor = static_cast<float>(Number);
             if ((*Economy)->TryGetNumberField(TEXT("rentFactor"), Number)) P.RentFactor = static_cast<float>(Number);
@@ -90,6 +108,31 @@ bool MarketCountry::Parse(const FString& Json, TArray<FProfile>& OutProfiles, TA
             if ((*Habits)->TryGetNumberField(TEXT("weeklyShopShare"), Number)) P.WeeklyShopShare = static_cast<float>(Number);
             if ((*Habits)->TryGetNumberField(TEXT("cardShare"), Number)) P.CardShare = static_cast<float>(Number);
             (*Habits)->TryGetBoolField(TEXT("sundayClosed"), P.bSundayClosed);
+            const TArray<TSharedPtr<FJsonValue>>* Cards = nullptr; // D3
+            if ((*Habits)->TryGetArrayField(TEXT("cardShareByYear"), Cards))
+                for (const TSharedPtr<FJsonValue>& V : *Cards) if (V.IsValid()) P.CardShareByYear.Add(FMath::Clamp(static_cast<float>(V->AsNumber()), 0.f, 1.f));
+        }
+        const TSharedPtr<FJsonObject>* Calendar = nullptr; // D3
+        if (O->TryGetObjectField(TEXT("calendar"), Calendar) && Calendar && Calendar->IsValid())
+        {
+            (*Calendar)->TryGetBoolField(TEXT("showHolidayNames"), P.bShowHolidayNames);
+            const TSharedPtr<FJsonObject>* School = nullptr;
+            if ((*Calendar)->TryGetObjectField(TEXT("school"), School) && School && School->IsValid())
+            {
+                auto ReadDay = [&School](const TCHAR* Field, FSchoolDay& Out)
+                {
+                    const TSharedPtr<FJsonObject>* Row = nullptr;
+                    if (!(*School)->TryGetObjectField(Field, Row) || !Row || !Row->IsValid()) return;
+                    (*Row)->TryGetNumberField(TEXT("month"), Out.Month);
+                    (*Row)->TryGetNumberField(TEXT("weekday"), Out.Weekday);
+                    (*Row)->TryGetNumberField(TEXT("n"), Out.Nth);
+                    Out.Month = FMath::Clamp(Out.Month, 0, 12);
+                    Out.Weekday = FMath::Clamp(Out.Weekday, 0, 6);
+                    Out.Nth = FMath::Clamp(Out.Nth, 1, 5);
+                };
+                ReadDay(TEXT("start"), P.SchoolStart);
+                ReadDay(TEXT("end"), P.SchoolEnd);
+            }
         }
         const TSharedPtr<FJsonObject>* Traditional = nullptr;
         if (O->TryGetObjectField(TEXT("traditional"), Traditional) && Traditional && Traditional->IsValid())
@@ -128,6 +171,11 @@ bool MarketCountry::Parse(const FString& Json, TArray<FProfile>& OutProfiles, TA
                 Day.Weekday = FMath::Clamp(Day.Weekday, 0, 6);
                 HO->TryGetNumberField(TEXT("n"), Day.Nth);
                 Day.Nth = FMath::Clamp(Day.Nth, 1, 5);
+                HO->TryGetStringField(TEXT("table"), Day.Table); // D3
+                HO->TryGetNumberField(TEXT("fastDays"), Day.FastDays);
+                Day.FastDays = FMath::Clamp(Day.FastDays, 0, 40);
+                HO->TryGetBoolField(TEXT("butcherPeak"), Day.bButcherPeak);
+                if (Day.Rule == EHolidayRule::Lunar && Day.Table.IsEmpty()) OutErrors.Add(P.Id + TEXT(": ") + Day.Name + TEXT(" ay takvimi tablosu yok."));
                 P.Holidays.Add(Day);
             }
         const TSharedPtr<FJsonObject>* Names = nullptr;
@@ -135,7 +183,47 @@ bool MarketCountry::Parse(const FString& Json, TArray<FProfile>& OutProfiles, TA
         {
             (*Names)->TryGetStringArrayField(TEXT("first"), P.FirstNames);
             (*Names)->TryGetStringArrayField(TEXT("last"), P.LastNames);
+            const TSharedPtr<FJsonObject>* Pool = nullptr; // D3
+            if ((*Names)->TryGetObjectField(TEXT("staff"), Pool) && Pool && Pool->IsValid())
+            {
+                (*Pool)->TryGetStringArrayField(TEXT("first"), P.StaffFirst);
+                (*Pool)->TryGetStringArrayField(TEXT("last"), P.StaffLast);
+            }
+            if ((*Names)->TryGetObjectField(TEXT("managers"), Pool) && Pool && Pool->IsValid())
+            {
+                (*Pool)->TryGetStringArrayField(TEXT("first"), P.ManagerFirst);
+                (*Pool)->TryGetStringArrayField(TEXT("last"), P.ManagerLast);
+            }
         }
+        O->TryGetBoolField(TEXT("realChainNames"), P.bRealChainNames); // D3
+        O->TryGetStringArrayField(TEXT("regionalSuffixes"), P.RegionalSuffixes);
+        const TSharedPtr<FJsonObject>* Firm = nullptr;
+        if (O->TryGetObjectField(TEXT("firmWords"), Firm) && Firm && Firm->IsValid())
+        {
+            (*Firm)->TryGetStringField(TEXT("wholesale"), P.WholesaleWord);
+            (*Firm)->TryGetStringField(TEXT("cashCarry"), P.CashCarryWord);
+        }
+        const TArray<TSharedPtr<FJsonValue>>* Roster = nullptr;
+        if (O->TryGetArrayField(TEXT("roster"), Roster))
+            for (const TSharedPtr<FJsonValue>& R : *Roster)
+            {
+                const TSharedPtr<FJsonObject> RO = R.IsValid() ? R->AsObject() : nullptr;
+                if (!RO.IsValid()) continue;
+                FRosterRow Row;
+                RO->TryGetStringField(TEXT("id"), Row.Id);
+                RO->TryGetStringField(TEXT("name"), Row.Name);
+                RO->TryGetStringField(TEXT("boss"), Row.Boss);
+                RO->TryGetStringField(TEXT("archetype"), Row.Archetype);
+                RO->TryGetNumberField(TEXT("stores"), Row.Stores);
+                double Number = 0.0;
+                if (RO->TryGetNumberField(TEXT("price"), Number)) Row.PriceIndex = static_cast<float>(Number);
+                if (RO->TryGetNumberField(TEXT("service"), Number)) Row.Service = static_cast<float>(Number);
+                if (RO->TryGetNumberField(TEXT("aggression"), Number)) Row.Aggression = static_cast<float>(Number);
+                if (RO->TryGetNumberField(TEXT("ambition"), Number)) Row.Ambition = static_cast<float>(Number);
+                RO->TryGetStringField(TEXT("region"), Row.HomeRegion);
+                if (Row.Id.IsEmpty() || Row.Name.IsEmpty() || Row.Stores <= 0) { OutErrors.Add(P.Id + TEXT(": eksik zincir satiri atlandi.")); continue; }
+                P.Roster.Add(Row);
+            }
         O->TryGetStringArrayField(TEXT("banks"), P.Banks); // M30
         const TSharedPtr<FJsonObject>* Online = nullptr;
         if (O->TryGetObjectField(TEXT("online"), Online) && Online && Online->IsValid()) // M32
@@ -220,16 +308,96 @@ const TArray<MarketCountry::FProfile>& MarketCountry::All()
         bLoaded = true;
         FString Json;
         TArray<FString> Errors;
-        if (FFileHelper::LoadFileToString(Json, *FPaths::Combine(FPaths::ProjectConfigDir(), TEXT("ulkeler.json")))) Parse(Json, Profiles, Errors);
+        if (FFileHelper::LoadFileToString(Json, *FPaths::Combine(FPaths::ProjectConfigDir(), TEXT("ulkeler.json"))))
+        {
+            Parse(Json, Profiles, Errors);
+            ParseGiants(Json, GiantsRef(), Errors);
+            // D3: the default country of the file.
+            TSharedPtr<FJsonObject> Root;
+            const TSharedRef<TJsonReader<>> Reader = TJsonReaderFactory<>::Create(Json);
+            FString Id;
+            if (FJsonSerializer::Deserialize(Reader, Root) && Root.IsValid() && Root->TryGetStringField(TEXT("defaultCountry"), Id) && !Id.IsEmpty()) DefaultIdRef() = Id;
+        }
         for (const FString& Error : Errors) UE_LOG(LogTemp, Warning, TEXT("MirasMarket countries: %s"), *Error);
-        if (!Profiles.ContainsByPredicate([](const FProfile& P) { return P.Id == TEXT("tr"); })) Profiles.Insert(FProfile(), 0);
+        if (!Profiles.ContainsByPredicate([](const FProfile& P) { return P.Id == DefaultIdRef(); }))
+        {
+            FProfile Bare; // no pack for the default country: the bare prototype (built-in curve, no holidays)
+            Bare.Id = DefaultIdRef();
+            Profiles.Insert(Bare, 0);
+        }
     }
     return Profiles;
+}
+
+bool MarketCountry::ParseGiants(const FString& Json, TArray<FGiantRow>& OutGiants, TArray<FString>& OutErrors)
+{
+    TSharedPtr<FJsonObject> Root;
+    const TSharedRef<TJsonReader<>> Reader = TJsonReaderFactory<>::Create(Json);
+    const TArray<TSharedPtr<FJsonValue>>* Rows = nullptr;
+    if (!FJsonSerializer::Deserialize(Reader, Root) || !Root.IsValid() || !Root->TryGetArrayField(TEXT("giants"), Rows)) return false;
+    for (const TSharedPtr<FJsonValue>& Value : *Rows)
+    {
+        const TSharedPtr<FJsonObject> O = Value.IsValid() ? Value->AsObject() : nullptr;
+        FGiantRow Row;
+        if (!O.IsValid() || !O->TryGetStringField(TEXT("id"), Row.Id) || Row.Id.IsEmpty()) { OutErrors.Add(TEXT("Kimliksiz dev zincir atlandi.")); continue; }
+        O->TryGetStringField(TEXT("name"), Row.Name);
+        O->TryGetStringField(TEXT("home"), Row.Home);
+        O->TryGetStringField(TEXT("pack"), Row.Pack);
+        O->TryGetStringField(TEXT("archetype"), Row.Archetype);
+        double Number = 0.0;
+        if (O->TryGetNumberField(TEXT("revenueB"), Number)) Row.RevenueB = static_cast<float>(Number);
+        if (O->TryGetNumberField(TEXT("growth"), Number)) Row.Growth = static_cast<float>(Number);
+        OutGiants.Add(Row);
+    }
+    return OutGiants.Num() > 0;
+}
+
+const TArray<MarketCountry::FGiantRow>& MarketCountry::Giants()
+{
+    All();
+    return GiantsRef();
 }
 
 const MarketCountry::FProfile* MarketCountry::Find(const FString& Id)
 {
     return All().FindByPredicate([&Id](const FProfile& P) { return P.Id == Id; });
+}
+
+const FString& MarketCountry::DefaultId()
+{
+    All();
+    return DefaultIdRef();
+}
+
+const MarketCountry::FProfile& MarketCountry::Default()
+{
+    const FProfile* Pack = Find(DefaultId());
+    check(Pack); // All() always holds the default country
+    return *Pack;
+}
+
+const MarketCountry::FProfile& MarketCountry::FindOrDefault(const FString& Id)
+{
+    const FProfile* Pack = Id.IsEmpty() ? nullptr : Find(Id);
+    return Pack ? *Pack : Default();
+}
+
+const FString& MarketCountry::MapCountry()
+{
+    // D3: the pack whose provinces come from the map file (iller.json) is the one drawn on the main screen.
+    static FString Id;
+    static bool bFound = false;
+    if (!bFound)
+    {
+        bFound = true;
+        for (const FProfile& P : All()) if (P.CitiesFile == TEXT("iller.json")) { Id = P.Id; break; }
+    }
+    return Id;
+}
+
+bool MarketCountry::HasMap(const FString& Id)
+{
+    return !Id.IsEmpty() && Id == MapCountry() && MarketMapData::Get().bLoaded;
 }
 
 void MarketCountry::Resolve(FProfile& P)
@@ -327,8 +495,7 @@ const MarketCountry::FProfile& MarketCountry::Active()
 
 void MarketCountry::SetActive(const FString& Id, int32 Seed)
 {
-    const FProfile* Found = Find(Id.IsEmpty() ? FString(TEXT("tr")) : Id);
-    SetActiveProfile(Found ? *Found : FProfile(), Seed);
+    SetActiveProfile(FindOrDefault(Id), Seed);
 }
 
 void MarketCountry::SetActiveProfile(const FProfile& Profile, int32 Seed)
@@ -417,8 +584,8 @@ double MarketCountry::FxRate(const FMarketState& State, const FString& CountryId
         const int32 To = FMath::Min(Day, MarketCalendar::GameDayOf(Year + 1, 1, 1));
         if (To <= From) continue;
         const double Part = (To - From) / 365.0;
-        // Own country: the campaign's price curve (eras included); others: their pack's average.
-        const double Inflation = bOwn ? MarketPrices::YearlyInflation(Year) : P.InflationMean;
+        // Own country: the campaign's price curve (eras included); others: their own economy (E1, MarketPrices).
+        const double Inflation = bOwn ? MarketPrices::YearlyInflation(Year) : MarketPrices::YearlyInflation(Id, Year);
         Log += (FMath::Loge(1.0 + Inflation) - FMath::Loge(1.0 + WorldInflation)) * Part;
         Log += FxWalkSize(P.Character) * FxWobble(State.RivalSeed, FxCountryKey(Id), static_cast<uint32>(Year)) * Part;
     }

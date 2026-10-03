@@ -106,3 +106,4 @@ Yeni görev en alta eklenir; biten görev silinmez, durumu değişir. Kimlikler 
 | G-098 | C11: ülke müdürü maaşı ağ büyüklüğüyle (M40), İK/müşavir merkez defterinde, kurtarma bütçesine merkez giderleri, reel ücret %0,5; akis-a birleşimi | Claude | Bitti | 02.10.2026: DERLE +TEST157/157 +Smoke; bot C11_E0 9 koşu kurtarma0, çöküş yok. Rapor akislar/C11_rapor.md |
 
 | G-099 | Yerel projeyi Mustafa'nın belirttiği GitHub deposuna gönder | Codex | Bitti | 03.10.2026: cloud/main 2684b27 seviyesine gönderildi; kaynak değişmedi, E1 derlenmedi. |
+| D3-D5 | D3: Türkiye dallarını ülke paketine taşı (M52); D5: Fransa, İspanya, Polonya, Brezilya, Meksika, Japonya paketleri; PackStandard + SmokeEveryPack testleri | Claude (Code) | Doğrulama bekliyor | 03.10.2026: yazıldı, **derlenmedi**; dal akis-cc; teslim notu akislar/D3_D5_cc_teslim.md |

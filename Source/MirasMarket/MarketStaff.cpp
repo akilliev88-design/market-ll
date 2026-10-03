@@ -26,12 +26,6 @@ namespace MarketStaff
         return MarketCountry::Money(Kurus); // G-084: the active country\'s currency
     }
 
-    const TCHAR* FirstNames[] = { TEXT("Ay\u015fe"), TEXT("Mehmet"), TEXT("Fatma"), TEXT("Emre"), TEXT("Zeynep"), TEXT("Burak"), TEXT("Elif"), TEXT("Hasan"),
-        TEXT("Merve"), TEXT("Murat"), TEXT("Esra"), TEXT("Serkan"), TEXT("Derya"), TEXT("Onur"), TEXT("G\u00fcl"), TEXT("Kemal"), TEXT("Selin"), TEXT("Hakan"),
-        TEXT("B\u00fc\u015fra"), TEXT("Cem"), TEXT("H\u00fclya"), TEXT("Tolga"), TEXT("Sevgi"), TEXT("Yusuf") };
-    const TCHAR* Surnames[] = { TEXT("Kaya"), TEXT("Y\u0131ld\u0131z"), TEXT("Demir"), TEXT("\u00c7elik"), TEXT("\u015eahin"), TEXT("Ayd\u0131n"), TEXT("\u00d6zt\u00fcrk"), TEXT("Arslan"),
-        TEXT("Do\u011fan"), TEXT("Ko\u00e7"), TEXT("K\u0131l\u0131\u00e7"), TEXT("Aslan"), TEXT("Polat"), TEXT("Erdem") };
-
     bool WorksOn(const FMarketEmployee& Employee, int32 Day)
     {
         return Employee.HiredDay <= Day && Employee.OffDay != Day;
@@ -63,12 +57,13 @@ namespace MarketStaff
         FMarketEmployee C;
         C.Id = State.NextEmployeeId++;
         C.Role = static_cast<uint8>(Role);
-        // G-084: the country pack's name pools when it has them (Turkey keeps the built-in lists).
-        const MarketCountry::FProfile& Country = MarketCountry::Active();
-        if (Country.Id != TEXT("tr") && Country.FirstNames.Num() > 0 && Country.LastNames.Num() > 0)
-            C.Name = Country.FirstNames[A % static_cast<uint32>(Country.FirstNames.Num())] + TEXT(" ") + Country.LastNames[B % static_cast<uint32>(Country.LastNames.Num())];
+        // G-084, D3: the country pack's staff pool (names.staff, else its names; a pack without any: the default one's).
+        TArray<FString> First, Last;
+        MarketStaff::StaffNames(MarketCountry::Active(), First, Last);
+        if (First.Num() > 0 && Last.Num() > 0)
+            C.Name = First[A % static_cast<uint32>(First.Num())] + TEXT(" ") + Last[B % static_cast<uint32>(Last.Num())];
         else
-            C.Name = FString(FirstNames[A % UE_ARRAY_COUNT(FirstNames)]) + TEXT(" ") + Surnames[B % UE_ARRAY_COUNT(Surnames)];
+            C.Name = FString::Printf(TEXT("\u00c7al\u0131\u015fan %d"), C.Id);
         C.Skill = 20 + static_cast<int32>(A % 61u);
         C.Speed = 25 + static_cast<int32>((A >> 8) % 66u);
         C.Stamina = 25 + static_cast<int32>((A >> 16) % 66u);
@@ -162,6 +157,18 @@ int64 MarketStaff::FairWage(ERole Role, int32 Skill, int32 GameDay)
     const double Base = Role == ERole::HrManager ? 3500.0 : 2000.0;
     // B3 (#39): never below the minimum wage.
     return FMath::Max(MinimumDailyWage(GameDay), Round50(Base * (0.8 + 0.5 * FMath::Clamp(Skill, 0, 100) / 100.0) * MarketPrices::WageIndex(GameDay)));
+}
+
+void MarketStaff::StaffNames(const MarketCountry::FProfile& Country, TArray<FString>& OutFirst, TArray<FString>& OutLast)
+{
+    auto Pick = [&OutFirst, &OutLast](const MarketCountry::FProfile& P)
+    {
+        if (P.StaffFirst.Num() > 0 && P.StaffLast.Num() > 0) { OutFirst = P.StaffFirst; OutLast = P.StaffLast; }
+        else if (P.FirstNames.Num() > 0 && P.LastNames.Num() > 0) { OutFirst = P.FirstNames; OutLast = P.LastNames; }
+    };
+    OutFirst.Reset(); OutLast.Reset();
+    Pick(Country);
+    if (OutFirst.Num() == 0) Pick(MarketCountry::Default());
 }
 
 int64 MarketStaff::MinimumDailyWage(int32 GameDay)
