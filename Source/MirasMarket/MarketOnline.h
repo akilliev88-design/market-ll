@@ -92,6 +92,8 @@ namespace MarketOnline
     float StoreTrafficFactorOn(const FMarketState& State, int32 GameDay, const FString& Country = FString());
     // x how much a group is wanted (panic buying of staples and cleaning).
     float GroupFactor(const FMarketState& State, MarketGoods::EGroup Group);
+    // The same on a given day (E3b: MarketProductDemand::DayFactor, the branches' closed day).
+    float GroupFactorOn(const FMarketState& State, int32 GameDay, MarketGoods::EGroup Group);
     // Stars 1..5 from the online reputation (the platform shows them; the app's follow its quality too).
     float Stars(const FMarketState& State);
     float AppStars(const FMarketState& State);

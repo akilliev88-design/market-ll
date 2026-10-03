@@ -521,10 +521,15 @@ float MarketOnline::StoreTrafficFactorOn(const FMarketState& State, int32 GameDa
 
 float MarketOnline::GroupFactor(const FMarketState& State, MarketGoods::EGroup Group)
 {
+    return GroupFactorOn(State, State.Day, Group);
+}
+
+float MarketOnline::GroupFactorOn(const FMarketState& State, int32 GameDay, MarketGoods::EGroup Group)
+{
     using MarketGoods::EGroup;
-    if (MarketOnlineLocal::IsPanic(State, State.Day))
+    if (MarketOnlineLocal::IsPanic(State, GameDay))
         return Group == EGroup::Staples || Group == EGroup::Household || Group == EGroup::Paper || Group == EGroup::OilSauce ? 2.f : 1.f;
-    if (IsPandemic(State, State.Day)) return Group == EGroup::Household ? 1.3f : 1.f;
+    if (IsPandemic(State, GameDay)) return Group == EGroup::Household ? 1.3f : 1.f;
     return 1.f;
 }
 

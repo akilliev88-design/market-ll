@@ -1,4 +1,5 @@
 #include "MarketDirector.h"
+#include "MarketProductDemand.h"
 #include "MarketCountry.h"
 #include "MarketCalendar.h"
 #include "MarketStaff.h"
@@ -35,8 +36,8 @@ float MarketDirector::TrafficFactor(const FMarketState& State, const TArray<FMar
 
 double MarketDirector::ToleranceBonus(const FMarketState& State, const FMarketProduct& Product)
 {
-    // G-084: the city's purchasing power (Istanbul 1.25 -> +5 points, Van 0.75 -> -5 points; Lueleburgaz 0).
-    const double Income = 0.2 * (MarketCountry::CityIncome(State.CountryId, State.CityId) - 1.0);
+    // G-084: the city's purchasing power (income 1.25 -> +5 points, 0.75 -> -5 points), as for every store (E3b).
+    const double Income = MarketProductDemand::IncomeTolerance(MarketCountry::CityIncome(State.CountryId, State.CityId));
     return MarketEvents::Tolerance(State, MarketGoods::Classify(Product.Category)) + MarketSimulation::ToleranceBonus(State) + Income;
 }
 

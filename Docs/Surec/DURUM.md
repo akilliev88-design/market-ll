@@ -1,8 +1,10 @@
 # Güncel durum
 
-Son güncelleme: 03.10.2026 — Claude Code, akis-cc2: E3a ve M61/M61b derlendi, testler ve Smoke geçti; sıradaki E3b
+Son güncelleme: 03.10.2026 — Claude Code, akis-cc2: E3b (ortak ürün isteği) yazıldı, derlenmedi
 
 ## Kısaca
+
+**03.10.2026 — Claude Code / E3b ortak ürün isteği (derlenmedi, `akis-cc2`):** Mustafa "ortak ürün isteği"ni seçti (M62). Yeni `MarketProductDemand`: `DayFactor` (takvim × salgın alımı; `MarketOnline::GroupFactorOn` eklendi), `SegmentWish`, `MixWishes`, `MixTolerance`, `IncomeTolerance`, `Acceptance` (= `MarketDemand::BuyChanceFor`), `AcceptanceFactor` (eşitlikte 1). İlk dükkân: `MarketCustomers::BuildList` ve `MarketDemand::Decide` bunu kullanıyor, sonuç aynı. Şube: `Wishes` = `MixWishes`, her ürünün isteği × fiyat kabulü (şube fiyatı / ilin zincir fiyatı, şubenin çevre payı, karışımın hoşgörüsü + gelir + zorluk). Yeni test `ProductDemand.OneWishForAll`; Test.ps1 162. Risk: şube satışları fiyata göre biraz oynar (eşitlikte aynı, mahalle müdürü hedefinde ~%2 düşük, ucuzcuda ~%3 yüksek); şube testleri ya da bot buna takılabilir. **Devam notu:** Mustafa derler; sonra E3c.
 
 **03.10.2026 — Claude Code / M61 + M61b doğrulandı (1493b04):** DERLE geçti, TEST 160 + 1 uyarı, başarısız 0, Smoke geçti. OLCUM: 90 gün ciro oranı 1,035; ortanca ilde şube pay hedefi %33; nötr çevre payı en büyük şehirde %20,6, en küçükte %33,8. Sıradaki: E3b.
 

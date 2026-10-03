@@ -1,4 +1,5 @@
 #include "MarketCustomers.h"
+#include "MarketProductDemand.h"
 #include "MarketCalendar.h"
 #include "MarketDemand.h"
 #include "MarketPrices.h"
@@ -139,10 +140,10 @@ TArray<int32> MarketCustomers::BuildList(const FMarketState& State, const TArray
     for (int32 I = 0; I < Products.Num() && I < State.Stock.Num(); ++I)
     {
         const MarketGoods::EGroup Group = MarketGoods::Classify(Products[I].Category);
-        const float Weight = P.Preference[static_cast<int32>(Group)] * MarketCalendar::GroupFactor(State.Day, State.RivalSeed, Group)
+        // E3b: the shared product wish (taste x the day, as the branches have it) x the family shop's own extras.
+        const float Weight = MarketProductDemand::SegmentWish(State, Products[I], Segment, State.Day)
             * MarketPromotions::Interest(State, Products, I) // discounts, gondola head, flyer
-            * MarketEvents::Factor(State, MarketEvents::EModifier::Interest, Group) // events, the shop's identity
-            * MarketOnline::GroupFactor(State, Group); // panic buying of March 2020
+            * MarketEvents::Factor(State, MarketEvents::EModifier::Interest, Group); // events, the shop's identity
         if (State.Stock[I].Capacity > 0) { Carried[I] = Weight; CarriedTotal += Weight; }
         else { Missing[I] = Weight; MissingTotal += Weight; }
     }

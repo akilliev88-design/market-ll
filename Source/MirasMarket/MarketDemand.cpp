@@ -1,4 +1,5 @@
 #include "MarketDemand.h"
+#include "MarketProductDemand.h"
 #include "MarketCountry.h"
 
 int64 MarketDemand::RivalPrice(const FMarketProduct& Product, float RivalDiscount)
@@ -79,7 +80,7 @@ MarketDemand::FVisit MarketDemand::Decide(const FMarketState& State, const TArra
     }
     const double Ratio = PriceRatio(OurPrice > 0 ? OurPrice : State.Stock[Wanted].Price, RivalPrice(Products[Wanted], RivalDiscount));
     const float Share = MarketShareOverride >= 0.f ? MarketShareOverride : State.MarketShare;
-    if (RollPrice >= BuyChanceFor(Ratio, Share, PriceTolerance, ElasticityOf(Products[Wanted]), Products[Wanted].Kvi))
+    if (RollPrice >= MarketProductDemand::Acceptance(Ratio, Share, PriceTolerance, Products[Wanted])) // E3b: the branches' acceptance too
     {
         Visit.Result = EVisit::Expensive;
         return Visit;

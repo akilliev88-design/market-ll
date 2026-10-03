@@ -25,6 +25,8 @@
 #include "MarketTuning.h"
 #include "MarketSimulation.h"
 #include "MarketStoreDemand.h"
+#include "MarketProductDemand.h"
+#include "MarketDemand.h"
 
 namespace MarketBranches
 {
@@ -55,22 +57,11 @@ namespace MarketBranches
         return CountryOf(State, B) == Country && (B.Province.IsEmpty() ? MarketStart::HomeProvince(State) : B.Province) == Province;
     }
 
-    // Share of the province's wishes for each product (segment mix x taste x calendar).
+    // Share of the province's wishes for each product: E3b, the shared product wish (segment mix x taste x the day,
+    // the same numbers the family shop's shoppers draw their lists from).
     TArray<float> Wishes(const FMarketState& State, const TArray<FMarketProduct>& Products, int32 Day)
     {
-        TArray<float> Weights;
-        float Total = 0.f;
-        for (const FMarketProduct& P : Products)
-        {
-            const MarketGoods::EGroup Group = MarketGoods::Classify(P.Category);
-            float Taste = 0.f;
-            for (int32 S = 0; S < 6; ++S) Taste += DefaultMix[S] / 100.f * MarketCustomers::Profile(static_cast<MarketCustomers::ESegment>(S)).Preference[static_cast<int32>(Group)];
-            const float W = Taste * MarketCalendar::GroupFactor(Day, State.RivalSeed, Group);
-            Weights.Add(W);
-            Total += W;
-        }
-        for (float& W : Weights) W = Total > 0.f ? W / Total : 0.f;
-        return Weights;
+        return MarketProductDemand::MixWishes(State, Products, DefaultMix, Day);
     }
 
     FMarketBranchItem* ItemOf(FMarketBranch& Branch, const FString& ProductId)
@@ -661,6 +652,12 @@ void MarketBranches::CloseDay(FMarketState& State, const TArray<FMarketProduct>&
 
         // C10 knob (default off): a shopper's basket grows with the real wage (wages / prices), elasticity RealSpend.
         const float RealSpend = FMath::Pow(static_cast<float>(MarketPrices::WageIndex(Closed) / FMath::Max(0.01, MarketPrices::ListLevel(Closed))), MarketTuning::Get(TEXT("RealSpend"), 0.f));
+        // E3b: how the shelf price against the province's chains turns a wish into a sale, the same acceptance the
+        // family shop's shoppers roll (MarketProductDemand): the store's share of its surroundings, the mix's
+        // tolerance and the purchasing power.
+        const float RivalNow = MarketChains::RivalPriceFactor(State, Where.Country, Where.Province, Closed);
+        const float SharePercent = MarketStoreDemand::Share(State, Store, Closed) * 100.f;
+        const double Tolerance = MarketProductDemand::MixTolerance(DefaultMix) + MarketProductDemand::IncomeTolerance(Where.Income) + MarketSimulation::ToleranceBonus(State);
         // What they want, what is on the shelf.
         int64 Revenue = 0, Cogs = 0, WasteCost = 0;
         int32 DayEmpty = 0, DaySold = 0;
@@ -676,15 +673,16 @@ void MarketBranches::CloseDay(FMarketState& State, const TArray<FMarketProduct>&
             float PromoCut = 0.f, PromoPull = 1.f;
             MarketPromotions::StoreEffect(State, Products, Index, I, Closed, PromoCut, PromoPull);
             const float Cut = FMath::Max(Item->MarkdownUntil >= Closed ? Item->Markdown / 100.f : 0.f, PromoCut);
+            const int64 Price = FMath::Max<int64>(5, FMath::RoundToInt64(Products[I].BasePrice * B.PriceIndex * (1.0 - Cut) / 5.0) * 5);
+            const double Accept = MarketProductDemand::AcceptanceFactor(MarketDemand::PriceRatio(Price, MarketDemand::RivalPrice(Products[I], RivalNow)), SharePercent, Tolerance, Products[I]);
             const int32 Want = FMath::RoundToInt32(Shoppers * UnitsPerShopper * RealSpend * WishToday[I] * Where.Income * (bFresh ? FreshDemand : 1.f) * (1.f + 2.5f * Cut)
-                * PromoPull * MarketStory::IdentityDemand(State, Group)); // M38: the company's identity
+                * PromoPull * MarketStory::IdentityDemand(State, Group) * static_cast<float>(Accept)); // M38: the company's identity
             const int32 Take = Item->Capacity > 0 ? FMath::Min(Want, Item->Units) : 0;
             Item->Units -= Take;
             Item->LastSold = Take;
             Item->LastEmpty = Want - Take;
             DaySold += Take;
             DayEmpty += Want - Take;
-            const int64 Price = FMath::Max<int64>(5, FMath::RoundToInt64(Products[I].BasePrice * B.PriceIndex * (1.0 - Cut) / 5.0) * 5);
             Item->IdleDays = Take == 0 && Item->Units > 0 ? Item->IdleDays + 1 : 0;
             Revenue += Price * Take;
             Cogs += Products[I].Cost * Take;

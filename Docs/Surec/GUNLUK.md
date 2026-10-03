@@ -1,3 +1,33 @@
+## 03.10.2026 — Claude Code — E3b: ortak ürün isteği (derlenmedi)
+
+**Karar (Mustafa, M62):** iki seçenekten "ortak ürün isteği": dükkânımızda müşteriler tek tek kalır, istek ve fiyat kabulü tek yerde, şubeler toplu kullanır.
+
+**Yapılan:** yeni `MarketProductDemand.h/.cpp`:
+- `DayFactor` = takvim grubu × salgın alımı. Yeni `MarketOnline::GroupFactorOn(State, gün, grup)`; `GroupFactor` artık onu çağırıyor.
+- `SegmentWish`, `MixWishes` (karışım ağırlıklı, toplamı 1), `MixTolerance`, `IncomeTolerance` (0,2 × (gelir − 1)).
+- `Acceptance` (`MarketDemand::BuyChanceFor`), `AcceptanceFactor` (÷ `ParityChance`).
+
+Bağlantılar:
+- `MarketCustomers::BuildList` ağırlığı `SegmentWish` × dükkânın kampanya ve olay ilgisi (sayılar aynı).
+- `MarketDemand::Decide` → `Acceptance` (aynı).
+- `MarketDirector::ToleranceBonus` gelir payını `IncomeTolerance`'tan alıyor ("Lüleburgaz 0" yorumu kalktı).
+- `MarketBranches`: `Wishes` → `MixWishes` (şubelere salgın alımı geldi). Her ürünün `Want` değeri × `AcceptanceFactor`: fiyat = şube raf fiyatı (indirim dahil), rakip = ilin zincir fiyatı (`MarketDemand::RivalPrice`), pay = şubenin çevre payı, hoşgörü = karışım + gelir + zorluk.
+- Yürünen dünya zaten `BuildList` ve `Decide` kullanıyor, değişmedi.
+
+**Test:** yeni `MirasMarket.ProductDemand.OneWishForAll`:
+- İstekler toplamı 1, karışım ağırlığı doğru.
+- Eşitlikte kabul 1, ucuz raf > 1, pahalı raf < 1, KVI daha hassas, hoşgörü kabulü artırır.
+- 2.000 müşterinin tek tek kararı, şubenin beklenen değeriyle ±%1 içinde (3 fiyat, OLCUM satırı).
+- Listeler ortak isteği izliyor.
+
+Test.ps1 alt sınırı 162. AGENTS haritası, 11_TEK_EKONOMI, KARARLAR M62 güncellendi.
+
+**Risk:** şube satışı artık ürün fiyatına da bakıyor. Mahalle şubesinde müdür hedefinde (rakip × 1,02) yaklaşık −%2, ucuzcuda (0,96) yaklaşık +%3. Sabit sayı bekleyen şube testleri ya da bot dengesi oynayabilir.
+
+**Doğrulama:** Derlenmedi.
+
+**Sıradaki:** Mustafa CLAUDE_KOS.cmd; sonra E3c (tek mağaza kaydı).
+
 ## 03.10.2026 — Claude Code — M61/M61b doğrulandı
 
 **son.log (1493b04):** DERLE geçti; TEST 160 başarılı + 1 uyarılı, başarısız 0; Smoke geçti. OLCUM değişmedi (ciro oranı 1,035). M61 ve M61b bitti.
