@@ -1,3 +1,13 @@
+## 03.10.2026 — Claude Code — M61b sonucu ve test düzeltmesi (derlenmedi)
+
+**son.log (5d946cd):** DERLE geçti; TEST 159 başarılı + 1 uyarılı, 1 başarısız; Smoke geçti. OLCUM: 90 gün ciro eski 7.341.275 → yeni 7.600.665 (oran 1,035, hedef içinde; önce 1,083), müşteri 4.323 → 4.246; aile dükkânı pay hedefi %24,9 (ortanca il); şube pay hedefi %33; nötr pay en büyük şehir %20,6, en küçük %33,8; rakip fiyat düzeyi 0,976; gün 20 gerçek müşteri 49.
+
+**Başarısız test:** `MirasMarket.Simulation.RoutineSkillAndImperfections`: aile dükkânı müdürü sabit "kirklareli"ye atanıyordu, ev ili artık ortanca il (Çanakkale) → müdür dükkâna bağlanmadı, üç kontrol düştü. Düzeltme: `Manager.Country/Area` = durumun ülkesi ve `MarketStart::HomeProvince`. Kural değişmedi.
+
+**Doğrulama:** Derlenmedi (yalnız test dosyası).
+
+**Sıradaki:** Mustafa CLAUDE_KOS.cmd; sonra E3b.
+
 ## 03.10.2026 — Claude Code — M61 ek: çevre payı / şehirdeki pay; M61b: hiçbir il ayrıcalıklı değil (derlenmedi)
 
 **İstek (Mustafa):** "Dükkânın çevresindeki payı diye belirtelim, şehirdeki pay çok ayrı bir şey, onu da belirtelim." Ardından: "Kırklareli de eski oyun kalıntısı; onun diğer illerden ayrıcalığı yok, diğer iller nasılsa onun da matematiği öyle olacak."

@@ -110,7 +110,7 @@ bool FMarketTurnRoutine::RunTest(const FString& Parameters)
     auto Family = MarketTurnTests::State(Base, 20);
     TestTrue(TEXT("Family forgets sometimes"), MarketSimulation::RoutineForgetPermille(Family) > 0);
     auto Strong = Family;
-    FMarketManager Manager; Manager.Level = static_cast<uint8>(MarketManagers::ELevel::FamilyShop); Manager.Country = TEXT("tr"); Manager.Area = TEXT("kirklareli"); Manager.Skill = 95; Manager.Potential = 95; Manager.Morale = 100; Manager.AppointedDay = 1;
+    FMarketManager Manager; Manager.Level = static_cast<uint8>(MarketManagers::ELevel::FamilyShop); Manager.Country = Family.CountryId; Manager.Area = MarketStart::HomeProvince(Family); Manager.Skill = 95; // M61b: the home province, whichever it is Manager.Potential = 95; Manager.Morale = 100; Manager.AppointedDay = 1;
     Strong.Management.Managers.Add(Manager);
     auto Weak = Strong; Weak.Management.Managers[0].Skill = 20;
     TestTrue(TEXT("A stronger manager forgets less"), MarketSimulation::RoutineForgetPermille(Strong) < MarketSimulation::RoutineForgetPermille(Weak));
