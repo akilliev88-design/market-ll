@@ -15,7 +15,7 @@ bool FMarketCountryTest::RunTest(const FString& Parameters)
     // G-084 (karar L02-L06): country packs, the active currency and a country's own economy.
     using namespace MarketCountry;
     const FString Json = TEXT("{\"countries\":[")
-        TEXT("{\"id\":\"tr\",\"name\":\"Turkiye\",\"currency\":{\"code\":\"TRY\",\"symbol\":\"TL\",\"symbolBefore\":false,\"decimal\":\",\"},\"displayScale\":1,\"economy\":{\"curve\":\"builtin\"},\"cities\":\"iller.json\"},")
+        TEXT("{\"id\":\"tr\",\"name\":\"Turkiye\",\"currency\":{\"code\":\"TRY\",\"symbol\":\"TL\",\"symbolBefore\":false,\"decimal\":\",\"},\"displayScale\":1,\"economy\":{\"curve\":[[0.09,0.15],[0.07,0.14],[0.075,0.13],[0.08,0.14],[0.085,0.15],[0.09,0.15],[0.11,0.17],[0.16,0.24],[0.12,0.19],[0.13,0.17]]},\"cities\":\"iller.json\"},")
         TEXT("{\"id\":\"gb\",\"name\":\"UK\",\"currency\":{\"code\":\"GBP\",\"symbol\":\"GBP\",\"symbolBefore\":true,\"decimal\":\".\"},\"displayScale\":0.5,")
         TEXT("\"economy\":{\"character\":\"istikrarli\",\"inflationMean\":0.02,\"inflationVol\":0.01,\"loanSpread\":0.03},")
         TEXT("\"traditional\":{\"grocer\":\"Corner shops\",\"market\":\"Farmers market\",\"marketWeekday\":5},\"chains\":{\"bim\":\"Alda\"},")

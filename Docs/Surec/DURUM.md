@@ -1,8 +1,10 @@
 # Güncel durum
 
-Son güncelleme: 04.10.2026 — Claude Code, akis-cc2: Y1 + D8 ilk tur (derlenmedi; bot koşusu is.cmd içinde)
+Son güncelleme: 04.10.2026 — Claude Code, akis-cc2: Y1 + D8 ilk tur derlendi; bir test düzeltildi (derlenmedi); 30 yıllık bot sonucu
 
 ## Kısaca
+
+**04.10.2026 — Claude Code / 8355a6b sonucu ve 30 yıllık bot:** DERLE geçti, TEST 171 + 1 başarısız (`Country.PacksCurrencyEconomy`: testin kendi ülke metni eski `"curve": "builtin"` biçimindeydi; test yeni dizi biçimine çevrildi, **derlenmedi**), Smoke geçti. OLCUM önceki turla aynı (Y1 davranışı değiştirmedi). Bot (3 tarz × 30 yıl, 4 saat): kasa eksi 0, denetim hatası 0. İlk yurt dışı: temkinli 5., dengeli 9., atak 4. yıl. Sorunlar: (1) her tarz 6–11. yılda 10 ülkenin hepsinde (hedef 30. yılda 6–8); temkinli ortaklıkla bir yılda 5'ten 10 ülkeye çıktı. (2) Mağaza sayısı 20. yıldan sonra düz (temkinli ~340, dengeli ~337, atak ~540) ve kasada yüz milyonlar birikiyor; bot bir büyüme turunda tek mağaza açıyor (14 günde bir), dünya liginde en iyi 22. (temkinli, 6–8. yıl), atak 46–50., 30. yılda temkinli ve dengeli liste dışı. (3) Karar kartı çıkmadan geçen ay neredeyse hiç yok (her ay en az bir kart). `adim.cmd`'den bot adımı çıkarıldı. **Devam notu:** D8 ikinci tur önerileri Mustafa'ya soruldu (ülkeye giriş temposu, geç oyun büyümesi).
 
 **04.10.2026 — Claude Code / D8 ilk tur (derlenmedi, `akis-cc2`):** (1) M56: kampanyanın 30. yıl sonu kalktı; "Miras" (dünya birinciliği) bir kez gösterilen kutlama kartı, oyun sürer; ritim koruyucusu sonra da çalışır. (2) Bot: araştırması hazır ülkeye temkinli oyuncu her yerde, dengeli oyuncu başka kıtada ortaklıkla girer; cesur kendi mağazasıyla. Kıta direktörü/genel müdürü zaten atıyordu. (3) Rapor: yeni kilometre taşları (ilk ortaklık, 3 ülke, kıta direktörü, dünya listesine giriş, dünyada ilk 10, dünya birincisi; gün ve yıl), her koşuda "Oyun süresi ve hedefler (M55)" tablosu: yıl, mağaza, ülke, dünya sırası, yıllık komut, karar kartı çıkmadan geçen ay; hedeflerle karşılaştırma. (4) `adim.cmd` derleme/test/smoke sonrası 30 yıllık bot koşusunu (3 tarz × 1 tohum, `Saved/AutoPlay/C10/D8`) çalıştırıp özet satırlarını son.log'a yazar; uzun sürebilir. **Devam notu:** Mustafa CLAUDE_KOS ile derler ve botu koşturur; sonuca göre denge ayarı (D8 ikinci tur).
 

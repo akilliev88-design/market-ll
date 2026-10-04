@@ -21,11 +21,5 @@ if exist "Saved\Logs\DERLE_son.log" findstr /c:"Result: Succeeded" "Saved\Logs\D
 if errorlevel 1 (echo SMOKE_ATLANDI_DERLEME_YOK & exit /b 0)
 powershell -NoProfile -ExecutionPolicy Bypass -File SmokeTest.ps1 > "Saved\Logs\SMOKE_son.log" 2>&1
 if errorlevel 1 (echo SMOKE_BASARISIZ & powershell -NoProfile -Command "Get-Content 'Saved\Logs\SMOKE_son.log' -Tail 30") else (echo SMOKE_TAMAM)
-rem D8 (04.10.2026): otomatik oyuncu 30 yil, uc tarz, bir tohum (uzun surebilir). Rapor Saved\AutoPlay\C10\D8\rapor.md
-echo === BOT ===
-if exist "Saved\AutoPlay\C10\D8" rmdir /s /q "Saved\AutoPlay\C10\D8"
-call AUTOPLAY.cmd -Years=30 -Seeds=1 -Experiment=D8 > "Saved\Logs\BOT_son.log" 2>&1
-if errorlevel 1 (echo BOT_CIKIS_KODU_1_DENETIM_HATASI_OLABILIR)
-powershell -NoProfile -Command "if (Test-Path 'Saved\AutoPlay\C10\D8\rapor.md') { Select-String -Path 'Saved\AutoPlay\C10\D8\rapor.md' -Pattern '^### |^\| [0-9]+ \||yil\)\.|hedef|kasa eksiye|denetim' | ForEach-Object { $_.Line } } else { 'BOT_RAPORU_YOK'; Get-Content 'Saved\Logs\AutoPlay.log' -Tail 20 }"
-echo BOT_TAMAM
+rem Bot kosusu bu turda yok (04.10.2026: 30 yil x 3 tarz 4 saat surdu; gerekince eklenir).
 exit /b 0

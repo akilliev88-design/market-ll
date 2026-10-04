@@ -1,3 +1,11 @@
+## 04.10.2026 — Claude Code — 30 yıllık bot sonucu (D8 ilk tur)
+
+**son.log (8355a6b):** DERLE geçti; TEST 171 başarılı, 1 başarısız (testin içindeki örnek ülke metni Y1'deki eğri biçimine çevrilmemişti; düzeltildi, derlenmedi); Smoke geçti; OLCUM aynı.
+
+**Bot (Saved/AutoPlay/C10/D8, 3 tarz × 1 tohum × 30 yıl, ~4 saat):** Kasa hiç eksiye düşmedi, denetim hatası yok. İlk yurt dışı 4–9. yıl (hedef 5–7). Ama 6–11. yılda bütün ülkelerdeyiz (hedef 30. yılda 6–8), mağaza sayısı 20. yıldan sonra duruyor, kasa birikiyor, dünya liginde ilk 10'a yaklaşılmıyor (en iyi 22.). Bot büyüme turunda yalnız bir mağaza açıyor; bu geç oyunun tavanı olabilir. Her ay en az bir karar kartı çıkıyor.
+
+**Sıradaki:** Mustafa'nın kararıyla D8 ikinci tur: yeni ülke temposu kuralı ve geç oyun büyümesi (bot birden çok açılış, zincir satın alma).
+
 ## 04.10.2026 — Claude Code — D8 ilk tur: son yok, bot yurt dışı ve süre raporu (derlenmedi)
 
 **Yapılan:** Oyunun 30. yılda biten son günü kalktı (M56); dünya birinciliği bir kutlama, sonra oyun sürer. Bot yurt dışına ortaklıkla da giriyor (temkinli her yerde, dengeli başka kıtada). Bot raporu her yıl için mağaza, ülke, dünya sırası, kaç komut verildiği ve kaç ayın karar kartı çıkmadan geçtiğini gösteriyor; hedeflerle karşılaştırıyor (M55). Bir sonraki CLAUDE_KOS koşusu derleme ve testten sonra 30 yıllık bot koşusunu da yapar.
