@@ -1,3 +1,15 @@
+## 05.10.2026 — Codex — G-106 gerçek motor sanat denemesi
+
+**Mustafa:** Konseptlerdeki gibi oyunda yapabilir miyiz? Küçük gerçek alan önerisine 'Hazırla bakalım'.
+
+**Yapılan:** Ayrı MarketArtTrial GameMode; kaynak ve çalıştırıcı yeni dosyalardır. 8×10 m sahne; 7 mevcut ekipman, 22 hazır etiketli ürün, 244 blok/2417 örnek, 1 MetaHuman. Ekonomik stok veya kayıt oluşmaz. Deneme yüzeyleri metal/antrasit/mavi, terrazzo, fiyat yazıları, gölgeli alan ışığı ve sabit pozlama. İlk görüntüdeki aşırı pozlama/boş raflar düzeltildi. Kıyafet rengi önce yüzey masterıyla denenince skeletal usage uyarısı oldu; read-only inspect_art_cloth.py ile mevcut parametreler okunup özgün garment malzemesinden dinamik kopyaya geçildi; son sürümde uyarı yok. Kaynak uassetler değiştirilmedi. SANAT_DENEME.cmd; ArtTrialReview.ps1; kılavuz SANAT_DENEMESI.md.
+
+**Varsayım/sınır:** Dengeli yön deneme başlangıcı, sanat onayı değil. Mevcut insan kısa kıyafetli/çıplak ayaklı; yeni karakter/ayakkabı/animasyon üretilmedi. Hazır etiketlerin bazıları gerçek markalı; nihai özgün ambalaj seçimi değil. Sol cam panel yalnız ışık araştırması. Üçüncü kamera insanı arkadan gösterir. Önceki konsept kalitesiyle birebir eşitlik iddiası yok.
+
+**Doğrulama:** Son DERLE başarılı. Son TEST 173 başarılı + 1 uyarı, 0 başarısız (174); Smoke geçti. ART_TRIAL_PASSED, 3 yeni 1600×900 PNG görsel olarak incelendi. RTX 4070 Laptop; gerçek saat medyan 11,11 ms, p95 11,18–11,22 ms; 90 FPS sınırında küçük sahne, GPU veya kalabalık mağaza garantisi değil. PNG kopyaları Docs/Images/ArtDirection/20261005/Unreal. Mevcut M69 değişikliklerine dokunulmadı/commit'e alınmadı.
+
+**Sıradaki:** Mustafa gerçek görüntüyü değerlendirir; G-106 sanat rehberi hâlâ devam ediyor.
+
 ## 05.10.2026 — Codex — Eski sanat yönleri kaldırıldı, üç yeni görsel
 
 **Mustafa:** Önceki atlas/nostalji/minyatür denemeleri beğenilmedi; eskileri sil, üç farklı gerçekçilik düzeyini resmet.

@@ -24,3 +24,8 @@ Güncel oyun kurgusu Docs/Kurgu/00_KURGU_KITABI.md esas alınır. Eski F_STIL_RE
 - Aynı klasörde promptlar.txt: kullanılan tam istemler; yerleşik Imagegen.
 
 Üç PNG incelendi. Ortak sahne korunuyor ancak üretim sırasında küçük yerleşim farkları oluştu; piksel düzeyinde aynı kompozisyon değildir. Stil farkı özellikle insanlarda belirgin; stilize örneğin çevresi hâlâ ayrıntılıdır. Hiçbiri onaylı değildir. Kod/varlık uygulaması yok; DERLE/TEST/Smoke çalıştırılmadı.
+
+
+## Gerçek motor denemesi — 05.10.2026
+
+Mustafa konseptlerin uygulanabilirliğini görmek istedi; küçük gerçek Unreal sahnesini hazırlama isteği verdi. Dengeli yön yalnız deneme başlangıcıdır, kesin sanat onayı değildir. SANAT_DENEME.cmd ile ayrı sahne açılır; 1/2/3 kamera, 0 ile WASD/fare gezi, Esc çıkış. Dolu raflar, soğutucu, mevcut etiketli ürünler, fiyatlar, ortak yüzeyler ve 1 insan var. 8×10 m alan; 1600×900 motor görüntüleri Docs/Images/ArtDirection/20261005/Unreal içinde. İnsan kıyafeti/ayakları ve mevcut ambalajlar geçici. Ayrıntı SANAT_DENEMESI.md. DERLE/174 TEST/Smoke ve üç kamera yakalaması geçti. Yeni sahne ana oyun sanatının tamamlandığı anlamına gelmez.
