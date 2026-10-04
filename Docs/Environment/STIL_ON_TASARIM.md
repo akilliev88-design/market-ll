@@ -1,6 +1,26 @@
 # Miras Market — sanat yönü ön tasarımı
 
-04.10.2026 · Codex · G-106 · Adım 1 / üç yön · Mustafa'nın seçimine açık
+04.10.2026 · Codex · G-106 · Önceki üç yön reddedildi; güncel öneri aşağıdaki ikinci tasarımdır.
+
+## Revizyon 2 — haritadan yönetilen işletme
+
+**Mustafa'nın değerlendirmesi:** “Çok kötü bir oyun ekranı tasarımı. Baştan düşün günümüz dünyasını yakala ai slop görünümden kurtul.” Önceki Emanet Defteri önerisi onaylanmadı; uygulanmayacak. Aşağıdaki eski üç yön yalnız çalışma kaydıdır.
+
+**Yeni yaklaşım:** Renkli kartların yan yana geldiği bir yönetim sitesi yerine, bölgeyi oynanabilir bir alan olarak ele alan oyun arayüzü. Ana sahne yakınlaştırılmış gerçek il geometrisi; yerel ağ, pazar payı, yaklaşan karar ve sıradaki büyüme hedefi birbirine bağlanır. Büyük tanıtım başlıkları, yuvarlak kutular, sürekli gösterilen paletler ve tabela karşılaştırmaları ana oyun ekranından çıkarıldı.
+
+**Görsel sistem:** Keskin ve bitişik yüzeyler; çizgiyle ayrılan sabit zaman/kasa şeridi; arka planda geniş bölge haritası; sağda tek il inceleme alanı; altta karar satırı, kısa hedef ve bütün yönetim sayfalarına sabit erişim. Koyu mürekkep, açık mineral zemin, su ve kara arasında düşük yoğunluklu ton farkı, seçime ve eyleme ayrılan kiremit vurgu. Başarı yeşili ayrı. Doku, bulanıklık, dekoratif gölge kullanılmadı.
+
+**Yazı:** Projedeki IBM Plex Sans Regular/SemiBold dosyaları doğrudan önizlemeye gömülü. Sayılar tabular; bölüm adları kısa; yalnız seçili il ve yerel pay büyük. Kimlik sözcüğü geçici “miras.” yazımıdır, kesin logo kararı değildir. Koyu/açık görünüm işletim sistemini takip eder; önizlemede görünüm ayarlanabilir.
+
+**Etkileşim:** Edirne/Kırklareli/İstanbul seçimi sağ paneli günceller. Mağazalar/Rekabet/Kârlılık katmanı il etiketlerini değiştirir. Yönetim sayfaları yerel örnek tablolar açar; karar teklifi karşılaştırma tablosudur. Bunlar tasarım önizlemesidir, oyunun ekonomisine bağlı değildir; 3B ziyaret başlamaz. Harita mevcut `Config/iller.json` geometrisini kullanır.
+
+**Yeni başlangıç rolleri:** Sayfa #E9ECEB / #141B20; panel #F7F8F5 / #1C252B; metin #202C32 / #ECF1ED; ikincil metin #5B6B72 / #A6B5BC; marka/eylem #AB432D / #E87D5C; iyi #26664B / #8FCBAC. Bunlar kesin token onayı değildir; tüm kontrast ve büyük yazı kontrolleri uygulama öncesi tamamlanacak.
+
+**Önizleme:** `C:/Users/mtass/.codex/visualizations/2026/10/04/01a1069b-8591-7660-aa49-7aad425b03a9/miras-oyun-ekrani-v2.html`. Edge headless ile 1024/736/360 genişlik, il/katman/tablo/karar etkileşimleri geçti; yatay taşma ve JS hatası yok. Açık/koyu görüntüleri incelendi. Dar ekran yeniden akar; PC yerleşimi geniş görünüm içindir. Kod ve varlık değişmedi; DERLE/TEST/Smoke çalıştırılmadı. Yön hâlâ Mustafa değerlendirmesinde.
+
+---
+
+## Önceki çalışma — reddedilen üç yön
 
 Bu çalışma özgün tasarım önerisidir; oyun veya marka referansı kullanılmadı. Benzerliğin dünyadaki bütün tasarımlar açısından dışlandığı iddia edilmez. Kod, mevcut modeller ve oyun kuralları değişmedi. Üç yön de aynı oyunu anlatır: aileden kalan dükkânın düzeni, güveni ve emeği büyüyen şirkette yaşar.
 

@@ -1,3 +1,13 @@
+## 04.10.2026 — Codex — G-106 ekran tasarımı baştan ele alındı / revizyon 2
+
+**Mustafa:** İlk ekran çok kötü; günümüzü yakala, “AI slop” görünümünden kurtul. Önceki üç yön reddedildi, seçim yapılmadı.
+
+**Yapılan:** Tek ana ekran yeniden kuruldu: yakın Marmara haritası, bitişik ve keskin yüzeyler, sabit kasa/zaman, sağda seçili il payı/mağaza karnesi, altta karar/ilerleme/menü. Kiremit vurgu, mineral/su/metal tonları; gerçek IBM Plex Sans dosyaları gömülü. Edirne/Kırklareli/İstanbul, üç katman, yönetim tabloları ve toptancı teklif karşılaştırması yerel olarak çalışır. Önizleme `C:/Users/mtass/.codex/visualizations/2026/10/04/01a1069b-8591-7660-aa49-7aad425b03a9/miras-oyun-ekrani-v2.html`; rehberin üstüne revizyon notu eklendi. Önceki yönler yalnız arşiv kaydı.
+
+**Doğrulama:** Edge headless 1024/736/360 genişlik; il/katman/tablo/karar etkileşimleri geçti, JS hatası/taşma yok. Açık/koyu ekranlar incelendi; ilerleme çubuğu CSS seçicisi ve koyu menü kontrastı düzeltildi. Oyunun kaynak/varlıkları değişmedi; DERLE/TEST/Smoke çalıştırılmadı.
+
+**Sıradaki:** Mustafa'nın yeni ekran değerlendirmesi; henüz kesin stil, logo, 3B tabela veya uygulama onayı yok.
+
 ## 04.10.2026 — Codex — G-106 sanat yönü ön tasarımı / Adım 1
 
 **Yapılan:** Mustafa'nın özgün kimlik isteği ve `Docs/Uretim/F_STIL_REHBERI.md` doğrultusunda üç yön hazırlandı: Emanet Defteri, Kuşak İzi, Komşuluk Ağı. Her birinde renk, yazı, ikon yaklaşımı, kart/düğme, harita ekranı ve büyüyen tabela fikri. Rehber: `Docs/Environment/STIL_ON_TASARIM.md`; görsel kaynak: `C:/Users/mtass/.codex/visualizations/2026/10/04/01a1069b-8591-7660-aa49-7aad425b03a9/miras-sanat-yonleri.html`.
