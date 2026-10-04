@@ -1,3 +1,9 @@
+## 04.10.2026 — Claude Code — G-106 stil rehberi isteği hazırlandı
+
+**Mustafa:** Sanat yönü ve stil rehberinin ön tasarımını Claude'a yaptırmak istiyor.
+
+**Yapılan:** `Docs/Uretim/F_STIL_REHBERI.md`: kopyala-yapıştır istek. İçinde oyunun ne olduğu, bugünkü renk tokenları (açık/koyu), yazı tipleri (IBM Plex, Bricolage), ikon listesi ve sorunları; önce 3 yön, sonra seçilenin rehberi (renk sistemi, yazı ölçeği, ikon ailesi, bileşenler, 5 ekran taslağı, mağaza tabelası/etiket/levha dili); biçim (tek HTML + geliştirici tablosu + SVG ikonlar) ve Slate kısıtları. GOREVLER G-106 güncellendi.
+
 ## 04.10.2026 — Claude Code — Görev panosu temizliği
 
 **Mustafa:** Bu turun bot sonucundan sonra dengeye kısa ara; D9 (orta oyun: M46–M50) ve eski görevlerin temizliği.
