@@ -1,3 +1,13 @@
+## 04.10.2026 — Codex — G-106 aile dükkânı kesiti kaldırıldı / revizyon 5
+
+**Mustafa:** Görsel fazla AI slop; aile dükkânı özel gezilecek mağaza değil, şube gezisi “Dükkâna git” ile olur. Kesit ekrandan kaldırılacak.
+
+**Yapılan:** Son konsept Imagegen ile düzenlendi; aile dükkânı kesiti/etiketi tamamen kalktı, sağdaki mağaza görseli de çıkarıldı. Harita bütün alanı kaplıyor; minyatür binalar/ağaçlar, yaşlı kâğıt hissi, plaka süsleri ve büyük başlık sadeleşti. Tek ziyaret eylemi altta “Dükkâna git”.
+
+**Doğrulama:** Görsel incelendi; aile dükkânı kesiti yok, ziyaret eylemi var. Sanat dili onaylı değil; kavramsal harita gerçek veri yerine geçmez. Kod/varlık değişmedi; DERLE/TEST/Smoke çalıştırılmadı.
+
+**Sıradaki:** Mustafa değerlendirmesi. Aile dükkânını ana ekranda ayrı gezi hedefi olarak yeniden ekleme.
+
 ## 04.10.2026 — Codex — G-106 düz ticaret atlası / revizyon 4
 
 **Mustafa:** Kabartmalı harita abartılı; mağazacılık dışına, tarihsel savaş oyunu hissine kayıyor.

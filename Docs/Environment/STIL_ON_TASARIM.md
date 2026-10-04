@@ -1,6 +1,16 @@
 # Miras Market — sanat yönü ön tasarımı
 
-04.10.2026 · Codex · G-106 · Güncel çalışma sanat konsepti / revizyon 4; kesin onay yok.
+04.10.2026 · Codex · G-106 · Güncel çalışma sanat konsepti / revizyon 5; kesin onay yok.
+
+## Revizyon 5 — aile dükkânı görseli kaldırıldı
+
+Mustafa revizyon 4'ü de fazla “AI slop” buldu. Ayrıca aile dükkânı özel olarak gezilen bir mağaza değildir; şube ziyareti “Dükkâna git” ile yapılır. Bu kesin ürün düzeltmesidir: ana ekranda aile dükkânına özel kesit, etiket, görsel veya giriş olmayacak.
+
+Önizleme Imagegen ile düzenlendi: aile dükkânı kesiti ve sağdaki mağaza resmi kaldırıldı; harita boşalan alanı dolduruyor. Kâğıt dokusu, tekrar eden minyatür binalar/ağaçlar, plaka süsleri ve büyük Marmara başlığı sadeleştirildi. Altta tek “Dükkâna git” eylemi var. Sanat dili henüz onaylanmadı; bu sadeleştirme beğeni sorununu çözmüş kabul edilmiyor. Üretilen coğrafya kavramsal ve yanlışlıklar içerebilir, uygulamada gerçek il verisi kullanılacak.
+
+Kod/varlık değişmedi; DERLE/TEST/Smoke çalıştırılmadı. Görsel içerik düzeltmesi incelendi. Yeni konsept Mustafa değerlendirmesinde.
+
+---
 
 ## Revizyon 4 — mağazacılığa odaklanan düz atlas
 

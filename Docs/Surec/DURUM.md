@@ -1,6 +1,8 @@
 # Güncel durum
 
-Son güncelleme: 04.10.2026 — Codex: G-106 düz atlas konsepti revizyon 4; D9a kodu derlenmedi
+Son güncelleme: 04.10.2026 — Codex: G-106 revizyon 5, aile dükkânı kesiti kaldırıldı; D9a kodu derlenmedi
+
+**04.10.2026 — Codex / G-106 revizyon 5:** Mustafa görseli fazla AI slop buldu; aile dükkânı özel ziyaret noktası değil, şube ziyareti yalnız “Dükkâna git”. Konseptten aile dükkânı kesiti/etiketi ve mağaza resimleri kaldırıldı; düz harita alanı genişledi, dokular/minyatürler/süsler sadeleşti. Altta “Dükkâna git” var. **Devam notu:** sanat dili hâlâ onaysız; sadeleştirme beğeni sorununu çözmüş sayılmıyor. Bu yalnız bitmap önizleme, coğrafya uygulama verisi değil. Kod/varlık değişmedi, DERLE/TEST/Smoke çalıştırılmadı.
 
 **04.10.2026 — Codex / G-106 revizyon 4:** Mustafa kabartma haritanın tarihsel savaş oyunu hissi verdiğini söyledi. Görsel düzenlendi: düz çağdaş illüstratif atlas, market cepheleri ve ticaret bağlantısı; kabartma/kale/anıt/pusula kaldırıldı. Dükkân içi ve ortak tabela/arayüz dili korundu. **Devam notu:** kavramsal önizleme yeni değerlendirmede, coğrafya/rota ve oyun ekranı uygulaması değildir. Güncel not `Docs/Environment/STIL_ON_TASARIM.md` üstünde. Kod/varlık değişmedi; DERLE/TEST/Smoke çalıştırılmadı.
 
