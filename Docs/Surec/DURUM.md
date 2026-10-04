@@ -1,8 +1,10 @@
 # Güncel durum
 
-Son güncelleme: 04.10.2026 — Claude Code, akis-cc2: D8 ikinci tur derlendi, testler ve Smoke geçti; bot koşusu bekleniyor
+Son güncelleme: 04.10.2026 — Claude Code, akis-cc2: atak bot büyüme sınırı (derlenmedi)
 
 ## Kısaca
+
+**04.10.2026 — Claude Code / atak bot (derlenmedi):** Atak bot yılda iki katına çıkıyordu (her tur 8'e kadar açılış + yönetim sınırını görmezden gelme). Ek açılışlar artık her tarzda yönetim yetişince; atak yalnız turun ilk mağazasında riski alır (`MarketAutoPlay::Grow`). **Devam notu:** derle, sonra dengeli tarzla bot koşusu.
 
 **04.10.2026 — Claude Code / ef9e580 doğrulandı:** DERLE geçti, TEST 171 + 1 uyarı (172), başarısız 0, Smoke geçti. Çekicilik (bu tohumla): değer — br 1,91, us 1,10, es 1,06, fr 0,97, mx 0,89; zor — gb 0,82, de 0,81, pl 0,74; girmeyin — jp 0,61. Diğer OLCUM aynı. **Devam notu:** yeni denge için bot koşusu (Mustafa: `AUTOPLAY.cmd -Years=15|30 -Seeds=1 -Style=1 -Experiment=D8b`), rapor `Saved/AutoPlay/C10/D8b/rapor.md`.
 

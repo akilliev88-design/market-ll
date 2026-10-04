@@ -1,3 +1,11 @@
+## 04.10.2026 — Claude Code — Atak bot fazla hızlı büyüyordu (derlenmedi)
+
+**Mustafa:** "Atak moddaki senede 2 katı mağazaya çıktığı için çok uzun sürüyor."
+
+**Yapılan:** Bir turdaki ek açılışlar artık her tarz için yönetimin yetişmesini bekliyor; atak yalnız turun ilk mağazasında riski göze alıyor. Böylece atak bot yönetim kademesi kurmadan katlanarak büyüyemez; bot koşusu da kısalır.
+
+**Doğrulama:** Derlenmedi.
+
 ## 04.10.2026 — Claude Code — D8 ikinci tur doğrulandı
 
 **son.log (ef9e580):** DERLE geçti; TEST 171 başarılı + 1 uyarı, 0 başarısız; Smoke geçti. Ülke çekiciliği: 5 ülke "değer" (Brezilya, ABD, İspanya, Fransa, Meksika), 3 ülke "zor" (İngiltere, Almanya, Polonya), Japonya "girmeyin". Temkinli oyuncu iyi pazarlarla 6 ülke, atak zorlarla 9 ülke yapabilir; 30. yıl hedefi 6–8 ile uyumlu.

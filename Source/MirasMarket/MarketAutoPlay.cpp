@@ -237,11 +237,12 @@ namespace MarketAutoPlay
         FString FirstMiss;
         const FString Wanted = Format;
         // D8: a player with money opens several shops in a turn (one more for every 40 shops, at most 8); every extra
-        // one asks again for the cushion and, for the careful and balanced, for management that keeps up.
+        // one asks again for the cushion and for management that keeps up (04.10.2026, Mustafa: the bold player
+        // doubled its shops every year; only its first shop of a turn takes the gamble now).
         const int32 MaxOpens = FMath::Clamp(1 + Stores / 40, 1, 8);
         for (int32 Opened = 0; Opened < MaxOpens; ++Opened)
         {
-        if (Opened > 0 && (State.Cash <= Reserve || (Profile.Style != EStyle::Bold && MarketBranches::GrowthStrain(State, 1) > 0.f))) return;
+        if (Opened > 0 && (State.Cash <= Reserve || MarketBranches::GrowthStrain(State, 1) > 0.f)) return;
         bool bOpened = false;
         Format = Wanted;
         const int32 FirstStep = Format == TEXT("hiper") ? 0 : Format == TEXT("buyuk") ? 1 : 2;
