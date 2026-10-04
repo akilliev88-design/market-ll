@@ -1,3 +1,9 @@
+## 04.10.2026 — Claude Code — D8 ikinci tur doğrulandı
+
+**son.log (ef9e580):** DERLE geçti; TEST 171 başarılı + 1 uyarı, 0 başarısız; Smoke geçti. Ülke çekiciliği: 5 ülke "değer" (Brezilya, ABD, İspanya, Fransa, Meksika), 3 ülke "zor" (İngiltere, Almanya, Polonya), Japonya "girmeyin". Temkinli oyuncu iyi pazarlarla 6 ülke, atak zorlarla 9 ülke yapabilir; 30. yıl hedefi 6–8 ile uyumlu.
+
+**Sıradaki:** Bot koşusu (dengeli tarz) ve sonucuna göre geç oyun.
+
 ## 04.10.2026 — Claude Code — D8 ikinci tur derlendi; çekicilik puanında birim hatası
 
 **son.log (a6d426d):** DERLE geçti; TEST 171 başarılı + 1 uyarı, 0 başarısız; Smoke geçti. Çekicilik: Almanya 0,81, İngiltere 0,82, ABD 1,10 beklendiği gibi; altı ülke 0,30'da (alt sınır). Neden: varsayılan kişi başı harcama 100 kat büyük yazılmıştı. Düzeltildi; test sınırdaki ülkeyi artık hata sayar. Derlenmedi.

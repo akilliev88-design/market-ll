@@ -1,8 +1,10 @@
 # Güncel durum
 
-Son güncelleme: 04.10.2026 — Claude Code, akis-cc2: D8 ikinci tur derlendi; çekicilik birimi düzeltildi (derlenmedi)
+Son güncelleme: 04.10.2026 — Claude Code, akis-cc2: D8 ikinci tur derlendi, testler ve Smoke geçti; bot koşusu bekleniyor
 
 ## Kısaca
+
+**04.10.2026 — Claude Code / ef9e580 doğrulandı:** DERLE geçti, TEST 171 + 1 uyarı (172), başarısız 0, Smoke geçti. Çekicilik (bu tohumla): değer — br 1,91, us 1,10, es 1,06, fr 0,97, mx 0,89; zor — gb 0,82, de 0,81, pl 0,74; girmeyin — jp 0,61. Diğer OLCUM aynı. **Devam notu:** yeni denge için bot koşusu (Mustafa: `AUTOPLAY.cmd -Years=15|30 -Seeds=1 -Style=1 -Experiment=D8b`), rapor `Saved/AutoPlay/C10/D8b/rapor.md`.
 
 **04.10.2026 — Claude Code / a6d426d sonucu:** DERLE geçti, TEST 171 + 1 uyarı, 0 başarısız, Smoke geçti; OLCUM diğerleri aynı. Hata: "ulke cekiciligi" de 0.81, gb 0.82, us 1.10, ama fr/es/pl/br/mx/jp 0.30 (alt sınır): `MarketResearch::Margin` varsayılan harcamayı 6500 × ücret çarpanı aldı (doğrusu 65, `MarketCompany` ile aynı); harcaması pakette yazılı ülkeler 100 kat fakir göründü. Düzeltildi, test artık sınırda duran ülkeyi yakalıyor (**derlenmedi**). Beklenen: fr ~0,9, es ~0,95, pl ~0,8, br ~1,8, mx ~0,9, jp ~0,65 (±%10).
 
