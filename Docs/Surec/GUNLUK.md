@@ -1,3 +1,13 @@
+## 05.10.2026 — Codex — Eski sanat yönleri kaldırıldı, üç yeni görsel
+
+**Mustafa:** Önceki atlas/nostalji/minyatür denemeleri beğenilmedi; eskileri sil, üç farklı gerçekçilik düzeyini resmet.
+
+**Yapılan:** Aktif STIL_ON_TASARIM baştan yazıldı; eski yön/palet/link önerileri kaldırıldı, G-106 satırı sıfırlandı. Yerleşik Imagegen ile üç ayrı geniş market konsepti üretildi: gerçekçi, dengeli, stilize. PNG'ler ve tam istemler Docs/Images/ArtDirection/20261005 içinde. Hiçbir yön seçilmiş sayılmıyor; süreç tarihçesi yeni öneriye kaynak değildir.
+
+**Doğrulama:** Üç görsel incelendi: ortak kamera/mağaza fikri korunuyor, küçük yerleşim farklılıkları var. Stil farkı insanlarda belirgin; üçüncü görselin ortamı hâlâ ayrıntılı. Oyun kodu/varlık uygulaması yok; DERLE/TEST/Smoke çalıştırılmadı.
+
+**Sıradaki:** Mustafa'nın görsel tercihine göre sanat dili konuşması.
+
 ## 05.10.2026 — Codex — G-106 tasarım ve sanat dili incelemesi
 
 **Yapılan:** Mustafa'nın konuşma isteği için güncel kurgu ve devir belgeleri, önceki onaysız sanat çalışmaları, küçük mağaza/şube ziyareti ve harita/rapor ekran görüntüleri incelendi. Eski üretim briefinin M69 öncesi hikâyeyi taşıdığı görüldü; güncel kurgu esas alındı. Mevcut yerel değişiklikler korundu.

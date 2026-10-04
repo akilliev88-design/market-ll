@@ -1,173 +1,26 @@
-# Miras Market — sanat yönü ön tasarımı
+# Sanat dili araştırması
 
-04.10.2026 · Codex · G-106 · Görsel revizyon 5 ve ayrı çalışan gezinme önizlemesi; kesin onay yok.
+05.10.2026 · Codex · G-106 · Kesin yön seçilmedi.
 
-## Gezinme önizlemesi
+Mustafa önceki sanat denemelerini reddetti ve yeniden konuşma başlattı. Eski yönler, paletler, atlas/nostalji/minyatür önerileri ve önizleme bağlantıları bu aktif belgeden kaldırıldı; yeni tasarıma kaynak alınmayacak.
 
-Mustafa ekranı gezmek istedi. Sohbette çalışan HTML önizlemesi hazırlandı: Harita, 10 yönetim sayfası, “Dükkâna git” mağaza seçimi; il/katman seçimi, sipariş taslağı, toptancı teklif seçimi ve haritaya dönüş. Kaynak `C:/Users/mtass/.codex/visualizations/2026/10/04/01a1069b-8591-7660-aa49-7aad425b03a9/miras-gezinme.html`.
+## Yeni karşılaştırma
 
-Bu gezinme maketi native HTML bileşenleri ve gerçek proje il geometrisi kullanır; bitmap sanat karesinin birebir üretim uygulaması değildir. Örnek verilerle akış kontrolü içindir. “Dükkâna git” bir mağaza seçim listesi açar, Unreal 3B ziyaretini başlatmaz. Aile dükkânı özel giriş/kesit olarak yok. Oyun kaynağı veya menü sahipliği değiştirilmedi.
+Aynı çağdaş küçük marketin aynı göz hizası kamerasından üç görsel yorumu hazırlandı:
 
-Edge 1024/736/360: 11 sayfa, dönüş, il seçimi, şube seçimi, taslak ve karar etkileşimleri geçti; JS hatası/taşma yok. Harita ve rapor ekran görüntüleri incelendi. DERLE/TEST/Smoke çalıştırılmadı.
+1. Gerçekçi: gerçek oranlar, ayrıntılı yüzeyler, doğal ışık ve inandırıcı insanlar.
+2. Dengeli sadeleştirilmiş: gerçek oranlar korunur; malzeme ayrıntısı, biçimler ve renk dağılımı seçici olarak sadeleştirilir.
+3. Belirgin stilize: yorumlanmış biçimler, daha geniş renk alanları, sade ambalaj grafikleri ve stilize insanlar.
 
----
+Mağaza yerleşimi, ürün kategorileri, kamera ve sahnedeki insan sayısı sabit tutulur. Böylece fark sanat dilinden gelir. Bu çalışma görsel karşılaştırmadır; oyun ekranı veya üretime hazır varlık değildir. Palet, logo, yönetim arayüzü ve uygulama kararı henüz verilmedi.
 
-## Revizyon 5 — aile dükkânı görseli kaldırıldı
+Güncel oyun kurgusu Docs/Kurgu/00_KURGU_KITABI.md esas alınır. Eski F_STIL_REHBERI.md briefi güncel sanat kararının kaynağı değildir.
 
-Mustafa revizyon 4'ü de fazla “AI slop” buldu. Ayrıca aile dükkânı özel olarak gezilen bir mağaza değildir; şube ziyareti “Dükkâna git” ile yapılır. Bu kesin ürün düzeltmesidir: ana ekranda aile dükkânına özel kesit, etiket, görsel veya giriş olmayacak.
+## Görseller
 
-Önizleme Imagegen ile düzenlendi: aile dükkânı kesiti ve sağdaki mağaza resmi kaldırıldı; harita boşalan alanı dolduruyor. Kâğıt dokusu, tekrar eden minyatür binalar/ağaçlar, plaka süsleri ve büyük Marmara başlığı sadeleştirildi. Altta tek “Dükkâna git” eylemi var. Sanat dili henüz onaylanmadı; bu sadeleştirme beğeni sorununu çözmüş kabul edilmiyor. Üretilen coğrafya kavramsal ve yanlışlıklar içerebilir, uygulamada gerçek il verisi kullanılacak.
+- Docs/Images/ArtDirection/20261005/01-gercekci.png
+- Docs/Images/ArtDirection/20261005/02-dengeli.png
+- Docs/Images/ArtDirection/20261005/03-stilize.png
+- Aynı klasörde promptlar.txt: kullanılan tam istemler; yerleşik Imagegen.
 
-Kod/varlık değişmedi; DERLE/TEST/Smoke çalıştırılmadı. Görsel içerik düzeltmesi incelendi. Yeni konsept Mustafa değerlendirmesinde.
-
----
-
-## Revizyon 4 — mağazacılığa odaklanan düz atlas
-
-Mustafa kabartmalı haritayı abartılı ve tarihsel savaş oyunu çağrışımlı buldu. Revizyon 3 görseli Imagegen ile düzenlendi: yükseltilmiş arazi/kıyı, kale, anıt ve antika pusula kaldırıldı; daha düz illüstratif harita, küçük güncel marketler ve ticaret bağlantısı kullanıldı. Sağdaki kale yerine market cephesi geldi. Aile dükkânının iç mekânı, emaye işaretler, mürekkep/krem/kiremit ilişkisi ve yönetim düzeni korundu. Sanatsal ayrıntı arazi kabartmasından mağaza, malzeme ve işaretlere kaydırıldı.
-
-Görsel yalnız kavramsal önizleme; coğrafya/rota teknik verisi veya gerçek oyun ekranı değildir. Mustafa'nın yeni değerlendirmesi bekleniyor. Kod ve varlık değişmedi; DERLE/TEST/Smoke çalıştırılmadı.
-
----
-
-## Revizyon 3 — sanat konsepti
-
-**Mustafa:** İkinci ekran da hoşuna gitmedi; “güzel bir sanatsal dil” istiyor, tasarımlar çiğ bulundu. Revizyon 2 uygulamaya esas alınmayacak.
-
-**Yaklaşım değişikliği:** HTML yerleşimi yerine tek bitmiş oyun karesi görünümünde bitmap sanat araştırması üretildi (yerleşik Imagegen, önizleme amaçlı). Kimlik artık yalnız renk ve kutu biçimiyle değil; kabartma bölge atlası, mat taş/metal malzemeler, emaye işaretler, mürekkep mavisi su, sıcak dükkân içi ve küçük basamak/çentik motifiyle aranıyor. Kiremit vurgu tabelada, il seçiminde ve eylemde tekrarlanır; kâr ayrı zeytin/yeşil tonundadır. Yönetim yazıları temiz yüzeyde, görsel ayrıntı harita ve dükkân dünyasında yoğunlaşır.
-
-**Görsel içerik:** Marmara için kavramsal kabartma harita, üç mağaza düğümü, aile marketinin iç mekân kesiti, sağ il paneli, üst kasa/zaman ve alt yönetim şeridi. Kullanılan yer adları oyunun içeriğidir; başka oyun/marka/stil sanatçısı referansı verilmedi.
-
-**Sınırlar:** Bu görsel bir sanat yönü araştırmasıdır; çalışır arayüz, doğru coğrafya, kesin font/logo, okunurluk testi veya üretime hazır 3B varlık değildir. Üretilen kıyılar/coğrafi yapılar teknik harita verisi yerine geçmez. Süs pusulası, dokulu panel ve sahne ayrıntısının kalıcı olup olmayacağı ayrıca değerlendirilir. Önizleme çıktı olarak sohbette gösterildi; oyun koduna veya varlıklara aktarılmadı.
-
-**Devam:** Mustafa'nın sanat dili değerlendirmesi; beğenilen öğeler belirlenmeden kesin stil rehberi yazılmayacak. DERLE/TEST/Smoke çalıştırılmadı; yalnız görsel kompozisyon, metinler ve konu uygunluğu incelendi.
-
----
-
-## Revizyon 2 — haritadan yönetilen işletme
-
-**Mustafa'nın değerlendirmesi:** “Çok kötü bir oyun ekranı tasarımı. Baştan düşün günümüz dünyasını yakala ai slop görünümden kurtul.” Önceki Emanet Defteri önerisi onaylanmadı; uygulanmayacak. Aşağıdaki eski üç yön yalnız çalışma kaydıdır.
-
-**Yeni yaklaşım:** Renkli kartların yan yana geldiği bir yönetim sitesi yerine, bölgeyi oynanabilir bir alan olarak ele alan oyun arayüzü. Ana sahne yakınlaştırılmış gerçek il geometrisi; yerel ağ, pazar payı, yaklaşan karar ve sıradaki büyüme hedefi birbirine bağlanır. Büyük tanıtım başlıkları, yuvarlak kutular, sürekli gösterilen paletler ve tabela karşılaştırmaları ana oyun ekranından çıkarıldı.
-
-**Görsel sistem:** Keskin ve bitişik yüzeyler; çizgiyle ayrılan sabit zaman/kasa şeridi; arka planda geniş bölge haritası; sağda tek il inceleme alanı; altta karar satırı, kısa hedef ve bütün yönetim sayfalarına sabit erişim. Koyu mürekkep, açık mineral zemin, su ve kara arasında düşük yoğunluklu ton farkı, seçime ve eyleme ayrılan kiremit vurgu. Başarı yeşili ayrı. Doku, bulanıklık, dekoratif gölge kullanılmadı.
-
-**Yazı:** Projedeki IBM Plex Sans Regular/SemiBold dosyaları doğrudan önizlemeye gömülü. Sayılar tabular; bölüm adları kısa; yalnız seçili il ve yerel pay büyük. Kimlik sözcüğü geçici “miras.” yazımıdır, kesin logo kararı değildir. Koyu/açık görünüm işletim sistemini takip eder; önizlemede görünüm ayarlanabilir.
-
-**Etkileşim:** Edirne/Kırklareli/İstanbul seçimi sağ paneli günceller. Mağazalar/Rekabet/Kârlılık katmanı il etiketlerini değiştirir. Yönetim sayfaları yerel örnek tablolar açar; karar teklifi karşılaştırma tablosudur. Bunlar tasarım önizlemesidir, oyunun ekonomisine bağlı değildir; 3B ziyaret başlamaz. Harita mevcut `Config/iller.json` geometrisini kullanır.
-
-**Yeni başlangıç rolleri:** Sayfa #E9ECEB / #141B20; panel #F7F8F5 / #1C252B; metin #202C32 / #ECF1ED; ikincil metin #5B6B72 / #A6B5BC; marka/eylem #AB432D / #E87D5C; iyi #26664B / #8FCBAC. Bunlar kesin token onayı değildir; tüm kontrast ve büyük yazı kontrolleri uygulama öncesi tamamlanacak.
-
-**Önizleme:** `C:/Users/mtass/.codex/visualizations/2026/10/04/01a1069b-8591-7660-aa49-7aad425b03a9/miras-oyun-ekrani-v2.html`. Edge headless ile 1024/736/360 genişlik, il/katman/tablo/karar etkileşimleri geçti; yatay taşma ve JS hatası yok. Açık/koyu görüntüleri incelendi. Dar ekran yeniden akar; PC yerleşimi geniş görünüm içindir. Kod ve varlık değişmedi; DERLE/TEST/Smoke çalıştırılmadı. Yön hâlâ Mustafa değerlendirmesinde.
-
----
-
-## Önceki çalışma — reddedilen üç yön
-
-Bu çalışma özgün tasarım önerisidir; oyun veya marka referansı kullanılmadı. Benzerliğin dünyadaki bütün tasarımlar açısından dışlandığı iddia edilmez. Kod, mevcut modeller ve oyun kuralları değişmedi. Üç yön de aynı oyunu anlatır: aileden kalan dükkânın düzeni, güveni ve emeği büyüyen şirkette yaşar.
-
-## Ortak temel
-
-**Sanat cümlesi:** İş büyürken dükkânın insani ölçüsü korunur.
-
-Asıl görsel kahraman okunabilen işletmedir. Sayı, eylem ve sonuç aynı yerde görünür. Uzun tablolarda satır ayırıcıları ince, sütunlar sabittir; para sağa hizalanır, birim başlıkta veya aynı sütunda tutarlı kullanılır. Renk tek başına anlam taşımaz: kâr “+”, zarar “−”, araştırma saat ve metin, ortaklık iki parçalı işaretle tanınır. Satır seçimi marka rengi ve kenar işaretiyle gösterilir; başarılı sonuç ayrı yeşille gösterilir.
-
-Ana ekranın haritası geniş alanı alır. İl seçilince tek sağ panel açılır; zaman, kasa, hız ve alt menü sabit konumlarını korur. On sayfa üç gruba ayrılabilir: Günlük iş (Özet, Sipariş, Fiyat, Kampanyalar), İşletme (Raporlar, Personel, Finans), Büyüme (Rakipler, Satış kanalları, Şubeler). Bu görsel gruplama önerisidir, yeni oyun kuralı değildir. Büyük yazıda menü iki sıraya geçebilir; önemli etiketler kesilmez.
-
-3B için ortak hedef: gerçek ölçülü, biçimi sadeleştirilmiş inandırıcılık. Ekipmanın silueti, müşterinin davranışı ve ürünün türü hemen anlaşılır. İnsan oranları gerçekçi; yüz ifadeleri ve hareketler ölçülü. Eskime raf kenarı, kasa köşesi ve taşınan kolilerde yereldir. Okunan raf etiketleri temiz kalır. Işıkta sıcaklık yüzey ve sınırlı vurgu ışığından gelir; ürün renklerini sarartan genel filtre kullanılmaz. Kamera yakınındaki yazı, yoğun yansımadan ve parlamadan korunur.
-
-## Yön A — Emanet Defteri (önerilen)
-
-**Fikir:** Esnafın titiz hesap düzeni büyüyerek şirketin ortak diline dönüşür.
-
-Krem sayfa, mürekkep metin, erik moru marka ve ölçülü pirinç rengi. Kimliği sayfa dokusu yerine ince kayıt çizgileri, hizalı rakamlar ve küçük bölümlendirme işaretleri taşır. Yüzeyler düz ve temizdir. Yönetim ekranı geniş harita + sakin kenar paneli; raporlar ve fiyat sayfaları açık, sıkı tablolar kullanır.
-
-**Yazı:** mevcut IBM Plex Sans gövde ve arayüzde; Bricolage Grotesque yalnız kısa kimlik başlıklarında; IBM Plex Mono para ve tablolarda. Dekoratif el yazısı arayüze girmez. **İkon:** 24 birimde 1,75 çizgi, hafif yuvarlanan uçlar, açık iç boşluk; depo ve dükkân çatı/cephe farkıyla ayrılır. İkonlar çizim üretiminden önce öneri niteliğindedir.
-
-**Kart:** “Dünün sonucu” / “+12.480,00 TL” / “Satıştan kalan, giderler sonrası.” Başlık ile sayı arasında ince çizgi. **Düğme:** erik zemin, açık yazı, 6 px köşe; “Siparişi gözden geçir”.
-
-**Tabela fikri:** aynı sözcüğün altında kısa bir kayıt çizgisi. Mahallede fırça ile çekilmiş ve biraz düzensiz; ilk şubelerde düzgün boyalı; ulusal ölçekte ayrı harflerden; dünyada çizgi tek küçük kimlik işaretine dönüşür. Marka işareti ayrı durur, şirket adı değişse de ölçüsü ve yerleşimi korunur.
-
-**3B bağlantı:** krem boyalı metal, açık ahşabın dar kullanım alanları, mor önlük kenarı, pirinç tonlu küçük numara levhaları. Çizgi raf etiketinin ve fiyat tablosunun alt sınırında tekrarlanır. Büyük mor duvarlar yerine tabela ve az sayıda işaret.
-
-**Risk:** aşırı krem ve ahşap her mağazayı eski bir dükkân gibi gösterebilir. Büyük mağazalarda temiz metal ve daha fazla boşluk kullanılır; kimlik renkleri korunur.
-
-## Yön B — Kuşak İzi
-
-**Fikir:** Aile dükkânının tabelası her yeni kuşakta yeniden yapılır; tanıdık işaret korunur.
-
-Açık taş, koyu dut, kil rengi ve soluk badem. Kimlikte birbirine denk iki kısa dikey çizgi vardır: birinin bıraktığı işi diğeri sürdürür. Çift çizgi kapı sövesinde, bölüm başlığında ve tabela kenarında tekrar eder. Yön A'nın defter düzeninden farklı olarak daha belirgin başlık blokları, düz köşeler ve levha gibi bölümler kullanır. Ana ekranda harita solda, seçilen ilin geniş dikey karnesi sağdadır.
-
-**Yazı:** IBM Plex Sans Medium/SemiBold başlık ve gövde; IBM Plex Mono değerler. Kısa tabela adı Bricolage ile denenebilir; arayüz başlıklarında kullanılmaz. **İkon:** 2 çizgi, düz uçlar, kare köşeler ve açık geometrik boşluklar; ailece sade endüstriyel işaretler.
-
-**Kart:** dikey çift kenar çizgisi / “Aile dükkânı” / “Hizmet: B” / “Kuyruk uzuyor · Kasayı incele”. **Düğme:** koyu dut zemin, açık yazı, 2 px köşe; “Dükkâna gir”. Kil rengi başarıya veya hataya bağlanmaz.
-
-**Tabela fikri:** ilk dükkânda iki boyalı çizgiyle çevrelenmiş levha; şubelerde tek parça emaye hissi; ülke çapında modüler levhalar; dünyada çift çizgi ve sade sözcük. Şirket adı uzun olduğunda alt açıklama ikinci satıra geçer, harfler orantısız sıkıştırılmaz.
-
-**3B bağlantı:** mat emaye, temiz boyalı çelik, az miktarda kil tonlu seramik; önlükte iki dikey dikiş çizgisi. Eski ve yeni mağaza arasındaki fark malzeme işçiliğinden gelir.
-
-**Risk:** kil renginin fazla kullanımı kampanya veya uyarı sanılabilir. Eylemler koyu dutla, uyarılar metin + ayrı amber işaretle gösterilir.
-
-## Yön C — Komşuluk Ağı
-
-**Fikir:** Tek bir dükkânda oluşan güven, birbirine bağlı bir dünya ağına yayılır.
-
-Sis beyazı, koyu petrol, kehribar marka ve yumuşak mavi gri. Dolu merkez + açık halkalar kimlik motifidir; mağaza, il ve ülke aynı işaretin farklı kapsamlarıdır. Harita ekranın merkezidir, bağlar yalnız ilgili mağaza/ülke seçildiğinde görünür. Diğer zamanlarda ağ çizgileri gizlidir. Yönetim sayfaları daha az çerçeve, daha belirgin sayı sütunları kullanır.
-
-**Yazı:** IBM Plex Sans bütün arayüzde; Mono yoğun finans tablosunda. Sans tabular rakamları desteklemiyorsa Mono kullanılır. **İkon:** 1,75 çizgi, yuvarlak uçlar, dairesel bağlantı noktaları; daireler süs değil işlev işaretleridir.
-
-**Kart:** “Yeni şube” / “Hazırlık %68” / tek ilerleme çizgisi / “Açılışa hazırlık sürüyor”. **Düğme:** koyu petrol zemin, açık yazı ve küçük kehribar işaret; “Şubeyi incele”. Marka kehribarı yalnız kimlikte; uyarı, farklı renkle birlikte üçgen ve “Dikkat” etiketi taşır.
-
-**Tabela fikri:** tek boyalı merkez; şubelerde yanında ikinci açık halka; ulusal zincirde üç halkalı düzen; dünya zincirinde bütün aşamaları temsil eden tek merkez ve açık çevre. Geometrik işaret şirket isminden bağımsızdır.
-
-**3B bağlantı:** açık çelik, duman gri raf ayakları, petrol renkli kumaş ve küçük kehribar işaretler. Büyük mağazaların sakin dolaşım düzeni ağı hissettirir; ürün ve müşteri kalabalığı korunur.
-
-**Risk:** fazla ağ çizgisi ve soğuk metal şirket hissini erkenden ağırlaştırabilir. İlk dükkânda insan dokunuşları, yerel onarımlar ve sıcak malzeme ayrıntıları daha belirgindir.
-
-## Ön renk tablosu
-
-Bunlar kimlik araştırmasının başlangıç renkleridir. Durum, harita ve altı grafik serisinin tam tablosu seçilen yönün sonraki adımında hazırlanır. Açık/koyu eşleri vardır; bütün metin ve etkileşim durumları için ölçülmüş kontrast onayı henüz verilmedi.
-
-| Yön | Rol | Açık | Koyu | Kullanım |
-|---|---|---|---|---|
-| A | Sayfa | #F4F0E7 | #19171D | Ana zemin |
-| A | Yüzey | #FFFCF6 | #25212B | Kart ve panel |
-| A | Metin | #292630 | #F3EDE4 | Ana yazı |
-| A | Marka | #654467 | #C6A0C7 | Seçim, tabela, birincil eylem |
-| A | Ayrıntı | #98733E | #CBA875 | Küçük kimlik işaretleri |
-| B | Sayfa | #F1EEE8 | #211B1E | Ana zemin |
-| B | Yüzey | #FCFAF6 | #30262C | Kart ve panel |
-| B | Metin | #392B32 | #F5ECE8 | Ana yazı |
-| B | Marka | #653D4F | #D2A5B8 | Seçim, tabela, eylem |
-| B | Ayrıntı | #AC755B | #D5A48A | Levha ve malzeme |
-| C | Sayfa | #EDF1F0 | #142226 | Ana zemin |
-| C | Yüzey | #FAFCFA | #203138 | Kart ve panel |
-| C | Metin | #243D43 | #E9F2EF | Ana yazı |
-| C | Marka | #85600D | #E0BD68 | Kimlik ve küçük seçim işareti |
-| C | Eylem | #244952 | #B4D0D5 | Birincil eylem |
-| Ortak | İyi | #246444 | #8FD0AC | + ve sonuç metni |
-| Ortak | Kötü | #A83440 | #F09AA3 | − ve kayıp metni |
-| Ortak | Uyarı | #705D0B | #E1CF87 | Üçgen + açıklama |
-| Ortak | Bilgi | #315B86 | #A8C6EC | Bilgi + açıklama |
-
-## Ön yazı ölçeği · 1440 × 820 tasarım birimi
-
-| Rol | Boyut | Kalınlık | Kural |
-|---|---:|---:|---|
-| Kimlik / kısa başlık | 28 | 600 | En çok iki satır |
-| Sayfa başlığı | 24 | 600 | Ekran değişiminde aynı yer |
-| Bölüm başlığı | 18 | 600 | Tablo üstü |
-| Gövde / eylem | 16 | 400 / 500 | Uzun oturumda ana ölçek |
-| Tablo rakamı | 16 | 500 | Sabit genişlik, sağ hizalı |
-| Ana para değeri | 26 | 600 | Tek önemli değer |
-| İkincil not | 14 | 400 | Karar vermek için zorunlu veri buraya sıkıştırılmaz |
-
-Küçük/Orta/Büyük ayarında yazı büyüyünce satır yüksekliği de büyür. Türkçe ve İngilizce gerçek metinlerle test edilir; düğmelerde yaklaşık %35 genişleme payı başlangıç hedefidir, dil garantisi değildir. 1920×1080 ve 2560×1440, büyük yazı, uzun şirket adı ve büyük para değerleri sonraki prototipte birlikte kontrol edilir.
-
-## Tercih ve devam
-
-Önerim **Emanet Defteri**: para ve stok okumayı oyunun kimliğine bağlar, mor marka yeşil sonuçlardan ayrılır ve küçük dükkândan dünya şirketine aynı sistemle büyür. Kuşak İzi tabelada ve fiziksel dükkânda daha karakterli; Komşuluk Ağı harita ve genişleme hissinde daha güçlüdür.
-
-Görsel önizlemedeki sayılar örnektir, simülasyondan alınmadı. İkon önizlemeleri geçici standart işaretlerdir; özgün ikon ailesi henüz çizilmedi. Tarayıcı örneğinde sistem yazı tipleri kullanılır; kesin font uygulaması ve tam kontrast doğrulaması sonraki adımın işidir.
-
-Adım 1 teslim edildi. G-106 bütünü bitmedi. Mustafa yönü seçince Adım 2: tam renk rolleri, koyu tema, ölçülmüş okunurluk, özgün SVG ikonlar ve bileşen durumları. Ardından beş ekran, büyüyen tabela ve oyun logosu/kapak ayrı aşamalarda değerlendirilir. 3B bölüm burada yön birliği için kısa nottur; yeni model üretimi kapsamda değildir.
+Üç PNG incelendi. Ortak sahne korunuyor ancak üretim sırasında küçük yerleşim farkları oluştu; piksel düzeyinde aynı kompozisyon değildir. Stil farkı özellikle insanlarda belirgin; stilize örneğin çevresi hâlâ ayrıntılıdır. Hiçbiri onaylı değildir. Kod/varlık uygulaması yok; DERLE/TEST/Smoke çalıştırılmadı.
