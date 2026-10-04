@@ -1,8 +1,10 @@
 # Güncel durum
 
-Son güncelleme: 04.10.2026 — Claude Code, akis-cc2: D8 ikinci tur (M68 + bot büyümesi) (derlenmedi)
+Son güncelleme: 04.10.2026 — Claude Code, akis-cc2: D8 ikinci tur derlendi; çekicilik birimi düzeltildi (derlenmedi)
 
 ## Kısaca
+
+**04.10.2026 — Claude Code / a6d426d sonucu:** DERLE geçti, TEST 171 + 1 uyarı, 0 başarısız, Smoke geçti; OLCUM diğerleri aynı. Hata: "ulke cekiciligi" de 0.81, gb 0.82, us 1.10, ama fr/es/pl/br/mx/jp 0.30 (alt sınır): `MarketResearch::Margin` varsayılan harcamayı 6500 × ücret çarpanı aldı (doğrusu 65, `MarketCompany` ile aynı); harcaması pakette yazılı ülkeler 100 kat fakir göründü. Düzeltildi, test artık sınırda duran ülkeyi yakalıyor (**derlenmedi**). Beklenen: fr ~0,9, es ~0,95, pl ~0,8, br ~1,8, mx ~0,9, jp ~0,65 (±%10).
 
 **04.10.2026 — Claude Code / D8 ikinci tur (derlenmedi, `akis-cc2`, M68):** Mustafa: ülkeye giriş kısılmasın; araştırma birkaç ay sürsün, analize göre karar verilsin; hazırlıksız giren bocalasın. `MarketResearch`: 75–180 gün; `Attractiveness` (alım gücü/ücret+kira ÷ zincir yoğunluğu^¼ × ±%10 kampanya okuması, ana ülke = 1), `Verdict` (≥0,85 değer, 0,70–0,85 zor, altı girmeyin), rapor ilk cümlesi sonuç; `LearningFactor` 0,6–2 → yeni ülkenin alışma süresi ve +%3 maliyeti (`MarketCompany::CostFactor`). Bot: "girmeyin" denen ülkeye girmez, zor pazara temkinli/dengeli ortaklıkla; büyüme turunda parası ve yönetimi yettikçe birden çok mağaza (1 + mağaza/40, en çok 8). Önceki test düzeltmesi de bu turda. Test: `ScaleAndFranchise` puan/süre/sonuç kontrolleri ve OLCUM "ulke cekiciligi". Test.ps1 172. **Devam notu:** Mustafa derler; bot koşusu ayrı ve kısa tutulacak.
 

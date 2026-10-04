@@ -1,3 +1,7 @@
+## 04.10.2026 — Claude Code — D8 ikinci tur derlendi; çekicilik puanında birim hatası
+
+**son.log (a6d426d):** DERLE geçti; TEST 171 başarılı + 1 uyarı, 0 başarısız; Smoke geçti. Çekicilik: Almanya 0,81, İngiltere 0,82, ABD 1,10 beklendiği gibi; altı ülke 0,30'da (alt sınır). Neden: varsayılan kişi başı harcama 100 kat büyük yazılmıştı. Düzeltildi; test sınırdaki ülkeyi artık hata sayar. Derlenmedi.
+
 ## 04.10.2026 — Claude Code — D8 ikinci tur: araştırma kararı ve bot büyümesi (derlenmedi)
 
 **Mustafa:** (1) Ülkeye girişi kısmak saçma; araştırma birkaç ay sürsün, analizle karar verelim, hazırlıksız giren bocalasın. (2) Botu düzelt. (3) Ayda bir karar kartı normal.

@@ -72,7 +72,7 @@ namespace MarketResearchLocal
     // What a shop earns against what it costs to run in a country: grocery spending per person over wages and rents.
     double Margin(const MarketCountry::FProfile& P)
     {
-        const double Spend = P.GroceryPerPersonDay > 0.0 ? P.GroceryPerPersonDay : 6500.0 * FMath::Max(0.1f, P.WageFactor);
+        const double Spend = P.GroceryPerPersonDay > 0.0 ? P.GroceryPerPersonDay : 65.0 * FMath::Max(0.1f, P.WageFactor); // the same default as MarketCompany
         return Spend / FMath::Max(0.1, 0.6 * P.WageFactor + 0.4 * P.RentFactor);
     }
 

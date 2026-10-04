@@ -184,7 +184,7 @@ bool FMarketFranchiseTest::RunTest(const FString& Parameters)
     {
         if (P.Id == S.CountryId || P.Cities.Num() == 0) continue;
         const float Score = MarketResearch::Attractiveness(S, P.Id);
-        TestTrue(*(P.Id + TEXT(": a score")), Score >= 0.3f && Score <= 2.f);
+        TestTrue(*(P.Id + TEXT(": a score off the limits")), Score > 0.3f && Score < 2.f); // 04.10.2026: a unit slip put six packs on the floor
         TestTrue(*(P.Id + TEXT(": a few months")), MarketResearch::Days(S, P.Id) >= 75 && MarketResearch::Days(S, P.Id) <= 180);
         TestFalse(*(P.Id + TEXT(": a verdict")), MarketResearch::VerdictText(S, P.Id).IsEmpty());
         (MarketResearch::Verdict(S, P.Id) == MarketResearch::EVerdict::Good ? Good : NotGood) += 1;
