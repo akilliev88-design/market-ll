@@ -1,3 +1,13 @@
+## 04.10.2026 — Codex — G-106 çalışan gezinme önizlemesi
+
+**Mustafa:** Ekranı gezmek istedi.
+
+**Yapılan:** Native HTML akış maketi: Harita + 10 sayfa + Dükkâna git şube seçimi. Sayfalar aynı çalışma alanında açılır; il/katman, sipariş taslağı ve toptancı teklif seçimi yerel örnek verilerle çalışır. Özel aile dükkânı görseli/girişi yok. `C:/Users/mtass/.codex/visualizations/2026/10/04/01a1069b-8591-7660-aa49-7aad425b03a9/miras-gezinme.html`.
+
+**Doğrulama:** Edge 11 sayfa × 1024/736/360; il/dönüş/şube/taslak/karar geçti, JS hatası/taşma yok. Harita/rapor PNG incelendi. Bitmap sanatının birebir üretim uygulaması değil, akış kontrol maketi; Unreal 3B ziyareti açmaz. Kod/varlık değişmedi; DERLE/TEST/Smoke çalıştırılmadı.
+
+**Sıradaki:** Mustafa'nın gezinme ve sanat değerlendirmesi; görsel yön hâlâ onaysız.
+
 ## 04.10.2026 — Codex — G-106 aile dükkânı kesiti kaldırıldı / revizyon 5
 
 **Mustafa:** Görsel fazla AI slop; aile dükkânı özel gezilecek mağaza değil, şube gezisi “Dükkâna git” ile olur. Kesit ekrandan kaldırılacak.

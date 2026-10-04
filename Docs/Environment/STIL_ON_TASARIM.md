@@ -1,6 +1,16 @@
 # Miras Market — sanat yönü ön tasarımı
 
-04.10.2026 · Codex · G-106 · Güncel çalışma sanat konsepti / revizyon 5; kesin onay yok.
+04.10.2026 · Codex · G-106 · Görsel revizyon 5 ve ayrı çalışan gezinme önizlemesi; kesin onay yok.
+
+## Gezinme önizlemesi
+
+Mustafa ekranı gezmek istedi. Sohbette çalışan HTML önizlemesi hazırlandı: Harita, 10 yönetim sayfası, “Dükkâna git” mağaza seçimi; il/katman seçimi, sipariş taslağı, toptancı teklif seçimi ve haritaya dönüş. Kaynak `C:/Users/mtass/.codex/visualizations/2026/10/04/01a1069b-8591-7660-aa49-7aad425b03a9/miras-gezinme.html`.
+
+Bu gezinme maketi native HTML bileşenleri ve gerçek proje il geometrisi kullanır; bitmap sanat karesinin birebir üretim uygulaması değildir. Örnek verilerle akış kontrolü içindir. “Dükkâna git” bir mağaza seçim listesi açar, Unreal 3B ziyaretini başlatmaz. Aile dükkânı özel giriş/kesit olarak yok. Oyun kaynağı veya menü sahipliği değiştirilmedi.
+
+Edge 1024/736/360: 11 sayfa, dönüş, il seçimi, şube seçimi, taslak ve karar etkileşimleri geçti; JS hatası/taşma yok. Harita ve rapor ekran görüntüleri incelendi. DERLE/TEST/Smoke çalıştırılmadı.
+
+---
 
 ## Revizyon 5 — aile dükkânı görseli kaldırıldı
 

@@ -1,6 +1,8 @@
 # Güncel durum
 
-Son güncelleme: 04.10.2026 — Codex: G-106 revizyon 5, aile dükkânı kesiti kaldırıldı; D9a kodu derlenmedi
+Son güncelleme: 04.10.2026 — Codex: G-106 çalışan gezinme önizlemesi; D9a kodu derlenmedi
+
+**04.10.2026 — Codex / G-106 gezinme:** Mustafa ekranı gezmek istedi. Sohbette native HTML önizleme: Harita, 10 sayfa, Dükkâna git mağaza seçimi, il/katman, sipariş taslağı, karar ve dönüş. 11 sayfa × 3 genişlik ve etkileşimler geçti; harita/rapor görüntüleri incelendi. **Devam notu:** bu akış maketi bitmap konseptin birebir uygulanmış hâli değildir; örnek veri ve gerçek il geometrisi kullanır. 3B ziyaret açmaz, özel aile dükkânı girişi yok. Sanat hâlâ onaysız. Kod/varlık değişmedi; DERLE/TEST/Smoke çalıştırılmadı.
 
 **04.10.2026 — Codex / G-106 revizyon 5:** Mustafa görseli fazla AI slop buldu; aile dükkânı özel ziyaret noktası değil, şube ziyareti yalnız “Dükkâna git”. Konseptten aile dükkânı kesiti/etiketi ve mağaza resimleri kaldırıldı; düz harita alanı genişledi, dokular/minyatürler/süsler sadeleşti. Altta “Dükkâna git” var. **Devam notu:** sanat dili hâlâ onaysız; sadeleştirme beğeni sorununu çözmüş sayılmıyor. Bu yalnız bitmap önizleme, coğrafya uygulama verisi değil. Kod/varlık değişmedi, DERLE/TEST/Smoke çalıştırılmadı.
 
