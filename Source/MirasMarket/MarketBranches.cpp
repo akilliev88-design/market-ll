@@ -32,6 +32,8 @@
 #include "MarketSubsidiaries.h"
 #include "MarketDemand.h"
 #include "MarketResearch.h"
+#include "MarketResponse.h"
+#include "MarketPortfolio.h"
 
 namespace MarketBranches
 {
@@ -319,7 +321,7 @@ int64 MarketBranches::FitOutCost(const FMarketState& State, const FSite& Site, c
     // C12 (M42): the difficulty scales the money a shop needs; the very first branch, a neighbourhood shop in the
     // home province, is a neighbour's empty shop that needs little work (the first milestone comes in months 4-8).
     const double First = IsFirstBranch(State, Site, Kind) ? FirstBranchFitOut : 1.0;
-    return FMath::RoundToInt64(Kind.FitOut * MarketPrices::ListLevel(State.Day) * MeasureFactor * MarketSimulation::CapitalFactor(State) * First * MarketStrategy::FitOutFactor(State)); // D9 (M49): the growth model
+    return FMath::RoundToInt64(Kind.FitOut * MarketPrices::ListLevel(State.Day) * MeasureFactor * MarketSimulation::CapitalFactor(State) * First * MarketStrategy::FitOutFactor(State) * MarketResponse::FitOutFactor(State)); // D9 (M49): the growth model; D9b (M47): a crisis's idle builders
 }
 
 int64 MarketBranches::MonthlyFixedCost(const FMarketState& State, const FString& Country, const FString& Province, const FString& Format)
@@ -333,7 +335,7 @@ int64 MarketBranches::MonthlyFixedCost(const FMarketState& State, const FString&
     MarketStoreViews::PreviewTo(State, Probe);
     const FSite Site = SiteOf(State, Probe);
     const MarketStoreAssign::FStoreMeasures Measures = MarketStoreViews::MeasuresOf(Probe);
-    const int64 Rent = FMath::RoundToInt64(MonthlyRent(State, Site, Kind, Level) * MarketStoreAssign::RentFactor(Measures, Kind.Id) * MarketStrategy::RentFactor(State, Site.Country, Site.Province)); // D9 (M49)
+    const int64 Rent = FMath::RoundToInt64(MonthlyRent(State, Site, Kind, Level) * MarketStoreAssign::RentFactor(Measures, Kind.Id) * MarketStrategy::RentFactor(State, Site.Country, Site.Province) * MarketResponse::LeaseFactor(State)); // D9 (M49, M47)
     // The same lines as the branch's day (CloseDay): a middling cashier per worker and a store manager.
     const int64 Wages = MarketStoreAssign::WorkersFor(Measures, Kind.Id) * MarketStaff::FairWage(MarketStaff::ERole::Cashier, 50, State.Day) + MarketStaff::FairWage(MarketStaff::ERole::HrManager, 55, State.Day) * 9 / 10;
     const int64 Running = FMath::RoundToInt64(1500 * Level * Kind.Running);
@@ -352,9 +354,32 @@ int64 MarketBranches::OpeningCost(const FMarketState& State, const TArray<FMarke
     PlanShelves(State, Probe, Products);
     const FSite Site = SiteOf(State, Probe);
     const MarketStoreAssign::FStoreMeasures Measures = MarketStoreViews::MeasuresOf(Probe);
-    return 2 * FMath::RoundToInt64(MonthlyRent(State, Site, Kind, Level) * MarketStoreAssign::RentFactor(Measures, Kind.Id) * MarketStrategy::RentFactor(State, Site.Country, Site.Province))
+    return 2 * FMath::RoundToInt64(MonthlyRent(State, Site, Kind, Level) * MarketStoreAssign::RentFactor(Measures, Kind.Id) * MarketStrategy::RentFactor(State, Site.Country, Site.Province) * MarketResponse::LeaseFactor(State))
         + FitOutCost(State, Site, Kind, MarketStoreAssign::FitOutFactor(Measures, Kind.Id)) + StockCost(Probe, Products)
         + MarketSubsidiaries::SetupCost(State, Site.Country); // M65: the first store in a country founds our company there
+}
+
+int64 MarketBranches::SignedRent(const FMarketState& State, const FMarketBranch& Branch)
+{
+    const FSite Site = SiteOf(State, Branch);
+    const FFormat& Kind = FormatInfo(Branch.Format);
+    const MarketStoreAssign::FStoreMeasures Measures = MarketStoreViews::MeasuresOf(Branch);
+    return FMath::RoundToInt64(MonthlyRent(State, Site, Kind, MarketPrices::ListLevel(State.Day)) * MarketStoreAssign::RentFactor(Measures, Kind.Id)
+        * MarketStrategy::RentFactor(State, Site.Country, Site.Province) * MarketResponse::LeaseFactor(State));
+}
+
+void MarketBranches::ReplanShelves(const FMarketState& State, FMarketBranch& Branch, const TArray<FMarketProduct>& Products)
+{
+    TMap<FString, FMarketStock> Before;
+    for (const FMarketStock& Item : Branch.Items) Before.Add(Item.Id, Item);
+    PlanShelves(State, Branch, Products);
+    for (FMarketStock& Item : Branch.Items)
+        if (const FMarketStock* Old = Before.Find(Item.Id)) { Item.Shelf = Old->Shelf; Item.Incoming = Old->Incoming; Item.Yesterday = Old->Yesterday; }
+}
+
+int64 MarketBranches::RestockCost(const FMarketBranch& Branch, const TArray<FMarketProduct>& Products)
+{
+    return StockCost(Branch, Products);
 }
 
 int32 MarketBranches::SignedLastYear(const FMarketState& State)
@@ -447,7 +472,7 @@ bool MarketBranches::Open(FMarketState& State, const TArray<FMarketProduct>& Pro
     // G-088 C: the site's ready-made store (saved for the province and type); its size sets rent and fit-out.
     MarketStoreViews::AssignTo(State, Branch);
     const MarketStoreAssign::FStoreMeasures Measures = MarketStoreViews::MeasuresOf(Branch);
-    Branch.Rent = FMath::RoundToInt64(MonthlyRent(State, Site, Kind, Level) * MarketStoreAssign::RentFactor(Measures, Kind.Id) * MarketStrategy::RentFactor(State, Site.Country, Site.Province)); // D9 (M49)
+    Branch.Rent = FMath::RoundToInt64(MonthlyRent(State, Site, Kind, Level) * MarketStoreAssign::RentFactor(Measures, Kind.Id) * MarketStrategy::RentFactor(State, Site.Country, Site.Province) * MarketResponse::LeaseFactor(State)); // D9 (M49); D9b (M47): a crisis's cheap leases
     Branch.PriceIndex = FMath::Clamp(Kind.PriceTarget, 0.85f, 1.2f);
     PlanShelves(State, Branch, Products);
     // The deposit leaves the till now and comes back when the branch closes; the fit-out is an expense of today
@@ -650,6 +675,12 @@ void MarketBranches::CloseDay(FMarketState& State, const TArray<FMarketProduct>&
         const FFormat& Kind = FormatInfo(B.Format);
         if (Stage == EStage::Closed) continue;
         const FSite Where = SiteOf(State, B);
+        // D9b (M46): a renovation, a change of type or a relocation of an open store: closed until it is done.
+        if (Stage == EStage::Renovation && B.Works != 0)
+        {
+            if (Closed >= B.StageUntil) News.Add(MarketPortfolio::Finish(State, Products, Index));
+            continue;
+        }
         // Opening steps.
         if (Stage == EStage::Renovation && Closed >= B.StageUntil)
         {
@@ -724,7 +755,8 @@ void MarketBranches::CloseDay(FMarketState& State, const TArray<FMarketProduct>&
         Store.Province = Where.Province;
         Store.Format = B.Format;
         Store.Self = Index;
-        Store.PriceIndex = B.PriceIndex;
+        const float Answer = MarketResponse::PriceFactor(State, Where.Country, Where.Province, Closed); // D9b (M47): the answer to a rival or a crisis
+        Store.PriceIndex = B.PriceIndex * Answer;
         Store.Availability = Availability;
         Store.Service = Service;
         Store.Satisfaction = B.Satisfaction;
@@ -772,7 +804,7 @@ void MarketBranches::CloseDay(FMarketState& State, const TArray<FMarketProduct>&
             float PromoCut = 0.f, PromoPull = 1.f;
             MarketPromotions::StoreEffect(State, Products, Index, I, Closed, PromoCut, PromoPull);
             const float Cut = FMath::Max(Item->MarkdownUntil >= Closed ? Item->Markdown / 100.f : 0.f, PromoCut);
-            const int64 Price = FMath::Max<int64>(5, FMath::RoundToInt64(Products[I].BasePrice * B.PriceIndex * (1.0 - Cut) / 5.0) * 5);
+            const int64 Price = FMath::Max<int64>(5, FMath::RoundToInt64(Products[I].BasePrice * B.PriceIndex * Answer * (1.0 - Cut) / 5.0) * 5);
             const double Accept = MarketProductDemand::AcceptanceFactor(MarketDemand::PriceRatio(Price, MarketDemand::RivalPrice(Products[I], RivalNow)), SharePercent, Tolerance, Products[I]);
             const int32 Want = FMath::RoundToInt32(Shoppers * UnitsPerShopper * Kind.Basket * RealSpend * WishToday[I] * Where.Income * (bFresh ? FreshDemand : 1.f) * (1.f + 2.5f * Cut)
                 * PromoPull * MarketStory::IdentityDemand(State, Group) * static_cast<float>(Accept)); // M38: the company's identity
@@ -820,7 +852,7 @@ void MarketBranches::CloseDay(FMarketState& State, const TArray<FMarketProduct>&
                 * Money.Fx / FMath::Max(1e-9, MoneyOf(State, Where.Country, FMath::Max(1, B.OpenedDay)).Fx) / 30.0);
         const int64 WagesDay = InHome(Money, MarketStaff::BranchWages(B) + B.ManagerWage, true); // E3c2c: every person's own wage; E4: the country's wages
         const int64 SocialDay = MarketStaff::EmployerShare(WagesDay); // C3 (B3): the employer's social security share
-        const int64 RunningDay = InHome(Money, FMath::RoundToInt64(1500 * Level * Kind.Running));
+        const int64 RunningDay = InHome(Money, FMath::RoundToInt64(1500 * Level * Kind.Running * MarketResponse::RunningFactor(State, Closed))); // D9b (M47): a crisis's savings
         const int64 Opex = RentDay + WagesDay + SocialDay + RunningDay;
         // M26: the branch's departments (they book their own lines; their goods are bought and paid the same day).
         const MarketDepartments::FDay Dept = MarketDepartments::Day(State, Index, Shoppers, Where.Income, Closed);
@@ -863,6 +895,9 @@ void MarketBranches::CloseDay(FMarketState& State, const TArray<FMarketProduct>&
         B.WeekProfit += Profit;
         B.Last30Profit = B.Last30Profit * 29 / 30 + Profit;
         B.Last30Revenue = B.Last30Revenue * 29 / 30 + Revenue + Dept.Revenue;
+        B.YearRevenue += Revenue + Dept.Revenue; // D9b (M46): the yearly report card
+        B.YearProfit += Profit;
+        ++B.YearDays;
         const float DayAvailability = DaySold + DayEmpty > 0 ? static_cast<float>(DaySold) / (DaySold + DayEmpty) : 1.f;
         B.Satisfaction = FMath::Clamp(B.Satisfaction + ((50.f + 40.f * DayAvailability - 100.f * (B.PriceIndex - 1.f)) - B.Satisfaction) * 0.1f, 0.f, 100.f);
         B.Maturity = FMath::Min(1.f, B.Maturity + 1.f / MaturityDays);
@@ -880,13 +915,14 @@ void MarketBranches::CloseDay(FMarketState& State, const TArray<FMarketProduct>&
         // G-088 C: what fits behind the shop (half a shelf more at the nominal stock room).
         const float StockRoom = 1.f + 0.5f * MarketStoreAssign::BackroomFactor(Measures, B.Format);
         int64 Bill = 0;
+        const float OrderCut = MarketResponse::OrderFactor(State, Closed); // D9b (M47): a crisis's smaller stock
         for (int32 I = 0; I < Products.Num(); ++I)
         {
             FMarketStock* Item = ItemOf(B, Products[I].Id);
             if (!Item || Item->Capacity <= 0) continue;
             const float Noise = (BranchMix(State.RivalSeed, Closed, 0x0DE7u + Index * 131u + I) % 2001u) / 1000.f - 1.f;
             const float Expected = (Item->Yesterday.Sold + Item->Yesterday.Empty) * Tomorrow * (1.f + Error * Noise);
-            const int32 Target = FMath::RoundToInt32(Rule.OrderFactor * FMath::Min(Item->Capacity * StockRoom, FMath::Max(static_cast<float>(Item->Capacity), Expected * 1.2f)));
+            const int32 Target = FMath::RoundToInt32(Rule.OrderFactor * OrderCut * FMath::Min(Item->Capacity * StockRoom, FMath::Max(static_cast<float>(Item->Capacity), Expected * 1.2f)));
             int32 Order = FMath::Max(0, Target - Item->Shelf);
             if (bTight) Order /= 2;
             const int64 CostHere = InHome(Money, Products[I].Cost); // E4: bought in the country's money abroad

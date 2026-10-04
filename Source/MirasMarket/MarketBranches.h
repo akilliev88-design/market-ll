@@ -151,6 +151,12 @@ namespace MarketBranches
     // M33: the store manager's weekly clearance of slow items (the province manager approves deep cuts and takes
     // back mistakes). Returns the part of the weekly news line ("" nothing).
     FString Clearance(FMarketState& State, int32 BranchIndex, const TArray<FMarketProduct>& Products);
+    // D9b (M46): what the portfolio's works (MarketPortfolio) share with an opening: the monthly rent the store would
+    // sign today (its province, type and store view), its shelves planned again for its type (the goods on them
+    // stay) and the goods that fill them at cost.
+    int64 SignedRent(const FMarketState& State, const FMarketBranch& Branch);
+    void ReplanShelves(const FMarketState& State, FMarketBranch& Branch, const TArray<FMarketProduct>& Products);
+    int64 RestockCost(const FMarketBranch& Branch, const TArray<FMarketProduct>& Products);
     bool CanOpen(const FMarketState& State, const TArray<FMarketProduct>& Products, const FString& Country, const FString& Province, const FString& Format, FString& OutReason);
     bool Open(FMarketState& State, const TArray<FMarketProduct>& Products, const FString& Country, const FString& Province, const FString& Format, FString& OutMessage);
     bool Close(FMarketState& State, const TArray<FMarketProduct>& Products, int32 BranchIndex, FString& OutMessage);

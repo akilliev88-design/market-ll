@@ -1,8 +1,10 @@
 # Güncel durum
 
-Son güncelleme: 04.10.2026 — Claude Code, akis-cc2: D9a M48–M50 (derlenmedi)
+Son güncelleme: 04.10.2026 — Claude Code, akis-cc2: D9a M48–M50 + D9b M46–M47 (derlenmedi)
 
 ## Kısaca
+
+**04.10.2026 — Claude Code / D9b: mağaza portföyü ve rakip/krize cevap (derlenmedi, `akis-cc2`, M46–M47):** Yeni `MarketPortfolio` (yaşlanma en çok %15, yıllık karne A–E, Yenile / Taşı (aynı il) / Büyüt / Küçült; il müdürü eski mağazayı yenilemeyi önerir) ve `MarketResponse` (fiyat savaşı, rakip açılışı, kriz; müdür tarzına göre cevap verir, cironun %10+'ı olan ilde ve krizde oyuncuya son onay kartı; Mağazalar › Müdahaleler sekmesi). Şube satırında bakım satırı. Bot tarza göre cevap verir, eski mağazayı yeniler, zayıf yeri taşır. Kayıt sürümü 21, Test.ps1 179 (5 yeni test). **Devam notu:** D9a (6d0a4ff) ve D9b birlikte derlenmedi; Mustafa `git fetch cloud` + `git merge --ff-only cloud/akis-cc2` + `CLAUDE_KOS.cmd`. Hata çıkarsa ilk bakılacak yerler: `MarketPortfolio.cpp`, `MarketResponse.cpp`, `MarketMenuPages.cpp` (bakım satırı, `ResponsesTab`). Sonra kısa bot (dengeli 15 yıl) ve G-108.
 
 **04.10.2026 — Claude Code / D9a: il atağı, yol ayrımları, yollar (derlenmedi, `akis-cc2`, M48–M50):** C16'nın bekleyen kodu (`Docs/Surec/bekleyen/C16`) yeni yapıya taşındı: `MarketStrategy.h/.cpp/Tests` (2 test). Değişiklikler: strateji çekimi (il atağı, şampiyon/halk yolu, odak, hızlı büyümenin hizmet kaybı) artık `MarketStoreDemand::Pull` içinde, yani aile dükkânı dahil her mağazada; özel markanın kazancı şube mal maliyetinde (÷1,02, talebe dokunmaz); "insan yetiştiren" yolu mağaza müdürlerini şubelerden sayar (eski kod yanlış listeye bakıyordu); il atağı ve sadakat ödemesi günün kârından da düşer. Bağlantılar: `MarketBranches` (tadilat, kira, kötü yer, depo kaybı, kapasite), `MarketBanking::YearRate/YearRateIn` (verimli yol indirimi), `MarketChains::Withdraw`, `MarketDirector` (`ProvincePush`, `CloseDay`), `MarketEvents` (`strategy.*`), Şirket sayfasında "Strateji, yollar ve iller" kartı, bot (tarza göre yol ayrımı, dengeli/atak il atağı, rapor satırı "Strateji (D9)"). Kayıt sürümü 20. Bot: 2 şubede İK müdürü (önceki tur). Test.ps1 174. **Devam notu:** Mustafa derler; ardından M46/M47 tasarımı (Mustafa'ya öneri).
 

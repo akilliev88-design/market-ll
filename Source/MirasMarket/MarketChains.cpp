@@ -1,4 +1,5 @@
 #include "MarketChains.h"
+#include "MarketResponse.h"
 #include "MarketBranches.h"
 #include "MarketCountry.h"
 #include "MarketPrices.h"
@@ -1401,7 +1402,8 @@ namespace MarketChainsLocal
                 if (Grade == TEXT("A") || Grade == TEXT("B")) bHeld = true;
             }
             const bool bHome = Chain.Country == State.CountryId && Chain.WarProvince == MarketStart::HomeProvince(State);
-            if (bHeld || bHome)
+            const bool bFought = MarketResponse::Fought(State, Chain.Country, Chain.WarProvince, Chain.WarUntil); // D9b (M47): we answered it
+            if (bHeld || bHome || bFought)
             {
                 ++Chain.WarsLost;
                 Chain.Rivalry = FMath::Min(100.f, Chain.Rivalry + 5.f);

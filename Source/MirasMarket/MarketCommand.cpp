@@ -4,6 +4,7 @@
 #include "MarketCountry.h"
 #include "MarketCalendar.h"
 #include "MarketEvents.h"
+#include "MarketPortfolio.h"
 
 namespace MarketCommandLocal
 {
@@ -102,6 +103,33 @@ void MarketCommand::CloseDay(FMarketState& State, const TArray<FMarketProduct>& 
         MarketEvents::Offer(State, Card(State, Id, FString::Printf(TEXT("%s: yeni ma\u011faza \u00f6nerisi"), *Site.Name), Text, FormatIndex));
         State.ProposalQuiet.Add(Key, State.Day + OpenQuietDays);
     }
+
+    // 3. D9b (M46): a province manager proposes renewing the oldest worn store of his province.
+    for (const FMarketManager& M : State.Management.Managers)
+    {
+        if (M.Level != static_cast<uint8>(MarketManagers::ELevel::Province)) continue;
+        const FString Key = TEXT("renew|") + M.Country + TEXT("|") + M.Area;
+        if (State.Day < State.ProposalQuiet.FindRef(Key)) continue;
+        int32 Oldest = INDEX_NONE;
+        for (int32 I = 0; I < State.Branches.Num(); ++I)
+        {
+            const FMarketBranch& B = State.Branches[I];
+            if (!IsOpen(B) || B.Works != 0 || B.Province != M.Area || MarketBranches::CountryOf(State, B) != M.Country) continue;
+            if (MarketPortfolio::AgeDays(State, B) < RenewYears * MarketPortfolio::YearDays) continue;
+            if (Oldest == INDEX_NONE || MarketPortfolio::AgeDays(State, B) > MarketPortfolio::AgeDays(State, State.Branches[Oldest])) Oldest = I;
+        }
+        if (Oldest == INDEX_NONE) continue;
+        const FString Id = FString::Printf(TEXT("command.renew:%d"), Oldest);
+        if (Pending(State, Id)) continue;
+        const int64 Cost = MarketPortfolio::WorksCost(State, Products, Oldest, MarketPortfolio::EWorks::Renovate);
+        if (State.Cash < 3 * Cost) continue;
+        const FMarketBranch& B = State.Branches[Oldest];
+        const FString Text = FString::Printf(TEXT("%s il m\u00fcd\u00fcr\u00fc %s: \"%s %d y\u0131ll\u0131k oldu, eskidi\u011fi i\u00e7in m\u00fc\u015fterinin %%%.0f'i ba\u015fka yere gidiyor. Yenileyelim: %s, %d g\u00fcn kapal\u0131 kal\u0131r.\"%s"),
+            *MarketBranches::SiteOf(State, B).Name, *M.Name, *B.Name, MarketPortfolio::AgeDays(State, B) / MarketPortfolio::YearDays, (1.f - MarketPortfolio::AgeOnly(State, B)) * 100.f,
+            *Tl(Cost), MarketPortfolio::WorksDays(B.Format), *Via(State, M.Country, M.Area));
+        MarketEvents::Offer(State, Card(State, Id, FString::Printf(TEXT("%s yenilensin mi?"), *B.Name), Text, Oldest));
+        State.ProposalQuiet.Add(Key, State.Day + OpenQuietDays);
+    }
 }
 
 bool MarketCommand::Resolve(FMarketState& State, const TArray<FMarketProduct>& Products, const FMarketDecision& D, int32 Option, FString& OutMessage)
@@ -128,6 +156,12 @@ bool MarketCommand::Resolve(FMarketState& State, const TArray<FMarketProduct>& P
         const TArray<FString>& Formats = MarketBranches::FormatIds();
         const FString Format = Formats.IsValidIndex(D.Arg) ? Formats[D.Arg] : FString(TEXT("mahalle"));
         if (!MarketBranches::Open(State, Products, Country, Province, Format, OutMessage)) OutMessage = TEXT("A\u00e7\u0131lamad\u0131: ") + OutMessage;
+        return true;
+    }
+    if (D.Id.StartsWith(TEXT("command.renew:"))) // D9b (M46)
+    {
+        if (Option != 0) { OutMessage = TEXT("Yenileme \u015fimdilik yap\u0131lmayacak; il m\u00fcd\u00fcr\u00fc alt\u0131 ay sonra yeniden bakar."); return true; }
+        if (!MarketPortfolio::Renovate(State, Products, D.Arg, OutMessage)) OutMessage = TEXT("Yenilenemedi: ") + OutMessage;
         return true;
     }
     OutMessage = TEXT("Bu karar art\u0131k ge\u00e7erli de\u011fil.");

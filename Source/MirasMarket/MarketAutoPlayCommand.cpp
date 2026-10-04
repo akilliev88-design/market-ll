@@ -1,4 +1,5 @@
 #include "MarketAutoPlayCommand.h"
+#include "MarketPortfolio.h"
 #include "MarketAdvertising.h"
 #include "MarketAutoPlayFinance.h"
 #include "MarketBranches.h"
@@ -38,11 +39,18 @@ namespace MarketAutoPlayCommand
             if(!MarketBranches::CanOpen(State,Products,Country,Province,Format,Reason))return 1;
             return MarketAutoPlayFinance::CanExpand(State,MarketBranches::OpeningCost(State,Products,Country,Province,Format),MarketBranches::MonthlyFixedCost(State,Country,Province,Format),ExpansionBuffer)?0:1;
         }
+        if(Card.Id.StartsWith(TEXT("command.renew:"))) // D9b (M46): renew when the till keeps three times the works above the reserve
+        {
+            if(MarketAutoPlayRescue::Blocked(State))return 1;
+            const int64 Cost=MarketPortfolio::WorksCost(State,Products,Card.Arg,MarketPortfolio::EWorks::Renovate);
+            return Cost>0 && State.Cash>=MarketAutoPlayFinance::NetworkReserve(State)+3*Cost?0:1;
+        }
         return Card.DefaultOption;
     }
     void RecordChoice(const FMarketState& State,const FMarketDecision& Card,int32 Option,FStats& Stats)
     {
         const bool Open=Card.Id.StartsWith(TEXT("command.open:"));
+        if(Card.Id.StartsWith(TEXT("command.renew:"))){Event(Stats,State.Day,TEXT("kart_secimi"),Card.Id,Option);return;}
         if(Open){if(Option==0)++Stats.OpenAccepted;else ++Stats.OpenRejected;}
         else{if(Option==0)++Stats.CloseAccepted;else ++Stats.CloseRejected;}
         Event(Stats,State.Day,TEXT("kart_secimi"),Card.Id,Option);

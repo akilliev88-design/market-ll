@@ -32,6 +32,8 @@
 #include "MarketResearch.h"
 #include "MarketFranchise.h"
 #include "MarketStrategy.h"
+#include "MarketPortfolio.h"
+#include "MarketResponse.h"
 
 float MarketDirector::TrafficFactor(const FMarketState& State, const TArray<FMarketProduct>& Products)
 {
@@ -175,6 +177,15 @@ bool MarketDirector::Command(FMarketState& State, const TArray<FMarketProduct>& 
         return MarketBranches::Open(State, Products, Country, Province, Format, OutMessage);
     }
     if (Action == TEXT("CloseBranch")) return MarketBranches::Close(State, Products, Arg, OutMessage);
+    if (Action == TEXT("RenovateBranch")) return MarketPortfolio::Renovate(State, Products, Arg, OutMessage);   // D9b (M46): Arg = branch
+    if (Action == TEXT("RelocateBranch")) return MarketPortfolio::Relocate(State, Products, Arg, OutMessage);
+    if (Action == TEXT("ReformatBranch")) // D9b (M46): Arg = MarketPortfolio::EncodeFormat
+    {
+        int32 Branch = INDEX_NONE;
+        FString Format;
+        if (!MarketPortfolio::DecodeFormat(Arg, Branch, Format)) { OutMessage = TEXT("B\u00f6yle bir t\u00fcr yok."); return false; }
+        return MarketPortfolio::Reformat(State, Products, Branch, Format, OutMessage);
+    }
     if (Action == TEXT("Promote"))
     {
         int32 Newest = INDEX_NONE;
@@ -377,6 +388,8 @@ void MarketDirector::CloseDay(FMarketState& State, const TArray<FMarketProduct>&
     MarketResearch::CloseDay(State);             // M58: market studies that are ready today
     MarketFranchise::CloseDay(State);            // D6 (M67): partner stores under our brand, the month's royalty
     MarketStrategy::CloseDay(State, Products);   // D9 (M48-M50): strategic forks, province pushes, paths
+    MarketPortfolio::CloseDay(State);            // D9b (M46): the stores' yearly report cards
+    MarketResponse::CloseDay(State);             // D9b (M47): answers to rivals' moves and crises (managers, the player's last word)
     MarketPayments::CloseDay(State);             // card money arrives, commissions and POS rent (G-069)
     MarketOnline::CloseDay(State, Products);     // M32: online orders of every shop, per province (after the branches)
     MarketAdvertising::CloseDay(State);          // M34: the company's ads: their cost, what stays in minds, the month's mix
