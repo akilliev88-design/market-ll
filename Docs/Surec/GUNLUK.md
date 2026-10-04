@@ -1,3 +1,13 @@
+## 04.10.2026 — Codex — G-106 sanat yönü ön tasarımı / Adım 1
+
+**Yapılan:** Mustafa'nın özgün kimlik isteği ve `Docs/Uretim/F_STIL_REHBERI.md` doğrultusunda üç yön hazırlandı: Emanet Defteri, Kuşak İzi, Komşuluk Ağı. Her birinde renk, yazı, ikon yaklaşımı, kart/düğme, harita ekranı ve büyüyen tabela fikri. Rehber: `Docs/Environment/STIL_ON_TASARIM.md`; görsel kaynak: `C:/Users/mtass/.codex/visualizations/2026/10/04/01a1069b-8591-7660-aa49-7aad425b03a9/miras-sanat-yonleri.html`.
+
+**Varsayım:** İstek proje briefindeki Adım 1 olarak ele alındı; kesin yön seçilmedi. Emanet Defteri tasarım önerisi. Örnek rakamlar simülasyon verisi değil; ikonlar geçici, tarayıcıda sistem fontu. Başka oyun/marka referansı kullanılmadı.
+
+**Doğrulama:** JS sözdizimi; Edge headless: üç yön × 1024/360 genişlik, yatay taşma yok, üç düğme kendi açıklamasını güncelliyor, JS hatası yok. Açık tema görüntüleri incelendi; il sınırı sayı biçimleme hatası düzeltildi ve harita tekrar incelendi. Koyu tema render edildi; bütün kontrast çiftleri henüz ölçülmedi. Kod/varlık değişmedi; DERLE/TEST/Smoke çalıştırılmadı.
+
+**Sıradaki:** Mustafa yönü seçer; Adım 2'de tam renk rolleri, font uygulaması, özgün SVG ikonlar ve bileşenler. G-106 genel işi devam ediyor; Claude D9a koduna dokunulmadı.
+
 ## 04.10.2026 — Claude Code — D9a: M48–M50 yeni yapıya taşındı (derlenmedi)
 
 **Mustafa:** "D9'u yapalım, o da sonuçlara etki edecek."

@@ -1,6 +1,8 @@
 # Güncel durum
 
-Son güncelleme: 04.10.2026 — Claude Code, akis-cc2: D9a M48–M50 (derlenmedi)
+Son güncelleme: 04.10.2026 — Codex: G-106 ön tasarım, Adım 1; D9a kodu derlenmedi
+
+**04.10.2026 — Codex / G-106 sanat yönü ön tasarımı:** Üç özgün yön: Emanet Defteri (önerilen), Kuşak İzi, Komşuluk Ağı. Renk/yazı tablosu, ikon kuralları, yönetim ekranı, tabela ve kısa 3B yön notları `Docs/Environment/STIL_ON_TASARIM.md`. Sohbette üç yönlü görsel karşılaştırma sunuldu. Önizleme 1024/360 genişlikte üç yön için taşma ve düğme güncelleme kontrolünden geçti; JS hatası yok; harita görseli incelendi. Geçici ikonlar ve sistem fontu; tam kontrast/font kontrolü sonraki adım. **Devam notu:** Mustafa yönü seçince Adım 2; G-106 bütünü tamamlanmadı, oyuna uygulanmadı. Kod/varlık değişmedi; DERLE/TEST/Smoke çalıştırılmadı. Claude'un D9a işi devralınmadı.
 
 ## Kısaca
 
