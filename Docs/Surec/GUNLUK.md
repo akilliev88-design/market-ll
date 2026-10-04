@@ -1,3 +1,9 @@
+## 04.10.2026 — Claude Code — Görev panosu temizliği
+
+**Mustafa:** Bu turun bot sonucundan sonra dengeye kısa ara; D9 (orta oyun: M46–M50) ve eski görevlerin temizliği.
+
+**Yapılan:** GÖREVLER'de dünya yapısıyla aşılan satırlar kapatıldı (G-079, G-080, G-081, G-082, G-084, G-096: "Kapandı (aşıldı)", nedeniyle); uzun süredir "doğrulama bekliyor" olup sonraki derlemelerde doğrulanmış olanlar "Bitti" yapıldı (G-074–G-078, G-083, G-086, G-089, D3-D5). Yeni satırlar: D1–D8 (D8 devam ediyor), D9 orta oyun (sırada), Aşama 2'den G-104 öğretici, G-105 mağaza ziyareti, G-106 sanat yönü/stil rehberi, G-107 İngilizce. Ürün Stüdyosu satırları (G-003, G-013, G-015, G-017) Mustafa'nın elle denemesini beklediği için olduğu gibi kaldı.
+
 ## 04.10.2026 — Claude Code — Atak bot fazla hızlı büyüyordu (derlenmedi)
 
 **Mustafa:** "Atak moddaki senede 2 katı mağazaya çıktığı için çok uzun sürüyor."
