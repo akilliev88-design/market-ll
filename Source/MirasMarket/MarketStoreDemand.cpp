@@ -11,6 +11,7 @@
 #include "MarketPromotions.h"
 #include "MarketSimulation.h"
 #include "MarketStart.h"
+#include "MarketStrategy.h"
 #include "MarketTuning.h"
 
 namespace MarketStoreDemandLocal
@@ -40,7 +41,10 @@ float MarketStoreDemand::Pull(const FMarketState& State, const FStoreDay& Store)
 {
     return FMath::Exp(-(Store.PriceIndex - 1.f) / PriceSensitivity) * Store.Availability * Store.Service *
         (0.8f + Store.Satisfaction / 250.f) * (0.9f + 0.4f * Store.Maturity) * (Store.bNew ? 1.3f : 1.f) * MarketCompany::TrafficBonus(State)
-        * Store.PullExtra;
+        * Store.PullExtra
+        // D9 (M48-M50): a province push, the paths, the chain's focus, the growth model's service; every store alike.
+        * MarketStrategy::PullFactor(State, MarketStoreDemandLocal::SiteOf(State, Store).Country, MarketStoreDemandLocal::SiteOf(State, Store).Province, State.Day)
+        * MarketStrategy::ServiceFactor(State);
 }
 
 float MarketStoreDemand::Share(const FMarketState& State, const FStoreDay& Store, int32 Day)

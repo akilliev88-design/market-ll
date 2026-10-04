@@ -2,6 +2,7 @@
 #include "MarketCampaign.h"
 #include "MarketResearch.h"
 #include "MarketFranchise.h"
+#include "MarketStrategy.h"
 #include "MarketTuning.h"
 #include "MarketSimulation.h"
 #include "MarketOrderAdvice.h"
@@ -69,6 +70,14 @@ namespace MarketAutoPlay
             if (Choice.Id.StartsWith(TEXT("finance."))) Option = Profile.bBorrow && !MarketAutoPlayRescue::Blocked(State) ? 0 : FMath::Min(1, Choice.Options.Num() - 1);
             if(Choice.Id.StartsWith(TEXT("online.")))Option=MarketAutoPlayOnline::Choice(State,Choice,static_cast<int32>(Profile.Style),Run.Online.Offline);
             if(Choice.Id.StartsWith(TEXT("command.")))Option=MarketAutoPlayCommand::Choice(State,Products,Choice,Profile.ExpansionBuffer);
+            // D9 (M49): the forks by style (careful: home region, short leases, logistics; balanced: small towns,
+            // own buildings, production; bold: big cities, fast roll-out, loyalty).
+            if (Choice.Id.StartsWith(TEXT("strategy.")))
+            {
+                static const int32 Picks[3][3] = { { 0, 2, 1 }, { 2, 1, 0 }, { 1, 0, 2 } };
+                const int32 Fork = Choice.Id == TEXT("strategy.focus") ? 0 : Choice.Id == TEXT("strategy.growth") ? 1 : 2;
+                Option = Picks[FMath::Clamp(static_cast<int32>(Profile.Style), 0, 2)][Fork];
+            }
             if(Run.bNoGrowth && (Choice.Id.StartsWith(TEXT("command.open")) || Choice.Id.StartsWith(TEXT("finance.")))) Option=FMath::Min(1, Choice.Options.Num()-1);
             Option = FMath::Clamp(Option, 0, FMath::Max(0, Choice.Options.Num() - 1));
             const bool Chosen=Command(State, Products, TEXT("Decide"), Option, Run);
@@ -188,6 +197,24 @@ namespace MarketAutoPlay
             Command(State, Products, TEXT("TakeLoan"), 2, Run);
         // C14c: why a growth turn ends without a shop (the report lists these under the postponed decisions).
         if (State.Cash <= Reserve) { ++Run.C.Blocked.FindOrAdd(TEXT("B\u00fcy\u00fcme turu: kasa yede\u011fin alt\u0131nda")); return; }
+        // D9 (M48): the balanced and the bold player push one province at a time where a rival is within reach.
+        if (Profile.Style != EStyle::Careful && !Run.bNoGrowth)
+        {
+            bool bActive = false;
+            for (const FMarketPush& P : State.Strategy.Pushes) bActive |= State.Day <= P.EndDay;
+            if (!bActive)
+                for (const FString& K : MarketStrategy::OurProvinces(State, 8))
+                {
+                    FString Country, Province, Why;
+                    if (!K.Split(TEXT("|"), &Country, &Province) || MarketStrategy::IsChampion(State, Country, Province)) continue;
+                    const int32 Theirs = MarketStrategy::RivalStoresIn(State, Country, Province);
+                    const int32 Ours = MarketBranches::ShopsIn(State, Country, Province);
+                    if (Theirs == 0 || Theirs > Ours + 3 || !MarketStrategy::CanPush(State, Country, Province, Why)) continue;
+                    if (State.Cash < Reserve + MarketStrategy::PushDailyCost(State, Country, Province) * MarketStrategy::PushDays) continue;
+                    Command(State, Products, TEXT("ProvincePush"), MarketBranches::EncodeSite(Country, Province, TEXT("mahalle")), Run);
+                    break;
+                }
+        }
         // C15 (M45): the careful and the balanced player read the menu's warning and wait for management; the bold one takes the gamble.
         if (Profile.Style != EStyle::Bold && MarketBranches::GrowthStrain(State, 1) > 0.f) { ++Run.C.Blocked.FindOrAdd(TEXT("B\u00fcy\u00fcme turu: y\u00f6netim yeti\u015fmiyor, bekliyor")); return; }
         const int32 Stores = MarketCompany::TotalStores(State);

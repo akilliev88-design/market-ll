@@ -31,6 +31,7 @@
 #include "MarketStart.h"
 #include "MarketResearch.h"
 #include "MarketFranchise.h"
+#include "MarketStrategy.h"
 
 float MarketDirector::TrafficFactor(const FMarketState& State, const TArray<FMarketProduct>& Products)
 {
@@ -276,6 +277,12 @@ bool MarketDirector::Command(FMarketState& State, const TArray<FMarketProduct>& 
     if (Action == TEXT("ReplaceMasters")) // M26: Arg = department
         return MarketDepartments::ReplaceWeakMasters(State, static_cast<MarketDepartments::EDept>(FMath::Clamp(Arg, 0, MarketDepartments::DeptCount)), OutMessage);
     if (Action == TEXT("BuyChain")) return MarketChains::Buy(State, Products, Arg, OutMessage); // Arg = State.Rivals.Chains index (Akis C2b)
+    if (Action == TEXT("ProvincePush")) // D9 (M48): Arg = MarketBranches::EncodeSite (the format is ignored)
+    {
+        FString Country, Province, Format;
+        if (!MarketBranches::DecodeSite(Arg, Country, Province, Format)) { OutMessage = TEXT("B\u00f6yle bir il yok."); return false; }
+        return MarketStrategy::StartPush(State, Country, Province, OutMessage);
+    }
     if (Action == TEXT("BidChain")) return MarketChains::Bid(State, Products, Arg, OutMessage); // M29: a takeover bid
     if (Action == TEXT("ConvertStores")) return MarketChains::Convert(State, Products, Arg / 100, Arg % 100, OutMessage); // M30: chain x 100 + count
     if (Action == TEXT("SellSubsidiary")) return MarketChains::SellSubsidiary(State, Arg, OutMessage);
@@ -369,6 +376,7 @@ void MarketDirector::CloseDay(FMarketState& State, const TArray<FMarketProduct>&
     MarketSubsidiaries::CloseDay(State);         // M65: our companies abroad send the month's profit to the parent
     MarketResearch::CloseDay(State);             // M58: market studies that are ready today
     MarketFranchise::CloseDay(State);            // D6 (M67): partner stores under our brand, the month's royalty
+    MarketStrategy::CloseDay(State, Products);   // D9 (M48-M50): strategic forks, province pushes, paths
     MarketPayments::CloseDay(State);             // card money arrives, commissions and POS rent (G-069)
     MarketOnline::CloseDay(State, Products);     // M32: online orders of every shop, per province (after the branches)
     MarketAdvertising::CloseDay(State);          // M34: the company's ads: their cost, what stays in minds, the month's mix

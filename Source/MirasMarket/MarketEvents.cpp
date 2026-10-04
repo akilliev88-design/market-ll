@@ -10,6 +10,7 @@
 #include "MarketStaff.h"
 #include "MarketStory.h"
 #include "MarketFinance.h"
+#include "MarketStrategy.h"
 
 namespace MarketEvents
 {
@@ -211,6 +212,7 @@ bool MarketEvents::Decide(FMarketState& State, const TArray<FMarketProduct>& Pro
         : D.Id.StartsWith(TEXT("finance.")) ? MarketFinance::Resolve(State, Products, D, Option, OutMessage)
         : D.Id.StartsWith(TEXT("online.")) ? MarketOnline::Resolve(State, Products, D, Option, OutMessage) // M32
         : D.Id.StartsWith(TEXT("command.")) ? MarketCommand::Resolve(State, Products, D, Option, OutMessage) // M33
+        : D.Id.StartsWith(TEXT("strategy.")) ? MarketStrategy::Resolve(State, Products, D, Option, OutMessage) // D9 (M49)
         : ResolveEvent(State, Products, D, Option, OutMessage);
     if (bDone && State.Decisions.Num() > 0 && State.Decisions[0].Id == D.Id) State.Decisions.RemoveAt(0);
     return bDone;

@@ -438,6 +438,42 @@ struct FMarketResearch
     UPROPERTY() int64 Cost = 0;
 };
 
+// C16/D9 (M48-M50): province pushes, strategic forks, paths (MarketStrategy.h).
+USTRUCT()
+struct FMarketPush
+{
+    GENERATED_BODY()
+    UPROPERTY() FString Country;
+    UPROPERTY() FString Province;
+    UPROPERTY() int32 StartDay = 0;
+    UPROPERTY() int32 EndDay = 0;            // last day of the campaign
+    UPROPERTY() bool bEnded = false;         // its end was told and its effects drawn
+    UPROPERTY() int32 Withdrawn = 0;         // rival shops that gave up at the end
+};
+
+USTRUCT()
+struct FMarketStrategyState
+{
+    GENERATED_BODY()
+    UPROPERTY() uint8 Focus = 0;             // MarketStrategy::EFocus
+    UPROPERTY() uint8 Growth = 0;            // MarketStrategy::EGrowth
+    UPROPERTY() uint8 Vertical = 0;          // MarketStrategy::EVertical
+    UPROPERTY() int32 FocusDay = 0;
+    UPROPERTY() int32 GrowthDay = 0;
+    UPROPERTY() int32 VerticalDay = 0;
+    UPROPERTY() int32 AskFocusDay = 0;       // "not now": the fork is asked again from this day
+    UPROPERTY() int32 AskGrowthDay = 0;
+    UPROPERTY() int32 AskVerticalDay = 0;
+    UPROPERTY() TArray<FMarketPush> Pushes;
+    UPROPERTY() TArray<uint8> Tiers;         // MarketStrategy::EPath order, at the last monthly look
+    UPROPERTY() TArray<uint8> BestTiers;
+    UPROPERTY() TArray<FString> Champions;   // "country|province" at the last monthly look
+    UPROPERTY() int32 LastLookDay = 0;
+    UPROPERTY() int32 LoyaltyDay = 0;        // the loyalty programme was last paid on this day
+    UPROPERTY() int64 LoyaltyPaid = 0;       // counters for the reports
+    UPROPERTY() int64 PushPaid = 0;
+};
+
 // D6 (M67): a master franchise in a country: a local partner opens stores under our brand and pays a royalty
 // (MarketFranchise.h).
 USTRUCT()
@@ -952,7 +988,7 @@ struct FMarketState
     static constexpr int64 StockerDailyWage = 2000;
 
     // Save format version. 2 (G-076): story finale flags, test-mode mark. Older saves load and are migrated.
-    static constexpr int32 CurrentVersion = 19; // D6: franchises; // M54/M58/M59; // E4b: loans abroad; // M65: subsidiaries; // E4: the exchange difference account; // E3c2c: branch staff are people; // M64: the father's favour is counted; // E3c2 (M27): branch goods use the family shop's record, the v0.1 staff flags are gone; older saves start a new game
+    static constexpr int32 CurrentVersion = 20; // D9: strategy (M48-M50); // D6: franchises; // M54/M58/M59; // E4b: loans abroad; // M65: subsidiaries; // E4: the exchange difference account; // E3c2c: branch staff are people; // M64: the father's favour is counted; // E3c2 (M27): branch goods use the family shop's record, the v0.1 staff flags are gone; older saves start a new game
     UPROPERTY() int32 Version = CurrentVersion;
     UPROPERTY() int32 Day = 1;
     UPROPERTY() int64 Cash = 35000;
@@ -1099,6 +1135,7 @@ struct FMarketState
     UPROPERTY() FMarketLedger Ledger;
     // B4: eras of the economy (MarketEras.h).
     UPROPERTY() FMarketEras Eras;
+    UPROPERTY() FMarketStrategyState Strategy; // D9 (M48-M50): province pushes, strategic forks, paths (MarketStrategy.h)
     // B6: goals, firsts, records, celebrations, the rhythm guard (MarketGoals.h).
     UPROPERTY() FMarketGoals Goals;
     // ===== Ak\u0131\u015f B son =====

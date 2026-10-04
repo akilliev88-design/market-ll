@@ -1,3 +1,13 @@
+## 04.10.2026 — Claude Code — D9a: M48–M50 yeni yapıya taşındı (derlenmedi)
+
+**Mustafa:** "D9'u yapalım, o da sonuçlara etki edecek."
+
+**Yapılan:** İl atağı (M48), yol ayrımları (M49) ve yollar (M50) bekleyen koddan alınıp bugünkü yapıya bağlandı. Önemli fark: etkiler artık bütün mağazaların ortak müşteri formülünde; aile dükkânı da şampiyon ilde, atak ilinde ve odak bölgesinde aynı kazancı alıyor. Eski koddaki bir hata düzeltildi ("insan yetiştiren" yolu mağaza müdürlerini yanlış yerde arıyordu). Özel markanın %2'si fiyatı artırmak yerine mal maliyetini düşürüyor (müşteriyi kaçırmıyor). Kayıt sürümü 20, 2 yeni test (174).
+
+**Doğrulama:** Derlenmedi.
+
+**Sıradaki:** M46 (mağaza portföyü) ve M47 (krizlere/rakiplere cevap) için Mustafa'ya tasarım önerisi.
+
 ## 04.10.2026 — Claude Code — Dengeli bot 15 yıl (D8b) sonucu
 
 **son.log (3d2ed3a):** DERLE geçti; TEST 171 başarılı + 1 uyarı; Smoke geçti.

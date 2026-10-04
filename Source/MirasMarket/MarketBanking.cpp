@@ -1,4 +1,5 @@
 #include "MarketBanking.h"
+#include "MarketStrategy.h"
 #include "MarketBranches.h"
 #include "MarketCast.h"
 #include "MarketCalendar.h"
@@ -250,7 +251,7 @@ bool MarketBanking::CovenantBroken(const FMarketState& State)
 double MarketBanking::YearRate(const FMarketState& State, int32 BankIndex)
 {
     return FMath::Max(0.01, MarketPrices::LoanRate(FMath::Max(1, State.Day)) + Bank(State, BankIndex).Spread + RatingSpread(Rating(State))
-        + (CovenantBroken(State) ? BreachPenalty : 0.f));
+        + (CovenantBroken(State) ? BreachPenalty : 0.f) - MarketStrategy::RateDiscount(State)); // D9 (M50): the efficient path
 }
 
 int64 MarketBanking::InstallmentOf(int64 Principal, double Rate, int32 Months, bool bBond)
@@ -529,7 +530,7 @@ double MarketBanking::YearRateIn(const FMarketState& State, const FString& Count
 {
     if (Country.IsEmpty() || Country == State.CountryId) return YearRate(State, BankIndex);
     return FMath::Max(0.01, MarketPrices::LoanRate(Country, FMath::Max(1, State.Day)) + Bank(State, BankIndex).Spread + RatingSpread(Rating(State))
-        + (CovenantBroken(State) ? BreachPenalty : 0.f));
+        + (CovenantBroken(State) ? BreachPenalty : 0.f) - MarketStrategy::RateDiscount(State)); // D9 (M50): the efficient path
 }
 
 bool MarketBanking::BorrowIn(FMarketState& State, const FString& Country, int32 BankIndex, int32 Step, int32 Tenor, bool bGrace, FString& OutMessage)

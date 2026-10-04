@@ -37,6 +37,7 @@ namespace MarketAutoPlayC
         int32 LastNational=0, LastWorld=0, LastStores=1;
         int64 BrandMoney=0;
         FString Nemesis;
+        FString Strategy; // D9 (M48-M50): forks, pushes, paths at the last look
         TArray<FEraResult> Eras;
         TSet<FString> SeenGoals;
         int32 ObservedDay=0, GapDays=0, GoalsSeen=0, GoalsCompleted=0, Celebrations=0;

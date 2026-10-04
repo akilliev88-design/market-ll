@@ -173,6 +173,8 @@ namespace MarketChains
     bool ForceEnter(FMarketState& State, int32 ChainIndex, const FString& Province, FString& OutNews);
     bool ForceAcquire(FMarketState& State, int32 BuyerIndex, int32 TargetIndex, FString& OutNews);
     bool ForceWar(FMarketState& State, int32 ChainIndex, const FString& Province, FString& OutNews);
+    // D9 (M48): a chain gives up one of its shops in a province (our province push).
+    bool Withdraw(FMarketState& State, int32 ChainIndex, const FString& Province, FString& OutNews);
     int32 FindChainIndex(const FMarketState& State, const FString& Id);
     FString ProvinceName(const FString& Country, const FString& Province);
 

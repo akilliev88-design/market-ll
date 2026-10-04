@@ -1,8 +1,10 @@
 # Güncel durum
 
-Son güncelleme: 04.10.2026 — Claude Code, akis-cc2: dengeli bot 15 yıl sonucu; bot İK düzeltmesi (derlenmedi); sırada D9
+Son güncelleme: 04.10.2026 — Claude Code, akis-cc2: D9a M48–M50 (derlenmedi)
 
 ## Kısaca
+
+**04.10.2026 — Claude Code / D9a: il atağı, yol ayrımları, yollar (derlenmedi, `akis-cc2`, M48–M50):** C16'nın bekleyen kodu (`Docs/Surec/bekleyen/C16`) yeni yapıya taşındı: `MarketStrategy.h/.cpp/Tests` (2 test). Değişiklikler: strateji çekimi (il atağı, şampiyon/halk yolu, odak, hızlı büyümenin hizmet kaybı) artık `MarketStoreDemand::Pull` içinde, yani aile dükkânı dahil her mağazada; özel markanın kazancı şube mal maliyetinde (÷1,02, talebe dokunmaz); "insan yetiştiren" yolu mağaza müdürlerini şubelerden sayar (eski kod yanlış listeye bakıyordu); il atağı ve sadakat ödemesi günün kârından da düşer. Bağlantılar: `MarketBranches` (tadilat, kira, kötü yer, depo kaybı, kapasite), `MarketBanking::YearRate/YearRateIn` (verimli yol indirimi), `MarketChains::Withdraw`, `MarketDirector` (`ProvincePush`, `CloseDay`), `MarketEvents` (`strategy.*`), Şirket sayfasında "Strateji, yollar ve iller" kartı, bot (tarza göre yol ayrımı, dengeli/atak il atağı, rapor satırı "Strateji (D9)"). Kayıt sürümü 20. Bot: 2 şubede İK müdürü (önceki tur). Test.ps1 174. **Devam notu:** Mustafa derler; ardından M46/M47 tasarımı (Mustafa'ya öneri).
 
 **04.10.2026 — Claude Code / 3d2ed3a doğrulandı + dengeli bot 15 yıl (D8b):** DERLE, TEST 171 + 1 uyarı, Smoke geçti. Bot (dengeli, 15 yıl, 47 dk): kasa eksi 0, denetim 0; mağaza 3→28 (8. yıl)→143 (11.)→525 (15.); ilk yurt dışı 9. yıl, 11. yılda 9 ülke (Japonya'ya "girmeyin" dendiği için girmedi); dünya listesine 12. yılda (43.), 15. yılda 37.; ülkede 7. Erken oyunu 74 kez "üçüncü mağaza için İK müdürü" durdurmuş: bot artık 2 şubede İK müdürü alıyor (**derlenmedi**). Diğer bulgular G-108 "denge notları"na yazıldı (aile dükkânı 15 yılda −52 M, geç internet zararı, yönetim ücretleri, zincir almama, dünya lideriyle 22 kat fark). Mustafa: dengeye kısa ara, sırada D9. **Devam notu:** D9 M46 mağaza portföyüyle başlıyor.
 

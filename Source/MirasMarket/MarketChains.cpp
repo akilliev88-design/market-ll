@@ -939,6 +939,21 @@ bool MarketChains::ForceAcquire(FMarketState& State, int32 BuyerIndex, int32 Tar
     return true;
 }
 
+bool MarketChains::Withdraw(FMarketState& State, int32 ChainIndex, const FString& Province, FString& OutNews)
+{
+    if (!State.Rivals.Chains.IsValidIndex(ChainIndex)) return false;
+    FMarketChain& C = State.Rivals.Chains[ChainIndex];
+    if (C.bGone || C.bOurs) return false;
+    for (FMarketChainSpot& S : C.Spots)
+        if (S.Province == Province && S.Stores > 0)
+        {
+            --S.Stores;
+            OutNews = FString::Printf(TEXT("%s, bir ma\u011fazas\u0131n\u0131 kapatt\u0131 (%s)."), *C.Name, *MarketChainsLocal::CityName(C.Country, Province));
+            return true;
+        }
+    return false;
+}
+
 bool MarketChains::ForceWar(FMarketState& State, int32 ChainIndex, const FString& Province, FString& OutNews)
 {
     using namespace MarketChainsLocal;

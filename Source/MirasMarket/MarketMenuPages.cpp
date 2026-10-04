@@ -42,6 +42,7 @@
 #include "MarketResearch.h"
 #include "MarketFranchise.h"
 #include "MarketWorldMap.h"
+#include "MarketStrategy.h"
 #include "Widgets/Layout/SSpacer.h"
 #include "Widgets/Images/SImage.h"
 #include "Widgets/Input/SButton.h"
@@ -4458,6 +4459,49 @@ TSharedRef<SWidget> SMarketMenu::CompanyTab()
         ];
     }
 
+    // D9 (M48-M50): the strategic forks, the paths and our province markets with the push.
+    auto ProvinceAt = [G](int32 Slot) -> FString
+    {
+        if (!G()) return FString();
+        const TArray<FString> List = MarketStrategy::OurProvinces(G()->State, 6);
+        return List.IsValidIndex(Slot) ? List[Slot] : FString();
+    };
+    TSharedRef<SVerticalBox> PathRows = SNew(SVerticalBox);
+    for (int32 P = 0; P < static_cast<int32>(MarketStrategy::EPath::Count); ++P)
+        PathRows->AddSlot().AutoHeight().Padding(0.f, 2.f)
+        [ Label([G, P] { return G() ? MarketStrategy::PathLine(G()->State, static_cast<MarketStrategy::EPath>(P)) : FString(); }, 10, ERole::Text, false, true) ];
+    TSharedRef<SVerticalBox> ProvinceRows = SNew(SVerticalBox);
+    for (int32 Slot = 0; Slot < 6; ++Slot)
+    {
+        ProvinceRows->AddSlot().AutoHeight().Padding(0.f, 2.f)
+        [
+            SNew(SHorizontalBox).Visibility_Lambda([ProvinceAt, Slot] { return ProvinceAt(Slot).IsEmpty() ? EVisibility::Collapsed : EVisibility::Visible; })
+            + SHorizontalBox::Slot().FillWidth(1.f).VAlign(VAlign_Center)
+            [ Label([G, ProvinceAt, Slot] { FString C, P; return ProvinceAt(Slot).Split(TEXT("|"), &C, &P) ? MarketStrategy::ProvinceLine(G()->State, C, P) : FString(); }, 10, ERole::Text, false, true) ]
+            + SHorizontalBox::Slot().AutoWidth().VAlign(VAlign_Center).Padding(8.f, 0.f, 0.f, 0.f)
+            [ RiskyButton([] { return FString(TEXT("\u0130l ata\u011f\u0131")); },
+                [G, ProvinceAt, Slot] { FString C, P; if (!ProvinceAt(Slot).Split(TEXT("|"), &C, &P)) return FString();
+                    return FString::Printf(TEXT("%s: %d g\u00fcn yerel kampanya: g\u00fcnde %s (toplam yakla\u015f\u0131k %s). \u015eubelerimize daha \u00e7ok m\u00fc\u015fteri gelir; rakip fiyat k\u0131rabilir; sonunda k\u00fc\u00e7\u00fck rakipler bir ma\u011fazas\u0131n\u0131 kapatabilir. Ba\u015flas\u0131n m\u0131?"),
+                        *MarketChains::ProvinceName(C, P), MarketStrategy::PushDays, *MarketCountry::Money(MarketStrategy::PushDailyCost(G()->State, C, P)),
+                        *MarketCountry::Money(MarketStrategy::PushDailyCost(G()->State, C, P) * MarketStrategy::PushDays)); },
+                [this, ProvinceAt, Slot] { FString C, P; if (ProvinceAt(Slot).Split(TEXT("|"), &C, &P)) Manage(TEXT("ProvincePush"), MarketBranches::EncodeSite(C, P, TEXT("mahalle"))); },
+                [G, ProvinceAt, Slot] { FString C, P, Why; return G() && ProvinceAt(Slot).Split(TEXT("|"), &C, &P) && MarketStrategy::CanPush(G()->State, C, P, Why); }) ]
+        ];
+    }
+    TSharedRef<SWidget> StrategyCard = Card(SNew(SVerticalBox)
+        + SVerticalBox::Slot().AutoHeight()
+        [
+            SNew(SHorizontalBox)
+            + SHorizontalBox::Slot().FillWidth(1.f).VAlign(VAlign_Center)[ Section(TEXT("STRATEJ\u0130, YOLLAR VE \u0130LLER")) ]
+            + SHorizontalBox::Slot().AutoWidth().VAlign(VAlign_Center)
+            [ More([] { return FString(TEXT("Yol ayr\u0131mlar\u0131: 5, 25 ve 100 \u015fubede \u015firketin y\u00f6n\u00fc sorulur (odak, b\u00fcy\u00fcme modeli, b\u00fcy\u00fck yat\u0131r\u0131m). Se\u00e7im kal\u0131c\u0131d\u0131r.\n\nYollar: b\u00fcy\u00fckl\u00fckten ba\u015fka d\u00f6rt iyi olma yolu. Her ay \u00f6l\u00e7\u00fcl\u00fcr, \u00fc\u00e7 basama\u011f\u0131 var; basamak d\u00fc\u015febilir. Her basamak k\u00fc\u00e7\u00fck bir kazan\u0131m getirir.\n\n\u0130ller: bir ilde her rakip zincirden \u00e7ok ma\u011fazan varsa (en az 2) il \u015fampiyonusun. \u0130l ata\u011f\u0131 60 g\u00fcn yerel kampanyad\u0131r: \u015fubelere daha \u00e7ok m\u00fc\u015fteri gelir, rakip fiyat k\u0131rarak cevap verebilir, sonunda k\u00fc\u00e7\u00fck rakipler oradaki bir ma\u011fazas\u0131n\u0131 kapatabilir. Ayn\u0131 il alt\u0131 ay dinlenir.")); }) ]
+        ]
+        + SVerticalBox::Slot().AutoHeight().Padding(0.f, 4.f, 0.f, 0.f)
+        [ Label([G] { if (!G()) return FString(); const FString Line = MarketStrategy::StrategyLine(G()->State);
+            return Line.IsEmpty() ? FString(TEXT("Hen\u00fcz yol ayr\u0131m\u0131 se\u00e7ilmedi: ilki 5 \u015fubede gelir.")) : Line; }, 10, ERole::Muted, false, true) ]
+        + SVerticalBox::Slot().AutoHeight().Padding(0.f, 6.f, 0.f, 0.f)[ PathRows ]
+        + SVerticalBox::Slot().AutoHeight().Padding(0.f, 6.f, 0.f, 0.f)[ ProvinceRows ]);
+
     // C13 (M43): our bids waiting for an answer or accepted, and the market rumours.
     auto BidAt = [G](int32 Slot) -> int32
     {
@@ -4619,6 +4663,7 @@ TSharedRef<SWidget> SMarketMenu::CompanyTab()
             SNew(SBox).Visibility_Lambda([G] { return G() && MarketMenuSimplifyUi::C7NoNetworkYet(G()->State) ? EVisibility::Visible : EVisibility::Collapsed; })
             [ Label([] { return FString(TEXT("\u015eirket kararlar\u0131 \u015fubelerle anlam kazan\u0131r: depo, tedarik ve reyonlar ma\u011faza say\u0131s\u0131 artt\u0131k\u00e7a a\u00e7\u0131l\u0131r.")); }, 11, ERole::Muted, false, true) ]
         ]
+        + SVerticalBox::Slot().AutoHeight().Padding(0.f, 0.f, 0.f, 12.f)[ StrategyCard ]
         + SVerticalBox::Slot().AutoHeight().Padding(0.f, 0.f, 0.f, 12.f)[ TalkCard ]
         + SVerticalBox::Slot().AutoHeight().Padding(0.f, 0.f, 0.f, 12.f)
         [ Card(SNew(SVerticalBox)
@@ -4642,7 +4687,7 @@ TSharedRef<SWidget> SMarketMenu::CompanyTab()
                 + SVerticalBox::Slot().AutoHeight()[ Section(TEXT("\u015e\u0130RKET")) ]
                 + SVerticalBox::Slot().AutoHeight().Padding(0.f, 6.f, 0.f, 0.f)[ Label([G] { return G() ? MarketCompany::Summary(G()->State) : FString(); }, 11, ERole::Text, false, true) ]
                 + SVerticalBox::Slot().AutoHeight().Padding(0.f, 6.f, 0.f, 0.f)
-                [ More([] { return FString(TEXT("B\u00fct\u00fcn \u00fclke ba\u015ftan a\u00e7\u0131k. Ev ilinin d\u0131\u015f\u0131ndaki ma\u011faza \u0130K m\u00fcd\u00fcr\u00fc ve mali m\u00fc\u015favir ister; 600 km i\u00e7inde deposu olmayan ma\u011fazalar mal\u0131 toptanc\u0131dan al\u0131r (+%3). Yurt d\u0131\u015f\u0131 6. b\u00f6l\u00fcmde a\u00e7\u0131l\u0131r.")); }) ])
+                [ More([] { return FString(TEXT("B\u00fct\u00fcn \u00fclke ba\u015ftan a\u00e7\u0131k. Ev ilinin d\u0131\u015f\u0131ndaki ma\u011faza \u0130K m\u00fcd\u00fcr\u00fc ve mali m\u00fc\u015favir ister; 600 km i\u00e7inde deposu olmayan ma\u011fazalar mal\u0131 toptanc\u0131dan al\u0131r (+%3). Yurt d\u0131\u015f\u0131 ana \u00fclkede 25 ma\u011faza ve 5 ille a\u00e7\u0131l\u0131r.")); }) ])
         ]
         + SVerticalBox::Slot().AutoHeight().Padding(0.f, 12.f, 0.f, 0.f)
         [

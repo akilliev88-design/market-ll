@@ -12,6 +12,7 @@
 #include "MarketLedger.h"
 #include "MarketEras.h"
 #include "MarketGoals.h"
+#include "MarketStrategy.h"
 namespace MarketAutoPlayC
 {
     FString Key(int32 Format,int32 Dept) { return FString::Printf(TEXT("%d|%d"),Format,Dept); }
@@ -166,6 +167,14 @@ namespace MarketAutoPlayC
         }
         for(const auto& News:State.DayNews) if(News.Contains(TEXT("kepenk indirdi:")))++Stats.BankruptcyNews;
         Stats.ChainPeak=FMath::Max(Stats.ChainPeak,Alive); Stats.Nemesis=MarketChains::NemesisLine(State);
+        {
+            const FMarketStrategyState& Sg=State.Strategy;
+            int32 Ended=0,Gave=0; for(const FMarketPush& P:Sg.Pushes){ if(P.bEnded)++Ended; Gave+=P.Withdrawn; }
+            FString Tiers; for(int32 I=0;I<Sg.Tiers.Num();++I)Tiers+=FString::Printf(TEXT("%d"),static_cast<int32>(Sg.Tiers[I]));
+            const FString Line=MarketStrategy::StrategyLine(State);
+            Stats.Strategy=FString::Printf(TEXT("%s; il ata\u011f\u0131 %d (biten %d, rakibin kapatt\u0131\u011f\u0131 ma\u011faza %d, harcanan %.0f TL); \u015fampiyon il %d; yollar (\u015fampiyon/verimli/insan/halk) %s; sadakat \u00f6demesi %.0f TL"),
+                Line.IsEmpty()?TEXT("yol ayr\u0131m\u0131 se\u00e7ilmedi"):*Line,Sg.Pushes.Num(),Ended,Gave,Sg.PushPaid/100.,Sg.Champions.Num(),Tiers.IsEmpty()?TEXT("-"):*Tiers,Sg.LoyaltyPaid/100.);
+        }
         Stats.BrandMoney=State.Brands.TotalReceived;
         for(const auto& Share:State.Brands.Shares)if(MarketBrands::CostFactor(State,Share.Brand)>1.f)Stats.CoolBrands.Add(Share.Brand);
         if(Stats.Tiers.Num()!=MarketSourcing::LineCount)Stats.Tiers.Init(0,MarketSourcing::LineCount);
@@ -219,6 +228,7 @@ namespace MarketAutoPlayC
         FString Out=TEXT("\n#### C: yeni sistemlerin sonucu\n\n| Y\u0131l | Ulusal s\u0131ra | D\u00fcnya s\u0131ras\u0131 | Ma\u011faza | Bizim / liderin ortak cirosu |\n|---:|---:|---:|---:|---:|\n");
         for(const auto& Row:Stats.Years)Out+=FString::Printf(TEXT("| %d | %d | %d | %d | %.0f / %.0f |\n"),Row.Year,Row.National,Row.World,Row.Stores,Row.OurWorld,Row.LeaderWorld);
         Out+=FString::Printf(TEXT("\nRakipler: en \u00e7ok %d etkin zincir; %d farkl\u0131 sat\u0131l\u0131k zincir; %d piyasadan \u00e7ekilme (iflas veya sat\u0131n al\u0131nma); %d g\u00f6r\u00fcn\u00fcr iflas haberi; bizim %d sat\u0131n almam\u0131z; %d fiyat sava\u015f\u0131.\nEzeli rakip: %s.\nMarkalardan toplam %.2f TL; k\u00fcsen farkl\u0131 marka %d.\n"),Stats.ChainPeak,Stats.Sale,Stats.Gone,Stats.BankruptcyNews,Stats.Purchases,Stats.Wars,Stats.Nemesis.IsEmpty()?TEXT("yok"):*Stats.Nemesis,Stats.BrandMoney/100.,Stats.CoolBrands.Num());
+        Out+=FString::Printf(TEXT("\nStrateji (D9): %s.\n"),Stats.Strategy.IsEmpty()?TEXT("-"):*Stats.Strategy);
         Out+=FString::Printf(TEXT("\nC3 kapanma nedenleri: %d iflas/kapanma, %d rakip taraf\u0131ndan al\u0131nma, %d bizim al\u0131m\u0131m\u0131z. Haber say\u0131s\u0131 alt s\u0131n\u0131rd\u0131r; nedenler do\u011frudan sistem saya\u00e7lar\u0131ndan gelir.\n"),Stats.Closures,Stats.Takeovers,Stats.OurBuys);
         Out+=FString::Printf(TEXT("\nDefter denetimi: a\u00e7\u0131klanamayan fark %d g\u00fcn, toplam %.2f TL; mutlak fark toplam\u0131 %.2f TL.\nHedefler: g\u00f6zlenen %d, tamamlanan %d; kutlama %d. Ritim koruyucusu: %d sakin d\u00f6nem olay\u0131, %d ertelenen k\u00f6t\u00fc olay; e\u015fi\u011fi a\u015fan %d s\u0131k\u0131c\u0131 d\u00f6nem, en uzun sessizlik %d g\u00fcn.\n"),Stats.GapDays,Stats.GapTotal/100.,Stats.GapAbsolute/100.,Stats.GoalsSeen,Stats.GoalsCompleted,Stats.Celebrations,Stats.QuietEvents,Stats.HeldBadEvents,Stats.RhythmBoring,Stats.RhythmLongest);
         Out+=TEXT("\nD\u00f6nemler (g\u00fcnler kampanya ba\u015flang\u0131c\u0131ndan; k\u00e2r defterden; kasalar ilk/son g\u00fcn kapan\u0131\u015f\u0131, TL):\n\n| D\u00f6nem / dalga | Planlanan g\u00fcnler | Oynanan g\u00fcn | \u0130lk kasa | Son kasa | En az kasa | Net k\u00e2r |\n|---|---|---:|---:|---:|---:|---:|\n");
