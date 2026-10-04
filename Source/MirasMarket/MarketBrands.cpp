@@ -58,7 +58,7 @@ namespace MarketBrandsLocal
         }
     }
 
-    // Shelf capacity of every catalog product over the family shop and the live branches (branch items are in the
+    // Shelf capacity of every catalog product over the first store and the live branches (branch items are in the
     // catalog's order; a changed catalog falls back to a search). C3 (A istek): only a shelf with the goods on it
     // counts: an empty allocated shelf earns a brand nothing. C7 (Codex C4): only the goods ON the shelf (not the
     // depot), and a shelf counts in full from half full; below that, by what is on it.
@@ -310,7 +310,7 @@ void MarketBrands::CloseDay(FMarketState& State, const TArray<FMarketProduct>& P
     Ensure(State, Products);
     FMarketBrandsState& R = State.Brands;
 
-    // The closed day's sales by brand (family shop at its labels, branches at their price index).
+    // The closed day's sales by brand (first store at its labels, branches at their price index).
     for (int32 I = 0; I < Products.Num(); ++I)
     {
         const FMarketProduct& P = Products[I];

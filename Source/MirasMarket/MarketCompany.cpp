@@ -119,11 +119,6 @@ float MarketCompany::NationalShare(const FMarketState& State)
     return static_cast<float>(100.0 * static_cast<double>(Revenue) / static_cast<double>(CountryMarketDay(State)));
 }
 
-bool MarketCompany::ChapterOpen(const FMarketState& State, int32 Chapter)
-{
-    return State.Story.Chapter >= Chapter;   // chapters only grow (1..7); the finale keeps what was open
-}
-
 bool MarketCompany::AbroadOpen(const FMarketState& State)
 {
     if (ForeignPresence(State) > 0) return true;
@@ -154,7 +149,7 @@ FString MarketCompany::CountryStatus(const FMarketState& State, const FString& C
 {
     TArray<FString> Parts;
     const bool bHome = Country == State.CountryId;
-    int32 Own = bHome ? 1 : 0; // the family shop
+    int32 Own = bHome ? 1 : 0; // the first store
     for (const FMarketBranch& B : State.Branches) if (IsOpen(B) && MarketBranches::CountryOf(State, B) == Country) ++Own;
     const FMarketFranchise* Partner = MarketFranchise::Find(State, Country);
     if (bHome) Parts.Add(TEXT("Ana \u00fclke"));
@@ -287,24 +282,16 @@ bool MarketCompany::Build(FMarketState& State, int32 What, FString& OutMessage)
         C.bCentralBuying = true;
         return true;
     case 3:
-        if (C.bPrivateLabel) { OutMessage = TEXT("\"Miras\" markas\u0131 zaten raflarda."); return false; }
+        if (C.bPrivateLabel) { OutMessage = FString::Printf(TEXT("\"%s\" markas\u0131 zaten raflarda."), *MarketSubsidiaries::Brand(State)); return false; }
         if (Stores < 20) { OutMessage = TEXT("\u00d6zel marka i\u00e7in en az 20 ma\u011faza gerekir."); return false; }
-        if (!Pay(2000000, TEXT("\"Miras\" \u00f6zel markas\u0131"))) return false;
+        if (!Pay(2000000, TEXT("\u00d6zel marka"))) return false;
         C.bPrivateLabel = true;
-        MarketStory::AddMemory(State, TEXT("\"Miras\" markal\u0131 ilk \u00fcr\u00fcn rafta"));
+        MarketStory::AddMemory(State, FString::Printf(TEXT("\"%s\" markal\u0131 ilk \u00fcr\u00fcn rafta"), *MarketSubsidiaries::Brand(State)));
         return true;
     default:
         OutMessage = TEXT("Bilinmeyen yat\u0131r\u0131m.");
         return false;
     }
-}
-
-bool MarketCompany::LeadsToday(const FMarketState& State)
-{
-    float Satisfaction = 0.f;
-    for (const FMarketLoyalty& L : State.Loyalty) Satisfaction += L.Satisfaction;
-    const float Average = State.Loyalty.Num() > 0 ? Satisfaction / State.Loyalty.Num() : 0.f;
-    return State.MarketShare >= MarketCampaign::LeadShare(State) && TotalStores(State) >= 60 && State.LastProfit > 0 && Average >= 60.f;
 }
 
 FString MarketCompany::Summary(const FMarketState& State)
@@ -316,9 +303,8 @@ FString MarketCompany::Summary(const FMarketState& State)
     if (MarketDepots::Count(State) > 0) Built.Add(FString::Printf(TEXT("%d depo"), MarketDepots::Count(State)));
     if (C.Trucks > 0) Built.Add(FString::Printf(TEXT("%d kamyon"), C.Trucks));
     if (C.bCentralBuying) Built.Add(TEXT("merkezi al\u0131m"));
-    if (C.bPrivateLabel) Built.Add(TEXT("Miras markas\u0131"));
+    if (C.bPrivateLabel) Built.Add(TEXT("kendi markas\u0131"));
     if (Built.Num()) Line += TEXT(" \u00b7 ") + FString::Join(Built, TEXT(", "));
-    if (State.Story.Chapter == 7 && !MarketStory::StoryClosed(State)) Line += FString::Printf(TEXT("\nLiderlik: %d / %d g\u00fcn"), C.LeadershipDays, LeadershipGoalDays);
     return Line;
 }
 
@@ -345,14 +331,6 @@ void MarketCompany::CloseDay(FMarketState& State)
     State.Cash += Total;
     MarketLedger::Post(State, MarketLedger::EAccount::HeadOffice, Total, true, MarketLedger::HeadOfficeStore); // B2: depots' rent, trucks
 
-    // Chapter 7: a year of leading on every measure brings the one finale (karar J02; the measure becomes the
-    // global retail league in G-082). After the finale the game goes on without new story content.
-    if (State.Story.Chapter == 7 && !MarketStory::StoryClosed(State))
-    {
-        if (LeadsToday(State)) ++C.LeadershipDays;
-        else C.LeadershipDays = FMath::Max(0, C.LeadershipDays - 3);
-        if (C.LeadershipDays >= LeadershipGoalDays) MarketStory::ReachFinale(State, MarketStory::EEnding::Legacy);
-    }
     if (MarketCalendar::DateOf(Closed).Weekday == 6)
     {
         if (MarketDepots::Count(State) > 0 || Office > 0)

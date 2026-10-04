@@ -117,7 +117,7 @@ namespace MarketMenuPagesUi
         return Index;
     }
 
-    // Our shops in a province (the family shop counts in the home province).
+    // Our shops in a province (the first store counts in the home province).
     int32 OurShops(const FMarketState& State, const FString& Country, const FString& Province)
     {
         return MarketBranches::ShopsIn(State, Country, Province);
@@ -230,18 +230,10 @@ namespace MarketMenuPagesUi
             Cards.Add({ TEXT("YAKLA\u015eAN \u00d6ZEL G\u00dcN"), Ahead == 1 ? FString(TEXT("Yar\u0131n")) : FString::Printf(TEXT("%d g\u00fcn sonra"), Ahead), Line, SMarketMenu::Orders });
             break;
         }
-        // Rivals, the story, the debt, the till.
+        // Rivals and the till (M69: no chapters; the inherited debt waits on the Finance page, it locks nothing).
         // E2: a chain's price war against us in the home province is the rivals' move worth a card.
         const int32 War = MarketChains::WarIn(S, S.CountryId, MarketStart::HomeProvince(S), S.Day);
         if (War != INDEX_NONE) Cards.Add({ TEXT("RAK\u0130PLERDE BUG\u00dcN"), TEXT("Fiyat sava\u015f\u0131"), FString::Printf(TEXT("%s ilde fiyatlar\u0131n\u0131 k\u0131rd\u0131 (%d. g\u00fcne kadar). M\u00fc\u015fterinin akl\u0131ndaki rakip fiyat\u0131 d\u00fc\u015ft\u00fc."), *S.Rivals.Chains[War].Name, S.Rivals.Chains[War].WarUntil), SMarketMenu::Rivals });
-        for (const MarketStory::FObjective& Goal : MarketStory::Objectives(S))
-            if (!Goal.bDone)
-            {
-                Cards.Add({ FString::Printf(TEXT("B\u00d6L\u00dcM %d \u00b7 %s"), S.Story.Chapter, *MarketStory::ChapterTitle(S.Story.Chapter).ToUpper()), TEXT("S\u0131radaki hedef"), Goal.Text, INDEX_NONE });
-                break;
-            }
-        if (MarketCampaign::DebtOpen(S))
-            Cards.Add({ TEXT("\u0130\u015eLETMEN\u0130N BORCU"), MarketMenuUi::Tl(S.InheritedDebt) + TEXT(" kald\u0131"), TEXT("Bor\u00e7 kapanmadan \u015fube a\u00e7\u0131lmaz. Kararlar panelinden taksit \u00f6de."), INDEX_NONE });
         if (S.Cash < 0) Cards.Add({ TEXT("KASA"), TEXT("Kasa eksi"), TEXT("Sipari\u015fleri k\u0131s, kredi al ya da zarar eden ma\u011fazay\u0131 kapat."), SMarketMenu::Finance });
         if (Cards.Num() == 0) Cards.Add({ TEXT("SAK\u0130N B\u0130R G\u00dcN"), TEXT("Her \u015fey yolunda"), TEXT("Raflar dolu, kasa yolunda. Haritadan yeni bir il se\u00e7ip ma\u011faza a\u00e7may\u0131 d\u00fc\u015f\u00fcnebilirsin."), INDEX_NONE });
         return Cards;
@@ -335,7 +327,7 @@ namespace MarketMenuPagesUi
         int32 Stores = 0;             // Store rows: open branches of the province
         int32 FirstBranch = INDEX_NONE;
         bool bRequired = false;       // an empty country level the company must fill
-        FString Lock;                 // G-086b ek (M19): why the family shop's level is still closed ("" = open)
+        FString Lock;                 // G-086b ek (M19): why the first store's level is still closed ("" = open)
     };
 
     // The tree of levels in the order of the network: every country with a shop, its main regions, sub-regions and
@@ -377,15 +369,15 @@ namespace MarketMenuPagesUi
             }
             if (Row.Stores > 0) Rows.Add(Row);
         };
-        // M19: the family shop on top; locked (with its reason) until a branch outside it is open.
+        // M19: the first store on top; locked (with its reason) until a branch outside it is open.
         {
             FTierRow Family;
-            Family.Tier = ELevel::FamilyShop; Family.Country = State.CountryId; Family.Area = MarketStart::HomeProvince(State); Family.Depth = 0;
-            Family.Manager = MarketManagers::FindManager(State, ELevel::FamilyShop, State.CountryId, FString());
+            Family.Tier = ELevel::FirstStore; Family.Country = State.CountryId; Family.Area = MarketStart::HomeProvince(State); Family.Depth = 0;
+            Family.Manager = MarketManagers::FindManager(State, ELevel::FirstStore, State.CountryId, FString());
             if (Family.Manager == INDEX_NONE)
             {
                 FString Reason;
-                if (!MarketManagers::CanAppoint(State, ELevel::FamilyShop, State.CountryId, FString(), INDEX_NONE, Reason)) Family.Lock = Reason.IsEmpty() ? FString(TEXT("Kilitli.")) : Reason;
+                if (!MarketManagers::CanAppoint(State, ELevel::FirstStore, State.CountryId, FString(), INDEX_NONE, Reason)) Family.Lock = Reason.IsEmpty() ? FString(TEXT("Kilitli.")) : Reason;
             }
             Rows.Add(Family);
         }
@@ -449,7 +441,7 @@ namespace MarketMenuPagesUi
     TArray<int32> PromotionCandidates(const FMarketState& State, MarketManagers::ELevel Tier, const FString& Country, const FString& Area)
     {
         TArray<int32> List;
-        if (Tier == MarketManagers::ELevel::FamilyShop || Tier == MarketManagers::ELevel::Store) return List;
+        if (Tier == MarketManagers::ELevel::FirstStore || Tier == MarketManagers::ELevel::Store) return List;
         for (int32 I = 0; I < State.Branches.Num(); ++I)
         {
             const FMarketBranch& B = State.Branches[I];
@@ -463,7 +455,7 @@ namespace MarketMenuPagesUi
     FString LevelTitle(MarketManagers::ELevel Tier)
     {
         if (Tier == MarketManagers::ELevel::Store) return TEXT("Ma\u011fazalar");
-        if (Tier == MarketManagers::ELevel::FamilyShop) return TEXT("Aile d\u00fckk\u00e2n\u0131");
+        if (Tier == MarketManagers::ELevel::FirstStore) return TEXT("\u0130lk ma\u011faza");
         return MarketMenuUi::Title(MarketManagers::LevelName(Tier));
     }
 
@@ -612,7 +604,7 @@ namespace MarketMenuSimplifyUi
         return C5BidReach(State, ChainIndex) * 3 >= MarketChains::BidPrice(State, ChainIndex);
     }
 
-    // The family shop's loans: the nearest MaxRows installments and one total line (the rest in the tooltip).
+    // The first store's loans: the nearest MaxRows installments and one total line (the rest in the tooltip).
     FString C5FamilyLoans(const FMarketState& State, int32 MaxRows)
     {
         const TArray<FMarketLoan>& All = State.Loans;
@@ -687,7 +679,7 @@ namespace MarketMenuSimplifyUi
     FString M38StoreName(const FMarketState& State, int32 Store)
     {
         if (Store == MarketLedger::AllStores) return FString(TEXT("b\u00fct\u00fcn ma\u011fazalar"));
-        if (Store == MarketLedger::FamilyShop) return FString(TEXT("ilk d\u00fckk\u00e2n"));
+        if (Store == MarketLedger::FirstStore) return FString(TEXT("ilk d\u00fckk\u00e2n"));
         return State.Branches.IsValidIndex(Store) ? State.Branches[Store].Name : FString(TEXT("kapanan ma\u011faza"));
     }
 
@@ -987,7 +979,7 @@ TSharedRef<SWidget> SMarketMenu::PromotionsPage()
         ];
     }
 
-    // M38: every store's campaigns (the family shop, each branch, the company's in every store); only the family
+    // M38: every store's campaigns (the first store, each branch, the company's in every store); only the family
     // shop's and the company's can be stopped here.
     TSharedRef<SVerticalBox> Running = SNew(SVerticalBox);
     for (int32 Slot = 0; Slot < 40; ++Slot)
@@ -1040,8 +1032,8 @@ TSharedRef<SWidget> SMarketMenu::PromotionsPage()
     // Ma\u011fazalar (its chip is shown while it is the choice).
     auto PromoBranchChosen = [G] { return G() && G()->State.Branches.IsValidIndex(G()->State.PromoStore); };
     TSharedRef<SWidget> PromoWhereRow = SNew(SWrapBox).UseAllottedSize(true).InnerSlotPadding(FVector2D(4.f, 4.f))
-        + SWrapBox::Slot()[ Choice(TEXT("\u0130lk d\u00fckk\u00e2n"), [G] { return G() && G()->State.PromoStore == MarketLedger::FamilyShop; },
-            [this] { Manage(TEXT("PromoStore"), MarketLedger::FamilyShop); }) ]
+        + SWrapBox::Slot()[ Choice(TEXT("\u0130lk d\u00fckk\u00e2n"), [G] { return G() && G()->State.PromoStore == MarketLedger::FirstStore; },
+            [this] { Manage(TEXT("PromoStore"), MarketLedger::FirstStore); }) ]
         + SWrapBox::Slot()[ Choice(TEXT("B\u00fct\u00fcn ma\u011fazalar"), [G] { return G() && G()->State.PromoStore == MarketLedger::AllStores; },
             [this] { Manage(TEXT("PromoStore"), MarketLedger::AllStores); }) ]
         + SWrapBox::Slot()
@@ -1678,14 +1670,14 @@ TSharedRef<SWidget> SMarketMenu::FinancePage()
                [G] { return G() && G()->State.Cash < 0 ? ERole::Bad : ERole::Text; }) ]
         + SHorizontalBox::Slot().FillWidth(1.f).Padding(0.f, 0.f, 12.f, 0.f)
         [ Stat(TEXT("BOR\u00c7LAR"), [G] { return G() ? MarketMenuUi::Tl(MarketFinance::Debt(G()->State) + MarketBanking::Debt(G()->State) + MarketSuppliers::OpenBills(G()->State) + G()->State.Books.TaxDue) : FString(); },
-               // C7 (A menu comparison): what this sum covers; the father's debt is only in the balance sheet.
+               // C7 (A menu comparison): what this sum covers; the inherited debt has its own card.
                [G] { return G() ? FString::Printf(TEXT("banka %s \u00b7 toptanc\u0131 %s \u00b7 vergi %s%s"), *MarketMenuUi::Tl(MarketFinance::Debt(G()->State) + MarketBanking::Debt(G()->State)), *MarketMenuUi::Tl(MarketSuppliers::OpenBills(G()->State)), *MarketMenuUi::Tl(G()->State.Books.TaxDue),
-                   G()->State.InheritedDebt > 0 ? *FString::Printf(TEXT(" \u00b7 miras borcu %s hari\u00e7"), *MarketMenuUi::Tl(G()->State.InheritedDebt)) : TEXT("")) : FString(); },
+                   G()->State.InheritedDebt > 0 ? *FString::Printf(TEXT(" \u00b7 devral\u0131nan bor\u00e7 %s hari\u00e7"), *MarketMenuUi::Tl(G()->State.InheritedDebt)) : TEXT("")) : FString(); },
                [G] { return G() && MarketFinance::Debt(G()->State) + MarketBanking::Debt(G()->State) + MarketSuppliers::OpenBills(G()->State) + G()->State.Books.TaxDue > 0 ? ERole::Warn : ERole::Good; }) ]
-        // M36: no credit book, no money taken home; the shop pays the parents its rent like any shop.
+        // M69: the first store's building is ours: no rent, an asset.
         + SHorizontalBox::Slot().FillWidth(1.f)
-        [ Stat(TEXT("K\u0130RA \u00b7 ANNENLE BABANA"), [G] { return G() ? MarketMenuUi::Tl(MarketFinance::RentToday(G()->State)) : FString(); },
-               [G] { return G() ? FString::Printf(TEXT("g\u00fcnde \u00b7 bu ay %s"), *MarketMenuUi::Tl(G()->State.MonthRent)) : FString(); }) ];
+        [ Stat(TEXT("B\u0130NA \u00b7 \u0130LK MA\u011eAZA"), [G] { return G() ? MarketMenuUi::Tl(MarketFinance::BuildingValue(G()->State)) : FString(); },
+               [] { return FString(TEXT("bizim \u00b7 kira yok")); }) ];
 
     // M37: our salary and our own money (MarketOwner). The company's till is not ours.
     auto SalaryChip = [this, G](int32 Step) -> TSharedRef<SWidget>
@@ -1772,7 +1764,7 @@ TSharedRef<SWidget> SMarketMenu::FinancePage()
         + SVerticalBox::Slot().AutoHeight().Padding(0.f, 0.f, 0.f, 8.f)
         [
             // C5 (A istek 3): the nearest three installments and a total; every loan in the tooltip.
-            SNew(SBox).ToolTip(Tip([G] { return G() && G()->State.Loans.Num() > 0 ? FString(TEXT("Aile d\u00fckk\u00e2n\u0131n\u0131n b\u00fct\u00fcn kredileri:")) + MarketMenuSimplifyUi::C5FamilyLoans(G()->State, 0) : FString(TEXT("Aile d\u00fckk\u00e2n\u0131n\u0131n kredisi yok.")); }))
+            SNew(SBox).ToolTip(Tip([G] { return G() && G()->State.Loans.Num() > 0 ? FString(TEXT("\u015eirketin b\u00fct\u00fcn kredileri:")) + MarketMenuSimplifyUi::C5FamilyLoans(G()->State, 0) : FString(TEXT("\u0130lk ma\u011fazan\u0131n kredisi yok.")); }))
             [ Label([G]
             {
                 if (!G()) return FString();
@@ -1837,7 +1829,7 @@ TSharedRef<SWidget> SMarketMenu::FinancePage()
         + SVerticalBox::Slot().AutoHeight().Padding(0.f, 4.f, 0.f, 0.f)
         // C7 (A menu comparison): one "Nas\u0131l i\u015fler?" for the steps and the household money.
         [ More([G] { return FString(TEXT("Oyun bitmez, ama her ad\u0131m \u00f6nceden s\u00f6ylenir: 1 g\u00fcn uyar\u0131, 3 g\u00fcn toptanc\u0131 vadeyi kapat\u0131r, 7 g\u00fcn se\u00e7im (acil kredi ya da depoyu yar\u0131 fiyat\u0131na satmak), 14 g\u00fcn depo yar\u0131 fiyat\u0131na gider, 30 g\u00fcn banka uyar\u0131r, 60 g\u00fcn kurtarma plan\u0131 uygulan\u0131r. Kasa art\u0131ya ge\u00e7ince biter."))
-            + (G() ? FString::Printf(TEXT("\n\nKira: bina annenle baban\u0131n; d\u00fckk\u00e2n her g\u00fcn %s kira \u00f6der (ilin mahalle marketi kiras\u0131, emekli gelirleri). Bu bir gider: k\u00e2r\u0131 da azalt\u0131r."), *MarketMenuUi::Tl(MarketFinance::RentToday(G()->State))) : FString()); }) ]);
+            + FString(TEXT("\n\nBina: ilk ma\u011fazan\u0131n binas\u0131 marketle birlikte devrald\u0131\u011f\u0131n senin m\u00fclk\u00fcn; kira \u00f6demez, bilan\u00e7oda varl\u0131k olarak durur. \u015eubeler kirac\u0131d\u0131r.")); }) ]);
 
     // M65: our companies: the brand everybody says, the parent company and a subsidiary in every country entered.
     // The registered names can be written freely; "Ba\u015fka \u00f6neri" walks through the country's usual forms.
@@ -1922,9 +1914,9 @@ TSharedRef<SWidget> SMarketMenu::FinancePage()
         + SVerticalBox::Slot().AutoHeight()[ Top ]
         + SVerticalBox::Slot().AutoHeight().Padding(0.f, 12.f, 0.f, 0.f)[ OwnerCard ]
         + SVerticalBox::Slot().AutoHeight().Padding(0.f, 12.f, 0.f, 0.f)[ Companies ]
-        // C5 (A istek 3): the company's rating, banks and limit first; the family shop's loan after it.
+        // C5 (A istek 3): the company's rating, banks and limit first; the first store's loan after it.
         + SVerticalBox::Slot().AutoHeight().Padding(0.f, 12.f, 0.f, 0.f)[ BankingCard() ]
-        // M36: no credit book: the family shop's loan sits next to the tax.
+        // M36: no credit book: the first store's loan sits next to the tax.
         + SVerticalBox::Slot().AutoHeight().Padding(0.f, 12.f, 0.f, 0.f)
         [
             SNew(SHorizontalBox)
@@ -2206,9 +2198,9 @@ TSharedRef<SWidget> SMarketMenu::LedgerCards()
         [ More([Bal]
         {
             const MarketLedger::FBalance B = Bal();
-            return FString::Printf(TEXT("Kasa %s \u00b7 d\u00fckk\u00e2n sto\u011fu %s \u00b7 \u015fube sto\u011fu %s \u00b7 reyon sto\u011fu %s \u00b7 kart alaca\u011f\u0131 %s \u00b7 depozitolar %s\nToptanc\u0131 %s \u00b7 banka %s \u00b7 vergi %s \u00b7 babadan kalan bor\u00e7 %s"),
+            return FString::Printf(TEXT("Kasa %s \u00b7 d\u00fckk\u00e2n sto\u011fu %s \u00b7 \u015fube sto\u011fu %s \u00b7 reyon sto\u011fu %s \u00b7 kart alaca\u011f\u0131 %s \u00b7 depozitolar %s \u00b7 bina %s\nToptanc\u0131 %s \u00b7 banka %s \u00b7 vergi %s \u00b7 devral\u0131nan bor\u00e7 %s"),
                 *MarketMenuUi::Tl(B.Cash), *MarketMenuUi::Tl(B.Stock), *MarketMenuUi::Tl(B.BranchStock), *MarketMenuUi::Tl(B.DepartmentStock), *MarketMenuUi::Tl(B.CardReceivable),
-                *MarketMenuUi::Tl(B.Deposits), *MarketMenuUi::Tl(B.Payables), *MarketMenuUi::Tl(B.Loans), *MarketMenuUi::Tl(B.TaxDue), *MarketMenuUi::Tl(B.InheritedDebt));
+                *MarketMenuUi::Tl(B.Deposits), *MarketMenuUi::Tl(B.Building), *MarketMenuUi::Tl(B.Payables), *MarketMenuUi::Tl(B.Loans), *MarketMenuUi::Tl(B.TaxDue), *MarketMenuUi::Tl(B.InheritedDebt));
         }) ]
         + SVerticalBox::Slot().AutoHeight().Padding(0.f, 8.f, 0.f, 0.f)
         [ LabelBy([G] { const FString Era = G() ? MarketEras::Summary(G()->State) : FString(); return Era.IsEmpty() ? FString(TEXT("Ekonomi sakin.")) : Era; }, 10,
@@ -2272,7 +2264,7 @@ TSharedRef<SWidget> SMarketMenu::ChannelsPage()
         + SVerticalBox::Slot().AutoHeight().Padding(0.f, 6.f, 0.f, 8.f)[ Label([G] { return G() ? MarketOnline::Summary(G()->State) : FString(); }, 11, ERole::Text, false, true) ]
         + SVerticalBox::Slot().AutoHeight().Padding(0.f, 3.f)[ ChannelRow(EChannel::Web, TEXT("Kendi sitemiz: b\u00fcy\u00fck sepetler, yava\u015f ba\u015flang\u0131\u00e7. Sipari\u015fi ma\u011fazalar toplar, \u015firketin kuryeleri g\u00f6t\u00fcr\u00fcr.")) ]
         + SVerticalBox::Slot().AutoHeight().Padding(0.f, 3.f)[ ChannelRow(EChannel::App, TEXT("Telefon uygulamas\u0131: en b\u00fcy\u00fck ve en sad\u0131k sepetler, teslimat\u0131 en pahal\u0131. Yaz\u0131l\u0131m firmas\u0131n\u0131 sen se\u00e7ersin.")) ]
-        + SVerticalBox::Slot().AutoHeight().Padding(0.f, 3.f)[ ChannelRow(EChannel::Platform, TEXT("H\u0131zl\u0131 teslimat platformu: onlar\u0131n kuryesi, \u00e7ok sipari\u015f, komisyon; aile d\u00fckk\u00e2n\u0131 da kat\u0131labilir.")) ]
+        + SVerticalBox::Slot().AutoHeight().Padding(0.f, 3.f)[ ChannelRow(EChannel::Platform, TEXT("H\u0131zl\u0131 teslimat platformu: onlar\u0131n kuryesi, \u00e7ok sipari\u015f, komisyon; ilk ma\u011faza da kat\u0131labilir.")) ]
         + SVerticalBox::Slot().AutoHeight().Padding(0.f, 3.f)[ ChannelRow(EChannel::Quick, TEXT("Kendi 30 dakika teslimat\u0131m\u0131z: ilde karanl\u0131k depo ister, kuryesi pahal\u0131d\u0131r.")) ]
         + SVerticalBox::Slot().AutoHeight().Padding(0.f, 8.f, 0.f, 0.f)
         [ More([G] { if (!G()) return FString(); const TArray<FString> Lines = MarketOnline::RivalLines(G()->State);
@@ -3038,7 +3030,7 @@ TSharedRef<SWidget> SMarketMenu::ProvinceCard()
     [
         SNew(SBox).Visibility_Lambda([Site] { return Site().bHome ? EVisibility::Visible : EVisibility::Collapsed; })
         [ Row([] { return FString(TEXT("EV")); }, [this] { return Color(ERole::AccentSoft); }, [this] { return Color(ERole::Accent); },
-            [] { return FString(TEXT("Aile d\u00fckk\u00e2n\u0131")); }, [] { return FString(TEXT("Sen buradas\u0131n")); }) ]
+            [G] { return G() ? MarketStart::FirstStoreName(G()->State) : FString(); }, [] { return FString(TEXT("\u0130lk \u015fuben \u00b7 buradas\u0131n")); }) ]
     ];
     for (int32 Slot = 0; Slot < 8; ++Slot)
     {
@@ -3064,7 +3056,7 @@ TSharedRef<SWidget> SMarketMenu::ProvinceCard()
                 }) ]
         ];
     }
-    // G-086b: the province manager (INDEX_NONE = none), our open branches without the family shop, and whether the
+    // G-086b: the province manager (INDEX_NONE = none), our open branches without the first store, and whether the
     // manager's skill covers them.
     auto Chief = [this, G] { return G() ? MarketManagers::FindManager(G()->State, MarketManagers::ELevel::Province, ShownCountry(), PanelId) : INDEX_NONE; };
     auto Stores = [this, G] { return G() ? MarketManagers::ProvinceBranches(G()->State, ShownCountry(), PanelId) : 0; };
@@ -3244,7 +3236,7 @@ TSharedRef<SWidget> SMarketMenu::ProvinceCard()
         [ SNew(SBox).Visibility_Lambda([Ours] { return Ours() == 0 ? EVisibility::Visible : EVisibility::Collapsed; })
             [ TextPx([] { return FString(TEXT("Bu ilde hen\u00fcz ma\u011fazan yok.")); }, 13.f, Muted) ] ]
         // Karar M05 / G-086b: the province manager strip. With a manager: who and whether the skill covers the
-        // province; without one and with three shops (the family shop does not count): "Ata" opens the appointment
+        // province; without one and with three shops (the first store does not count): "Ata" opens the appointment
         // in Magazalar > Yonetim. Fixed height (M15).
         + SVerticalBox::Slot().AutoHeight().Padding(0.f, 20.f, 0.f, 0.f)
         [
@@ -3446,7 +3438,7 @@ TSharedRef<SWidget> SMarketMenu::ShopsTab()
                     + SHorizontalBox::Slot().AutoWidth().VAlign(VAlign_Center).Padding(8.f, 0.f, 0.f, 0.f)
                     [ RiskyButton([] { return FString(TEXT("Kapat")); },
                         [G, Slot] { return G() && G()->State.Branches.IsValidIndex(Slot)
-                            ? FString::Printf(TEXT("%s kapans\u0131n m\u0131? Raftaki mal aile d\u00fckk\u00e2n\u0131n\u0131n deposuna ta\u015f\u0131n\u0131r, s\u0131\u011fmayan yar\u0131 fiyat\u0131na sat\u0131l\u0131r; \u00e7al\u0131\u015fanlar ayr\u0131l\u0131r."), *G()->State.Branches[Slot].Name) : FString(); },
+                            ? FString::Printf(TEXT("%s kapans\u0131n m\u0131? Raftaki mal ilk ma\u011fazan\u0131n deposuna ta\u015f\u0131n\u0131r, s\u0131\u011fmayan yar\u0131 fiyat\u0131na sat\u0131l\u0131r; \u00e7al\u0131\u015fanlar ayr\u0131l\u0131r."), *G()->State.Branches[Slot].Name) : FString(); },
                         [this, Slot] { if (PromoteBranch == Slot) PromoteBranch = INDEX_NONE; Manage(TEXT("CloseBranch"), Slot); },
                         [BranchOpen, Slot] { return BranchOpen(Slot); }) ]
                 ]
@@ -3469,7 +3461,7 @@ TSharedRef<SWidget> SMarketMenu::ShopsTab()
                         + SHorizontalBox::Slot().FillWidth(1.f)[ SNew(SSpacer) ]
                         + SHorizontalBox::Slot().AutoWidth().VAlign(VAlign_Center).Padding(6.f, 0.f, 0.f, 0.f)
                         [ Hinted(Button([] { return FString(TEXT("D\u00fckk\u00e2ndan")); }, [this, Slot] { PickBranch = INDEX_NONE; PromoteBranch = PromoteBranch == Slot ? INDEX_NONE : Slot; }, false, [BranchOpen, Slot] { return BranchOpen(Slot); }),
-                            [] { return FString(TEXT("Aile d\u00fckk\u00e2n\u0131ndan bir kasiyeri ya da reyon g\u00f6revlisini bu \u015fubeye m\u00fcd\u00fcr yap.")); }) ]
+                            [] { return FString(TEXT("\u0130lk ma\u011fazadan bir kasiyeri ya da reyon g\u00f6revlisini bu \u015fubeye m\u00fcd\u00fcr yap.")); }) ]
                         + SHorizontalBox::Slot().AutoWidth().VAlign(VAlign_Center).Padding(4.f, 0.f, 0.f, 0.f)
                         [ Hinted(RiskyButton([] { return FString(TEXT("Prim")); },
                             [BossName, Wage] { return FString::Printf(TEXT("%s prim als\u0131n m\u0131? Bir haftal\u0131k \u00fccret: %s. Morali y\u00fckselir, becerisi biraz artar. %d g\u00fcnde bir verilir."),
@@ -3502,7 +3494,7 @@ TSharedRef<SWidget> SMarketMenu::ShopsTab()
         ];
     }
 
-    // Manager picker for the branch chosen above: cashiers and stockers of the family shop.
+    // Manager picker for the branch chosen above: cashiers and stockers of the first store.
     auto PersonAt = [G](int32 Slot) -> const FMarketEmployee*
     {
         if (!G() || !G()->State.Staff.IsValidIndex(Slot)) return nullptr;
@@ -3581,7 +3573,7 @@ TSharedRef<SWidget> SMarketMenu::ShopsTab()
             SNew(SScrollBox)
             + SScrollBox::Slot()
             [
-                // One card, three layers (M15): the shops, a branch's candidates, the family shop's people.
+                // One card, three layers (M15): the shops, a branch's candidates, the first store's people.
                 SNew(SWidgetSwitcher).WidgetIndex_Lambda([this, BranchOpen] { return BranchOpen(PickBranch) ? 1 : BranchOpen(PromoteBranch) ? 2 : 0; })
                 + SWidgetSwitcher::Slot()[ Card(SNew(SVerticalBox)
                     + SVerticalBox::Slot().AutoHeight()[ Section(TEXT("MA\u011eAZALARIN")) ]
@@ -3591,7 +3583,7 @@ TSharedRef<SWidget> SMarketMenu::ShopsTab()
                         [
                             SNew(SVerticalBox)
                             + SVerticalBox::Slot().AutoHeight()[ Label([G] { return G() ? MarketStart::PlaceText(G()->State) : FString(); }, 13, ERole::Text, true) ]
-                            + SVerticalBox::Slot().AutoHeight()[ Fixed(TEXT("Babandan devrald\u0131\u011f\u0131n mahalle marketi \u00b7 buradas\u0131n"), 10, ERole::Muted) ]
+                            + SVerticalBox::Slot().AutoHeight()[ Label([G] { return G() ? MarketStart::FirstStoreName(G()->State) + TEXT(" \u00b7 ilk \u015fuben \u00b7 buradas\u0131n") : FString(); }, 10, ERole::Muted) ]
                         ]
                     ]
                     + SVerticalBox::Slot().AutoHeight()[ Shops ]
@@ -3672,7 +3664,7 @@ TSharedRef<SWidget> SMarketMenu::SpanCounter(bool bOpensManagement)
             if (Names.Num() > 0) Text += TEXT("\n\nSana ba\u011fl\u0131: ") + FString::Join(Names, TEXT(", ")) + TEXT(".");
             Text += TEXT("\n\n");
         }
-        Text += TEXT("En \u00e7ok 5 ki\u015fiyle do\u011frudan ilgilenebilirsin; \u0130K m\u00fcd\u00fcr\u00fc bu say\u0131y\u0131 art\u0131rmaz. \u00dcst kademesi atanmam\u0131\u015f herkes sana ba\u011fl\u0131d\u0131r: il m\u00fcd\u00fcr\u00fc olmayan ildeki ma\u011faza m\u00fcd\u00fcrleri, b\u00f6lge m\u00fcd\u00fcr\u00fc olmayan il m\u00fcd\u00fcrleri, \u00fclke m\u00fcd\u00fcr\u00fc yoksa b\u00f6lge direkt\u00f6rleri. Aile d\u00fckk\u00e2n\u0131 m\u00fcd\u00fcr atanmad\u0131k\u00e7a say\u0131lmaz; depo m\u00fcd\u00fcrleri \u00fclke m\u00fcd\u00fcr\u00fc yoksa sana ba\u011fl\u0131d\u0131r.")
+        Text += TEXT("En \u00e7ok 5 ki\u015fiyle do\u011frudan ilgilenebilirsin; \u0130K m\u00fcd\u00fcr\u00fc bu say\u0131y\u0131 art\u0131rmaz. \u00dcst kademesi atanmam\u0131\u015f herkes sana ba\u011fl\u0131d\u0131r: il m\u00fcd\u00fcr\u00fc olmayan ildeki ma\u011faza m\u00fcd\u00fcrleri, b\u00f6lge m\u00fcd\u00fcr\u00fc olmayan il m\u00fcd\u00fcrleri, \u00fclke m\u00fcd\u00fcr\u00fc yoksa b\u00f6lge direkt\u00f6rleri. \u0130lk ma\u011faza m\u00fcd\u00fcr atanmad\u0131k\u00e7a say\u0131lmaz; depo m\u00fcd\u00fcrleri \u00fclke m\u00fcd\u00fcr\u00fc yoksa sana ba\u011fl\u0131d\u0131r.")
             TEXT("\n\n5'i a\u015f\u0131nca fazladan her ki\u015fi, sana do\u011frudan ba\u011fl\u0131 herkesin becerisini 4 puan d\u00fc\u015f\u00fcr\u00fcr (en \u00e7ok 25). Kasadan \u00e7alan g\u00f6r\u00fcnmez olur, memnuniyet yava\u015f yava\u015f d\u00fc\u015fer.")
             TEXT("\n\n\u00c7\u00f6z\u00fcm: il m\u00fcd\u00fcr\u00fc (ilde 3 ma\u011faza), b\u00f6lge m\u00fcd\u00fcr\u00fc (alt b\u00f6lgede 2 il m\u00fcd\u00fcr\u00fc), b\u00f6lge direkt\u00f6r\u00fc (ana b\u00f6lgede 2 b\u00f6lge m\u00fcd\u00fcr\u00fc) ya da \u00fclke m\u00fcd\u00fcr\u00fc ata.");
         return Text;
@@ -3807,7 +3799,7 @@ TSharedRef<SWidget> SMarketMenu::CandidateCards(TFunction<int32()> Target, TFunc
                 ELevel Level = ELevel::Province;
                 FString Country, Area;
                 if (!MarketManagers::DecodeArea(Key, Level, Country, Area)) return;
-                const FString Post = Level == ELevel::FamilyShop || Level == ELevel::Chief ? MarketManagers::LevelName(Level)
+                const FString Post = Level == ELevel::FirstStore || Level == ELevel::Chief ? MarketManagers::LevelName(Level)
                     : Level == ELevel::Depot ? FString::Printf(TEXT("%s deposunun m\u00fcd\u00fcr\u00fc"), *MarketManagers::AreaName(ELevel::Province, Country, Area))
                     : MarketManagers::AreaName(Level, Country, Area) + TEXT(" ") + MarketManagers::LevelName(Level);
                 Question = FString::Printf(TEXT("%s, %s olsun mu? Ayl\u0131k \u00fccreti %s; g\u00f6revden almak %d g\u00fcnl\u00fck tazminat ister."),
@@ -3903,8 +3895,8 @@ TSharedRef<SWidget> SMarketMenu::ManagementTab()
         case ELevel::Province: return TEXT("\u0130l m\u00fcd\u00fcr\u00fc ildeki b\u00fct\u00fcn ma\u011fazalara bakar: sipari\u015f hatalar\u0131 azal\u0131r, karneler y\u00fckselir, kasadan alan\u0131 yakalar, o ilde a\u00e7\u0131l\u0131\u015f 2 g\u00fcn k\u0131sal\u0131r. Gereken beceri 40 + ma\u011faza say\u0131s\u0131 / 3; yetmezse yar\u0131m \u00e7al\u0131\u015f\u0131r.");
         case ELevel::SubRegion: return TEXT("B\u00f6lge m\u00fcd\u00fcr\u00fc alt b\u00f6lgedeki il m\u00fcd\u00fcrlerini denetler; uzak \u015fubelerde lojistik kayb\u0131n\u0131 %1'e kadar azalt\u0131r.");
         case ELevel::Region: return TEXT("B\u00f6lge direkt\u00f6r\u00fc ana b\u00f6lgedeki b\u00f6lge m\u00fcd\u00fcrlerini denetler; depolar\u0131n ortak plan\u0131yla +%0,5 marj getirir.");
-        case ELevel::Country: return TEXT("\u00dclke m\u00fcd\u00fcr\u00fc a\u011f\u0131n tepesinde durur: o \u00fclkede sana ba\u011fl\u0131 ki\u015fi say\u0131s\u0131n\u0131 tek ba\u015f\u0131na 1'e indirir, ama pahal\u0131d\u0131r; maa\u015f\u0131 a\u011f b\u00fcy\u00fcd\u00fck\u00e7e artar (az ma\u011fazada band\u0131n %30'u, 30 ma\u011fazada tam\u0131). \u00dclkede 5 ilde ma\u011fazan olunca atanabilir (aile d\u00fckk\u00e2n\u0131n\u0131n ili dahil). \u015eirket ikinci \u00fclkeye girince her \u00fclkede zorunlu; yurt d\u0131\u015f\u0131nda maliyeti %1 d\u00fc\u015f\u00fcr\u00fcr.");
-        case ELevel::FamilyShop: return TEXT("Aile d\u00fckk\u00e2n\u0131n\u0131n m\u00fcd\u00fcr\u00fc senin yerine sipari\u015f verir, zamm\u0131 rafa yans\u0131t\u0131r, raflar\u0131 doldurtur. Tarz\u0131 ve becerisi dolulu\u011fu ve fireyi belirler. Sana ba\u011fl\u0131 5 ki\u015fiden biri say\u0131l\u0131r.");
+        case ELevel::Country: return TEXT("\u00dclke m\u00fcd\u00fcr\u00fc a\u011f\u0131n tepesinde durur: o \u00fclkede sana ba\u011fl\u0131 ki\u015fi say\u0131s\u0131n\u0131 tek ba\u015f\u0131na 1'e indirir, ama pahal\u0131d\u0131r; maa\u015f\u0131 a\u011f b\u00fcy\u00fcd\u00fck\u00e7e artar (az ma\u011fazada band\u0131n %30'u, 30 ma\u011fazada tam\u0131). \u00dclkede 5 ilde ma\u011fazan olunca atanabilir (ilk ma\u011fazan\u0131n ili dahil). \u015eirket ikinci \u00fclkeye girince her \u00fclkede zorunlu; yurt d\u0131\u015f\u0131nda maliyeti %1 d\u00fc\u015f\u00fcr\u00fcr.");
+        case ELevel::FirstStore: return TEXT("\u0130lk ma\u011fazan\u0131n m\u00fcd\u00fcr\u00fc senin yerine sipari\u015f verir, zamm\u0131 rafa yans\u0131t\u0131r, raflar\u0131 doldurtur. Tarz\u0131 ve becerisi dolulu\u011fu ve fireyi belirler. Sana ba\u011fl\u0131 5 ki\u015fiden biri say\u0131l\u0131r.");
         case ELevel::Continent: return TEXT("K\u0131ta direkt\u00f6r\u00fc k\u0131tadaki \u00fclke m\u00fcd\u00fcrlerini y\u00f6netir: onlar art\u0131k sana de\u011fil ona ba\u011fl\u0131d\u0131r, i\u015fleri onun g\u00fcc\u00fc kadar iyi gider; k\u0131tadaki ma\u011fazalar\u0131n maliyeti %0,5'e kadar d\u00fc\u015fer (ortak al\u0131m). \u015eirket 3 \u00fclkeye girince atanabilir; birden \u00e7ok \u00fclken olan k\u0131tada zorunludur (yokken o \u00fclkelerin m\u00fcd\u00fcrleri 8 beceri kaybeder). \u0130lk iki \u00fclkenin m\u00fcd\u00fcrleri sana ba\u011fl\u0131 kalabilir.");
         case ELevel::Chief: return TEXT("Genel m\u00fcd\u00fcr iste\u011fe ba\u011fl\u0131d\u0131r: k\u0131ta direkt\u00f6rleri ona ba\u011flan\u0131r, sana do\u011frudan ba\u011fl\u0131 ki\u015fi say\u0131s\u0131 d\u00fc\u015fer, b\u00fct\u00fcn ma\u011fazalar\u0131n maliyeti %0,3'e kadar azal\u0131r. En pahal\u0131 y\u00f6neticidir. 2 k\u0131ta direkt\u00f6r\u00fc atand\u0131ktan sonra gelebilir.");
         case ELevel::Depot: return TEXT("Depo m\u00fcd\u00fcr\u00fc deponun verimini belirler: becerisi fireyi, eksik/k\u0131r\u0131k teslimat\u0131 ve raf bulunurlu\u011funu etkiler. M\u00fcd\u00fcrs\u00fcz depo yar\u0131 verimle \u00e7al\u0131\u015f\u0131r. \u00dclke m\u00fcd\u00fcr\u00fcne, o yoksa sana ba\u011fl\u0131d\u0131r.");
@@ -3918,7 +3910,7 @@ TSharedRef<SWidget> SMarketMenu::ManagementTab()
     {
         auto Row = [RowAt, Slot] { return RowAt(Slot); };
         // 0 = an appointed manager, 1 = an empty level that can be filled, 2 = the store managers of a province,
-        // 3 = the family shop while it is locked (M19).
+        // 3 = the first store while it is locked (M19).
         auto Kind = [Row]() -> int32
         {
             const FTierRow* R = Row();
@@ -3934,7 +3926,7 @@ TSharedRef<SWidget> SMarketMenu::ManagementTab()
         {
             const FTierRow* R = Row();
             if (!R) return FString();
-            if (R->Tier == ELevel::FamilyShop) return FString::Printf(TEXT("Aile d\u00fckk\u00e2n\u0131 (%s)"), *MarketManagers::AreaName(ELevel::Province, R->Country, R->Area));
+            if (R->Tier == ELevel::FirstStore) return FString::Printf(TEXT("\u0130lk ma\u011faza (%s)"), *MarketManagers::AreaName(ELevel::Province, R->Country, R->Area));
             if (R->Tier == ELevel::Depot) return MarketManagers::AreaName(ELevel::Province, R->Country, R->Area) + TEXT(" deposu");
             if (R->Tier == ELevel::Chief) return TEXT("Genel m\u00fcd\u00fcr");
             if (R->Tier == ELevel::Continent) return MarketManagers::AreaName(R->Tier, R->Country, R->Area) + TEXT(" k\u0131ta direkt\u00f6r\u00fc");
@@ -3983,7 +3975,7 @@ TSharedRef<SWidget> SMarketMenu::ManagementTab()
             if (Kind() == 0) return MarketManagers::DescribeManager(G()->State, R->Manager);
             if (Kind() == 3) return R->Lock + TEXT("\n\n") + Blurb(R->Tier);
             if (Kind() == 1 && (R->Tier == ELevel::Continent || R->Tier == ELevel::Chief)) return TEXT("Ata: 3 d\u0131\u015f aday aras\u0131ndan se\u00e7.\n\n") + Blurb(R->Tier);
-            if (Kind() == 1 && R->Tier == ELevel::FamilyShop) return TEXT("M\u00fcd\u00fcr ata: 3 d\u0131\u015f aday aras\u0131ndan se\u00e7.\n\n") + Blurb(R->Tier);
+            if (Kind() == 1 && R->Tier == ELevel::FirstStore) return TEXT("M\u00fcd\u00fcr ata: 3 d\u0131\u015f aday aras\u0131ndan se\u00e7.\n\n") + Blurb(R->Tier);
             if (Kind() == 1) return TEXT("Ata: 3 d\u0131\u015f aday aras\u0131ndan se\u00e7 ya da bir ma\u011faza m\u00fcd\u00fcr\u00fcn\u00fc terfi ettir.\n\n") + Blurb(R->Tier);
             return TEXT("Ma\u011faza m\u00fcd\u00fcrlerine Ma\u011fazalar sekmesinden prim ver, uyar ya da de\u011fi\u015ftir.");
         };
@@ -4042,7 +4034,7 @@ TSharedRef<SWidget> SMarketMenu::ManagementTab()
         [
             SNew(SBox).Visibility_Lambda([Kind] { return Kind() == 1 || Kind() == 3 ? EVisibility::Visible : EVisibility::Collapsed; })
             .ToolTip(Tip(Hint))
-            [ Button([Row] { const FTierRow* R = Row(); return FString(R && R->Tier == ELevel::FamilyShop ? TEXT("M\u00fcd\u00fcr ata") : TEXT("Ata")); }, [this, Row]
+            [ Button([Row] { const FTierRow* R = Row(); return FString(R && R->Tier == ELevel::FirstStore ? TEXT("M\u00fcd\u00fcr ata") : TEXT("Ata")); }, [this, Row]
                 {
                     if (const FTierRow* R = Row()) AppointArea = MarketManagers::EncodeArea(R->Tier, R->Country, R->Area);
                 }, true, [Kind] { return Kind() == 1; }) ]
@@ -4150,8 +4142,8 @@ TSharedRef<SWidget> SMarketMenu::ManagementTab()
         const FTarget T = Target();
         return !T.bValid || !G() || MarketMenuPagesUi::PromotionCandidates(G()->State, T.Tier, T.Country, T.Area).Num() == 0;
     };
-    // The family shop's manager always comes from outside (M19).
-    auto PromotionShown = [Target] { const FTarget T = Target(); return T.bValid && T.Tier != ELevel::FamilyShop ? EVisibility::Visible : EVisibility::Collapsed; };
+    // The first store's manager always comes from outside (M19).
+    auto PromotionShown = [Target] { const FTarget T = Target(); return T.bValid && T.Tier != ELevel::FirstStore ? EVisibility::Visible : EVisibility::Collapsed; };
     TSharedRef<SWidget> Picker = SNew(SScrollBox)
         + SScrollBox::Slot()
         [
@@ -4164,7 +4156,7 @@ TSharedRef<SWidget> SMarketMenu::ManagementTab()
                 {
                     const FTarget T = Target();
                     if (!T.bValid) return FString();
-                    if (T.Tier == ELevel::FamilyShop) return FString(TEXT("A\u0130LE D\u00dcKK\u00c2NI \u0130\u00c7\u0130N M\u00dcD\u00dcR"));
+                    if (T.Tier == ELevel::FirstStore) return FString(TEXT("A\u0130LE D\u00dcKK\u00c2NI \u0130\u00c7\u0130N M\u00dcD\u00dcR"));
                     return FString::Printf(TEXT("%s \u0130\u00c7\u0130N %s"), *MarketManagers::AreaName(T.Tier == ELevel::Depot ? ELevel::Province : T.Tier, T.Country, T.Area).ToUpper(), *MarketManagers::LevelName(T.Tier).ToUpper());
                 }, 11, ERole::Text, true) ]
                 + SHorizontalBox::Slot().AutoWidth().VAlign(VAlign_Center)[ Button([] { return FString(TEXT("Vazge\u00e7")); }, [this] { AppointArea = INDEX_NONE; }) ]
@@ -4225,7 +4217,7 @@ TSharedRef<SWidget> SMarketMenu::ManagementTab()
                         SNew(SHorizontalBox)
                         + SHorizontalBox::Slot().FillWidth(1.f).VAlign(VAlign_Center)[ Section(TEXT("KADEMELER")) ]
                         + SHorizontalBox::Slot().AutoWidth().VAlign(VAlign_Center)
-                        [ More([] { return FString(TEXT("\u00dclke m\u00fcd\u00fcr\u00fc \u2192 b\u00f6lge direkt\u00f6r\u00fc \u2192 b\u00f6lge m\u00fcd\u00fcr\u00fc \u2192 il m\u00fcd\u00fcr\u00fc \u2192 ma\u011faza m\u00fcd\u00fcr\u00fc. Hi\u00e7bir kademe kendili\u011finden atanmaz; bo\u015f kademenin ki\u015fileri bir \u00fcsttekine, o da yoksa sana ba\u011flan\u0131r.\n\n\u0130l m\u00fcd\u00fcr\u00fc: ilde 3 ma\u011faza (aile d\u00fckk\u00e2n\u0131 say\u0131lmaz). B\u00f6lge m\u00fcd\u00fcr\u00fc: alt b\u00f6lgede 2 il m\u00fcd\u00fcr\u00fc. B\u00f6lge direkt\u00f6r\u00fc: ana b\u00f6lgede 2 b\u00f6lge m\u00fcd\u00fcr\u00fc. \u00dclke m\u00fcd\u00fcr\u00fc: \u00fclkede 5 ilde ma\u011fazan olunca (aile d\u00fckk\u00e2n\u0131n\u0131n ili dahil) g\u00f6r\u00fcn\u00fcr ve atanabilir; \u015firket ikinci \u00fclkeye girince zorunlu, yoksa o \u00fclkedeki m\u00fcd\u00fcrlerin becerisi 10 puan d\u00fc\u015fer.\n\nAile d\u00fckk\u00e2n\u0131: ikinci ma\u011fazan a\u00e7\u0131l\u0131nca m\u00fcd\u00fcr atanabilir. Depo m\u00fcd\u00fcr\u00fc: her depoya bir tane (\u015eirket \u203a Depolar).\n\nHer atamada 3 d\u0131\u015f aday g\u00f6r\u00fcrs\u00fcn; adaylar her hafta yenilenir, ayn\u0131 ad bir daha gelmez. Beceri deneyimle artar ama herkesin bir tavan\u0131 var (en \u00e7ok 95).\n\nAtama terfiyle ya da d\u0131\u015far\u0131dan olur; g\u00f6revden almak 10 g\u00fcnl\u00fck tazminat ister. \u00dccretler g\u00fcn kapan\u0131\u015f\u0131nda kasadan \u00e7\u0131kar.")); }) ]
+                        [ More([] { return FString(TEXT("\u00dclke m\u00fcd\u00fcr\u00fc \u2192 b\u00f6lge direkt\u00f6r\u00fc \u2192 b\u00f6lge m\u00fcd\u00fcr\u00fc \u2192 il m\u00fcd\u00fcr\u00fc \u2192 ma\u011faza m\u00fcd\u00fcr\u00fc. Hi\u00e7bir kademe kendili\u011finden atanmaz; bo\u015f kademenin ki\u015fileri bir \u00fcsttekine, o da yoksa sana ba\u011flan\u0131r.\n\n\u0130l m\u00fcd\u00fcr\u00fc: ilde 3 ma\u011faza (ilk ma\u011faza say\u0131lmaz). B\u00f6lge m\u00fcd\u00fcr\u00fc: alt b\u00f6lgede 2 il m\u00fcd\u00fcr\u00fc. B\u00f6lge direkt\u00f6r\u00fc: ana b\u00f6lgede 2 b\u00f6lge m\u00fcd\u00fcr\u00fc. \u00dclke m\u00fcd\u00fcr\u00fc: \u00fclkede 5 ilde ma\u011fazan olunca (ilk ma\u011fazan\u0131n ili dahil) g\u00f6r\u00fcn\u00fcr ve atanabilir; \u015firket ikinci \u00fclkeye girince zorunlu, yoksa o \u00fclkedeki m\u00fcd\u00fcrlerin becerisi 10 puan d\u00fc\u015fer.\n\n\u0130lk ma\u011faza: ikinci ma\u011fazan a\u00e7\u0131l\u0131nca m\u00fcd\u00fcr atanabilir. Depo m\u00fcd\u00fcr\u00fc: her depoya bir tane (\u015eirket \u203a Depolar).\n\nHer atamada 3 d\u0131\u015f aday g\u00f6r\u00fcrs\u00fcn; adaylar her hafta yenilenir, ayn\u0131 ad bir daha gelmez. Beceri deneyimle artar ama herkesin bir tavan\u0131 var (en \u00e7ok 95).\n\nAtama terfiyle ya da d\u0131\u015far\u0131dan olur; g\u00f6revden almak 10 g\u00fcnl\u00fck tazminat ister. \u00dccretler g\u00fcn kapan\u0131\u015f\u0131nda kasadan \u00e7\u0131kar.")); }) ]
                     ]
                     // C7 (A menu comparison): one guiding line while there is nobody to manage yet.
                     + SVerticalBox::Slot().AutoHeight().Padding(0.f, 6.f, 0.f, 0.f)
@@ -5112,11 +5104,12 @@ TSharedRef<SWidget> SMarketMenu::NewGameLayer()
                 [
                     SNew(SVerticalBox)
                     + SVerticalBox::Slot().AutoHeight()[ Fixed(TEXT("YEN\u0130 OYUN"), 10, ERole::Accent, true) ]
-                    + SVerticalBox::Slot().AutoHeight().Padding(0.f, 4.f, 0.f, 0.f)[ Fixed(TEXT("Babandan devrald\u0131\u011f\u0131n d\u00fckk\u00e2n nerede?"), 30, ERole::Text, true) ]
+                    + SVerticalBox::Slot().AutoHeight().Padding(0.f, 4.f, 0.f, 0.f)[ Fixed(TEXT("Marketin nerede?"), 30, ERole::Text, true) ]
                 ]
                 + SHorizontalBox::Slot().AutoWidth().VAlign(VAlign_Center).Padding(0.f, 0.f, 6.f, 0.f)[ Choice(TEXT("1 \u00b7 \u00dclke"), [] { return true; }, [] {}) ]
                 + SHorizontalBox::Slot().AutoWidth().VAlign(VAlign_Center).Padding(0.f, 0.f, 6.f, 0.f)[ Choice(TEXT("2 \u00b7 \u0130l"), [Chosen] { return Chosen() != nullptr; }, [] {}) ]
-                + SHorizontalBox::Slot().AutoWidth().VAlign(VAlign_Center)[ Choice(TEXT("3 \u00b7 Ba\u015fla"), [] { return false; }, [] {}) ]
+                + SHorizontalBox::Slot().AutoWidth().VAlign(VAlign_Center).Padding(0.f, 0.f, 6.f, 0.f)[ Choice(TEXT("3 \u00b7 Market"), [this] { return !NewMarketName.TrimStartAndEnd().IsEmpty(); }, [] {}) ]
+                + SHorizontalBox::Slot().AutoWidth().VAlign(VAlign_Center)[ Choice(TEXT("4 \u00b7 Ba\u015fla"), [] { return false; }, [] {}) ]
             ]
             + SVerticalBox::Slot().FillHeight(1.f)
             [
@@ -5199,14 +5192,38 @@ TSharedRef<SWidget> SMarketMenu::NewGameLayer()
                             + SVerticalBox::Slot().AutoHeight().Padding(0.f, 12.f, 0.f, 6.f)[ Section(TEXT("NE BEKLEMEL\u0130")) ]
                             + SVerticalBox::Slot().AutoHeight()[ Label([Chosen] { const MarketCountry::FCity* C = Chosen(); return C ? MarketMenuPagesUi::Expectation(*C) : FString(); }, 11, ERole::Text, false, true) ]
                             + SVerticalBox::Slot().FillHeight(1.f)[ SNew(SSpacer) ]
+                            + SVerticalBox::Slot().AutoHeight().Padding(0.f, 0.f, 0.f, 6.f)[ Section(TEXT("MARKET\u0130N ADI")) ]
+                            + SVerticalBox::Slot().AutoHeight().Padding(0.f, 0.f, 0.f, 8.f)
+                            [
+                                SNew(SEditableTextBox).Font(MarketMenuUi::MenuFont(false, 12))
+                                .HintText(FText::FromString(TEXT("\u00f6r. Y\u0131ld\u0131z Market")))
+                                .Text_Lambda([this] { return FText::FromString(NewMarketName); })
+                                .OnTextChanged_Lambda([this](const FText& Text) { NewMarketName = Text.ToString().Left(24); })
+                            ]
+                            + SVerticalBox::Slot().AutoHeight().Padding(0.f, 0.f, 0.f, 6.f)[ Section(TEXT("SEN\u0130N ADIN")) ]
+                            + SVerticalBox::Slot().AutoHeight().Padding(0.f, 0.f, 0.f, 8.f)
+                            [
+                                SNew(SEditableTextBox).Font(MarketMenuUi::MenuFont(false, 12))
+                                .HintText(FText::FromString(TEXT("iste\u011fe ba\u011fl\u0131")))
+                                .Text_Lambda([this] { return FText::FromString(NewPlayerName); })
+                                .OnTextChanged_Lambda([this](const FText& Text) { NewPlayerName = Text.ToString().Left(MarketStart::MaxPlayerNameLength); })
+                            ]
+                            + SVerticalBox::Slot().AutoHeight().Padding(0.f, 0.f, 0.f, 6.f)[ Section(TEXT("ZORLUK")) ]
+                            + SVerticalBox::Slot().AutoHeight().Padding(0.f, 0.f, 0.f, 10.f)
+                            [
+                                SNew(SHorizontalBox)
+                                + SHorizontalBox::Slot().AutoWidth().Padding(0.f, 0.f, 4.f, 0.f)[ Choice(TEXT("Rahat"), [this] { return NewDifficulty == 0; }, [this] { NewDifficulty = 0; }) ]
+                                + SHorizontalBox::Slot().AutoWidth().Padding(0.f, 0.f, 4.f, 0.f)[ Choice(TEXT("Normal"), [this] { return NewDifficulty == 1; }, [this] { NewDifficulty = 1; }) ]
+                                + SHorizontalBox::Slot().AutoWidth()[ Choice(TEXT("Zor"), [this] { return NewDifficulty == 2; }, [this] { NewDifficulty = 2; }) ]
+                            ]
                             + SVerticalBox::Slot().AutoHeight().Padding(0.f, 0.f, 0.f, 10.f)
                             [
                                 SNew(SBorder).BorderImage(&SmallBrush).BorderBackgroundColor(Col(ERole::Inset)).Padding(FMargin(12.f, 10.f))
-                                [ Fixed(TEXT("Akrabandan kalan market: 1 kasiyer, 2 reyon g\u00f6revlisi, toptanc\u0131ya i\u015fletme borcu ve yar\u0131 dolu raflar."), 10, ERole::Text) ]
+                                [ Fixed(TEXT("\u0130l\u00e7edeki tek \u015fubeli k\u00fc\u00e7\u00fck bir market. Onu i\u015fleten aile yoruldu ve i\u015fi sana devretti: bina, 1 kasiyer, 2 reyon g\u00f6revlisi, toptanc\u0131ya hafif bir bor\u00e7 ve yar\u0131 dolu raflar. Sonras\u0131 senin hikayen."), 10, ERole::Text) ]
                             ]
                             + SVerticalBox::Slot().AutoHeight()
                             [
-                                RiskyButton([Chosen] { const MarketCountry::FCity* C = Chosen(); return C ? FString::Printf(TEXT("%s'de ba\u015fla"), *C->Name) : FString(TEXT("\u00d6nce bir il se\u00e7")); },
+                                RiskyButton([this, Chosen] { const MarketCountry::FCity* C = Chosen(); return !C ? FString(TEXT("\u00d6nce bir il se\u00e7")) : NewMarketName.TrimStartAndEnd().IsEmpty() ? FString(TEXT("Marketine bir ad ver")) : FString::Printf(TEXT("%s'de ba\u015fla"), *C->Name); },
                                     [G, Forced, Chosen]
                                     {
                                         const MarketCountry::FCity* C = Chosen();
@@ -5214,8 +5231,8 @@ TSharedRef<SWidget> SMarketMenu::NewGameLayer()
                                         return Forced() ? FString::Printf(TEXT("Oyun %s'de ba\u015flas\u0131n m\u0131?"), *C->Name)
                                             : FString::Printf(TEXT("%d. yuvadaki kampanya silinir ve %s'de yeni oyun ba\u015flar. Emin misin?"), G()->ActiveSlot, *C->Name);
                                     },
-                                    [G, Country, Chosen] { const MarketCountry::FCity* C = Chosen(); if (G() && C) G()->StartNewCampaign(Country(), C->Id); },
-                                    [Chosen] { return Chosen() != nullptr; })
+                                    [this, G, Country, Chosen] { const MarketCountry::FCity* C = Chosen(); if (G() && C) G()->StartNewCampaign(Country(), C->Id, NewMarketName, NewPlayerName, NewDifficulty); },
+                                    [this, Chosen] { return Chosen() != nullptr && !NewMarketName.TrimStartAndEnd().IsEmpty(); })
                             ]
                             + SVerticalBox::Slot().AutoHeight().Padding(0.f, 8.f, 0.f, 0.f)
                             [

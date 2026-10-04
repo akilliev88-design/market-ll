@@ -25,7 +25,7 @@ MarketSuppliers::FInfo MarketSuppliers::Info(ESupplier Supplier)
 
 MarketSuppliers::ESupplier MarketSuppliers::Current(const FMarketState& State)
 {
-    return State.Supplier < static_cast<uint8>(ESupplier::Count) ? static_cast<ESupplier>(State.Supplier) : ESupplier::Family;
+    return State.Supplier < static_cast<uint8>(ESupplier::Count) ? static_cast<ESupplier>(State.Supplier) : ESupplier::Regular;
 }
 
 const FMarketSupplierAccount* MarketSuppliers::FindAccount(const FMarketState& State, ESupplier Supplier)
@@ -39,8 +39,8 @@ FMarketSupplierAccount& MarketSuppliers::Account(FMarketState& State, ESupplier 
         return *Found;
     FMarketSupplierAccount New;
     New.Supplier = static_cast<uint8>(Supplier);
-    // The father paid this wholesaler for twenty years: it starts a little warmer than a stranger.
-    New.Trust = Supplier == ESupplier::Family ? 45 : 30;
+    // The market paid this wholesaler for years before it came to us: it starts a little warmer than a stranger.
+    New.Trust = Supplier == ESupplier::Regular ? 45 : 30;
     State.SupplierAccounts.Add(New);
     return State.SupplierAccounts.Last();
 }
@@ -53,7 +53,7 @@ bool MarketSuppliers::Available(const FMarketState& State, ESupplier Supplier)
 float MarketSuppliers::Discount(const FMarketState& State, ESupplier Supplier)
 {
     float Total = Info(Supplier).BaseDiscount;
-    if (Supplier == ESupplier::Family)
+    if (Supplier == ESupplier::Regular)
         if (const FMarketSupplierAccount* A = FindAccount(State, Supplier))
         {
             // Volume tiers follow the list level so that inflation does not hand out discounts by itself.
@@ -124,9 +124,9 @@ namespace
 
 int64 MarketSuppliers::LifelineAllowance(const FMarketState& State)
 {
-    if (Current(State) != ESupplier::Family || TermsDays(State, ESupplier::Family) > 0) return 0;
+    if (Current(State) != ESupplier::Regular || TermsDays(State, ESupplier::Regular) > 0) return 0;
     if (State.Cash > 0 && State.TroubleStage == 0) return 0;
-    const FMarketSupplierAccount* A = FindAccount(State, ESupplier::Family);
+    const FMarketSupplierAccount* A = FindAccount(State, ESupplier::Regular);
     if (!A || A->LifelineUses >= LifelineMax || (A->LifelineDay > 0 && State.Day - A->LifelineDay < LifelineEvery)) return 0;
     for (const FMarketPayable& Bill : State.Payables)
         if (Bill.DueDay + LifelineMaxLate < State.Day) return 0;
@@ -158,14 +158,13 @@ FString MarketSuppliers::OnOrder(FMarketState& State, int64 Bill)
         Terms = LifelineTerms;
         A.LifelineDay = State.Day;
         ++A.LifelineUses;
-        // M64: the father's name, three times in a campaign; the last time the salesman says so.
-        const FString Father = MarketStart::Relative(State, MarketStart::ECase::Genitive, true);
+        // M64: the shop's old standing with the wholesaler, three times in a campaign; the last time the salesman says so.
         if (A.LifelineUses >= LifelineMax)
-            State.DayNews.Add(FString::Printf(TEXT("%s: \"%s hat\u0131r\u0131na \u00fc\u00e7 g\u00fcnl\u00fck mal\u0131 bir kez daha veresiye yaz\u0131yorum. Ama bu son: hat\u0131r da bir yere kadar. Bundan sonra pe\u015fin ya da vadeyle.\""), *MarketCast::Salesman(), *Father));
+            State.DayNews.Add(FString::Printf(TEXT("%s: \"D\u00fckk\u00e2n\u0131n eski hat\u0131r\u0131na \u00fc\u00e7 g\u00fcnl\u00fck mal\u0131 bir kez daha veresiye yaz\u0131yorum. Ama bu son: hat\u0131r da bir yere kadar. Bundan sonra pe\u015fin ya da vadeyle.\""), *MarketCast::Salesman()));
         else if (A.LifelineUses == 2)
-            State.DayNews.Add(FString::Printf(TEXT("%s: \"%s arad\u0131, rica etti. \u00dc\u00e7 g\u00fcnl\u00fck mal\u0131 yine veresiye yaz\u0131yorum; s\u0131k\u0131 tut kemeri.\""), *MarketCast::Salesman(), *MarketStart::Relative(State, MarketStart::ECase::Plain, true)));
+            State.DayNews.Add(FString::Printf(TEXT("%s: \"Bu marketle y\u0131llard\u0131r \u00e7al\u0131\u015f\u0131r\u0131z. \u00dc\u00e7 g\u00fcnl\u00fck mal\u0131 yine veresiye yaz\u0131yorum; s\u0131k\u0131 tut kemeri.\""), *MarketCast::Salesman()));
         else
-            State.DayNews.Add(FString::Printf(TEXT("%s: \"%s hat\u0131r\u0131na, \u00fc\u00e7 g\u00fcnl\u00fck mal\u0131 veresiye yaz\u0131yorum. Raf bo\u015f kalmas\u0131n, ama haftaya yine pe\u015fin.\""), *MarketCast::Salesman(), *Father));
+            State.DayNews.Add(FString::Printf(TEXT("%s: \"Bu d\u00fckk\u00e2n\u0131n hat\u0131r\u0131na, \u00fc\u00e7 g\u00fcnl\u00fck mal\u0131 veresiye yaz\u0131yorum. Raf bo\u015f kalmas\u0131n, ama haftaya yine pe\u015fin.\""), *MarketCast::Salesman()));
     }
     if (Terms <= 0) return FString();
     // Bought on terms: the cash SubmitOrder took goes back; the bill waits.
@@ -203,11 +202,11 @@ bool MarketSuppliers::Switch(FMarketState& State, ESupplier Supplier, FString& O
     if (!Available(State, Supplier)) { OutMessage = FString::Printf(TEXT("%s hen\u00fcz b\u00f6lgeye gelmedi."), *Info(Supplier).Name); return false; }
     State.Supplier = static_cast<uint8>(Supplier);
     Account(State, Supplier);
-    // Leaving the father's wholesaler is noticed.
-    if (Supplier != ESupplier::Family)
+    // Leaving the shop's old wholesaler is noticed.
+    if (Supplier != ESupplier::Regular)
     {
-        Account(State, ESupplier::Family).Trust = FMath::Max(0, Account(State, ESupplier::Family).Trust - 10);
-        Account(State, ESupplier::Family).LifelineUses = LifelineMax; // M64: the father's favour does not survive leaving
+        Account(State, ESupplier::Regular).Trust = FMath::Max(0, Account(State, ESupplier::Regular).Trust - 10);
+        Account(State, ESupplier::Regular).LifelineUses = LifelineMax; // M64: the old standing does not survive leaving
     }
     OutMessage = Supplier == ESupplier::CashCarry
         ? FString::Printf(TEXT("Art\u0131k %s: %%4 ucuz, ama eksik ve k\u0131r\u0131k mal daha s\u0131k gelir, vade yok. %s bunu duyunca bozuldu."), *MarketCast::CashCarry(), *MarketCast::Salesman())
@@ -353,7 +352,7 @@ void MarketSuppliers::CloseDay(FMarketState& State)
     if (State.Day == Info(ESupplier::CashCarry).UnlockDay)
         News.Add(FString::Printf(TEXT("%s u\u011frad\u0131 (%s): \"Eski toptanc\u0131ndan %%4 ucuza veririz.\" Ucuz ama mal eksik ve k\u0131r\u0131k gelebilir; vade de yok."), *MarketCast::CashCarryOwner(), *MarketCast::CashCarry()));
     // Terms open up.
-    const FMarketSupplierAccount& Main = Account(State, ESupplier::Family);
-    if (Supplier == ESupplier::Family && Main.Trust >= TermsTrust && Main.Trust - 1 < TermsTrust && State.LastPurchases > 0)
-        News.Add(FString::Printf(TEXT("%s: \"%s gibi d\u00fczenli \u00e7al\u0131\u015f\u0131yorsun. Bundan sonra 7 g\u00fcn vadeli yazar\u0131m.\""), *MarketCast::Salesman(), *MarketStart::Relative(State, MarketStart::ECase::Plain, true)));
+    const FMarketSupplierAccount& Main = Account(State, ESupplier::Regular);
+    if (Supplier == ESupplier::Regular && Main.Trust >= TermsTrust && Main.Trust - 1 < TermsTrust && State.LastPurchases > 0)
+        News.Add(FString::Printf(TEXT("%s: \"Eski sahipler gibi d\u00fczenli \u00e7al\u0131\u015f\u0131yorsun. Bundan sonra 7 g\u00fcn vadeli yazar\u0131m.\""), *MarketCast::Salesman()));
 }

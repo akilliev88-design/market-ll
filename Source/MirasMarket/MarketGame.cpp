@@ -36,6 +36,11 @@
 
 namespace
 {
+    constexpr int32 CampaignSeedBase = 7919; // the world's random stream base (any fixed number)
+}
+
+namespace
+{
     // Price tags and notices: "2.40 TL".
     FString Money(int64 Value) { return MarketCountry::Money(Value); } // G-084
     AMarketGameMode* GetMarket(const AActor* Actor) { return Cast<AMarketGameMode>(UGameplayStatics::GetGameMode(Actor)); }
@@ -191,7 +196,7 @@ void AMarketGameMode::BeginPlay()
         PC->SetInputMode(FInputModeGameOnly());
         PC->bShowMouseCursor = false;
     }
-    Random.Initialize(2011);
+    Random.Initialize(CampaignSeedBase);
     RefreshLabels();
     // G-076: the last used slot comes back by itself, so a forgotten F9 never overwrites a long campaign.
     const bool bAutomation = FParse::Param(FCommandLine::Get(), TEXT("MirasSmoke")) || FParse::Param(FCommandLine::Get(), TEXT("MirasCapture")) || FParse::Param(FCommandLine::Get(), TEXT("MirasMenuCapture")) || FParse::Param(FCommandLine::Get(), TEXT("BranchVisitReview"));
@@ -207,7 +212,7 @@ void AMarketGameMode::BeginPlay()
         // Smoke / capture runs keep the prototype's empty shop and never wait for a choice.
         StartShop();
         SyncWorkers();
-        Notify(FString(TEXT("Annenle baban emekli oldu; market art\u0131k senin elinde. Raflara yakla\u015f: E. Sonra O ile a\u00e7.")));
+        Notify(MarketStart::IntroText(State));
     }
     else bNeedStart = true; // G-086: no save yet; the new-game screen (country and province) opens in Tick
     UE_LOG(LogTemp, Display, TEXT("MirasMarket ready: %d products, %d fixtures, starting cash %lld kurus."), Products.Num(), Planogram.Fixtures.Num(), State.Cash);
@@ -525,7 +530,7 @@ void AMarketGameMode::BuildStore()
         }
     }
     Label(FVector(-430, Back - 30, 140), FRotator(0, -90, 0), TEXT("DEPO"), 20);
-    // The family shop has a plain ceiling and flush light panels. Exposed services belong to large stores.
+    // The first store has a plain ceiling and flush light panels. Exposed services belong to large stores.
     for (float Y = 40.f; Y < Back; Y += 320.f)
         for (float X : { -300.f, 300.f })
         {
@@ -806,11 +811,10 @@ FString AMarketGameMode::RivalNewsText() const
 FString AMarketGameMode::WeekReportText() const
 {
     if (State.LastWeekNumber <= 0) return FString();
-    FString Text = FString::Printf(TEXT("Ciro %s  \u00b7  net %s  \u00b7  %d sat\u0131\u015f, %d kay\u0131p m\u00fc\u015fteri\nBu hafta \u00f6denen bor\u00e7 %s  \u00b7  kalan bor\u00e7 %s"),
-        *Money(State.LastWeekRevenue), *Money(State.LastWeekProfit), State.LastWeekServed, State.LastWeekLost,
-        *Money(State.LastWeekDebtPaid), *Money(State.InheritedDebt));
-    if (!MarketCampaign::DebtOpen(State))
-        Text += FString::Printf(TEXT("\nBor\u00e7 %d. g\u00fcnde kapand\u0131. Art\u0131k b\u00fcy\u00fcmeyi d\u00fc\u015f\u00fcnebilirsin."), State.DebtClearedDay);
+    FString Text = FString::Printf(TEXT("Ciro %s  \u00b7  net %s  \u00b7  %d sat\u0131\u015f, %d kay\u0131p m\u00fc\u015fteri"),
+        *Money(State.LastWeekRevenue), *Money(State.LastWeekProfit), State.LastWeekServed, State.LastWeekLost);
+    if (State.LastWeekDebtPaid > 0 || MarketCampaign::DebtOpen(State))
+        Text += FString::Printf(TEXT("\nBu hafta \u00f6denen bor\u00e7 %s  \u00b7  kalan devral\u0131nan bor\u00e7 %s"), *Money(State.LastWeekDebtPaid), *Money(State.InheritedDebt));
     return Text;
 }
 FString AMarketGameMode::LoyaltySummary() const { return MarketBasket::Summary(State); }
@@ -989,7 +993,7 @@ void AMarketGameMode::Command(FName Action)
         else
         {
             bOpen = true; DayTime = 0; SpawnTimer = 1; AutoCheckoutTimer = 0; NextQueueTicket = 0;
-            Random.Initialize(2011 + State.Day * 73);
+            Random.Initialize(CampaignSeedBase + State.Day * 73);
             Notify(TEXT("Market acildi. Musterileri kasada bekletme. Gun 4 dakika surer; O erken kapatir."));
         }
     }
@@ -1150,22 +1154,21 @@ void AMarketGameMode::Command(FName Action)
             if (bDone) SyncWorkers();
             Notify(Text);
         }
-        else if (Action == "PayDebt")
+        else if (Action == "PayDebt" || Action == "PayDebtAll")
         {
-            if (!MarketCampaign::DebtOpen(State)) Notify(TEXT("\u0130\u015fletmenin borcu kapand\u0131; defterde \u00f6denecek bir \u015fey kalmad\u0131."));
-            else if (const int64 Paid = MarketCampaign::PayDebt(State); Paid > 0)
+            // M69: the inherited debt has no deadline and locks nothing; one installment or all of it, when the player wants.
+            if (!MarketCampaign::DebtOpen(State)) Notify(TEXT("Devral\u0131nan bor\u00e7 kapand\u0131; defterde \u00f6denecek bir \u015fey kalmad\u0131."));
+            else if (const int64 Paid = MarketCampaign::PayDebt(State, Action == "PayDebtAll" ? State.InheritedDebt : -1); Paid > 0)
                 Notify(MarketCampaign::DebtOpen(State)
                     ? FString::Printf(TEXT("Toptanc\u0131ya %s \u00f6dendi. Kalan bor\u00e7 %s."), *Money(Paid), *Money(State.InheritedDebt))
-                    : FString(TEXT("BOR\u00c7 KAPANDI! Toptanc\u0131 defterdeki sat\u0131r\u0131n \u00fcst\u00fcn\u00fc \u00e7izdi. Art\u0131k ikinci \u015fube hedefin var.")));
+                    : FString(TEXT("Devral\u0131nan bor\u00e7 kapand\u0131. Toptanc\u0131 defterdeki sat\u0131r\u0131n \u00fcst\u00fcn\u00fc \u00e7izdi.")));
             else Notify(TEXT("Bor\u00e7 \u00f6demek i\u00e7in kasada nakit yok."));
         }
         else if (Action == "Expand")
         {
             // G-086: G opens a neighbourhood market in the home province; the map has every province and type.
             FString Text;
-            if (MarketCampaign::DebtOpen(State))
-                Text = FString::Printf(TEXT("\u00d6nce i\u015fletmenin borcunu kapat (kalan %s; men\u00fcde \u00d6zet \u203a \u00f6de). Bor\u00e7lu d\u00fckk\u00e2n b\u00fcy\u00fcyemez."), *Money(State.InheritedDebt));
-            else MarketDirector::Command(State, Products, TEXT("OpenBranch"), MarketBranches::EncodeSite(State.CountryId, MarketStart::HomeProvince(State), TEXT("mahalle")), Text);
+            MarketDirector::Command(State, Products, TEXT("OpenBranch"), MarketBranches::EncodeSite(State.CountryId, MarketStart::HomeProvince(State), TEXT("mahalle")), Text);
             Notify(Text);
         }
     }
@@ -1614,7 +1617,7 @@ bool AMarketGameMode::AdvanceTime(MarketSimulation::ETurn Turn)
 {
     if (bOpen || bNeedStart || bStoreTour || IsBranchVisit())
     {
-        Notify(TEXT("Gun ilerletmek icin aile dukkaninin acik gununu once kapat."));
+        Notify(TEXT("Gun ilerletmek icin ilk magazanin acik gununu once kapat."));
         return false;
     }
     const int32 WeekBefore = State.LastWeekNumber;

@@ -58,7 +58,7 @@ bool FMarketManagersDirectTest::RunTest(const FString& Parameters)
     FMarketState S = MakeState();
     FString Message;
 
-    TestEqual(TEXT("The family shop does not count without a manager"), DirectCount(S), 0);
+    TestEqual(TEXT("The first store does not count without a manager"), DirectCount(S), 0);
     AddShop(S, TEXT("tekirdag"));
     AddShop(S, TEXT("tekirdag"));
     TestFalse(TEXT("Two shops are not enough for a province manager"), CanAppoint(S, ELevel::Province, TEXT("tr"), TEXT("tekirdag"), INDEX_NONE, Message));
@@ -111,8 +111,8 @@ bool FMarketManagersDirectTest::RunTest(const FString& Parameters)
     TestTrue(TEXT("Appoint the sub-region manager"), Appoint(S, ELevel::SubRegion, TEXT("tr"), TEXT("trakya"), INDEX_NONE, Message));
     TestEqual(TEXT("Only the sub-region manager reports to the player"), DirectCount(S), 1);
     TestFalse(TEXT("Director needs two sub-region managers"), CanAppoint(S, ELevel::Region, TEXT("tr"), TEXT("marmara"), INDEX_NONE, Message));
-    // The family shop gets a manager: in Kirklareli (Trakya) he answers to the sub-region manager.
-    TestTrue(TEXT("Family shop manager"), Appoint(S, ELevel::FamilyShop, TEXT("tr"), FString(), INDEX_NONE, Message));
+    // The first store gets a manager: in Kirklareli (Trakya) he answers to the sub-region manager.
+    TestTrue(TEXT("First store manager"), Appoint(S, ELevel::FirstStore, TEXT("tr"), FString(), INDEX_NONE, Message));
     TestEqual(TEXT("Still one direct report"), DirectCount(S), 1);
 
     // Dismissing the sub-region manager: the province managers answer to the player again.
@@ -269,34 +269,34 @@ bool FMarketManagersDecisionsTest::RunTest(const FString& Parameters)
     return true;
 }
 
-IMPLEMENT_SIMPLE_AUTOMATION_TEST(FMarketManagersFamilyShopTest, "MirasMarket.Managers.FamilyShopManager", EAutomationTestFlags::EditorContext | EAutomationTestFlags::EngineFilter)
-bool FMarketManagersFamilyShopTest::RunTest(const FString& Parameters)
+IMPLEMENT_SIMPLE_AUTOMATION_TEST(FMarketManagersFirstStoreTest, "MirasMarket.Managers.FirstStoreManager", EAutomationTestFlags::EditorContext | EAutomationTestFlags::EngineFilter)
+bool FMarketManagersFirstStoreTest::RunTest(const FString& Parameters)
 {
     using namespace MarketManagers;
     using namespace MarketManagersTest;
     FMarketState S = MakeState();
     FString Message;
     // M19: not before a second shop is open.
-    TestFalse(TEXT("No branch yet"), CanAppoint(S, ELevel::FamilyShop, TEXT("tr"), FString(), INDEX_NONE, Message));
+    TestFalse(TEXT("No branch yet"), CanAppoint(S, ELevel::FirstStore, TEXT("tr"), FString(), INDEX_NONE, Message));
     TestTrue(TEXT("Reason"), Message.Contains(TEXT("ikinci")));
-    TestFalse(TEXT("Hidden"), IsTierVisible(S, ELevel::FamilyShop, TEXT("tr"), FString()));
+    TestFalse(TEXT("Hidden"), IsTierVisible(S, ELevel::FirstStore, TEXT("tr"), FString()));
     const int32 Shop = AddShop(S, TEXT("tekirdag"));
     S.Branches[Shop].Stage = static_cast<uint8>(MarketBranches::EStage::Renovation);
-    TestFalse(TEXT("A branch still being built does not count"), CanAppoint(S, ELevel::FamilyShop, TEXT("tr"), FString(), INDEX_NONE, Message));
+    TestFalse(TEXT("A branch still being built does not count"), CanAppoint(S, ELevel::FirstStore, TEXT("tr"), FString(), INDEX_NONE, Message));
     S.Branches[Shop].Stage = static_cast<uint8>(MarketBranches::EStage::Open);
-    TestTrue(TEXT("Open branch: possible"), CanAppoint(S, ELevel::FamilyShop, TEXT("tr"), FString(), INDEX_NONE, Message));
-    TestTrue(TEXT("Visible"), IsTierVisible(S, ELevel::FamilyShop, TEXT("tr"), FString()));
-    TestFalse(TEXT("Without a manager the family's routine"), FamilyRule(S).bManaged);
+    TestTrue(TEXT("Open branch: possible"), CanAppoint(S, ELevel::FirstStore, TEXT("tr"), FString(), INDEX_NONE, Message));
+    TestTrue(TEXT("Visible"), IsTierVisible(S, ELevel::FirstStore, TEXT("tr"), FString()));
+    TestFalse(TEXT("Without a manager the family's routine"), FirstStoreRule(S).bManaged);
     TArray<int32> Plain = { 10, 4, 0, 7 };
     const TArray<int32> Before = Plain;
-    ShapeFamilyOrder(S, FamilyRule(S), Plain);
+    ShapeFirstStoreOrder(S, FirstStoreRule(S), Plain);
     TestTrue(TEXT("Order unchanged without a manager"), Plain == Before);
 
-    const TArray<FCandidate> Pool = Candidates(S, ELevel::FamilyShop, TEXT("tr"), FString());
+    const TArray<FCandidate> Pool = Candidates(S, ELevel::FirstStore, TEXT("tr"), FString());
     TestEqual(TEXT("Three candidates"), Pool.Num(), CandidateCount);
     TestEqual(TEXT("Direct: one store manager"), DirectCount(S), 1);
-    TestTrue(TEXT("Appoint candidate 2"), AppointCandidate(S, ELevel::FamilyShop, TEXT("tr"), FString(), 2, Message));
-    const int32 Index = FindManager(S, ELevel::FamilyShop, TEXT("tr"), FString());
+    TestTrue(TEXT("Appoint candidate 2"), AppointCandidate(S, ELevel::FirstStore, TEXT("tr"), FString(), 2, Message));
+    const int32 Index = FindManager(S, ELevel::FirstStore, TEXT("tr"), FString());
     TestTrue(TEXT("Appointed"), Index != INDEX_NONE && S.Management.Managers[Index].Name == Pool[2].Name);
     TestEqual(TEXT("Counts as one of the player's people"), DirectCount(S), 2);
     TestTrue(TEXT("Paid"), DailyWages(S) > 0);
@@ -305,28 +305,28 @@ bool FMarketManagersFamilyShopTest::RunTest(const FString& Parameters)
     FMarketManager& M = S.Management.Managers[Index];
     M.Skill = 80;
     M.Morale = 60.f;
-    const int32 Settling = FamilyRule(S).Skill;
+    const int32 Settling = FirstStoreRule(S).Skill;
     S.Day += SettleDays;
-    TestTrue(TEXT("The first week is a settling-in week"), FamilyRule(S).Skill >= Settling + SettlePenalty);
+    TestTrue(TEXT("The first week is a settling-in week"), FirstStoreRule(S).Skill >= Settling + SettlePenalty);
     M.Style = static_cast<uint8>(EStyle::Careful);
-    const FFamilyRule Careful = FamilyRule(S);
+    const FFirstStoreRule Careful = FirstStoreRule(S);
     M.Style = static_cast<uint8>(EStyle::Generous);
-    const FFamilyRule Generous = FamilyRule(S);
+    const FFirstStoreRule Generous = FirstStoreRule(S);
     M.Style = static_cast<uint8>(EStyle::PriceMinded);
-    const FFamilyRule PriceMinded = FamilyRule(S);
+    const FFirstStoreRule PriceMinded = FirstStoreRule(S);
     TestTrue(TEXT("Managed"), Careful.bManaged);
     TestTrue(TEXT("Careful orders less, generous more"), Careful.OrderFactor < 1.f && Generous.OrderFactor > 1.f);
     TestTrue(TEXT("Price-minded holds the old prices longer"), PriceMinded.PriceRiseGap > Careful.PriceRiseGap);
     TestTrue(TEXT("A skilled one refills often"), Careful.RefillEvery <= 8 && Careful.ForgetPermille == 0);
     TArray<int32> Small = { 20, 20, 20, 20 };
     TArray<int32> Big = Small;
-    ShapeFamilyOrder(S, Careful, Small);
-    ShapeFamilyOrder(S, Generous, Big);
+    ShapeFirstStoreOrder(S, Careful, Small);
+    ShapeFirstStoreOrder(S, Generous, Big);
     int32 SmallSum = 0, BigSum = 0;
     for (int32 I = 0; I < Small.Num(); ++I) { SmallSum += Small[I]; BigSum += Big[I]; }
     TestTrue(TEXT("Styles shape the order"), SmallSum < 80 && BigSum > 80);
     M.Skill = 20;
-    const FFamilyRule Weak = FamilyRule(S);
+    const FFirstStoreRule Weak = FirstStoreRule(S);
     TestTrue(TEXT("A weak one refills late and forgets lines"), Weak.RefillEvery > 8 && Weak.ForgetPermille > 0);
     return true;
 }
@@ -338,13 +338,13 @@ bool FMarketManagersCountryVisibleTest::RunTest(const FString& Parameters)
     using namespace MarketManagersTest;
     FMarketState S = MakeState();
     FString Message;
-    AddShop(S, TEXT("kirklareli")); // the family shop's province: no new province
+    AddShop(S, TEXT("kirklareli")); // the first store's province: no new province
     AddShop(S, TEXT("tekirdag"));
     AddShop(S, TEXT("edirne"));
     AddShop(S, TEXT("istanbul"));
     const int32 Building = AddShop(S, TEXT("bursa"));
     S.Branches[Building].Stage = static_cast<uint8>(MarketBranches::EStage::Permits);
-    TestEqual(TEXT("Four provinces with the family shop's"), ProvincesWithShops(S, TEXT("tr")), 4);
+    TestEqual(TEXT("Four provinces with the first store's"), ProvincesWithShops(S, TEXT("tr")), 4);
     TestFalse(TEXT("Four provinces: not yet"), CanAppoint(S, ELevel::Country, TEXT("tr"), FString(), INDEX_NONE, Message));
     TestTrue(TEXT("Reason names the five provinces"), Message.Contains(TEXT("5")));
     TestFalse(TEXT("Hidden in the tree"), IsTierVisible(S, ELevel::Country, TEXT("tr"), TEXT("tr")));
@@ -359,7 +359,7 @@ bool FMarketManagersCountryVisibleTest::RunTest(const FString& Parameters)
     TestTrue(TEXT("Visible"), IsTierVisible(S, ELevel::Country, TEXT("tr"), TEXT("tr")) && VisibleTiers(S, TEXT("tr")).Contains(ELevel::Country));
     TestTrue(TEXT("Suggested"), Suggestions(S).ContainsByPredicate([](const FString& Line) { return Line.Contains(TEXT("\u00fclke m\u00fcd\u00fcr\u00fc")); }));
     // C11 (M40): a country manager of a few shops asks for a part of his band; it grows with the network.
-    TestEqual(TEXT("Five branches and the family shop"), ShopsInCountry(S, TEXT("tr")), 6);
+    TestEqual(TEXT("Five branches and the first store"), ShopsInCountry(S, TEXT("tr")), 6);
     TestTrue(TEXT("Small chain, smaller pay"), FMath::IsNearlyEqual(CountryWageScale(S, TEXT("tr")), CountryMinScale));
     const TArray<FCandidate> Small = Candidates(S, ELevel::Country, TEXT("tr"), TEXT("tr"));
     TestTrue(TEXT("A third of the band"), Small.Num() > 0 && Small[0].BaseWage <= BaseWageFor(ELevel::Country, Small[0].Skill, TEXT("tr")) * 0.35);
@@ -463,7 +463,7 @@ bool FMarketManagersCandidatesTest::RunTest(const FString& Parameters)
     AddShop(S, TEXT("tekirdag"));
 
     // Three candidates for every kind of appointment, each with a ceiling 55..95 and a wage.
-    const ELevel Levels[7] = { ELevel::Store, ELevel::Province, ELevel::SubRegion, ELevel::Region, ELevel::Country, ELevel::Depot, ELevel::FamilyShop };
+    const ELevel Levels[7] = { ELevel::Store, ELevel::Province, ELevel::SubRegion, ELevel::Region, ELevel::Country, ELevel::Depot, ELevel::FirstStore };
     const TCHAR* Areas[7] = { TEXT("tekirdag"), TEXT("tekirdag"), TEXT("trakya"), TEXT("marmara"), TEXT("tr"), TEXT("tekirdag"), TEXT("") };
     for (int32 L = 0; L < 7; ++L)
     {

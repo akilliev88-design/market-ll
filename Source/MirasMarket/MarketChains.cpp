@@ -95,7 +95,7 @@ namespace MarketChainsLocal
             if ((B.Province.IsEmpty() ? MarketStart::HomeProvince(State) : B.Province) != Province) continue;
             Sum += FormatWeight(B.Format);
         }
-        if (Country == State.CountryId && Province == MarketStart::HomeProvince(State)) Sum += 0.8f; // the family shop
+        if (Country == State.CountryId && Province == MarketStart::HomeProvince(State)) Sum += 0.8f; // the first store
         for (const FMarketChain& C : State.Rivals.Chains) // M30: our subsidiaries' stores
             if (!C.bGone && C.bOurs && C.Country == Country) Sum += StoresOf(C, Province) * Arch(static_cast<EArchetype>(C.Archetype)).Weight;
         return Sum;
@@ -152,9 +152,9 @@ namespace MarketChainsLocal
     const TArray<FString>& NemesisQuotes()
     {
         static const TArray<FString> Lines = {
-            TEXT("Miras'\u0131 yak\u0131ndan izliyoruz."),
+            TEXT("Onlar\u0131 yak\u0131ndan izliyoruz."),
             TEXT("Onlar\u0131n a\u00e7t\u0131\u011f\u0131 her ma\u011fazan\u0131n kar\u015f\u0131s\u0131na bir tane de biz a\u00e7ar\u0131z."),
-            TEXT("K\u00fc\u00e7\u00fck bir aile d\u00fckk\u00e2n\u0131yd\u0131lar. H\u00e2l\u00e2 \u00f6yle g\u00f6r\u00fcyoruz."),
+            TEXT("K\u00fc\u00e7\u00fck bir mahalle marketiydiler. H\u00e2l\u00e2 \u00f6yle g\u00f6r\u00fcyoruz."),
         };
         return Lines;
     }
@@ -400,7 +400,7 @@ void MarketChains::EnsureLocal(FMarketState& State, const FString& InCountry, co
     if (!City) return;
     State.Rivals.LocalPools.Add(Pool);
     const int32 Count = FMath::Clamp(FMath::RoundToInt32(City->Competition * 1.3f + Roll(State, Hash(Pool), 1u)), 1, 3);
-    // E2 (M52): the pack's words for a family shop ("Market", "Kardesler"...; a pack without them: the default one's).
+    // E2 (M52): the pack's words for a first store ("Market", "Kardesler"...; a pack without them: the default one's).
     const MarketCountry::FProfile* Pack = MarketCountry::Find(Country);
     const TArray<FString>& Words = Pack && Pack->LocalSuffixes.Num() > 0 ? Pack->LocalSuffixes : MarketCountry::Default().LocalSuffixes;
     TArray<FString> Pattern;
@@ -983,7 +983,7 @@ bool MarketChains::CanBuy(const FMarketState& State, int32 ChainIndex, FString& 
     if (C.Country != State.CountryId && !MarketResearch::AllowsEntry(State, C.Country, OutReason)) return false; // M58
     if (C.bExitSale && C.Country != State.CountryId)
     {
-        // M30: a giant's arm leaving the country is a door into it, from the world chapter on.
+        // M30: a giant's arm leaving the country is a door into it, once the way abroad is open.
         if (!MarketCompany::AbroadOpen(State)) { OutReason = MarketCompany::AbroadLock(State); return false; } // D6 (M67)
     }
     else if (C.Country != State.CountryId && !State.Branches.ContainsByPredicate([&State, &C](const FMarketBranch& B) { return MarketBranches::CountryOf(State, B) == C.Country; }))
@@ -1579,11 +1579,11 @@ namespace MarketChainsLocal
         Mark(World, R.BestLeagueRank, TEXT("D\u00fcnya liginde"));
         R.NationalRank = National;
         R.LeagueRank = World;
-        // C3 (J02): a league year closes every 365 days; two first places in a row in chapter 7 end the game.
+        // C3: a league year closes every 365 days (its firsts: MarketGoals; M69: the game never ends here).
         if (Day - R.LeagueYearDay >= 365)
         {
             R.LeagueYearDay = Day;
-            MarketGoals::OnLeagueYear(State, World, true); // rank 0 (not ranked) ends a streak
+            MarketGoals::OnLeagueYear(State, World, true); // rank 0 = not listed
         }
     }
 }

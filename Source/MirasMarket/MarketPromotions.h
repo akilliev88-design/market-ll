@@ -7,7 +7,7 @@
 // (MirasMarket.Promotions.*). A promotion changes three things the shoppers see: the price they pay, how often a
 // product lands on a shopping list (visibility) and how many shoppers come (flyers). Every promotion ends with a
 // report line: units sold against the same days before, and the margin given away, so the player learns whether it
-// paid. Promotions bring the family shop more trips (MarketStoreDemand).
+// paid. Promotions bring the first store more trips (MarketStoreDemand).
 //  AisleDiscount  - one aisle (category) 10 or 20 % off for 3 days
 //  MultiBuy       - "3 al 2 \u00f6de" on one product for 7 days: a shopper who takes it takes three and pays for two
 //  Flyer          - M36: no longer started (flyers are the company's ads, MarketAdvertising); kept for the order
@@ -43,15 +43,15 @@ namespace MarketPromotions
     constexpr int32 DealShelfCut = 10;       // % off the shelf price required
     constexpr int32 OfferTrust = 70;         // wholesaler trust for funded offers
 
-    // M38: in effect on Day anywhere; IsActive: in effect in the family shop (its own or the company's in every store).
+    // M38: in effect on Day anywhere; IsActive: in effect in the first store (its own or the company's in every store).
     bool IsRunning(const FMarketPromotion& Promo, int32 Day);
     bool IsActive(const FMarketPromotion& Promo, int32 Day);
-    // M38: where the player's next campaign runs (MarketLedger::FamilyShop, a branch, MarketLedger::AllStores).
+    // M38: where the player's next campaign runs (MarketLedger::FirstStore, a branch, MarketLedger::AllStores).
     bool SetStore(FMarketState& State, int32 Store, FString& OutMessage);
     int32 RunningAt(const FMarketState& State, int32 Store);
     // M38: a branch's campaigns on product Index: the average price cut (0..0.5) and the extra wish (>= 1).
     void StoreEffect(const FMarketState& State, const TArray<FMarketProduct>& Products, int32 Branch, int32 Index, int32 Day, float& OutCut, float& OutPull);
-    // M38: the family shop's manager clears slow goods like every store manager (a week's discount, his style);
+    // M38: the first store's manager clears slow goods like every store manager (a week's discount, his style);
     // called once a week. Returns the line for the day report ("" when nothing).
     FString ManagerClearance(FMarketState& State, const TArray<FMarketProduct>& Products);
     TArray<const FMarketPromotion*> Active(const FMarketState& State);

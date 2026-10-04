@@ -4,7 +4,7 @@
 #include "MarketEconomy.h"
 
 // Karar M28 (Mustafa 01.10.2026): company finance. Independent of the world, tested (MirasMarket.Banking.*).
-// The family shop keeps its small loan from the country's local bank (MarketFinance); once the company grows it deals with banks
+// The first store keeps its small loan from the country's local bank (MarketFinance); once the company grows it deals with banks
 // as a company:
 //  - A credit rating (A+, A, B+, B, C, D) every month from what any bank sees: debt against the year's operating
 //    result (EBITDA from the books), interest cover, size, age, late payments and money trouble. Every part is
@@ -74,7 +74,7 @@ namespace MarketBanking
 
     // Company finance is open (a branch exists, or loans are running).
     bool IsOpen(const FMarketState& State);
-    // Every bank debt of the company (not the family shop's small loan: MarketFinance::Debt).
+    // Every bank debt of the company (not the first store's small loan: MarketFinance::Debt).
     int64 Debt(const FMarketState& State);
     bool CovenantBroken(const FMarketState& State);
 

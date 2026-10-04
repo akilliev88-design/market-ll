@@ -132,7 +132,7 @@ namespace MarketMenuCapture
         {
             FMarketBranch Branch; Branch.Country=State.CountryId; Branch.Province=Provinces[Index]; Branch.Format=Index%2?TEXT("kucuk"):TEXT("mahalle");
             Branch.Name=FString::Printf(TEXT("Ornek %s %d"),*Branch.Province,Index+1); Branch.Stage=static_cast<uint8>(MarketBranches::EStage::Open); Branch.OpenedDay=State.Day-120;
-            Branch.Workers=3+Index; Branch.ManagerName=Index%2?TEXT("Cem"):TEXT("Ayse"); Branch.ManagerSkill=60; Branch.ManagerHonesty=70; Branch.ManagerWage=80000;
+            Branch.Workers=3+Index; Branch.ManagerName=Index%2?TEXT("Ali"):TEXT("Ayse"); Branch.ManagerSkill=60; Branch.ManagerHonesty=70; Branch.ManagerWage=80000;
             Branch.ManagerMorale=60; Branch.ManagerPotential=75; Branch.Maturity=1.f; Branch.Satisfaction=Index==3?35:75; Branch.PriceIndex=1.f;
             Branch.Rent=120000; Branch.LastShoppers=80+Index*30; Branch.LastQueueLost=Index==3?15:0; Branch.LastRevenue=50000+Index*10000; Branch.LastProfit=Index==3?-6000:15000;
             Branch.Last30Revenue=Branch.LastRevenue*30; Branch.Last30Profit=Branch.LastProfit*30;
@@ -142,7 +142,7 @@ namespace MarketMenuCapture
         FMarketDepot Depot; Depot.Country=State.CountryId; Depot.Province=TEXT("kirklareli"); Depot.OpenedDay=State.Day-90; Depot.Rent=600000; State.Company.DepotSites.Add(Depot);
         const auto AddManager=[&](MarketManagers::ELevel Level,const TCHAR* Area,const TCHAR* Name)
         { FMarketManager Manager; Manager.Level=static_cast<uint8>(Level); Manager.Country=State.CountryId; Manager.Area=Area; Manager.Name=Name; Manager.Skill=65; Manager.Potential=80; Manager.Honesty=70; Manager.Morale=65; Manager.BaseWage=5000; Manager.AppointedDay=State.Day-60; State.Management.Managers.Add(Manager); };
-        AddManager(MarketManagers::ELevel::Province,TEXT("kirklareli"),TEXT("Selim")); AddManager(MarketManagers::ELevel::Depot,TEXT("kirklareli"),TEXT("Deniz"));
+        AddManager(MarketManagers::ELevel::Province,TEXT("kirklareli"),TEXT("Ece")); AddManager(MarketManagers::ELevel::Depot,TEXT("kirklareli"),TEXT("Deniz"));
         State.Company.Trucks=1;
     }
     bool WriteIndex(const FCapture& Run)

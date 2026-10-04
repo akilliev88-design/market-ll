@@ -13,7 +13,7 @@ namespace MarketMapData
     struct FProvince
     {
         FString Id;                      // "kirklareli"
-        FString Name;                    // "Kirklareli" with Turkish letters
+        FString Name;                    // the province's name with Turkish letters
         int32 Plate = 0;
         int32 PopulationK = 0;           // thousands
         FVector2f Center = FVector2f::ZeroVector;
@@ -33,7 +33,7 @@ namespace MarketMapData
 
     // Loaded once from Config/iller.json (empty when the file is missing: the page then shows a list only).
     const FData& Get();
-    // Province by its Turkish name ("Kirklareli" / "Istanbul" with or without Turkish letters), INDEX_NONE if unknown.
+    // Province by its Turkish name ("Istanbul" / "\u0130stanbul", with or without Turkish letters), INDEX_NONE if unknown.
     int32 FindByName(const FString& Name);
 }
 

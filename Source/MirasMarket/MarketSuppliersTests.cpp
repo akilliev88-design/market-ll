@@ -43,14 +43,14 @@ bool FMarketSuppliersTest::RunTest(const FString& Parameters)
     ApplyPrices(S, Base, Today);
     TestEqual(TEXT("Cost on day 1: the wholesaler's price"), Today[0].Cost, int64(187));
     TestEqual(TEXT("List on day 1"), Today[0].BasePrice, int64(250));
-    TestTrue(TEXT("The father's wholesaler"), Current(S) == ESupplier::Family);
-    Account(S, ESupplier::Family);
-    TestEqual(TEXT("Cash at first"), TermsDays(S, ESupplier::Family), 0);
+    TestTrue(TEXT("The shop's old wholesaler"), Current(S) == ESupplier::Regular);
+    Account(S, ESupplier::Regular);
+    TestEqual(TEXT("Cash at first"), TermsDays(S, ESupplier::Regular), 0);
     TestEqual(TEXT("Nothing extra for a cash order"), OnOrder(S, 6000), FString());
 
     // Trust brings terms: the bill waits, the cash stays.
-    Account(S, ESupplier::Family).Trust = 60;
-    TestEqual(TEXT("Seven days"), TermsDays(S, ESupplier::Family), 7);
+    Account(S, ESupplier::Regular).Trust = 60;
+    TestEqual(TEXT("Seven days"), TermsDays(S, ESupplier::Regular), 7);
     const int64 Cash = S.Cash;
     TestFalse(TEXT("Terms line"), OnOrder(S, 10000).IsEmpty());
     TestEqual(TEXT("Cash given back"), S.Cash, Cash + 10000);
@@ -71,33 +71,33 @@ bool FMarketSuppliersTest::RunTest(const FString& Parameters)
     // Paid at the close of the due day from the till.
     for (int32 D = 0; D < 8; ++D) { S.CloseDay(); CloseDay(S); }
     TestEqual(TEXT("Paid on time"), S.Payables.Num(), 0);
-    TestTrue(TEXT("Trust grew"), Account(S, ESupplier::Family).Trust >= 65);
+    TestTrue(TEXT("Trust grew"), Account(S, ESupplier::Regular).Trust >= 65);
 
     // A late bill: fee, lost trust, no more terms.
     OnOrder(S, 10000);
     S.Cash = 0;
-    const int32 TrustBefore = Account(S, ESupplier::Family).Trust;
+    const int32 TrustBefore = Account(S, ESupplier::Regular).Trust;
     for (int32 D = 0; D < 8; ++D) { S.Revenue = 0; S.CloseDay(); CloseDay(S); S.Cash = FMath::Max<int64>(S.Cash, 0); }
     TestTrue(TEXT("Still owed, with a late fee"), S.Payables.Num() == 1 && S.Payables[0].Amount > 10000);
-    TestTrue(TEXT("Trust fell"), Account(S, ESupplier::Family).Trust < TrustBefore - 20);
-    TestEqual(TEXT("Terms closed"), TermsDays(S, ESupplier::Family), 0);
+    TestTrue(TEXT("Trust fell"), Account(S, ESupplier::Regular).Trust < TrustBefore - 20);
+    TestEqual(TEXT("Terms closed"), TermsDays(S, ESupplier::Regular), 0);
     S.Cash = 100000;
     TestTrue(TEXT("Paying the bills"), PayBills(S) > 10000 && OpenBills(S) == 0);
 
     // Volume discount.
     FMarketState V; V.Initialize(Base);
-    Account(V, ESupplier::Family).Volume30 = 200000;
-    TestTrue(TEXT("3 % for volume"), FMath::IsNearlyEqual(Discount(V, ESupplier::Family), 0.03f));
+    Account(V, ESupplier::Regular).Volume30 = 200000;
+    TestTrue(TEXT("3 % for volume"), FMath::IsNearlyEqual(Discount(V, ESupplier::Regular), 0.03f));
     TestTrue(TEXT("Cheaper unit"), UnitCost(V, Milk) < 187);
 
     // The cheaper wholesaler from day 14.
     FString Message;
     TestFalse(TEXT("Not yet"), Switch(V, ESupplier::CashCarry, Message));
     V.Day = 14;
-    const int32 SelimTrust = Account(V, ESupplier::Family).Trust;
+    const int32 OldTrust = Account(V, ESupplier::Regular).Trust;
     TestTrue(TEXT("Switch"), Switch(V, ESupplier::CashCarry, Message));
     TestTrue(TEXT("4 % cheaper"), UnitCost(V, Milk) < 187 && FMath::IsNearlyEqual(Discount(V, ESupplier::CashCarry), 0.04f));
-    TestTrue(TEXT("Selim noticed"), Account(V, ESupplier::Family).Trust == SelimTrust - 10);
+    TestTrue(TEXT("The old wholesaler noticed"), Account(V, ESupplier::Regular).Trust == OldTrust - 10);
     TestEqual(TEXT("Riskier deliveries"), Info(ESupplier::CashCarry).DeliveryRisk, 3u);
     TestEqual(TEXT("No terms"), TermsDays(V, ESupplier::CashCarry), 0);
 

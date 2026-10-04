@@ -104,7 +104,7 @@ bool FMarketBotRescueBooks::RunTest(const FString& Parameters)
     FMarketBranch Branch;Branch.OpenedDay=11;State.Branches.Add(Branch);
     MarketAutoPlayRescue::Observe(State,1,Stats);
     TestEqual(TEXT("Repaid is explicit"),Stats.Plans[0].Paid,11);
-    TestEqual(TEXT("Family year cash revenue counted once"),Stats.Years[0].FamilyRevenue,int64(400));
+    TestEqual(TEXT("Family year cash revenue counted once"),Stats.Years[0].FirstStoreRevenue,int64(400));
     // A replaced outstanding plan is never reported as paid.
     State.Loans.Add(Old);State.Rescues=2;MarketAutoPlayRescue::BeginDay(State,Stats);State.Rescues=3;++State.Day;
     MarketAutoPlayRescue::Observe(State,1,Stats);MarketAutoPlayRescue::BeginDay(State,Stats);State.Rescues=4;++State.Day;

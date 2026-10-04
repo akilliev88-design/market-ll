@@ -5,7 +5,7 @@
 
 #if WITH_DEV_AUTOMATION_TESTS
 
-// E3b (Mustafa 03.10.2026, "ortak urun istegi"): the family shop's shoppers and the branches use one product demand.
+// E3b (Mustafa 03.10.2026, "ortak urun istegi"): the first store's shoppers and the branches use one product demand.
 namespace MarketProductDemandTest
 {
     FMarketProduct Make(const TCHAR* Id, const TCHAR* Category, int64 Cost, int64 Price, float Kvi)
@@ -42,7 +42,7 @@ bool FMarketProductDemandTest::RunTest(const FString& Parameters)
     TestTrue(TEXT("A known price reacts more"), MarketProductDemand::AcceptanceFactor(1.1, MarketDemand::NeutralShare, 0.0, Products[0]) < MarketProductDemand::AcceptanceFactor(1.1, MarketDemand::NeutralShare, 0.0, Products[1]));
     TestTrue(TEXT("A tolerant mix accepts more"), MarketProductDemand::Acceptance(1.1, 25.f, 0.05, Products[1]) > MarketProductDemand::Acceptance(1.1, 25.f, 0.0, Products[1]));
 
-    // The family shop's shoppers decide one by one with the same acceptance: over many shoppers the share who buy
+    // The first store's shoppers decide one by one with the same acceptance: over many shoppers the share who buy
     // is the branches' expected value.
     const float Rival = 0.97f;
     for (const int64 Price : { int64(250), int64(275), int64(300) })
@@ -61,7 +61,7 @@ bool FMarketProductDemandTest::RunTest(const FString& Parameters)
             MarketDemand::PriceRatio(Price, MarketDemand::RivalPrice(Products[0], Rival)), static_cast<double>(Bought) / N, Expected));
     }
 
-    // The family shop's lists follow the shared wishes: the most wished product of a segment lands on more lists.
+    // The first store's lists follow the shared wishes: the most wished product of a segment lands on more lists.
     const MarketCustomers::ESegment Family = static_cast<MarketCustomers::ESegment>(1);
     int32 Best = 0, Worst = 0;
     for (int32 I = 1; I < Products.Num(); ++I)

@@ -4,7 +4,7 @@
 #include "Planogram.h"
 
 // Automatic shelf plan for a new branch (G-068, Docs/Kurgu/00_KURGU_KITABI.md \u00a79, karar H03). Independent of the
-// world, tested (MirasMarket.Layout.*). The family shop stays hand-arranged (Mustafa's G-045 decision); this lays out
+// world, tested (MirasMarket.Layout.*). The first store stays hand-arranged (Mustafa's G-045 decision); this lays out
 // the shelves of branches the way a good store planner would, with exactly the player's rules (MarketPlanogramEdit):
 //  1. Aisles in a customer path: drinks, snacks and sweets at the entrance; tea, staples and oil in the middle;
 //     dairy at the back (it pulls shoppers through the shop); cleaning and personal care on their own fixtures,
@@ -28,7 +28,7 @@ namespace MarketLayout
     // Shelf levels from best to worst for this product (eye level first for high margin, bottom first when heavy).
     TArray<int32> LevelPreference(const FPlanogramEquipment& Equipment, const FMarketProduct& Product);
 
-    // Fixtures of a branch format: "mahalle" (4 gondolas + 6 wall shelves, like the family shop), "kucuk"
+    // Fixtures of a branch format: "mahalle" (4 gondolas + 6 wall shelves, like the first store), "kucuk"
     // (2 gondolas + 1 wall shelf), "buyuk" (8 gondolas + 3 wall shelves). Entrance at -Y.
     FMarketPlanogram Fixtures(const FString& Format);
     // Lays out Products on the plan's fixtures (existing placements are cleared). Demand = expected daily units per

@@ -9,7 +9,7 @@ namespace MarketAutoPlayRescue
         int64 Principal=0, Remaining=0, WrittenOff=0;
         float Rate=0;
     };
-    struct FYear { int32 Year=0, Day=0; int64 Debt=0, FamilyRevenue=0; };
+    struct FYear { int32 Year=0, Day=0; int64 Debt=0, FirstStoreRevenue=0; };
     struct FStats
     {
         TArray<FPlan> Plans;

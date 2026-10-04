@@ -71,7 +71,7 @@ float MarketStoreDemand::NeutralShare(const FMarketState& State, const FString& 
 float MarketStoreDemand::Cannibalization(const FMarketState& State, const FStoreDay& Store)
 {
     const MarketBranches::FSite Where = MarketStoreDemandLocal::SiteOf(State, Store);
-    float Others = Where.bHome && Store.Self != FamilyShop ? 1.f : 0.f; // the family shop
+    float Others = Where.bHome && Store.Self != FirstStore ? 1.f : 0.f; // the first store
     for (int32 I = 0; I < State.Branches.Num(); ++I)
     {
         const FMarketBranch& B = State.Branches[I];
@@ -94,13 +94,13 @@ int32 MarketStoreDemand::Shoppers(const FMarketState& State, const FStoreDay& St
     return FMath::RoundToInt32(ShoppersExact(State, Store, Day));
 }
 
-MarketStoreDemand::FStoreDay MarketStoreDemand::FamilyDay(const FMarketState& State, const TArray<FMarketProduct>& Products, int32 Day)
+MarketStoreDemand::FStoreDay MarketStoreDemand::FirstStoreDay(const FMarketState& State, const TArray<FMarketProduct>& Products, int32 Day)
 {
     FStoreDay Store;
     Store.Country = State.CountryId;
     Store.Province = MarketStart::HomeProvince(State);
     Store.Format = TEXT("mahalle");
-    Store.Self = FamilyShop;
+    Store.Self = FirstStore;
     // Price level: what shoppers paid against the list, weighted by how much each product is asked for.
     double PriceSum = 0.0, WeightSum = 0.0;
     int32 Sold = 0, Empty = 0, Missing = 0;
@@ -130,21 +130,21 @@ MarketStoreDemand::FStoreDay MarketStoreDemand::FamilyDay(const FMarketState& St
         Store.Satisfaction = Sum / State.Loyalty.Num();
     }
     Store.Maturity = 1.f; // the shop has been on this street for years
-    // The family shop's own trips: its flyers and promotions, the street's events, the card terminal.
-    Store.TripsExtra = FamilySiteTrips * MarketPromotions::TrafficFactor(State) * MarketEvents::Factor(State, MarketEvents::EModifier::Traffic) * MarketPayments::TrafficFactor(State);
+    // The first store's own trips: its flyers and promotions, the street's events, the card terminal.
+    Store.TripsExtra = FirstStoreSiteTrips * MarketPromotions::TrafficFactor(State) * MarketEvents::Factor(State, MarketEvents::EModifier::Traffic) * MarketPayments::TrafficFactor(State);
     (void)Day;
     return Store;
 }
 
-int32 MarketStoreDemand::FamilyShoppers(const FMarketState& State, const TArray<FMarketProduct>& Products, int32 Day)
+int32 MarketStoreDemand::FirstStoreShoppers(const FMarketState& State, const TArray<FMarketProduct>& Products, int32 Day)
 {
-    return Shoppers(State, FamilyDay(State, Products, Day), Day);
+    return Shoppers(State, FirstStoreDay(State, Products, Day), Day);
 }
 
 void MarketStoreDemand::CloseDay(FMarketState& State, const TArray<FMarketProduct>& Products)
 {
     const int32 Closed = State.Day - 1;
     if (Closed < 1 || State.LastServed + State.LastLost <= 0) return;
-    const float Target = Share(State, FamilyDay(State, Products, Closed), Closed);
+    const float Target = Share(State, FirstStoreDay(State, Products, Closed), Closed);
     State.MarketShare = FMath::Clamp(State.ShareBeforeClose * 0.85f + Target * 100.f * 0.15f, 5.f, 65.f);
 }

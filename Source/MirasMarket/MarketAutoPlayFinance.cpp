@@ -39,7 +39,7 @@ namespace MarketAutoPlayFinance
     {
         const int64 Wages=State.DailyPayroll()+MarketManagers::DailyWages(State);
         int64 Total=30*(Wages+MarketStaff::EmployerShare(Wages)+MarketPrices::Scaled(2200,State.Day));
-        Total+=30*MarketFinance::RentToday(State)+MarketOwner::CompanyCost(State);
+        Total+=MarketOwner::CompanyCost(State); // M69: the first store pays no rent
         // Head-office rent, trucks and a dark store also have to be paid while a new shop matures.
         Total+=30*MarketDepots::DailyRent(State,State.Day);
         Total+=30*MarketPrices::Scaled(State.Company.Trucks*6000,State.Day);

@@ -7,7 +7,7 @@
 
 // E3b (Docs/Kurgu/11_TEK_EKONOMI.md, Mustafa 03.10.2026: "ortak urun istegi"): one product demand for every store.
 // What a shopper wants (taste of the segment x the day) and how the shelf price against the rivals turns a wish into
-// a sale are computed here once. The family shop's shoppers draw their lists and roll their price decision from it
+// a sale are computed here once. The first store's shoppers draw their lists and roll their price decision from it
 // one by one (MarketCustomers::BuildList, MarketDemand::Decide); the branches use the same numbers as expected
 // values for the whole day (MarketBranches::CloseDay). On average both give the same sales. Independent of the
 // world, tested (MirasMarket.ProductDemand.*).

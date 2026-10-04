@@ -515,7 +515,7 @@ int64 MarketBanking::OfferIn(const FMarketState& State, const FString& Country, 
     FString Why;
     if (!CanBorrowIn(State, Country, BankIndex, Why)) return 0;
     if (Country.IsEmpty() || Country == State.CountryId) return Offer(State, BankIndex);
-    int32 There = 0, All = 1; // the family shop counts at home
+    int32 There = 0, All = 1; // the first store counts at home
     for (const FMarketBranch& B : State.Branches)
     {
         if (B.Stage != static_cast<uint8>(MarketBranches::EStage::Open)) continue;

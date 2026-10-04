@@ -139,7 +139,7 @@ void MarketFreshness::CloseDay(FMarketState& State, const TArray<FMarketProduct>
         FMarketStock& Item = State.Stock[I];
         const int32 Life = MarketGoods::ShelfLifeDays(Products[I]);
         if (Life <= 0) { Item.Received = 0; continue; }
-        // E3c2: the batch rule every store shares (MatchBatches); the family shop takes the units from the shelf
+        // E3c2: the batch rule every store shares (MatchBatches); the first store takes the units from the shelf
         // front first, then the depot, then the door.
         const int32 Arrived = Item.Received;
         Item.Received = 0;

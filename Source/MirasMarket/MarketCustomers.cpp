@@ -84,7 +84,6 @@ FString MarketCustomers::SegmentName(ESegment Segment)
 
 MarketCustomers::ESegment MarketCustomers::SegmentOf(int32 CustomerId, int32 Seed, const int32* Mix)
 {
-    if (CustomerId == NerminTeyzeId) return ESegment::Retired;
     int32 Total = 0;
     for (int32 S = 0; S < static_cast<int32>(ESegment::Count); ++S) Total += FMath::Max(0, Mix[S]);
     if (Total <= 0) return ESegment::Family;
@@ -140,7 +139,7 @@ TArray<int32> MarketCustomers::BuildList(const FMarketState& State, const TArray
     for (int32 I = 0; I < Products.Num() && I < State.Stock.Num(); ++I)
     {
         const MarketGoods::EGroup Group = MarketGoods::Classify(Products[I].Category);
-        // E3b: the shared product wish (taste x the day, as the branches have it) x the family shop's own extras.
+        // E3b: the shared product wish (taste x the day, as the branches have it) x the first store's own extras.
         const float Weight = MarketProductDemand::SegmentWish(State, Products[I], Segment, State.Day)
             * MarketPromotions::Interest(State, Products, I) // discounts, gondola head, flyer
             * MarketEvents::Factor(State, MarketEvents::EModifier::Interest, Group); // events, the shop's identity

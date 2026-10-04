@@ -3,7 +3,7 @@
 
 #if WITH_DEV_AUTOMATION_TESTS
 
-// E3c2 (M63): the family shop and the branches share one batch rule (MarketFreshness::MatchBatches).
+// E3c2 (M63): the first store and the branches share one batch rule (MarketFreshness::MatchBatches).
 IMPLEMENT_SIMPLE_AUTOMATION_TEST(FMarketFreshnessStoresTest, "MirasMarket.Freshness.OneRuleEveryStore", EAutomationTestFlags::EditorContext | EAutomationTestFlags::EngineFilter)
 bool FMarketFreshnessStoresTest::RunTest(const FString& Parameters)
 {

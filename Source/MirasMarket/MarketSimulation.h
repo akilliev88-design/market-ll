@@ -5,13 +5,13 @@
 
 // Strategic advance and difficulty (G-071, Docs/Kurgu/00_KURGU_KITABI.md \u00a713). Independent of the world, tested
 // (MirasMarket.Simulation.*).
-//  - PlayDay plays the family shop's day without walking people, with the same rules the world uses: the same
+//  - PlayDay plays the first store's day without walking people, with the same rules the world uses: the same
 //    shoppers (segment, list, budget, price tolerance), the same shelf decisions (MarketDemand), substitutes, the
 //    payment method, the till (SellBasket), then the day close of every system. The family
 //    does the routine: passes the monthly price rise on to the shelf, pays the declared tax, pays 50 TL of the
-//    father's debt when the till can bear it, keeps the shelves filled and orders what the order advice suggests.
+//    inherited debt when the till can bear it, keeps the shelves filled and orders what the order advice suggests.
 //  - Advance plays up to N days and stops early when the player is needed: a decision waits (story, event,
-//    money trouble), cash went below zero, or a chapter/important event changed. A week requests seven days.
+//    money trouble), cash went below zero, or an important event happened. A week requests seven days.
 //  - Difficulty: easy = more shoppers and more forgiving prices, hard = fewer and stricter. It never changes
 //    history (inflation, bayrams, rival openings); karar open question 3 (softer inflation) stays open.
 namespace MarketSimulation
@@ -36,14 +36,14 @@ namespace MarketSimulation
         int32 Lost = 0;
         int64 Revenue = 0;
         int64 Profit = 0;
-        int64 FamilyProfit = 0;
+        int64 FirstStoreProfit = 0;
         int64 Ordered = 0;
         int32 AuditFailures = 0; // independently checked checkout/order/core-close and stock transfers
         int64 BackgroundCashDelta = 0; // Director systems; full ledger audit is integrated by stream C
     };
 
     enum class ETurn : uint8 { Day, Week, Month };
-    enum class EStop : uint8 { None, Decision, NegativeCash, WeekReport, MonthReport, Chapter, ImportantEvent, InvalidCatalog, CampaignOver };
+    enum class EStop : uint8 { None, Decision, NegativeCash, WeekReport, MonthReport, ImportantEvent, InvalidCatalog, CampaignOver };
     struct FPeriod
     {
         int32 FirstDay = 0, LastDay = 0, RecordedDays = 0, MissingDays = 0;

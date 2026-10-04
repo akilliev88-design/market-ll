@@ -47,7 +47,7 @@ bool FMarketCompanyTest::RunTest(const FString& Parameters)
     S.CountryId = TEXT("tr"); S.CityId = TEXT("kirklareli");
     FString Message;
 
-    TestEqual(TEXT("The family shop"), TotalStores(S), 1);
+    TestEqual(TEXT("The first store"), TotalStores(S), 1);
     TestEqual(TEXT("One province"), Provinces(S), 1);
     AddShop(S, TEXT("tr"), TEXT("tekirdag"));
     TestEqual(TEXT("Two stores"), TotalStores(S), 2);
@@ -71,12 +71,12 @@ bool FMarketCompanyTest::RunTest(const FString& Parameters)
     TestTrue(TEXT("Truck"), Build(S, 1, Message));
     TestTrue(TEXT("Home shop gains from the depot too"), CostFactor(S, S.Branches[1]) < 1.f);
 
-    // Head office and the story's chapter 4 goals (8 stores in 2 provinces, depot, truck).
-    S.Story.Chapter = 4;
-    TestEqual(TEXT("Three goals"), MarketStory::Objectives(S).Num(), 3);
+    // Head office; M69: the big store types open with the company's size (8 shops in 2 provinces), not a chapter.
+    FString Why;
+    TestFalse(TEXT("No hypermarket for a small company"), MarketBranches::FormatOpen(S, TEXT("hiper"), Why) || Why.IsEmpty());
+    TestTrue(TEXT("A neighbourhood market from the start"), MarketBranches::FormatOpen(S, TEXT("mahalle"), Why));
     while (TotalStores(S) < 8) AddShop(S, TEXT("tr"), TEXT("tekirdag"));
-    MarketStory::CloseDay(S, {});
-    TestEqual(TEXT("On to the whole country"), S.Story.Chapter, 5);
+    TestTrue(TEXT("Hypermarket with 8 shops in 2 provinces"), MarketBranches::FormatOpen(S, TEXT("hiper"), Why));
     TestTrue(TEXT("Central buying"), Build(S, 2, Message));
     TestFalse(TEXT("Own brand needs 20 stores"), Build(S, 3, Message));
     TestTrue(TEXT("National share"), NationalShare(S) > 0.f);
@@ -85,38 +85,26 @@ bool FMarketCompanyTest::RunTest(const FString& Parameters)
     TestTrue(TEXT("Head office costs money"), S.Cash < CashBefore && S.Company.LastProfit < 0);
 
     // Abroad: customs and a learning period, counted per country.
-    S.Story.Chapter = 6;
     AddShop(S, TEXT("de"), TEXT("by"), TEXT("mahalle"), S.Day - 10);
     TestEqual(TEXT("One foreign country"), ForeignCountries(S), 1);
     const float Abroad = CostFactor(S, S.Branches.Last());
     TestTrue(TEXT("Learning a new country"), Abroad > CostFactor(S, S.Branches[0]));
     TestEqual(TEXT("Stores in Germany"), CountryStores(S, TEXT("de")), 1);
-    TestEqual(TEXT("Two chapter 6 goals"), MarketStory::Objectives(S).Num(), 2);
 
     // A big company (dark stores are per province now: MarketOnline, M32).
     FMarketState Online = S;
-    Online.Story.Chapter = 5;
     while (TotalStores(Online) < 20) AddShop(Online, TEXT("tr"), TEXT("istanbul"));
     TestFalse(TEXT("No dark store among the company builds"), Build(Online, 4, Message));
 
-    // Chapter 7: a year in front on every measure ends in "Miras".
+    // M69: a big company goes on; there is no finale and the summary has no "Miras".
     FMarketState Lead = Online;
-    Lead.Story.Chapter = 7;
-    Lead.MarketShare = 60.f; // M61: the leadership share is at most 60
     while (TotalStores(Lead) < 60) AddShop(Lead, TEXT("tr"), TEXT("ankara"));
-    FMarketLoyalty L; L.CustomerId = 1; L.Satisfaction = 80.f; Lead.Loyalty.Add(L);
-    Lead.Company.LeadershipDays = LeadershipGoalDays - 1;
-    Lead.LastProfit = 100000000;   // a good day for the whole company
-    TestTrue(TEXT("Leads today"), LeadsToday(Lead));
     Lead.DayNews.Reset();
     MarketCompany::CloseDay(Lead);
-    TestTrue(TEXT("Miras ending"), Lead.Story.Ending == static_cast<uint8>(MarketStory::EEnding::Legacy));
-    // Karar J02: the finale is shown once, then free play without new story content.
-    TestTrue(TEXT("Finale shown"), Lead.Decisions.ContainsByPredicate([](const FMarketDecision& D) { return D.Id == TEXT("story.finale"); }));
-    TestTrue(TEXT("Story closed"), MarketStory::StoryClosed(Lead));
-    TestEqual(TEXT("No goals after the finale"), MarketStory::Objectives(Lead).Num(), 0);
-    TestFalse(TEXT("Finale only once"), MarketStory::ReachFinale(Lead, MarketStory::EEnding::TimeUp));
+    TestFalse(TEXT("Never closed by size"), MarketStory::StoryClosed(Lead));
+    TestFalse(TEXT("No finale card"), Lead.Decisions.ContainsByPredicate([](const FMarketDecision& D) { return D.Id == TEXT("story.finale"); }));
     TestFalse(TEXT("Summary"), Summary(Lead).IsEmpty());
+    TestFalse(TEXT("No Miras in the summary"), Summary(Lead).Contains(TEXT("Miras")));
     return true;
 }
 

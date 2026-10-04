@@ -136,7 +136,7 @@ int64 FMarketState::DailyPayroll() const
 
 void FMarketState::CloseDay()
 {
-    // The family shop (its rent to the parents: MarketFinance, M36): electricity, water, bags and upkeep follow the monthly price list (MarketPrices);
+    // The first store (its building is ours, no rent; M69): electricity, water, bags and upkeep follow the monthly price list (MarketPrices);
     // fridges work harder in summer and the shop is heated in winter.
     const MarketCalendar::ESeason Season = MarketCalendar::SeasonOf(MarketCalendar::DateOf(Day).Month);
     const double Utilities = Season == MarketCalendar::ESeason::Summer ? 1.15 : Season == MarketCalendar::ESeason::Winter ? 1.10 : 1.0;
@@ -260,7 +260,7 @@ bool FMarketState::IsStructurallyValid() const
             Item.Warehouse + Item.Dock + Item.Incoming > StorageCapacity || Item.Price < 10) return false;
     }
     if (Books.TaxDue < 0 || Books.VatCarry < 0 || Purchases < 0 || NextEmployeeId < 1) return false;
-    if (Marketing < 0 || OtherCosts < 0 || Story.Chapter < 0) return false;
+    if (Marketing < 0 || OtherCosts < 0) return false;
     if (!FMath::IsFinite(ShelfPriceLevel) || ShelfPriceLevel <= 0.0 || Supplier >= static_cast<uint8>(MarketSuppliers::ESupplier::Count)) return false;
     for (const FMarketPayable& Bill : Payables) if (Bill.Amount < 0) return false;
     TSet<int32> EmployeeIds;

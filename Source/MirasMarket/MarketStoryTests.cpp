@@ -110,27 +110,23 @@ bool FMarketEventsTest::RunTest(const FString& Parameters)
     return true;
 }
 
-IMPLEMENT_SIMPLE_AUTOMATION_TEST(FMarketStoryTest, "MirasMarket.Story.ChaptersAndChoices", EAutomationTestFlags::EditorContext | EAutomationTestFlags::EngineFilter)
+IMPLEMENT_SIMPLE_AUTOMATION_TEST(FMarketStoryTest, "MirasMarket.Story.MemoriesAndIdentity", EAutomationTestFlags::EditorContext | EAutomationTestFlags::EngineFilter)
 bool FMarketStoryTest::RunTest(const FString& Parameters)
 {
     using namespace MarketStoryTest;
     const TArray<FMarketProduct> Products = Catalog();
     FMarketState S; S.Initialize(Products); S.RivalSeed = 4; S.Cash = 200000;
     S.ApplyShelfCapacities({ 24, 24 });
-    TestEqual(TEXT("Chapter 1"), S.Story.Chapter, 1);
-    TestEqual(TEXT("Three goals"), MarketStory::Objectives(S).Num(), 3);
+    // M69: no chapters; day 1's first order and first profit become memories.
 
-    // Day 1: the first order and the first profit become memories (M57: no character scenes any more).
     Close(S, Products, 30000, 6000);
     TestTrue(TEXT("Memories: first order and first profit"), S.Story.Memories.Num() >= 2);
     TestFalse(TEXT("No neighbour scene"), NewsStarts(S, TEXT("Kar\u015f\u0131daki")));
     FString Message;
 
-    // The first week closes chapter 1.
+    // The first week is a memory too.
     for (int32 D = 0; D < 7; ++D) { S.Decisions.Reset(); Close(S, Products, 30000); }
-    TestEqual(TEXT("Chapter 2"), S.Story.Chapter, 2);
-    TestEqual(TEXT("Chapter 2 title"), MarketStory::ChapterTitle(2), FString(TEXT("K\u00f6k Salmak")));
-    TestTrue(TEXT("Chapter 2 asks for the identity"), MarketStory::Objectives(S).ContainsByPredicate([](const MarketStory::FObjective& O) { return O.Text.Contains(TEXT("kimli")); }));
+    TestTrue(TEXT("First week remembered"), S.Story.Memories.ContainsByPredicate([](const FString& M) { return M.Contains(TEXT("ilk hafta")); }));
 
     // The identity is asked once from day 10.
     for (int32 D = 0; D < 4 && !S.Decisions.ContainsByPredicate([](const FMarketDecision& X) { return X.Id == TEXT("story.identity"); }); ++D)
@@ -145,11 +141,12 @@ bool FMarketStoryTest::RunTest(const FString& Parameters)
     TestEqual(TEXT("Identity kept"), S.Story.Identity, static_cast<uint8>(MarketStory::EIdentity::Indirim));
     TestTrue(TEXT("Cheaper purchases"), MarketEvents::Factor(S, MarketEvents::EModifier::CostFactor, MarketGoods::EGroup::Dairy) < 1.f);
     TestTrue(TEXT("Price hunters"), MarketEvents::Tolerance(S, MarketGoods::EGroup::Dairy) < 0.0);
-    TestTrue(TEXT("Identity goal done"), MarketStory::Objectives(S).ContainsByPredicate([](const MarketStory::FObjective& O) { return O.Text.Contains(TEXT("kimli")) && O.bDone; }));
+    TestTrue(TEXT("Identity remembered"), S.Story.Memories.ContainsByPredicate([](const FString& M) { return M.Contains(TEXT("kimli")); }));
     // Not asked twice.
     Close(S, Products, 30000);
     TestFalse(TEXT("Asked once"), S.Decisions.ContainsByPredicate([](const FMarketDecision& X) { return X.Id == TEXT("story.identity"); }));
-    TestTrue(TEXT("Chapter titles"), MarketStory::ChapterTitle(3) == TEXT("\u0130kinci Tabela"));
+    // The debt never locks anything and is no milestone of its own until it is paid.
+    TestFalse(TEXT("Not closed"), MarketStory::StoryClosed(S));
     return true;
 }
 

@@ -46,7 +46,7 @@ namespace MarketSourcing
     // x dairy spoilage in the branches (the cold chain).
     float DairySpoilFactor(const FMarketState& State);
 
-    // A purchase counted for its line's monthly minimum (branches' orders; the family shop is counted at the close).
+    // A purchase counted for its line's monthly minimum (branches' orders; the first store is counted at the close).
     void RecordPurchase(FMarketState& State, const FString& Category, int64 Cost);
 
     // Menu lines: a line's tier, its discount and the next step.
@@ -54,6 +54,6 @@ namespace MarketSourcing
     // The next tier a line could take now ("" when none).
     FString NextStep(const FMarketState& State, ELine Line);
 
-    // Day close: the family shop's day counted, and at the month's end the minimums.
+    // Day close: the first store's day counted, and at the month's end the minimums.
     void CloseDay(FMarketState& State, const TArray<FMarketProduct>& Products);
 }

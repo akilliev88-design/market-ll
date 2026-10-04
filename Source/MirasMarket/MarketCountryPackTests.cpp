@@ -123,7 +123,6 @@ bool FMarketCountryPackStandardTest::RunTest(const FString& Parameters)
         TestTrue(*(W + TEXT("40 last names")), FMath::Max3(P.LastNames.Num(), P.ManagerLast.Num(), P.StaffLast.Num()) >= 40);
         TestTrue(*(W + TEXT("manager pools")), (P.ManagerFirst.Num() == 0) == (P.ManagerLast.Num() == 0));
         TestTrue(*(W + TEXT("staff pools")), (P.StaffFirst.Num() == 0) == (P.StaffLast.Num() == 0));
-        TestTrue(*(W + TEXT("relatives")), P.Relatives.Num() > 0);
         // Calendar and climate.
         TestTrue(*(W + TEXT("climate")), P.ClimateTemperature.Num() == 12 && P.ClimateRain.Num() == 12);
         TestTrue(*(W + TEXT("holidays")), P.Holidays.Num() >= 3);
@@ -226,7 +225,7 @@ bool FMarketCountryTurkeyPackTest::RunTest(const FString& Parameters)
 IMPLEMENT_SIMPLE_AUTOMATION_TEST(FMarketCountrySmokeEveryPackTest, "MirasMarket.Country.SmokeEveryPack", EAutomationTestFlags::EditorContext | EAutomationTestFlags::EngineFilter)
 bool FMarketCountrySmokeEveryPackTest::RunTest(const FString& Parameters)
 {
-    // Every pack: a family shop founded there and played for 30 days (MarketSimulation::PlayDay, the same rules as
+    // Every pack: a first store founded there and played for 30 days (MarketSimulation::PlayDay, the same rules as
     // the game). No cash outside the books, no stock gap, no negative stock.
     using namespace MarketCountryPackTest;
     const TArray<FMarketProduct> Base = Catalog();

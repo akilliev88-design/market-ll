@@ -102,19 +102,19 @@ bool FMarketGoalsAlwaysTest::RunTest(const FString& Parameters)
     FGoalView Next;
     TestTrue(TEXT("Next goal"), NextGoal(S, Next) && Next.Progress >= 0.f);
 
-    // A goal whose door is shut is never given: no branch goal for a new shop with the father's debt.
+    // A goal whose door is shut is never given: no branch goal in the first month, never one abroad for a new shop.
+    // M69: the inherited debt is never a goal.
     FMarketState Young = NewShop(); Young.InheritedDebt = 30000;
     for (int32 D = 0; D < 40; ++D)
     {
         Close(Young, 50000, 5000);
         for (const FMarketGoal& G : Young.Goals.Goals)
         {
-            TestFalse(TEXT("No shop-count goal yet"), G.Kind == static_cast<uint8>(EGoal::MoreStores));
+            if (Young.Goals.DaysCounted < 30) TestFalse(TEXT("No shop-count goal in the first month"), G.Kind == static_cast<uint8>(EGoal::MoreStores));
             TestFalse(TEXT("No abroad goal"), G.Kind == static_cast<uint8>(EGoal::Abroad));
         }
     }
-    TestTrue(TEXT("The debt is a goal"), Young.Goals.Goals.ContainsByPredicate([](const FMarketGoal& G)
-        { return G.Kind == static_cast<uint8>(EGoal::PayDebt) || G.Kind == static_cast<uint8>(EGoal::DebtFree); }) || Young.Goals.RecentKinds.Contains(static_cast<uint8>(EGoal::PayDebt)));
+    TestFalse(TEXT("No debt goal"), Goals(Young).ContainsByPredicate([](const FGoalView& V) { return V.Title.Contains(TEXT("bor\u00e7")); }));
 
     // Targets follow the player's own numbers: a ten times bigger shop gets a ten times bigger revenue goal.
     FMarketState Small = NewShop(), Big = NewShop();
@@ -154,10 +154,10 @@ bool FMarketGoalsCelebrationTest::RunTest(const FString& Parameters)
     Close(S, 50000, 5000);
     TestEqual(TEXT("Next day: the first branch is not told again"), Count(S, TEXT("Kutlama: \u0130lk \u015fube!")), 0);
 
-    // Debt closed.
+    // M69: paying the inherited debt is no celebration of its own.
     S.InheritedDebt = 0; S.DebtClearedDay = S.Day;
     Close(S, 50000, 5000);
-    TestEqual(TEXT("Debt closed celebrated"), Count(S, TEXT("Kutlama: Bor\u00e7 bitti!")), 1);
+    TestEqual(TEXT("No debt celebration"), Count(S, TEXT("Kutlama: Bor\u00e7")), 0);
 
     // Records: not in the first two weeks, then at most one a week.
     for (int32 D = 0; D < 20; ++D) Close(S, 50000, 5000);
@@ -218,33 +218,23 @@ bool FMarketGoalsRhythmTest::RunTest(const FString& Parameters)
     return true;
 }
 
-IMPLEMENT_SIMPLE_AUTOMATION_TEST(FMarketGoalsLeagueTest, "MirasMarket.Goals.LeagueFinale", EAutomationTestFlags::EditorContext | EAutomationTestFlags::EngineFilter)
+IMPLEMENT_SIMPLE_AUTOMATION_TEST(FMarketGoalsLeagueTest, "MirasMarket.Goals.LeagueFirsts", EAutomationTestFlags::EditorContext | EAutomationTestFlags::EngineFilter)
 bool FMarketGoalsLeagueTest::RunTest(const FString& Parameters)
 {
-    // J02: two league years in a row as the first (C's world league calls OnLeagueYear), with a healthy balance.
+    // M69: the world league only brings its firsts; the game never ends there.
     using namespace MarketGoalsTest;
     using namespace MarketGoals;
-    FMarketState S = NewShop(); S.Story.Chapter = 7; S.Day = 400;
+    FMarketState S = NewShop(); S.Day = 400;
     Close(S, 50000, 5000);
-    S.Goals.LeagueYearEbitda = 10000000;
     OnLeagueYear(S, 1);
-    TestEqual(TEXT("One year first"), S.Goals.LeagueFirstYears, 1);
+    TestEqual(TEXT("Rank kept"), S.Goals.LastLeagueRank, 1);
     TestTrue(TEXT("Celebrated"), S.Goals.Celebrations.ContainsByPredicate([](const FMarketCelebration& C) { return C.Title.Contains(TEXT("birincisi")); }));
-    TestFalse(TEXT("Not yet the end"), MarketStory::StoryClosed(S));
-    TestTrue(TEXT("Chapter goal line"), MarketStory::Objectives(S).ContainsByPredicate([](const MarketStory::FObjective& O) { return O.Text.Contains(TEXT("D\u00fcnya liginde")); }));
-    S.Goals.LeagueYearEbitda = 10000000;
     OnLeagueYear(S, 1);
-    TestTrue(TEXT("Miras"), MarketStory::StoryClosed(S) && S.Story.Ending == static_cast<uint8>(MarketStory::EEnding::Legacy));
-
-    FMarketState Debt = NewShop(); Debt.Story.Chapter = 7;
-    FMarketLoan Loan; Loan.Principal = Loan.Remaining = 50000000; Debt.Loans.Add(Loan);
-    Debt.Goals.LeagueYearEbitda = 10000000;
-    OnLeagueYear(Debt, 1);
-    TestEqual(TEXT("Deep in debt: not counted"), Debt.Goals.LeagueFirstYears, 0);
-    FMarketState Second = NewShop();
-    Second.Goals.LeagueFirstYears = 1; Second.Goals.LeagueYearEbitda = 10000000;
-    OnLeagueYear(Second, 2);
-    TestEqual(TEXT("Second place breaks the run"), Second.Goals.LeagueFirstYears, 0);
+    TestFalse(TEXT("No end"), MarketStory::StoryClosed(S));
+    TestFalse(TEXT("No finale card"), S.Decisions.ContainsByPredicate([](const FMarketDecision& D) { return D.Id == TEXT("story.finale"); }));
+    FMarketState Unlisted = NewShop();
+    OnLeagueYear(Unlisted, 0);
+    TestEqual(TEXT("Not listed"), Unlisted.Goals.LastLeagueRank, 0);
     return true;
 }
 

@@ -15,7 +15,7 @@ namespace MarketSubsidiaries
 {
     constexpr int32 MaxNameLength = 60;
 
-    // The brand: the short name everybody uses ("Miras").
+    // The brand: the market's name everybody uses (chosen at the start).
     FString Brand(const FMarketState& State);
     bool SetBrand(FMarketState& State, const FString& Name, FString& OutMessage);
     // The registered names the country suggests: the brand + each legal form (the first is the default).

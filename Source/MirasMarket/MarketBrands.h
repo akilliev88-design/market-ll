@@ -5,7 +5,7 @@
 
 // Karar M25 (Mustafa 30.09.2026): brands ask for room on our shelves, and inside every aisle the brands compete for
 // share. Independent of the world, tested (MirasMarket.Brands.*).
-//  - A brand's shelf share in an aisle = its shelf capacity / the aisle's, over the family shop and every branch.
+//  - A brand's shelf share in an aisle = its shelf capacity / the aisle's, over the first store and every branch.
 //    Its share of the country (National) starts from its standing (Config/markalar.json tier: lider, guclu, orta)
 //    and drifts a little with our shelves once we are big.
 //  - Once a month the brands that feel short on our shelves make offers (at most three open, 14 days to answer):
@@ -41,7 +41,7 @@ namespace MarketBrands
     // The name the player sees (fictional unless State.bRealBrands).
     FString NameOf(const FMarketState& State, const FString& Brand);
 
-    // Shelf capacity of a brand in an aisle and of the whole aisle (family shop + branches).
+    // Shelf capacity of a brand in an aisle and of the whole aisle (first store + branches).
     int32 ShelfUnits(const FMarketState& State, const TArray<FMarketProduct>& Products, const FString& Brand, const FString& Category);
     int32 AisleUnits(const FMarketState& State, const TArray<FMarketProduct>& Products, const FString& Category);
     float ShelfShare(const FMarketState& State, const TArray<FMarketProduct>& Products, const FString& Brand, const FString& Category);

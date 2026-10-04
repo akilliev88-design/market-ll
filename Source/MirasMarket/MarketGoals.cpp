@@ -41,7 +41,7 @@ namespace MarketGoals
     EScale ScaleOf(EGoal Kind)
     {
         return static_cast<uint8>(Kind) <= static_cast<uint8>(EGoal::Service) ? EScale::Short
-            : static_cast<uint8>(Kind) <= static_cast<uint8>(EGoal::DebtFree) ? EScale::Medium : EScale::Long;
+            : static_cast<uint8>(Kind) <= static_cast<uint8>(EGoal::FirstDepot) ? EScale::Medium : EScale::Long;
     }
 
     int32 DurationOf(EScale Scale) { return Scale == EScale::Short ? 7 : Scale == EScale::Medium ? 30 : 365; }
@@ -54,7 +54,7 @@ namespace MarketGoals
         return Revenue;
     }
 
-    // Family shop's shelves at the close, per mille of the planned capacity (-1: no shelf plan).
+    // The visited store's shelves at the close, per mille of the planned capacity (-1: no shelf plan).
     int32 ShelfFill(const FMarketState& State)
     {
         int64 Held = 0, Room = 0;
@@ -81,17 +81,6 @@ namespace MarketGoals
 
     int32 NationalMilli(const FMarketState& State) { return FMath::FloorToInt32(MarketCompany::NationalShare(State) * 1000.f); }
 
-    void ObjectiveCount(const FMarketState& State, int32& OutDone, int32& OutTotal, FString* OutNext = nullptr)
-    {
-        OutDone = OutTotal = 0;
-        for (const MarketStory::FObjective& O : MarketStory::Objectives(State))
-        {
-            ++OutTotal;
-            if (O.bDone) ++OutDone;
-            else if (OutNext && OutNext->IsEmpty()) *OutNext = O.Text;
-        }
-    }
-
     // The measure a goal follows, read at a close.
     int64 Measure(const FMarketState& State, const FMarketGoal& G, int64 DayRevenue, int64 DayProfit)
     {
@@ -100,12 +89,10 @@ namespace MarketGoals
         case EGoal::DayRevenue: return FMath::Max(G.Value, DayRevenue);
         case EGoal::WeekProfit: case EGoal::MonthProfit: case EGoal::YearProfit: return G.Value + DayProfit;
         case EGoal::ShelvesFull: return ShelfFill(State) >= G.Base ? G.Value + 1 : G.Value; // Base = the fill asked (per mille)
-        case EGoal::PayDebt: case EGoal::DebtFree: return G.Base - State.InheritedDebt;
         case EGoal::Service: return G.Value + State.LastServed;
         case EGoal::MoreStores: return MarketCompany::TotalStores(State);
         case EGoal::LocalShare: return FMath::FloorToInt32(State.MarketShare * 10.f);
         case EGoal::FirstDepot: return MarketDepots::Count(State);
-        case EGoal::Chapter: { int32 Done = 0, Total = 0; ObjectiveCount(State, Done, Total); return State.Story.Chapter != G.Base ? G.Target : Done; }
         case EGoal::Provinces: return MarketCompany::Provinces(State);
         case EGoal::NationalShare: return NationalMilli(State);
         case EGoal::Abroad: return MarketCompany::ForeignCountries(State);
@@ -119,7 +106,7 @@ namespace MarketGoals
         switch (Kind)
         {
         case EGoal::DayRevenue: case EGoal::WeekProfit: case EGoal::MonthProfit: case EGoal::YearProfit: case EGoal::ShelvesFull:
-        case EGoal::PayDebt: case EGoal::DebtFree: case EGoal::Service: case EGoal::Chapter: return true;
+        case EGoal::Service: return true;
         default: return false;
         }
     }
@@ -175,20 +162,13 @@ namespace MarketGoals
             Out.Target = 4;
             return true;
         }
-        case EGoal::PayDebt:
-        {
-            if (State.InheritedDebt <= 0) return false;
-            const int64 Part = FMath::Max<int64>(FMath::Max<int64>(Profit14, 0) * 5, State.InheritedDebt / 10);
-            Out.Base = State.InheritedDebt;
-            Out.Target = FMath::Min(State.InheritedDebt, RoundUp(Part));
-            return true;
-        }
         case EGoal::Service:
             Out.Target = FMath::Max(7 * 20, ServedAverage(State) * 7);
             return true;
         case EGoal::MoreStores:
         {
-            const bool bDoorOpen = Stage >= 1 || (State.Story.Chapter >= 3 && State.InheritedDebt <= 0);
+            // M69: nothing locks the first branch; the goal comes once the first month is behind.
+            const bool bDoorOpen = Stage >= 1 || S.DaysCounted >= 30;
             if (!bDoorOpen) return false;
             Out.Base = Stores;
             Out.Target = Stores + (Stores < 5 ? 1 : Stores < 20 ? 2 : FMath::Max(3, Stores / 10));
@@ -210,22 +190,6 @@ namespace MarketGoals
             Out.Base = 0;
             Out.Target = 1;
             return true;
-        case EGoal::DebtFree:
-            if (State.InheritedDebt <= 0 || Profit14 <= 0 || State.InheritedDebt > Profit14 * 25) return false;
-            Out.Base = State.InheritedDebt;
-            Out.Target = State.InheritedDebt;
-            return true;
-        case EGoal::Chapter:
-        {
-            if (MarketStory::StoryClosed(State)) return false;
-            int32 Done = 0, Total = 0;
-            ObjectiveCount(State, Done, Total);
-            if (Total == 0 || Done >= Total) return false;
-            Out.Base = State.Story.Chapter;
-            Out.Target = Total;
-            Out.Value = Done;
-            return true;
-        }
         case EGoal::Provinces:
         {
             if (Stage < 1) return false;
@@ -244,7 +208,7 @@ namespace MarketGoals
         }
         case EGoal::Abroad:
             if (Stage < 3 || MarketCompany::ForeignCountries(State) > 0) return false;
-            if (State.Story.Chapter < 6 && MarketCompany::Provinces(State) < 5) return false;
+            if (!MarketCompany::AbroadOpen(State)) return false;
             Out.Base = 0;
             Out.Target = 1;
             return true;
@@ -291,14 +255,11 @@ namespace MarketGoals
         case EGoal::DayRevenue: return FString::Printf(TEXT("Bir g\u00fcnde %s ciro yap"), *GoalMoney(G.Target));
         case EGoal::WeekProfit: return FString::Printf(TEXT("Bu hafta %s net k\u00e2r"), *GoalMoney(G.Target));
         case EGoal::ShelvesFull: return FString::Printf(TEXT("Bu hafta 4 ak\u015fam raflar\u0131 %%%d dolu kapat"), static_cast<int32>(G.Base / 10));
-        case EGoal::PayDebt: return FString::Printf(TEXT("Babadan kalan bor\u00e7tan %s \u00f6de"), *GoalMoney(G.Target));
         case EGoal::Service: return FString::Printf(TEXT("Bu hafta %lld m\u00fc\u015fteriye hizmet et"), static_cast<long long>(G.Target));
         case EGoal::MoreStores: return FString::Printf(TEXT("%lld ma\u011fazaya ula\u015f"), static_cast<long long>(G.Target));
         case EGoal::MonthProfit: return FString::Printf(TEXT("Bu ay %s net k\u00e2r"), *GoalMoney(G.Target));
         case EGoal::LocalShare: return FString::Printf(TEXT("Mahallede pay %%%lld olsun"), static_cast<long long>(G.Target / 10));
         case EGoal::FirstDepot: return TEXT("\u0130lk depoyu kur");
-        case EGoal::DebtFree: return TEXT("Babadan kalan borcu kapat");
-        case EGoal::Chapter: return FString::Printf(TEXT("B\u00f6l\u00fcm hedefleri: %lld / %lld"), static_cast<long long>(G.Value), static_cast<long long>(G.Target));
         case EGoal::Provinces: return FString::Printf(TEXT("%lld ilde ma\u011faza"), static_cast<long long>(G.Target));
         case EGoal::NationalShare: return FString::Printf(TEXT("Ulusal pay %%%s olsun"), *FString::SanitizeFloat(G.Target / 1000.0, 0));
         case EGoal::Abroad: return TEXT("Yurt d\u0131\u015f\u0131nda ilk ma\u011faza");
@@ -314,20 +275,11 @@ namespace MarketGoals
         case EGoal::DayRevenue: return TEXT("Rekor g\u00fcnler m\u00fc\u015fterinin seni se\u00e7ti\u011fini g\u00f6sterir.");
         case EGoal::WeekProfit: return TEXT("Sonraki ad\u0131m\u0131n paras\u0131 haftal\u0131k k\u00e2rdan \u00e7\u0131kar.");
         case EGoal::ShelvesFull: return TEXT("Bo\u015f raf m\u00fc\u015fteri kaybettirir, dolu raf sadakat getirir.");
-        case EGoal::PayDebt: return TEXT("Bor\u00e7 kapanmadan ikinci \u015fube a\u00e7\u0131lmaz.");
         case EGoal::Service: return TEXT("Her memnun m\u00fc\u015fteri bir sonraki ziyaretin tohumu.");
         case EGoal::MoreStores: return TEXT("Ma\u011faza say\u0131s\u0131 toptanc\u0131yla pazarl\u0131k g\u00fcc\u00fcn\u00fc art\u0131r\u0131r.");
         case EGoal::MonthProfit: return TEXT("\u0130stikrarl\u0131 ay k\u00e2r\u0131 bankan\u0131n ve toptanc\u0131n\u0131n g\u00fcvenini getirir.");
         case EGoal::LocalShare: return TEXT("Mahallede b\u00fcy\u00fck pay, rakibin fiyat sava\u015f\u0131n\u0131 bo\u015fa \u00e7\u0131kar\u0131r.");
         case EGoal::FirstDepot: return TEXT("Depo uzak ma\u011fazalar\u0131n mal\u0131n\u0131 ucuzlat\u0131r.");
-        case EGoal::DebtFree: return TEXT("Baban\u0131n borcu kapan\u0131nca d\u00fckk\u00e2n ger\u00e7ekten senin elinde olur.");
-        case EGoal::Chapter:
-        {
-            int32 Done = 0, Total = 0;
-            FString Next;
-            ObjectiveCount(State, Done, Total, &Next);
-            return Next.IsEmpty() ? FString(TEXT("B\u00f6l\u00fcm bitmek \u00fczere.")) : FString::Printf(TEXT("S\u0131radaki: %s."), *Next);
-        }
         case EGoal::Provinces: return TEXT("Yeni iller yeni m\u00fc\u015fteri ve daha g\u00fc\u00e7l\u00fc bir marka demek.");
         case EGoal::NationalShare: return TEXT("Ulusal pay b\u00fcy\u00fcd\u00fck\u00e7e markalar ve toptanc\u0131lar kap\u0131n\u0131 \u00e7alar.");
         case EGoal::Abroad: return TEXT("D\u00fcnya ligine giden yol s\u0131n\u0131r\u0131n \u00f6tesinden ge\u00e7er.");
@@ -405,15 +357,14 @@ namespace MarketGoals
     const FFirstInfo FirstInfos[] =
     {
         { EFirst::ProfitDay, TEXT("\u0130lk k\u00e2rl\u0131 g\u00fcn!"), TEXT("G\u00fcn sonunda kasa art\u0131da; d\u00fckk\u00e2n nefes almaya ba\u015flad\u0131."), 1 },
-        { EFirst::DebtCleared, TEXT("Bor\u00e7 bitti!"), TEXT("Babadan kalan borcun son kuru\u015fu \u00f6dendi; d\u00fckk\u00e2n art\u0131k tamamen senin."), 2 },
-        { EFirst::FirstBranch, TEXT("\u0130lk \u015fube!"), TEXT("Aile d\u00fckk\u00e2n\u0131n\u0131n ilk karde\u015fi kap\u0131lar\u0131n\u0131 a\u00e7t\u0131."), 2 },
+        { EFirst::FirstBranch, TEXT("\u0130lk \u015fube!"), TEXT("\u0130lk ma\u011fazan\u0131n ilk karde\u015fi kap\u0131lar\u0131n\u0131 a\u00e7t\u0131."), 2 },
         { EFirst::Stores5, TEXT("5 ma\u011faza!"), TEXT("Be\u015f tabelan var; art\u0131k k\u00fc\u00e7\u00fck bir zincirsin."), 1 },
         { EFirst::Stores10, TEXT("10 ma\u011faza!"), TEXT("On ma\u011fazayla toptanc\u0131lar seni ciddiye al\u0131yor."), 1 },
         { EFirst::Stores25, TEXT("25 ma\u011faza!"), TEXT("Yirmi be\u015f ma\u011fazayla b\u00f6lgenin tan\u0131nan zincirlerindensin."), 1 },
         { EFirst::Stores50, TEXT("50 ma\u011faza!"), TEXT("Elli ma\u011faza: \u00fclke \u00e7ap\u0131nda konu\u015fulan bir isimsin."), 2 },
-        { EFirst::Stores100, TEXT("100 ma\u011faza!"), TEXT("Y\u00fcz\u00fcnc\u00fc tabela as\u0131ld\u0131; babandan devrald\u0131\u011f\u0131n d\u00fckk\u00e2n bir zincirin ilk halkas\u0131 oldu."), 2 },
+        { EFirst::Stores100, TEXT("100 ma\u011faza!"), TEXT("Y\u00fcz\u00fcnc\u00fc tabela as\u0131ld\u0131; devrald\u0131\u011f\u0131n k\u00fc\u00e7\u00fck market bir zincirin ilk halkas\u0131 oldu."), 2 },
         { EFirst::Stores250, TEXT("250 ma\u011faza!"), TEXT("\u0130ki y\u00fcz elli ma\u011fazayla b\u00fcy\u00fck zincirlerin aras\u0131ndas\u0131n."), 2 },
-        { EFirst::Stores500, TEXT("500 ma\u011faza!"), TEXT("Be\u015f y\u00fcz ma\u011faza: \u00fclkenin her yerinde bir Miras tabelas\u0131 var."), 2 },
+        { EFirst::Stores500, TEXT("500 ma\u011faza!"), TEXT("Be\u015f y\u00fcz ma\u011faza: \u00fclkenin her yerinde senin tabelan var."), 2 },
         { EFirst::Stores1000, TEXT("1000 ma\u011faza!"), TEXT("Bininci ma\u011faza a\u00e7\u0131ld\u0131; d\u00fcnya ligi seni g\u00f6r\u00fcyor."), 2 },
         { EFirst::Provinces2, TEXT("\u0130kinci il!"), TEXT("Art\u0131k ba\u015fka bir ilde de tabelan var."), 1 },
         { EFirst::Provinces5, TEXT("5 ilde vars\u0131n!"), TEXT("Be\u015f ilde ma\u011faza: b\u00f6lgesel bir zincirsin."), 1 },
@@ -437,7 +388,6 @@ namespace MarketGoals
         switch (First)
         {
         case EFirst::ProfitDay: return State.ProfitableDays > 0;
-        case EFirst::DebtCleared: return State.InheritedDebt <= 0 && State.DebtClearedDay > 0;
         case EFirst::FirstBranch: return Stores >= 2;
         case EFirst::Stores5: return Stores >= 5;
         case EFirst::Stores10: return Stores >= 10;
@@ -566,19 +516,11 @@ bool MarketGoals::HoldBadEvent(const FMarketState& State)
 
 void MarketGoals::OnLeagueYear(FMarketState& State, int32 Rank, bool bFullYear)
 {
+    // M69: the league year only brings its firsts (top 10, top 3, first in the world); the game never ends here.
+    (void)bFullYear;
     FMarketGoals& S = State.Goals;
-    const int64 Ebitda = S.LeagueYearEbitda;
-    S.LeagueYearEbitda = 0;
-    const int64 Debt = MarketFinance::Debt(State) + MarketBanking::Debt(State) + MarketSuppliers::OpenBills(State); // M28
-    const bool bMoney = Ebitda > 0 && static_cast<double>(Debt) < 3.0 * static_cast<double>(Ebitda);
-    S.LeagueFirstYears = Rank == 1 && bMoney && bFullYear ? S.LeagueFirstYears + 1 : 0;
     S.LastLeagueRank = FMath::Max(0, Rank);
     if (S.bStarted) CheckFirsts(State, FMath::Max(1, State.Day - 1));
-    if (Rank == 1 && !bMoney)
-        State.DayNews.Add(TEXT("D\u00fcnya liginde birincisin, ama bor\u00e7 y\u0131ll\u0131k faaliyet k\u00e2r\u0131n\u0131n \u00fc\u00e7 kat\u0131n\u0131 a\u015f\u0131yor; birincilik say\u0131lmad\u0131."));
-    // Karar J02: two league years in a row as the first, in the last chapter.
-    if (S.LeagueFirstYears >= FinaleYears && State.Story.Chapter >= 7 && !MarketStory::StoryClosed(State))
-        MarketStory::ReachFinale(State, MarketStory::EEnding::Legacy);
 }
 
 void MarketGoals::CloseDay(FMarketState& State, const TArray<FMarketProduct>& Products)
@@ -590,10 +532,6 @@ void MarketGoals::CloseDay(FMarketState& State, const TArray<FMarketProduct>& Pr
     const int64 DayRevenue = CompanyRevenue(State);
     const int64 DayProfit = State.LastProfit;
     const int32 Fill = ShelfFill(State);
-
-    // The league year's operating result from the books (net profit before interest and tax).
-    const MarketLedger::FStatement Books = MarketLedger::DayStatement(State, Closed);
-    S.LeagueYearEbitda += Books.NetProfit - Books.At(MarketLedger::EAccount::Interest) - Books.At(MarketLedger::EAccount::Tax);
 
     if (!S.bStarted)
     {
@@ -694,7 +632,7 @@ void MarketGoals::CloseDay(FMarketState& State, const TArray<FMarketProduct>& Pr
     // Rhythm guard: a quiet stretch brings a pleasant or interesting event.
     if (State.Decisions.Num() > 0) S.LastLivelyDay = FMath::Max(S.LastLivelyDay, Closed);
     S.BadEventDays.RemoveAll([Closed](int32 Day) { return Day <= Closed - 7; });
-    if (Closed - S.LastLivelyDay >= QuietDays(State) && !State.Story.bCampaignOver) // M56: the rhythm goes on after "Miras"
+    if (Closed - S.LastLivelyDay >= QuietDays(State) && !State.Story.bCampaignOver) // the rhythm runs as long as the company exists
     {
         const TCHAR* Pleasant[] = { TEXT("event.fair"), TEXT("event.newbuilding"), TEXT("event.wedding"), TEXT("event.derby") };
         const int32 Count = static_cast<int32>(UE_ARRAY_COUNT(Pleasant));

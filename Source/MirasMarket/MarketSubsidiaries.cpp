@@ -28,7 +28,7 @@ namespace MarketSubsidiariesLocal
 
     FString CountryOfStore(const FMarketState& State, int32 Store)
     {
-        if (Store == MarketLedger::FamilyShop) return State.CountryId;
+        if (Store == MarketLedger::FirstStore) return State.CountryId;
         return State.Branches.IsValidIndex(Store) ? MarketBranches::CountryOf(State, State.Branches[Store]) : FString();
     }
 
@@ -42,7 +42,8 @@ namespace MarketSubsidiariesLocal
 
 FString MarketSubsidiaries::Brand(const FMarketState& State)
 {
-    return State.Company.BrandName.IsEmpty() ? FString(TEXT("Miras")) : State.Company.BrandName;
+    // M69: the player names the market on the new-game screen; automated runs without a name get a neutral one.
+    return State.Company.BrandName.IsEmpty() ? FString(TEXT("Yeni Market")) : State.Company.BrandName;
 }
 
 bool MarketSubsidiaries::SetBrand(FMarketState& State, const FString& Name, FString& OutMessage)

@@ -152,7 +152,7 @@ namespace MarketEvents
                 if (State.Cash < Cost + State.OtherCosts) { Out = TEXT("Kasada para yok."); return false; }
                 State.OtherCosts += Cost;
                 ChangeSatisfaction(State, 3.f);
-                ChangeSatisfaction(State, 10.f, 0); // Nermin teyze notices first
+                ChangeSatisfaction(State, 10.f, 0); // the oldest regular notices first
                 Out = TEXT("Taziye evine \u00e7ay ve \u015feker g\u00f6nderildi. Mahalle bunu unutmaz.");
             }
             else Out = TEXT("Ba\u015fsa\u011fl\u0131\u011f\u0131 dilendi.");

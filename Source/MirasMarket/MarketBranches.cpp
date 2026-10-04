@@ -63,7 +63,7 @@ namespace MarketBranches
     }
 
     // Share of the province's wishes for each product: E3b, the shared product wish (segment mix x taste x the day,
-    // the same numbers the family shop's shoppers draw their lists from).
+    // the same numbers the first store's shoppers draw their lists from).
     TArray<float> Wishes(const FMarketState& State, const TArray<FMarketProduct>& Products, int32 Day)
     {
         return MarketProductDemand::MixWishes(State, Products, DefaultMix, Day);
@@ -165,7 +165,7 @@ FString MarketBranches::BaseFormat(const FString& Format)
 
 const MarketBranches::FFormat& MarketBranches::FormatInfo(const FString& Id)
 {
-    //                                 id               name                                     short                    fit-out  wk  service price trips rent    weight run   pop  depot chapter
+    //                                 id               name                                     short                    fit-out  wk  service price trips rent    weight run   pop  depot shops provinces
     // C12 (M42, C11 bot: a supermarket paid its fit-out back in 1-2 months at a 16 % net margin, a hypermarket in 4;
     // money stopped being a limit after 15 shops): large stores' rent x1.5 and a fit-out of about half a year's
     // profit, the supermarket at the rivals' price level. C12b: the small shops keep their rent and fit-out (the
@@ -174,14 +174,23 @@ const MarketBranches::FFormat& MarketBranches::FormatInfo(const FString& Id)
     static const FFormat Discount = { TEXT("kucuk"), TEXT("ucuzcu (indirim marketi)"), TEXT("Ucuzcu"), 250000, 3, 0.9f, 0.94f, 300, 45000, 1.f, 0.7f, 0, false, 0 };
     static const FFormat Neighbourhood = { TEXT("mahalle"), TEXT("mahalle marketi"), TEXT("Mahalle"), 400000, 3, 1.0f, 1.0f, 240, 60000, 1.f, 1.f, 0, false, 0 };
     static const FFormat Super = { TEXT("buyuk"), TEXT("s\u00fcpermarket"), TEXT("S\u00fcpermarket"), 3000000, 6, 1.1f, 1.0f, 520, 225000, 1.5f, 2.f, 0, false, 0 };
-    static const FFormat Hyper = { TEXT("hiper"), TEXT("hipermarket"), TEXT("Hipermarket"), 7000000, 14, 1.15f, 0.98f, 1600, 750000, 3.f, 3.f, 500, true, 5 }; // C3 (A6): 20 -> 14 workers, running 5 -> 3
+    static const FFormat Hyper = { TEXT("hiper"), TEXT("hipermarket"), TEXT("Hipermarket"), 7000000, 14, 1.15f, 0.98f, 1600, 750000, 3.f, 3.f, 500, true, 8, 2 }; // C3 (A6): 20 -> 14 workers, running 5 -> 3
     // M54: a convenience store: small, open long, few lines, dear but quick; many of them, a small catchment each.
     // A cash-and-carry: big, cheap, sells by the case to tradesmen and big families, only in big provinces.
     static const FFormat Convenience = [] { FFormat F = { TEXT("yakin"), TEXT("yak\u0131n market"), TEXT("Yak\u0131n"), 180000, 2, 1.05f, 1.12f, 260, 40000, 0.6f, 0.9f, 0, false, 0 };
         F.Basket = 0.55f; F.Tolerance = 0.15f; F.Base = TEXT("kucuk"); return F; }();
-    static const FFormat CashCarry = [] { FFormat F = { TEXT("toptan"), TEXT("toptan perakende"), TEXT("Toptan"), 5000000, 10, 0.85f, 0.9f, 700, 500000, 2.5f, 2.5f, 400, true, 5 };
+    static const FFormat CashCarry = [] { FFormat F = { TEXT("toptan"), TEXT("toptan perakende"), TEXT("Toptan"), 5000000, 10, 0.85f, 0.9f, 700, 500000, 2.5f, 2.5f, 400, true, 8, 2 };
         F.Basket = 2.5f; F.Tolerance = 0.f; F.Base = TEXT("hiper"); return F; }();
     return Id == TEXT("kucuk") ? Discount : Id == TEXT("buyuk") ? Super : Id == TEXT("hiper") ? Hyper : Id == TEXT("yakin") ? Convenience : Id == TEXT("toptan") ? CashCarry : Neighbourhood;
+}
+
+bool MarketBranches::FormatOpen(const FMarketState& State, const FString& Format, FString& OutReason)
+{
+    const FFormat& Kind = FormatInfo(Format);
+    const int32 Stores = MarketCompany::TotalStores(State), Provinces = MarketCompany::Provinces(State);
+    if (Stores >= Kind.MinStores && Provinces >= Kind.MinProvinces) return true;
+    OutReason = FString::Printf(TEXT("%s i\u00e7in %d ma\u011faza ve %d il gerekir (\u015fu an %d ma\u011faza, %d il)."), Kind.Short, Kind.MinStores, Kind.MinProvinces, Stores, Provinces);
+    return false;
 }
 
 FString MarketBranches::CountryOf(const FMarketState& State, const FMarketBranch& Branch)
@@ -405,11 +414,11 @@ bool MarketBranches::CanOpen(const FMarketState& State, const TArray<FMarketProd
     if (ShopsIn(State, Site.Country, Site.Province) >= Room(Site)) { OutReason = FString::Printf(TEXT("%s'de yeni ma\u011faza i\u00e7in yer kalmad\u0131 (en \u00e7ok %d)."), *Site.Name, Room(Site)); return false; }
     if (OpenCount(State) == 0)
     {
-        // The first branch keeps the chapter-2 goals (the money is checked below against the real opening cost).
-        if (MarketCampaign::DebtOpen(State)) { OutReason = TEXT("\u00d6nce i\u015fletmenin borcunu kapat."); return false; }
+        // The first branch: a shop that stands on its feet (a few profitable days, its surroundings' share); the
+        // inherited debt never blocks it (M69). The money is checked below against the real opening cost.
         if (State.ProfitableDays < MarketCampaign::ExpandProfitableDays) { OutReason = FString::Printf(TEXT("\u00d6nce %d k\u00e2rl\u0131 g\u00fcn."), MarketCampaign::ExpandProfitableDays); return false; }
         const float Goal = MarketCampaign::ShareGoal(State); // E3: the home province's crowding sets the goal
-        if (State.MarketShare < Goal) { OutReason = FString::Printf(TEXT("\u00d6nce d\u00fckk\u00e2n\u0131n \u00e7evre pay\u0131 %%%.0f."), Goal); return false; }
+        if (State.MarketShare < Goal) { OutReason = FString::Printf(TEXT("\u00d6nce ilk ma\u011fazan\u0131n \u00e7evre pay\u0131 %%%.0f."), Goal); return false; }
     }
     // One person cannot follow three shops: from the third shop on, an HR manager is needed.
     if (OpenCount(State) >= 2 && !MarketStaff::HasHr(State)) { OutReason = TEXT("\u00dc\u00e7\u00fcnc\u00fc ma\u011faza i\u00e7in \u00f6nce bir \u0130K m\u00fcd\u00fcr\u00fc i\u015fe al."); return false; }
@@ -422,7 +431,7 @@ bool MarketBranches::CanOpen(const FMarketState& State, const TArray<FMarketProd
     if (Site.bAbroad && !MarketCompany::AbroadOpen(State)) { OutReason = MarketCompany::AbroadLock(State); return false; } // D6 (M67): scale, not a chapter
     if (Site.bAbroad && MarketFranchise::Find(State, Site.Country)) { OutReason = FString::Printf(TEXT("%s: bu \u00fclkede ma\u011fazalar\u0131 orta\u011f\u0131m\u0131z a\u00e7\u0131yor; kendi ma\u011fazan i\u00e7in \u00f6nce ortakl\u0131\u011f\u0131 bitir."), *MarketCountry::FindOrDefault(Site.Country).Name); return false; }
     if (Site.bAbroad && !MarketResearch::AllowsEntry(State, Site.Country, OutReason)) return false; // M58: a market study first
-    if (Kind.Chapter > 0 && !MarketCompany::ChapterOpen(State, Kind.Chapter)) { OutReason = FString::Printf(TEXT("%s i\u00e7in \"%s\" b\u00f6l\u00fcm\u00fc a\u00e7\u0131lmal\u0131."), Kind.Short, *MarketStory::ChapterTitle(Kind.Chapter)); return false; }
+    if (!FormatOpen(State, Kind.Id, OutReason)) return false; // M69: the company's size, not a chapter
     if (Site.PopulationK < Kind.MinPopulationK) { OutReason = FString::Printf(TEXT("%s yaln\u0131z n\u00fcfusu %d binin \u00fcst\u00fcndeki illere a\u00e7\u0131l\u0131r."), Kind.Short, Kind.MinPopulationK); return false; }
     float DepotKm = 0.f; // G-089: a depot of the country within range (the home province's short range does not apply)
     if (Kind.bNeedsDepot && MarketDepots::Nearest(State, Site.Country, Site.Province, false, DepotKm) == INDEX_NONE) { OutReason = FString::Printf(TEXT("%s i\u00e7in %d km i\u00e7inde bir depo gerekir."), Kind.Short, MarketDepots::RangeKm); return false; }
@@ -509,10 +518,10 @@ bool MarketBranches::Close(FMarketState& State, const TArray<FMarketProduct>& Pr
     if (!State.Branches.IsValidIndex(BranchIndex) || State.Branches[BranchIndex].Stage == static_cast<uint8>(EStage::Closed)) { OutMessage = TEXT("B\u00f6yle bir \u015fube yok."); return false; }
     FMarketBranch& B = State.Branches[BranchIndex];
     B.Stage = static_cast<uint8>(EStage::Closed);
-    // The deposit comes back; what is left on the shelves goes to the family shop's depot.
+    // The deposit comes back; what is left on the shelves goes to the first store's depot.
     State.Cash += 2 * B.Rent;
     MarketLedger::Post(State, MarketLedger::EAccount::Divestment, 2 * B.Rent, true, BranchIndex); // C3: the deposit back
-    // Shelf units and the paid delivery still on the way come to the family shop's depot as far as it has room;
+    // Shelf units and the paid delivery still on the way come to the first store's depot as far as it has room;
     // the rest is sold to the wholesaler at half price.
     int32 Moved = 0, Sold = 0;
     int64 SoldValue = 0;
@@ -740,7 +749,7 @@ void MarketBranches::CloseDay(FMarketState& State, const TArray<FMarketProduct>&
         const float FreshDemand = MarketStoreAssign::FreshFactor(Measures, B.Format);
         const float FreshSpoil = MarketStoreAssign::SpoilFactor(Measures, B.Format);
         const float ColdChain = MarketSourcing::DairySpoilFactor(State); // G-083: a distributor keeps the cold chain
-        // E3c2 (M63): perishables follow the family shop's batch rule (MarketFreshness). What used to be a daily waste
+        // E3c2 (M63): perishables follow the first store's batch rule (MarketFreshness). What used to be a daily waste
         // rate now shortens the shelf life: a crowded cold room, a broken cold chain, a careless (generous) manager who
         // does not rotate the old goods to the front, a depot that handles goods badly.
         const MarketFreshness::EPolicy Policy = static_cast<MarketFreshness::EPolicy>(State.FreshPolicy);
@@ -751,7 +760,7 @@ void MarketBranches::CloseDay(FMarketState& State, const TArray<FMarketProduct>&
         // C10 knob (default off): a shopper's basket grows with the real wage (wages / prices), elasticity RealSpend.
         const float RealSpend = FMath::Pow(static_cast<float>(MarketPrices::WageIndex(Closed) / FMath::Max(0.01, MarketPrices::ListLevel(Closed))), MarketTuning::Get(TEXT("RealSpend"), 0.f));
         // E3b: how the shelf price against the province's chains turns a wish into a sale, the same acceptance the
-        // family shop's shoppers roll (MarketProductDemand): the store's share of its surroundings, the mix's
+        // first store's shoppers roll (MarketProductDemand): the store's share of its surroundings, the mix's
         // tolerance and the purchasing power.
         const float RivalNow = MarketChains::RivalPriceFactor(State, Where.Country, Where.Province, Closed);
         const float SharePercent = MarketStoreDemand::Share(State, Store, Closed) * 100.f;
@@ -828,7 +837,7 @@ void MarketBranches::CloseDay(FMarketState& State, const TArray<FMarketProduct>&
         const MarketStaff::FBranchStaffDay People = MarketStaff::BranchDay(State, Index, Shoppers, Revenue, DaySold, Closed);
         const int64 Till = People.TillDifference;
         const int64 Profit = Revenue - Skim - Cogs - Logistics - Opex - WasteCost - DepotLoss + Dept.Profit + Till; // waste, depot losses: goods already paid
-        State.Cash += Revenue - Skim - Logistics - Opex + Dept.Cash + Till; // goods were paid when ordered; the family shop's till stays separate
+        State.Cash += Revenue - Skim - Logistics - Opex + Dept.Cash + Till; // goods were paid when ordered; the first store's till stays separate
         MarketLedger::Post(State, MarketLedger::EAccount::Shrinkage, Till, true, Index); // the tills' difference
         State.Books.PeriodPurchases += Dept.Purchases; // VAT paid on the department goods
         // C3 (B2): the branch's day line by line (Store = the branch).
@@ -855,7 +864,7 @@ void MarketBranches::CloseDay(FMarketState& State, const TArray<FMarketProduct>&
             MarketLedger::Post(State, MarketLedger::EAccount::FxDifference, Fx, false, Index);
             State.LastProfit += Fx;
         }
-        // Branch sales carry VAT like the family shop's (their purchases already count in State.Purchases).
+        // Branch sales carry VAT like the first store's (their purchases already count in State.Purchases).
         State.Books.PeriodSales += Revenue + Dept.Revenue;
         B.LastRevenue = Revenue + Dept.Revenue;
         B.LastProfit = Profit;
@@ -872,7 +881,7 @@ void MarketBranches::CloseDay(FMarketState& State, const TArray<FMarketProduct>&
         const float Tomorrow = MarketCalendar::TrafficFactor(State.Day, State.RivalSeed) / FMath::Max(0.3f, MarketCalendar::TrafficFactor(Closed, State.RivalSeed));
         const bool bTight = State.Cash < Opex * 3; // short of money: the manager orders half
         // Never more than the till holds; nothing when the company is already in the red. E3c2b (M63): a branch
-        // in the campaign's country without a depot orders from the family shop's wholesaler and gets its terms
+        // in the campaign's country without a depot orders from the first store's wholesaler and gets its terms
         // (the open bills cap them); a depot buys centrally, a branch abroad pays in cash.
         const bool bFromWholesaler = Link.Depot == INDEX_NONE && !Where.bAbroad;
         const bool bTerms = bFromWholesaler && MarketSuppliers::TermsDays(State, MarketSuppliers::Current(State)) > 0;
@@ -908,7 +917,7 @@ void MarketBranches::CloseDay(FMarketState& State, const TArray<FMarketProduct>&
             const float Rival = MarketChains::RivalPriceFactor(State, Where.Country, Where.Province, Closed); // E2: the chains of its own province
             B.PriceIndex = FMath::Clamp(B.PriceIndex + (Rival * (Kind.PriceTarget + 0.02f + Rule.PriceBias) - B.PriceIndex) * 0.2f, 0.85f, 1.2f);
         }
-        else B.PriceIndex = FMath::Clamp(MainPriceIndex(State, Products) * (Kind.PriceTarget + Rule.PriceBias), 0.85f, 1.2f); // copies the family shop's labels
+        else B.PriceIndex = FMath::Clamp(MainPriceIndex(State, Products) * (Kind.PriceTarget + Rule.PriceBias), 0.85f, 1.2f); // copies the first store's labels
 
         if (Closed % 7 == 0)
         {

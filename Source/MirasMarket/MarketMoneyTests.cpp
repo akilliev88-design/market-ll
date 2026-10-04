@@ -88,14 +88,14 @@ bool FMarketFinanceTest::RunTest(const FString& Parameters)
 
     // The trouble ladder: warning, terms closed, a choice, forced sale; positive cash ends it.
     FMarketState T; T.Initialize(Products);
-    MarketSuppliers::Account(T, MarketSuppliers::ESupplier::Family).Trust = 80;
+    MarketSuppliers::Account(T, MarketSuppliers::ESupplier::Regular).Trust = 80;
     T.Cash = -50000;
     auto Close = [&T, &Products] { T.DayNews.Reset(); T.CloseDay(); MarketFinance::CloseDay(T, Products); T.Cash = FMath::Min<int64>(T.Cash, -50000); };
     Close();
     TestEqual(TEXT("Stage 1"), T.TroubleStage, 1);
     Close(); Close();
     TestEqual(TEXT("Stage 2"), T.TroubleStage, 2);
-    TestTrue(TEXT("Terms closed"), MarketSuppliers::TermsDays(T, MarketSuppliers::ESupplier::Family) == 0);
+    TestTrue(TEXT("Terms closed"), MarketSuppliers::TermsDays(T, MarketSuppliers::ESupplier::Regular) == 0);
     TestEqual(TEXT("No new loans in trouble"), LoanLimit(T), int64(0));
     for (int32 Day = 0; Day < 4; ++Day) Close();
     TestTrue(TEXT("A choice waits"), MarketEvents::Pending(T) && MarketEvents::Pending(T)->Id == TEXT("finance.rescue"));

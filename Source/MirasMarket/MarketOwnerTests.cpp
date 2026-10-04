@@ -64,8 +64,8 @@ bool FMarketOwnerSalaryTest::RunTest(const FString& Parameters)
 IMPLEMENT_SIMPLE_AUTOMATION_TEST(FMarketCampaignStoresTest, "MirasMarket.Promotions.EveryStore", EAutomationTestFlags::EditorContext | EAutomationTestFlags::EngineFilter)
 bool FMarketCampaignStoresTest::RunTest(const FString& Parameters)
 {
-    // M38: every store has the same campaigns: the player starts one in the family shop, a branch or every store;
-    // a branch's campaign does not touch the family shop's prices.
+    // M38: every store has the same campaigns: the player starts one in the first store, a branch or every store;
+    // a branch's campaign does not touch the first store's prices.
     using namespace MarketPromotions;
     const TArray<FMarketProduct> Products = MarketOwnerTest::OwnerCatalog();
     FMarketState S; S.Initialize(Products); S.Cash = 100000;
@@ -76,14 +76,14 @@ bool FMarketCampaignStoresTest::RunTest(const FString& Parameters)
     TestTrue(TEXT("Branch 0"), SetStore(S, 0, Message));
     TestTrue(TEXT("20 % on the milk in the branch"), StartScoped(S, Products, PackArg(0, EScope::Product, EMechanic::Percent, 20, 5), Message));
     TestEqual(TEXT("Branch campaign"), S.Promotions.Last().Store, 0);
-    TestEqual(TEXT("The family shop's price stays"), UnitPrice(S, Products, 0, 1), S.Stock[0].Price);
+    TestEqual(TEXT("The first store's price stays"), UnitPrice(S, Products, 0, 1), S.Stock[0].Price);
     float Cut = 0.f, Pull = 1.f;
     StoreEffect(S, Products, 0, 0, S.Day, Cut, Pull);
     TestTrue(TEXT("The branch sells it cheaper"), FMath::IsNearlyEqual(Cut, 0.2f));
 
     TestTrue(TEXT("Every store"), SetStore(S, MarketLedger::AllStores, Message));
     TestTrue(TEXT("3 al 2 on the cola everywhere"), StartScoped(S, Products, PackArg(1, EScope::Product, EMechanic::ThreeForTwo, 5, 5), Message));
-    TestTrue(TEXT("3 for 2 in the family shop"), UnitPrice(S, Products, 1, 3) < S.Stock[1].Price);
+    TestTrue(TEXT("3 for 2 in the first store"), UnitPrice(S, Products, 1, 3) < S.Stock[1].Price);
     StoreEffect(S, Products, 0, 1, S.Day, Cut, Pull);
     TestTrue(TEXT("and in the branch"), Cut > 0.f && Pull > 1.f);
     return true;
@@ -93,10 +93,10 @@ bool FMarketCampaignStoresTest::RunTest(const FString& Parameters)
 IMPLEMENT_SIMPLE_AUTOMATION_TEST(FMarketSupplierLifelineTest, "MirasMarket.Suppliers.Lifeline", EAutomationTestFlags::EditorContext | EAutomationTestFlags::EngineFilter)
 bool FMarketSupplierLifelineTest::RunTest(const FString& Parameters)
 {
-    // C9: in a cash crisis the father's wholesaler still gives about three days of goods on short terms, once a week.
+    // C9: in a cash crisis the shop's old wholesaler still gives about three days of goods on short terms, once a week.
     const TArray<FMarketProduct> Products = MarketOwnerTest::OwnerCatalog();
     FMarketState S; S.Initialize(Products); S.Day = 200;
-    FMarketSupplierAccount& A = MarketSuppliers::Account(S, MarketSuppliers::ESupplier::Family);
+    FMarketSupplierAccount& A = MarketSuppliers::Account(S, MarketSuppliers::ESupplier::Regular);
     A.Trust = 20; A.Volume30 = 300000;
     S.Cash = 50000;
     TestEqual(TEXT("No lifeline while the till is fine"), MarketSuppliers::LifelineAllowance(S), int64(0));

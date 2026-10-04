@@ -51,17 +51,17 @@ namespace MarketAutoPlayRescue
             Plan.Remaining=Loan?Loan->Remaining:0;if(!Loan)Plan.Paid=Day;
         }
         if(Year>Stats.Years.Num())
-        {FYear Row;Row.Year=Year;Row.Day=Day;Row.Debt=State.InheritedDebt+MarketFinance::Debt(State)+MarketBanking::Debt(State)+MarketSuppliers::OpenBills(State)+State.Books.TaxDue;Row.FamilyRevenue=Stats.Revenue;Stats.Years.Add(Row);Stats.Revenue=0;}
+        {FYear Row;Row.Year=Year;Row.Day=Day;Row.Debt=State.InheritedDebt+MarketFinance::Debt(State)+MarketBanking::Debt(State)+MarketSuppliers::OpenBills(State)+State.Books.TaxDue;Row.FirstStoreRevenue=Stats.Revenue;Stats.Years.Add(Row);Stats.Revenue=0;}
     }
     FString Report(const FStats& Stats)
     {
         int64 Written=0;int32 Paid=0,Replaced=0;for(const auto& Plan:Stats.Plans){Written+=Plan.WrittenOff;Paid+=Plan.Paid>0;Replaced+=Plan.Replaced>0;}
-        return FString::Printf(TEXT("\n#### C7: kurtarmadan sonra\n\nPlan %d, tamamen odenen %d, yeni planla degisen %d; silinen kredi borcu %lld kurus. Yeni kredi/sube denenmeyen plan gunu %d. kurtarma.csv gun, ilk yeni sube, kalan plan ve borc silme; kurtarma_yillar.csv toplam borc ve aile dukkaninin tam oyun yili cirosu. Silinen borc kasaya gelir degildir; plan degismesi odeme sayilmaz.\n"),Stats.Plans.Num(),Paid,Replaced,Written,Stats.BlockedDays);
+        return FString::Printf(TEXT("\n#### C7: kurtarmadan sonra\n\nPlan %d, tamamen odenen %d, yeni planla degisen %d; silinen kredi borcu %lld kurus. Yeni kredi/sube denenmeyen plan gunu %d. kurtarma.csv gun, ilk yeni sube, kalan plan ve borc silme; kurtarma_yillar.csv toplam borc ve ilk magazanin tam oyun yili cirosu. Silinen borc kasaya gelir degildir; plan degismesi odeme sayilmaz.\n"),Stats.Plans.Num(),Paid,Replaced,Written,Stats.BlockedDays);
     }
     FString PlansCsv(const FStats& Stats,const FString& Style,int32 Seed)
     {
         FString Text;for(const auto& Row:Stats.Plans)Text+=FString::Printf(TEXT("%s,%d,%d,%d,%d,%d,%d,%d,%lld,%lld,%lld\n"),*Style,Seed,Row.Day,Row.Until,Row.Stores,Row.FirstBranch,Row.Paid,Row.Replaced,Row.Principal,Row.Remaining,Row.WrittenOff);return Text;
     }
     FString YearsCsv(const FStats& Stats,const FString& Style,int32 Seed)
-    {FString Text;for(const auto& Row:Stats.Years)Text+=FString::Printf(TEXT("%s,%d,%d,%d,%lld,%lld\n"),*Style,Seed,Row.Year,Row.Day,Row.Debt,Row.FamilyRevenue);return Text;}
+    {FString Text;for(const auto& Row:Stats.Years)Text+=FString::Printf(TEXT("%s,%d,%d,%d,%lld,%lld\n"),*Style,Seed,Row.Year,Row.Day,Row.Debt,Row.FirstStoreRevenue);return Text;}
 }

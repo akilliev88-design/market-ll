@@ -103,10 +103,10 @@ bool FMarketOnlineTimelineTest::RunTest(const FString& Parameters)
     return true;
 }
 
-IMPLEMENT_SIMPLE_AUTOMATION_TEST(FMarketOnlineFamilyTest, "MirasMarket.Online.FamilyShopOnThePlatform", EAutomationTestFlags::EditorContext | EAutomationTestFlags::EngineFilter)
-bool FMarketOnlineFamilyTest::RunTest(const FString& Parameters)
+IMPLEMENT_SIMPLE_AUTOMATION_TEST(FMarketOnlineFirstStoreTest, "MirasMarket.Online.FirstStoreOnThePlatform", EAutomationTestFlags::EditorContext | EAutomationTestFlags::EngineFilter)
+bool FMarketOnlineFirstStoreTest::RunTest(const FString& Parameters)
 {
-    // The family shop has no couriers: alone it can only join the platform.
+    // The first store has no couriers: alone it can only join the platform.
     using namespace MarketOnlineTest;
     using MarketOnline::EChannel;
     const TArray<FMarketProduct> Products = Catalog();

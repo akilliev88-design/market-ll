@@ -16,7 +16,7 @@ namespace MarketCountry { struct FProfile; }
 //  IK muduru      unlocks with 3 shop employees. Talks to the unhappiest person every day, gives days off to
 //                 tired people when someone can cover, replaces leavers from the pool, negotiates wages,
 //                 shows exact candidate values and a reference note.
-//  Mali musavir   outside service (father's old accountant). Keeps the weekly books, declares and pays the
+//  Mali musavir   outside service (the shop's old accountant). Keeps the weekly books, declares and pays the
 //                 tax on time, finds documented expenses (lower tax), prevents audit fines and points at
 //                 suspicious till patterns. Without him the player pays the tax (PayTax) and risks an audit.
 namespace MarketStaff
@@ -87,7 +87,7 @@ namespace MarketStaff
     // G-084 (karar L03): the people who come with an inherited shop. Ordinary candidates (random skill, fair wage),
     // hired on the current day without a hiring cost.
     void AddStartingStaff(FMarketState& State, int32 Cashiers, int32 Stockers);
-    // E3c2c (M63): the people of a branch (FMarketBranch::Staff), cashiers and stockers like the family shop's,
+    // E3c2c (M63): the people of a branch (FMarketBranch::Staff), cashiers and stockers like the first store's,
     // hired, replaced and looked after by the store manager (better candidates with the company's HR manager).
     // StaffBranch fills the store's positions (B.Workers: half of them, at least one, at the tills) and books the
     // hiring cost to the branch; returns the number hired.

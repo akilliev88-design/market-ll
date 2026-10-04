@@ -29,7 +29,7 @@ namespace MarketAutoPlayOnline
     void RecordChoice(const FMarketState& State, const FMarketDecision& Card, int32 Option, FStats& Stats);
     void Decide(FMarketState& State, const TArray<FMarketProduct>& Products, int32 Style, FStats& Stats);
     void BeginDay(const FMarketState& State, FStats& Stats);
-    void Observe(const FMarketState& State, int32 Year, int32 FamilyShoppers, FStats& Stats);
+    void Observe(const FMarketState& State, int32 Year, int32 FirstStoreShoppers, FStats& Stats);
     FString Report(const FStats& Stats);
     FString YearsCsv(const FStats& Stats, const FString& Style, int32 Seed);
     FString EventsCsv(const FStats& Stats, const FString& Style, int32 Seed);

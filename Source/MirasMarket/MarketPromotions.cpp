@@ -148,16 +148,16 @@ bool MarketPromotions::IsRunning(const FMarketPromotion& Promo, int32 Day)
 
 bool MarketPromotions::IsActive(const FMarketPromotion& Promo, int32 Day)
 {
-    // M38: the family shop's view: its own campaigns and the company's in every store.
-    return IsRunning(Promo, Day) && (Promo.Store == MarketLedger::FamilyShop || Promo.Store == MarketLedger::AllStores);
+    // M38: the first store's view: its own campaigns and the company's in every store.
+    return IsRunning(Promo, Day) && (Promo.Store == MarketLedger::FirstStore || Promo.Store == MarketLedger::AllStores);
 }
 
 FString MarketPromotions::ManagerClearance(FMarketState& State, const TArray<FMarketProduct>& Products)
 {
-    // M38 (Mustafa 02.10.2026: "d\u00fckk\u00e2n hepsi ayn\u0131 sistem"): the family shop's manager clears slow goods like a
+    // M38 (Mustafa 02.10.2026: "d\u00fckk\u00e2n hepsi ayn\u0131 sistem"): the first store's manager clears slow goods like a
     // branch's manager (MarketBranches::Clearance): up to three items on hand for ten days without a sale, a week's
     // discount by his style (15 % careful, 30 % price-minded, else 20 %); over 20 % needs the province manager.
-    const int32 Boss = MarketManagers::FindManager(State, MarketManagers::ELevel::FamilyShop, State.CountryId, FString());
+    const int32 Boss = MarketManagers::FindManager(State, MarketManagers::ELevel::FirstStore, State.CountryId, FString());
     if (Boss == INDEX_NONE) return FString();
     const uint8 Style = State.Management.Managers[Boss].Style;
     int32 Wanted = Style == static_cast<uint8>(MarketManagers::EStyle::PriceMinded) ? 30 : Style == static_cast<uint8>(MarketManagers::EStyle::Careful) ? 15 : 20;
@@ -180,7 +180,7 @@ FString MarketPromotions::ManagerClearance(FMarketState& State, const TArray<FMa
         Promo.Percent = Wanted;
         Promo.StartDay = State.Day;
         Promo.EndDay = State.Day + 6;
-        Promo.Store = MarketLedger::FamilyShop;
+        Promo.Store = MarketLedger::FirstStore;
         Promo.bManager = true;
         State.Promotions.Add(Promo);
         State.Stock[I].IdleDays = 0;
@@ -192,11 +192,11 @@ FString MarketPromotions::ManagerClearance(FMarketState& State, const TArray<FMa
 
 bool MarketPromotions::SetStore(FMarketState& State, int32 Store, FString& OutMessage)
 {
-    if (Store != MarketLedger::FamilyShop && Store != MarketLedger::AllStores && !State.Branches.IsValidIndex(Store))
+    if (Store != MarketLedger::FirstStore && Store != MarketLedger::AllStores && !State.Branches.IsValidIndex(Store))
     { OutMessage = TEXT("B\u00f6yle bir ma\u011faza yok."); return false; }
     State.PromoStore = Store;
     OutMessage = Store == MarketLedger::AllStores ? FString(TEXT("Yeni kampanya b\u00fct\u00fcn ma\u011fazalarda ge\u00e7erli olacak."))
-        : Store == MarketLedger::FamilyShop ? FString(TEXT("Yeni kampanya ilk d\u00fckk\u00e2nda ge\u00e7erli olacak."))
+        : Store == MarketLedger::FirstStore ? FString(TEXT("Yeni kampanya ilk d\u00fckk\u00e2nda ge\u00e7erli olacak."))
         : FString::Printf(TEXT("Yeni kampanya %s'de ge\u00e7erli olacak."), *State.Branches[Store].Name);
     return true;
 }
@@ -382,7 +382,7 @@ FString MarketPromotions::Describe(const FMarketPromotion& Promo, const TArray<F
 
 bool MarketPromotions::Start(FMarketState& State, const TArray<FMarketProduct>& Products, EKind Kind, int32 Product, int32 Percent, FString& OutMessage)
 {
-    // M36 (Mustafa 02.10.2026): no flyer of the family shop's own; flyers are the company's ads for every shop.
+    // M36 (Mustafa 02.10.2026): no flyer of the first store's own; flyers are the company's ads for every shop.
     if (Kind == EKind::Flyer) { OutMessage = TEXT("Bro\u015f\u00fcr art\u0131k \u015eirket \u203a Reklam'da: b\u00fct\u00fcn ma\u011fazalar i\u00e7in."); return false; }
     if (!Products.IsValidIndex(Product)) { OutMessage = TEXT("\u00d6nce bir \u00fcr\u00fcn se\u00e7."); return false; }
     if (Kind != EKind::Endcap && RunningCount(State) >= MaxRunning)
@@ -585,7 +585,7 @@ void MarketPromotions::CloseDay(FMarketState& State, const TArray<FMarketProduct
 
     // The wholesaler's offer: expires after its deadline; a new one now and then when the family wholesaler trusts the shop.
     if (State.Offer.Product != INDEX_NONE && State.Offer.EndDay < State.Day) State.Offer = FMarketPromotion();
-    const FMarketSupplierAccount* Family = MarketSuppliers::FindAccount(State, MarketSuppliers::ESupplier::Family);
+    const FMarketSupplierAccount* Family = MarketSuppliers::FindAccount(State, MarketSuppliers::ESupplier::Regular);
     if (State.Offer.Product == INDEX_NONE && State.Supplier == 0 && Family && Family->Trust >= OfferTrust &&
         PromoMix(State.RivalSeed, Closed, 0x0FFE4u) % 10u == 0u)
     {
@@ -667,9 +667,9 @@ bool MarketPromotions::StartScoped(FMarketState& State, const TArray<FMarketProd
     const int32 Percent = FMath::Clamp((PackedArg / 1000000) % 100, 5, 50);
     const int32 Days = FMath::Clamp(PackedArg / 100000000, 1, MaxScopedDays);
     if (!Products.IsValidIndex(Product)) { OutMessage = TEXT("\u00d6nce bir \u00fcr\u00fcn se\u00e7."); return false; }
-    // M38: the campaign runs where the player chose (the family shop, a branch, every store).
+    // M38: the campaign runs where the player chose (the first store, a branch, every store).
     const int32 Store = State.PromoStore;
-    if ((Store == MarketLedger::FamilyShop || Store == MarketLedger::AllStores ? RunningCount(State) : RunningAt(State, Store)) >= MaxRunning)
+    if ((Store == MarketLedger::FirstStore || Store == MarketLedger::AllStores ? RunningCount(State) : RunningAt(State, Store)) >= MaxRunning)
     {
         OutMessage = FString::Printf(TEXT("Ayn\u0131 anda en \u00e7ok %d kampanya y\u00fcr\u00fcr; biri bitsin ya da durdur."), MaxRunning);
         return false;

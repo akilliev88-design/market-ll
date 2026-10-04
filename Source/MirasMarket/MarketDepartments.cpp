@@ -105,7 +105,7 @@ namespace MarketDepartmentsLocal
         D.OpenedDay = State.Day;
         D.Master = MarketDepartments::Info(Dept).bMaster ? RollMaster(State, Index, Dept, 35, 80) : 0;
         D.Stock = Stock;
-        // C3: paid now and booked line by line (not through the family shop's counters).
+        // C3: paid now and booked line by line (not through the first store's counters).
         State.Cash -= FitOut + Stock;
         State.Books.PeriodPurchases += Stock; // VAT paid on the goods
         MarketLedger::Post(State, MarketLedger::EAccount::DepartmentFitOut, -FitOut, true, Index);

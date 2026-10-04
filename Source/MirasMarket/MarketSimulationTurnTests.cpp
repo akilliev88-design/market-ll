@@ -16,7 +16,7 @@ namespace MarketTurnTests
     FMarketState State(const TArray<FMarketProduct>& Products, int32 Day = 3)
     {
         FMarketState Value; Value.Initialize(Products); Value.Cash = 10000000; Value.Day = Day;
-        Value.Story.bEnded = true; Value.RivalSeed = 21;
+        Value.Story.Identity = 1; Value.RivalSeed = 21; // the identity is already chosen: no story decision stops a turn
         return Value;
     }
 }
@@ -58,12 +58,7 @@ bool FMarketTurnLengths::RunTest(const FString& Parameters)
     TestEqual(TEXT("Pending decision plays zero days"), Turn.Played, 0);
     TestTrue(TEXT("Typed decision reason"), Turn.Stop == MarketSimulation::EStop::Decision);
     TestFalse(TEXT("One-sentence player message"), Turn.Message.IsEmpty());
-    State = MarketTurnTests::State(Base);
     MarketSimulation::FHooks Hooks;
-    Hooks.AfterDay = [&](const MarketSimulation::FDay&) { State.Story.Chapter = 2; State.Decisions.Reset(); };
-    Turn = MarketSimulation::AdvanceTurn(State, Base, Products, MarketSimulation::ETurn::Month, Hooks);
-    TestEqual(TEXT("Chapter stops after one day"), Turn.Played, 1);
-    TestTrue(TEXT("Typed chapter reason"), Turn.Stop == MarketSimulation::EStop::Chapter);
     State = MarketTurnTests::State(Base);
     Hooks.AfterDay = [&](const MarketSimulation::FDay&)
     {
@@ -110,7 +105,7 @@ bool FMarketTurnRoutine::RunTest(const FString& Parameters)
     auto Family = MarketTurnTests::State(Base, 20);
     TestTrue(TEXT("Family forgets sometimes"), MarketSimulation::RoutineForgetPermille(Family) > 0);
     auto Strong = Family;
-    FMarketManager Manager; Manager.Level = static_cast<uint8>(MarketManagers::ELevel::FamilyShop); Manager.Country = Family.CountryId; Manager.Area = MarketStart::HomeProvince(Family); Manager.Skill = 95; // M61b: the home province, whichever it is Manager.Potential = 95; Manager.Morale = 100; Manager.AppointedDay = 1;
+    FMarketManager Manager; Manager.Level = static_cast<uint8>(MarketManagers::ELevel::FirstStore); Manager.Country = Family.CountryId; Manager.Area = MarketStart::HomeProvince(Family); Manager.Skill = 95; // M61b: the home province, whichever it is Manager.Potential = 95; Manager.Morale = 100; Manager.AppointedDay = 1;
     Strong.Management.Managers.Add(Manager);
     auto Weak = Strong; Weak.Management.Managers[0].Skill = 20;
     TestTrue(TEXT("A stronger manager forgets less"), MarketSimulation::RoutineForgetPermille(Strong) < MarketSimulation::RoutineForgetPermille(Weak));

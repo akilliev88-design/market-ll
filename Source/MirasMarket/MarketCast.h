@@ -3,9 +3,9 @@
 #include "CoreMinimal.h"
 
 // Karar M30 (Mustafa 01.10.2026): the game starts wherever the player wants, so nobody and nothing is tied to the
-// prototype's town. The people and firms around the family shop are named from the active country pack
+// prototype's town. The people and firms around the first store are named from the active country pack
 // (Config/ulkeler.json "names", "banks") and the campaign's seed, the same for the whole campaign:
-//  - the father's wholesaler and its salesman, the cheaper cash-and-carry and its owner,
+//  - the shop's old wholesaler and its salesman, the cheaper cash-and-carry and its owner,
 //  - the family-run market on the same street and its owner,
 //  - the country's banks (local, commercial, investment, development).
 // Independent of the world (MarketCountry::Active / ActiveSeed), tested (MirasMarket.Cast.*).

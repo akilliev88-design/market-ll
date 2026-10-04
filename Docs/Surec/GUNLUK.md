@@ -1,3 +1,37 @@
+## 04.10.2026 - Codex - GitHub yedegi
+
+Mustafa'nin istegiyle Claude limiti sonrasi yerel calisma ayri yedek dalina alindi. Alti yerel commit, commit edilmemis M69 degisiklikleri ve ignore edilen dort M69 yardimci dosyasi korunur. DERLE/TEST/Smoke calistirilmadi; M69 derlenmedi. GitHub akis-cc2 dalindaki df47d0d (D9b) bu yedege birlestirilmedi. Yerel HEAD, index ve calisma dosyalari degistirilmedi. Siradaki: M69 ile D9b birlestirme, derleme ve test; bu yedek tamamlanmis oyun surumu degildir.
+
+## 04.10.2026 — Claude (Cowork) — G-109 M69: eski hikâye kalıntıları ve iç ad
+
+**Mustafa:** "Claude Code yerine bu işi sen yap." Oyun adı için öneri istedi; Steam'deki "Supermarket" oyunlarıyla aynı türde olup olmadığını sordu (cevap sohbette: dükkân simülatörü değil, şirket yönetimi; ad "Supermarket" ile başlamamalı).
+
+**Yapılan (kod, derlenmedi):**
+- Başlangıç: `MarketStart` yeniden (Relative/ECase/RelativeKeys silindi; `PlayerName`, `FirstStoreName`, aile devri `IntroText`). Yeni oyun ekranına market adı, oyuncu adı, zorluk; `StartNewCampaign(Country, City, MarketName, PlayerName, Difficulty)`; `ResetCampaign` adları ve zorluğu korur. `BrandName` varsayılanı boş (otomatik koşularda "Yeni Market").
+- Borç: şube kilidi (`MarketBranches::CanOpen`, `Expand`), `EGoal::PayDebt/DebtFree`, `EFirst::DebtCleared`, özet kartı, bildirim, HUD çubuğu kalktı; Kararlar panelinde "DEVRALINAN BORÇ" kartı, taksit ve "Tamamını öde" (`PayDebtAll`).
+- Bina: ilk mağaza kira ödemez; `RentToday`/`MonthRent` silindi, `BuildingValue` (mahalle marketi kirası × 120) bilançoda `Building`. Finans sayfasında "BİNA · İLK MAĞAZA" kutusu. Ay sonu raporundan kira satırı kalktı.
+- Bölümler: `MarketStory` yalnız hatıra + kimlik (10. gün) + satış sonu; `Story.Chapter/Ending/bEnded`, `Company.LeadershipDays`, `Goals.LeagueFirstYears/LeagueYearEbitda`, `EGoal::Chapter`, `EStop::Chapter`, `MarketCompany::ChapterOpen/LeadsToday` silindi. Lig yılı yalnız ilkleri yazar. Hiper/toptan `MinStores 8 / MinProvinces 2` (`FormatOpen`); bot da bunu kullanır. "Hikayen" kartı (market adı, son 4 hatıra, kimlik).
+- Adlar: `FamilyShop`→`FirstStore` ve türevleri, `ESupplier::Family`→`Regular`; "aile dükkânı" metinleri "ilk mağaza"; toptancının "babanın hatırı" sözleri "dükkânın eski hatırı"; Nermin özel durumu, Cem/Selim (menü görüntüsü), Bereket (zincir id `mahalle_marketi`), Kırklareli örnekleri; rakip sözü "Miras'ı…" → "Onları…"; özel marka market adıyla. `DefaultGame.ini` ProjectName=MarketSim, açıklamalar yenilendi; `Random.Initialize(2011)` yerine sabit tohum.
+- Testler: Start, Story, Goals (lig ilkleri), Company (büyüklük kilidi, final yok), Branches (borç hiçbir zaman neden değil), Ledger (bina), Simulation (bina), SimulationTurn (Chapter durması silindi, kimlik önceden seçili), AutoPlayC (büyüklük kilidi), Customers, Expansion, CountryPack (`relatives` yok).
+- İç ad: `Saved/Claude/m69_ic_ad.py` (git mv + metin değişimi + `[CoreRedirects]`), Tur 2'de çalışır.
+- Belgeler: `00_KURGU_KITABI.md` baştan, `01_KARARLAR.md` M69 satırı güncel + 19 satır "Geçersiz/değişti", README ve AGENTS.
+
+**Varsayımlar (Claude):** iç kod adı MarketSim; büyük tür eşiği 8 mağaza + 2 il; bina değeri 120 aylık mahalle kirası; kimlik 10. gün; ilk şube için kârlı gün ve çevre payı şartı kalır; borç ödenince hatıra yazılır ama kutlama yok. İlk mağazayı kapatma ayrı iş (G-110).
+
+**Doğrulama:** derlenmedi. Bu ortamda derleyici yok; parantez dengesi ve silinen her sembolün kalmadığı tarandı.
+
+**Sıradaki:** Mustafa CLAUDE_KOS → Claude son.log'u okur, hata varsa düzeltir. Sonra G-110.
+
+## 04.10.2026 — Claude (Cowork) — D9a doğrulaması, kalıntı denetimi ve M69
+
+**Mustafa:** "Eski kalıntıların silinmesini istemiştim ama hâlâ var." Oyunda gerçek yıl yok; Lüleburgaz, Kırklareli merkez, Bereket Market, babadan kalan hikâye ve 1./2. bölüm yok. Steam'e çıkacak; oyuncu ülke, şehir, market adı, kendi adı ve zorluğu seçer. Aile işi devretti (baba değil, "aile dükkânı" denmez), hafif borç var, kapatmak hedef değil. Football Manager gibi sonsuz simülasyon + tycoon. Oyunun adı Miras olmasın (Supermarketing ilgisini çekti, kesin değil). Sorulara cevap: ilk mağaza kendi adıyla, "ilk şuben" denebilir, kapatılabilir; bina bizim; iç adlar hemen değişsin; kilitler şirket büyüklüğüne.
+
+**Yapılan:** `son.log` okundu: D9a (6d0a4ff) DERLE + TEST 173/174 (1 uyarı) + Smoke geçmiş. `Source/MirasMarket` (~100 dosya) ve `Config` tarandı; bulgular iş emrinde satır numaralarıyla. Karar **M69** (`01_KARARLAR.md`), görev **G-109**, iş emri `Docs/Surec/promptlar/claude_code_M69_temizlik.md`. Varsayım (Claude): iç kod adı satış adından bağımsız `MarketSim` (ad kesinleşince bir daha taşınmasın); kilit eşikleri süpermarket 3, büyük/toptan 6 mağaza + 2 il, hipermarket 10 mağaza + 3 il; bina değeri ilin mahalle marketi kirası × 120.
+
+**Doğrulama:** Kod değişmedi; yalnız belgeler. DERLE/TEST/Smoke çalıştırılmadı.
+
+**Sıradaki:** Claude Code G-109 (üç aşama, her aşamadan sonra DERLE/TEST/Smoke). Sonra D9 kalanı.
+
 ## 04.10.2026 — Codex — G-106 çalışan gezinme önizlemesi
 
 **Mustafa:** Ekranı gezmek istedi.

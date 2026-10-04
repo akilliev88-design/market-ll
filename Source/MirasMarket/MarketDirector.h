@@ -9,8 +9,8 @@
 // The campaign seed for weather, news and people is State.RivalSeed (set once per new campaign).
 namespace MarketDirector
 {
-    // Shopper traffic of the family shop today (E2): its real shoppers from the one store formula
-    // (MarketStoreDemand::FamilyShoppers: catchment, share against the province's chains, calendar, online, ads,
+    // Shopper traffic of the first store today (E2): its real shoppers from the one store formula
+    // (MarketStoreDemand::FirstStoreShoppers: catchment, share against the province's chains, calendar, online, ads,
     // difficulty, its promotions, events and card terminal) / MarketSimulation::ShoppersPerDay. The walked world
     // spawns ShoppersPerDay x this; one walking figure is one shopper.
     float TrafficFactor(const FMarketState& State, const TArray<FMarketProduct>& Products);

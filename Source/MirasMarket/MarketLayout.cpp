@@ -87,7 +87,7 @@ FMarketPlanogram MarketLayout::Fixtures(const FString& Format)
     }
     const bool bHyper = Format == TEXT("hiper"); // G-086: hypermarket, the widest range
     const bool bBig = Format == TEXT("buyuk") || bHyper;
-    // The family shop's arrangement: gondolas in rows, wall shelves on both sides.
+    // The first store's arrangement: gondolas in rows, wall shelves on both sides.
     const int32 Rows = bHyper ? 4 : bBig ? 2 : 1;
     int32 Index = 0;
     for (int32 Row = 0; Row < Rows; ++Row)

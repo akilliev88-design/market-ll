@@ -166,9 +166,9 @@ MarketSimulation::FDay MarketSimulation::PlayDay(FMarketState& State, const TArr
     if (State.Stock.Num() != Products.Num()) return Day;
     FRandomStream Random(static_cast<int32>(SimMix(State.RivalSeed, State.Day, 0x51A7u)));
     // Morning routine of the family: the month's price rise goes on the shelf tags, the declared tax is paid, and
-    // a spare installment (a tenth of the starting debt, M37) goes to the father's debt when the till can bear it.
-    // G-086b ek (M19): with a manager in the family shop his style and skill run the routine (bManaged false: as before).
-    MarketManagers::FFamilyRule Family = MarketManagers::FamilyRule(State);
+    // a spare installment (a tenth of the starting debt, M37) goes to the inherited debt when the till can bear it.
+    // G-086b ek (M19): with a manager in the first store his style and skill run the routine (bManaged false: as before).
+    MarketManagers::FFirstStoreRule Family = MarketManagers::FirstStoreRule(State);
     Family.ForgetPermille = RoutineForgetPermille(State);
     Family.bManaged = true; // the family also makes occasional mistakes without a hired manager
     if (MarketSuppliers::PriceGap(State) > Family.PriceRiseGap && !DelayPriceRise(State)) MarketSuppliers::PassOnPriceRise(State, Products);
@@ -205,7 +205,7 @@ MarketSimulation::FDay MarketSimulation::PlayDay(FMarketState& State, const TArr
         Draft.Init(0, Products.Num());
         const TArray<float> Scales = MarketDirector::OrderScales(State, Products);
         MarketOrderAdvice::FillSuggested(State, Products, Draft, &Scales);
-        MarketManagers::ShapeFamilyOrder(State, Family, Draft);
+        MarketManagers::ShapeFirstStoreOrder(State, Family, Draft);
         for (int32& Cases : Draft) Cases = FMath::Clamp(Cases, 0, MarketOrderAdvice::MaxCases);
         int64 Bill = 0;
         for (int32 I = 0; I < Draft.Num(); ++I) Bill += Draft[I] * MarketOrderAdvice::CaseUnits(Products[I]) * Products[I].Cost;
@@ -221,7 +221,7 @@ MarketSimulation::FDay MarketSimulation::PlayDay(FMarketState& State, const TArr
     const int64 CoreCash = State.Cash;
     State.CloseDay();
     if (State.Cash != CoreCash + State.LastBranchProfit - State.LastOperatingCost) ++Day.AuditFailures;
-    Day.FamilyProfit = State.LastProfit;
+    Day.FirstStoreProfit = State.LastProfit;
     const int64 DirectorCash = State.Cash;
     MarketDirector::CloseDay(State, Products);
     Day.BackgroundCashDelta = State.Cash - DirectorCash;
@@ -243,7 +243,7 @@ bool MarketSimulation::AdjustPrice(FMarketState& State, const TArray<FMarketProd
 }
 int32 MarketSimulation::RoutineSkill(const FMarketState& State)
 {
-    const MarketManagers::FFamilyRule Family = MarketManagers::FamilyRule(State);
+    const MarketManagers::FFirstStoreRule Family = MarketManagers::FirstStoreRule(State);
     return Family.bManaged ? Family.Skill : 55; // familiar family routine, not perfect management
 }
 int32 MarketSimulation::RoutineForgetPermille(const FMarketState& State)
@@ -274,7 +274,6 @@ FString MarketSimulation::StopMessage(EStop Reason, int32 Played)
     case EStop::NegativeCash: Why = TEXT("kasa eksiye dustu"); break;
     case EStop::WeekReport: Why = TEXT("hafta ozeti hazir"); break;
     case EStop::MonthReport: Why = TEXT("ay ozeti hazir"); break;
-    case EStop::Chapter: Why = TEXT("yeni hikaye bolumu acildi"); break;
     case EStop::ImportantEvent: Why = TEXT("onemli bir gelisme var, kararlara bak"); break;
     case EStop::InvalidCatalog: Why = TEXT("stok kaydi katalogla uyusmuyor"); break;
     case EStop::CampaignOver: Why = TEXT("bu kampanya sona erdi"); break;
@@ -286,7 +285,6 @@ namespace MarketSimulation
 {
     struct FSignals
     {
-        int32 Chapter = 0;
         int32 War = 0;               // E2: the latest price war against us in the home province (its last day)
         TArray<int32> Caught;
         TArray<FString> DepotCaught;
@@ -297,7 +295,6 @@ namespace MarketSimulation
         }
         explicit FSignals(const FMarketState& State)
         {
-            Chapter = State.Story.Chapter;
             War = HomeWar(State);
             for (const FMarketBranch& Branch : State.Branches) Caught.Add(Branch.ManagerCaughtDay);
             for (const FMarketDepot& Depot : State.Company.DepotSites) DepotCaught.Add(Depot.CaughtName);
@@ -341,7 +338,6 @@ namespace MarketSimulation
             if (Hooks.AfterDay) Hooks.AfterDay(Today);
             Result.Stop = BeforeTurn(State, Products);
             if (Result.Stop != EStop::None) break;
-            if (State.Story.Chapter != Before.Chapter) { Result.Stop = EStop::Chapter; break; }
             if (Before.Important(State)) { Result.Stop = EStop::ImportantEvent; break; }
             // A seven-day request crosses the intervening calendar week; it never ends after 1..6 days for a report.
         }

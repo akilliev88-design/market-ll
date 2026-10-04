@@ -311,17 +311,7 @@ TSharedRef<SWidget> SMarketHud::StatusBar()
         + SHorizontalBox::Slot().AutoWidth().VAlign(VAlign_Center).Padding(22.f, 0.f, 0.f, 0.f)
         [ Column(TEXT("Servet"), [G] { return G() ? MarketHudUi::HudLira(G()->State.Owner.Wealth) : FString(); }, [] { return ETone::Text; }) ]
         + SHorizontalBox::Slot().AutoWidth().VAlign(VAlign_Center).Padding(22.f, 0.f, 0.f, 0.f)
-        [ Column(TEXT("Bug\u00fcn"), [G] { return G() ? MarketHudUi::HudLira(G()->State.Revenue) : FString(); }, [] { return ETone::Accent; }) ]
-        + SHorizontalBox::Slot().AutoWidth().VAlign(VAlign_Center).Padding(22.f, 0.f, 0.f, 0.f)
-        [
-            SNew(SBox).WidthOverride(150.f)
-            .Visibility_Lambda([G] { return G() && MarketCampaign::DebtOpen(G()->State) ? EVisibility::HitTestInvisible : EVisibility::Collapsed; })
-            [
-                SNew(SVerticalBox)
-                + SVerticalBox::Slot().AutoHeight()[ Text([G] { return G() ? FString::Printf(TEXT("Bor\u00e7 \u00b7 %s kald\u0131"), *MarketHudUi::HudLira(G()->State.InheritedDebt)) : FString(); }, 8, ETone::Muted) ]
-                + SVerticalBox::Slot().AutoHeight().Padding(0.f, 7.f, 0.f, 0.f)[ Bar([G] { return G() ? MarketCampaign::DebtProgress(G()->State) : 0.f; }, ETone::Warn) ]
-            ]
-        ],
+        [ Column(TEXT("Bug\u00fcn"), [G] { return G() ? MarketHudUi::HudLira(G()->State.Revenue) : FString(); }, [] { return ETone::Accent; }) ],
         52.f);
     return SNew(SHorizontalBox)
         + SHorizontalBox::Slot().AutoWidth()[ Date ]

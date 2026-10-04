@@ -10,13 +10,13 @@ struct FMarketProduct;
 // a new campaign opens it at its first day close. Independent of the world, tested
 // (MirasMarket.Ledger.*, MirasMarket.Balance.*).
 //
-// Every money movement is one entry: day, store (family shop -1, head office -2, branch index 0..), account, amount
+// Every money movement is one entry: day, store (first store -1, head office -2, branch index 0..), account, amount
 // (kuru\u015f; + money in / income, - money out / cost) and whether the till moved (cash) or only the books (the cost of
 // the goods sold, waste, an accrued tax). Income statements (day / week / month / year) come from the entries,
 // the balance sheet from the state (cash, stock, receivables, debts). The audit at every day close checks
 // "change of the till = sum of the cash entries"; what no system posted lands on Unexplained and the day's gap.
 //
-// Who posts: the Ak\u0131\u015f B systems post where the money moves (MarketLedger::Post). The family shop's till and
+// Who posts: the Ak\u0131\u015f B systems post where the money moves (MarketLedger::Post). The first store's till and
 // wholesaler orders (FMarketState::SellBasket / SubmitOrder / CloseDay) are read from their day counters at the
 // start of the day close (BeginClose). Branches, depots, managers, wholesalers' terms and the game mode post
 // through the calls listed in Docs/Surec/akislar/B.md ("C'ye istekler") once they are wired.
@@ -86,11 +86,11 @@ struct FMarketLedger
     UPROPERTY() int32 GapDays = 0;           // closes with a gap so far
     UPROPERTY() int64 TotalGap = 0;
     // Goods other systems bought during the last close (branch orders add to FMarketState::Purchases): they post
-    // their own lines, so the next BeginClose leaves them out of the family shop's purchases.
+    // their own lines, so the next BeginClose leaves them out of the first store's purchases.
     UPROPERTY() int64 PurchasesInClose = 0;
-    // C10 (Codex C9 R1: a branch's fit-out and hiring, managers' bonuses and severance landed in the family shop's
-    // books): costs paid with the family shop's day close (FMarketState::OtherCosts) that belong to another store or
-    // the head office. The next BeginClose books them there (Marketing) and leaves them out of the family shop.
+    // C10 (Codex C9 R1: a branch's fit-out and hiring, managers' bonuses and severance landed in the first store's
+    // books): costs paid with the first store's day close (FMarketState::OtherCosts) that belong to another store or
+    // the head office. The next BeginClose books them there (Marketing) and leaves them out of the first store.
     UPROPERTY() TArray<FMarketLedgerEntry> PendingStoreCosts;
 };
 
@@ -99,7 +99,7 @@ namespace MarketLedger
     enum class EAccount : uint8
     {
         // Income statement: income
-        Sales = 0,        // the family shop's till (and a branch's sales, Store = branch)
+        Sales = 0,        // the first store's till (and a branch's sales, Store = branch)
         OnlineSales,
         OtherIncome,
         // Income statement: costs
@@ -146,7 +146,7 @@ namespace MarketLedger
         CreditBook,       // sold on the credit book (-), collected (+) (M36: unused)
         TaxPayment,
         OwnerDraw,        // M37: dividends paid to us (the owner)
-        InheritedDebt,    // paying the father's debt
+        InheritedDebt,    // paying the debt that came with the market (M69)
         Capital,          // money put in (start help, a buyer's payment)
         DepartmentPurchases, // goods bought for a department (they become its stock)
         DepartmentFitOut, // opening or refitting a department (-), a closing one's fittings sold (+)
@@ -156,7 +156,7 @@ namespace MarketLedger
         Count
     };
 
-    constexpr int32 FamilyShop = -1;
+    constexpr int32 FirstStore = -1;
     constexpr int32 HeadOfficeStore = -2;
     constexpr int32 AllStores = -1000;
     constexpr int32 KeepDays = 120;       // day and week statements; months and years come from the month totals
@@ -173,8 +173,8 @@ namespace MarketLedger
     // Books an entry. Amount: + money in / income, - money out / cost; bCash: the till moved by exactly Amount.
     // Between BeginClose and EndClose the entry belongs to the closed day. Zero amounts are not booked; entries of
     // the same day, store, account and kind are added up into one line.
-    void Post(FMarketState& State, EAccount Account, int64 Amount, bool bCash = true, int32 Store = FamilyShop);
-    // C10: a cost paid with today's costs at the family shop's close (FMarketState::OtherCosts) that belongs to Store
+    void Post(FMarketState& State, EAccount Account, int64 Amount, bool bCash = true, int32 Store = FirstStore);
+    // C10: a cost paid with today's costs at the first store's close (FMarketState::OtherCosts) that belongs to Store
     // (a branch index or HeadOfficeStore). Amount > 0.
     void AddStoreCost(FMarketState& State, int64 Amount, int32 Store);
 
@@ -209,17 +209,18 @@ namespace MarketLedger
     {
         // Assets
         int64 Cash = 0;
-        int64 Stock = 0;                 // family shop: shelf, depot, rear door, on the way (book cost)
+        int64 Stock = 0;                 // first store: shelf, depot, rear door, on the way (book cost)
         int64 BranchStock = 0;           // branches' goods (today's cost)
         int64 CardReceivable = 0;        // card money the bank still owes
         int64 Deposits = 0;              // rent deposits of open branches
+        int64 Building = 0;              // M69: the first store's building (ours, MarketFinance::BuildingValue)
         int64 DepartmentStock = 0;       // B7: departments' goods (book cost; C3 fills it, see B.md)
         // Liabilities
         int64 Payables = 0;              // wholesalers' bills
         int64 Loans = 0;
         int64 TaxDue = 0;
         int64 InheritedDebt = 0;
-        int64 Assets() const { return Cash + Stock + BranchStock + DepartmentStock + CardReceivable + Deposits; }
+        int64 Assets() const { return Cash + Stock + BranchStock + DepartmentStock + CardReceivable + Deposits + Building; }
         int64 Liabilities() const { return Payables + Loans + TaxDue + InheritedDebt; }
         int64 Equity() const { return Assets() - Liabilities(); }
     };

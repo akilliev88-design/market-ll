@@ -14,7 +14,7 @@ namespace MarketAutoPlayDiagnosis
         int64 PendingDividend = 0;
         double Shelf = 0, List = 0, Purchase = 0, Book = 0, Target = 0;
         int32 StaffCount = 0, Cashiers = 0, Stockers = 0, Hr = 0, Accountant = 0;
-        int64 ManagerCost = 0, FamilyManagerCost = 0;
+        int64 ManagerCost = 0, FirstStoreManagerCost = 0;
         FString Managers;
         TArray<FMarketManager> ManagersBefore;
     };

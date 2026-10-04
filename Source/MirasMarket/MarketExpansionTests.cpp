@@ -12,7 +12,7 @@
 
 namespace MarketExpansionTest
 {
-    // D6 (M67): 24 open branches in 5 home provinces: with the family shop the company is big enough to go abroad.
+    // D6 (M67): 24 open branches in 5 home provinces: with the first store the company is big enough to go abroad.
     void GrowHome(FMarketState& S)
     {
         const MarketCountry::FProfile& Home = MarketCountry::FindOrDefault(S.CountryId);
@@ -35,7 +35,7 @@ IMPLEMENT_SIMPLE_AUTOMATION_TEST(FMarketExpansionTest, "MirasMarket.Expansion.Ty
 bool FMarketExpansionTest::RunTest(const FString& Parameters)
 {
     using namespace MarketBranches;
-    FMarketState S; S.RivalSeed = 11; S.Day = 900; S.Cash = 500000000; S.CountryId = MarketCountry::DefaultId(); S.Story.Chapter = 6;
+    FMarketState S; S.RivalSeed = 11; S.Day = 900; S.Cash = 500000000; S.CountryId = MarketCountry::DefaultId();
     MarketExpansionTest::GrowHome(S); // D6 (M67): the way abroad opens with scale
 
     // M54: the four everywhere; a convenience store or a cash-and-carry only where the market knows it.
@@ -120,17 +120,16 @@ bool FMarketExpansionTest::RunTest(const FString& Parameters)
 IMPLEMENT_SIMPLE_AUTOMATION_TEST(FMarketFranchiseTest, "MirasMarket.Expansion.ScaleAndFranchise", EAutomationTestFlags::EditorContext | EAutomationTestFlags::EngineFilter)
 bool FMarketFranchiseTest::RunTest(const FString& Parameters)
 {
-    FMarketState S; S.RivalSeed = 5; S.Day = 600; S.Cash = 500000000; S.CountryId = MarketCountry::DefaultId(); S.Story.Chapter = 7;
+    FMarketState S; S.RivalSeed = 5; S.Day = 600; S.Cash = 500000000; S.CountryId = MarketCountry::DefaultId();
     FString Abroad;
     for (const MarketCountry::FProfile& P : MarketCountry::All()) if (P.Id != S.CountryId && P.Cities.Num() > 0) { Abroad = P.Id; break; }
     if (!TestFalse(TEXT("A foreign pack"), Abroad.IsEmpty())) return false;
     FString Why;
-    TestFalse(TEXT("A chapter alone does not open the world"), MarketCompany::AbroadOpen(S));
+    TestFalse(TEXT("A small company does not open the world"), MarketCompany::AbroadOpen(S));
     TestFalse(TEXT("It says why"), MarketCompany::AbroadLock(S).IsEmpty());
     TestFalse(TEXT("No study yet"), MarketResearch::CanStart(S, Abroad, Why));
     TestFalse(TEXT("No partner yet"), MarketFranchise::CanSign(S, Abroad, Why));
     TestTrue(TEXT("World card: closed"), MarketCompany::CountryStatus(S, Abroad).StartsWith(TEXT("kapal\u0131")));
-    TestEqual(TEXT("Chapter 6 is the world's"), MarketStory::ChapterTitle(6), FString(TEXT("D\u00fcnyaya A\u00e7\u0131l\u0131\u015f")));
 
     MarketExpansionTest::GrowHome(S);
     TestTrue(TEXT("25 shops in 5 provinces open it"), MarketCompany::AbroadOpen(S) && MarketCompany::AbroadLock(S).IsEmpty());

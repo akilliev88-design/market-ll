@@ -7,7 +7,7 @@
 // (MirasMarket.Branches.*). The only place level of the game is the province (il / Land / state): a branch opens
 // in a province of any country pack, as one of four market types, and goes lease and fit-out -> permits ->
 // hiring -> opening stock -> open. Its shelves are planned automatically (MarketLayout) and its day is simulated
-// from the same rules as the family shop, without walking customers: the province's shoppers split between us
+// from the same rules as the first store, without walking customers: the province's shoppers split between us
 // and the rivals by attractiveness (price, full shelves, service, habit); what they want follows the calendar;
 // what is not on the shelf is a lost sale. A manager orders for tomorrow (a skilled one closer to the real
 // demand), keeps prices near the market type's target, and a dishonest one skims a little. A new branch builds
@@ -35,7 +35,8 @@ namespace MarketBranches
         float Running = 1.f;             // electricity, cleaning, small costs
         int32 MinPopulationK = 0;        // hypermarket: only in big provinces
         bool bNeedsDepot = false;        // hypermarket: a depot of the country within 600 km (G-089)
-        int32 Chapter = 0;               // hypermarket: from "Ulke Capinda" (5)
+        int32 MinStores = 0;             // M69: the company's size it needs (hypermarket, cash-and-carry: 8 shops in
+        int32 MinProvinces = 0;          //      2 provinces; 0 = from the start)
         // M54: what a shopper puts in the basket (x UnitsPerShopper; a convenience store sells a few items, a
         // cash-and-carry by the case) and how much dearer shelves its shoppers accept (added to the tolerance;
         // convenience is paid for).
@@ -56,7 +57,7 @@ namespace MarketBranches
         float Rent = 1.f;
         float Competition = 1.f;
         bool bValid = false;
-        bool bHome = false;              // the family shop's province
+        bool bHome = false;              // the first store's province
         bool bAbroad = false;
     };
 
@@ -98,6 +99,8 @@ namespace MarketBranches
     // The ready-made store type a format uses (yakin -> kucuk, toptan -> hiper; the four: themselves).
     FString BaseFormat(const FString& Format);
     const FFormat& FormatInfo(const FString& Id);
+    // M69: a store type the company is big enough for (MinStores / MinProvinces); OutReason when not yet.
+    bool FormatOpen(const FMarketState& State, const FString& Format, FString& OutReason);
     constexpr double FirstBranchFitOut = 0.4; // C12 (M42): the first neighbourhood branch at home costs 40 % of its fit-out
 
     FSite SiteOf(const FMarketState& State, const FString& Country, const FString& Province);
@@ -129,9 +132,9 @@ namespace MarketBranches
     // (x the store's size factor, x the difficulty, the first branch's discount).
     bool IsFirstBranch(const FMarketState& State, const FSite& Site, const FFormat& Kind);
     int64 FitOutCost(const FMarketState& State, const FSite& Site, const FFormat& Kind, float MeasureFactor);
-    // Most shops of ours a province takes (the family shop counts in the home province).
+    // Most shops of ours a province takes (the first store counts in the home province).
     int32 Room(const FSite& Site);
-    // Our shops in a province that are not closed (+1 for the family shop in the home province).
+    // Our shops in a province that are not closed (+1 for the first store in the home province).
     int32 ShopsIn(const FMarketState& State, const FString& Country, const FString& Province);
     // Provinces of a country with a shop of ours (home first). Country empty = the campaign's.
     TArray<FString> ProvincesWithShops(const FMarketState& State, const FString& Country = FString());
@@ -157,10 +160,10 @@ namespace MarketBranches
     // Akis C2b: a store taken over with a chain we bought opens at once as our branch (its shelves stocked, a
     // manager hired, the district already half used to it). INDEX_NONE when the province has no room.
     int32 AddAcquired(FMarketState& State, const TArray<FMarketProduct>& Products, const FString& Country, const FString& Province, const FString& Format);
-    // Moves a person from the family shop to run a branch (Cem's road in the story).
+    // Moves a person from the first store to run a branch (a cashier or stocker promoted).
     bool Promote(FMarketState& State, int32 EmployeeId, int32 BranchIndex, FString& OutMessage);
     int32 OpenCount(const FMarketState& State);
-    // x shoppers of the family shop: our branches in the home province take some of its customers.
+    // x shoppers of the first store: our branches in the home province take some of its customers.
     float MainShopFactor(const FMarketState& State);
     FString Summary(const FMarketState& State, int32 BranchIndex, const TArray<FMarketProduct>& Products);
     // Weekly mark of a branch (A best .. D worst; "-" while it is not open for a week).

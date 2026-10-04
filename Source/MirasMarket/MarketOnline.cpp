@@ -65,7 +65,7 @@ namespace MarketOnlineLocal
 
     bool IsOpenBranch(const FMarketBranch& B) { return B.Stage == static_cast<uint8>(MarketBranches::EStage::Open); }
 
-    // What a closed day sold online in a shop; Branch INDEX_NONE = the family shop.
+    // What a closed day sold online in a shop; Branch INDEX_NONE = the first store.
     struct FShop
     {
         int32 Branch = INDEX_NONE;
@@ -315,7 +315,7 @@ namespace MarketOnlineLocal
         if (Day >= Platform - 60 && Once(TPlatformRumour))
             Tell(State, FString::Printf(TEXT("%s ad\u0131nda bir h\u0131zl\u0131 teslimat platformu \u00fclkeye gelmeye haz\u0131rlan\u0131yor."), *MarketCast::Platform()));
         if (Day >= Platform && Once(TPlatform))
-            Tell(State, FString::Printf(TEXT("%s geldi: sipari\u015fleri kendi kuryeleri ta\u015f\u0131yor, %%%.0f komisyon al\u0131yor. Aile d\u00fckk\u00e2n\u0131 bile kat\u0131labilir; girmezsek m\u00fc\u015fteri ba\u015fkas\u0131ndan s\u00f6yl\u00fcyor."),
+            Tell(State, FString::Printf(TEXT("%s geldi: sipari\u015fleri kendi kuryeleri ta\u015f\u0131yor, %%%.0f komisyon al\u0131yor. \u0130lk ma\u011fazan bile kat\u0131labilir; girmezsek m\u00fc\u015fteri ba\u015fkas\u0131ndan s\u00f6yl\u00fcyor."),
                 *MarketCast::Platform(), O.Commission * 100.f));
         if (Day >= App - MarketOnline::RumourDays && Once(TAppRumour))
             Tell(State, TEXT("Telefon uygulamalar\u0131yla market sipari\u015fi yay\u0131lmaya ba\u015fl\u0131yor; b\u00fcy\u00fck zincirler haz\u0131rlan\u0131yor. Uygulama i\u00e7in web sitesi ve en az 8 ma\u011faza gerekecek."));
@@ -1169,10 +1169,10 @@ void MarketOnline::CloseDay(FMarketState& State, const TArray<FMarketProduct>& P
     }
 
     const bool bStock = State.Stock.Num() == Products.Num() && Products.Num() > 0;
-    State.Ledger.OnlineSold.Init(0, State.Stock.Num());   // B1 (#30): the family shop's online units by catalog row
+    State.Ledger.OnlineSold.Init(0, State.Stock.Num());   // B1 (#30): the first store's online units by catalog row
     TArray<int32> QuickPicked;
     QuickPicked.Init(0, O.Areas.Num());
-    int64 FamilyRevenue = 0, FamilyCogs = 0, FamilyCosts = 0, Units = 0;
+    int64 FirstStoreRevenue = 0, FirstStoreCogs = 0, FirstStoreCosts = 0, Units = 0;
 
     for (int32 ShopIndex = 0; ShopIndex < Shops.Num(); ++ShopIndex)
     {
@@ -1305,7 +1305,7 @@ void MarketOnline::CloseDay(FMarketState& State, const TArray<FMarketProduct>& P
             A.Profit30 += Profit;
             // The books of the shop that picked it.
             State.Cash += Value - Costs;
-            const int32 Store = Branch ? Shop.Branch : MarketLedger::FamilyShop;
+            const int32 Store = Branch ? Shop.Branch : MarketLedger::FirstStore;
             MarketLedger::Post(State, MarketLedger::EAccount::OnlineSales, Value, true, Store);
             MarketLedger::Post(State, MarketLedger::EAccount::CostOfGoods, -Cogs, false, Store);
             MarketLedger::Post(State, MarketLedger::EAccount::OnlineCosts, -Costs, true, Store);
@@ -1320,16 +1320,16 @@ void MarketOnline::CloseDay(FMarketState& State, const TArray<FMarketProduct>& P
                 State.LastBranchProfit += Profit;
                 O.LastBranchProfit += Profit;
             }
-            else { FamilyRevenue += Value; FamilyCogs += Cogs; FamilyCosts += Costs; }
+            else { FirstStoreRevenue += Value; FirstStoreCogs += Cogs; FirstStoreCosts += Costs; }
             State.LastProfit += Profit;
         }
     }
     O.Reputation = FMath::Clamp(O.Reputation, 0.f, 100.f);
 
-    // The family shop's part goes into its day (the tax books see it); the head office pays the fixed part.
-    State.LastRevenue += FamilyRevenue;
-    State.LastCostOfGoods += FamilyCogs;
-    State.LastOperatingCost += FamilyCosts;
+    // The first store's part goes into its day (the tax books see it); the head office pays the fixed part.
+    State.LastRevenue += FirstStoreRevenue;
+    State.LastCostOfGoods += FirstStoreCogs;
+    State.LastOperatingCost += FirstStoreCosts;
     if (Fixed > 0)
     {
         State.Cash -= Fixed;
@@ -1339,7 +1339,7 @@ void MarketOnline::CloseDay(FMarketState& State, const TArray<FMarketProduct>& P
         O.LastProfit -= Fixed;
         MarketLedger::Post(State, MarketLedger::EAccount::OnlineCosts, -Fixed, true, MarketLedger::HeadOfficeStore);
     }
-    // Picking tires the family shop's stocker on duty.
+    // Picking tires the first store's stocker on duty.
     if (Units > 0)
         for (const FMarketEmployee& E : State.Staff)
             if (E.Role == static_cast<uint8>(MarketStaff::ERole::Stocker) && E.OffDay != Closed) { MarketStaff::RecordWork(State, E.Id, static_cast<int32>(FMath::Min<int64>(Units, 400)) / 4); break; }

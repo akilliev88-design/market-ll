@@ -78,13 +78,13 @@ namespace MarketManagers
     // D4: the general manager's area (one for the company).
     const TCHAR* const ChiefArea = TEXT("merkez");
 
-    // The area an appointment really means (a country's own id, the family shop's home province, the country's
+    // The area an appointment really means (a country's own id, the first store's home province, the country's
     // continent, the general manager's single post).
     FString ResolveArea(const FMarketState& State, ELevel Level, const FString& Country, const FString& Area)
     {
         if (!Area.IsEmpty()) return Area;
         if (Level == ELevel::Country) return Country.IsEmpty() ? State.CountryId : Country;
-        if (Level == ELevel::FamilyShop) return MarketStart::HomeProvince(State);
+        if (Level == ELevel::FirstStore) return MarketStart::HomeProvince(State);
         if (Level == ELevel::Continent) return MarketCountry::ContinentOf(Country.IsEmpty() ? State.CountryId : Country);
         if (Level == ELevel::Chief) return ChiefArea;
         return Area;
@@ -99,7 +99,7 @@ namespace MarketManagers
         return FMath::Min(SkillTop, Skill + 5 + static_cast<int32>(Roll % 16u));
     }
 
-    // "Tekirda\u011f'da", "K\u0131rklareli'de", "Sivas'ta": the locative of a place name.
+    // "Tekirda\u011f'da", "Sivas'ta", "Van'da": the locative of a place name.
     FString Locative(const FString& Name)
     {
         if (Name.IsEmpty()) return Name;
@@ -132,10 +132,10 @@ namespace MarketManagers
     bool IsLiveBranch(const FMarketBranch& B) { return B.Stage != static_cast<uint8>(MarketBranches::EStage::Closed); }
     bool HasManager(const FMarketBranch& B) { return IsLiveBranch(B) && !B.ManagerName.IsEmpty(); }
 
-    // Store, family shop and depot managers are the bottom rank; the rest are ranked by their level.
+    // Store, first store and depot managers are the bottom rank; the rest are ranked by their level.
     int32 Rank(ELevel Level)
     {
-        return Level == ELevel::FamilyShop || Level == ELevel::Store || Level == ELevel::Depot ? 0 : static_cast<int32>(Level);
+        return Level == ELevel::FirstStore || Level == ELevel::Store || Level == ELevel::Depot ? 0 : static_cast<int32>(Level);
     }
 
     // Where someone stands: the areas of every level above.
@@ -219,7 +219,7 @@ namespace MarketManagers
     TArray<FString> CountriesWithShops(const FMarketState& State)
     {
         TArray<FString> List;
-        List.Add(State.CountryId); // the family shop
+        List.Add(State.CountryId); // the first store
         for (const FMarketBranch& B : State.Branches) if (IsLiveBranch(B)) List.AddUnique(MarketBranches::CountryOf(State, B));
         return List;
     }
@@ -274,7 +274,7 @@ namespace MarketManagers
     {
         if (!State.Management.Managers.IsValidIndex(ManagerIndex)) return 0.f;
         const FMarketManager& M = State.Management.Managers[ManagerIndex];
-        if (M.Level == static_cast<uint8>(ELevel::FamilyShop)) return 1.f;
+        if (M.Level == static_cast<uint8>(ELevel::FirstStore)) return 1.f;
         const int32 Need = RequiredSkill(State, ManagerIndex);
         float Value = FMath::Clamp((EffManager(State, ManagerIndex, Span) - (Need - 30)) / 30.f, 0.f, 1.f);
         if (M.Honesty < 35) Value *= 0.5f; // busy with his own business
@@ -363,7 +363,7 @@ namespace MarketManagers
     FString TitleOf(const FMarketManager& M)
     {
         const ELevel Level = static_cast<ELevel>(M.Level);
-        if (Level == ELevel::FamilyShop || Level == ELevel::Chief) return LevelName(Level);
+        if (Level == ELevel::FirstStore || Level == ELevel::Chief) return LevelName(Level);
         return AreaName(Level, M.Country, M.Area) + TEXT(" ") + LevelName(Level);
     }
 
@@ -381,7 +381,7 @@ FString MarketManagers::LevelName(ELevel Level)
     case ELevel::SubRegion: return TEXT("b\u00f6lge m\u00fcd\u00fcr\u00fc");
     case ELevel::Region: return TEXT("b\u00f6lge direkt\u00f6r\u00fc");
     case ELevel::Country: return TEXT("\u00fclke m\u00fcd\u00fcr\u00fc");
-    case ELevel::FamilyShop: return TEXT("aile d\u00fckk\u00e2n\u0131 m\u00fcd\u00fcr\u00fc");
+    case ELevel::FirstStore: return TEXT("ilk ma\u011faza m\u00fcd\u00fcr\u00fc");
     case ELevel::Depot: return TEXT("depo m\u00fcd\u00fcr\u00fc");
     case ELevel::Continent: return TEXT("k\u0131ta direkt\u00f6r\u00fc");
     case ELevel::Chief: return TEXT("genel m\u00fcd\u00fcr");
@@ -427,7 +427,7 @@ TArray<MarketManagers::ELevel> MarketManagers::VisibleTiers(const FMarketState& 
 int32 MarketManagers::ShopsInCountry(const FMarketState& State, const FString& Country)
 {
     const FString C = CountryOr(State, Country);
-    int32 Shops = C == State.CountryId ? 1 : 0; // the family shop
+    int32 Shops = C == State.CountryId ? 1 : 0; // the first store
     for (const FMarketBranch& B : State.Branches)
         if (IsOpenBranch(B) && MarketBranches::CountryOf(State, B) == C) ++Shops;
     return Shops;
@@ -446,7 +446,7 @@ float MarketManagers::WageScale(const FMarketState& State, ELevel Level, const F
 
 float MarketManagers::CountryWageScale(const FMarketState& State, const FString& Country)
 {
-    // C11 (M40, Codex C10: a 7-shop chain paid its country manager more than the family shop and six branches earned,
+    // C11 (M40, Codex C10: a 7-shop chain paid its country manager more than the first store and six branches earned,
     // and the cautious and balanced players stalled at 7 shops and fell back to one): the job of a country manager
     // of a few shops is smaller, so is his pay; it grows with the network to the full band (MonthStart).
     return FMath::Clamp(static_cast<float>(ShopsInCountry(State, Country)) / CountryFullShops, CountryMinScale, 1.f);
@@ -456,7 +456,7 @@ int32 MarketManagers::ProvincesWithShops(const FMarketState& State, const FStrin
 {
     const FString C = CountryOr(State, Country);
     TArray<FString> Provinces;
-    if (C == State.CountryId) Provinces.Add(MarketStart::HomeProvince(State)); // the family shop
+    if (C == State.CountryId) Provinces.Add(MarketStart::HomeProvince(State)); // the first store
     for (const FMarketBranch& B : State.Branches)
         if (IsOpenBranch(B) && MarketBranches::CountryOf(State, B) == C) Provinces.AddUnique(ProvinceOfBranch(State, B));
     return Provinces.Num();
@@ -553,7 +553,7 @@ int32 MarketManagers::BossOf(const FMarketState& State, const FPerson& Person)
 TArray<MarketManagers::FPerson> MarketManagers::DirectReports(const FMarketState& State)
 {
     TArray<FPerson> List;
-    const ELevel Order[9] = { ELevel::Chief, ELevel::Continent, ELevel::Country, ELevel::Region, ELevel::SubRegion, ELevel::Province, ELevel::Depot, ELevel::FamilyShop, ELevel::Store };
+    const ELevel Order[9] = { ELevel::Chief, ELevel::Continent, ELevel::Country, ELevel::Region, ELevel::SubRegion, ELevel::Province, ELevel::Depot, ELevel::FirstStore, ELevel::Store };
     for (const ELevel Level : Order)
         for (const FPerson& Person : People(State, Level))
             if (BossOf(State, Person) == INDEX_NONE) List.Add(Person);
@@ -921,7 +921,7 @@ bool MarketManagers::CanAppoint(const FMarketState& State, ELevel Level, const F
         const int32 Shops = ProvinceBranches(State, C, A);
         if (Shops < ProvinceShops)
         {
-            OutReason = FString::Printf(TEXT("%s %d ma\u011faza var; il m\u00fcd\u00fcr\u00fc i\u00e7in en az %d ma\u011faza gerekir (aile d\u00fckk\u00e2n\u0131 say\u0131lmaz)."), *Locative(Where), Shops, ProvinceShops);
+            OutReason = FString::Printf(TEXT("%s %d ma\u011faza var; il m\u00fcd\u00fcr\u00fc i\u00e7in en az %d ma\u011faza gerekir (ilk ma\u011faza say\u0131lmaz)."), *Locative(Where), Shops, ProvinceShops);
             return false;
         }
         break;
@@ -955,16 +955,16 @@ bool MarketManagers::CanAppoint(const FMarketState& State, ELevel Level, const F
         const int32 Provinces = ProvincesWithShops(State, C);
         if (!CountryManagerRequired(State) && Provinces < CountryProvinces)
         {
-            OutReason = FString::Printf(TEXT("%s %d ilde ma\u011fazan var; \u00fclke m\u00fcd\u00fcr\u00fc i\u00e7in en az %d il gerekir (aile d\u00fckk\u00e2n\u0131n\u0131n ili dahil)."), *Locative(Where), Provinces, CountryProvinces);
+            OutReason = FString::Printf(TEXT("%s %d ilde ma\u011fazan var; \u00fclke m\u00fcd\u00fcr\u00fc i\u00e7in en az %d il gerekir (ilk ma\u011fazan\u0131n ili dahil)."), *Locative(Where), Provinces, CountryProvinces);
             return false;
         }
         break;
     }
-    case ELevel::FamilyShop:
-        if (C != State.CountryId || A != MarketStart::HomeProvince(State)) { OutReason = TEXT("Aile d\u00fckk\u00e2n\u0131 yaln\u0131z ev ilinde."); return false; }
-        // M19: only once a branch outside the family shop is open.
+    case ELevel::FirstStore:
+        if (C != State.CountryId || A != MarketStart::HomeProvince(State)) { OutReason = TEXT("\u0130lk ma\u011faza yaln\u0131z ev ilinde."); return false; }
+        // M19: only once a branch outside the first store is open.
         if (!State.Branches.ContainsByPredicate([](const FMarketBranch& B) { return IsOpenBranch(B); })) { OutReason = TEXT("\u00d6nce ikinci ma\u011fazan\u0131 a\u00e7."); return false; }
-        if (FromBranch != INDEX_NONE) { OutReason = TEXT("Aile d\u00fckk\u00e2n\u0131na d\u0131\u015far\u0131dan bir m\u00fcd\u00fcr gelir."); return false; }
+        if (FromBranch != INDEX_NONE) { OutReason = TEXT("\u0130lk ma\u011fazaya d\u0131\u015far\u0131dan bir m\u00fcd\u00fcr gelir."); return false; }
         break;
     case ELevel::Depot:
     {
@@ -1240,7 +1240,7 @@ FString MarketManagers::DescribeManager(const FMarketState& State, int32 Manager
     TArray<FString> Parts;
     Parts.Add(FString::Printf(TEXT("%s \u00b7 %s"), *M.Name, *TitleOf(M)));
     Parts.Add(FString::Printf(TEXT("beceri %d (etkin %d, gereken %d)"), M.Skill, EffectiveManagerSkill(State, ManagerIndex), RequiredSkill(State, ManagerIndex)));
-    if (M.Level != static_cast<uint8>(ELevel::FamilyShop)) Parts.Add(FString::Printf(TEXT("denetim %%%.0f"), 100.f * Strength(State, ManagerIndex)));
+    if (M.Level != static_cast<uint8>(ELevel::FirstStore)) Parts.Add(FString::Printf(TEXT("denetim %%%.0f"), 100.f * Strength(State, ManagerIndex)));
     if (MarketStaff::HasHr(State)) Parts.Add(FString::Printf(TEXT("d\u00fcr\u00fcstl\u00fck %d"), M.Honesty));
     Parts.Add(FString::Printf(TEXT("ayda %s"), *ManagerTl(DailyWage(State, M) * 30)));
     Parts.Add(FString::Printf(TEXT("moral %.0f"), M.Morale));
@@ -1394,7 +1394,7 @@ bool MarketManagers::DecodeArea(int32 Arg, ELevel& OutLevel, FString& OutCountry
         break;
     }
     case ELevel::Chief: OutArea = ChiefArea; break;
-    default: OutArea.Reset(); break; // family shop: the home province
+    default: OutArea.Reset(); break; // first store: the home province
     }
     return true;
 }
@@ -1424,10 +1424,10 @@ int32 MarketManagers::GrowSkill(int32 Skill, int32 Potential, int32 TenureWeeks,
     return static_cast<float>(Roll % 100000u) < Chance * 100000.f ? Skill + 1 : Skill;
 }
 
-MarketManagers::FFamilyRule MarketManagers::FamilyRule(const FMarketState& State)
+MarketManagers::FFirstStoreRule MarketManagers::FirstStoreRule(const FMarketState& State)
 {
-    FFamilyRule Rule;
-    const int32 Index = FindManager(State, ELevel::FamilyShop, State.CountryId, FString());
+    FFirstStoreRule Rule;
+    const int32 Index = FindManager(State, ELevel::FirstStore, State.CountryId, FString());
     if (Index == INDEX_NONE) return Rule;
     const FMarketManager& M = State.Management.Managers[Index];
     Rule.bManaged = true;
@@ -1446,7 +1446,7 @@ MarketManagers::FFamilyRule MarketManagers::FamilyRule(const FMarketState& State
     return Rule;
 }
 
-void MarketManagers::ShapeFamilyOrder(const FMarketState& State, const FFamilyRule& Rule, TArray<int32>& Draft)
+void MarketManagers::ShapeFirstStoreOrder(const FMarketState& State, const FFirstStoreRule& Rule, TArray<int32>& Draft)
 {
     if (!Rule.bManaged) return;
     for (int32 I = 0; I < Draft.Num(); ++I)

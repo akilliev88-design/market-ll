@@ -1,0 +1,7 @@
+M69c: ic kod adi MirasMarket -> MarketSim
+
+Modul, proje dosyasi, testler (MarketSim.*), komut satiri bayraklari ve betikler.
+Icerikteki eski sinif yollari icin CoreRedirects. Satis adi ayri (DefaultGame.ini ProjectName).
+
+Co-Authored-By: Claude Opus 5.5 <noreply@anthropic.com>
+Claude-Session: https://claude.ai/code/session_01VCu8aGeHeakNTwHVdrSGyr

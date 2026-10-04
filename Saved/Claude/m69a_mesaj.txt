@@ -1,0 +1,9 @@
+M69a: eski hikaye kalintilari temizlendi
+
+Baba/anne, Luleburgaz/Kirklareli, Nermin/Selim/Cem/Bereket izleri, "aile dukkani",
+hikaye bolumleri ve "Miras" finali kalkti. Yeni oyun: ulke, sehir, market adi,
+oyuncu adi, zorluk. Devralinan borc hicbir seyi kilitlemez; ilk magazanin binasi bizim.
+Buyuk magaza turleri sirket buyuklugune bagli (8 magaza, 2 il). Kayit surumu 21.
+
+Co-Authored-By: Claude Opus 5.5 <noreply@anthropic.com>
+Claude-Session: https://claude.ai/code/session_01VCu8aGeHeakNTwHVdrSGyr

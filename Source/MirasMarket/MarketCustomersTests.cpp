@@ -10,7 +10,6 @@ bool FMarketCustomerSegmentsTest::RunTest(const FString& Parameters)
 {
     using namespace MarketCustomers;
     const int32 Seed = 77;
-    TestTrue(TEXT("Nermin teyze is retired"), SegmentOf(NerminTeyzeId, Seed) == ESegment::Retired);
     TestTrue(TEXT("A customer keeps the segment"), SegmentOf(5, Seed) == SegmentOf(5, Seed));
     int32 Counts[static_cast<int32>(ESegment::Count)] = {};
     for (int32 Id = 1; Id <= 2000; ++Id) ++Counts[static_cast<int32>(SegmentOf(Id, Seed))];
