@@ -1,3 +1,11 @@
+## 04.10.2026 — Claude Code — Dengeli bot 15 yıl (D8b) sonucu
+
+**son.log (3d2ed3a):** DERLE geçti; TEST 171 başarılı + 1 uyarı; Smoke geçti.
+
+**Bot (Saved/AutoPlay/C10/D8b, dengeli, 15 yıl, 47 dk):** Geç oyun artık büyüyor (11. yıldan 15. yıla 143 → 525 mağaza; önceki koşuda 15. yılda 172). Japonya'ya girilmedi (araştırma "girmeyin" dedi). Dünya listesine 12. yılda girildi, 15. yılda 37. Erken oyun yavaş: bot iki yıl 3 mağazada kaldı çünkü üçüncü mağaza için İK müdürü gerekiyordu ve bot onu almıyordu; düzeltildi (derlenmedi). Diğer bulgular GOREVLER G-108'de, dengeye dönünce bakılacak.
+
+**Sıradaki:** D9 (Mustafa: dengeye kısa ara).
+
 ## 04.10.2026 — Claude Code — G-106 stil rehberi isteği hazırlandı
 
 **Mustafa:** Sanat yönü ve stil rehberinin ön tasarımını Claude'a yaptırmak istiyor.

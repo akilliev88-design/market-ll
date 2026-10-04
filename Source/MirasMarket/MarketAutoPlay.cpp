@@ -213,6 +213,15 @@ namespace MarketAutoPlay
         if (Stores >= 20) Command(State, Products, TEXT("Build"), 3, Run);
         FString Format = Stores >= Profile.HyperAt ? TEXT("hiper") : Stores >= Profile.SuperAt ? TEXT("buyuk") : TEXT("mahalle");
         if(Format==TEXT("hiper") && !MarketCompany::ChapterOpen(State,MarketBranches::FormatInfo(Format).Chapter))Format=TEXT("buyuk");
+        // D8 (04.10.2026 report: 74 growth turns stopped at "for the third shop hire an HR manager first", the balanced
+        // player sat at 3 shops for two years): the third shop needs an HR manager, so a player who wants it hires one.
+        if (MarketBranches::OpenCount(State) >= 2 && !MarketStaff::HasHr(State) && State.Cash > Reserve * 2)
+        {
+            FString Message;
+            MarketStaff::EnsureCandidates(State);
+            for (int32 I = 0; I < State.Candidates.Num(); ++I)
+                if (MarketStaff::RoleOf(State.Candidates[I]) == MarketStaff::ERole::HrManager) { MarketStaff::Hire(State, I, Message); break; }
+        }
         // C14b: the home province is full: hire the HR manager and the accountant a shop outside it needs (the menu says so).
         {
             const auto Home = MarketBranches::SiteOf(State, State.CountryId, State.CityId);

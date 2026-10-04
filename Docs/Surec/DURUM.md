@@ -1,8 +1,10 @@
 # Güncel durum
 
-Son güncelleme: 04.10.2026 — Claude Code, akis-cc2: atak bot büyüme sınırı (derlenmedi)
+Son güncelleme: 04.10.2026 — Claude Code, akis-cc2: dengeli bot 15 yıl sonucu; bot İK düzeltmesi (derlenmedi); sırada D9
 
 ## Kısaca
+
+**04.10.2026 — Claude Code / 3d2ed3a doğrulandı + dengeli bot 15 yıl (D8b):** DERLE, TEST 171 + 1 uyarı, Smoke geçti. Bot (dengeli, 15 yıl, 47 dk): kasa eksi 0, denetim 0; mağaza 3→28 (8. yıl)→143 (11.)→525 (15.); ilk yurt dışı 9. yıl, 11. yılda 9 ülke (Japonya'ya "girmeyin" dendiği için girmedi); dünya listesine 12. yılda (43.), 15. yılda 37.; ülkede 7. Erken oyunu 74 kez "üçüncü mağaza için İK müdürü" durdurmuş: bot artık 2 şubede İK müdürü alıyor (**derlenmedi**). Diğer bulgular G-108 "denge notları"na yazıldı (aile dükkânı 15 yılda −52 M, geç internet zararı, yönetim ücretleri, zincir almama, dünya lideriyle 22 kat fark). Mustafa: dengeye kısa ara, sırada D9. **Devam notu:** D9 M46 mağaza portföyüyle başlıyor.
 
 **04.10.2026 — Claude Code / atak bot (derlenmedi):** Atak bot yılda iki katına çıkıyordu (her tur 8'e kadar açılış + yönetim sınırını görmezden gelme). Ek açılışlar artık her tarzda yönetim yetişince; atak yalnız turun ilk mağazasında riski alır (`MarketAutoPlay::Grow`). **Devam notu:** derle, sonra dengeli tarzla bot koşusu.
 
