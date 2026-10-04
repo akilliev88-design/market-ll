@@ -1,5 +1,7 @@
 # Güncel durum
 
+**05.10.2026 — Codex / G-106 sanat dili görüşmesi:** Güncel kurgu, önceki onaysız sanat denemeleri ve kayıtlı mağaza/menü PNG görüntüleri incelendi. Çağdaş perakende, gerçek ölçüler ve seçici görsel sadeleştirme önerisi konuşuluyor; kesin yön seçilmedi. Devam: Mustafa'nın gerçekçilik ve ifade tercihi. Canlı oyun açılmadı; kod/varlık değişmedi; DERLE/TEST/Smoke çalıştırılmadı.
+
 **04.10.2026 — Codex / CLAUDE_KOS onarımı:** Git aşamasındaki ayrışma (6 yerel / 1 uzak commit) derlemeyi engelliyordu. Çalıştırıcı artık yalnız yerel DERLE/TEST/Smoke yapar; otomatik birleştirme, push ve M69 iç ad taşıması çalışmaz. Başarı kaydı olmayan derlemede durur; çift tıkta sonuç penceresi açık kalır, /q otomasyon içindir. Önceki is.cmd ve son.log Saved/Claude/is_git_onceki.cmd ve son_git_onceki.log içinde korundu. **Devam notu:** DERLE başarılı. TEST: 171 başarılı + 1 uyarılı, 2 başarısız (Ledger.CashAudit: eski kira beklentisi; Subsidiaries.BrandCompaniesAndTransfers: şirket adı beklentisi). Smoke testler başarısız olduğu için çalıştırılmadı. Son çalıştırıcı sürümünün başarı/hata dönüşü ve CLAUDE_KOS_BITTI satırı geçici örneklerle doğrulandı. M69 tamamlanmış değildir; iç ad taşınmadı. M69/D9b birleştirme ayrı iştir.
 
 

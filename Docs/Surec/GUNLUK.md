@@ -1,3 +1,13 @@
+## 05.10.2026 — Codex — G-106 tasarım ve sanat dili incelemesi
+
+**Yapılan:** Mustafa'nın konuşma isteği için güncel kurgu ve devir belgeleri, önceki onaysız sanat çalışmaları, küçük mağaza/şube ziyareti ve harita/rapor ekran görüntüleri incelendi. Eski üretim briefinin M69 öncesi hikâyeyi taşıdığı görüldü; güncel kurgu esas alındı. Mevcut yerel değişiklikler korundu.
+
+**Varsayım:** Bu tur görüşme ve yön araştırmasıdır; yeni sanat veya uygulama onayı yoktur. Öneri: çağdaş perakende dünyası, gerçek ölçüler, kontrollü malzeme/ışık ayrıntısı, okunabilir yönetim ve mağaza arasında ortak işaret dili.
+
+**Doğrulama:** Kayıtlı PNG'ler görsel olarak incelendi; canlı oyun açılmadı. Kod/varlık değişmedi; DERLE/TEST/Smoke çalıştırılmadı.
+
+**Sıradaki:** Mustafa'nın gerçekçilik ve stil tercihini konuş; sonra aynı yönü mağaza ve yönetim ekranında birlikte değerlendir. G-106 devam ediyor.
+
 ## 04.10.2026 — Codex — CLAUDE_KOS yerel doğrulama onarımı
 
 **Yapılan:** Mustafa'nın çalıştırıcı sorununda son.log incelendi: GitHub D9b ile yerel M69 aynı dosyalara dokunduğu için güvenli birleşim duruyordu. CLAUDE_KOS.cmd artık sonucu gösterip bekler ve hata kodunu korur. Saved/Claude/is.cmd yerel derleme, test, smoke çalıştırır; DERLE_son.log içinde Result: Succeeded olmadan teste geçmez. Önceki betik ve kayıt ayrı dosyalarda korundu. Oyun kaynağı değişmedi.
