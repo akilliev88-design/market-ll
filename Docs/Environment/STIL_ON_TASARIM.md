@@ -1,6 +1,20 @@
 # Miras Market — sanat yönü ön tasarımı
 
-04.10.2026 · Codex · G-106 · Önceki üç yön reddedildi; güncel öneri aşağıdaki ikinci tasarımdır.
+04.10.2026 · Codex · G-106 · İlk iki tasarım turu reddedildi; güncel çalışma sanat konsepti / revizyon 3.
+
+## Revizyon 3 — sanat konsepti
+
+**Mustafa:** İkinci ekran da hoşuna gitmedi; “güzel bir sanatsal dil” istiyor, tasarımlar çiğ bulundu. Revizyon 2 uygulamaya esas alınmayacak.
+
+**Yaklaşım değişikliği:** HTML yerleşimi yerine tek bitmiş oyun karesi görünümünde bitmap sanat araştırması üretildi (yerleşik Imagegen, önizleme amaçlı). Kimlik artık yalnız renk ve kutu biçimiyle değil; kabartma bölge atlası, mat taş/metal malzemeler, emaye işaretler, mürekkep mavisi su, sıcak dükkân içi ve küçük basamak/çentik motifiyle aranıyor. Kiremit vurgu tabelada, il seçiminde ve eylemde tekrarlanır; kâr ayrı zeytin/yeşil tonundadır. Yönetim yazıları temiz yüzeyde, görsel ayrıntı harita ve dükkân dünyasında yoğunlaşır.
+
+**Görsel içerik:** Marmara için kavramsal kabartma harita, üç mağaza düğümü, aile marketinin iç mekân kesiti, sağ il paneli, üst kasa/zaman ve alt yönetim şeridi. Kullanılan yer adları oyunun içeriğidir; başka oyun/marka/stil sanatçısı referansı verilmedi.
+
+**Sınırlar:** Bu görsel bir sanat yönü araştırmasıdır; çalışır arayüz, doğru coğrafya, kesin font/logo, okunurluk testi veya üretime hazır 3B varlık değildir. Üretilen kıyılar/coğrafi yapılar teknik harita verisi yerine geçmez. Süs pusulası, dokulu panel ve sahne ayrıntısının kalıcı olup olmayacağı ayrıca değerlendirilir. Önizleme çıktı olarak sohbette gösterildi; oyun koduna veya varlıklara aktarılmadı.
+
+**Devam:** Mustafa'nın sanat dili değerlendirmesi; beğenilen öğeler belirlenmeden kesin stil rehberi yazılmayacak. DERLE/TEST/Smoke çalıştırılmadı; yalnız görsel kompozisyon, metinler ve konu uygunluğu incelendi.
+
+---
 
 ## Revizyon 2 — haritadan yönetilen işletme
 

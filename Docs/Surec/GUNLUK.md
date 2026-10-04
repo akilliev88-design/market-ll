@@ -1,3 +1,13 @@
+## 04.10.2026 — Codex — G-106 sanat konsepti / revizyon 3
+
+**Mustafa:** İkinci ekran da hoşuna gitmedi; güzel bir sanatsal dil istiyor, tasarımlar çiğ bulundu.
+
+**Yapılan:** Sanat yönü sorunu HTML yerleşiminden ayrılarak yerleşik Imagegen ile tek bitmiş oyun karesi konsepti üretildi. Kabartma Marmara atlası, emaye işaretler, mürekkep mavisi su, kiremit vurgu, küçük basamak/çentik motifi ve aile dükkânının iç mekân kesiti; aynı dünya yönetim şeritlerinde sürüyor. Başka oyun/marka referansı verilmedi. Sohbette görsel gösterildi; önizleme amaçlı, proje varlığı olarak aktarılmadı.
+
+**Doğrulama:** Görsel incelendi; mağaza/il/menü içeriği mevcut. Harita coğrafyası kavramsal, üretime uygunluk veya kontrast doğrulaması yapılmadı. Kod/varlık değişmedi; DERLE/TEST/Smoke çalıştırılmadı.
+
+**Sıradaki:** Mustafa'nın sanat dili değerlendirmesi. İlk iki tasarım reddedildi; revizyon 3 henüz onaylı değil.
+
 ## 04.10.2026 — Codex — G-106 ekran tasarımı baştan ele alındı / revizyon 2
 
 **Mustafa:** İlk ekran çok kötü; günümüzü yakala, “AI slop” görünümünden kurtul. Önceki üç yön reddedildi, seçim yapılmadı.

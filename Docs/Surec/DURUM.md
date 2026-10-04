@@ -1,6 +1,8 @@
 # Güncel durum
 
-Son güncelleme: 04.10.2026 — Codex: G-106 ekran tasarımı revizyon 2; D9a kodu derlenmedi
+Son güncelleme: 04.10.2026 — Codex: G-106 sanat konsepti revizyon 3; D9a kodu derlenmedi
+
+**04.10.2026 — Codex / G-106 revizyon 3:** Mustafa ikinci ekranı da çiğ buldu, güzel bir sanatsal dil istedi. Çalışır HTML yerine yerleşik Imagegen ile kabartma atlas/emaye işaret/dükkân içi ortak dünyasına dayalı bitmiş oyun karesi konsepti üretildi ve sohbette gösterildi. Bu yalnız sanat önizlemesi; coğrafya, arayüz, logo ve varlık uygulaması değil. Güncel not `Docs/Environment/STIL_ON_TASARIM.md` üstünde. **Devam notu:** Mustafa değerlendirmesi bekleniyor; ilk iki tur onaylanmadı, uygulanmayacak. Kod/varlık değişmedi, DERLE/TEST/Smoke çalıştırılmadı.
 
 **04.10.2026 — Codex / G-106 revizyon 2:** Mustafa ilk üç yönü kötü oyun ekranı ve “AI slop” görünümü nedeniyle reddetti. İlk öneri onaylanmış değildir, uygulanmayacak. Yeni tek ekran: bölge haritası ana sahne, bitişik yüzeyler, sabit kasa/zaman, seçili il incelemesi, karar satırı, hedef ve sabit menü. Gerçek IBM Plex fontları; yerel il/katman/tablo/teklif etkileşimleri. Güncel tasarım notu `Docs/Environment/STIL_ON_TASARIM.md` üstünde. Edge 1024/736/360 kontrolü geçti; açık/koyu görüntüler incelendi. **Devam notu:** yeni tasarım Mustafa değerlendirmesinde, kesin stil/3B/logo rehberi henüz yok; oyun koduna uygulanmadı. DERLE/TEST/Smoke çalıştırılmadı.
 
