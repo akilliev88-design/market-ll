@@ -15,9 +15,22 @@ namespace MarketResearch
     enum class EStatus : uint8 { NotNeeded = 0, None, Running, Ready, Expired };
 
     EStatus Status(const FMarketState& State, const FString& Country);
+    // D8 (M68, Mustafa 04.10.2026: "kismak sacma; arastirma birkac ay surer, gelen analizle girip girmemeye karar
+    // veririz; sistem oturmadan girersek bocalayabiliriz"): how good a country is for us against the campaign's own,
+    // ~1 = as good. Purchasing power against wages and rents, divided by how crowded it is with chains (stores per
+    // person against ours, to the 1/4), and this campaign's own reading of the market (+-10 %, seeded). The report's
+    // verdict comes from it, and so does how long and how hard the first months there are (MarketCompany).
+    float Attractiveness(const FMarketState& State, const FString& Country);
+    enum class EVerdict : uint8 { Good, Hard, No };
+    constexpr float GoodScore = 0.85f;
+    constexpr float HardScore = 0.70f;
+    EVerdict Verdict(const FMarketState& State, const FString& Country);
+    FString VerdictText(const FMarketState& State, const FString& Country);
+    // 0.6..2: how long and costly the learning months in a new country are (1 = the base 90 days, +3 % goods cost).
+    float LearningFactor(const FMarketState& State, const FString& Country);
     // Entering Country is allowed (no study needed, or a ready one); OutReason says what is missing.
     bool AllowsEntry(const FMarketState& State, const FString& Country, FString& OutReason);
-    // What a study costs today (our money) and how many days it takes.
+    // What a study costs today (our money) and how many days it takes (D8: 75-180 days, by the country's size).
     int64 Cost(const FMarketState& State, const FString& Country);
     int32 Days(const FMarketState& State, const FString& Country);
     bool CanStart(const FMarketState& State, const FString& Country, FString& OutReason);

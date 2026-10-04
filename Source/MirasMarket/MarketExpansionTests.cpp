@@ -69,7 +69,7 @@ bool FMarketExpansionTest::RunTest(const FString& Parameters)
         TestTrue(TEXT("Menu argument round trip"), DecodeSite(EncodeSite(WithConvenience, City, TEXT("yakin")), Country, Province, Format) && Format == TEXT("yakin") && Country == WithConvenience);
     }
 
-    // M58: a country we have not entered needs a study; it costs, takes 30-45 days, is valid for a year.
+    // M58: a country we have not entered needs a study; it costs, takes a few months (D8: 75-180 days), is valid for a year.
     FString Abroad;
     for (const MarketCountry::FProfile& P : MarketCountry::All()) if (P.Id != S.CountryId && P.Cities.Num() > 0) { Abroad = P.Id; break; }
     if (TestFalse(TEXT("A foreign pack"), Abroad.IsEmpty()))
@@ -82,7 +82,7 @@ bool FMarketExpansionTest::RunTest(const FString& Parameters)
         const int64 Cost = MarketResearch::Cost(S, Abroad);
         const int32 Days = MarketResearch::Days(S, Abroad);
         TestTrue(TEXT("It costs"), Cost > 0);
-        TestTrue(TEXT("30-45 days"), Days >= 30 && Days <= 45);
+        TestTrue(TEXT("75-180 days"), Days >= 75 && Days <= 180);
         const int64 Other = S.OtherCosts;
         TestTrue(TEXT("Ordered"), MarketResearch::Start(S, Abroad, Why));
         TestEqual(TEXT("Paid at the close"), S.OtherCosts - Other, Cost);
@@ -175,6 +175,25 @@ bool FMarketFranchiseTest::RunTest(const FString& Parameters)
     TestNull(TEXT("Gone"), MarketFranchise::Find(S, Abroad));
     TestEqual(TEXT("No foreign country"), MarketCompany::ForeignPresence(S), 0);
     TestTrue(TEXT("The world stays open by scale"), MarketCompany::AbroadOpen(S));
+
+    // D8 (M68): the study takes a few months and says whether the country is worth it; a hard market is learned slowly.
+    TestEqual(TEXT("Home is the yardstick"), MarketResearch::Attractiveness(S, S.CountryId), 1.f);
+    int32 Good = 0, NotGood = 0;
+    FString Scores;
+    for (const MarketCountry::FProfile& P : MarketCountry::All())
+    {
+        if (P.Id == S.CountryId || P.Cities.Num() == 0) continue;
+        const float Score = MarketResearch::Attractiveness(S, P.Id);
+        TestTrue(*(P.Id + TEXT(": a score")), Score >= 0.3f && Score <= 2.f);
+        TestTrue(*(P.Id + TEXT(": a few months")), MarketResearch::Days(S, P.Id) >= 75 && MarketResearch::Days(S, P.Id) <= 180);
+        TestFalse(*(P.Id + TEXT(": a verdict")), MarketResearch::VerdictText(S, P.Id).IsEmpty());
+        (MarketResearch::Verdict(S, P.Id) == MarketResearch::EVerdict::Good ? Good : NotGood) += 1;
+        Scores += FString::Printf(TEXT(" %s %.2f"), *P.Id, Score);
+        if (MarketResearch::Verdict(S, P.Id) != MarketResearch::EVerdict::Good)
+            TestTrue(*(P.Id + TEXT(": a hard market is learned slowly")), MarketResearch::LearningFactor(S, P.Id) > 1.f);
+    }
+    TestTrue(TEXT("Some countries are worth it, some are not"), Good > 0 && NotGood > 0);
+    AddInfo(TEXT("OLCUM: ulke cekiciligi:") + Scores);
     return true;
 }
 

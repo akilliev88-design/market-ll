@@ -1,3 +1,15 @@
+## 04.10.2026 — Claude Code — D8 ikinci tur: araştırma kararı ve bot büyümesi (derlenmedi)
+
+**Mustafa:** (1) Ülkeye girişi kısmak saçma; araştırma birkaç ay sürsün, analizle karar verelim, hazırlıksız giren bocalasın. (2) Botu düzelt. (3) Ayda bir karar kartı normal.
+
+**Yapılan (M68):** Araştırma 75–180 gün; rapor "girmeye değer / zor / girmeyin" diyor; zor pazarda ilk dönem daha uzun ve pahalı. Bot raporu okuyor; parası yettikçe bir turda birden çok mağaza açıyor (en çok 8).
+
+**Varsayımlar:** Puan formülü ve eşikler benim (değer ≥0,85, zor ≥0,70). Kendi hesabıma göre ABD ve Brezilya kolay, Japonya zor çıkar; kesin değerler OLCUM satırında gelecek.
+
+**Doğrulama:** Derlenmedi.
+
+**Sıradaki:** Derleme sonrası kısa bot koşusu (tek tarz) ile ülke temposu ve geç oyun büyümesine bakmak.
+
 ## 04.10.2026 — Claude Code — 30 yıllık bot sonucu (D8 ilk tur)
 
 **son.log (8355a6b):** DERLE geçti; TEST 171 başarılı, 1 başarısız (testin içindeki örnek ülke metni Y1'deki eğri biçimine çevrilmemişti; düzeltildi, derlenmedi); Smoke geçti; OLCUM aynı.

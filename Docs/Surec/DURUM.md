@@ -1,8 +1,10 @@
 # Güncel durum
 
-Son güncelleme: 04.10.2026 — Claude Code, akis-cc2: Y1 + D8 ilk tur derlendi; bir test düzeltildi (derlenmedi); 30 yıllık bot sonucu
+Son güncelleme: 04.10.2026 — Claude Code, akis-cc2: D8 ikinci tur (M68 + bot büyümesi) (derlenmedi)
 
 ## Kısaca
+
+**04.10.2026 — Claude Code / D8 ikinci tur (derlenmedi, `akis-cc2`, M68):** Mustafa: ülkeye giriş kısılmasın; araştırma birkaç ay sürsün, analize göre karar verilsin; hazırlıksız giren bocalasın. `MarketResearch`: 75–180 gün; `Attractiveness` (alım gücü/ücret+kira ÷ zincir yoğunluğu^¼ × ±%10 kampanya okuması, ana ülke = 1), `Verdict` (≥0,85 değer, 0,70–0,85 zor, altı girmeyin), rapor ilk cümlesi sonuç; `LearningFactor` 0,6–2 → yeni ülkenin alışma süresi ve +%3 maliyeti (`MarketCompany::CostFactor`). Bot: "girmeyin" denen ülkeye girmez, zor pazara temkinli/dengeli ortaklıkla; büyüme turunda parası ve yönetimi yettikçe birden çok mağaza (1 + mağaza/40, en çok 8). Önceki test düzeltmesi de bu turda. Test: `ScaleAndFranchise` puan/süre/sonuç kontrolleri ve OLCUM "ulke cekiciligi". Test.ps1 172. **Devam notu:** Mustafa derler; bot koşusu ayrı ve kısa tutulacak.
 
 **04.10.2026 — Claude Code / 8355a6b sonucu ve 30 yıllık bot:** DERLE geçti, TEST 171 + 1 başarısız (`Country.PacksCurrencyEconomy`: testin kendi ülke metni eski `"curve": "builtin"` biçimindeydi; test yeni dizi biçimine çevrildi, **derlenmedi**), Smoke geçti. OLCUM önceki turla aynı (Y1 davranışı değiştirmedi). Bot (3 tarz × 30 yıl, 4 saat): kasa eksi 0, denetim hatası 0. İlk yurt dışı: temkinli 5., dengeli 9., atak 4. yıl. Sorunlar: (1) her tarz 6–11. yılda 10 ülkenin hepsinde (hedef 30. yılda 6–8); temkinli ortaklıkla bir yılda 5'ten 10 ülkeye çıktı. (2) Mağaza sayısı 20. yıldan sonra düz (temkinli ~340, dengeli ~337, atak ~540) ve kasada yüz milyonlar birikiyor; bot bir büyüme turunda tek mağaza açıyor (14 günde bir), dünya liginde en iyi 22. (temkinli, 6–8. yıl), atak 46–50., 30. yılda temkinli ve dengeli liste dışı. (3) Karar kartı çıkmadan geçen ay neredeyse hiç yok (her ay en az bir kart). `adim.cmd`'den bot adımı çıkarıldı. **Devam notu:** D8 ikinci tur önerileri Mustafa'ya soruldu (ülkeye giriş temposu, geç oyun büyümesi).
 

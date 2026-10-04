@@ -218,7 +218,9 @@ float MarketCompany::CostFactor(const FMarketState& State, const FMarketBranch& 
     {
         Factor += 0.01f;                           // customs and paperwork
         const int32 First = CountryFirstDay(State, Site.Country);
-        if (First > 0 && State.Day - First < LearningDays) Factor += 0.03f; // other suppliers, other habits
+        // D8 (M68): other suppliers, other habits; a hard market (the study's verdict) takes longer and costs more.
+        const float Learning = MarketResearch::LearningFactor(State, Site.Country);
+        if (First > 0 && State.Day - First < FMath::RoundToInt32(LearningDays * Learning)) Factor += 0.03f * Learning;
     }
     // G-086b: a sub-region manager cuts the losses on the road, a director plans the depots together (+0.5 %),
     // a country manager abroad knows the wholesalers.

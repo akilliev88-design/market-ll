@@ -64,7 +64,69 @@ int64 MarketResearch::Cost(const FMarketState& State, const FString& Country)
 int32 MarketResearch::Days(const FMarketState& State, const FString& Country)
 {
     (void)State;
-    return 30 + FMath::Clamp(MarketCountry::PopulationK(Country) / 20000, 0, 15);
+    return 75 + FMath::Clamp(MarketCountry::PopulationK(Country) / 2000, 0, 105); // D8 (M68): a few months
+}
+
+namespace MarketResearchLocal
+{
+    // What a shop earns against what it costs to run in a country: grocery spending per person over wages and rents.
+    double Margin(const MarketCountry::FProfile& P)
+    {
+        const double Spend = P.GroceryPerPersonDay > 0.0 ? P.GroceryPerPersonDay : 6500.0 * FMath::Max(0.1f, P.WageFactor);
+        return Spend / FMath::Max(0.1, 0.6 * P.WageFactor + 0.4 * P.RentFactor);
+    }
+
+    // Chain stores per million people of a country's national roster.
+    double Crowd(const FString& Country)
+    {
+        int32 Stores = 0;
+        for (const MarketChains::FRosterChain& Row : MarketChains::NationalRoster()) if (Row.Country == Country) Stores += Row.StartStores;
+        return FMath::Max(1.0, static_cast<double>(Stores) / FMath::Max(1.0, MarketCountry::PopulationK(Country) / 1000.0));
+    }
+}
+
+float MarketResearch::Attractiveness(const FMarketState& State, const FString& Country)
+{
+    const FString Home = State.CountryId.IsEmpty() ? MarketCountry::DefaultId() : State.CountryId;
+    if (Country.IsEmpty() || Country == Home) return 1.f;
+    static TMap<FString, float> Cache;
+    const FString Key = FString::Printf(TEXT("%s|%s|%d"), *Home, *Country, State.RivalSeed);
+    if (const float* Found = Cache.Find(Key)) return *Found;
+    const MarketCountry::FProfile* Pack = MarketCountry::Find(Country);
+    const MarketCountry::FProfile* Own = MarketCountry::Find(Home);
+    float Score = 1.f;
+    if (Pack && Own)
+    {
+        const double Base = MarketResearchLocal::Margin(*Pack) / FMath::Max(1.0, MarketResearchLocal::Margin(*Own));
+        const double Crowding = MarketResearchLocal::Crowd(Country) / MarketResearchLocal::Crowd(Home);
+        const uint32 Hash = GetTypeHash(Key) * 2654435761u;
+        const double Reading = 0.9 + 0.2 * static_cast<double>(Hash % 1000u) / 999.0; // this campaign's market
+        Score = static_cast<float>(FMath::Clamp(Base / FMath::Pow(Crowding, 0.25) * Reading, 0.3, 2.0));
+    }
+    Cache.Add(Key, Score);
+    return Score;
+}
+
+MarketResearch::EVerdict MarketResearch::Verdict(const FMarketState& State, const FString& Country)
+{
+    const float Score = Attractiveness(State, Country);
+    return Score >= GoodScore ? EVerdict::Good : Score >= HardScore ? EVerdict::Hard : EVerdict::No;
+}
+
+FString MarketResearch::VerdictText(const FMarketState& State, const FString& Country)
+{
+    const int32 Learning = FMath::RoundToInt32(MarketCompany::LearningDays * LearningFactor(State, Country));
+    switch (Verdict(State, Country))
+    {
+    case EVerdict::Good: return FString::Printf(TEXT("Sonu\u00e7: girmeye de\u011fer. \u0130lk %d g\u00fcn al\u0131\u015fma d\u00f6nemi."), Learning);
+    case EVerdict::Hard: return FString::Printf(TEXT("Sonu\u00e7: zor pazar; rakipler g\u00fc\u00e7l\u00fc ya da maliyet y\u00fcksek. Girersen ilk %d g\u00fcn bocalars\u0131n; ortakl\u0131k daha g\u00fcvenli."), Learning);
+    default: return FString::Printf(TEXT("Sonu\u00e7: \u015fimdilik girmeyin; pazar dolu ve pahal\u0131. Girersen ilk %d g\u00fcn a\u011f\u0131r ge\u00e7er."), Learning);
+    }
+}
+
+float MarketResearch::LearningFactor(const FMarketState& State, const FString& Country)
+{
+    return FMath::Clamp(2.2f - 1.2f * Attractiveness(State, Country), 0.6f, 2.f);
 }
 
 bool MarketResearch::CanStart(const FMarketState& State, const FString& Country, FString& OutReason)
@@ -118,8 +180,8 @@ FString MarketResearch::Report(const FMarketState& State, const FString& Country
     TArray<FString> Types;
     for (const FString& Id : MarketBranches::FormatsIn(Country))
         if (!MarketBranches::FormatIds().Contains(Id)) Types.Add(MarketBranches::FormatInfo(Id).Name);
-    return FString::Printf(TEXT("%s: en iyi giri\u015f illeri %s. Zincir paylar\u0131 (ma\u011faza say\u0131s\u0131yla): %s. %s"),
-        *Pack.Name, *FString::Join(Places, TEXT(", ")), *FString::Join(Shares, TEXT(", ")),
+    return FString::Printf(TEXT("%s: %s En iyi giri\u015f illeri %s. Zincir paylar\u0131 (ma\u011faza say\u0131s\u0131yla): %s. %s"),
+        *Pack.Name, *VerdictText(State, Country), *FString::Join(Places, TEXT(", ")), *FString::Join(Shares, TEXT(", ")),
         Types.Num() > 0 ? *FString::Printf(TEXT("Bu \u00fclkeye \u00f6zg\u00fc ma\u011faza t\u00fcr\u00fc: %s."), *FString::Join(Types, TEXT(", "))) : TEXT("D\u00f6rt bilinen ma\u011faza t\u00fcr\u00fc a\u00e7\u0131labilir."));
 }
 

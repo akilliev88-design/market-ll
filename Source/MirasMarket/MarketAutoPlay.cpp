@@ -235,6 +235,15 @@ namespace MarketAutoPlay
         const double Cushion = MarketBranches::OpenCount(State) == 0 && Profile.Style == EStyle::Balanced ? FMath::Min(Profile.ExpansionBuffer, 1.2) : Profile.ExpansionBuffer;
         static const TCHAR* Smaller[3] = { TEXT("hiper"), TEXT("buyuk"), TEXT("mahalle") };
         FString FirstMiss;
+        const FString Wanted = Format;
+        // D8: a player with money opens several shops in a turn (one more for every 40 shops, at most 8); every extra
+        // one asks again for the cushion and, for the careful and balanced, for management that keeps up.
+        const int32 MaxOpens = FMath::Clamp(1 + Stores / 40, 1, 8);
+        for (int32 Opened = 0; Opened < MaxOpens; ++Opened)
+        {
+        if (Opened > 0 && (State.Cash <= Reserve || (Profile.Style != EStyle::Bold && MarketBranches::GrowthStrain(State, 1) > 0.f))) return;
+        bool bOpened = false;
+        Format = Wanted;
         const int32 FirstStep = Format == TEXT("hiper") ? 0 : Format == TEXT("buyuk") ? 1 : 2;
         for (int32 Step = FirstStep; Step < 3; ++Step)
         {
@@ -244,10 +253,19 @@ namespace MarketAutoPlay
             {
                 if (Country.Id != State.CountryId && !MarketCompany::AbroadOpen(State)) continue; // D6 (M67)
                 if (MarketFranchise::Find(State, Country.Id)) continue; // a partner runs this country
-                // D8 (M67): the careful player enters a studied country through a partner; the balanced one does so on
-                // another continent; the bold one opens its own stores.
+                // D8 (M68): the study's verdict decides; the bold player also takes a hard market, nobody a "no".
+                if (Country.Id != State.CountryId && MarketCompany::CountryStores(State, Country.Id) == 0)
+                {
+                    const MarketResearch::EStatus Study = MarketResearch::Status(State, Country.Id);
+                    const MarketResearch::EVerdict Says = MarketResearch::Verdict(State, Country.Id);
+                    const bool bKnown = Study == MarketResearch::EStatus::Ready || Study == MarketResearch::EStatus::Expired;
+                    if (bKnown && Says == MarketResearch::EVerdict::No) continue;
+                }
+                // D8 (M67, M68): the careful player enters a studied country through a partner; the balanced one does so on
+                // another continent or in a hard market; the bold one opens its own stores.
                 if (Country.Id != State.CountryId && MarketResearch::Status(State, Country.Id) == MarketResearch::EStatus::Ready
-                    && (Profile.Style == EStyle::Careful || (Profile.Style == EStyle::Balanced && Country.Continent != MarketCountry::FindOrDefault(State.CountryId).Continent)))
+                    && (Profile.Style == EStyle::Careful || (Profile.Style == EStyle::Balanced && (Country.Continent != MarketCountry::FindOrDefault(State.CountryId).Continent
+                        || MarketResearch::Verdict(State, Country.Id) == MarketResearch::EVerdict::Hard))))
                 {
                     FString Why;
                     if (MarketFranchise::CanSign(State, Country.Id, Why) && MarketAutoPlayFinance::CanExpand(State, MarketFranchise::Fee(State, Country.Id), 0, Cushion))
@@ -297,7 +315,8 @@ namespace MarketAutoPlay
                 if (Command(State, Products, TEXT("OpenBranch"), MarketBranches::EncodeSite(Site.Country, Site.Province, Format), Run))
                 {
                     if (Step > FirstStep) ++Run.C.Blocked.FindOrAdd(FString::Printf(TEXT("B\u00fcy\u00fcme turu: k\u00fc\u00e7\u00fck t\u00fcrle a\u00e7\u0131ld\u0131 (%s)"), *Format));
-                    return;
+                    bOpened = true;
+                    break;
                 }
                 if (FirstMiss.IsEmpty()) FirstMiss = TEXT("B\u00fcy\u00fcme turu: a\u00e7\u0131l\u0131\u015f komutu reddedildi");
                 continue;
@@ -310,7 +329,12 @@ namespace MarketAutoPlay
                 FirstMiss = FString::Printf(TEXT("B\u00fcy\u00fcme turu: para yetmiyor, %s (%s)"), Short, *Format);
             }
         }
-        if (!FirstMiss.IsEmpty()) ++Run.C.Blocked.FindOrAdd(FirstMiss);
+        if (!bOpened)
+        {
+            if (Opened == 0 && !FirstMiss.IsEmpty()) ++Run.C.Blocked.FindOrAdd(FirstMiss);
+            return;
+        }
+        }
     }
     int64 PlaceOrder(FMarketState& State, const TArray<FMarketProduct>& Products, const FProfile& Profile, FRun& Trial)
     {
