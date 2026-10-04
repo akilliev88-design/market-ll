@@ -1,6 +1,14 @@
 # Miras Market — sanat yönü ön tasarımı
 
-04.10.2026 · Codex · G-106 · İlk iki tasarım turu reddedildi; güncel çalışma sanat konsepti / revizyon 3.
+04.10.2026 · Codex · G-106 · Güncel çalışma sanat konsepti / revizyon 4; kesin onay yok.
+
+## Revizyon 4 — mağazacılığa odaklanan düz atlas
+
+Mustafa kabartmalı haritayı abartılı ve tarihsel savaş oyunu çağrışımlı buldu. Revizyon 3 görseli Imagegen ile düzenlendi: yükseltilmiş arazi/kıyı, kale, anıt ve antika pusula kaldırıldı; daha düz illüstratif harita, küçük güncel marketler ve ticaret bağlantısı kullanıldı. Sağdaki kale yerine market cephesi geldi. Aile dükkânının iç mekânı, emaye işaretler, mürekkep/krem/kiremit ilişkisi ve yönetim düzeni korundu. Sanatsal ayrıntı arazi kabartmasından mağaza, malzeme ve işaretlere kaydırıldı.
+
+Görsel yalnız kavramsal önizleme; coğrafya/rota teknik verisi veya gerçek oyun ekranı değildir. Mustafa'nın yeni değerlendirmesi bekleniyor. Kod ve varlık değişmedi; DERLE/TEST/Smoke çalıştırılmadı.
+
+---
 
 ## Revizyon 3 — sanat konsepti
 

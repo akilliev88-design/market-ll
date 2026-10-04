@@ -1,6 +1,8 @@
 # Güncel durum
 
-Son güncelleme: 04.10.2026 — Codex: G-106 sanat konsepti revizyon 3; D9a kodu derlenmedi
+Son güncelleme: 04.10.2026 — Codex: G-106 düz atlas konsepti revizyon 4; D9a kodu derlenmedi
+
+**04.10.2026 — Codex / G-106 revizyon 4:** Mustafa kabartma haritanın tarihsel savaş oyunu hissi verdiğini söyledi. Görsel düzenlendi: düz çağdaş illüstratif atlas, market cepheleri ve ticaret bağlantısı; kabartma/kale/anıt/pusula kaldırıldı. Dükkân içi ve ortak tabela/arayüz dili korundu. **Devam notu:** kavramsal önizleme yeni değerlendirmede, coğrafya/rota ve oyun ekranı uygulaması değildir. Güncel not `Docs/Environment/STIL_ON_TASARIM.md` üstünde. Kod/varlık değişmedi; DERLE/TEST/Smoke çalıştırılmadı.
 
 **04.10.2026 — Codex / G-106 revizyon 3:** Mustafa ikinci ekranı da çiğ buldu, güzel bir sanatsal dil istedi. Çalışır HTML yerine yerleşik Imagegen ile kabartma atlas/emaye işaret/dükkân içi ortak dünyasına dayalı bitmiş oyun karesi konsepti üretildi ve sohbette gösterildi. Bu yalnız sanat önizlemesi; coğrafya, arayüz, logo ve varlık uygulaması değil. Güncel not `Docs/Environment/STIL_ON_TASARIM.md` üstünde. **Devam notu:** Mustafa değerlendirmesi bekleniyor; ilk iki tur onaylanmadı, uygulanmayacak. Kod/varlık değişmedi, DERLE/TEST/Smoke çalıştırılmadı.
 

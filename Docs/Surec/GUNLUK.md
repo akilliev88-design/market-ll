@@ -1,3 +1,13 @@
+## 04.10.2026 — Codex — G-106 düz ticaret atlası / revizyon 4
+
+**Mustafa:** Kabartmalı harita abartılı; mağazacılık dışına, tarihsel savaş oyunu hissine kayıyor.
+
+**Yapılan:** Önceki görsel yerleşik Imagegen ile düzenlendi. Kabartma kıyı/arazi, kale/anıt ve pusula kaldırıldı; düz illüstratif harita, çağdaş market cepheleri, ölçülü ticaret bağlantısı. Aile dükkânı kesiti, arayüz ve renk ilişkisi korundu. Görsel sohbette gösterildi, proje varlığı olarak aktarılmadı.
+
+**Doğrulama:** Konsept görseli incelendi; kabartma/tarihsel yapılar kaldırılmış. Coğrafya ve rota kavramsal. Kod/varlık değişmedi; DERLE/TEST/Smoke çalıştırılmadı.
+
+**Sıradaki:** Mustafa'nın revizyon 4 değerlendirmesi; kesin onay ve oyun uygulaması yok.
+
 ## 04.10.2026 — Codex — G-106 sanat konsepti / revizyon 3
 
 **Mustafa:** İkinci ekran da hoşuna gitmedi; güzel bir sanatsal dil istiyor, tasarımlar çiğ bulundu.
