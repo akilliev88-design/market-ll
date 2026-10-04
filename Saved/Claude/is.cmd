@@ -1,17 +1,33 @@
 @echo off
-rem Claude Code: CLAUDE_KOS.cmd bu dosyayi calistirir. Bu dosya sabit kalir; adimlar adim.cmd icinde
-rem (git pull calisan bir .cmd dosyasini degistirirse komut yorumlayicisi bozulur).
+rem Codex: yerel kodu dogrula; Git birlestirme/push ve ic ad tasimasi ayri istir.
 cd /d "%~dp0..\.."
-echo === GIT ===
-rem GitHub deposunun bu bilgisayardaki adi (origin ya da cloud): adresinde akilliev88-design/market-ll gecen.
-set "REMOTE="
-for /f "tokens=1" %%r in ('git remote -v ^| findstr /i "akilliev88-design/market-ll"') do if not defined REMOTE set "REMOTE=%%r"
-if not defined REMOTE (echo GITHUB_UZAK_DEPO_BULUNAMADI & git remote -v & exit /b 1)
-echo Uzak depo: %REMOTE%
-git fetch %REMOTE%
-git checkout akis-cc2 2>nul || git checkout -b akis-cc2 --track %REMOTE%/akis-cc2
-git pull --ff-only %REMOTE% akis-cc2
-if errorlevel 1 (echo GIT_PULL_BASARISIZ & exit /b 1)
-git log -1 --oneline
-echo GIT_TAMAM
-call "Saved\Claude\adim.cmd"
+echo === YEREL DOGRULAMA ===
+echo GitHub ile otomatik birlestirme ve gonderim yapilmayacak.
+tasklist /FI "IMAGENAME eq UnrealEditor.exe" /NH 2>nul | findstr /I /C:"UnrealEditor.exe" >nul
+if not errorlevel 1 (
+  echo UNREAL_EDITOR_ACIK: Editoru kapatip yeniden calistir.
+  exit /b 1
+)
+echo === DERLE ===
+call DERLE.cmd /q
+if errorlevel 1 goto derle_hata
+findstr /C:"Result: Succeeded" "Saved\Logs\DERLE_son.log" >nul 2>nul
+if errorlevel 1 goto derle_hata
+echo === TEST ===
+call TEST.cmd /q
+if errorlevel 1 goto test_hata
+echo === SMOKE ===
+powershell -NoProfile -ExecutionPolicy Bypass -File SmokeTest.ps1 > "Saved\Logs\SMOKE_son.log" 2>&1
+if errorlevel 1 goto smoke_hata
+echo DERLE_TEST_SMOKE_TAMAM
+exit /b 0
+:derle_hata
+echo DERLE_BASARISIZ: Saved\Logs\DERLE_son.log
+goto hata
+:test_hata
+echo TEST_BASARISIZ: Saved\Logs\TEST_son.log
+goto hata
+:smoke_hata
+echo SMOKE_BASARISIZ: Saved\Logs\SMOKE_son.log
+:hata
+exit /b 1
