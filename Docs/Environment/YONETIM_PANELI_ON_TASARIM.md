@@ -1,6 +1,23 @@
 # Yönetim paneli: ana ekran ve harita
 
-05.10.2026 · Codex · G-106 · Mustafa değerlendirmesinde.
+05.10.2026 · Codex · G-106 · Önceki iki düzen reddedildi; dört yeni yön değerlendirmede.
+
+## Güncel karşılaştırma
+
+Mustafa Harita masası / Şirket masası tasarımlarını beğenmedi. Bu iki düzen uygulanmayacak; aşağıdaki eski açıklama yalnız süreç kaydıdır.
+
+- **Operasyon terminali:** koyu yüzey, dar ikon menüsü, geniş harita ve dikey il incelemesi; sayılar araç göstergesi gibi üstte.
+- **Yönetim gündemi:** serif başlıklar, üstte yatay menü; solda günlük kararlar, sağda coğrafya ve il özeti. Dokusuz güncel editoryal düzen.
+- **Büyüme sahası:** harita ana sahne, seçili il altta geniş bölümde; yönetim menüsü en altta, yumuşak köşeler ve yeşil yüzeyler.
+- **Şirket dosyası:** tam yazılı sol menü, büyük mağaza/il toplamı, harita yanında il sonuçları; altta seçili il ve bugünün işleri.
+
+Aynı örnek şirket ve sayılarla karşılaştırılır. İl/katman seçimi, teklif ve örnek gün ilerletme yereldir. Renk, tipografi ve gezinme yerleşimi birbirinden farklıdır; kullanıcı değerlendirmesi olmadan hiçbir yön önerilmiş veya seçilmiş sayılmaz. Ana oyun koduna dokunulmadı.
+
+Yeni kaynak: `C:/Users/mtass/.codex/visualizations/2026/10/04/01a108e2-405a-7a01-a7bd-83970e6ea9f8/yonetim-yonleri.html`.
+
+**Yeni tur doğrulaması:** Edge 1024/736/360 × dört yön: il/katman, teklif, örnek gün, ayrıntı ve menü kontrolleri geçti. Her tasarımda 81 il, yatay taşma ve JavaScript hatası yok. Dört masaüstü ve dar ekran PNG'si incelendi. Son CSS kontrolünde aynı genişlikte dört sahne eşit yükseklikte (1200/1340/2110 px). Kaynak 207 KB; gerçek oyun kodu değişmedi, DERLE/TEST/Smoke çalıştırılmadı.
+
+## Reddedilen önceki tur
 
 Mustafa 3B denemeyi sonraya bıraktı; yönetim panelinde ilk odak olarak ana ekran ve haritayı seçti. Eski atlas, doku, nostalji ve minyatür önerileri kullanılmadı. Yeni çalışma iki etkileşimli yerleşim içerir:
 

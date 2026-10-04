@@ -1,3 +1,15 @@
+## 05.10.2026 — Codex — G-106 dört farklı yönetim tasarımı
+
+**Mustafa:** Önceki iki yerleşimi beğenmedi; farklı farklı tasarımlar istedi.
+
+**Yapılan:** Önceki Harita masası / Şirket masası aktif belgelerde reddedildi olarak işaretlendi. Yeni dört yön: Operasyon terminali (koyu, dar ikon menüsü), Yönetim gündemi (serif, yatay menü, kararlar önde), Büyüme sahası (harita ana sahne, alt il incelemesi), Şirket dosyası (tam sol menü, harita/il sonuçları, yoğun bilgi). Aynı örnek şirket verileri ve projenin 81 il geometrisi. İl/katman/teklif/örnek gün etkileşimleri yerel. Yeni kaynak thread önizleme klasöründeki yonetim-yonleri.html; not YONETIM_PANELI_ON_TASARIM.md.
+
+**Varsayım:** Kullanıcı tercihine bağlı estetik araştırması; hiçbir yön seçilmedi. Eski tasarımlar uygulanmayacak. Gerçek oyun verisi veya sayfaların bütünü bu tur kapsamında değil.
+
+**Doğrulama:** Edge 1024/736/360 × dört tasarımda il/katman, teklif, gün, ayrıntı ve menü kontrolleri geçti; 81 il, yatay taşma/JS hatası yok. Dört masaüstü ve dar ekran görüntüleri incelendi. Son CSS kontrolünde sahne yükseklikleri her genişlikte eşit: 1200/1340/2110 px. Oyun kaynağı/varlık değişmedi, DERLE/TEST/Smoke çalıştırılmadı. Mevcut M69 değişiklikleri korunur.
+
+**Sıradaki:** Mustafa tasarım yönlerini karşılaştırır. G-106 devam ediyor.
+
 ## 05.10.2026 — Codex — G-106 yönetim ana ekranı ve harita
 
 **Mustafa:** 3B daha sonra; yönetim paneline odaklan. İlk bölüm tercihi: Ana ekran ve harita.
