@@ -1,3 +1,15 @@
+## 05.10.2026 — Codex — G-106 yönetim ana ekranı ve harita
+
+**Mustafa:** 3B daha sonra; yönetim paneline odaklan. İlk bölüm tercihi: Ana ekran ve harita.
+
+**Yapılan:** Eski sanat yönlerinden bağımsız iki yeni etkileşimli yerleşim: Harita masası / Şirket masası. Projenin 81 il geometrisi, il/katman/odak seçimi, teklif inceleme/taslağa ekleme/geç ve örnek gün ilerletme. IBM Plex Sans, düz çağdaş yüzeyler, mavi seçim vurgusu. Not: Docs/Environment/YONETIM_PANELI_ON_TASARIM.md. Claude sahipliğindeki menü/ekonomi dosyaları ve mevcut M69 değişiklikleri korundu.
+
+**Varsayım:** Şirket adı ve sayılar örnek; başlangıç önerisi Harita masası. Diğer sayfalar ayrıntılı tasarlanmadı. Yerleşim onaylı veya oyuna uygulanmış değildir.
+
+**Doğrulama:** Edge 1024/736/360 × iki yerleşimde il/katman/odak/teklif/gün akışı geçti; 81 il, yatay taşma ve JS hatası yok. Masaüstü ve dar ekran PNG'leri incelendi. Dar ekranda yakın il etiketleri sadeleştirildi. Kaynak/varlık değişmedi, DERLE/TEST/Smoke çalıştırılmadı.
+
+**Sıradaki:** Mustafa iki yerleşimi değerlendirir; gerçek menü uygulaması dosya sahipliği gözetilerek sonraki iştir. G-106 devam ediyor.
+
 ## 05.10.2026 — Codex — G-106 gerçek motor sanat denemesi
 
 **Mustafa:** Konseptlerdeki gibi oyunda yapabilir miyiz? Küçük gerçek alan önerisine 'Hazırla bakalım'.

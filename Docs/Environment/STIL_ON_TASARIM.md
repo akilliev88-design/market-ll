@@ -4,6 +4,8 @@
 
 Mustafa önceki sanat denemelerini reddetti ve yeniden konuşma başlattı. Eski yönler, paletler, atlas/nostalji/minyatür önerileri ve önizleme bağlantıları bu aktif belgeden kaldırıldı; yeni tasarıma kaynak alınmayacak.
 
+**Güncel odak:** Mustafa 3B çalışmayı sonraya bıraktı; önce yönetim panelinin ana ekranı ve haritası. Yeni Harita masası / Şirket masası karşılaştırması `YONETIM_PANELI_ON_TASARIM.md` içinde. Menü koduna uygulanmadı; sanat dili ve yerleşim henüz onaylı değil.
+
 ## Yeni karşılaştırma
 
 Aynı çağdaş küçük marketin aynı göz hizası kamerasından üç görsel yorumu hazırlandı:
