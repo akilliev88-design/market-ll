@@ -1,3 +1,13 @@
+## 05.10.2026 — Codex — mahalle marketi Image-blaster hazırlığı
+
+Mustafa cam cepheli, sokağa bağlı mahalle marketi üretip oyuna aktarmayı ve çalıştırmayı öğrenmek istedi. Yerleşik imagegen ile dolu konsept ve aynı mekânın boş mimari görseli üretildi; AssetInbox/ImageBlaster/MahalleMarket içinde PNG ve istem kaydı. Image-blaster 4acb43b Saved altında indirildi. Node Windows çalıştırıcı ve üç CMD, hesap/kredi/Unreal aktarım kılavuzu hazırlandı. Ortam GLB'sinin collider olduğu doğrulandı; oyuna giriş için ayrı dokulu HQ mesh dışa aktarımı eklendi. Bu kapsamda Claude Code/FAL gerekmez.
+
+Varsayım: yaklaşık 8×10 m cam cephe ve açık sokak girişi; görsel ölçü garanti etmez. Mustafa hesabı olmadığını söyledi; anahtar yerel .env dosyasına eklenecek. Araç npm kilit dosyası eskiydi, yalnız Saved kopyasında npm install ile çözüldü.
+
+Doğrulama: görseller incelendi; Node sözdizimi/kaynak/eksik anahtar duruşu geçti, TypeScript/Vite build ve localhost HTTP 200 geçti. API üretimi/HQ aktarımı canlı denenmedi; 3B model henüz yok. Oyun kodu/uasset değişmedi, DERLE/TEST/Smoke çalıştırılmadı. Mevcut M69 değişiklikleri korundu.
+
+Devam: kullanıcı World Labs hesabı ve API anahtarını yerelde hazırlar; ardından üretim, HQ GLB ve ayrı Unreal sahnesinde ölçek/malzeme/giriş/performans kontrolü, oyun bağlantısı ve DERLE/TEST/Smoke. Aktarım tamamlanmış değildir.
+
 ## 05.10.2026 — Codex — image-blaster uygunluğu
 
 Mustafa aracın oyunda işe yarayıp yaramayacağını sordu. GitHub README, dünya/tek nesne üretim kaynakları ve Ürün Stüdyosu kılavuzu incelendi. Değerlendirme: konsept/dekor/ses için yararlı olabilir; ölçülü ekipman ve raf ürünlerinde mevcut ortak geometri/etiket yolu tercih edilir. Unreal entegrasyonu, ölçek, çarpışma ve performans ayrıca doğrulanmalı. Kaynak: https://github.com/neilsonnn/image-blaster
