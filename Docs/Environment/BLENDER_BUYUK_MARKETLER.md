@@ -1,5 +1,8 @@
 # Blender modelleri ve büyük mağazalar
 
+Güncel raf düzenleri G-116 ile yeniden tasarlandı: [Dünya market yerleşimleri](DUNYA_MARKET_YERLESIMLERI.md).
+Bu kılavuz bina ve model aktarımını anlatır; aşağıdaki önceki yerleşim ekranları yeni planların kanıtı değildir.
+
 05.10.2026, Mustafa'nın isteğiyle masaüstündeki teslimler kaynaklarına dokunulmadan projeye kopyalandı. 132 yeni ekipman/aksesuar/manav modeli `/Game/Stores/Desktop` altında. Önceden oyunda bulunan ekipmanlar tekrar alınmadı. Kopyaların kaynağı `AssetInbox/Environment/Stores/Desktop/manifest.json` içinde.
 
 Üç mevcut mağaza türü yeni Blender binalarıyla güncellendi:

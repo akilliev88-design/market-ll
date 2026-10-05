@@ -1,5 +1,8 @@
 # Sıfırdan Blender mahalle marketi
 
+G-116 ile bu prototipin rafları da kısa günlük alışveriş düzenine uyarlandı; manav, ekmek ve bakım rafı eklendi.
+Kampanya mahalle planı ve diğer üç format için [güncel yerleşim rehberine](DUNYA_MARKET_YERLESIMLERI.md) bakın.
+
 Mustafa'nın 05.10.2026 isteği: Image-blaster çıktısı görsel olarak reddedildi. Yeni bina Blender geometrisiyle sıfırdan hazırlandı; önceki dünya modelinden geometri/doku alınmadı.
 
 8 × 10 m bina, 3,1 m iç yükseklik, geniş cam cephe ve cam köşe, 1,8 m açık giriş, basamaksız kaldırım, sundurma/tabela, tavan ışıkları ve küçük arka depo. Raf, dolap, kasa ve etiketli ürünler mevcut oyun varlıklarıdır; ayrı ekipman olarak yerleştirilir. Sokak şimdilik küçük bir çevre denemesidir.

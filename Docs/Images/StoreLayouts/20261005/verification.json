@@ -1,0 +1,86 @@
+{
+  "capturedAt": "2026-10-05T17:48:00",
+  "build": "Succeeded",
+  "automation": {
+    "succeeded": 175,
+    "failed": 0
+  },
+  "smoke": true,
+  "normalStoreTours": 4,
+  "worldReview": [
+    {
+      "staticTransforms": true,
+      "walk": true,
+      "salesFaces": true,
+      "views": 8,
+      "passed": true,
+      "store": "mahalle_01"
+    },
+    {
+      "staticTransforms": true,
+      "walk": true,
+      "salesFaces": true,
+      "views": 8,
+      "passed": true,
+      "store": "kucuk_01"
+    },
+    {
+      "staticTransforms": true,
+      "walk": true,
+      "salesFaces": true,
+      "views": 8,
+      "passed": true,
+      "store": "buyuk_01"
+    },
+    {
+      "staticTransforms": true,
+      "walk": true,
+      "salesFaces": true,
+      "views": 8,
+      "passed": true,
+      "store": "hiper_01"
+    }
+  ],
+  "capsuleSamples": {
+    "mahalle_01": 81,
+    "kucuk_01": 189,
+    "buyuk_01": 600,
+    "hiper_01": 2127
+  },
+  "handmadeCapsuleSamples": 42,
+  "handmadeViews": 3,
+  "routeGrid": {
+    "stores": [
+      {
+        "store": "mahalle_01",
+        "fixtureFacesSampled": 81,
+        "reachableFloorCells": 1694,
+        "radiusCm": 35,
+        "gridCm": 20
+      },
+      {
+        "store": "kucuk_01",
+        "fixtureFacesSampled": 189,
+        "reachableFloorCells": 6277,
+        "radiusCm": 35,
+        "gridCm": 20
+      },
+      {
+        "store": "buyuk_01",
+        "fixtureFacesSampled": 600,
+        "reachableFloorCells": 18167,
+        "radiusCm": 35,
+        "gridCm": 20
+      },
+      {
+        "store": "hiper_01",
+        "fixtureFacesSampled": 2127,
+        "reachableFloorCells": 62002,
+        "radiusCm": 35,
+        "gridCm": 20
+      }
+    ],
+    "errors": []
+  },
+  "routeNegativeTests": 4
+}

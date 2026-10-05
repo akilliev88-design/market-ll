@@ -32,7 +32,7 @@
       ],
       "usableWidthCm": 104.50000000000001,
       "usableDepthCm": 30.999999999999993,
-      "clearanceHeightCm": 25
+      "clearanceHeightCm": 32.0
     },
     {
       "id": "front_l01",
@@ -45,7 +45,7 @@
       ],
       "usableWidthCm": 104.50000000000001,
       "usableDepthCm": 30.999999999999993,
-      "clearanceHeightCm": 25
+      "clearanceHeightCm": 32.0
     },
     {
       "id": "front_l02",
@@ -58,7 +58,7 @@
       ],
       "usableWidthCm": 104.50000000000001,
       "usableDepthCm": 30.999999999999993,
-      "clearanceHeightCm": 25
+      "clearanceHeightCm": 32.0
     },
     {
       "id": "front_l03",
@@ -71,7 +71,7 @@
       ],
       "usableWidthCm": 104.50000000000001,
       "usableDepthCm": 30.999999999999993,
-      "clearanceHeightCm": 25
+      "clearanceHeightCm": 32.0
     },
     {
       "id": "front_l04",
@@ -84,7 +84,7 @@
       ],
       "usableWidthCm": 104.50000000000001,
       "usableDepthCm": 30.999999999999993,
-      "clearanceHeightCm": 25
+      "clearanceHeightCm": 7.2
     }
   ],
   "checkouts": 0,

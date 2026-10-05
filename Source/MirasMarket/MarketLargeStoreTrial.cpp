@@ -1,6 +1,7 @@
 #include "MarketLargeStoreTrial.h"
 #include "MarketGame.h"
 #include "MarketStoreDressing.h"
+#include "MarketStoreWalkAudit.h"
 #include "ProductCatalog.h"
 #include "Camera/CameraActor.h"
 #include "Camera/CameraComponent.h"
@@ -91,10 +92,16 @@ void AMarketLargeStoreTrialGameMode::View(int32 Index)
     const float W=Store.FootprintCm.X,D=Store.FootprintCm.Y;
     FVector Fresh(-W*.3,-D*.2,0),Checkout(-W*.25,-D*.4,0);
     for(const auto& F:Store.Fixtures) if(MarketPlanogram::Equipment(F.EquipmentId).Family==TEXT("produce")){Fresh=F.Location;break;}
+    for(const auto& F:Store.Fixtures) if(MarketPlanogram::Equipment(F.EquipmentId).CheckoutCount>0){Checkout=F.Location;break;}
     for(const auto& F:Store.Fixtures) if(F.EquipmentId==TEXT("checkout_dark_compact")){Checkout=F.Location;break;}
-    const FVector Eyes[]={FVector(Store.Entrance.At.X+W*.23,-D/2-750,270),Store.PlayerStart.At+FVector(0,0,70),Fresh+FVector(230,-220,160),Checkout+FVector(175,-170,160)};
+    const FVector Eyes[]={FVector(Store.Entrance.At.X+W*.23,-D/2-750,270),Store.PlayerStart.At+FVector(0,0,70),Fresh+FVector(230,-220,160),Checkout+FVector(175,200,160)};
     const FVector Targets[]={FVector(Store.Entrance.At.X,-D/2,170),FVector(Store.Entrance.At.X,0,140),Fresh+FVector(0,0,100),Checkout+FVector(0,0,130)};
     const int32 V=FMath::Min(Index,3);FVector Eye=Eyes[V];
+    if(V>=2)
+    {
+        Eye.X=FMath::Clamp(Eye.X,-W/2+65,W/2-65);
+        Eye.Y=FMath::Clamp(Eye.Y,-D/2+65,Store.Backroom.Min.Y-65);
+    }
     if(Index==6)Eye.X-=25;else if(Index==7)Eye.X+=25;
     Camera->SetActorLocationAndRotation(Eye,(Targets[V]-Eye).Rotation());
     GetWorld()->GetFirstPlayerController()->SetViewTarget(Camera);
@@ -126,7 +133,9 @@ void AMarketLargeStoreTrialGameMode::Tick(float Dt)
         FScreenshotRequest::RequestScreenshot(Dir/FString::Printf(TEXT("%03d.png"),EdgeFrame),false,false);++EdgeFrame;
         return;
     }
-    if(FPlatformTime::Seconds()-Started<6)return;
+    // Six seconds for initial grounding; subsequent settled camera stages need
+    // two seconds. Shader compilation still resets the timer above.
+    if(FPlatformTime::Seconds()-Started<(Stage==0?6.:2.))return;
     if(!Checked)
     {
         auto* Walker=Cast<ACharacter>(PC->GetPawn());FCollisionQueryParams Q;if(Walker)Q.AddIgnoredActor(Walker);FHitResult Hit;
@@ -134,6 +143,7 @@ void AMarketLargeStoreTrialGameMode::Tick(float Dt)
         const bool Blocked=GetWorld()->SweepSingleByChannel(Hit,FVector(X,Y-120,91),FVector(X,Y+180,91),FQuat::Identity,ECC_Pawn,FCollisionShape::MakeCapsule(30,88),Q);
         const bool Ground=Walker&&Walker->GetCharacterMovement()->IsMovingOnGround();
         if(!Ground||Blocked){UE_LOG(LogTemp,Error,TEXT("LARGE_STORE_FAILED: floor=%d entryBlocked=%d"),Ground,Blocked);FPlatformMisc::RequestExitWithStatus(false,1);return;}
+        if(!AuditStoreSalesFaces(GetWorld(),Store,Walker)){FPlatformMisc::RequestExitWithStatus(false,1);return;}
         Checked=true;UE_LOG(LogTemp,Display,TEXT("LARGE_STORE_WALK_PASSED: %s"),*Store.Id);
     }
     for(const auto& Pair:Transforms)if(Pair.Key.IsValid())

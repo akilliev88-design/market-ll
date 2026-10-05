@@ -28,6 +28,8 @@ bool FStoreTemplatesTest::RunTest(const FString&)
             auto Assigned=MarketStoreKit::ToPlanogram(*S); MarketStoreKit::Fill(Assigned,Products);
             TSet<FString> Placed; for(const auto& B:Assigned.Placements) Placed.Add(B.ProductId);
             TestEqual(Id+TEXT(" assigned departments fit all active products"),Placed.Num(),Products.Num());
+            for (const auto& P : Products) if (!Placed.Contains(P.Id))
+                AddError(Id + TEXT(" assigned department has no place for ") + P.Id);
             if (const auto* Double = Assigned.Fixtures.FindByPredicate([](const auto& F) { return MarketPlanogram::Equipment(F.EquipmentId).bDoubleSided; }))
             {
                 TMap<FString,FString> Overrides; Overrides.Add(Double->Id+TEXT("/front"),FString()); Overrides.Add(Double->Id+TEXT("/back"),Products[0].Category);

@@ -1,5 +1,6 @@
 #include "MarketStoreKit.h"
 #include "MarketLayout.h"
+#include "PlanogramEdit.h"
 #include "StaffPlanner.h"
 #include "ProductCatalog.h"
 #include "Dom/JsonObject.h"
@@ -249,18 +250,51 @@ void MarketStoreKit::Fill(FMarketPlanogram& Plan,const TArray<FMarketProduct>& P
     for(const FString& C:Ordered)
     {
         if(C.IsEmpty()) continue;
-        FMarketPlanogram Department;
-        for(const auto& F:Plan.Fixtures) if(StaffPlanner::SameCategory(F.CategoryForFace(TEXT("front")),C)||StaffPlanner::SameCategory(F.CategoryForFace(TEXT("back")),C)) Department.Fixtures.Add(F);
         TArray<FMarketProduct> Items; for(const auto& P:Products) if(P.bActive&&StaffPlanner::SameCategory(P.Category,C)) Items.Add(P);
-        // The planner may place several blocks of the same product. Repeat the department's assortment
-        // to dress long aisles as well as the first shelf; this creates no economic stock.
-        const TArray<FMarketProduct> Assortment=Items;
-        int32 Rows=0; for(const auto& F:Department.Fixtures) { const auto E=MarketPlanogram::Equipment(F.EquipmentId); Rows+=E.Levels*(E.bDoubleSided?2:1); }
-        const int32 Desired=Rows*2;
-        while(!Assortment.IsEmpty()&&Items.Num()<Desired) Items.Append(Assortment);
-        MarketLayout::Plan(Department,Items,{});
-        for(const auto& Block:Department.Placements)
-            if(const auto* F=Plan.FindFixture(Block.FixtureId)) if(StaffPlanner::SameCategory(F->CategoryForFace(Block.Face),C)) Plan.Placements.Add(Block);
+        if(Items.IsEmpty()) continue;
+        Items.StableSort([](const auto& A,const auto& B){return A.Brand<B.Brand;});
+        // A template already owns its face categories. The branch planner assigns
+        // categories afresh; filtering its output afterward could discard the only
+        // block of an item when the two faces have different categories. Place on
+        // eligible faces directly with the shared hand-arrangement geometry rules.
+        auto Add = [&](const FMarketProduct& P,const FPlanogramFixture& F,const TCHAR* Face,int32 Level)
+        {
+            const auto E=MarketPlanogram::Equipment(F.EquipmentId);
+            if(E.LevelClearanceCm[Level]>0 && MarketPlanogram::NominalHeightCm(P)>E.LevelClearanceCm[Level]) return false;
+            FPlanogramPlacement B;B.ProductId=P.Id;B.FixtureId=F.Id;B.Face=Face;B.Level=Level;B.Facings=3;
+            FString Message;
+            return MarketPlanogramEdit::AddBlock(Plan,Products,B,-E.UsableWidthCm*.5f,1.0e6f,Message);
+        };
+        // Reserve space for each distinct product before repeating the assortment.
+        for(const auto& P:Items)
+        {
+            bool Placed=false;
+            for(const auto& F:Plan.Fixtures)
+            {
+                const auto E=MarketPlanogram::Equipment(F.EquipmentId);
+                for(int32 Side=0;Side<(E.bDoubleSided?2:1)&&!Placed;++Side)
+                {
+                    const TCHAR* Face=Side==0?TEXT("front"):TEXT("back");
+                    if(!StaffPlanner::SameCategory(F.CategoryForFace(Face),C)) continue;
+                    for(int32 Level:MarketLayout::LevelPreference(E,P)) if(Add(P,F,Face,Level)){Placed=true;break;}
+                }
+                if(Placed) break;
+            }
+        }
+        int32 Pick=0;
+        for(const auto& F:Plan.Fixtures)
+        {
+            const auto E=MarketPlanogram::Equipment(F.EquipmentId);
+            for(int32 Side=0;Side<(E.bDoubleSided?2:1);++Side)
+            {
+                const TCHAR* Face=Side==0?TEXT("front"):TEXT("back");
+                if(!StaffPlanner::SameCategory(F.CategoryForFace(Face),C)) continue;
+                for(int32 Level=0;Level<E.Levels;++Level)
+                    for(int32 Repeat=0;Repeat<2;++Repeat)
+                        for(int32 Try=0;Try<Items.Num();++Try)
+                            if(Add(Items[Pick++%Items.Num()],F,Face,Level)) break;
+            }
+        }
     }
 }
 void MarketStoreKit::FillRandom(FMarketPlanogram& Plan,const TArray<FMarketProduct>& Products,int32 Seed)

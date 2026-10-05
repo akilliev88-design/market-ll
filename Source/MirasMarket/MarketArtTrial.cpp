@@ -1,6 +1,7 @@
 #include "MarketArtTrial.h"
 #include "MarketGame.h"
 #include "MarketStoreKit.h"
+#include "MarketStoreWalkAudit.h"
 #include "MarketVisuals.h"
 #include "MarketWorldText.h"
 #include "ProductCatalog.h"
@@ -141,11 +142,16 @@ void AMarketArtTrialGameMode::BeginPlay()
     {
         FPlanogramFixture F; F.Id = Id; F.EquipmentId = Equipment; F.Location = At; F.Yaw = Yaw; F.Category = C; S.Fixtures.Add(F);
     };
-    Fixture(TEXT("tea"), TEXT("wall_shelf_2400"), FVector(-225, -100, 0), 90, Category(TEXT("caykur_rize_turist_500g")));
-    Fixture(TEXT("pasta"), TEXT("wall_shelf_2400"), FVector(-225, 150, 0), 90, Category(TEXT("barilla_spagetti_500g")));
-    Fixture(TEXT("drinks_a"), TEXT("gondola_double_1200"), FVector(200, -95, 0), 90, Category(TEXT("coca_cola_1l")));
-    Fixture(TEXT("drinks_b"), TEXT("gondola_double_1200"), FVector(200, 30, 0), 90, Category(TEXT("coca_cola_1l")));
-    Fixture(TEXT("drinks_c"), TEXT("gondola_double_1200"), FVector(200, 155, 0), 90, Category(TEXT("coca_cola_1l")));
+    // Small street-shop adaptation: two short runs, visible produce at the
+    // entrance, bakery beside rear dairy and a separate shallow care wall.
+    Fixture(TEXT("tea"), TEXT("kt_wood_wall_1200"), FVector(-370, -80, 0), 90, Category(TEXT("caykur_rize_turist_500g")));
+    Fixture(TEXT("pasta"), TEXT("kt_wall_1250"), FVector(-365, 65, 0), 90, Category(TEXT("barilla_spagetti_500g")));
+    Fixture(TEXT("bakery"), TEXT("bread_selfservice_1200"), FVector(-365, 215, 0), 90, FString());
+    Fixture(TEXT("drinks_a"), TEXT("kt_gondola_1250"), FVector(165, -60, 0), 90, Category(TEXT("coca_cola_1l")));
+    Fixture(TEXT("drinks_b"), TEXT("kt_gondola_1250"), FVector(165, 70, 0), 90, Category(TEXT("coca_cola_1l")));
+    Fixture(TEXT("snacks"), TEXT("kt_gondola_1250"), FVector(-105, 70, 0), 90, Category(TEXT("barilla_spagetti_500g")));
+    Fixture(TEXT("care"), TEXT("kt_cosmetic_wall_1200"), FVector(370, 215, 0), -90, Category(TEXT("colgate_dis_macunu_100ml")));
+    Fixture(TEXT("produce"), TEXT("produce_panel_island"), FVector(-230, -300, 0), 0, FString());
     Fixture(TEXT("cold"), TEXT("drink_cooler_3door_2100"), FVector(-60, 400, 0), 0, Category(TEXT("sutas_sut_1l")));
     Fixture(TEXT("checkout"), TEXT("checkout_single"), FVector(265, -330, 0), 0, FString());
     FMarketPlanogram Plan = MarketStoreKit::ToPlanogram(S);
@@ -184,6 +190,10 @@ void AMarketArtTrialGameMode::BeginPlay()
     if (!MarketStoreKit::Build(GetWorld(), S, Plan, true))
     {
         UE_LOG(LogTemp, Error, TEXT("ART_TRIAL_FAILED: store build"));
+        FPlatformMisc::RequestExitWithStatus(false, 1); return;
+    }
+    if (bCapture && !AuditStoreSalesFaces(GetWorld(), S, GetWorld()->GetFirstPlayerController()->GetPawn()))
+    {
         FPlatformMisc::RequestExitWithStatus(false, 1); return;
     }
     auto* White = TrialMaterial(this, FLinearColor(.72f, .75f, .76f), .48f);
