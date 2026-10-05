@@ -31,3 +31,6 @@ powershell -File Tools/HandmadeNeighborhood.ps1 -RebuildAssets
 Blender modeli ve FBX yeniden oluşturulur; Unreal yalnız bu yeni mağazayı içe alır. Giriş, cam çarpışması ve zemin kontrol edilir; üç oyun görüntüsü `Saved/Screenshots/HandmadeNeighborhood` altına yazılır. `.blend` doğrudan elle düzenlenmişse bu komutu kullanma: betik özgün model tanımından yeniden üretir.
 
 Kod değiştirildiğinde Unreal kapalıyken `DERLE.cmd /q`, ardından `TEST.cmd /q` ve `powershell -File SmokeTest.ps1` çalıştırılır. Gezinti modu mevcut sanat denemesinin `-HandmadeNeighborhood` seçeneğidir.
+
+
+05.10.2026 (G-115): Eski açık soğutucu çıkarıldı; süt/soğuk ürün reyonunda masaüstünden aktarılan yeni üç kapılı `drink_cooler_3door_2100` kullanılır. Ürün dizilimi modelin raf yüksekliği, genişliği ve derinliğinden yeniden hesaplanır. Yeni görünüm için geziyi kapatıp yeniden aç.

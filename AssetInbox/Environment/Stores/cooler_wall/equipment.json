@@ -1,22 +1,23 @@
 {
   "schemaVersion": 1,
   "id": "cooler_wall",
-  "mesh": "SM_CoolerWall.fbx",
-  "unrealMesh": "/Game/Stores/Equipment/SM_CoolerWall.SM_CoolerWall",
+  "mesh": "../Desktop/upright_freezer_4door_2800/SM_UprightFreezer4Door2800.fbx",
+  "unrealMesh": "/Game/Stores/Desktop/upright_freezer_4door_2800/SM_UprightFreezer4Door2800.SM_UprightFreezer4Door2800",
   "family": "cooler",
   "dimensionsMm": {
-    "width": 3000.0,
-    "depth": 944.5,
-    "height": 2250.0
+    "width": 2800.0,
+    "depth": 857.5,
+    "height": 2100.0
   },
   "origin": "floor_center",
   "frontAxis": "-Y",
   "materials": [
-    "MI_Store_PaintedMetal",
-    "MI_Store_DarkMetal",
-    "MI_Store_White",
-    "MI_Store_Glass",
-    "MI_Store_Light"
+    "MI_Cabinet_Gasket",
+    "MI_Cabinet_Anthracite",
+    "MI_Cabinet_Porcelain",
+    "MI_Cabinet_LED",
+    "MI_Cabinet_BrushedSteel",
+    "MI_Cabinet_Glass"
   ],
   "collision": {
     "policy": "custom_ucx",
@@ -30,11 +31,11 @@
       "centerCm": [
         0,
         0,
-        25
+        38.0
       ],
-      "usableWidthCm": 292,
-      "usableDepthCm": 77,
-      "clearanceHeightCm": 35
+      "usableWidthCm": 268.0,
+      "usableDepthCm": 65.0,
+      "clearanceHeightCm": 30.0
     },
     {
       "id": "front_l01",
@@ -43,11 +44,11 @@
       "centerCm": [
         0,
         0,
-        65
+        72.0
       ],
-      "usableWidthCm": 292,
-      "usableDepthCm": 77,
-      "clearanceHeightCm": 35
+      "usableWidthCm": 268.0,
+      "usableDepthCm": 65.0,
+      "clearanceHeightCm": 30.000000000000007
     },
     {
       "id": "front_l02",
@@ -56,11 +57,11 @@
       "centerCm": [
         0,
         0,
-        105
+        106.0
       ],
-      "usableWidthCm": 292,
-      "usableDepthCm": 77,
-      "clearanceHeightCm": 35
+      "usableWidthCm": 268.0,
+      "usableDepthCm": 65.0,
+      "clearanceHeightCm": 29.999999999999986
     },
     {
       "id": "front_l03",
@@ -69,11 +70,11 @@
       "centerCm": [
         0,
         0,
-        145
+        140.0
       ],
-      "usableWidthCm": 292,
-      "usableDepthCm": 77,
-      "clearanceHeightCm": 35
+      "usableWidthCm": 268.0,
+      "usableDepthCm": 65.0,
+      "clearanceHeightCm": 30.000000000000007
     },
     {
       "id": "front_l04",
@@ -82,25 +83,29 @@
       "centerCm": [
         0,
         0,
-        185
+        174.0
       ],
-      "usableWidthCm": 292,
-      "usableDepthCm": 77,
-      "clearanceHeightCm": 35
+      "usableWidthCm": 268.0,
+      "usableDepthCm": 65.0,
+      "clearanceHeightCm": 30.000000000000007
     }
   ],
   "checkouts": 0,
   "planogram": {
-    "showCategorySign": false,
     "doubleSided": false,
-    "widthCm": 292,
-    "depthCm": 77,
-    "frontY": -38.0,
-    "meshYaw": 180
+    "widthCm": 268.0,
+    "depthCm": 65.0,
+    "frontY": -32.5,
+    "meshYaw": 180,
+    "showCategorySign": false
   },
   "lod": {
-    "naniteCandidate": true,
+    "naniteCandidate": false,
     "lod1TriangleRatio": 0.5,
-    "lod2TriangleRatio": 0.2
-  }
+    "lod2TriangleRatio": 0.25
+  },
+  "displayName": "Dort kapili soguk urun dolabi",
+  "replacementModel": "upright_freezer_4door_2800",
+  "replacementNote": "Existing cooler fixture identity; new desktop cabinet geometry and actual shelf measurements. Original FBX archived, no longer rendered.",
+  "sourceBlend": "../Desktop/upright_freezer_4door_2800/Source/Game_upright_freezer_4door_2800.blend"
 }

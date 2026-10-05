@@ -146,7 +146,7 @@ void AMarketArtTrialGameMode::BeginPlay()
     Fixture(TEXT("drinks_a"), TEXT("gondola_double_1200"), FVector(200, -95, 0), 90, Category(TEXT("coca_cola_1l")));
     Fixture(TEXT("drinks_b"), TEXT("gondola_double_1200"), FVector(200, 30, 0), 90, Category(TEXT("coca_cola_1l")));
     Fixture(TEXT("drinks_c"), TEXT("gondola_double_1200"), FVector(200, 155, 0), 90, Category(TEXT("coca_cola_1l")));
-    Fixture(TEXT("cold"), TEXT("open_chiller_2500"), FVector(-60, 400, 0), 0, Category(TEXT("sutas_sut_1l")));
+    Fixture(TEXT("cold"), TEXT("drink_cooler_3door_2100"), FVector(-60, 400, 0), 0, Category(TEXT("sutas_sut_1l")));
     Fixture(TEXT("checkout"), TEXT("checkout_single"), FVector(265, -330, 0), 0, FString());
     FMarketPlanogram Plan = MarketStoreKit::ToPlanogram(S);
     // Visual dressing only: contiguous blocks on every usable level, respecting package sizes.

@@ -20,5 +20,9 @@ private:
     bool Capture=false,Ready=false,Checked=false;
     int32 Stage=0;
     double Started=0;
+    bool EdgeCapture=false;
+    int32 EdgeFrame=0;
+    FString EdgeLabel;
+    FVector EdgeEye,EdgeTarget;
     TMap<TWeakObjectPtr<USceneComponent>,FTransform> Transforms;
 };

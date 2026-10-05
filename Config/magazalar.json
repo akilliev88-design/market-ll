@@ -437,7 +437,7 @@
 			"props": [],
 			"stats": {
 				"shelfFrontM": 32.4,
-				"coolerM": 6.0,
+				"coolerM": 5.6,
 				"freezerM": 2.5,
 				"produceM2": 1.44,
 				"counters": [],
@@ -1195,7 +1195,7 @@
 			],
 			"stats": {
 				"shelfFrontM": 82.0,
-				"coolerM": 9.0,
+				"coolerM": 8.4,
 				"freezerM": 1.4,
 				"produceM2": 0.0,
 				"counters": [],
@@ -2705,7 +2705,7 @@
 			],
 			"stats": {
 				"shelfFrontM": 200.8,
-				"coolerM": 27.0,
+				"coolerM": 25.2,
 				"freezerM": 11.2,
 				"produceM2": 15.48,
 				"counters": [
@@ -7401,7 +7401,7 @@
 			],
 			"stats": {
 				"shelfFrontM": 771.6,
-				"coolerM": 90.0,
+				"coolerM": 84.0,
 				"freezerM": 33.6,
 				"produceM2": 23.22,
 				"counters": [

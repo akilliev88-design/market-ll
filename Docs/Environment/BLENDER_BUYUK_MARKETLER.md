@@ -44,3 +44,12 @@ Unreal Editor ve oyun kapalı olmalı; her adım bitmeden sonrakini başlatma.
 132 kaynak modelde aynı düzlemde üst üste gelen üçgenler tarandı; 9 modelde 99 yüz 0,8 mm ayrıldı, yeniden taramada çakışma kalmadı. UV, malzeme, yüz yumuşatma ve vertex grupları korunur. Bu onarım kaynak dosya kopyalarına uygulanır.
 
 Oyun içi kontrol, sabit ekipman dönüşümlerinin değişmediğini ve fizik simülasyonunun kapalı olduğunu denetler. Ardışık karelerde 20/255 üzeri değişen piksel alanı ölçülür; yakın kasa çekimlerinin yanında iki hareketli kamera çekimi incelenir. Bu sınırlı sahne kontrolü bütün uzaklık/açı/ekran kartlarında titreşim olmayacağını garanti etmez. Rapor ve görüntüler `Docs/Images/LargeStores/20261005` altında saklanır.
+
+
+## 05.10.2026: eski soğuk dolabın değiştirilmesi (G-115)
+
+Mustafa kenar titreşimini bütün gezilerde bildirdi ve eski dolabı onarmayı bırakıp yeni Blender dolaplarını kullanmamızı istedi. Ortak `cooler_wall` ekipmanının görseli artık masaüstündeki `upright_freezer_4door_2800` modelidir: dört kapı, 280 cm gövde, 268 cm kullanılabilir raf genişliği, 65 cm raf derinliği, beş raf (38/72/106/140/174 cm). Görsel dondurucu kabini süt/soğuk ürün reyonunda kullanılır; ekipman ailesi `cooler` olarak kalır. Ekipman ve raf kimlikleri korunur; özgün eski FBX/Blender dosyaları arşivdir, oyun eski mesh'i yüklemez. Metadata'daki FBX ve sourceBlend bağlantıları yeni kabinin kaynaklarına gider. Dört mağazanın toplam soğutucu cephe ölçüleri yeni 280 cm gövdeye göre yeniden hesaplandı.
+
+Mahalle el yapımı denemesi (`MAHALLE_MARKET_GEZI.cmd`) ve sanat denemesi üç kapılı `drink_cooler_3door_2100` kullanır; ürünler bu modelin gerçek raf ölçülerine göre yeniden dizilir. Büyük mağaza gezileri dört kapılı kabini kullanır. Açık oyun kapatılıp yeniden açılmalıdır.
+
+Eski dolapta 80 karelik yakın çekimle geometri, TAA/TSR, gölge ve Lumen karşılaştırmaları yapıldı. Eski modellerin deneme amaçlı onarımları geri alındı; genel görüntü ayarları değiştirilmedi. Önceki bütün ekran yüzdesi ölçümü yerel dolap kenarı kusurunu kaçırmıştı. `-StoreEdgeCapture -EdgeLabel=replacement` aynı kamerada 40 sabit ve 40 hareketli kare alır. `Tools/measure_cooler_edges.py before replacement` yerel bölge raporu ve hareketli GIF üretir. Yeni modelin geometri sınırları farklı olduğundan ekran bölgelerinin sayıları eş kenar kıyaslaması veya bütün modellerde sıfır titreşim garantisi değildir. Kanıt: `Docs/Images/StoreEdges/20261005`.

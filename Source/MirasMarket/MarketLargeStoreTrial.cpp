@@ -71,6 +71,19 @@ void AMarketLargeStoreTrialGameMode::BeginPlay()
     }
     Started=FPlatformTime::Seconds();Ready=true;
     if(GEngine&&GEngine->GameViewport)GEngine->GameViewport->ConsoleCommand(TEXT("r.SetRes 1600x900w"));
+    EdgeCapture=FParse::Param(FCommandLine::Get(),TEXT("StoreEdgeCapture"));
+    if(EdgeCapture)
+    {
+        Capture=true;
+        EdgeLabel=TEXT("review");FParse::Value(FCommandLine::Get(),TEXT("EdgeLabel="),EdgeLabel);
+        for(const auto& F:Store.Fixtures)if(F.EquipmentId==TEXT("cooler_wall"))
+        {
+            const FTransform Xf(FRotator(0,F.Yaw,0),F.Location);
+            EdgeEye=Xf.TransformPosition(FVector(-155,-310,150));EdgeTarget=Xf.TransformPosition(FVector(0,0,135));break;
+        }
+        Camera->SetActorLocationAndRotation(EdgeEye,(EdgeTarget-EdgeEye).Rotation());
+        GetWorld()->GetFirstPlayerController()->SetViewTarget(Camera);
+    }
     UE_LOG(LogTemp,Display,TEXT("LARGE_STORE_READY: %s %d fixtures %d product blocks"),*Store.Id,Store.Fixtures.Num(),Plan.Placements.Num());
 }
 void AMarketLargeStoreTrialGameMode::View(int32 Index)
@@ -102,6 +115,17 @@ void AMarketLargeStoreTrialGameMode::Tick(float Dt)
 #if WITH_EDITOR
     if(GShaderCompilingManager&&GShaderCompilingManager->IsCompiling()){Started=FPlatformTime::Seconds();return;}
 #endif
+    if(EdgeCapture)
+    {
+        if(FPlatformTime::Seconds()-Started<3)return;
+        if(EdgeFrame>=80){UE_LOG(LogTemp,Display,TEXT("STORE_EDGE_CAPTURE_PASSED: %s 40 fixed and 40 continuous moving frames"),*EdgeLabel);FPlatformMisc::RequestExit(false);return;}
+        FVector Eye=EdgeEye;
+        if(EdgeFrame>=40)Eye.X+=(EdgeFrame-40)*.5f;
+        Camera->SetActorLocationAndRotation(Eye,(EdgeTarget-Eye).Rotation());
+        const FString Dir=FPaths::ProjectSavedDir()/TEXT("Screenshots/StoreEdges")/EdgeLabel;IFileManager::Get().MakeDirectory(*Dir,true);
+        FScreenshotRequest::RequestScreenshot(Dir/FString::Printf(TEXT("%03d.png"),EdgeFrame),false,false);++EdgeFrame;
+        return;
+    }
     if(FPlatformTime::Seconds()-Started<6)return;
     if(!Checked)
     {
