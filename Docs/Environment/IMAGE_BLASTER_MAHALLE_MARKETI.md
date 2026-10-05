@@ -1,3 +1,10 @@
+# 05.10.2026 son karar: bu çıktı kullanılmayacak
+
+HQ dokulu GLB indirildi ve ayrı Unreal gezinti sahnesine aktarıldı. Blender kaynak renderı ve Unreal görüntüleri aynı tavan deliklerini, bozuk cam/sokak geometrisini gösterdi. Mustafa görseli reddetti; ana kampanyaya bağlanmadı. Yeni çalışma sıfırdan Blender geometrisiyle sürüyor: `Docs/Environment/BLENDER_MAHALLE_MARKETI.md`, `MAHALLE_MARKET_GEZI.cmd`. Eski API anahtarı ve indirilmiş büyük dosyalar yerel arşivde kalır; yeni Blender çalışması kredi kullanmaz.
+
+
+---
+
 # Mahalle marketi — Image-blaster denemesi
 
 05.10.2026. Ortam üretildi. Collider Unreal'a ayrı klasöre aktarıldı; gerçek oyun karakteri zeminde duruyor (GENERATED_STORE_PHYSICS_PASSED). Dokulu HQ model World Labs'ta işleniyor. Görsel model aktarımı, ekran görüntülerinin incelenmesi ve kampanya bağlantısı tamamlanmadı.

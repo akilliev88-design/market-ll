@@ -1,11 +1,11 @@
 @echo off
 cd /d "%~dp0"
-if not exist "Saved\ImageBlaster\UnrealImport\mahalle-market-textured.glb" (
-  echo Dokulu market modeli henuz hazir degil. MARKET_MODEL_AKTAR.cmd ile mevcut isi tamamla.
+if not exist "Content\Stores\Generated\MahalleMarket\mahalle-market-textured\StaticMeshes\mahalle-market-textured.uasset" (
+  echo Dokulu marketin Unreal varligi henuz hazir degil.
   pause
   exit /b 1
 )
-if not exist "Saved\ImageBlaster\unreal-manifest.json" (
+if not exist "AssetInbox\ImageBlaster\MahalleMarket\unreal-manifest.json" (
   echo Modelin Unreal aktarimi henuz yapilmadi.
   pause
   exit /b 1

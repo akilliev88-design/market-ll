@@ -1,3 +1,13 @@
+## 05.10.2026 - Codex - G-112 kapanis / G-113 sifirdan Blender marketi
+
+Mustafa Image-blaster goruntusunu reddetti ve marketi Blender'da kendimiz sifirdan yapmamizi istedi. HQ model indirildi ve Unreal'a aktarildi; kaynak Blender renderi da tavan deliklerini ve bozuk cam/sokak geometrisini gosterdi. Bu deneme ana kampanyaya alinmadi; eski dosyalar arsivlendi. Finalize betigi abslog basari kaydini okur; kalici manifest ve Nanite unlit malzemesi duzeltildi. Yeni API uretimi yapilmadi.
+
+Yeni bina: Tools/Blender/create_neighborhood_store.py, 8x10 m, 3.1 m yukseklik, 1.8 m acik giris, cam cephe/kose, kaldirim, sundurma/tabela, kucuk depo ve tavan detaylari. Kaynak metre biriminde; EditableArchitecture koleksiyonunda ayri parcalar, birlesik export onizlemesi ve 33 UCX kutusu var. Unreal import Tools/import_handmade_neighborhood.py ile /Game/Stores/Handmade/Neighborhood. MarketArtTrial'a -HandmadeNeighborhood secenegi eklendi; mevcut raf/kasa/etiketli urunler ayri yerlestirildi. MAHALLE_MARKET_GEZI.cmd WASD/fare gezisi; 1/2/3 kamera, 0 yuruyus, Esc cikis. Kayit/ekonomi/ana kampanya magaza atamasi degismedi. M69 degisiklikleri korundu.
+
+Dogrulama: DERLE basarili. TEST 173 basarili + 1 uyari, 0 basarisiz; Smoke PASSED. Blender export ve Unreal 33/33 UCX import gecti. Gercek karakter grounded=1; 30 cm yaricap/88 cm yarim yukseklik kapsul giris yolu acik, cam yolu kapali. Son uc 1600x900 PNG incelendi; ART_TRIAL_PASSED. Medyan 11.11 ms, p95 11.16-11.18 ms, 90 FPS sinirinda (GPU-only olcum degil). PNG'ler Docs/Images/HandmadeNeighborhood/20261005. Kaynak ve tekrar uretim rehberi Docs/Environment/BLENDER_MAHALLE_MARKETI.md.
+
+Devam: Mustafa ilk el yapimi prototipi degerlendirir. Mahalle cevresi su an yalniz kucuk kaldirim/yol denemesi; nihai sanat kalitesi ve ana kampanya baglantisi tamamlanmadi. Varsayim: once ayri gezilebilir sahne, mevcut ekipman/urunleri tekrar kullan. Buyuk indirilen kaynak GLB Raw altinda yerel/ignore; Unreal deneme varliklari ve inceleme goruntuleri Git LFS arsivinde. World Labs kredisi yeni modelde kullanilmadi.
+
 ## 05.10.2026 — Codex — G-112 üretilmiş market aktarımı / HQ bekleniyor
 
 Mustafa ortamın üretildiğini, oyuna aktarıp hatalarını düzeltmeyi istedi; sonra aktarım CMD penceresini kapattığını sordu. Ortam SPZ/pano/collider bulundu; HQ işleme devam ediyordu. Mevcut servis işi tekrar kullanıldı, yeni dünya üretilmedi. Resmî World Labs mesh kılavuzu HQ üretiminin 1 saate kadar sürebileceğini ve pencere kapanınca devam ettiğini doğruluyor.

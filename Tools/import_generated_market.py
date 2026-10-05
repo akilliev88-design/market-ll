@@ -39,20 +39,24 @@ for path in meshes:
             textures = list(unreal.MaterialEditingLibrary.get_used_textures(original))
             color = [t for t in textures if any(w in t.get_name().lower() for w in ('basecolor', 'base_color', 'albedo', 'diffuse'))]
             textures = color or textures
+        if not textures:
+            # NullRHI has no compiled material texture cache. This GLB has one atlas.
+            textures = [asset for p in paths if isinstance(asset := unreal.load_asset(p), unreal.Texture2D)]
         if len(textures) != 1:
-            unreal.log_warning(f'GENERATED_MATERIAL_REVIEW: {original}, textures={len(textures)}')
-            continue
+            raise RuntimeError(f'Generated atlas is ambiguous: {original}, textures={len(textures)}')
         name = 'M_Unlit_' + mesh.get_name() + '_' + str(index)
         material = unreal.load_asset(target + '/' + name)
         if not material:
             material = unreal.AssetToolsHelpers.get_asset_tools().create_asset(name, target, unreal.Material, unreal.MaterialFactoryNew())
-            material.set_editor_property('shading_model', unreal.MaterialShadingModel.MSM_UNLIT)
-            material.set_editor_property('two_sided', True)
-            sample = unreal.MaterialEditingLibrary.create_material_expression(material, unreal.MaterialExpressionTextureSample, 0, 0)
-            sample.set_editor_property('texture', textures[0])
-            unreal.MaterialEditingLibrary.connect_material_property(sample, 'RGB', unreal.MaterialProperty.MP_EMISSIVE_COLOR)
-            unreal.MaterialEditingLibrary.recompile_material(material)
-            unreal.EditorAssetLibrary.save_loaded_asset(material)
+        unreal.MaterialEditingLibrary.delete_all_material_expressions(material)
+        material.set_editor_property('shading_model', unreal.MaterialShadingModel.MSM_UNLIT)
+        material.set_editor_property('two_sided', True)
+        material.set_editor_property('used_with_nanite', True)
+        sample = unreal.MaterialEditingLibrary.create_material_expression(material, unreal.MaterialExpressionTextureSample, 0, 0)
+        sample.set_editor_property('texture', textures[0])
+        unreal.MaterialEditingLibrary.connect_material_property(sample, 'RGB', unreal.MaterialProperty.MP_EMISSIVE_COLOR)
+        unreal.MaterialEditingLibrary.recompile_material(material)
+        unreal.EditorAssetLibrary.save_loaded_asset(material)
         mesh.set_material(index, material)
     unreal.EditorAssetLibrary.save_loaded_asset(mesh)
 inspection = json.loads((root / 'Saved/ImageBlaster/textured-inspection.json').read_text(encoding='utf-8'))
@@ -62,5 +66,6 @@ if floor is None:
 collision_meshes = json.loads((root / 'Saved/ImageBlaster/collision-assets.json').read_text(encoding='utf-8'))
 manifest = dict(meshes=meshes, collision_meshes=collision_meshes, floor_cm=floor*100, source=str(source))
 (root / 'Saved/ImageBlaster/unreal-manifest.json').write_text(json.dumps(manifest, indent=2), encoding='utf-8')
+(root / 'AssetInbox/ImageBlaster/MahalleMarket/unreal-manifest.json').write_text(json.dumps(dict(meshes=meshes, collision_meshes=collision_meshes, floor_cm=floor*100), indent=2), encoding='utf-8')
 unreal.EditorAssetLibrary.save_directory(target, only_if_is_dirty=True, recursive=True)
 unreal.log('GENERATED_MARKET_IMPORTED=' + json.dumps(manifest))

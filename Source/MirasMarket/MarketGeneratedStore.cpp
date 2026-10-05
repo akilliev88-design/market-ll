@@ -25,7 +25,8 @@ namespace {
 TSharedPtr<FJsonObject> Manifest()
 {
     FString Text;
-    FFileHelper::LoadFileToString(Text, *(FPaths::ProjectSavedDir() / TEXT("ImageBlaster/unreal-manifest.json")));
+    if (!FFileHelper::LoadFileToString(Text, *(FPaths::ProjectDir() / TEXT("AssetInbox/ImageBlaster/MahalleMarket/unreal-manifest.json"))))
+        FFileHelper::LoadFileToString(Text, *(FPaths::ProjectSavedDir() / TEXT("ImageBlaster/unreal-manifest.json")));
     TSharedPtr<FJsonObject> Obj;
     FJsonSerializer::Deserialize(TJsonReaderFactory<>::Create(Text), Obj);
     return Obj;

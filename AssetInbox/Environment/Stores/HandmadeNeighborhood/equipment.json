@@ -1,0 +1,25 @@
+{
+  "mesh": "SM_HandmadeNeighborhood.fbx",
+  "dimensionsCm": [
+    800,
+    1000,
+    310
+  ],
+  "entryWidthCm": 180,
+  "floorCm": 0,
+  "collision": {
+    "pieces": 33
+  },
+  "materials": [
+    "Floor",
+    "Wall",
+    "Wood",
+    "Metal",
+    "Green",
+    "Concrete",
+    "Road",
+    "Glass",
+    "Light"
+  ],
+  "source": "Source/HandmadeNeighborhood.blend"
+}

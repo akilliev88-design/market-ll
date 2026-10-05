@@ -22,6 +22,14 @@
 #include "GameFramework/PlayerStart.h"
 #include "GameFramework/PlayerController.h"
 #include "GameFramework/Pawn.h"
+#include "GameFramework/Character.h"
+#include "GameFramework/CharacterMovementComponent.h"
+#include "Components/CapsuleComponent.h"
+#include "Engine/DirectionalLight.h"
+#include "Components/DirectionalLightComponent.h"
+#include "Engine/SkyLight.h"
+#include "Components/SkyLightComponent.h"
+#include "Components/SkyAtmosphereComponent.h"
 #include "HAL/FileManager.h"
 #include "Materials/MaterialInstanceDynamic.h"
 #include "Misc/CommandLine.h"
@@ -92,9 +100,11 @@ void AMarketArtTrialGameMode::BeginPlay()
 {
     Super::BeginPlay();
     bCapture = FParse::Param(FCommandLine::Get(), TEXT("ArtTrialCapture"));
+    bHandmade = FParse::Param(FCommandLine::Get(), TEXT("HandmadeNeighborhood"));
     StartedAt = FPlatformTime::Seconds();
     if (GEngine && GEngine->GameViewport) GEngine->GameViewport->ConsoleCommand(TEXT("r.SetRes 1600x900w"));
     OutputDirectory = FPaths::ProjectSavedDir() / TEXT("Screenshots/ArtTrial");
+    if (bHandmade) OutputDirectory = FPaths::ProjectSavedDir() / TEXT("Screenshots/HandmadeNeighborhood");
     IFileManager::Get().MakeDirectory(*OutputDirectory, true);
     TArray<FMarketProduct> Products;
     TArray<FString> Errors;
@@ -121,6 +131,11 @@ void AMarketArtTrialGameMode::BeginPlay()
     S.PlayerStart.At = FVector(0, -370, 90);
     S.Backroom = FBox(FVector(270, 350, 0), FVector(400, 500, 310));
     S.bHasDepotDoor = false;
+    if (bHandmade)
+    {
+        S.bEditableShell = false;
+        S.Shell = TEXT("/Game/Stores/Handmade/Neighborhood/SM_HandmadeNeighborhood.SM_HandmadeNeighborhood");
+    }
     auto Category = [&](const TCHAR* Id) { const auto* P = MarketCatalog::FindProduct(Products, Id); return P ? P->Category : FString(); };
     auto Fixture = [&](const TCHAR* Id, const TCHAR* Equipment, FVector At, float Yaw, const FString& C)
     {
@@ -176,6 +191,10 @@ void AMarketArtTrialGameMode::BeginPlay()
     auto* Rail = TrialMaterial(this, FLinearColor(.08f, .17f, .28f), .5f);
     auto* Steel = TrialMaterial(this, FLinearColor(.45f, .48f, .50f), .32f, .85f);
     auto* Floor = TrialMaterial(this, FLinearColor(.82f, .85f, .87f), .48f);
+    auto* Green = TrialMaterial(this, FLinearColor(.035f, .14f, .095f), .52f);
+    auto* Concrete = TrialMaterial(this, FLinearColor(.38f, .40f, .39f), .85f);
+    auto* Road = TrialMaterial(this, FLinearColor(.07f, .085f, .09f), .95f);
+    if (bHandmade) Box(GetWorld(), FVector(0,0,-35), FVector(30000,30000,10), Road);
     if (auto* Texture = LoadObject<UTexture>(nullptr, TEXT("/Game/Materials/Miras/Textures/T_Floor_Terrazzo.T_Floor_Terrazzo")))
     {
         Floor->SetTextureParameterValue(TEXT("BaseTex"), Texture);
@@ -191,6 +210,24 @@ void AMarketArtTrialGameMode::BeginPlay()
             UStaticMesh* Mesh = C->GetStaticMesh(); if (!Mesh) continue;
             // Product artwork retains its own materials and canonical studio UV mapping.
             if (Mesh->GetPathName().Contains(TEXT("/Products/"))) continue;
+            if (bHandmade && Mesh->GetName() == TEXT("SM_HandmadeNeighborhood"))
+            {
+                for (int32 I = 0; I < Mesh->GetStaticMaterials().Num(); ++I)
+                {
+                    const FString N = Mesh->GetStaticMaterials()[I].MaterialSlotName.ToString();
+                    UMaterialInterface* M = White;
+                    if (N.Contains(TEXT("Floor"))) M = Floor;
+                    else if (N.Contains(TEXT("Wood"))) M = MarketVisuals::CreateSurface(this, EMarketSurface::WoodLight);
+                    else if (N.Contains(TEXT("Metal"))) M = Dark;
+                    else if (N.Contains(TEXT("Glass"))) M = MarketVisuals::CreateSurface(this, EMarketSurface::Acrylic);
+                    else if (N.Contains(TEXT("Green"))) M = Green;
+                    else if (N.Contains(TEXT("Concrete"))) M = Concrete;
+                    else if (N.Contains(TEXT("Road"))) M = Road;
+                    else if (N.Contains(TEXT("Light"))) M = MarketVisuals::CreateSurface(this, EMarketSurface::Emissive);
+                    C->SetMaterial(I, M);
+                }
+                continue;
+            }
             if (auto* Instances = Cast<UInstancedStaticMeshComponent>(C))
             {
                 FTransform First;
@@ -241,11 +278,28 @@ void AMarketArtTrialGameMode::BeginPlay()
     }
     Area(GetWorld(), FVector(-365, -180, 175), FRotator(0, 0, 0), 9000, 220, 160, 6500);
     Area(GetWorld(), FVector(-60, 340, 185), FRotator(-25, -90, 0), 1200, 205, 25, 5500);
-    // A visible glazed side panel suggests daylight without changing the store shell.
+    if (bHandmade)
+    {
+        Area(GetWorld(), FVector(0, -720, 320), FRotator(-20, 90, 0), 18000, 750, 220, 6500);
+        auto* Sun = GetWorld()->SpawnActor<ADirectionalLight>(FVector(0,0,800), FRotator(-48,32,0));
+        auto* L = Cast<UDirectionalLightComponent>(Sun->GetLightComponent());
+        L->SetMobility(EComponentMobility::Movable); L->SetIntensity(1.6f);
+        L->SetAtmosphereSunLight(true);
+        auto* Atmosphere = GetWorld()->SpawnActor<ASkyAtmosphere>();
+        // The trial uses interior exposure and a restrained sun; balance the visible sky separately.
+        Atmosphere->GetComponent()->SetSkyLuminanceFactor(FLinearColor(2000,2000,2000));
+        auto* Sky = GetWorld()->SpawnActor<ASkyLight>();
+        Sky->GetLightComponent()->SetMobility(EComponentMobility::Movable);
+        Sky->GetLightComponent()->SetRealTimeCaptureEnabled(true);
+        Sky->GetLightComponent()->SetIntensity(.4f);
+    }
+    // The older art trial retains its small window dressing.
+    if (!bHandmade) {
     auto* Glass = MarketVisuals::CreateSurface(this, EMarketSurface::Acrylic);
     if (Glass) Box(GetWorld(), FVector(-388, -180, 170), FVector(2, 250, 160), Glass);
     for (float Y : {-305.f, -180.f, -55.f}) Box(GetWorld(), FVector(-385, Y, 170), FVector(6, 5, 170), Dark);
     for (float Z : {85.f, 255.f}) Box(GetWorld(), FVector(-385, -180, Z), FVector(6, 255, 5), Dark);
+    }
     auto* PP = GetWorld()->SpawnActor<APostProcessVolume>();
     PP->bUnbound = true; PP->Priority = 50; auto& P = PP->Settings;
     P.bOverride_AutoExposureMinBrightness = true; P.AutoExposureMinBrightness = 6.5f;
@@ -266,6 +320,7 @@ void AMarketArtTrialGameMode::BeginPlay()
         FPlatformMisc::RequestExitWithStatus(false, 1); return;
     }
     ReviewPerson->SetActorRotation(FRotator(0, 180, 0));
+    if (bHandmade) ReviewPerson->SetActorHiddenInGame(true);
     TArray<USkeletalMeshComponent*> Garments; ReviewPerson->GetComponents(Garments);
     for (auto* Garment : Garments) for (int32 I = 0; I < Garment->GetNumMaterials(); ++I)
     {
@@ -282,6 +337,7 @@ void AMarketArtTrialGameMode::BeginPlay()
     ReviewCamera = GetWorld()->SpawnActor<ACameraActor>();
     ReviewCamera->GetCameraComponent()->SetFieldOfView(72.f);
     SetReviewView(0);
+    if (bHandmade && !bCapture) if (auto* PC = GetWorld()->GetFirstPlayerController()) PC->SetViewTarget(PC->GetPawn());
     UE_LOG(LogTemp, Display, TEXT("ART_TRIAL_READY: %d dressed products, %d blocks, human %s"), Products.Num(), Plan.Placements.Num(), *ReviewPerson->GetClass()->GetName());
     bReady = true;
 }
@@ -289,8 +345,8 @@ void AMarketArtTrialGameMode::BeginPlay()
 void AMarketArtTrialGameMode::SetReviewView(int32 Index)
 {
     View = FMath::Clamp(Index, 0, 2);
-    const FVector Eyes[] = {FVector(0, -360, 165), FVector(5, -70, 148), FVector(65, 270, 163)};
-    const FVector Targets[] = {FVector(-20, 180, 125), FVector(-180, 80, 105), FVector(-65, 200, 143)};
+    const FVector Eyes[] = {bHandmade ? FVector(-620,-1060,230) : FVector(0, -360, 165), bHandmade ? FVector(5,-370,165) : FVector(5, -70, 148), bHandmade ? FVector(0,120,165) : FVector(65, 270, 163)};
+    const FVector Targets[] = {bHandmade ? FVector(0,-380,160) : FVector(-20, 180, 125), bHandmade ? FVector(-80,100,130) : FVector(-180, 80, 105), bHandmade ? FVector(0,-680,150) : FVector(-65, 200, 143)};
     ReviewCamera->SetActorLocationAndRotation(Eyes[View], (Targets[View] - Eyes[View]).Rotation());
     ReviewCamera->GetCameraComponent()->SetFieldOfView(View == 2 ? 58.f : 72.f);
     if (auto* PC = GetWorld()->GetFirstPlayerController()) PC->SetViewTarget(ReviewCamera);
@@ -315,6 +371,19 @@ void AMarketArtTrialGameMode::Tick(float DeltaSeconds)
         }
     }
     if (!bCapture) return;
+    if (bHandmade && !bWalkChecked && Now - StartedAt > 5)
+    {
+        auto* Walker = Cast<ACharacter>(GetWorld()->GetFirstPlayerController()->GetPawn());
+        FCollisionQueryParams Q; if (Walker) Q.AddIgnoredActor(Walker);
+        FHitResult Hit;
+        const FCollisionShape Capsule = FCollisionShape::MakeCapsule(30,88);
+        const bool BlockedEntry = GetWorld()->SweepSingleByChannel(Hit,FVector(0,-600,91),FVector(0,-400,91),FQuat::Identity,ECC_Pawn,Capsule,Q);
+        const bool BlockedGlass = GetWorld()->SweepSingleByChannel(Hit,FVector(250,-600,91),FVector(250,-400,91),FQuat::Identity,ECC_Pawn,Capsule,Q);
+        const bool Floor = Walker && Walker->GetCharacterMovement()->IsMovingOnGround();
+        UE_LOG(LogTemp, Display, TEXT("HANDMADE_WALK_CHECK: grounded=%d entry_clear=%d glass_solid=%d"), Floor,!BlockedEntry,BlockedGlass);
+        if (!Floor || BlockedEntry || !BlockedGlass) { UE_LOG(LogTemp, Error, TEXT("ART_TRIAL_FAILED: handmade walk validation")); FPlatformMisc::RequestExitWithStatus(false,1); return; }
+        bWalkChecked = true;
+    }
     if (Now - StartedAt > 300)
     {
         UE_LOG(LogTemp, Error, TEXT("ART_TRIAL_FAILED: capture timeout")); FPlatformMisc::RequestExitWithStatus(false, 1); return;

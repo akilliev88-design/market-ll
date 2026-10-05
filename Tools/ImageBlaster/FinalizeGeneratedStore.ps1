@@ -7,10 +7,11 @@ $runLog = Join-Path $marketRoot 'Saved/Logs/GeneratedStoreFinalize.log'
 function Status([string]$stage, [string]$detail) {
     @{stage=$stage; detail=$detail; updated=(Get-Date).ToString('o')} | ConvertTo-Json | Set-Content -LiteralPath $statusFile -Encoding utf8
 }
-function Run([string]$program, [string[]]$arguments, [string]$marker = '') {
+function Run([string]$program, [string[]]$arguments, [string]$marker = '', [string]$markerLog = '') {
     & $program @arguments *> $runLog
     if ($LASTEXITCODE -ne 0) { throw "Asama basarisiz: $program. Log: $runLog" }
-    if ($marker -and -not (Select-String -LiteralPath $runLog -SimpleMatch $marker -Quiet)) { throw "Basari kaydi yok: $marker. Log: $runLog" }
+    $checkLog = if ($markerLog) { $markerLog } else { $runLog }
+    if ($marker -and -not (Select-String -LiteralPath $checkLog -SimpleMatch $marker -Quiet)) { throw "Basari kaydi yok: $marker. Log: $checkLog" }
 }
 try {
     Status 'waiting_mesh' 'World Labs HQ model is being generated; existing operation is reused.'
@@ -23,11 +24,11 @@ try {
     foreach ($script in @('import_generated_collision.py', 'import_generated_market.py')) {
         Status 'importing' $script
         $importLog = Join-Path $marketRoot ('Saved/Logs/' + $script + '.log')
-        Run $editor @($project, '-run=pythonscript', "-script=$marketRoot/Tools/$script", '-unattended', '-nop4', '-nosound', '-NullRHI', "-abslog=$importLog") 'Python script executed successfully'
+        Run $editor @($project, '-run=pythonscript', "-script=$marketRoot/Tools/$script", '-unattended', '-nop4', '-nosound', '-NullRHI', "-abslog=$importLog") 'Python script executed successfully' $importLog
     }
     Status 'capturing' 'Checking player ground contact and capturing three review views.'
     $captureLog = Join-Path $marketRoot 'Saved/Logs/GeneratedStoreCapture.log'
-    Run $editor @($project, '/Engine/Maps/Entry?game=/Script/MirasMarket.MarketGeneratedStoreGameMode', '-game', '-RenderOffscreen', '-unattended', '-nosound', '-nop4', '-ResX=1600', '-ResY=900', '-GeneratedStoreCapture', "-abslog=$captureLog") 'GENERATED_STORE_PASSED'
+    Run $editor @($project, '/Engine/Maps/Entry?game=/Script/MirasMarket.MarketGeneratedStoreGameMode', '-game', '-RenderOffscreen', '-unattended', '-nosound', '-nop4', '-ResX=1600', '-ResY=900', '-GeneratedStoreCapture', "-abslog=$captureLog") 'GENERATED_STORE_PASSED' $captureLog
     foreach ($number in 1..3) {
         $shot = Join-Path $marketRoot ('Saved/Screenshots/GeneratedStore/{0:00}.png' -f $number)
         if (-not (Test-Path -LiteralPath $shot) -or (Get-Item -LiteralPath $shot).Length -eq 0) { throw "Missing screenshot: $shot" }

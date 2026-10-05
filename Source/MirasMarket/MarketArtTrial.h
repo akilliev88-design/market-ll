@@ -25,6 +25,8 @@ private:
     MarketPeople::FLibrary People;
     MarketPeople::FShopper Shopper;
     bool bCapture = false;
+    bool bHandmade = false;
+    bool bWalkChecked = false;
     bool bReady = false;
     int32 View = 0;
     int32 Stage = 0;
