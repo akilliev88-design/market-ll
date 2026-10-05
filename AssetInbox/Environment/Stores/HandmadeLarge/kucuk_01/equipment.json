@@ -1,0 +1,14 @@
+{
+  "mesh": "SM_Handmade_kucuk_01.fbx",
+  "id": "kucuk_01",
+  "dimensionsCm": [
+    2200.0,
+    1900.0,
+    360.0
+  ],
+  "entryWidthCm": 240.0,
+  "collision": {
+    "pieces": 36
+  },
+  "unrealMesh": "/Game/Stores/Handmade/Large/kucuk_01/SM_Handmade_kucuk_01.SM_Handmade_kucuk_01"
+}

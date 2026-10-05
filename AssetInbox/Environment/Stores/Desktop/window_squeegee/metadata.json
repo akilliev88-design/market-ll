@@ -1,0 +1,24 @@
+{
+  "id": "window_squeegee",
+  "displayName": "Cam temizleme aparati",
+  "sourcePhoto": 10,
+  "unit": "metre",
+  "pivot": "floor_bounds_center",
+  "frontAxis": "-Y",
+  "dimensionsMm": {
+    "width": 360.0,
+    "depth": 56.5,
+    "height": 1194.0
+  },
+  "triangles": 684,
+  "materials": [
+    "MI_steel",
+    "MI_orange",
+    "MI_foam",
+    "MI_rubber"
+  ],
+  "collisionCount": 0,
+  "collisionNote": "Simple part colliders; attached cargo should not simulate against its carrier",
+  "dimensionsAreApproximate": true,
+  "gameIntegration": false
+}

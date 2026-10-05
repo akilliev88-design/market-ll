@@ -1,0 +1,63 @@
+{
+  "schemaVersion": 1,
+  "id": "wire_hook_basket_600",
+  "displayName": "Rafa takilan tel aski sepeti",
+  "mesh": "SM_WireHookBasket600.fbx",
+  "family": "wire_display",
+  "unrealMesh": "/Game/Stores/Desktop/wire_hook_basket_600/SM_WireHookBasket600.SM_WireHookBasket600",
+  "dimensionsMm": {
+    "width": 578.0,
+    "depth": 348.0,
+    "height": 288.0
+  },
+  "origin": "floor_center",
+  "frontAxis": "-Y",
+  "materials": [
+    "MI_BrushedSteel"
+  ],
+  "collision": {
+    "policy": "custom_ucx",
+    "pieces": 1
+  },
+  "zones": [],
+  "checkouts": 0,
+  "planogram": {
+    "doubleSided": false,
+    "widthCm": 57.8,
+    "depthCm": 34.8,
+    "frontY": -7.0,
+    "meshYaw": 180,
+    "showCategorySign": false
+  },
+  "reference": {
+    "url": "http://www.buzrefrigeration.com/tr/urun/magaza-duzenleme",
+    "accuracy": "Reference-inspired authored proportions; not manufacturer CAD or technical dimensions"
+  },
+  "delivery": {
+    "status": "Standalone Blender asset, not integrated",
+    "sourceUnits": "metres",
+    "fbxUnits": "centimetres",
+    "editableParts": "Named vertex groups"
+  },
+  "deliverySource": "C:\\Users\\mtass\\Desktop\\Miras_Blender_Ekipman_2026-10-03\\Yeni_Modeller\\wire_hook_basket_600",
+  "sourceBlend": "Source/wire_hook_basket_600.blend",
+  "staticPlacement": true,
+  "geometryAudit": {
+    "overlapPairsBefore": 0,
+    "shiftedFaces": 0,
+    "overlapPairsAfter": 0
+  },
+  "sourceMaterialPalette": [
+    {
+      "name": "MI_BrushedSteel",
+      "color": [
+        0.5,
+        0.5400000214576721,
+        0.5699999928474426,
+        1.0
+      ],
+      "roughness": 0.2800000011920929,
+      "metallic": 0.8199999928474426
+    }
+  ]
+}

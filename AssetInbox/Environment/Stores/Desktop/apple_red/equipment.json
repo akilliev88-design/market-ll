@@ -1,0 +1,82 @@
+{
+  "schemaVersion": 1,
+  "kind": "apple",
+  "estimatedPieceMassGrams": 180,
+  "massIsApproximate": true,
+  "originUnit": "one piece",
+  "placement": "asset floor pivot; rotation may lay long vegetables flat",
+  "id": "apple_red",
+  "displayName": "Kirmizi elma",
+  "category": "produce",
+  "mesh": "SM_apple_red.fbx",
+  "dimensionsMm": {
+    "width": 80.23,
+    "depth": 82.05,
+    "height": 81.46
+  },
+  "triangles": 490,
+  "unit": "metre",
+  "pivot": "floor_bounds_center",
+  "frontAxis": "-Y",
+  "categorySign": false,
+  "family": "prop",
+  "unrealMesh": "/Game/Stores/Desktop/apple_red/SM_apple_red.SM_apple_red",
+  "checkouts": 0,
+  "zones": [],
+  "planogram": {
+    "doubleSided": false,
+    "widthCm": 8.023,
+    "depthCm": 8.205,
+    "frontY": 0,
+    "meshYaw": 180,
+    "showCategorySign": false
+  },
+  "deliverySource": "C:\\Users\\mtass\\Desktop\\Miras_Manav_Modelleri_2026-10-04\\Models\\apple_red",
+  "sourceBlend": "apple_red.blend",
+  "staticPlacement": true,
+  "collision": {
+    "policy": "custom_ucx",
+    "pieces": 0
+  },
+  "geometryAudit": {
+    "overlapPairsBefore": 0,
+    "shiftedFaces": 0,
+    "overlapPairsAfter": 0
+  },
+  "sourceMaterialPalette": [
+    {
+      "name": "MI_apple_red",
+      "color": [
+        0.5199999809265137,
+        0.023000000044703484,
+        0.014000000432133675,
+        1.0
+      ],
+      "roughness": 0.30000001192092896,
+      "metallic": 0.0,
+      "baseTexture": "AssetInbox/Environment/Stores/Desktop/apple_red/Textures/apple_red.png"
+    },
+    {
+      "name": "MI_Stem",
+      "color": [
+        0.1599999964237213,
+        0.07500000298023224,
+        0.024000000208616257,
+        1.0
+      ],
+      "roughness": 0.75,
+      "metallic": 0.0
+    },
+    {
+      "name": "MI_Leaf",
+      "color": [
+        0.02800000086426735,
+        0.1599999964237213,
+        0.014999999664723873,
+        1.0
+      ],
+      "roughness": 0.699999988079071,
+      "metallic": 0.0
+    }
+  ]
+}

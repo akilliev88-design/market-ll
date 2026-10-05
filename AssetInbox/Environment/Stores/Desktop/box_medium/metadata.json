@@ -1,0 +1,30 @@
+{
+  "id": "box_medium",
+  "displayName": "Orta koli",
+  "sourcePhoto": 1,
+  "unit": "metre",
+  "pivot": "floor_bounds_center",
+  "frontAxis": "-Y",
+  "dimensionsMm": {
+    "width": 400.0,
+    "depth": 302.0,
+    "height": 282.35
+  },
+  "triangles": 1318,
+  "materials": [
+    "MI_cardboard",
+    "MI_black",
+    "MI_packing_tape",
+    "MI_carton_mark"
+  ],
+  "collisionCount": 1,
+  "collisionNote": "Simple part colliders; attached cargo should not simulate against its carrier",
+  "dimensionsAreApproximate": true,
+  "gameIntegration": false,
+  "nominalSizeMetres": [
+    0.4000000059604645,
+    0.30000001192092896,
+    0.2800000011920929
+  ],
+  "cargoOnly": true
+}

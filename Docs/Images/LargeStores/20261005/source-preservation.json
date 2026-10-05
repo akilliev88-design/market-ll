@@ -1,0 +1,530 @@
+[
+  {
+    "id": "bread_selfservice_1200",
+    "originalUnchanged": true
+  },
+  {
+    "id": "checkout_impulse_1200",
+    "originalUnchanged": true
+  },
+  {
+    "id": "checkout_tower_600",
+    "originalUnchanged": true
+  },
+  {
+    "id": "child_cart_450",
+    "originalUnchanged": true
+  },
+  {
+    "id": "combo_freezer_2400",
+    "originalUnchanged": true
+  },
+  {
+    "id": "corner_service_90",
+    "originalUnchanged": true
+  },
+  {
+    "id": "curved_pastry_1800",
+    "originalUnchanged": true
+  },
+  {
+    "id": "diy_long_goods_1200",
+    "originalUnchanged": true
+  },
+  {
+    "id": "drink_cooler_3door_2100",
+    "originalUnchanged": true
+  },
+  {
+    "id": "entry_barrier_1500",
+    "originalUnchanged": true
+  },
+  {
+    "id": "entry_swing_gate_900",
+    "originalUnchanged": true
+  },
+  {
+    "id": "hardware_pegboard_1200",
+    "originalUnchanged": true
+  },
+  {
+    "id": "island_endcap_1050",
+    "originalUnchanged": true
+  },
+  {
+    "id": "library_shelf_1200",
+    "originalUnchanged": true
+  },
+  {
+    "id": "pharmacy_drawer_unit_1200",
+    "originalUnchanged": true
+  },
+  {
+    "id": "plastic_cart_600",
+    "originalUnchanged": true
+  },
+  {
+    "id": "plug_in_service_1500",
+    "originalUnchanged": true
+  },
+  {
+    "id": "plug_in_service_900",
+    "originalUnchanged": true
+  },
+  {
+    "id": "produce_chilled_island_2200",
+    "originalUnchanged": true
+  },
+  {
+    "id": "rolling_basket_450",
+    "originalUnchanged": true
+  },
+  {
+    "id": "upright_freezer_2door_1400",
+    "originalUnchanged": true
+  },
+  {
+    "id": "upright_freezer_4door_2800",
+    "originalUnchanged": true
+  },
+  {
+    "id": "upright_freezer_5door_3500",
+    "originalUnchanged": true
+  },
+  {
+    "id": "warehouse_heavy_2700",
+    "originalUnchanged": true
+  },
+  {
+    "id": "warehouse_rack_2400",
+    "originalUnchanged": true
+  },
+  {
+    "id": "wire_display_bin_900",
+    "originalUnchanged": true
+  },
+  {
+    "id": "wire_hook_basket_600",
+    "originalUnchanged": true
+  },
+  {
+    "id": "wire_peg_rack_900",
+    "originalUnchanged": true
+  },
+  {
+    "id": "apple_green",
+    "originalUnchanged": true
+  },
+  {
+    "id": "apple_red",
+    "originalUnchanged": true
+  },
+  {
+    "id": "banana",
+    "originalUnchanged": true
+  },
+  {
+    "id": "broccoli",
+    "originalUnchanged": true
+  },
+  {
+    "id": "cabbage",
+    "originalUnchanged": true
+  },
+  {
+    "id": "carrot",
+    "originalUnchanged": true
+  },
+  {
+    "id": "cauliflower",
+    "originalUnchanged": true
+  },
+  {
+    "id": "cucumber",
+    "originalUnchanged": true
+  },
+  {
+    "id": "eggplant",
+    "originalUnchanged": true
+  },
+  {
+    "id": "garlic",
+    "originalUnchanged": true
+  },
+  {
+    "id": "ginger",
+    "originalUnchanged": true
+  },
+  {
+    "id": "grapes_green",
+    "originalUnchanged": true
+  },
+  {
+    "id": "grapes_purple",
+    "originalUnchanged": true
+  },
+  {
+    "id": "lemon",
+    "originalUnchanged": true
+  },
+  {
+    "id": "melon",
+    "originalUnchanged": true
+  },
+  {
+    "id": "onion",
+    "originalUnchanged": true
+  },
+  {
+    "id": "orange",
+    "originalUnchanged": true
+  },
+  {
+    "id": "pear",
+    "originalUnchanged": true
+  },
+  {
+    "id": "pepper_green",
+    "originalUnchanged": true
+  },
+  {
+    "id": "pepper_red",
+    "originalUnchanged": true
+  },
+  {
+    "id": "potato",
+    "originalUnchanged": true
+  },
+  {
+    "id": "produce_long_counter",
+    "originalUnchanged": true
+  },
+  {
+    "id": "produce_panel_island",
+    "originalUnchanged": true
+  },
+  {
+    "id": "produce_slatted_island",
+    "originalUnchanged": true
+  },
+  {
+    "id": "produce_two_tier",
+    "originalUnchanged": true
+  },
+  {
+    "id": "tomato",
+    "originalUnchanged": true
+  },
+  {
+    "id": "watermelon",
+    "originalUnchanged": true
+  },
+  {
+    "id": "zucchini",
+    "originalUnchanged": true
+  },
+  {
+    "id": "box_cube",
+    "originalUnchanged": true
+  },
+  {
+    "id": "box_flat",
+    "originalUnchanged": true
+  },
+  {
+    "id": "box_large",
+    "originalUnchanged": true
+  },
+  {
+    "id": "box_long",
+    "originalUnchanged": true
+  },
+  {
+    "id": "box_medium",
+    "originalUnchanged": true
+  },
+  {
+    "id": "box_open",
+    "originalUnchanged": true
+  },
+  {
+    "id": "box_small",
+    "originalUnchanged": true
+  },
+  {
+    "id": "butcher_knife",
+    "originalUnchanged": true
+  },
+  {
+    "id": "cargo_panel_bundle",
+    "originalUnchanged": true
+  },
+  {
+    "id": "cutting_board",
+    "originalUnchanged": true
+  },
+  {
+    "id": "cutting_table",
+    "originalUnchanged": true
+  },
+  {
+    "id": "detergent_bottle",
+    "originalUnchanged": true
+  },
+  {
+    "id": "eas_pedestal",
+    "originalUnchanged": true
+  },
+  {
+    "id": "hand_truck_blue",
+    "originalUnchanged": true
+  },
+  {
+    "id": "janitor_bag",
+    "originalUnchanged": true
+  },
+  {
+    "id": "janitor_cart",
+    "originalUnchanged": true
+  },
+  {
+    "id": "meat_bone_steak",
+    "originalUnchanged": true
+  },
+  {
+    "id": "meat_diced",
+    "originalUnchanged": true
+  },
+  {
+    "id": "meat_steak",
+    "originalUnchanged": true
+  },
+  {
+    "id": "pallet_jack_orange",
+    "originalUnchanged": true
+  },
+  {
+    "id": "pallet_jack_yellow",
+    "originalUnchanged": true
+  },
+  {
+    "id": "paper_roll",
+    "originalUnchanged": true
+  },
+  {
+    "id": "pos_dual_display",
+    "originalUnchanged": true
+  },
+  {
+    "id": "security_hard_tag",
+    "originalUnchanged": true
+  },
+  {
+    "id": "security_soft_label",
+    "originalUnchanged": true
+  },
+  {
+    "id": "spray_bottle",
+    "originalUnchanged": true
+  },
+  {
+    "id": "steel_bowl",
+    "originalUnchanged": true
+  },
+  {
+    "id": "string_mop",
+    "originalUnchanged": true
+  },
+  {
+    "id": "window_squeegee",
+    "originalUnchanged": true
+  },
+  {
+    "id": "wood_pallet",
+    "originalUnchanged": true
+  },
+  {
+    "id": "wringer_bucket",
+    "originalUnchanged": true
+  },
+  {
+    "id": "sq_barcode_scanner",
+    "originalUnchanged": true
+  },
+  {
+    "id": "sq_cash_drawer",
+    "originalUnchanged": true
+  },
+  {
+    "id": "sq_customer_display",
+    "originalUnchanged": true
+  },
+  {
+    "id": "sq_handheld",
+    "originalUnchanged": true
+  },
+  {
+    "id": "sq_kiosk_counter",
+    "originalUnchanged": true
+  },
+  {
+    "id": "sq_kiosk_floor",
+    "originalUnchanged": true
+  },
+  {
+    "id": "sq_kiosk_wall_angled",
+    "originalUnchanged": true
+  },
+  {
+    "id": "sq_kiosk_wall_flat",
+    "originalUnchanged": true
+  },
+  {
+    "id": "sq_magstripe_audio",
+    "originalUnchanged": true
+  },
+  {
+    "id": "sq_magstripe_lightning",
+    "originalUnchanged": true
+  },
+  {
+    "id": "sq_magstripe_usbc",
+    "originalUnchanged": true
+  },
+  {
+    "id": "sq_reader",
+    "originalUnchanged": true
+  },
+  {
+    "id": "sq_reader_dock",
+    "originalUnchanged": true
+  },
+  {
+    "id": "sq_receipt_printer",
+    "originalUnchanged": true
+  },
+  {
+    "id": "sq_register",
+    "originalUnchanged": true
+  },
+  {
+    "id": "sq_stand",
+    "originalUnchanged": true
+  },
+  {
+    "id": "sq_terminal",
+    "originalUnchanged": true
+  },
+  {
+    "id": "sq_terminal_hub",
+    "originalUnchanged": true
+  },
+  {
+    "id": "checkout_dark_compact",
+    "originalUnchanged": true
+  },
+  {
+    "id": "checkout_pedestal_slim",
+    "originalUnchanged": true
+  },
+  {
+    "id": "checkout_white_tall",
+    "originalUnchanged": true
+  },
+  {
+    "id": "kt_appliance_bay_1800",
+    "originalUnchanged": true
+  },
+  {
+    "id": "kt_bakery_1200",
+    "originalUnchanged": true
+  },
+  {
+    "id": "kt_cantilever_2400",
+    "originalUnchanged": true
+  },
+  {
+    "id": "kt_checkout_2600",
+    "originalUnchanged": true
+  },
+  {
+    "id": "kt_cosmetic_island_1200",
+    "originalUnchanged": true
+  },
+  {
+    "id": "kt_cosmetic_wall_1200",
+    "originalUnchanged": true
+  },
+  {
+    "id": "kt_electronic_table_1600",
+    "originalUnchanged": true
+  },
+  {
+    "id": "kt_endcap_1000",
+    "originalUnchanged": true
+  },
+  {
+    "id": "kt_glassware_island_1500",
+    "originalUnchanged": true
+  },
+  {
+    "id": "kt_glassware_wall_1200",
+    "originalUnchanged": true
+  },
+  {
+    "id": "kt_gondola_1250",
+    "originalUnchanged": true
+  },
+  {
+    "id": "kt_hardware_1200",
+    "originalUnchanged": true
+  },
+  {
+    "id": "kt_inclined_1000",
+    "originalUnchanged": true
+  },
+  {
+    "id": "kt_pallet_rack_2700",
+    "originalUnchanged": true
+  },
+  {
+    "id": "kt_rolling_basket_440",
+    "originalUnchanged": true
+  },
+  {
+    "id": "kt_service_desk_1600",
+    "originalUnchanged": true
+  },
+  {
+    "id": "kt_shoe_island_1000",
+    "originalUnchanged": true
+  },
+  {
+    "id": "kt_shoe_wall_1200",
+    "originalUnchanged": true
+  },
+  {
+    "id": "kt_tripod_turnstile_700",
+    "originalUnchanged": true
+  },
+  {
+    "id": "kt_wall_1250",
+    "originalUnchanged": true
+  },
+  {
+    "id": "kt_wire_bin_800",
+    "originalUnchanged": true
+  },
+  {
+    "id": "kt_wire_cart_580",
+    "originalUnchanged": true
+  },
+  {
+    "id": "kt_wood_island_1400",
+    "originalUnchanged": true
+  },
+  {
+    "id": "kt_wood_wall_1200",
+    "originalUnchanged": true
+  }
+]

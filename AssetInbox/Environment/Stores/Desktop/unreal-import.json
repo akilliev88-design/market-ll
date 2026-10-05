@@ -1,0 +1,666 @@
+{
+  "assets": [
+    {
+      "id": "bread_selfservice_1200",
+      "mesh": "/Game/Stores/Desktop/bread_selfservice_1200/SM_BreadSelfservice1200.SM_BreadSelfservice1200",
+      "collisionPieces": 1
+    },
+    {
+      "id": "checkout_impulse_1200",
+      "mesh": "/Game/Stores/Desktop/checkout_impulse_1200/SM_CheckoutImpulse1200.SM_CheckoutImpulse1200",
+      "collisionPieces": 1
+    },
+    {
+      "id": "checkout_tower_600",
+      "mesh": "/Game/Stores/Desktop/checkout_tower_600/SM_CheckoutTower600.SM_CheckoutTower600",
+      "collisionPieces": 1
+    },
+    {
+      "id": "child_cart_450",
+      "mesh": "/Game/Stores/Desktop/child_cart_450/SM_ChildCart450.SM_ChildCart450",
+      "collisionPieces": 1
+    },
+    {
+      "id": "combo_freezer_2400",
+      "mesh": "/Game/Stores/Desktop/combo_freezer_2400/SM_ComboFreezer2400.SM_ComboFreezer2400",
+      "collisionPieces": 1
+    },
+    {
+      "id": "corner_service_90",
+      "mesh": "/Game/Stores/Desktop/corner_service_90/SM_CornerService90.SM_CornerService90",
+      "collisionPieces": 1
+    },
+    {
+      "id": "curved_pastry_1800",
+      "mesh": "/Game/Stores/Desktop/curved_pastry_1800/SM_CurvedPastry1800.SM_CurvedPastry1800",
+      "collisionPieces": 1
+    },
+    {
+      "id": "diy_long_goods_1200",
+      "mesh": "/Game/Stores/Desktop/diy_long_goods_1200/SM_DiyLongGoods1200.SM_DiyLongGoods1200",
+      "collisionPieces": 1
+    },
+    {
+      "id": "drink_cooler_3door_2100",
+      "mesh": "/Game/Stores/Desktop/drink_cooler_3door_2100/SM_DrinkCooler3Door2100.SM_DrinkCooler3Door2100",
+      "collisionPieces": 2
+    },
+    {
+      "id": "entry_barrier_1500",
+      "mesh": "/Game/Stores/Desktop/entry_barrier_1500/SM_EntryBarrier1500.SM_EntryBarrier1500",
+      "collisionPieces": 1
+    },
+    {
+      "id": "entry_swing_gate_900",
+      "mesh": "/Game/Stores/Desktop/entry_swing_gate_900/SM_EntrySwingGate900.SM_EntrySwingGate900",
+      "collisionPieces": 1
+    },
+    {
+      "id": "hardware_pegboard_1200",
+      "mesh": "/Game/Stores/Desktop/hardware_pegboard_1200/SM_HardwarePegboard1200.SM_HardwarePegboard1200",
+      "collisionPieces": 1
+    },
+    {
+      "id": "island_endcap_1050",
+      "mesh": "/Game/Stores/Desktop/island_endcap_1050/SM_IslandEndcap1050.SM_IslandEndcap1050",
+      "collisionPieces": 1
+    },
+    {
+      "id": "library_shelf_1200",
+      "mesh": "/Game/Stores/Desktop/library_shelf_1200/SM_LibraryShelf1200.SM_LibraryShelf1200",
+      "collisionPieces": 1
+    },
+    {
+      "id": "pharmacy_drawer_unit_1200",
+      "mesh": "/Game/Stores/Desktop/pharmacy_drawer_unit_1200/SM_PharmacyDrawerUnit1200.SM_PharmacyDrawerUnit1200",
+      "collisionPieces": 1
+    },
+    {
+      "id": "plastic_cart_600",
+      "mesh": "/Game/Stores/Desktop/plastic_cart_600/SM_PlasticCart600.SM_PlasticCart600",
+      "collisionPieces": 1
+    },
+    {
+      "id": "plug_in_service_1500",
+      "mesh": "/Game/Stores/Desktop/plug_in_service_1500/SM_PlugInService1500.SM_PlugInService1500",
+      "collisionPieces": 2
+    },
+    {
+      "id": "plug_in_service_900",
+      "mesh": "/Game/Stores/Desktop/plug_in_service_900/SM_PlugInService900.SM_PlugInService900",
+      "collisionPieces": 2
+    },
+    {
+      "id": "produce_chilled_island_2200",
+      "mesh": "/Game/Stores/Desktop/produce_chilled_island_2200/SM_ProduceChilledIsland2200.SM_ProduceChilledIsland2200",
+      "collisionPieces": 1
+    },
+    {
+      "id": "rolling_basket_450",
+      "mesh": "/Game/Stores/Desktop/rolling_basket_450/SM_RollingBasket450.SM_RollingBasket450",
+      "collisionPieces": 1
+    },
+    {
+      "id": "upright_freezer_2door_1400",
+      "mesh": "/Game/Stores/Desktop/upright_freezer_2door_1400/SM_UprightFreezer2Door1400.SM_UprightFreezer2Door1400",
+      "collisionPieces": 2
+    },
+    {
+      "id": "upright_freezer_4door_2800",
+      "mesh": "/Game/Stores/Desktop/upright_freezer_4door_2800/SM_UprightFreezer4Door2800.SM_UprightFreezer4Door2800",
+      "collisionPieces": 2
+    },
+    {
+      "id": "upright_freezer_5door_3500",
+      "mesh": "/Game/Stores/Desktop/upright_freezer_5door_3500/SM_UprightFreezer5Door3500.SM_UprightFreezer5Door3500",
+      "collisionPieces": 2
+    },
+    {
+      "id": "warehouse_heavy_2700",
+      "mesh": "/Game/Stores/Desktop/warehouse_heavy_2700/SM_WarehouseHeavy2700.SM_WarehouseHeavy2700",
+      "collisionPieces": 1
+    },
+    {
+      "id": "warehouse_rack_2400",
+      "mesh": "/Game/Stores/Desktop/warehouse_rack_2400/SM_WarehouseRack2400.SM_WarehouseRack2400",
+      "collisionPieces": 1
+    },
+    {
+      "id": "wire_display_bin_900",
+      "mesh": "/Game/Stores/Desktop/wire_display_bin_900/SM_WireDisplayBin900.SM_WireDisplayBin900",
+      "collisionPieces": 1
+    },
+    {
+      "id": "wire_hook_basket_600",
+      "mesh": "/Game/Stores/Desktop/wire_hook_basket_600/SM_WireHookBasket600.SM_WireHookBasket600",
+      "collisionPieces": 1
+    },
+    {
+      "id": "wire_peg_rack_900",
+      "mesh": "/Game/Stores/Desktop/wire_peg_rack_900/SM_WirePegRack900.SM_WirePegRack900",
+      "collisionPieces": 1
+    },
+    {
+      "id": "apple_green",
+      "mesh": "/Game/Stores/Desktop/apple_green/SM_apple_green.SM_apple_green",
+      "collisionPieces": 0
+    },
+    {
+      "id": "apple_red",
+      "mesh": "/Game/Stores/Desktop/apple_red/SM_apple_red.SM_apple_red",
+      "collisionPieces": 0
+    },
+    {
+      "id": "banana",
+      "mesh": "/Game/Stores/Desktop/banana/SM_banana.SM_banana",
+      "collisionPieces": 0
+    },
+    {
+      "id": "broccoli",
+      "mesh": "/Game/Stores/Desktop/broccoli/SM_broccoli.SM_broccoli",
+      "collisionPieces": 0
+    },
+    {
+      "id": "cabbage",
+      "mesh": "/Game/Stores/Desktop/cabbage/SM_cabbage.SM_cabbage",
+      "collisionPieces": 0
+    },
+    {
+      "id": "carrot",
+      "mesh": "/Game/Stores/Desktop/carrot/SM_carrot.SM_carrot",
+      "collisionPieces": 0
+    },
+    {
+      "id": "cauliflower",
+      "mesh": "/Game/Stores/Desktop/cauliflower/SM_cauliflower.SM_cauliflower",
+      "collisionPieces": 0
+    },
+    {
+      "id": "cucumber",
+      "mesh": "/Game/Stores/Desktop/cucumber/SM_cucumber.SM_cucumber",
+      "collisionPieces": 0
+    },
+    {
+      "id": "eggplant",
+      "mesh": "/Game/Stores/Desktop/eggplant/SM_eggplant.SM_eggplant",
+      "collisionPieces": 0
+    },
+    {
+      "id": "garlic",
+      "mesh": "/Game/Stores/Desktop/garlic/SM_garlic.SM_garlic",
+      "collisionPieces": 0
+    },
+    {
+      "id": "ginger",
+      "mesh": "/Game/Stores/Desktop/ginger/SM_ginger.SM_ginger",
+      "collisionPieces": 0
+    },
+    {
+      "id": "grapes_green",
+      "mesh": "/Game/Stores/Desktop/grapes_green/SM_grapes_green.SM_grapes_green",
+      "collisionPieces": 0
+    },
+    {
+      "id": "grapes_purple",
+      "mesh": "/Game/Stores/Desktop/grapes_purple/SM_grapes_purple.SM_grapes_purple",
+      "collisionPieces": 0
+    },
+    {
+      "id": "lemon",
+      "mesh": "/Game/Stores/Desktop/lemon/SM_lemon.SM_lemon",
+      "collisionPieces": 0
+    },
+    {
+      "id": "melon",
+      "mesh": "/Game/Stores/Desktop/melon/SM_melon.SM_melon",
+      "collisionPieces": 0
+    },
+    {
+      "id": "onion",
+      "mesh": "/Game/Stores/Desktop/onion/SM_onion.SM_onion",
+      "collisionPieces": 0
+    },
+    {
+      "id": "orange",
+      "mesh": "/Game/Stores/Desktop/orange/SM_orange.SM_orange",
+      "collisionPieces": 0
+    },
+    {
+      "id": "pear",
+      "mesh": "/Game/Stores/Desktop/pear/SM_pear.SM_pear",
+      "collisionPieces": 0
+    },
+    {
+      "id": "pepper_green",
+      "mesh": "/Game/Stores/Desktop/pepper_green/SM_pepper_green.SM_pepper_green",
+      "collisionPieces": 0
+    },
+    {
+      "id": "pepper_red",
+      "mesh": "/Game/Stores/Desktop/pepper_red/SM_pepper_red.SM_pepper_red",
+      "collisionPieces": 0
+    },
+    {
+      "id": "potato",
+      "mesh": "/Game/Stores/Desktop/potato/SM_potato.SM_potato",
+      "collisionPieces": 0
+    },
+    {
+      "id": "produce_long_counter",
+      "mesh": "/Game/Stores/Desktop/produce_long_counter/SM_produce_long_counter.SM_produce_long_counter",
+      "collisionPieces": 1
+    },
+    {
+      "id": "produce_panel_island",
+      "mesh": "/Game/Stores/Desktop/produce_panel_island/SM_produce_panel_island.SM_produce_panel_island",
+      "collisionPieces": 1
+    },
+    {
+      "id": "produce_slatted_island",
+      "mesh": "/Game/Stores/Desktop/produce_slatted_island/SM_produce_slatted_island.SM_produce_slatted_island",
+      "collisionPieces": 1
+    },
+    {
+      "id": "produce_two_tier",
+      "mesh": "/Game/Stores/Desktop/produce_two_tier/SM_produce_two_tier.SM_produce_two_tier",
+      "collisionPieces": 2
+    },
+    {
+      "id": "tomato",
+      "mesh": "/Game/Stores/Desktop/tomato/SM_tomato.SM_tomato",
+      "collisionPieces": 0
+    },
+    {
+      "id": "watermelon",
+      "mesh": "/Game/Stores/Desktop/watermelon/SM_watermelon.SM_watermelon",
+      "collisionPieces": 0
+    },
+    {
+      "id": "zucchini",
+      "mesh": "/Game/Stores/Desktop/zucchini/SM_zucchini.SM_zucchini",
+      "collisionPieces": 0
+    },
+    {
+      "id": "box_cube",
+      "mesh": "/Game/Stores/Desktop/box_cube/SM_box_cube.SM_box_cube",
+      "collisionPieces": 1
+    },
+    {
+      "id": "box_flat",
+      "mesh": "/Game/Stores/Desktop/box_flat/SM_box_flat.SM_box_flat",
+      "collisionPieces": 1
+    },
+    {
+      "id": "box_large",
+      "mesh": "/Game/Stores/Desktop/box_large/SM_box_large.SM_box_large",
+      "collisionPieces": 1
+    },
+    {
+      "id": "box_long",
+      "mesh": "/Game/Stores/Desktop/box_long/SM_box_long.SM_box_long",
+      "collisionPieces": 1
+    },
+    {
+      "id": "box_medium",
+      "mesh": "/Game/Stores/Desktop/box_medium/SM_box_medium.SM_box_medium",
+      "collisionPieces": 1
+    },
+    {
+      "id": "box_open",
+      "mesh": "/Game/Stores/Desktop/box_open/SM_box_open.SM_box_open",
+      "collisionPieces": 0
+    },
+    {
+      "id": "box_small",
+      "mesh": "/Game/Stores/Desktop/box_small/SM_box_small.SM_box_small",
+      "collisionPieces": 1
+    },
+    {
+      "id": "butcher_knife",
+      "mesh": "/Game/Stores/Desktop/butcher_knife/SM_butcher_knife.SM_butcher_knife",
+      "collisionPieces": 0
+    },
+    {
+      "id": "cargo_panel_bundle",
+      "mesh": "/Game/Stores/Desktop/cargo_panel_bundle/SM_cargo_panel_bundle.SM_cargo_panel_bundle",
+      "collisionPieces": 0
+    },
+    {
+      "id": "cutting_board",
+      "mesh": "/Game/Stores/Desktop/cutting_board/SM_cutting_board.SM_cutting_board",
+      "collisionPieces": 0
+    },
+    {
+      "id": "cutting_table",
+      "mesh": "/Game/Stores/Desktop/cutting_table/SM_cutting_table.SM_cutting_table",
+      "collisionPieces": 6
+    },
+    {
+      "id": "detergent_bottle",
+      "mesh": "/Game/Stores/Desktop/detergent_bottle/SM_detergent_bottle.SM_detergent_bottle",
+      "collisionPieces": 0
+    },
+    {
+      "id": "eas_pedestal",
+      "mesh": "/Game/Stores/Desktop/eas_pedestal/SM_eas_pedestal.SM_eas_pedestal",
+      "collisionPieces": 2
+    },
+    {
+      "id": "hand_truck_blue",
+      "mesh": "/Game/Stores/Desktop/hand_truck_blue/SM_hand_truck_blue.SM_hand_truck_blue",
+      "collisionPieces": 5
+    },
+    {
+      "id": "janitor_bag",
+      "mesh": "/Game/Stores/Desktop/janitor_bag/SM_janitor_bag.SM_janitor_bag",
+      "collisionPieces": 0
+    },
+    {
+      "id": "janitor_cart",
+      "mesh": "/Game/Stores/Desktop/janitor_cart/SM_janitor_cart.SM_janitor_cart",
+      "collisionPieces": 8
+    },
+    {
+      "id": "meat_bone_steak",
+      "mesh": "/Game/Stores/Desktop/meat_bone_steak/SM_meat_bone_steak.SM_meat_bone_steak",
+      "collisionPieces": 0
+    },
+    {
+      "id": "meat_diced",
+      "mesh": "/Game/Stores/Desktop/meat_diced/SM_meat_diced.SM_meat_diced",
+      "collisionPieces": 0
+    },
+    {
+      "id": "meat_steak",
+      "mesh": "/Game/Stores/Desktop/meat_steak/SM_meat_steak.SM_meat_steak",
+      "collisionPieces": 0
+    },
+    {
+      "id": "pallet_jack_orange",
+      "mesh": "/Game/Stores/Desktop/pallet_jack_orange/SM_pallet_jack_orange.SM_pallet_jack_orange",
+      "collisionPieces": 8
+    },
+    {
+      "id": "pallet_jack_yellow",
+      "mesh": "/Game/Stores/Desktop/pallet_jack_yellow/SM_pallet_jack_yellow.SM_pallet_jack_yellow",
+      "collisionPieces": 8
+    },
+    {
+      "id": "paper_roll",
+      "mesh": "/Game/Stores/Desktop/paper_roll/SM_paper_roll.SM_paper_roll",
+      "collisionPieces": 0
+    },
+    {
+      "id": "pos_dual_display",
+      "mesh": "/Game/Stores/Desktop/pos_dual_display/SM_pos_dual_display.SM_pos_dual_display",
+      "collisionPieces": 0
+    },
+    {
+      "id": "security_hard_tag",
+      "mesh": "/Game/Stores/Desktop/security_hard_tag/SM_security_hard_tag.SM_security_hard_tag",
+      "collisionPieces": 0
+    },
+    {
+      "id": "security_soft_label",
+      "mesh": "/Game/Stores/Desktop/security_soft_label/SM_security_soft_label.SM_security_soft_label",
+      "collisionPieces": 0
+    },
+    {
+      "id": "spray_bottle",
+      "mesh": "/Game/Stores/Desktop/spray_bottle/SM_spray_bottle.SM_spray_bottle",
+      "collisionPieces": 0
+    },
+    {
+      "id": "steel_bowl",
+      "mesh": "/Game/Stores/Desktop/steel_bowl/SM_steel_bowl.SM_steel_bowl",
+      "collisionPieces": 0
+    },
+    {
+      "id": "string_mop",
+      "mesh": "/Game/Stores/Desktop/string_mop/SM_string_mop.SM_string_mop",
+      "collisionPieces": 0
+    },
+    {
+      "id": "window_squeegee",
+      "mesh": "/Game/Stores/Desktop/window_squeegee/SM_window_squeegee.SM_window_squeegee",
+      "collisionPieces": 0
+    },
+    {
+      "id": "wood_pallet",
+      "mesh": "/Game/Stores/Desktop/wood_pallet/SM_wood_pallet.SM_wood_pallet",
+      "collisionPieces": 20
+    },
+    {
+      "id": "wringer_bucket",
+      "mesh": "/Game/Stores/Desktop/wringer_bucket/SM_wringer_bucket.SM_wringer_bucket",
+      "collisionPieces": 0
+    },
+    {
+      "id": "sq_barcode_scanner",
+      "mesh": "/Game/Stores/Desktop/sq_barcode_scanner/SM_SqBarcodeScanner.SM_SqBarcodeScanner",
+      "collisionPieces": 1
+    },
+    {
+      "id": "sq_cash_drawer",
+      "mesh": "/Game/Stores/Desktop/sq_cash_drawer/SM_SqCashDrawer.SM_SqCashDrawer",
+      "collisionPieces": 1
+    },
+    {
+      "id": "sq_customer_display",
+      "mesh": "/Game/Stores/Desktop/sq_customer_display/SM_SqCustomerDisplay.SM_SqCustomerDisplay",
+      "collisionPieces": 1
+    },
+    {
+      "id": "sq_handheld",
+      "mesh": "/Game/Stores/Desktop/sq_handheld/SM_SqHandheld.SM_SqHandheld",
+      "collisionPieces": 1
+    },
+    {
+      "id": "sq_kiosk_counter",
+      "mesh": "/Game/Stores/Desktop/sq_kiosk_counter/SM_SqKioskCounter.SM_SqKioskCounter",
+      "collisionPieces": 1
+    },
+    {
+      "id": "sq_kiosk_floor",
+      "mesh": "/Game/Stores/Desktop/sq_kiosk_floor/SM_SqKioskFloor.SM_SqKioskFloor",
+      "collisionPieces": 1
+    },
+    {
+      "id": "sq_kiosk_wall_angled",
+      "mesh": "/Game/Stores/Desktop/sq_kiosk_wall_angled/SM_SqKioskWallAngled.SM_SqKioskWallAngled",
+      "collisionPieces": 1
+    },
+    {
+      "id": "sq_kiosk_wall_flat",
+      "mesh": "/Game/Stores/Desktop/sq_kiosk_wall_flat/SM_SqKioskWallFlat.SM_SqKioskWallFlat",
+      "collisionPieces": 1
+    },
+    {
+      "id": "sq_magstripe_audio",
+      "mesh": "/Game/Stores/Desktop/sq_magstripe_audio/SM_SqMagstripeAudio.SM_SqMagstripeAudio",
+      "collisionPieces": 1
+    },
+    {
+      "id": "sq_magstripe_lightning",
+      "mesh": "/Game/Stores/Desktop/sq_magstripe_lightning/SM_SqMagstripeLightning.SM_SqMagstripeLightning",
+      "collisionPieces": 1
+    },
+    {
+      "id": "sq_magstripe_usbc",
+      "mesh": "/Game/Stores/Desktop/sq_magstripe_usbc/SM_SqMagstripeUsbc.SM_SqMagstripeUsbc",
+      "collisionPieces": 1
+    },
+    {
+      "id": "sq_reader",
+      "mesh": "/Game/Stores/Desktop/sq_reader/SM_SqReader.SM_SqReader",
+      "collisionPieces": 1
+    },
+    {
+      "id": "sq_reader_dock",
+      "mesh": "/Game/Stores/Desktop/sq_reader_dock/SM_SqReaderDock.SM_SqReaderDock",
+      "collisionPieces": 1
+    },
+    {
+      "id": "sq_receipt_printer",
+      "mesh": "/Game/Stores/Desktop/sq_receipt_printer/SM_SqReceiptPrinter.SM_SqReceiptPrinter",
+      "collisionPieces": 1
+    },
+    {
+      "id": "sq_register",
+      "mesh": "/Game/Stores/Desktop/sq_register/SM_SqRegister.SM_SqRegister",
+      "collisionPieces": 1
+    },
+    {
+      "id": "sq_stand",
+      "mesh": "/Game/Stores/Desktop/sq_stand/SM_SqStand.SM_SqStand",
+      "collisionPieces": 1
+    },
+    {
+      "id": "sq_terminal",
+      "mesh": "/Game/Stores/Desktop/sq_terminal/SM_SqTerminal.SM_SqTerminal",
+      "collisionPieces": 1
+    },
+    {
+      "id": "sq_terminal_hub",
+      "mesh": "/Game/Stores/Desktop/sq_terminal_hub/SM_SqTerminalHub.SM_SqTerminalHub",
+      "collisionPieces": 1
+    },
+    {
+      "id": "checkout_dark_compact",
+      "mesh": "/Game/Stores/Desktop/checkout_dark_compact/SM_CheckoutDarkCompact.SM_CheckoutDarkCompact",
+      "collisionPieces": 3
+    },
+    {
+      "id": "checkout_pedestal_slim",
+      "mesh": "/Game/Stores/Desktop/checkout_pedestal_slim/SM_CheckoutPedestalSlim.SM_CheckoutPedestalSlim",
+      "collisionPieces": 3
+    },
+    {
+      "id": "checkout_white_tall",
+      "mesh": "/Game/Stores/Desktop/checkout_white_tall/SM_CheckoutWhiteTall.SM_CheckoutWhiteTall",
+      "collisionPieces": 3
+    },
+    {
+      "id": "kt_appliance_bay_1800",
+      "mesh": "/Game/Stores/Desktop/kt_appliance_bay_1800/SM_KtApplianceBay1800.SM_KtApplianceBay1800",
+      "collisionPieces": 1
+    },
+    {
+      "id": "kt_bakery_1200",
+      "mesh": "/Game/Stores/Desktop/kt_bakery_1200/SM_KtBakery1200.SM_KtBakery1200",
+      "collisionPieces": 1
+    },
+    {
+      "id": "kt_cantilever_2400",
+      "mesh": "/Game/Stores/Desktop/kt_cantilever_2400/SM_KtCantilever2400.SM_KtCantilever2400",
+      "collisionPieces": 1
+    },
+    {
+      "id": "kt_checkout_2600",
+      "mesh": "/Game/Stores/Desktop/kt_checkout_2600/SM_KtCheckout2600.SM_KtCheckout2600",
+      "collisionPieces": 1
+    },
+    {
+      "id": "kt_cosmetic_island_1200",
+      "mesh": "/Game/Stores/Desktop/kt_cosmetic_island_1200/SM_KtCosmeticIsland1200.SM_KtCosmeticIsland1200",
+      "collisionPieces": 1
+    },
+    {
+      "id": "kt_cosmetic_wall_1200",
+      "mesh": "/Game/Stores/Desktop/kt_cosmetic_wall_1200/SM_KtCosmeticWall1200.SM_KtCosmeticWall1200",
+      "collisionPieces": 1
+    },
+    {
+      "id": "kt_electronic_table_1600",
+      "mesh": "/Game/Stores/Desktop/kt_electronic_table_1600/SM_KtElectronicTable1600.SM_KtElectronicTable1600",
+      "collisionPieces": 1
+    },
+    {
+      "id": "kt_endcap_1000",
+      "mesh": "/Game/Stores/Desktop/kt_endcap_1000/SM_KtEndcap1000.SM_KtEndcap1000",
+      "collisionPieces": 1
+    },
+    {
+      "id": "kt_glassware_island_1500",
+      "mesh": "/Game/Stores/Desktop/kt_glassware_island_1500/SM_KtGlasswareIsland1500.SM_KtGlasswareIsland1500",
+      "collisionPieces": 1
+    },
+    {
+      "id": "kt_glassware_wall_1200",
+      "mesh": "/Game/Stores/Desktop/kt_glassware_wall_1200/SM_KtGlasswareWall1200.SM_KtGlasswareWall1200",
+      "collisionPieces": 1
+    },
+    {
+      "id": "kt_gondola_1250",
+      "mesh": "/Game/Stores/Desktop/kt_gondola_1250/SM_KtGondola1250.SM_KtGondola1250",
+      "collisionPieces": 1
+    },
+    {
+      "id": "kt_hardware_1200",
+      "mesh": "/Game/Stores/Desktop/kt_hardware_1200/SM_KtHardware1200.SM_KtHardware1200",
+      "collisionPieces": 1
+    },
+    {
+      "id": "kt_inclined_1000",
+      "mesh": "/Game/Stores/Desktop/kt_inclined_1000/SM_KtInclined1000.SM_KtInclined1000",
+      "collisionPieces": 1
+    },
+    {
+      "id": "kt_pallet_rack_2700",
+      "mesh": "/Game/Stores/Desktop/kt_pallet_rack_2700/SM_KtPalletRack2700.SM_KtPalletRack2700",
+      "collisionPieces": 1
+    },
+    {
+      "id": "kt_rolling_basket_440",
+      "mesh": "/Game/Stores/Desktop/kt_rolling_basket_440/SM_KtRollingBasket440.SM_KtRollingBasket440",
+      "collisionPieces": 1
+    },
+    {
+      "id": "kt_service_desk_1600",
+      "mesh": "/Game/Stores/Desktop/kt_service_desk_1600/SM_KtServiceDesk1600.SM_KtServiceDesk1600",
+      "collisionPieces": 1
+    },
+    {
+      "id": "kt_shoe_island_1000",
+      "mesh": "/Game/Stores/Desktop/kt_shoe_island_1000/SM_KtShoeIsland1000.SM_KtShoeIsland1000",
+      "collisionPieces": 1
+    },
+    {
+      "id": "kt_shoe_wall_1200",
+      "mesh": "/Game/Stores/Desktop/kt_shoe_wall_1200/SM_KtShoeWall1200.SM_KtShoeWall1200",
+      "collisionPieces": 1
+    },
+    {
+      "id": "kt_tripod_turnstile_700",
+      "mesh": "/Game/Stores/Desktop/kt_tripod_turnstile_700/SM_KtTripodTurnstile700.SM_KtTripodTurnstile700",
+      "collisionPieces": 1
+    },
+    {
+      "id": "kt_wall_1250",
+      "mesh": "/Game/Stores/Desktop/kt_wall_1250/SM_KtWall1250.SM_KtWall1250",
+      "collisionPieces": 1
+    },
+    {
+      "id": "kt_wire_bin_800",
+      "mesh": "/Game/Stores/Desktop/kt_wire_bin_800/SM_KtWireBin800.SM_KtWireBin800",
+      "collisionPieces": 1
+    },
+    {
+      "id": "kt_wire_cart_580",
+      "mesh": "/Game/Stores/Desktop/kt_wire_cart_580/SM_KtWireCart580.SM_KtWireCart580",
+      "collisionPieces": 1
+    },
+    {
+      "id": "kt_wood_island_1400",
+      "mesh": "/Game/Stores/Desktop/kt_wood_island_1400/SM_KtWoodIsland1400.SM_KtWoodIsland1400",
+      "collisionPieces": 1
+    },
+    {
+      "id": "kt_wood_wall_1200",
+      "mesh": "/Game/Stores/Desktop/kt_wood_wall_1200/SM_KtWoodWall1200.SM_KtWoodWall1200",
+      "collisionPieces": 1
+    }
+  ],
+  "completed": 132,
+  "total": 132
+}

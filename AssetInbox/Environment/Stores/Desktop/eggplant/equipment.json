@@ -1,0 +1,71 @@
+{
+  "schemaVersion": 1,
+  "kind": "eggplant",
+  "estimatedPieceMassGrams": 300,
+  "massIsApproximate": true,
+  "originUnit": "one piece",
+  "placement": "asset floor pivot; rotation may lay long vegetables flat",
+  "id": "eggplant",
+  "displayName": "Patlican",
+  "category": "produce",
+  "mesh": "SM_eggplant.fbx",
+  "dimensionsMm": {
+    "width": 82.0,
+    "depth": 82.76,
+    "height": 236.11
+  },
+  "triangles": 522,
+  "unit": "metre",
+  "pivot": "floor_bounds_center",
+  "frontAxis": "-Y",
+  "categorySign": false,
+  "family": "prop",
+  "unrealMesh": "/Game/Stores/Desktop/eggplant/SM_eggplant.SM_eggplant",
+  "checkouts": 0,
+  "zones": [],
+  "planogram": {
+    "doubleSided": false,
+    "widthCm": 8.2,
+    "depthCm": 8.276,
+    "frontY": 0,
+    "meshYaw": 180,
+    "showCategorySign": false
+  },
+  "deliverySource": "C:\\Users\\mtass\\Desktop\\Miras_Manav_Modelleri_2026-10-04\\Models\\eggplant",
+  "sourceBlend": "eggplant.blend",
+  "staticPlacement": true,
+  "collision": {
+    "policy": "custom_ucx",
+    "pieces": 0
+  },
+  "geometryAudit": {
+    "overlapPairsBefore": 0,
+    "shiftedFaces": 0,
+    "overlapPairsAfter": 0
+  },
+  "sourceMaterialPalette": [
+    {
+      "name": "MI_eggplant",
+      "color": [
+        0.04500000178813934,
+        0.008999999612569809,
+        0.07000000029802322,
+        1.0
+      ],
+      "roughness": 0.30000001192092896,
+      "metallic": 0.0,
+      "baseTexture": "AssetInbox/Environment/Stores/Desktop/eggplant/Textures/eggplant.png"
+    },
+    {
+      "name": "MI_Leaf",
+      "color": [
+        0.02800000086426735,
+        0.1599999964237213,
+        0.014999999664723873,
+        1.0
+      ],
+      "roughness": 0.699999988079071,
+      "metallic": 0.0
+    }
+  ]
+}

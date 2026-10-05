@@ -1,0 +1,123 @@
+{
+  "schemaVersion": 1,
+  "id": "kt_service_desk_1600",
+  "displayName": "Ahsap musteri hizmetleri bankosu",
+  "family": "checkout",
+  "mesh": "SM_KtServiceDesk1600.fbx",
+  "dimensionsMm": {
+    "width": 1600.0,
+    "depth": 682.0,
+    "height": 1092.5
+  },
+  "origin": "floor_center",
+  "frontAxis": "-Y",
+  "materials": [
+    "MI_Rubber",
+    "MI_Oak",
+    "MI_Walnut",
+    "MI_Ivory",
+    "MI_Teal",
+    "MI_Chrome"
+  ],
+  "zones": [],
+  "checkouts": 0,
+  "planogram": {
+    "doubleSided": false,
+    "widthCm": 160.0,
+    "depthCm": 68.2,
+    "showCategorySign": false,
+    "frontY": 0,
+    "meshYaw": 180
+  },
+  "collision": {
+    "policy": "custom_ucx",
+    "pieces": 1
+  },
+  "reference": {
+    "url": "https://www.kantarci.com.tr/en/products/supermarket-shelf-systems/safe-desk-turnstile/",
+    "accuracy": "Category-inspired original geometry, not exact manufacturer CAD, SKU or measured reproduction"
+  },
+  "delivery": {
+    "status": "Standalone, not integrated",
+    "sourceUnits": "metres",
+    "fbxUnits": "centimetres",
+    "editableParts": "Named vertex groups"
+  },
+  "unrealMesh": "/Game/Stores/Desktop/kt_service_desk_1600/SM_KtServiceDesk1600.SM_KtServiceDesk1600",
+  "deliverySource": "C:\\Users\\mtass\\Desktop\\Miras_Kantarci_Alternatif_Modeller_2026-10-04\\Yeni_Modeller\\kt_service_desk_1600",
+  "sourceBlend": "Source/kt_service_desk_1600.blend",
+  "staticPlacement": true,
+  "geometryAudit": {
+    "overlapPairsBefore": 0,
+    "shiftedFaces": 0,
+    "overlapPairsAfter": 0
+  },
+  "sourceMaterialPalette": [
+    {
+      "name": "MI_Rubber",
+      "color": [
+        0.008999999612569809,
+        0.012000000104308128,
+        0.014000000432133675,
+        1.0
+      ],
+      "roughness": 0.6499999761581421,
+      "metallic": 0.0
+    },
+    {
+      "name": "MI_Oak",
+      "color": [
+        0.3799999952316284,
+        0.23000000417232513,
+        0.10000000149011612,
+        1.0
+      ],
+      "roughness": 0.4300000071525574,
+      "metallic": 0.0
+    },
+    {
+      "name": "MI_Walnut",
+      "color": [
+        0.1599999964237213,
+        0.07800000160932541,
+        0.03500000014901161,
+        1.0
+      ],
+      "roughness": 0.4000000059604645,
+      "metallic": 0.0
+    },
+    {
+      "name": "MI_Ivory",
+      "color": [
+        0.7799999713897705,
+        0.7699999809265137,
+        0.6899999976158142,
+        1.0
+      ],
+      "roughness": 0.3400000035762787,
+      "metallic": 0.07999999821186066
+    },
+    {
+      "name": "MI_Teal",
+      "color": [
+        0.017999999225139618,
+        0.23999999463558197,
+        0.25,
+        1.0
+      ],
+      "roughness": 0.30000001192092896,
+      "metallic": 0.2199999988079071
+    },
+    {
+      "name": "MI_Chrome",
+      "color": [
+        0.5899999737739563,
+        0.6399999856948853,
+        0.6700000166893005,
+        1.0
+      ],
+      "roughness": 0.20000000298023224,
+      "metallic": 0.8700000047683716
+    }
+  ]
+}

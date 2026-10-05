@@ -1,0 +1,26 @@
+{
+  "id": "spray_bottle",
+  "displayName": "Temizlik spreyi",
+  "sourcePhoto": 10,
+  "unit": "metre",
+  "pivot": "floor_bounds_center",
+  "frontAxis": "-Y",
+  "dimensionsMm": {
+    "width": 94.0,
+    "depth": 116.0,
+    "height": 259.5
+  },
+  "triangles": 1420,
+  "materials": [
+    "MI_BlueBottle",
+    "MI_cleaning_label",
+    "MI_white",
+    "MI_yellow"
+  ],
+  "collisionCount": 0,
+  "collisionNote": "Simple part colliders; attached cargo should not simulate against its carrier",
+  "dimensionsAreApproximate": true,
+  "gameIntegration": false,
+  "labelOnBodySurface": true,
+  "labelUsesBodyUV": true
+}

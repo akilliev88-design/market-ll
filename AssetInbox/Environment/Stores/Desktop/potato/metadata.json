@@ -1,0 +1,22 @@
+{
+  "schemaVersion": 1,
+  "kind": "potato",
+  "estimatedPieceMassGrams": 180,
+  "massIsApproximate": true,
+  "originUnit": "one piece",
+  "placement": "asset floor pivot; rotation may lay long vegetables flat",
+  "id": "potato",
+  "displayName": "Patates",
+  "category": "produce",
+  "mesh": "SM_potato",
+  "dimensionsMm": {
+    "width": 95.0,
+    "depth": 95.0,
+    "height": 72.0
+  },
+  "triangles": 624,
+  "unit": "metre",
+  "pivot": "floor_bounds_center",
+  "frontAxis": "-Y",
+  "categorySign": false
+}

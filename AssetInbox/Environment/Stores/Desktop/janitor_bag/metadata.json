@@ -1,0 +1,22 @@
+{
+  "id": "janitor_bag",
+  "displayName": "Temizlik arabasi torbasi",
+  "sourcePhoto": 10,
+  "unit": "metre",
+  "pivot": "floor_bounds_center",
+  "frontAxis": "-Y",
+  "dimensionsMm": {
+    "width": 320.0,
+    "depth": 316.0,
+    "height": 720.0
+  },
+  "triangles": 4910,
+  "materials": [
+    "MI_yellow_fabric",
+    "MI_steel"
+  ],
+  "collisionCount": 0,
+  "collisionNote": "Simple part colliders; attached cargo should not simulate against its carrier",
+  "dimensionsAreApproximate": true,
+  "gameIntegration": false
+}

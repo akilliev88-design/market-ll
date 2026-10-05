@@ -1,0 +1,108 @@
+{
+  "id": "pallet_jack_orange",
+  "displayName": "Turuncu transpalet",
+  "sourcePhoto": 3,
+  "unit": "metre",
+  "pivot": "floor_bounds_center",
+  "frontAxis": "-Y",
+  "dimensionsMm": {
+    "width": 640.0,
+    "depth": 1527.0,
+    "height": 1335.0
+  },
+  "triangles": 6360,
+  "materials": [
+    "MI_orange",
+    "MI_rubber",
+    "MI_steel",
+    "MI_black"
+  ],
+  "collisionCount": 8,
+  "collisionNote": "Simple part colliders; attached cargo should not simulate against its carrier",
+  "dimensionsAreApproximate": true,
+  "gameIntegration": false,
+  "emptyByDefault": true,
+  "cargoCombined": false,
+  "cargoAnchorMetres": [
+    0.0,
+    -0.3185000419616699,
+    0.02500000037252903
+  ],
+  "movingPartGroups": [
+    "SteeringWheel",
+    "LoadRoller",
+    "HandleShaft",
+    "LoopHandle"
+  ],
+  "family": "prop",
+  "mesh": "SM_pallet_jack_orange.fbx",
+  "unrealMesh": "/Game/Stores/Desktop/pallet_jack_orange/SM_pallet_jack_orange.SM_pallet_jack_orange",
+  "checkouts": 0,
+  "zones": [],
+  "planogram": {
+    "doubleSided": false,
+    "widthCm": 64.0,
+    "depthCm": 152.7,
+    "frontY": 0,
+    "meshYaw": 180,
+    "showCategorySign": false
+  },
+  "deliverySource": "C:\\Users\\mtass\\Desktop\\Miras_Magaza_Araclari_2026-10-04\\Models\\pallet_jack_orange",
+  "sourceBlend": "pallet_jack_orange.blend",
+  "staticPlacement": true,
+  "collision": {
+    "policy": "custom_ucx",
+    "pieces": 8
+  },
+  "geometryAudit": {
+    "overlapPairsBefore": 0,
+    "shiftedFaces": 0,
+    "overlapPairsAfter": 0
+  },
+  "sourceMaterialPalette": [
+    {
+      "name": "MI_orange",
+      "color": [
+        0.7200000286102295,
+        0.11999999731779099,
+        0.009999999776482582,
+        1.0
+      ],
+      "roughness": 0.3199999928474426,
+      "metallic": 0.2199999988079071
+    },
+    {
+      "name": "MI_rubber",
+      "color": [
+        0.007000000216066837,
+        0.008999999612569809,
+        0.012000000104308128,
+        1.0
+      ],
+      "roughness": 0.7599999904632568,
+      "metallic": 0.0
+    },
+    {
+      "name": "MI_steel",
+      "color": [
+        0.4000000059604645,
+        0.44999998807907104,
+        0.49000000953674316,
+        1.0
+      ],
+      "roughness": 0.27000001072883606,
+      "metallic": 0.8199999928474426
+    },
+    {
+      "name": "MI_black",
+      "color": [
+        0.012000000104308128,
+        0.01600000075995922,
+        0.020999999716877937,
+        1.0
+      ],
+      "roughness": 0.47999998927116394,
+      "metallic": 0.10000000149011612
+    }
+  ]
+}

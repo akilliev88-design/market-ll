@@ -1,0 +1,29 @@
+{
+  "id": "pos_dual_display",
+  "displayName": "Cift ekranli POS",
+  "sourcePhoto": 9,
+  "unit": "metre",
+  "pivot": "floor_bounds_center",
+  "frontAxis": "-Y",
+  "dimensionsMm": {
+    "width": 450.0,
+    "depth": 261.0,
+    "height": 604.5
+  },
+  "triangles": 1144,
+  "materials": [
+    "MI_steel",
+    "MI_black",
+    "MI_pos_operator",
+    "MI_pos_customer"
+  ],
+  "collisionCount": 0,
+  "collisionNote": "Simple part colliders; attached cargo should not simulate against its carrier",
+  "dimensionsAreApproximate": true,
+  "gameIntegration": false,
+  "dynamicScreenMaterials": [
+    "MI_pos_operator",
+    "MI_pos_customer"
+  ],
+  "displayIsPlaceholder": true
+}

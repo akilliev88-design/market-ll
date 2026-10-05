@@ -1,4 +1,5 @@
 #include "MarketStoreKit.h"
+#include "MarketStoreDressing.h"
 #include "MarketTelevisionDisplay.h"
 #include "MarketStoreEditing.h"
 #include "MarketGame.h"
@@ -19,6 +20,16 @@
 namespace StoreBuild
 {
     const FName Tag(TEXT("MirasStoreKit"));
+    UMaterialInstanceDynamic* CeilingSurface(UObject* Outer,const FLinearColor& Color,float Metal=0)
+    {
+        auto* Base=LoadObject<UMaterialInterface>(nullptr,MarketVisuals::SurfaceMasterPath);
+        if(!Base)return nullptr;
+        auto* M=UMaterialInstanceDynamic::Create(Base,Outer);
+        M->SetVectorParameterValue(TEXT("Color"),Color);
+        M->SetScalarParameterValue(TEXT("UseTexture"),0);M->SetScalarParameterValue(TEXT("Wear"),0);
+        M->SetScalarParameterValue(TEXT("Roughness"),.75f);M->SetScalarParameterValue(TEXT("Metallic"),Metal);
+        return M;
+    }
     AActor* Holder(UWorld* World)
     {
         auto* A=World->SpawnActor<AActor>(); A->Tags.Add(Tag);
@@ -71,6 +82,8 @@ bool MarketStoreKit::Build(UWorld* World,const FStoreTemplate& S,const FMarketPl
     {
         auto* RoofActor=StoreBuild::Holder(World); RoofActor->Tags.Add(TEXT("MirasStoreRoof"));
         auto* C=NewObject<UStaticMeshComponent>(RoofActor); C->SetupAttachment(RoofActor->GetRootComponent()); C->SetStaticMesh(Roof); C->SetCollisionProfileName(TEXT("BlockAll")); C->RegisterComponent(); C->SetRelativeRotation(FRotator(0,180,0));
+        if(auto* Gray=StoreBuild::CeilingSurface(RoofActor,FLinearColor(.62f,.65f,.67f)))
+            for(int32 Slot=0;Slot<C->GetNumMaterials();++Slot)C->SetMaterial(Slot,Gray);
     }
     FHitResult FloorHit;
     if(S.Format==TEXT("buyuk")||S.Format==TEXT("hiper"))
@@ -79,6 +92,13 @@ bool MarketStoreKit::Build(UWorld* World,const FStoreTemplate& S,const FMarketPl
         {
             auto* CeilingActor=StoreBuild::Holder(World); CeilingActor->Tags.Add(TEXT("MirasStoreRoof"));
             auto* Bays=StoreBuild::Instances(CeilingActor,Services,false);
+            const auto& Slots=Services->GetStaticMaterials();
+            for(int32 Slot=0;Slot<Slots.Num();++Slot)
+            {
+                const FString Name=Slots[Slot].MaterialSlotName.ToString();
+                if(Name.Contains(TEXT("BlackSteel"))||Name.Contains(TEXT("Galvanized")))
+                    if(auto* Gray=StoreBuild::CeilingSurface(CeilingActor,Name.Contains(TEXT("BlackSteel"))?FLinearColor(.32f,.35f,.37f):FLinearColor(.45f,.48f,.50f),.35f))Bays->SetMaterial(Slot,Gray);
+            }
             for(float X=-S.FootprintCm.X*.5f+300;X<=S.FootprintCm.X*.5f-300;X+=600)
                 for(float Y=-S.FootprintCm.Y*.5f+300;Y<=S.FootprintCm.Y*.5f-300;Y+=600)
                     Bays->AddInstance(FTransform(FRotator(0,180,0),FVector(X,Y,S.CeilingCm-15)));
@@ -205,9 +225,14 @@ bool MarketStoreKit::Build(UWorld* World,const FStoreTemplate& S,const FMarketPl
             auto* L=World->SpawnActor<ARectLight>(FVector(X,Y,S.CeilingCm-40),FRotator(-90,0,0)); L->Tags.Add(StoreBuild::Tag);
             auto* R=Cast<URectLightComponent>(L->GetLightComponent()); R->SetMobility(EComponentMobility::Movable); R->SetUseTemperature(true); R->SetTemperature(Temperature);
             R->SetSourceWidth(Spacing*.7f); R->SetSourceHeight(Spacing*.7f); R->SetIntensity(Spacing==1200?30000:9000); R->SetAttenuationRadius(Spacing*1.6f); R->SetCastShadows(false);
+            // Upward fixture spill lights the gray ceiling above the luminaires.
+            auto* Up=World->SpawnActor<ARectLight>(FVector(X,Y,S.CeilingCm-80),FRotator(90,0,0));Up->Tags.Add(StoreBuild::Tag);
+            auto* U=Cast<URectLightComponent>(Up->GetLightComponent());U->SetMobility(EComponentMobility::Movable);U->SetIntensityUnits(ELightUnits::Lumens);
+            U->SetIntensity(Spacing==1200?16000:6000);U->SetSourceWidth(Spacing*.6f);U->SetSourceHeight(Spacing*.6f);U->SetAttenuationRadius(Spacing);U->SetCastShadows(false);
         }
     StoreBuild::Text(World,S.Entrance.At+FVector(0,15,240),90,TEXT("\u00c7IKI\u015e"),22);
     StoreBuild::Text(World,FVector(0,S.Backroom.Min.Y-15,230),-90,TEXT("DEPO / MAL KABUL"),18);
+    MarketStoreDressing::Build(World,S);
     UE_LOG(LogTemp,Display,TEXT("MirasStoreKit built %s: %d fixtures, %d product instances"),*S.Id,S.Fixtures.Num(),Count);
     return true;
 }

@@ -1,0 +1,14 @@
+{
+  "mesh": "SM_Handmade_buyuk_01.fbx",
+  "id": "buyuk_01",
+  "dimensionsCm": [
+    4000.0,
+    3000.0,
+    600.0
+  ],
+  "entryWidthCm": 400,
+  "collision": {
+    "pieces": 46
+  },
+  "unrealMesh": "/Game/Stores/Handmade/Large/buyuk_01/SM_Handmade_buyuk_01.SM_Handmade_buyuk_01"
+}

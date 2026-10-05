@@ -1,0 +1,127 @@
+{
+  "schemaVersion": 1,
+  "id": "kt_wood_island_1400",
+  "displayName": "Basamakli ahsap orta ada",
+  "family": "shelf",
+  "mesh": "SM_KtWoodIsland1400.fbx",
+  "dimensionsMm": {
+    "width": 1400.0,
+    "depth": 900.0,
+    "height": 1202.5
+  },
+  "origin": "floor_center",
+  "frontAxis": "-Y",
+  "materials": [
+    "MI_Rubber",
+    "MI_Walnut",
+    "MI_Oak"
+  ],
+  "zones": [
+    {
+      "id": "front_l00",
+      "face": "front",
+      "level": 0,
+      "centerCm": [
+        -2.9802322387695312e-06,
+        -1.4901161193847656e-06,
+        47.300000000000004
+      ],
+      "usableWidthCm": 138.0,
+      "usableDepthCm": 88.0,
+      "clearanceHeightCm": 25
+    },
+    {
+      "id": "front_l01",
+      "face": "front",
+      "level": 1,
+      "centerCm": [
+        -2.9802322387695312e-06,
+        -1.4901161193847656e-06,
+        82.30000000000001
+      ],
+      "usableWidthCm": 113.99999999999999,
+      "usableDepthCm": 64.0,
+      "clearanceHeightCm": 25
+    },
+    {
+      "id": "front_l02",
+      "face": "front",
+      "level": 2,
+      "centerCm": [
+        -2.9802322387695312e-06,
+        -1.4901161193847656e-06,
+        120.29999999999998
+      ],
+      "usableWidthCm": 89.99999999999999,
+      "usableDepthCm": 40.0,
+      "clearanceHeightCm": 25
+    }
+  ],
+  "checkouts": 0,
+  "planogram": {
+    "doubleSided": true,
+    "widthCm": 89.99999999999999,
+    "depthCm": 40.0,
+    "showCategorySign": false,
+    "frontY": -20.00000149011612,
+    "meshYaw": 180
+  },
+  "collision": {
+    "policy": "custom_ucx",
+    "pieces": 1
+  },
+  "reference": {
+    "url": "https://www.kantarci.com.tr/en/products/supermarket-shelf-systems/wooden-shelves/",
+    "accuracy": "Category-inspired original geometry, not exact manufacturer CAD, SKU or measured reproduction"
+  },
+  "delivery": {
+    "status": "Standalone, not integrated",
+    "sourceUnits": "metres",
+    "fbxUnits": "centimetres",
+    "editableParts": "Named vertex groups"
+  },
+  "unrealMesh": "/Game/Stores/Desktop/kt_wood_island_1400/SM_KtWoodIsland1400.SM_KtWoodIsland1400",
+  "deliverySource": "C:\\Users\\mtass\\Desktop\\Miras_Kantarci_Alternatif_Modeller_2026-10-04\\Yeni_Modeller\\kt_wood_island_1400",
+  "sourceBlend": "Source/kt_wood_island_1400.blend",
+  "staticPlacement": true,
+  "geometryAudit": {
+    "overlapPairsBefore": 0,
+    "shiftedFaces": 0,
+    "overlapPairsAfter": 0
+  },
+  "sourceMaterialPalette": [
+    {
+      "name": "MI_Rubber",
+      "color": [
+        0.008999999612569809,
+        0.012000000104308128,
+        0.014000000432133675,
+        1.0
+      ],
+      "roughness": 0.6499999761581421,
+      "metallic": 0.0
+    },
+    {
+      "name": "MI_Walnut",
+      "color": [
+        0.1599999964237213,
+        0.07800000160932541,
+        0.03500000014901161,
+        1.0
+      ],
+      "roughness": 0.4000000059604645,
+      "metallic": 0.0
+    },
+    {
+      "name": "MI_Oak",
+      "color": [
+        0.3799999952316284,
+        0.23000000417232513,
+        0.10000000149011612,
+        1.0
+      ],
+      "roughness": 0.4300000071525574,
+      "metallic": 0.0
+    }
+  ]
+}

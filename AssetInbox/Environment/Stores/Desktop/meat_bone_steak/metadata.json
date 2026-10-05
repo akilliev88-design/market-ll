@@ -1,0 +1,26 @@
+{
+  "id": "meat_bone_steak",
+  "displayName": "Kemikli et dilimi",
+  "sourcePhoto": 4,
+  "unit": "metre",
+  "pivot": "floor_bounds_center",
+  "frontAxis": "-Y",
+  "dimensionsMm": {
+    "width": 294.98,
+    "depth": 205.4,
+    "height": 41.8
+  },
+  "triangles": 726,
+  "materials": [
+    "MI_raw_meat",
+    "MI_MeatFat",
+    "MI_CutBone",
+    "MI_BoneMarrow"
+  ],
+  "collisionCount": 0,
+  "collisionNote": "Simple part colliders; attached cargo should not simulate against its carrier",
+  "dimensionsAreApproximate": true,
+  "gameIntegration": false,
+  "rawMeat": true,
+  "independentAccessory": true
+}

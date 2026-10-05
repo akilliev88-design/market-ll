@@ -1,0 +1,22 @@
+{
+  "schemaVersion": 1,
+  "kind": "broccoli",
+  "estimatedPieceMassGrams": 400,
+  "massIsApproximate": true,
+  "originUnit": "one piece",
+  "placement": "asset floor pivot; rotation may lay long vegetables flat",
+  "id": "broccoli",
+  "displayName": "Brokoli",
+  "category": "produce",
+  "mesh": "SM_broccoli",
+  "dimensionsMm": {
+    "width": 200.0,
+    "depth": 174.28,
+    "height": 154.55
+  },
+  "triangles": 16576,
+  "unit": "metre",
+  "pivot": "floor_bounds_center",
+  "frontAxis": "-Y",
+  "categorySign": false
+}

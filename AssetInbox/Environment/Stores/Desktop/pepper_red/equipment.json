@@ -1,0 +1,71 @@
+{
+  "schemaVersion": 1,
+  "kind": "pepper",
+  "estimatedPieceMassGrams": 120,
+  "massIsApproximate": true,
+  "originUnit": "one piece",
+  "placement": "asset floor pivot; rotation may lay long vegetables flat",
+  "id": "pepper_red",
+  "displayName": "Kirmizi biber",
+  "category": "produce",
+  "mesh": "SM_pepper_red.fbx",
+  "dimensionsMm": {
+    "width": 86.65,
+    "depth": 89.79,
+    "height": 130.11
+  },
+  "triangles": 522,
+  "unit": "metre",
+  "pivot": "floor_bounds_center",
+  "frontAxis": "-Y",
+  "categorySign": false,
+  "family": "prop",
+  "unrealMesh": "/Game/Stores/Desktop/pepper_red/SM_pepper_red.SM_pepper_red",
+  "checkouts": 0,
+  "zones": [],
+  "planogram": {
+    "doubleSided": false,
+    "widthCm": 8.665000000000001,
+    "depthCm": 8.979000000000001,
+    "frontY": 0,
+    "meshYaw": 180,
+    "showCategorySign": false
+  },
+  "deliverySource": "C:\\Users\\mtass\\Desktop\\Miras_Manav_Modelleri_2026-10-04\\Models\\pepper_red",
+  "sourceBlend": "pepper_red.blend",
+  "staticPlacement": true,
+  "collision": {
+    "policy": "custom_ucx",
+    "pieces": 0
+  },
+  "geometryAudit": {
+    "overlapPairsBefore": 0,
+    "shiftedFaces": 0,
+    "overlapPairsAfter": 0
+  },
+  "sourceMaterialPalette": [
+    {
+      "name": "MI_pepper_red",
+      "color": [
+        0.6200000047683716,
+        0.012000000104308128,
+        0.008999999612569809,
+        1.0
+      ],
+      "roughness": 0.30000001192092896,
+      "metallic": 0.0,
+      "baseTexture": "AssetInbox/Environment/Stores/Desktop/pepper_red/Textures/pepper_red.png"
+    },
+    {
+      "name": "MI_Leaf",
+      "color": [
+        0.02800000086426735,
+        0.1599999964237213,
+        0.014999999664723873,
+        1.0
+      ],
+      "roughness": 0.699999988079071,
+      "metallic": 0.0
+    }
+  ]
+}

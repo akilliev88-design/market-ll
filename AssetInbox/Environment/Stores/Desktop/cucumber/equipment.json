@@ -1,0 +1,71 @@
+{
+  "schemaVersion": 1,
+  "kind": "long",
+  "estimatedPieceMassGrams": 180,
+  "massIsApproximate": true,
+  "originUnit": "one piece",
+  "placement": "asset floor pivot; rotation may lay long vegetables flat",
+  "id": "cucumber",
+  "displayName": "Salatalik",
+  "category": "produce",
+  "mesh": "SM_cucumber.fbx",
+  "dimensionsMm": {
+    "width": 48.23,
+    "depth": 46.43,
+    "height": 219.85
+  },
+  "triangles": 482,
+  "unit": "metre",
+  "pivot": "floor_bounds_center",
+  "frontAxis": "-Y",
+  "categorySign": false,
+  "family": "prop",
+  "unrealMesh": "/Game/Stores/Desktop/cucumber/SM_cucumber.SM_cucumber",
+  "checkouts": 0,
+  "zones": [],
+  "planogram": {
+    "doubleSided": false,
+    "widthCm": 4.8229999999999995,
+    "depthCm": 4.643,
+    "frontY": 0,
+    "meshYaw": 180,
+    "showCategorySign": false
+  },
+  "deliverySource": "C:\\Users\\mtass\\Desktop\\Miras_Manav_Modelleri_2026-10-04\\Models\\cucumber",
+  "sourceBlend": "cucumber.blend",
+  "staticPlacement": true,
+  "collision": {
+    "policy": "custom_ucx",
+    "pieces": 0
+  },
+  "geometryAudit": {
+    "overlapPairsBefore": 0,
+    "shiftedFaces": 0,
+    "overlapPairsAfter": 0
+  },
+  "sourceMaterialPalette": [
+    {
+      "name": "MI_cucumber",
+      "color": [
+        0.029999999329447746,
+        0.18000000715255737,
+        0.03700000047683716,
+        1.0
+      ],
+      "roughness": 0.44999998807907104,
+      "metallic": 0.0,
+      "baseTexture": "AssetInbox/Environment/Stores/Desktop/cucumber/Textures/cucumber.png"
+    },
+    {
+      "name": "MI_Stem",
+      "color": [
+        0.1599999964237213,
+        0.07500000298023224,
+        0.024000000208616257,
+        1.0
+      ],
+      "roughness": 0.75,
+      "metallic": 0.0
+    }
+  ]
+}

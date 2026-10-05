@@ -1,0 +1,98 @@
+{
+  "id": "spray_bottle",
+  "displayName": "Temizlik spreyi",
+  "sourcePhoto": 10,
+  "unit": "metre",
+  "pivot": "floor_bounds_center",
+  "frontAxis": "-Y",
+  "dimensionsMm": {
+    "width": 94.0,
+    "depth": 116.0,
+    "height": 259.5
+  },
+  "triangles": 1420,
+  "materials": [
+    "MI_BlueBottle",
+    "MI_cleaning_label",
+    "MI_white",
+    "MI_yellow"
+  ],
+  "collisionCount": 0,
+  "collisionNote": "Simple part colliders; attached cargo should not simulate against its carrier",
+  "dimensionsAreApproximate": true,
+  "gameIntegration": false,
+  "labelOnBodySurface": true,
+  "labelUsesBodyUV": true,
+  "family": "prop",
+  "mesh": "SM_spray_bottle.fbx",
+  "unrealMesh": "/Game/Stores/Desktop/spray_bottle/SM_spray_bottle.SM_spray_bottle",
+  "checkouts": 0,
+  "zones": [],
+  "planogram": {
+    "doubleSided": false,
+    "widthCm": 9.4,
+    "depthCm": 11.6,
+    "frontY": 0,
+    "meshYaw": 180,
+    "showCategorySign": false
+  },
+  "deliverySource": "C:\\Users\\mtass\\Desktop\\Miras_Magaza_Araclari_2026-10-04\\Models\\spray_bottle",
+  "sourceBlend": "spray_bottle.blend",
+  "staticPlacement": true,
+  "collision": {
+    "policy": "custom_ucx",
+    "pieces": 0
+  },
+  "geometryAudit": {
+    "overlapPairsBefore": 0,
+    "shiftedFaces": 0,
+    "overlapPairsAfter": 0
+  },
+  "sourceMaterialPalette": [
+    {
+      "name": "MI_BlueBottle",
+      "color": [
+        0.012000000104308128,
+        0.25,
+        0.44999998807907104,
+        1.0
+      ],
+      "roughness": 0.23999999463558197,
+      "metallic": 0.0
+    },
+    {
+      "name": "MI_cleaning_label",
+      "color": [
+        1.0,
+        1.0,
+        1.0,
+        1.0
+      ],
+      "roughness": 0.6399999856948853,
+      "metallic": 0.0,
+      "baseTexture": "AssetInbox/Environment/Stores/Desktop/spray_bottle/Textures/cleaning_label.png"
+    },
+    {
+      "name": "MI_white",
+      "color": [
+        0.7200000286102295,
+        0.75,
+        0.7599999904632568,
+        1.0
+      ],
+      "roughness": 0.4300000071525574,
+      "metallic": 0.0
+    },
+    {
+      "name": "MI_yellow",
+      "color": [
+        0.800000011920929,
+        0.5299999713897705,
+        0.00800000037997961,
+        1.0
+      ],
+      "roughness": 0.3700000047683716,
+      "metallic": 0.12999999523162842
+    }
+  ]
+}

@@ -1,0 +1,216 @@
+{
+  "schemaVersion": 1,
+  "sourcePhotoIndices": [
+    1
+  ],
+  "emptyByDefault": true,
+  "produceCombinedWithCabinet": false,
+  "fillZones": [
+    {
+      "id": "bin_00",
+      "centerMetres": [
+        -0.800000011920929,
+        -0.4000000059604645,
+        0.8500000238418579
+      ],
+      "rotationEulerRadians": [
+        0,
+        0,
+        0
+      ],
+      "innerSizeMetres": [
+        0.7229999999999999,
+        0.723,
+        0.24
+      ],
+      "floorTopLocalZ": 0.011,
+      "defaultProduct": null
+    },
+    {
+      "id": "bin_01",
+      "centerMetres": [
+        0.0,
+        -0.4000000059604645,
+        0.8500000238418579
+      ],
+      "rotationEulerRadians": [
+        0,
+        0,
+        0
+      ],
+      "innerSizeMetres": [
+        0.7229999999999999,
+        0.723,
+        0.24
+      ],
+      "floorTopLocalZ": 0.011,
+      "defaultProduct": null
+    },
+    {
+      "id": "bin_02",
+      "centerMetres": [
+        0.800000011920929,
+        -0.4000000059604645,
+        0.8500000238418579
+      ],
+      "rotationEulerRadians": [
+        0,
+        0,
+        0
+      ],
+      "innerSizeMetres": [
+        0.7229999999999999,
+        0.723,
+        0.24
+      ],
+      "floorTopLocalZ": 0.011,
+      "defaultProduct": null
+    },
+    {
+      "id": "bin_03",
+      "centerMetres": [
+        -0.800000011920929,
+        0.4000000059604645,
+        0.8500000238418579
+      ],
+      "rotationEulerRadians": [
+        0,
+        0,
+        0
+      ],
+      "innerSizeMetres": [
+        0.7229999999999999,
+        0.723,
+        0.24
+      ],
+      "floorTopLocalZ": 0.011,
+      "defaultProduct": null
+    },
+    {
+      "id": "bin_04",
+      "centerMetres": [
+        0.0,
+        0.4000000059604645,
+        0.8500000238418579
+      ],
+      "rotationEulerRadians": [
+        0,
+        0,
+        0
+      ],
+      "innerSizeMetres": [
+        0.7229999999999999,
+        0.723,
+        0.24
+      ],
+      "floorTopLocalZ": 0.011,
+      "defaultProduct": null
+    },
+    {
+      "id": "bin_05",
+      "centerMetres": [
+        0.800000011920929,
+        0.4000000059604645,
+        0.8500000238418579
+      ],
+      "rotationEulerRadians": [
+        0,
+        0,
+        0
+      ],
+      "innerSizeMetres": [
+        0.7229999999999999,
+        0.723,
+        0.24
+      ],
+      "floorTopLocalZ": 0.011,
+      "defaultProduct": null
+    }
+  ],
+  "dimensionsAreApproximate": true,
+  "id": "produce_slatted_island",
+  "displayName": "Citali kapakli manav adasi",
+  "category": "equipment",
+  "mesh": "SM_produce_slatted_island.fbx",
+  "dimensionsMm": {
+    "width": 2418.0,
+    "depth": 1663.0,
+    "height": 938.5
+  },
+  "triangles": 67716,
+  "unit": "metre",
+  "pivot": "floor_bounds_center",
+  "frontAxis": "-Y",
+  "categorySign": false,
+  "family": "produce",
+  "unrealMesh": "/Game/Stores/Desktop/produce_slatted_island/SM_produce_slatted_island.SM_produce_slatted_island",
+  "checkouts": 0,
+  "zones": [],
+  "planogram": {
+    "doubleSided": false,
+    "widthCm": 241.8,
+    "depthCm": 166.3,
+    "frontY": 0,
+    "meshYaw": 180,
+    "showCategorySign": false
+  },
+  "deliverySource": "C:\\Users\\mtass\\Desktop\\Miras_Manav_Modelleri_2026-10-04\\Models\\produce_slatted_island",
+  "sourceBlend": "produce_slatted_island.blend",
+  "staticPlacement": true,
+  "collision": {
+    "policy": "custom_ucx",
+    "pieces": 1
+  },
+  "geometryAudit": {
+    "overlapPairsBefore": 0,
+    "shiftedFaces": 0,
+    "overlapPairsAfter": 0
+  },
+  "sourceMaterialPalette": [
+    {
+      "name": "MI_Frame",
+      "color": [
+        0.014000000432133675,
+        0.01899999938905239,
+        0.017000000923871994,
+        1.0
+      ],
+      "roughness": 0.4300000071525574,
+      "metallic": 0.3199999928474426
+    },
+    {
+      "name": "MI_wood",
+      "color": [
+        0.3799999952316284,
+        0.23000000417232513,
+        0.11999999731779099,
+        1.0
+      ],
+      "roughness": 0.44999998807907104,
+      "metallic": 0.0,
+      "baseTexture": "AssetInbox/Environment/Stores/Desktop/produce_slatted_island/Textures/wood.png"
+    },
+    {
+      "name": "MI_Handle",
+      "color": [
+        0.12999999523162842,
+        0.15000000596046448,
+        0.14000000059604645,
+        1.0
+      ],
+      "roughness": 0.2800000011920929,
+      "metallic": 0.699999988079071
+    },
+    {
+      "name": "MI_TrayPlastic",
+      "color": [
+        0.008999999612569809,
+        0.013000000268220901,
+        0.009999999776482582,
+        1.0
+      ],
+      "roughness": 0.5699999928474426,
+      "metallic": 0.0
+    }
+  ]
+}

@@ -1,0 +1,30 @@
+{
+  "id": "cutting_table",
+  "displayName": "Kesim tezgahi",
+  "sourcePhoto": 4,
+  "unit": "metre",
+  "pivot": "floor_bounds_center",
+  "frontAxis": "-Y",
+  "dimensionsMm": {
+    "width": 1400.0,
+    "depth": 660.0,
+    "height": 881.0
+  },
+  "triangles": 2632,
+  "materials": [
+    "MI_steel",
+    "MI_rubber",
+    "MI_red"
+  ],
+  "collisionCount": 6,
+  "collisionNote": "Simple part colliders; attached cargo should not simulate against its carrier",
+  "dimensionsAreApproximate": true,
+  "gameIntegration": false,
+  "emptyByDefault": true,
+  "accessoriesCombined": false,
+  "worktopMetres": [
+    2.9802322387695312e-08,
+    0.0,
+    0.8809999823570251
+  ]
+}

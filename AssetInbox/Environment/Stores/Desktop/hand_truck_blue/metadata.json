@@ -1,0 +1,32 @@
+{
+  "id": "hand_truck_blue",
+  "displayName": "Mavi koli tasima arabasi",
+  "sourcePhoto": 6,
+  "unit": "metre",
+  "pivot": "floor_bounds_center",
+  "frontAxis": "-Y",
+  "dimensionsMm": {
+    "width": 601.4,
+    "depth": 504.27,
+    "height": 1317.5
+  },
+  "triangles": 23364,
+  "materials": [
+    "MI_blue",
+    "MI_steel",
+    "MI_rubber",
+    "MI_red"
+  ],
+  "collisionCount": 5,
+  "collisionNote": "Simple part colliders; attached cargo should not simulate against its carrier",
+  "dimensionsAreApproximate": true,
+  "gameIntegration": false,
+  "emptyByDefault": true,
+  "cargoCombined": false,
+  "cargoAnchorMetres": [
+    0.0,
+    -0.10713352262973785,
+    0.03550000861287117
+  ],
+  "loadMaxPieces": 4
+}

@@ -1,0 +1,104 @@
+{
+  "id": "box_medium",
+  "displayName": "Orta koli",
+  "sourcePhoto": 1,
+  "unit": "metre",
+  "pivot": "floor_bounds_center",
+  "frontAxis": "-Y",
+  "dimensionsMm": {
+    "width": 400.0,
+    "depth": 302.0,
+    "height": 282.35
+  },
+  "triangles": 1318,
+  "materials": [
+    "MI_cardboard",
+    "MI_black",
+    "MI_packing_tape",
+    "MI_carton_mark"
+  ],
+  "collisionCount": 1,
+  "collisionNote": "Simple part colliders; attached cargo should not simulate against its carrier",
+  "dimensionsAreApproximate": true,
+  "gameIntegration": false,
+  "nominalSizeMetres": [
+    0.4000000059604645,
+    0.30000001192092896,
+    0.2800000011920929
+  ],
+  "cargoOnly": true,
+  "family": "prop",
+  "mesh": "SM_box_medium.fbx",
+  "unrealMesh": "/Game/Stores/Desktop/box_medium/SM_box_medium.SM_box_medium",
+  "checkouts": 0,
+  "zones": [],
+  "planogram": {
+    "doubleSided": false,
+    "widthCm": 40.0,
+    "depthCm": 30.2,
+    "frontY": 0,
+    "meshYaw": 180,
+    "showCategorySign": false
+  },
+  "deliverySource": "C:\\Users\\mtass\\Desktop\\Miras_Magaza_Araclari_2026-10-04\\Models\\box_medium",
+  "sourceBlend": "box_medium.blend",
+  "staticPlacement": true,
+  "collision": {
+    "policy": "custom_ucx",
+    "pieces": 1
+  },
+  "geometryAudit": {
+    "overlapPairsBefore": 0,
+    "shiftedFaces": 0,
+    "overlapPairsAfter": 0
+  },
+  "sourceMaterialPalette": [
+    {
+      "name": "MI_cardboard",
+      "color": [
+        1.0,
+        1.0,
+        1.0,
+        1.0
+      ],
+      "roughness": 0.6399999856948853,
+      "metallic": 0.0,
+      "baseTexture": "AssetInbox/Environment/Stores/Desktop/box_medium/Textures/cardboard.png"
+    },
+    {
+      "name": "MI_black",
+      "color": [
+        0.012000000104308128,
+        0.01600000075995922,
+        0.020999999716877937,
+        1.0
+      ],
+      "roughness": 0.47999998927116394,
+      "metallic": 0.10000000149011612
+    },
+    {
+      "name": "MI_packing_tape",
+      "color": [
+        1.0,
+        1.0,
+        1.0,
+        1.0
+      ],
+      "roughness": 0.6399999856948853,
+      "metallic": 0.0,
+      "baseTexture": "AssetInbox/Environment/Stores/Desktop/box_medium/Textures/packing_tape.png"
+    },
+    {
+      "name": "MI_carton_mark",
+      "color": [
+        1.0,
+        1.0,
+        1.0,
+        1.0
+      ],
+      "roughness": 0.6399999856948853,
+      "metallic": 0.0,
+      "baseTexture": "AssetInbox/Environment/Stores/Desktop/box_medium/Textures/carton_mark.png"
+    }
+  ]
+}

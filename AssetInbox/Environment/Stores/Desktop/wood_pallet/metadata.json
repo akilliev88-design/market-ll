@@ -1,0 +1,33 @@
+{
+  "id": "wood_pallet",
+  "displayName": "Ahsap palet",
+  "sourcePhoto": 2,
+  "unit": "metre",
+  "pivot": "floor_bounds_center",
+  "frontAxis": "-Y",
+  "dimensionsMm": {
+    "width": 801.0,
+    "depth": 1200.0,
+    "height": 151.95
+  },
+  "triangles": 4600,
+  "materials": [
+    "MI_wood",
+    "MI_steel"
+  ],
+  "collisionCount": 20,
+  "collisionNote": "Simple part colliders; attached cargo should not simulate against its carrier",
+  "dimensionsAreApproximate": true,
+  "gameIntegration": false,
+  "nominalSizeMetres": [
+    0.799500048160553,
+    1.2000000476837158,
+    0.15150000154972076
+  ],
+  "forkEntry": "front and back",
+  "cargoDeckMetres": [
+    -0.0004999786615371704,
+    0.0,
+    0.15150000154972076
+  ]
+}

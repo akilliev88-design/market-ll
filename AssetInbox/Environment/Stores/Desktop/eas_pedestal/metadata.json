@@ -1,0 +1,27 @@
+{
+  "id": "eas_pedestal",
+  "displayName": "Guvenlik anteni",
+  "sourcePhoto": 8,
+  "unit": "metre",
+  "pivot": "floor_bounds_center",
+  "frontAxis": "-Y",
+  "dimensionsMm": {
+    "width": 380.0,
+    "depth": 143.0,
+    "height": 1655.5
+  },
+  "triangles": 3572,
+  "materials": [
+    "MI_steel",
+    "MI_white",
+    "MI_FrostedPanel",
+    "MI_red",
+    "MI_black"
+  ],
+  "collisionCount": 2,
+  "collisionNote": "Simple part colliders; attached cargo should not simulate against its carrier",
+  "dimensionsAreApproximate": true,
+  "gameIntegration": false,
+  "pairPassageWidthMetres": 1.5,
+  "realDetectionRangeNotSimulated": true
+}

@@ -1,0 +1,72 @@
+{
+  "id": "security_soft_label",
+  "displayName": "Guvenlik barkod etiketi",
+  "sourcePhoto": 8,
+  "unit": "metre",
+  "pivot": "floor_bounds_center",
+  "frontAxis": "-Y",
+  "dimensionsMm": {
+    "width": 45.0,
+    "depth": 14.0,
+    "height": 1.1
+  },
+  "triangles": 190,
+  "materials": [
+    "MI_white",
+    "MI_barcode"
+  ],
+  "collisionCount": 0,
+  "collisionNote": "Simple part colliders; attached cargo should not simulate against its carrier",
+  "dimensionsAreApproximate": true,
+  "gameIntegration": false,
+  "family": "prop",
+  "mesh": "SM_security_soft_label.fbx",
+  "unrealMesh": "/Game/Stores/Desktop/security_soft_label/SM_security_soft_label.SM_security_soft_label",
+  "checkouts": 0,
+  "zones": [],
+  "planogram": {
+    "doubleSided": false,
+    "widthCm": 4.5,
+    "depthCm": 1.4,
+    "frontY": 0,
+    "meshYaw": 180,
+    "showCategorySign": false
+  },
+  "deliverySource": "C:\\Users\\mtass\\Desktop\\Miras_Magaza_Araclari_2026-10-04\\Models\\security_soft_label",
+  "sourceBlend": "security_soft_label.blend",
+  "staticPlacement": true,
+  "collision": {
+    "policy": "custom_ucx",
+    "pieces": 0
+  },
+  "geometryAudit": {
+    "overlapPairsBefore": 0,
+    "shiftedFaces": 0,
+    "overlapPairsAfter": 0
+  },
+  "sourceMaterialPalette": [
+    {
+      "name": "MI_white",
+      "color": [
+        0.7200000286102295,
+        0.75,
+        0.7599999904632568,
+        1.0
+      ],
+      "roughness": 0.4300000071525574,
+      "metallic": 0.0
+    },
+    {
+      "name": "MI_barcode",
+      "color": [
+        1.0,
+        1.0,
+        1.0,
+        1.0
+      ],
+      "roughness": 0.6399999856948853,
+      "metallic": 0.0,
+      "baseTexture": "AssetInbox/Environment/Stores/Desktop/security_soft_label/Textures/barcode.png"
+    }
+  ]
+}

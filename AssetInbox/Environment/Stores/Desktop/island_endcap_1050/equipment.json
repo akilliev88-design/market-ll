@@ -1,0 +1,125 @@
+{
+  "schemaVersion": 1,
+  "id": "island_endcap_1050",
+  "displayName": "Yuvarlak ada dondurucu bas modulu",
+  "mesh": "SM_IslandEndcap1050.fbx",
+  "family": "freezer",
+  "unrealMesh": "/Game/Stores/Desktop/island_endcap_1050/SM_IslandEndcap1050.SM_IslandEndcap1050",
+  "dimensionsMm": {
+    "width": 1058.0,
+    "depth": 609.0,
+    "height": 936.0
+  },
+  "origin": "floor_center",
+  "frontAxis": "-Y",
+  "materials": [
+    "MI_Rubber",
+    "MI_Porcelain",
+    "MI_Glass",
+    "MI_BrushedSteel",
+    "MI_Anthracite"
+  ],
+  "collision": {
+    "policy": "custom_ucx",
+    "pieces": 1
+  },
+  "zones": [
+    {
+      "id": "front_l00",
+      "face": "front",
+      "level": 0,
+      "centerCm": [
+        0,
+        -20,
+        43
+      ],
+      "usableWidthCm": 76,
+      "usableDepthCm": 30,
+      "clearanceHeightCm": 40
+    }
+  ],
+  "checkouts": 0,
+  "planogram": {
+    "doubleSided": false,
+    "widthCm": 76,
+    "depthCm": 30,
+    "frontY": -44.5,
+    "meshYaw": 180,
+    "showCategorySign": false
+  },
+  "reference": {
+    "url": "http://www.buzrefrigeration.com/tr/urun/teshir-reyonlari",
+    "accuracy": "Reference-inspired authored proportions; not manufacturer CAD or technical dimensions"
+  },
+  "delivery": {
+    "status": "Standalone Blender asset, not integrated",
+    "sourceUnits": "metres",
+    "fbxUnits": "centimetres",
+    "editableParts": "Named vertex groups"
+  },
+  "deliverySource": "C:\\Users\\mtass\\Desktop\\Miras_Blender_Ekipman_2026-10-03\\Yeni_Modeller\\island_endcap_1050",
+  "sourceBlend": "Source/island_endcap_1050.blend",
+  "staticPlacement": true,
+  "geometryAudit": {
+    "overlapPairsBefore": 0,
+    "shiftedFaces": 0,
+    "overlapPairsAfter": 0
+  },
+  "sourceMaterialPalette": [
+    {
+      "name": "MI_Rubber",
+      "color": [
+        0.012000000104308128,
+        0.017000000923871994,
+        0.019999999552965164,
+        1.0
+      ],
+      "roughness": 0.6499999761581421,
+      "metallic": 0.0
+    },
+    {
+      "name": "MI_Porcelain",
+      "color": [
+        0.7799999713897705,
+        0.8100000023841858,
+        0.8100000023841858,
+        1.0
+      ],
+      "roughness": 0.3799999952316284,
+      "metallic": 0.05999999865889549
+    },
+    {
+      "name": "MI_Glass",
+      "color": [
+        0.8999999761581421,
+        0.9599999785423279,
+        0.9800000190734863,
+        1.0
+      ],
+      "roughness": 0.07999999821186066,
+      "metallic": 0.0
+    },
+    {
+      "name": "MI_BrushedSteel",
+      "color": [
+        0.5,
+        0.5400000214576721,
+        0.5699999928474426,
+        1.0
+      ],
+      "roughness": 0.2800000011920929,
+      "metallic": 0.8199999928474426
+    },
+    {
+      "name": "MI_Anthracite",
+      "color": [
+        0.029999999329447746,
+        0.03999999910593033,
+        0.05000000074505806,
+        1.0
+      ],
+      "roughness": 0.3199999928474426,
+      "metallic": 0.44999998807907104
+    }
+  ]
+}

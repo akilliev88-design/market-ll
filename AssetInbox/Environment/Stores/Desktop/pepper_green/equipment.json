@@ -1,0 +1,71 @@
+{
+  "schemaVersion": 1,
+  "kind": "pepper",
+  "estimatedPieceMassGrams": 120,
+  "massIsApproximate": true,
+  "originUnit": "one piece",
+  "placement": "asset floor pivot; rotation may lay long vegetables flat",
+  "id": "pepper_green",
+  "displayName": "Yesil biber",
+  "category": "produce",
+  "mesh": "SM_pepper_green.fbx",
+  "dimensionsMm": {
+    "width": 86.65,
+    "depth": 89.79,
+    "height": 130.11
+  },
+  "triangles": 522,
+  "unit": "metre",
+  "pivot": "floor_bounds_center",
+  "frontAxis": "-Y",
+  "categorySign": false,
+  "family": "prop",
+  "unrealMesh": "/Game/Stores/Desktop/pepper_green/SM_pepper_green.SM_pepper_green",
+  "checkouts": 0,
+  "zones": [],
+  "planogram": {
+    "doubleSided": false,
+    "widthCm": 8.665000000000001,
+    "depthCm": 8.979000000000001,
+    "frontY": 0,
+    "meshYaw": 180,
+    "showCategorySign": false
+  },
+  "deliverySource": "C:\\Users\\mtass\\Desktop\\Miras_Manav_Modelleri_2026-10-04\\Models\\pepper_green",
+  "sourceBlend": "pepper_green.blend",
+  "staticPlacement": true,
+  "collision": {
+    "policy": "custom_ucx",
+    "pieces": 0
+  },
+  "geometryAudit": {
+    "overlapPairsBefore": 0,
+    "shiftedFaces": 0,
+    "overlapPairsAfter": 0
+  },
+  "sourceMaterialPalette": [
+    {
+      "name": "MI_pepper_green",
+      "color": [
+        0.02500000037252903,
+        0.3100000023841858,
+        0.03500000014901161,
+        1.0
+      ],
+      "roughness": 0.30000001192092896,
+      "metallic": 0.0,
+      "baseTexture": "AssetInbox/Environment/Stores/Desktop/pepper_green/Textures/pepper_green.png"
+    },
+    {
+      "name": "MI_Leaf",
+      "color": [
+        0.02800000086426735,
+        0.1599999964237213,
+        0.014999999664723873,
+        1.0
+      ],
+      "roughness": 0.699999988079071,
+      "metallic": 0.0
+    }
+  ]
+}

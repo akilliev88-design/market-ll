@@ -1,0 +1,165 @@
+{
+  "schemaVersion": 1,
+  "id": "kt_shoe_wall_1200",
+  "displayName": "Tekil ayakkabi platformlu duvar",
+  "family": "shoe",
+  "mesh": "SM_KtShoeWall1200.fbx",
+  "dimensionsMm": {
+    "width": 1200.0,
+    "depth": 400.0,
+    "height": 2000.0
+  },
+  "origin": "floor_center",
+  "frontAxis": "-Y",
+  "materials": [
+    "MI_Rubber",
+    "MI_Ivory",
+    "MI_Walnut",
+    "MI_Chrome"
+  ],
+  "zones": [
+    {
+      "id": "front_l00",
+      "face": "front",
+      "level": 0,
+      "centerCm": [
+        2.9802322387695312e-06,
+        0.0,
+        37.0
+      ],
+      "usableWidthCm": 109.99999999999999,
+      "usableDepthCm": 30.0,
+      "clearanceHeightCm": 25
+    },
+    {
+      "id": "front_l01",
+      "face": "front",
+      "level": 1,
+      "centerCm": [
+        2.9802322387695312e-06,
+        0.0,
+        75.0
+      ],
+      "usableWidthCm": 109.99999999999999,
+      "usableDepthCm": 30.0,
+      "clearanceHeightCm": 25
+    },
+    {
+      "id": "front_l02",
+      "face": "front",
+      "level": 2,
+      "centerCm": [
+        2.9802322387695312e-06,
+        0.0,
+        113.00000000000001
+      ],
+      "usableWidthCm": 109.99999999999999,
+      "usableDepthCm": 30.0,
+      "clearanceHeightCm": 25
+    },
+    {
+      "id": "front_l03",
+      "face": "front",
+      "level": 3,
+      "centerCm": [
+        2.9802322387695312e-06,
+        0.0,
+        151.0
+      ],
+      "usableWidthCm": 109.99999999999999,
+      "usableDepthCm": 30.0,
+      "clearanceHeightCm": 25
+    },
+    {
+      "id": "front_l04",
+      "face": "front",
+      "level": 4,
+      "centerCm": [
+        2.9802322387695312e-06,
+        0.0,
+        189.0
+      ],
+      "usableWidthCm": 109.99999999999999,
+      "usableDepthCm": 30.0,
+      "clearanceHeightCm": 25
+    }
+  ],
+  "checkouts": 0,
+  "planogram": {
+    "doubleSided": false,
+    "widthCm": 109.99999999999999,
+    "depthCm": 30.0,
+    "showCategorySign": false,
+    "frontY": -15.0,
+    "meshYaw": 180
+  },
+  "collision": {
+    "policy": "custom_ucx",
+    "pieces": 1
+  },
+  "reference": {
+    "url": "https://www.kantarci.com.tr/en/products/supermarket-shelf-systems/shoe-store-shelves/",
+    "accuracy": "Category-inspired original geometry, not exact manufacturer CAD, SKU or measured reproduction"
+  },
+  "delivery": {
+    "status": "Standalone, not integrated",
+    "sourceUnits": "metres",
+    "fbxUnits": "centimetres",
+    "editableParts": "Named vertex groups"
+  },
+  "unrealMesh": "/Game/Stores/Desktop/kt_shoe_wall_1200/SM_KtShoeWall1200.SM_KtShoeWall1200",
+  "deliverySource": "C:\\Users\\mtass\\Desktop\\Miras_Kantarci_Alternatif_Modeller_2026-10-04\\Yeni_Modeller\\kt_shoe_wall_1200",
+  "sourceBlend": "Source/kt_shoe_wall_1200.blend",
+  "staticPlacement": true,
+  "geometryAudit": {
+    "overlapPairsBefore": 0,
+    "shiftedFaces": 0,
+    "overlapPairsAfter": 0
+  },
+  "sourceMaterialPalette": [
+    {
+      "name": "MI_Rubber",
+      "color": [
+        0.008999999612569809,
+        0.012000000104308128,
+        0.014000000432133675,
+        1.0
+      ],
+      "roughness": 0.6499999761581421,
+      "metallic": 0.0
+    },
+    {
+      "name": "MI_Ivory",
+      "color": [
+        0.7799999713897705,
+        0.7699999809265137,
+        0.6899999976158142,
+        1.0
+      ],
+      "roughness": 0.3400000035762787,
+      "metallic": 0.07999999821186066
+    },
+    {
+      "name": "MI_Walnut",
+      "color": [
+        0.1599999964237213,
+        0.07800000160932541,
+        0.03500000014901161,
+        1.0
+      ],
+      "roughness": 0.4000000059604645,
+      "metallic": 0.0
+    },
+    {
+      "name": "MI_Chrome",
+      "color": [
+        0.5899999737739563,
+        0.6399999856948853,
+        0.6700000166893005,
+        1.0
+      ],
+      "roughness": 0.20000000298023224,
+      "metallic": 0.8700000047683716
+    }
+  ]
+}

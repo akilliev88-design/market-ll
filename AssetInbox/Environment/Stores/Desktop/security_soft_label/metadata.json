@@ -1,0 +1,22 @@
+{
+  "id": "security_soft_label",
+  "displayName": "Guvenlik barkod etiketi",
+  "sourcePhoto": 8,
+  "unit": "metre",
+  "pivot": "floor_bounds_center",
+  "frontAxis": "-Y",
+  "dimensionsMm": {
+    "width": 45.0,
+    "depth": 14.0,
+    "height": 1.1
+  },
+  "triangles": 190,
+  "materials": [
+    "MI_white",
+    "MI_barcode"
+  ],
+  "collisionCount": 0,
+  "collisionNote": "Simple part colliders; attached cargo should not simulate against its carrier",
+  "dimensionsAreApproximate": true,
+  "gameIntegration": false
+}

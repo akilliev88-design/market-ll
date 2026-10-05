@@ -1,0 +1,14 @@
+{
+  "mesh": "SM_Handmade_hiper_01.fbx",
+  "id": "hiper_01",
+  "dimensionsCm": [
+    8000.0,
+    5000.0,
+    800.0
+  ],
+  "entryWidthCm": 600,
+  "collision": {
+    "pieces": 76
+  },
+  "unrealMesh": "/Game/Stores/Handmade/Large/hiper_01/SM_Handmade_hiper_01.SM_Handmade_hiper_01"
+}

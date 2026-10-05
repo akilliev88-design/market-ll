@@ -1,0 +1,22 @@
+{
+  "schemaVersion": 1,
+  "kind": "garlic",
+  "estimatedPieceMassGrams": 60,
+  "massIsApproximate": true,
+  "originUnit": "one piece",
+  "placement": "asset floor pivot; rotation may lay long vegetables flat",
+  "id": "garlic",
+  "displayName": "Sarimsak",
+  "category": "produce",
+  "mesh": "SM_garlic",
+  "dimensionsMm": {
+    "width": 71.85,
+    "depth": 74.46,
+    "height": 75.42
+  },
+  "triangles": 598,
+  "unit": "metre",
+  "pivot": "floor_bounds_center",
+  "frontAxis": "-Y",
+  "categorySign": false
+}

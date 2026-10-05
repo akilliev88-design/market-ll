@@ -1,0 +1,29 @@
+{
+  "id": "box_open",
+  "displayName": "Acik bos koli",
+  "sourcePhoto": 1,
+  "unit": "metre",
+  "pivot": "floor_bounds_center",
+  "frontAxis": "-Y",
+  "dimensionsMm": {
+    "width": 676.76,
+    "depth": 494.44,
+    "height": 346.57
+  },
+  "triangles": 1692,
+  "materials": [
+    "MI_cardboard"
+  ],
+  "collisionCount": 0,
+  "collisionNote": "Simple part colliders; attached cargo should not simulate against its carrier",
+  "dimensionsAreApproximate": true,
+  "gameIntegration": false,
+  "emptyByDefault": true,
+  "openFlapCount": 4,
+  "nominalSizeMetres": [
+    0.4000000059604645,
+    0.30000001192092896,
+    0.30000001192092896
+  ],
+  "cargoOnly": true
+}

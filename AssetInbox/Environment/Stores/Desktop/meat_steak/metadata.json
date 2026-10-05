@@ -1,0 +1,24 @@
+{
+  "id": "meat_steak",
+  "displayName": "Kemiksiz biftek",
+  "sourcePhoto": 4,
+  "unit": "metre",
+  "pivot": "floor_bounds_center",
+  "frontAxis": "-Y",
+  "dimensionsMm": {
+    "width": 263.37,
+    "depth": 174.59,
+    "height": 33.0
+  },
+  "triangles": 510,
+  "materials": [
+    "MI_raw_meat",
+    "MI_MeatFat"
+  ],
+  "collisionCount": 0,
+  "collisionNote": "Simple part colliders; attached cargo should not simulate against its carrier",
+  "dimensionsAreApproximate": true,
+  "gameIntegration": false,
+  "rawMeat": true,
+  "independentAccessory": true
+}

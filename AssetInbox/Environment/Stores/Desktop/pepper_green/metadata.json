@@ -1,0 +1,22 @@
+{
+  "schemaVersion": 1,
+  "kind": "pepper",
+  "estimatedPieceMassGrams": 120,
+  "massIsApproximate": true,
+  "originUnit": "one piece",
+  "placement": "asset floor pivot; rotation may lay long vegetables flat",
+  "id": "pepper_green",
+  "displayName": "Yesil biber",
+  "category": "produce",
+  "mesh": "SM_pepper_green",
+  "dimensionsMm": {
+    "width": 86.65,
+    "depth": 89.79,
+    "height": 130.11
+  },
+  "triangles": 522,
+  "unit": "metre",
+  "pivot": "floor_bounds_center",
+  "frontAxis": "-Y",
+  "categorySign": false
+}

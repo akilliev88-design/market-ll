@@ -1,0 +1,22 @@
+{
+  "schemaVersion": 1,
+  "kind": "pear",
+  "estimatedPieceMassGrams": 180,
+  "massIsApproximate": true,
+  "originUnit": "one piece",
+  "placement": "asset floor pivot; rotation may lay long vegetables flat",
+  "id": "pear",
+  "displayName": "Armut",
+  "category": "produce",
+  "mesh": "SM_pear",
+  "dimensionsMm": {
+    "width": 82.0,
+    "depth": 82.76,
+    "height": 127.46
+  },
+  "triangles": 490,
+  "unit": "metre",
+  "pivot": "floor_bounds_center",
+  "frontAxis": "-Y",
+  "categorySign": false
+}

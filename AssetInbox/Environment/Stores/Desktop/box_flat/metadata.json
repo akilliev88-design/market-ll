@@ -1,0 +1,30 @@
+{
+  "id": "box_flat",
+  "displayName": "Yassi koli",
+  "sourcePhoto": 1,
+  "unit": "metre",
+  "pivot": "floor_bounds_center",
+  "frontAxis": "-Y",
+  "dimensionsMm": {
+    "width": 520.0,
+    "depth": 362.0,
+    "height": 182.35
+  },
+  "triangles": 1318,
+  "materials": [
+    "MI_cardboard",
+    "MI_black",
+    "MI_packing_tape",
+    "MI_carton_mark"
+  ],
+  "collisionCount": 1,
+  "collisionNote": "Simple part colliders; attached cargo should not simulate against its carrier",
+  "dimensionsAreApproximate": true,
+  "gameIntegration": false,
+  "nominalSizeMetres": [
+    0.5199999809265137,
+    0.36000001430511475,
+    0.18000000715255737
+  ],
+  "cargoOnly": true
+}

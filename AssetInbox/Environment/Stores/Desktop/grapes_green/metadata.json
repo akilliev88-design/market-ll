@@ -1,0 +1,22 @@
+{
+  "schemaVersion": 1,
+  "kind": "grapes",
+  "estimatedPieceMassGrams": 350,
+  "massIsApproximate": true,
+  "originUnit": "one bunch",
+  "placement": "asset floor pivot; rotation may lay long vegetables flat",
+  "id": "grapes_green",
+  "displayName": "Yesil uzum salkimi",
+  "category": "produce",
+  "mesh": "SM_grapes_green",
+  "dimensionsMm": {
+    "width": 117.66,
+    "depth": 117.86,
+    "height": 172.87
+  },
+  "triangles": 4412,
+  "unit": "metre",
+  "pivot": "floor_bounds_center",
+  "frontAxis": "-Y",
+  "categorySign": false
+}

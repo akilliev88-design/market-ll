@@ -1,0 +1,22 @@
+{
+  "schemaVersion": 1,
+  "kind": "carrot",
+  "estimatedPieceMassGrams": 100,
+  "massIsApproximate": true,
+  "originUnit": "one piece",
+  "placement": "asset floor pivot; rotation may lay long vegetables flat",
+  "id": "carrot",
+  "displayName": "Havuc",
+  "category": "produce",
+  "mesh": "SM_carrot",
+  "dimensionsMm": {
+    "width": 46.0,
+    "depth": 46.43,
+    "height": 204.03
+  },
+  "triangles": 562,
+  "unit": "metre",
+  "pivot": "floor_bounds_center",
+  "frontAxis": "-Y",
+  "categorySign": false
+}

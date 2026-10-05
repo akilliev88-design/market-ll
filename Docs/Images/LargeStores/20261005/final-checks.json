@@ -1,0 +1,16 @@
+{
+  "scope": "Technical visual prototype; produce is visual only; not a guarantee against all temporal artifacts",
+  "newStoreViews": 24,
+  "sourcePreservation": "source-preservation.json",
+  "date": "2026-10-05",
+  "smoke": true,
+  "runtimeReview": "runtime-review.json",
+  "temporalReview": "temporal-review.json",
+  "normalStoreTours": true,
+  "build": "Succeeded",
+  "tests": {
+    "failed": 0,
+    "warnings": 1,
+    "succeeded": 174
+  }
+}

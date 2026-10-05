@@ -1,0 +1,22 @@
+{
+  "schemaVersion": 1,
+  "kind": "long",
+  "estimatedPieceMassGrams": 180,
+  "massIsApproximate": true,
+  "originUnit": "one piece",
+  "placement": "asset floor pivot; rotation may lay long vegetables flat",
+  "id": "cucumber",
+  "displayName": "Salatalik",
+  "category": "produce",
+  "mesh": "SM_cucumber",
+  "dimensionsMm": {
+    "width": 48.23,
+    "depth": 46.43,
+    "height": 219.85
+  },
+  "triangles": 482,
+  "unit": "metre",
+  "pivot": "floor_bounds_center",
+  "frontAxis": "-Y",
+  "categorySign": false
+}

@@ -1,0 +1,99 @@
+{
+  "schemaVersion": 1,
+  "id": "rolling_basket_450",
+  "displayName": "Tekerlekli cekme alisveris sepeti",
+  "mesh": "SM_RollingBasket450.fbx",
+  "family": "basket",
+  "unrealMesh": "/Game/Stores/Desktop/rolling_basket_450/SM_RollingBasket450.SM_RollingBasket450",
+  "dimensionsMm": {
+    "width": 450.0,
+    "depth": 360.0,
+    "height": 936.0
+  },
+  "origin": "floor_center",
+  "frontAxis": "-Y",
+  "materials": [
+    "MI_RedPolymer",
+    "MI_Rubber",
+    "MI_BrushedSteel",
+    "MI_Anthracite"
+  ],
+  "collision": {
+    "policy": "custom_ucx",
+    "pieces": 1
+  },
+  "zones": [],
+  "checkouts": 0,
+  "planogram": {
+    "doubleSided": false,
+    "widthCm": 45.0,
+    "depthCm": 36.0,
+    "frontY": -10.0,
+    "meshYaw": 180,
+    "showCategorySign": false
+  },
+  "reference": {
+    "url": "http://www.buzrefrigeration.com/tr/urun/magaza-duzenleme",
+    "accuracy": "Reference-inspired authored proportions; not manufacturer CAD or technical dimensions"
+  },
+  "delivery": {
+    "status": "Standalone Blender asset, not integrated",
+    "sourceUnits": "metres",
+    "fbxUnits": "centimetres",
+    "editableParts": "Named vertex groups"
+  },
+  "deliverySource": "C:\\Users\\mtass\\Desktop\\Miras_Blender_Ekipman_2026-10-03\\Yeni_Modeller\\rolling_basket_450",
+  "sourceBlend": "Source/rolling_basket_450.blend",
+  "staticPlacement": true,
+  "geometryAudit": {
+    "overlapPairsBefore": 0,
+    "shiftedFaces": 0,
+    "overlapPairsAfter": 0
+  },
+  "sourceMaterialPalette": [
+    {
+      "name": "MI_RedPolymer",
+      "color": [
+        0.5600000023841858,
+        0.03500000014901161,
+        0.02500000037252903,
+        1.0
+      ],
+      "roughness": 0.3499999940395355,
+      "metallic": 0.0
+    },
+    {
+      "name": "MI_Rubber",
+      "color": [
+        0.012000000104308128,
+        0.017000000923871994,
+        0.019999999552965164,
+        1.0
+      ],
+      "roughness": 0.6499999761581421,
+      "metallic": 0.0
+    },
+    {
+      "name": "MI_BrushedSteel",
+      "color": [
+        0.5,
+        0.5400000214576721,
+        0.5699999928474426,
+        1.0
+      ],
+      "roughness": 0.2800000011920929,
+      "metallic": 0.8199999928474426
+    },
+    {
+      "name": "MI_Anthracite",
+      "color": [
+        0.029999999329447746,
+        0.03999999910593033,
+        0.05000000074505806,
+        1.0
+      ],
+      "roughness": 0.3199999928474426,
+      "metallic": 0.44999998807907104
+    }
+  ]
+}

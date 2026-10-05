@@ -1,0 +1,82 @@
+{
+  "schemaVersion": 1,
+  "kind": "pear",
+  "estimatedPieceMassGrams": 180,
+  "massIsApproximate": true,
+  "originUnit": "one piece",
+  "placement": "asset floor pivot; rotation may lay long vegetables flat",
+  "id": "pear",
+  "displayName": "Armut",
+  "category": "produce",
+  "mesh": "SM_pear.fbx",
+  "dimensionsMm": {
+    "width": 82.0,
+    "depth": 82.76,
+    "height": 127.46
+  },
+  "triangles": 490,
+  "unit": "metre",
+  "pivot": "floor_bounds_center",
+  "frontAxis": "-Y",
+  "categorySign": false,
+  "family": "prop",
+  "unrealMesh": "/Game/Stores/Desktop/pear/SM_pear.SM_pear",
+  "checkouts": 0,
+  "zones": [],
+  "planogram": {
+    "doubleSided": false,
+    "widthCm": 8.2,
+    "depthCm": 8.276,
+    "frontY": 0,
+    "meshYaw": 180,
+    "showCategorySign": false
+  },
+  "deliverySource": "C:\\Users\\mtass\\Desktop\\Miras_Manav_Modelleri_2026-10-04\\Models\\pear",
+  "sourceBlend": "pear.blend",
+  "staticPlacement": true,
+  "collision": {
+    "policy": "custom_ucx",
+    "pieces": 0
+  },
+  "geometryAudit": {
+    "overlapPairsBefore": 0,
+    "shiftedFaces": 0,
+    "overlapPairsAfter": 0
+  },
+  "sourceMaterialPalette": [
+    {
+      "name": "MI_pear",
+      "color": [
+        0.44999998807907104,
+        0.5299999713897705,
+        0.07000000029802322,
+        1.0
+      ],
+      "roughness": 0.44999998807907104,
+      "metallic": 0.0,
+      "baseTexture": "AssetInbox/Environment/Stores/Desktop/pear/Textures/pear.png"
+    },
+    {
+      "name": "MI_Stem",
+      "color": [
+        0.1599999964237213,
+        0.07500000298023224,
+        0.024000000208616257,
+        1.0
+      ],
+      "roughness": 0.75,
+      "metallic": 0.0
+    },
+    {
+      "name": "MI_Leaf",
+      "color": [
+        0.02800000086426735,
+        0.1599999964237213,
+        0.014999999664723873,
+        1.0
+      ],
+      "roughness": 0.699999988079071,
+      "metallic": 0.0
+    }
+  ]
+}

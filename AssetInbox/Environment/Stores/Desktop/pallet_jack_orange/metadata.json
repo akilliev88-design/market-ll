@@ -1,0 +1,37 @@
+{
+  "id": "pallet_jack_orange",
+  "displayName": "Turuncu transpalet",
+  "sourcePhoto": 3,
+  "unit": "metre",
+  "pivot": "floor_bounds_center",
+  "frontAxis": "-Y",
+  "dimensionsMm": {
+    "width": 640.0,
+    "depth": 1527.0,
+    "height": 1335.0
+  },
+  "triangles": 6360,
+  "materials": [
+    "MI_orange",
+    "MI_rubber",
+    "MI_steel",
+    "MI_black"
+  ],
+  "collisionCount": 8,
+  "collisionNote": "Simple part colliders; attached cargo should not simulate against its carrier",
+  "dimensionsAreApproximate": true,
+  "gameIntegration": false,
+  "emptyByDefault": true,
+  "cargoCombined": false,
+  "cargoAnchorMetres": [
+    0.0,
+    -0.3185000419616699,
+    0.02500000037252903
+  ],
+  "movingPartGroups": [
+    "SteeringWheel",
+    "LoadRoller",
+    "HandleShaft",
+    "LoopHandle"
+  ]
+}

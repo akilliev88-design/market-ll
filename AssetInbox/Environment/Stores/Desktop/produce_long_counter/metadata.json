@@ -1,0 +1,106 @@
+{
+  "schemaVersion": 1,
+  "sourcePhotoIndices": [
+    3,
+    5
+  ],
+  "emptyByDefault": true,
+  "produceCombinedWithCabinet": false,
+  "fillZones": [
+    {
+      "id": "bin_00",
+      "centerMetres": [
+        -1.2000000476837158,
+        0.0,
+        0.8500000238418579
+      ],
+      "rotationEulerRadians": [
+        0,
+        0,
+        0
+      ],
+      "innerSizeMetres": [
+        0.723,
+        0.723,
+        0.24
+      ],
+      "floorTopLocalZ": 0.011,
+      "defaultProduct": null
+    },
+    {
+      "id": "bin_01",
+      "centerMetres": [
+        -0.4000000059604645,
+        0.0,
+        0.8500000238418579
+      ],
+      "rotationEulerRadians": [
+        0,
+        0,
+        0
+      ],
+      "innerSizeMetres": [
+        0.723,
+        0.723,
+        0.24
+      ],
+      "floorTopLocalZ": 0.011,
+      "defaultProduct": null
+    },
+    {
+      "id": "bin_02",
+      "centerMetres": [
+        0.4000000059604645,
+        0.0,
+        0.8500000238418579
+      ],
+      "rotationEulerRadians": [
+        0,
+        0,
+        0
+      ],
+      "innerSizeMetres": [
+        0.723,
+        0.723,
+        0.24
+      ],
+      "floorTopLocalZ": 0.011,
+      "defaultProduct": null
+    },
+    {
+      "id": "bin_03",
+      "centerMetres": [
+        1.2000000476837158,
+        0.0,
+        0.8500000238418579
+      ],
+      "rotationEulerRadians": [
+        0,
+        0,
+        0
+      ],
+      "innerSizeMetres": [
+        0.723,
+        0.723,
+        0.24
+      ],
+      "floorTopLocalZ": 0.011,
+      "defaultProduct": null
+    }
+  ],
+  "dimensionsAreApproximate": true,
+  "id": "produce_long_counter",
+  "displayName": "Uzun tek katli manav reyonu",
+  "category": "equipment",
+  "mesh": "SM_produce_long_counter",
+  "dimensionsMm": {
+    "width": 3218.0,
+    "depth": 817.0,
+    "height": 938.5
+  },
+  "triangles": 43524,
+  "unit": "metre",
+  "pivot": "floor_bounds_center",
+  "frontAxis": "-Y",
+  "categorySign": false
+}

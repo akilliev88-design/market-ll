@@ -76,6 +76,7 @@ def validate(document,equipment,categories):
             if fam=='produce': stats['produceM2']+=ew*ed/10000
             if fam in ('deli','butcher','fish','service'): stats['counters'].append(fam)
             stats['checkouts']+=e.get('checkouts',0)
+            if fam=='self_checkout':stats['selfCheckouts']+=e.get('checkouts',0)
         for k,v in stats.items():
             if isinstance(v,float): stats[k]=round(v,3)
         stats['counters']=sorted(set(stats['counters']))

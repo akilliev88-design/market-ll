@@ -1,0 +1,30 @@
+{
+  "id": "box_cube",
+  "displayName": "Kup koli",
+  "sourcePhoto": 1,
+  "unit": "metre",
+  "pivot": "floor_bounds_center",
+  "frontAxis": "-Y",
+  "dimensionsMm": {
+    "width": 320.0,
+    "depth": 322.0,
+    "height": 322.35
+  },
+  "triangles": 1318,
+  "materials": [
+    "MI_cardboard",
+    "MI_black",
+    "MI_packing_tape",
+    "MI_carton_mark"
+  ],
+  "collisionCount": 1,
+  "collisionNote": "Simple part colliders; attached cargo should not simulate against its carrier",
+  "dimensionsAreApproximate": true,
+  "gameIntegration": false,
+  "nominalSizeMetres": [
+    0.3199999928474426,
+    0.3199999928474426,
+    0.3199999928474426
+  ],
+  "cargoOnly": true
+}

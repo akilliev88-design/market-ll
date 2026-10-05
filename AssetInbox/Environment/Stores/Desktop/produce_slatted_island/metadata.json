@@ -1,0 +1,145 @@
+{
+  "schemaVersion": 1,
+  "sourcePhotoIndices": [
+    1
+  ],
+  "emptyByDefault": true,
+  "produceCombinedWithCabinet": false,
+  "fillZones": [
+    {
+      "id": "bin_00",
+      "centerMetres": [
+        -0.800000011920929,
+        -0.4000000059604645,
+        0.8500000238418579
+      ],
+      "rotationEulerRadians": [
+        0,
+        0,
+        0
+      ],
+      "innerSizeMetres": [
+        0.7229999999999999,
+        0.723,
+        0.24
+      ],
+      "floorTopLocalZ": 0.011,
+      "defaultProduct": null
+    },
+    {
+      "id": "bin_01",
+      "centerMetres": [
+        0.0,
+        -0.4000000059604645,
+        0.8500000238418579
+      ],
+      "rotationEulerRadians": [
+        0,
+        0,
+        0
+      ],
+      "innerSizeMetres": [
+        0.7229999999999999,
+        0.723,
+        0.24
+      ],
+      "floorTopLocalZ": 0.011,
+      "defaultProduct": null
+    },
+    {
+      "id": "bin_02",
+      "centerMetres": [
+        0.800000011920929,
+        -0.4000000059604645,
+        0.8500000238418579
+      ],
+      "rotationEulerRadians": [
+        0,
+        0,
+        0
+      ],
+      "innerSizeMetres": [
+        0.7229999999999999,
+        0.723,
+        0.24
+      ],
+      "floorTopLocalZ": 0.011,
+      "defaultProduct": null
+    },
+    {
+      "id": "bin_03",
+      "centerMetres": [
+        -0.800000011920929,
+        0.4000000059604645,
+        0.8500000238418579
+      ],
+      "rotationEulerRadians": [
+        0,
+        0,
+        0
+      ],
+      "innerSizeMetres": [
+        0.7229999999999999,
+        0.723,
+        0.24
+      ],
+      "floorTopLocalZ": 0.011,
+      "defaultProduct": null
+    },
+    {
+      "id": "bin_04",
+      "centerMetres": [
+        0.0,
+        0.4000000059604645,
+        0.8500000238418579
+      ],
+      "rotationEulerRadians": [
+        0,
+        0,
+        0
+      ],
+      "innerSizeMetres": [
+        0.7229999999999999,
+        0.723,
+        0.24
+      ],
+      "floorTopLocalZ": 0.011,
+      "defaultProduct": null
+    },
+    {
+      "id": "bin_05",
+      "centerMetres": [
+        0.800000011920929,
+        0.4000000059604645,
+        0.8500000238418579
+      ],
+      "rotationEulerRadians": [
+        0,
+        0,
+        0
+      ],
+      "innerSizeMetres": [
+        0.7229999999999999,
+        0.723,
+        0.24
+      ],
+      "floorTopLocalZ": 0.011,
+      "defaultProduct": null
+    }
+  ],
+  "dimensionsAreApproximate": true,
+  "id": "produce_slatted_island",
+  "displayName": "Citali kapakli manav adasi",
+  "category": "equipment",
+  "mesh": "SM_produce_slatted_island",
+  "dimensionsMm": {
+    "width": 2418.0,
+    "depth": 1663.0,
+    "height": 938.5
+  },
+  "triangles": 67716,
+  "unit": "metre",
+  "pivot": "floor_bounds_center",
+  "frontAxis": "-Y",
+  "categorySign": false
+}

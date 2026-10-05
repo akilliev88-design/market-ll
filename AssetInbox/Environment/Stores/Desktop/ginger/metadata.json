@@ -1,0 +1,22 @@
+{
+  "schemaVersion": 1,
+  "kind": "ginger",
+  "estimatedPieceMassGrams": 150,
+  "massIsApproximate": true,
+  "originUnit": "one piece",
+  "placement": "asset floor pivot; rotation may lay long vegetables flat",
+  "id": "ginger",
+  "displayName": "Zencefil",
+  "category": "produce",
+  "mesh": "SM_ginger",
+  "dimensionsMm": {
+    "width": 148.2,
+    "depth": 96.2,
+    "height": 38.4
+  },
+  "triangles": 1440,
+  "unit": "metre",
+  "pivot": "floor_bounds_center",
+  "frontAxis": "-Y",
+  "categorySign": false
+}

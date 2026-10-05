@@ -1,0 +1,22 @@
+{
+  "schemaVersion": 1,
+  "kind": "banana",
+  "estimatedPieceMassGrams": 600,
+  "massIsApproximate": true,
+  "originUnit": "one bunch",
+  "placement": "asset floor pivot; rotation may lay long vegetables flat",
+  "id": "banana",
+  "displayName": "Muz demeti",
+  "category": "produce",
+  "mesh": "SM_banana",
+  "dimensionsMm": {
+    "width": 204.97,
+    "depth": 112.0,
+    "height": 82.13
+  },
+  "triangles": 1796,
+  "unit": "metre",
+  "pivot": "floor_bounds_center",
+  "frontAxis": "-Y",
+  "categorySign": false
+}

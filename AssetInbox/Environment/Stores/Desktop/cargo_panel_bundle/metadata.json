@@ -1,0 +1,23 @@
+{
+  "id": "cargo_panel_bundle",
+  "displayName": "Bagli panel yuku",
+  "sourcePhoto": 5,
+  "unit": "metre",
+  "pivot": "floor_bounds_center",
+  "frontAxis": "-Y",
+  "dimensionsMm": {
+    "width": 1040.0,
+    "depth": 800.0,
+    "height": 804.5
+  },
+  "triangles": 3948,
+  "materials": [
+    "MI_wood",
+    "MI_green",
+    "MI_white"
+  ],
+  "collisionCount": 0,
+  "collisionNote": "Simple part colliders; attached cargo should not simulate against its carrier",
+  "dimensionsAreApproximate": true,
+  "gameIntegration": false
+}

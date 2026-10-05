@@ -1,0 +1,23 @@
+﻿[
+    {
+        "staticTransforms":  true,
+        "walk":  true,
+        "views":  8,
+        "store":  "kucuk_01",
+        "passed":  true
+    },
+    {
+        "staticTransforms":  true,
+        "walk":  true,
+        "views":  8,
+        "store":  "buyuk_01",
+        "passed":  true
+    },
+    {
+        "staticTransforms":  true,
+        "walk":  true,
+        "views":  8,
+        "store":  "hiper_01",
+        "passed":  true
+    }
+]

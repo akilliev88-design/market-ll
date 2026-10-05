@@ -1,0 +1,24 @@
+{
+  "id": "string_mop",
+  "displayName": "Ipli mop",
+  "sourcePhoto": 10,
+  "unit": "metre",
+  "pivot": "floor_bounds_center",
+  "frontAxis": "-Y",
+  "dimensionsMm": {
+    "width": 139.56,
+    "depth": 141.83,
+    "height": 1465.24
+  },
+  "triangles": 9236,
+  "materials": [
+    "MI_steel",
+    "MI_turquoise",
+    "MI_black",
+    "MI_paper"
+  ],
+  "collisionCount": 0,
+  "collisionNote": "Simple part colliders; attached cargo should not simulate against its carrier",
+  "dimensionsAreApproximate": true,
+  "gameIntegration": false
+}

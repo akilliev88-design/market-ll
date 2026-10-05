@@ -1,0 +1,152 @@
+{
+  "schemaVersion": 1,
+  "id": "checkout_impulse_1200",
+  "displayName": "Kasa onu cok katli urun rafi",
+  "mesh": "SM_CheckoutImpulse1200.fbx",
+  "family": "checkout_display",
+  "unrealMesh": "/Game/Stores/Desktop/checkout_impulse_1200/SM_CheckoutImpulse1200.SM_CheckoutImpulse1200",
+  "dimensionsMm": {
+    "width": 1200.0,
+    "depth": 450.0,
+    "height": 1200.0
+  },
+  "origin": "floor_center",
+  "frontAxis": "-Y",
+  "materials": [
+    "MI_Rubber",
+    "MI_Anthracite",
+    "MI_BrushedSteel",
+    "MI_Porcelain"
+  ],
+  "collision": {
+    "policy": "custom_ucx",
+    "pieces": 1
+  },
+  "zones": [
+    {
+      "id": "front_l00",
+      "face": "front",
+      "level": 0,
+      "centerCm": [
+        0,
+        0,
+        25.0
+      ],
+      "usableWidthCm": 109.99999999999999,
+      "usableDepthCm": 30.5,
+      "clearanceHeightCm": 28
+    },
+    {
+      "id": "front_l01",
+      "face": "front",
+      "level": 1,
+      "centerCm": [
+        0,
+        0,
+        52.0
+      ],
+      "usableWidthCm": 109.99999999999999,
+      "usableDepthCm": 30.5,
+      "clearanceHeightCm": 28
+    },
+    {
+      "id": "front_l02",
+      "face": "front",
+      "level": 2,
+      "centerCm": [
+        0,
+        0,
+        79.0
+      ],
+      "usableWidthCm": 109.99999999999999,
+      "usableDepthCm": 30.5,
+      "clearanceHeightCm": 28
+    },
+    {
+      "id": "front_l03",
+      "face": "front",
+      "level": 3,
+      "centerCm": [
+        0,
+        0,
+        106.0
+      ],
+      "usableWidthCm": 109.99999999999999,
+      "usableDepthCm": 30.5,
+      "clearanceHeightCm": 28
+    }
+  ],
+  "checkouts": 0,
+  "planogram": {
+    "doubleSided": false,
+    "widthCm": 109.99999999999999,
+    "depthCm": 30.5,
+    "frontY": -14.5,
+    "meshYaw": 180,
+    "showCategorySign": false
+  },
+  "reference": {
+    "url": "http://www.buzrefrigeration.com/tr/urun/magaza-duzenleme",
+    "accuracy": "Reference-inspired authored proportions; not manufacturer CAD or technical dimensions"
+  },
+  "delivery": {
+    "status": "Standalone Blender asset, not integrated",
+    "sourceUnits": "metres",
+    "fbxUnits": "centimetres",
+    "editableParts": "Named vertex groups"
+  },
+  "deliverySource": "C:\\Users\\mtass\\Desktop\\Miras_Blender_Ekipman_2026-10-03\\Yeni_Modeller\\checkout_impulse_1200",
+  "sourceBlend": "Source/checkout_impulse_1200.blend",
+  "staticPlacement": true,
+  "geometryAudit": {
+    "overlapPairsBefore": 0,
+    "shiftedFaces": 0,
+    "overlapPairsAfter": 0
+  },
+  "sourceMaterialPalette": [
+    {
+      "name": "MI_Rubber",
+      "color": [
+        0.012000000104308128,
+        0.017000000923871994,
+        0.019999999552965164,
+        1.0
+      ],
+      "roughness": 0.6499999761581421,
+      "metallic": 0.0
+    },
+    {
+      "name": "MI_Anthracite",
+      "color": [
+        0.029999999329447746,
+        0.03999999910593033,
+        0.05000000074505806,
+        1.0
+      ],
+      "roughness": 0.3199999928474426,
+      "metallic": 0.44999998807907104
+    },
+    {
+      "name": "MI_BrushedSteel",
+      "color": [
+        0.5,
+        0.5400000214576721,
+        0.5699999928474426,
+        1.0
+      ],
+      "roughness": 0.2800000011920929,
+      "metallic": 0.8199999928474426
+    },
+    {
+      "name": "MI_Porcelain",
+      "color": [
+        0.7799999713897705,
+        0.8100000023841858,
+        0.8100000023841858,
+        1.0
+      ],
+      "roughness": 0.3799999952316284,
+      "metallic": 0.05999999865889549
+    }
+  ]
+}

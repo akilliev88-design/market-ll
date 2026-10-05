@@ -1,0 +1,930 @@
+{
+  "assets": [
+    {
+      "id": "bread_selfservice_1200",
+      "collisionPieces": 1,
+      "overlapPairsBefore": 0,
+      "shiftedFaces": 0,
+      "overlapPairsAfter": 0
+    },
+    {
+      "id": "checkout_impulse_1200",
+      "collisionPieces": 1,
+      "overlapPairsBefore": 0,
+      "shiftedFaces": 0,
+      "overlapPairsAfter": 0
+    },
+    {
+      "id": "checkout_tower_600",
+      "collisionPieces": 1,
+      "overlapPairsBefore": 0,
+      "shiftedFaces": 0,
+      "overlapPairsAfter": 0
+    },
+    {
+      "id": "child_cart_450",
+      "collisionPieces": 1,
+      "overlapPairsBefore": 0,
+      "shiftedFaces": 0,
+      "overlapPairsAfter": 0
+    },
+    {
+      "id": "combo_freezer_2400",
+      "collisionPieces": 1,
+      "overlapPairsBefore": 0,
+      "shiftedFaces": 0,
+      "overlapPairsAfter": 0
+    },
+    {
+      "id": "corner_service_90",
+      "collisionPieces": 1,
+      "overlapPairsBefore": 0,
+      "shiftedFaces": 0,
+      "overlapPairsAfter": 0
+    },
+    {
+      "id": "curved_pastry_1800",
+      "collisionPieces": 1,
+      "overlapPairsBefore": 0,
+      "shiftedFaces": 0,
+      "overlapPairsAfter": 0
+    },
+    {
+      "id": "diy_long_goods_1200",
+      "collisionPieces": 1,
+      "overlapPairsBefore": 0,
+      "shiftedFaces": 0,
+      "overlapPairsAfter": 0
+    },
+    {
+      "id": "drink_cooler_3door_2100",
+      "collisionPieces": 2,
+      "overlapPairsBefore": 11,
+      "shiftedFaces": 11,
+      "overlapPairsAfter": 0
+    },
+    {
+      "id": "entry_barrier_1500",
+      "collisionPieces": 1,
+      "overlapPairsBefore": 0,
+      "shiftedFaces": 0,
+      "overlapPairsAfter": 0
+    },
+    {
+      "id": "entry_swing_gate_900",
+      "collisionPieces": 1,
+      "overlapPairsBefore": 0,
+      "shiftedFaces": 0,
+      "overlapPairsAfter": 0
+    },
+    {
+      "id": "hardware_pegboard_1200",
+      "collisionPieces": 1,
+      "overlapPairsBefore": 0,
+      "shiftedFaces": 0,
+      "overlapPairsAfter": 0
+    },
+    {
+      "id": "island_endcap_1050",
+      "collisionPieces": 1,
+      "overlapPairsBefore": 0,
+      "shiftedFaces": 0,
+      "overlapPairsAfter": 0
+    },
+    {
+      "id": "library_shelf_1200",
+      "collisionPieces": 1,
+      "overlapPairsBefore": 10,
+      "shiftedFaces": 10,
+      "overlapPairsAfter": 0
+    },
+    {
+      "id": "pharmacy_drawer_unit_1200",
+      "collisionPieces": 1,
+      "overlapPairsBefore": 0,
+      "shiftedFaces": 0,
+      "overlapPairsAfter": 0
+    },
+    {
+      "id": "plastic_cart_600",
+      "collisionPieces": 1,
+      "overlapPairsBefore": 22,
+      "shiftedFaces": 20,
+      "overlapPairsAfter": 0
+    },
+    {
+      "id": "plug_in_service_1500",
+      "collisionPieces": 2,
+      "overlapPairsBefore": 0,
+      "shiftedFaces": 0,
+      "overlapPairsAfter": 0
+    },
+    {
+      "id": "plug_in_service_900",
+      "collisionPieces": 2,
+      "overlapPairsBefore": 0,
+      "shiftedFaces": 0,
+      "overlapPairsAfter": 0
+    },
+    {
+      "id": "produce_chilled_island_2200",
+      "collisionPieces": 1,
+      "overlapPairsBefore": 0,
+      "shiftedFaces": 0,
+      "overlapPairsAfter": 0
+    },
+    {
+      "id": "rolling_basket_450",
+      "collisionPieces": 1,
+      "overlapPairsBefore": 0,
+      "shiftedFaces": 0,
+      "overlapPairsAfter": 0
+    },
+    {
+      "id": "upright_freezer_2door_1400",
+      "collisionPieces": 2,
+      "overlapPairsBefore": 4,
+      "shiftedFaces": 4,
+      "overlapPairsAfter": 0
+    },
+    {
+      "id": "upright_freezer_4door_2800",
+      "collisionPieces": 2,
+      "overlapPairsBefore": 1,
+      "shiftedFaces": 1,
+      "overlapPairsAfter": 0
+    },
+    {
+      "id": "upright_freezer_5door_3500",
+      "collisionPieces": 2,
+      "overlapPairsBefore": 4,
+      "shiftedFaces": 4,
+      "overlapPairsAfter": 0
+    },
+    {
+      "id": "warehouse_heavy_2700",
+      "collisionPieces": 1,
+      "overlapPairsBefore": 0,
+      "shiftedFaces": 0,
+      "overlapPairsAfter": 0
+    },
+    {
+      "id": "warehouse_rack_2400",
+      "collisionPieces": 1,
+      "overlapPairsBefore": 0,
+      "shiftedFaces": 0,
+      "overlapPairsAfter": 0
+    },
+    {
+      "id": "wire_display_bin_900",
+      "collisionPieces": 1,
+      "overlapPairsBefore": 0,
+      "shiftedFaces": 0,
+      "overlapPairsAfter": 0
+    },
+    {
+      "id": "wire_hook_basket_600",
+      "collisionPieces": 1,
+      "overlapPairsBefore": 0,
+      "shiftedFaces": 0,
+      "overlapPairsAfter": 0
+    },
+    {
+      "id": "wire_peg_rack_900",
+      "collisionPieces": 1,
+      "overlapPairsBefore": 0,
+      "shiftedFaces": 0,
+      "overlapPairsAfter": 0
+    },
+    {
+      "id": "apple_green",
+      "collisionPieces": 0,
+      "overlapPairsBefore": 0,
+      "shiftedFaces": 0,
+      "overlapPairsAfter": 0
+    },
+    {
+      "id": "apple_red",
+      "collisionPieces": 0,
+      "overlapPairsBefore": 0,
+      "shiftedFaces": 0,
+      "overlapPairsAfter": 0
+    },
+    {
+      "id": "banana",
+      "collisionPieces": 0,
+      "overlapPairsBefore": 0,
+      "shiftedFaces": 0,
+      "overlapPairsAfter": 0
+    },
+    {
+      "id": "broccoli",
+      "collisionPieces": 0,
+      "overlapPairsBefore": 0,
+      "shiftedFaces": 0,
+      "overlapPairsAfter": 0
+    },
+    {
+      "id": "cabbage",
+      "collisionPieces": 0,
+      "overlapPairsBefore": 0,
+      "shiftedFaces": 0,
+      "overlapPairsAfter": 0
+    },
+    {
+      "id": "carrot",
+      "collisionPieces": 0,
+      "overlapPairsBefore": 0,
+      "shiftedFaces": 0,
+      "overlapPairsAfter": 0
+    },
+    {
+      "id": "cauliflower",
+      "collisionPieces": 0,
+      "overlapPairsBefore": 0,
+      "shiftedFaces": 0,
+      "overlapPairsAfter": 0
+    },
+    {
+      "id": "cucumber",
+      "collisionPieces": 0,
+      "overlapPairsBefore": 0,
+      "shiftedFaces": 0,
+      "overlapPairsAfter": 0
+    },
+    {
+      "id": "eggplant",
+      "collisionPieces": 0,
+      "overlapPairsBefore": 0,
+      "shiftedFaces": 0,
+      "overlapPairsAfter": 0
+    },
+    {
+      "id": "garlic",
+      "collisionPieces": 0,
+      "overlapPairsBefore": 0,
+      "shiftedFaces": 0,
+      "overlapPairsAfter": 0
+    },
+    {
+      "id": "ginger",
+      "collisionPieces": 0,
+      "overlapPairsBefore": 0,
+      "shiftedFaces": 0,
+      "overlapPairsAfter": 0
+    },
+    {
+      "id": "grapes_green",
+      "collisionPieces": 0,
+      "overlapPairsBefore": 0,
+      "shiftedFaces": 0,
+      "overlapPairsAfter": 0
+    },
+    {
+      "id": "grapes_purple",
+      "collisionPieces": 0,
+      "overlapPairsBefore": 0,
+      "shiftedFaces": 0,
+      "overlapPairsAfter": 0
+    },
+    {
+      "id": "lemon",
+      "collisionPieces": 0,
+      "overlapPairsBefore": 0,
+      "shiftedFaces": 0,
+      "overlapPairsAfter": 0
+    },
+    {
+      "id": "melon",
+      "collisionPieces": 0,
+      "overlapPairsBefore": 0,
+      "shiftedFaces": 0,
+      "overlapPairsAfter": 0
+    },
+    {
+      "id": "onion",
+      "collisionPieces": 0,
+      "overlapPairsBefore": 0,
+      "shiftedFaces": 0,
+      "overlapPairsAfter": 0
+    },
+    {
+      "id": "orange",
+      "collisionPieces": 0,
+      "overlapPairsBefore": 0,
+      "shiftedFaces": 0,
+      "overlapPairsAfter": 0
+    },
+    {
+      "id": "pear",
+      "collisionPieces": 0,
+      "overlapPairsBefore": 0,
+      "shiftedFaces": 0,
+      "overlapPairsAfter": 0
+    },
+    {
+      "id": "pepper_green",
+      "collisionPieces": 0,
+      "overlapPairsBefore": 0,
+      "shiftedFaces": 0,
+      "overlapPairsAfter": 0
+    },
+    {
+      "id": "pepper_red",
+      "collisionPieces": 0,
+      "overlapPairsBefore": 0,
+      "shiftedFaces": 0,
+      "overlapPairsAfter": 0
+    },
+    {
+      "id": "potato",
+      "collisionPieces": 0,
+      "overlapPairsBefore": 0,
+      "shiftedFaces": 0,
+      "overlapPairsAfter": 0
+    },
+    {
+      "id": "produce_long_counter",
+      "collisionPieces": 1,
+      "overlapPairsBefore": 0,
+      "shiftedFaces": 0,
+      "overlapPairsAfter": 0
+    },
+    {
+      "id": "produce_panel_island",
+      "collisionPieces": 1,
+      "overlapPairsBefore": 0,
+      "shiftedFaces": 0,
+      "overlapPairsAfter": 0
+    },
+    {
+      "id": "produce_slatted_island",
+      "collisionPieces": 1,
+      "overlapPairsBefore": 0,
+      "shiftedFaces": 0,
+      "overlapPairsAfter": 0
+    },
+    {
+      "id": "produce_two_tier",
+      "collisionPieces": 2,
+      "overlapPairsBefore": 12,
+      "shiftedFaces": 12,
+      "overlapPairsAfter": 0
+    },
+    {
+      "id": "tomato",
+      "collisionPieces": 0,
+      "overlapPairsBefore": 0,
+      "shiftedFaces": 0,
+      "overlapPairsAfter": 0
+    },
+    {
+      "id": "watermelon",
+      "collisionPieces": 0,
+      "overlapPairsBefore": 0,
+      "shiftedFaces": 0,
+      "overlapPairsAfter": 0
+    },
+    {
+      "id": "zucchini",
+      "collisionPieces": 0,
+      "overlapPairsBefore": 0,
+      "shiftedFaces": 0,
+      "overlapPairsAfter": 0
+    },
+    {
+      "id": "box_cube",
+      "collisionPieces": 1,
+      "overlapPairsBefore": 0,
+      "shiftedFaces": 0,
+      "overlapPairsAfter": 0
+    },
+    {
+      "id": "box_flat",
+      "collisionPieces": 1,
+      "overlapPairsBefore": 0,
+      "shiftedFaces": 0,
+      "overlapPairsAfter": 0
+    },
+    {
+      "id": "box_large",
+      "collisionPieces": 1,
+      "overlapPairsBefore": 0,
+      "shiftedFaces": 0,
+      "overlapPairsAfter": 0
+    },
+    {
+      "id": "box_long",
+      "collisionPieces": 1,
+      "overlapPairsBefore": 0,
+      "shiftedFaces": 0,
+      "overlapPairsAfter": 0
+    },
+    {
+      "id": "box_medium",
+      "collisionPieces": 1,
+      "overlapPairsBefore": 0,
+      "shiftedFaces": 0,
+      "overlapPairsAfter": 0
+    },
+    {
+      "id": "box_open",
+      "collisionPieces": 0,
+      "overlapPairsBefore": 0,
+      "shiftedFaces": 0,
+      "overlapPairsAfter": 0
+    },
+    {
+      "id": "box_small",
+      "collisionPieces": 1,
+      "overlapPairsBefore": 0,
+      "shiftedFaces": 0,
+      "overlapPairsAfter": 0
+    },
+    {
+      "id": "butcher_knife",
+      "collisionPieces": 0,
+      "overlapPairsBefore": 0,
+      "shiftedFaces": 0,
+      "overlapPairsAfter": 0
+    },
+    {
+      "id": "cargo_panel_bundle",
+      "collisionPieces": 0,
+      "overlapPairsBefore": 0,
+      "shiftedFaces": 0,
+      "overlapPairsAfter": 0
+    },
+    {
+      "id": "cutting_board",
+      "collisionPieces": 0,
+      "overlapPairsBefore": 0,
+      "shiftedFaces": 0,
+      "overlapPairsAfter": 0
+    },
+    {
+      "id": "cutting_table",
+      "collisionPieces": 6,
+      "overlapPairsBefore": 0,
+      "shiftedFaces": 0,
+      "overlapPairsAfter": 0
+    },
+    {
+      "id": "detergent_bottle",
+      "collisionPieces": 0,
+      "overlapPairsBefore": 0,
+      "shiftedFaces": 0,
+      "overlapPairsAfter": 0
+    },
+    {
+      "id": "eas_pedestal",
+      "collisionPieces": 2,
+      "overlapPairsBefore": 0,
+      "shiftedFaces": 0,
+      "overlapPairsAfter": 0
+    },
+    {
+      "id": "hand_truck_blue",
+      "collisionPieces": 5,
+      "overlapPairsBefore": 0,
+      "shiftedFaces": 0,
+      "overlapPairsAfter": 0
+    },
+    {
+      "id": "janitor_bag",
+      "collisionPieces": 0,
+      "overlapPairsBefore": 0,
+      "shiftedFaces": 0,
+      "overlapPairsAfter": 0
+    },
+    {
+      "id": "janitor_cart",
+      "collisionPieces": 8,
+      "overlapPairsBefore": 0,
+      "shiftedFaces": 0,
+      "overlapPairsAfter": 0
+    },
+    {
+      "id": "meat_bone_steak",
+      "collisionPieces": 0,
+      "overlapPairsBefore": 0,
+      "shiftedFaces": 0,
+      "overlapPairsAfter": 0
+    },
+    {
+      "id": "meat_diced",
+      "collisionPieces": 0,
+      "overlapPairsBefore": 0,
+      "shiftedFaces": 0,
+      "overlapPairsAfter": 0
+    },
+    {
+      "id": "meat_steak",
+      "collisionPieces": 0,
+      "overlapPairsBefore": 0,
+      "shiftedFaces": 0,
+      "overlapPairsAfter": 0
+    },
+    {
+      "id": "pallet_jack_orange",
+      "collisionPieces": 8,
+      "overlapPairsBefore": 0,
+      "shiftedFaces": 0,
+      "overlapPairsAfter": 0
+    },
+    {
+      "id": "pallet_jack_yellow",
+      "collisionPieces": 8,
+      "overlapPairsBefore": 0,
+      "shiftedFaces": 0,
+      "overlapPairsAfter": 0
+    },
+    {
+      "id": "paper_roll",
+      "collisionPieces": 0,
+      "overlapPairsBefore": 0,
+      "shiftedFaces": 0,
+      "overlapPairsAfter": 0
+    },
+    {
+      "id": "pos_dual_display",
+      "collisionPieces": 0,
+      "overlapPairsBefore": 0,
+      "shiftedFaces": 0,
+      "overlapPairsAfter": 0
+    },
+    {
+      "id": "security_hard_tag",
+      "collisionPieces": 0,
+      "overlapPairsBefore": 0,
+      "shiftedFaces": 0,
+      "overlapPairsAfter": 0
+    },
+    {
+      "id": "security_soft_label",
+      "collisionPieces": 0,
+      "overlapPairsBefore": 0,
+      "shiftedFaces": 0,
+      "overlapPairsAfter": 0
+    },
+    {
+      "id": "spray_bottle",
+      "collisionPieces": 0,
+      "overlapPairsBefore": 0,
+      "shiftedFaces": 0,
+      "overlapPairsAfter": 0
+    },
+    {
+      "id": "steel_bowl",
+      "collisionPieces": 0,
+      "overlapPairsBefore": 0,
+      "shiftedFaces": 0,
+      "overlapPairsAfter": 0
+    },
+    {
+      "id": "string_mop",
+      "collisionPieces": 0,
+      "overlapPairsBefore": 0,
+      "shiftedFaces": 0,
+      "overlapPairsAfter": 0
+    },
+    {
+      "id": "window_squeegee",
+      "collisionPieces": 0,
+      "overlapPairsBefore": 0,
+      "shiftedFaces": 0,
+      "overlapPairsAfter": 0
+    },
+    {
+      "id": "wood_pallet",
+      "collisionPieces": 20,
+      "overlapPairsBefore": 0,
+      "shiftedFaces": 0,
+      "overlapPairsAfter": 0
+    },
+    {
+      "id": "wringer_bucket",
+      "collisionPieces": 0,
+      "overlapPairsBefore": 0,
+      "shiftedFaces": 0,
+      "overlapPairsAfter": 0
+    },
+    {
+      "id": "sq_barcode_scanner",
+      "collisionPieces": 1,
+      "overlapPairsBefore": 0,
+      "shiftedFaces": 0,
+      "overlapPairsAfter": 0
+    },
+    {
+      "id": "sq_cash_drawer",
+      "collisionPieces": 1,
+      "overlapPairsBefore": 0,
+      "shiftedFaces": 0,
+      "overlapPairsAfter": 0
+    },
+    {
+      "id": "sq_customer_display",
+      "collisionPieces": 1,
+      "overlapPairsBefore": 0,
+      "shiftedFaces": 0,
+      "overlapPairsAfter": 0
+    },
+    {
+      "id": "sq_handheld",
+      "collisionPieces": 1,
+      "overlapPairsBefore": 0,
+      "shiftedFaces": 0,
+      "overlapPairsAfter": 0
+    },
+    {
+      "id": "sq_kiosk_counter",
+      "collisionPieces": 1,
+      "overlapPairsBefore": 0,
+      "shiftedFaces": 0,
+      "overlapPairsAfter": 0
+    },
+    {
+      "id": "sq_kiosk_floor",
+      "collisionPieces": 1,
+      "overlapPairsBefore": 0,
+      "shiftedFaces": 0,
+      "overlapPairsAfter": 0
+    },
+    {
+      "id": "sq_kiosk_wall_angled",
+      "collisionPieces": 1,
+      "overlapPairsBefore": 0,
+      "shiftedFaces": 0,
+      "overlapPairsAfter": 0
+    },
+    {
+      "id": "sq_kiosk_wall_flat",
+      "collisionPieces": 1,
+      "overlapPairsBefore": 0,
+      "shiftedFaces": 0,
+      "overlapPairsAfter": 0
+    },
+    {
+      "id": "sq_magstripe_audio",
+      "collisionPieces": 1,
+      "overlapPairsBefore": 0,
+      "shiftedFaces": 0,
+      "overlapPairsAfter": 0
+    },
+    {
+      "id": "sq_magstripe_lightning",
+      "collisionPieces": 1,
+      "overlapPairsBefore": 0,
+      "shiftedFaces": 0,
+      "overlapPairsAfter": 0
+    },
+    {
+      "id": "sq_magstripe_usbc",
+      "collisionPieces": 1,
+      "overlapPairsBefore": 0,
+      "shiftedFaces": 0,
+      "overlapPairsAfter": 0
+    },
+    {
+      "id": "sq_reader",
+      "collisionPieces": 1,
+      "overlapPairsBefore": 0,
+      "shiftedFaces": 0,
+      "overlapPairsAfter": 0
+    },
+    {
+      "id": "sq_reader_dock",
+      "collisionPieces": 1,
+      "overlapPairsBefore": 0,
+      "shiftedFaces": 0,
+      "overlapPairsAfter": 0
+    },
+    {
+      "id": "sq_receipt_printer",
+      "collisionPieces": 1,
+      "overlapPairsBefore": 0,
+      "shiftedFaces": 0,
+      "overlapPairsAfter": 0
+    },
+    {
+      "id": "sq_register",
+      "collisionPieces": 1,
+      "overlapPairsBefore": 0,
+      "shiftedFaces": 0,
+      "overlapPairsAfter": 0
+    },
+    {
+      "id": "sq_stand",
+      "collisionPieces": 1,
+      "overlapPairsBefore": 0,
+      "shiftedFaces": 0,
+      "overlapPairsAfter": 0
+    },
+    {
+      "id": "sq_terminal",
+      "collisionPieces": 1,
+      "overlapPairsBefore": 0,
+      "shiftedFaces": 0,
+      "overlapPairsAfter": 0
+    },
+    {
+      "id": "sq_terminal_hub",
+      "collisionPieces": 1,
+      "overlapPairsBefore": 0,
+      "shiftedFaces": 0,
+      "overlapPairsAfter": 0
+    },
+    {
+      "id": "checkout_dark_compact",
+      "collisionPieces": 3,
+      "overlapPairsBefore": 36,
+      "shiftedFaces": 36,
+      "overlapPairsAfter": 0
+    },
+    {
+      "id": "checkout_pedestal_slim",
+      "collisionPieces": 3,
+      "overlapPairsBefore": 0,
+      "shiftedFaces": 0,
+      "overlapPairsAfter": 0
+    },
+    {
+      "id": "checkout_white_tall",
+      "collisionPieces": 3,
+      "overlapPairsBefore": 0,
+      "shiftedFaces": 0,
+      "overlapPairsAfter": 0
+    },
+    {
+      "id": "kt_appliance_bay_1800",
+      "collisionPieces": 1,
+      "overlapPairsBefore": 1,
+      "shiftedFaces": 1,
+      "overlapPairsAfter": 0
+    },
+    {
+      "id": "kt_bakery_1200",
+      "collisionPieces": 1,
+      "overlapPairsBefore": 0,
+      "shiftedFaces": 0,
+      "overlapPairsAfter": 0
+    },
+    {
+      "id": "kt_cantilever_2400",
+      "collisionPieces": 1,
+      "overlapPairsBefore": 0,
+      "shiftedFaces": 0,
+      "overlapPairsAfter": 0
+    },
+    {
+      "id": "kt_checkout_2600",
+      "collisionPieces": 1,
+      "overlapPairsBefore": 0,
+      "shiftedFaces": 0,
+      "overlapPairsAfter": 0
+    },
+    {
+      "id": "kt_cosmetic_island_1200",
+      "collisionPieces": 1,
+      "overlapPairsBefore": 0,
+      "shiftedFaces": 0,
+      "overlapPairsAfter": 0
+    },
+    {
+      "id": "kt_cosmetic_wall_1200",
+      "collisionPieces": 1,
+      "overlapPairsBefore": 0,
+      "shiftedFaces": 0,
+      "overlapPairsAfter": 0
+    },
+    {
+      "id": "kt_electronic_table_1600",
+      "collisionPieces": 1,
+      "overlapPairsBefore": 0,
+      "shiftedFaces": 0,
+      "overlapPairsAfter": 0
+    },
+    {
+      "id": "kt_endcap_1000",
+      "collisionPieces": 1,
+      "overlapPairsBefore": 0,
+      "shiftedFaces": 0,
+      "overlapPairsAfter": 0
+    },
+    {
+      "id": "kt_glassware_island_1500",
+      "collisionPieces": 1,
+      "overlapPairsBefore": 0,
+      "shiftedFaces": 0,
+      "overlapPairsAfter": 0
+    },
+    {
+      "id": "kt_glassware_wall_1200",
+      "collisionPieces": 1,
+      "overlapPairsBefore": 0,
+      "shiftedFaces": 0,
+      "overlapPairsAfter": 0
+    },
+    {
+      "id": "kt_gondola_1250",
+      "collisionPieces": 1,
+      "overlapPairsBefore": 0,
+      "shiftedFaces": 0,
+      "overlapPairsAfter": 0
+    },
+    {
+      "id": "kt_hardware_1200",
+      "collisionPieces": 1,
+      "overlapPairsBefore": 0,
+      "shiftedFaces": 0,
+      "overlapPairsAfter": 0
+    },
+    {
+      "id": "kt_inclined_1000",
+      "collisionPieces": 1,
+      "overlapPairsBefore": 0,
+      "shiftedFaces": 0,
+      "overlapPairsAfter": 0
+    },
+    {
+      "id": "kt_pallet_rack_2700",
+      "collisionPieces": 1,
+      "overlapPairsBefore": 0,
+      "shiftedFaces": 0,
+      "overlapPairsAfter": 0
+    },
+    {
+      "id": "kt_rolling_basket_440",
+      "collisionPieces": 1,
+      "overlapPairsBefore": 0,
+      "shiftedFaces": 0,
+      "overlapPairsAfter": 0
+    },
+    {
+      "id": "kt_service_desk_1600",
+      "collisionPieces": 1,
+      "overlapPairsBefore": 0,
+      "shiftedFaces": 0,
+      "overlapPairsAfter": 0
+    },
+    {
+      "id": "kt_shoe_island_1000",
+      "collisionPieces": 1,
+      "overlapPairsBefore": 0,
+      "shiftedFaces": 0,
+      "overlapPairsAfter": 0
+    },
+    {
+      "id": "kt_shoe_wall_1200",
+      "collisionPieces": 1,
+      "overlapPairsBefore": 0,
+      "shiftedFaces": 0,
+      "overlapPairsAfter": 0
+    },
+    {
+      "id": "kt_tripod_turnstile_700",
+      "collisionPieces": 1,
+      "overlapPairsBefore": 0,
+      "shiftedFaces": 0,
+      "overlapPairsAfter": 0
+    },
+    {
+      "id": "kt_wall_1250",
+      "collisionPieces": 1,
+      "overlapPairsBefore": 0,
+      "shiftedFaces": 0,
+      "overlapPairsAfter": 0
+    },
+    {
+      "id": "kt_wire_bin_800",
+      "collisionPieces": 1,
+      "overlapPairsBefore": 0,
+      "shiftedFaces": 0,
+      "overlapPairsAfter": 0
+    },
+    {
+      "id": "kt_wire_cart_580",
+      "collisionPieces": 1,
+      "overlapPairsBefore": 0,
+      "shiftedFaces": 0,
+      "overlapPairsAfter": 0
+    },
+    {
+      "id": "kt_wood_island_1400",
+      "collisionPieces": 1,
+      "overlapPairsBefore": 0,
+      "shiftedFaces": 0,
+      "overlapPairsAfter": 0
+    },
+    {
+      "id": "kt_wood_wall_1200",
+      "collisionPieces": 1,
+      "overlapPairsBefore": 0,
+      "shiftedFaces": 0,
+      "overlapPairsAfter": 0
+    }
+  ],
+  "completed": 132,
+  "total": 132
+}

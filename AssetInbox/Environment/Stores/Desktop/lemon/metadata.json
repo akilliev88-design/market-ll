@@ -1,0 +1,22 @@
+{
+  "schemaVersion": 1,
+  "kind": "lemon",
+  "estimatedPieceMassGrams": 120,
+  "massIsApproximate": true,
+  "originUnit": "one piece",
+  "placement": "asset floor pivot; rotation may lay long vegetables flat",
+  "id": "lemon",
+  "displayName": "Limon",
+  "category": "produce",
+  "mesh": "SM_lemon",
+  "dimensionsMm": {
+    "width": 78.0,
+    "depth": 78.73,
+    "height": 98.0
+  },
+  "triangles": 446,
+  "unit": "metre",
+  "pivot": "floor_bounds_center",
+  "frontAxis": "-Y",
+  "categorySign": false
+}

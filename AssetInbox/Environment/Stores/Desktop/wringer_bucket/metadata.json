@@ -1,0 +1,26 @@
+{
+  "id": "wringer_bucket",
+  "displayName": "Sikmali mop kovasi",
+  "sourcePhoto": 10,
+  "unit": "metre",
+  "pivot": "floor_bounds_center",
+  "frontAxis": "-Y",
+  "dimensionsMm": {
+    "width": 335.0,
+    "depth": 471.56,
+    "height": 622.77
+  },
+  "triangles": 3922,
+  "materials": [
+    "MI_yellow",
+    "MI_rubber",
+    "MI_black",
+    "MI_steel",
+    "MI_red",
+    "MI_cleaning_label"
+  ],
+  "collisionCount": 0,
+  "collisionNote": "Simple part colliders; attached cargo should not simulate against its carrier",
+  "dimensionsAreApproximate": true,
+  "gameIntegration": false
+}

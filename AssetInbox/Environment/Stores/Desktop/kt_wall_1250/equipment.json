@@ -1,0 +1,165 @@
+{
+  "schemaVersion": 1,
+  "id": "kt_wall_1250",
+  "displayName": "Moduler metal duvar rafi",
+  "family": "shelf",
+  "mesh": "SM_KtWall1250.fbx",
+  "dimensionsMm": {
+    "width": 1250.0,
+    "depth": 550.0,
+    "height": 2050.0
+  },
+  "origin": "floor_center",
+  "frontAxis": "-Y",
+  "materials": [
+    "MI_Rubber",
+    "MI_Ivory",
+    "MI_Graphite",
+    "MI_Teal"
+  ],
+  "zones": [
+    {
+      "id": "front_l00",
+      "face": "front",
+      "level": 0,
+      "centerCm": [
+        2.9802322387695312e-06,
+        0.0,
+        25.8
+      ],
+      "usableWidthCm": 111.5,
+      "usableDepthCm": 42.00000000000001,
+      "clearanceHeightCm": 25
+    },
+    {
+      "id": "front_l01",
+      "face": "front",
+      "level": 1,
+      "centerCm": [
+        2.9802322387695312e-06,
+        0.0,
+        66.8
+      ],
+      "usableWidthCm": 111.5,
+      "usableDepthCm": 42.00000000000001,
+      "clearanceHeightCm": 25
+    },
+    {
+      "id": "front_l02",
+      "face": "front",
+      "level": 2,
+      "centerCm": [
+        2.9802322387695312e-06,
+        0.0,
+        107.80000000000001
+      ],
+      "usableWidthCm": 111.5,
+      "usableDepthCm": 42.00000000000001,
+      "clearanceHeightCm": 25
+    },
+    {
+      "id": "front_l03",
+      "face": "front",
+      "level": 3,
+      "centerCm": [
+        2.9802322387695312e-06,
+        0.0,
+        148.8
+      ],
+      "usableWidthCm": 111.5,
+      "usableDepthCm": 42.00000000000001,
+      "clearanceHeightCm": 25
+    },
+    {
+      "id": "front_l04",
+      "face": "front",
+      "level": 4,
+      "centerCm": [
+        2.9802322387695312e-06,
+        0.0,
+        189.79999999999998
+      ],
+      "usableWidthCm": 111.5,
+      "usableDepthCm": 42.00000000000001,
+      "clearanceHeightCm": 25
+    }
+  ],
+  "checkouts": 0,
+  "planogram": {
+    "doubleSided": false,
+    "widthCm": 111.5,
+    "depthCm": 42.00000000000001,
+    "showCategorySign": true,
+    "frontY": -21.000000000000004,
+    "meshYaw": 180
+  },
+  "collision": {
+    "policy": "custom_ucx",
+    "pieces": 1
+  },
+  "reference": {
+    "url": "https://www.kantarci.com.tr/en/products/supermarket-shelf-systems/market-shelves/",
+    "accuracy": "Category-inspired original geometry, not exact manufacturer CAD, SKU or measured reproduction"
+  },
+  "delivery": {
+    "status": "Standalone, not integrated",
+    "sourceUnits": "metres",
+    "fbxUnits": "centimetres",
+    "editableParts": "Named vertex groups"
+  },
+  "unrealMesh": "/Game/Stores/Desktop/kt_wall_1250/SM_KtWall1250.SM_KtWall1250",
+  "deliverySource": "C:\\Users\\mtass\\Desktop\\Miras_Kantarci_Alternatif_Modeller_2026-10-04\\Yeni_Modeller\\kt_wall_1250",
+  "sourceBlend": "Source/kt_wall_1250.blend",
+  "staticPlacement": true,
+  "geometryAudit": {
+    "overlapPairsBefore": 0,
+    "shiftedFaces": 0,
+    "overlapPairsAfter": 0
+  },
+  "sourceMaterialPalette": [
+    {
+      "name": "MI_Rubber",
+      "color": [
+        0.008999999612569809,
+        0.012000000104308128,
+        0.014000000432133675,
+        1.0
+      ],
+      "roughness": 0.6499999761581421,
+      "metallic": 0.0
+    },
+    {
+      "name": "MI_Ivory",
+      "color": [
+        0.7799999713897705,
+        0.7699999809265137,
+        0.6899999976158142,
+        1.0
+      ],
+      "roughness": 0.3400000035762787,
+      "metallic": 0.07999999821186066
+    },
+    {
+      "name": "MI_Graphite",
+      "color": [
+        0.03500000014901161,
+        0.04699999839067459,
+        0.0560000017285347,
+        1.0
+      ],
+      "roughness": 0.30000001192092896,
+      "metallic": 0.5
+    },
+    {
+      "name": "MI_Teal",
+      "color": [
+        0.017999999225139618,
+        0.23999999463558197,
+        0.25,
+        1.0
+      ],
+      "roughness": 0.30000001192092896,
+      "metallic": 0.2199999988079071
+    }
+  ]
+}

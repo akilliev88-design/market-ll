@@ -1,0 +1,103 @@
+{
+  "id": "hand_truck_blue",
+  "displayName": "Mavi koli tasima arabasi",
+  "sourcePhoto": 6,
+  "unit": "metre",
+  "pivot": "floor_bounds_center",
+  "frontAxis": "-Y",
+  "dimensionsMm": {
+    "width": 601.4,
+    "depth": 504.27,
+    "height": 1317.5
+  },
+  "triangles": 23364,
+  "materials": [
+    "MI_blue",
+    "MI_steel",
+    "MI_rubber",
+    "MI_red"
+  ],
+  "collisionCount": 5,
+  "collisionNote": "Simple part colliders; attached cargo should not simulate against its carrier",
+  "dimensionsAreApproximate": true,
+  "gameIntegration": false,
+  "emptyByDefault": true,
+  "cargoCombined": false,
+  "cargoAnchorMetres": [
+    0.0,
+    -0.10713352262973785,
+    0.03550000861287117
+  ],
+  "loadMaxPieces": 4,
+  "family": "prop",
+  "mesh": "SM_hand_truck_blue.fbx",
+  "unrealMesh": "/Game/Stores/Desktop/hand_truck_blue/SM_hand_truck_blue.SM_hand_truck_blue",
+  "checkouts": 0,
+  "zones": [],
+  "planogram": {
+    "doubleSided": false,
+    "widthCm": 60.14,
+    "depthCm": 50.427,
+    "frontY": 0,
+    "meshYaw": 180,
+    "showCategorySign": false
+  },
+  "deliverySource": "C:\\Users\\mtass\\Desktop\\Miras_Magaza_Araclari_2026-10-04\\Models\\hand_truck_blue",
+  "sourceBlend": "hand_truck_blue.blend",
+  "staticPlacement": true,
+  "collision": {
+    "policy": "custom_ucx",
+    "pieces": 5
+  },
+  "geometryAudit": {
+    "overlapPairsBefore": 0,
+    "shiftedFaces": 0,
+    "overlapPairsAfter": 0
+  },
+  "sourceMaterialPalette": [
+    {
+      "name": "MI_blue",
+      "color": [
+        0.00800000037997961,
+        0.023000000044703484,
+        0.550000011920929,
+        1.0
+      ],
+      "roughness": 0.33000001311302185,
+      "metallic": 0.20000000298023224
+    },
+    {
+      "name": "MI_steel",
+      "color": [
+        0.4000000059604645,
+        0.44999998807907104,
+        0.49000000953674316,
+        1.0
+      ],
+      "roughness": 0.27000001072883606,
+      "metallic": 0.8199999928474426
+    },
+    {
+      "name": "MI_rubber",
+      "color": [
+        0.007000000216066837,
+        0.008999999612569809,
+        0.012000000104308128,
+        1.0
+      ],
+      "roughness": 0.7599999904632568,
+      "metallic": 0.0
+    },
+    {
+      "name": "MI_red",
+      "color": [
+        0.550000011920929,
+        0.012000000104308128,
+        0.014999999664723873,
+        1.0
+      ],
+      "roughness": 0.4000000059604645,
+      "metallic": 0.14000000059604645
+    }
+  ]
+}

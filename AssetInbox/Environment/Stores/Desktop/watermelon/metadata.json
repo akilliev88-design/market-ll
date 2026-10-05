@@ -1,0 +1,22 @@
+{
+  "schemaVersion": 1,
+  "kind": "watermelon",
+  "estimatedPieceMassGrams": 4500,
+  "massIsApproximate": true,
+  "originUnit": "one piece",
+  "placement": "asset floor pivot; rotation may lay long vegetables flat",
+  "id": "watermelon",
+  "displayName": "Karpuz",
+  "category": "produce",
+  "mesh": "SM_watermelon",
+  "dimensionsMm": {
+    "width": 290.0,
+    "depth": 290.0,
+    "height": 281.57
+  },
+  "triangles": 660,
+  "unit": "metre",
+  "pivot": "floor_bounds_center",
+  "frontAxis": "-Y",
+  "categorySign": false
+}

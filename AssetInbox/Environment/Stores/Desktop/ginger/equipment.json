@@ -1,0 +1,60 @@
+{
+  "schemaVersion": 1,
+  "kind": "ginger",
+  "estimatedPieceMassGrams": 150,
+  "massIsApproximate": true,
+  "originUnit": "one piece",
+  "placement": "asset floor pivot; rotation may lay long vegetables flat",
+  "id": "ginger",
+  "displayName": "Zencefil",
+  "category": "produce",
+  "mesh": "SM_ginger.fbx",
+  "dimensionsMm": {
+    "width": 148.2,
+    "depth": 96.2,
+    "height": 38.4
+  },
+  "triangles": 1440,
+  "unit": "metre",
+  "pivot": "floor_bounds_center",
+  "frontAxis": "-Y",
+  "categorySign": false,
+  "family": "prop",
+  "unrealMesh": "/Game/Stores/Desktop/ginger/SM_ginger.SM_ginger",
+  "checkouts": 0,
+  "zones": [],
+  "planogram": {
+    "doubleSided": false,
+    "widthCm": 14.819999999999999,
+    "depthCm": 9.620000000000001,
+    "frontY": 0,
+    "meshYaw": 180,
+    "showCategorySign": false
+  },
+  "deliverySource": "C:\\Users\\mtass\\Desktop\\Miras_Manav_Modelleri_2026-10-04\\Models\\ginger",
+  "sourceBlend": "ginger.blend",
+  "staticPlacement": true,
+  "collision": {
+    "policy": "custom_ucx",
+    "pieces": 0
+  },
+  "geometryAudit": {
+    "overlapPairsBefore": 0,
+    "shiftedFaces": 0,
+    "overlapPairsAfter": 0
+  },
+  "sourceMaterialPalette": [
+    {
+      "name": "MI_ginger",
+      "color": [
+        0.5099999904632568,
+        0.36000001430511475,
+        0.1899999976158142,
+        1.0
+      ],
+      "roughness": 0.44999998807907104,
+      "metallic": 0.0,
+      "baseTexture": "AssetInbox/Environment/Stores/Desktop/ginger/Textures/ginger.png"
+    }
+  ]
+}

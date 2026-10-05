@@ -1,0 +1,22 @@
+{
+  "schemaVersion": 1,
+  "kind": "tomato",
+  "estimatedPieceMassGrams": 150,
+  "massIsApproximate": true,
+  "originUnit": "one piece",
+  "placement": "asset floor pivot; rotation may lay long vegetables flat",
+  "id": "tomato",
+  "displayName": "Domates",
+  "category": "produce",
+  "mesh": "SM_tomato",
+  "dimensionsMm": {
+    "width": 80.23,
+    "depth": 82.05,
+    "height": 81.11
+  },
+  "triangles": 458,
+  "unit": "metre",
+  "pivot": "floor_bounds_center",
+  "frontAxis": "-Y",
+  "categorySign": false
+}

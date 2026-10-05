@@ -1,0 +1,114 @@
+{
+  "schemaVersion": 1,
+  "id": "sq_kiosk_floor",
+  "displayName": "Kiosk uzun ayakli kurulumu",
+  "family": "pos_hardware",
+  "mesh": "SM_SqKioskFloor.fbx",
+  "dimensionsMm": {
+    "width": 340.0,
+    "depth": 310.0,
+    "height": 1322.269
+  },
+  "origin": "floor_center",
+  "frontAxis": "-Y",
+  "materials": [
+    "MI_Graphite",
+    "MI_Aluminum",
+    "MI_GlassBlack",
+    "MI_Screen_kiosk",
+    "MI_Rubber"
+  ],
+  "collision": {
+    "policy": "custom_ucx",
+    "pieces": 1
+  },
+  "reference": {
+    "url": "https://squareup.com/us/en/hardware/kiosk",
+    "accuracy": "Reference-inspired original geometry, not CAD; documented dimensions used where available, assembly and accessories estimated"
+  },
+  "delivery": {
+    "status": "Standalone Blender/FBX asset",
+    "sourceUnits": "metres",
+    "fbxUnits": "centimetres",
+    "editableParts": "Named vertex groups",
+    "screens": "Packed original UI textures; PNG sources in Textures"
+  },
+  "planogram": {
+    "showCategorySign": false,
+    "doubleSided": false,
+    "widthCm": 34.0,
+    "depthCm": 31.0,
+    "frontY": 0,
+    "meshYaw": 180
+  },
+  "unrealMesh": "/Game/Stores/Desktop/sq_kiosk_floor/SM_SqKioskFloor.SM_SqKioskFloor",
+  "checkouts": 0,
+  "zones": [],
+  "deliverySource": "C:\\Users\\mtass\\Desktop\\Miras_Square_POS_Modeller_2026-10-04\\Modeller\\sq_kiosk_floor",
+  "sourceBlend": "Source/sq_kiosk_floor.blend",
+  "staticPlacement": true,
+  "geometryAudit": {
+    "overlapPairsBefore": 0,
+    "shiftedFaces": 0,
+    "overlapPairsAfter": 0
+  },
+  "sourceMaterialPalette": [
+    {
+      "name": "MI_Graphite",
+      "color": [
+        0.023000000044703484,
+        0.02800000086426735,
+        0.03200000151991844,
+        1.0
+      ],
+      "roughness": 0.30000001192092896,
+      "metallic": 0.3199999928474426
+    },
+    {
+      "name": "MI_Aluminum",
+      "color": [
+        0.5400000214576721,
+        0.5699999928474426,
+        0.6100000143051147,
+        1.0
+      ],
+      "roughness": 0.23999999463558197,
+      "metallic": 0.8299999833106995
+    },
+    {
+      "name": "MI_GlassBlack",
+      "color": [
+        0.00800000037997961,
+        0.013000000268220901,
+        0.01899999938905239,
+        1.0
+      ],
+      "roughness": 0.11999999731779099,
+      "metallic": 0.07999999821186066
+    },
+    {
+      "name": "MI_Screen_kiosk",
+      "color": [
+        1.0,
+        1.0,
+        1.0,
+        1.0
+      ],
+      "roughness": 0.25,
+      "metallic": 0.0,
+      "baseTexture": "AssetInbox/Environment/Stores/Desktop/sq_kiosk_floor/Textures/kiosk.png",
+      "emissionTexture": "AssetInbox/Environment/Stores/Desktop/sq_kiosk_floor/Textures/kiosk.png"
+    },
+    {
+      "name": "MI_Rubber",
+      "color": [
+        0.00800000037997961,
+        0.008999999612569809,
+        0.010999999940395355,
+        1.0
+      ],
+      "roughness": 0.6399999856948853,
+      "metallic": 0.0
+    }
+  ]
+}

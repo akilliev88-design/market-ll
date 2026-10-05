@@ -1,0 +1,68 @@
+{
+  "id": "box_open",
+  "displayName": "Acik bos koli",
+  "sourcePhoto": 1,
+  "unit": "metre",
+  "pivot": "floor_bounds_center",
+  "frontAxis": "-Y",
+  "dimensionsMm": {
+    "width": 676.76,
+    "depth": 494.44,
+    "height": 346.57
+  },
+  "triangles": 1692,
+  "materials": [
+    "MI_cardboard"
+  ],
+  "collisionCount": 0,
+  "collisionNote": "Simple part colliders; attached cargo should not simulate against its carrier",
+  "dimensionsAreApproximate": true,
+  "gameIntegration": false,
+  "emptyByDefault": true,
+  "openFlapCount": 4,
+  "nominalSizeMetres": [
+    0.4000000059604645,
+    0.30000001192092896,
+    0.30000001192092896
+  ],
+  "cargoOnly": true,
+  "family": "prop",
+  "mesh": "SM_box_open.fbx",
+  "unrealMesh": "/Game/Stores/Desktop/box_open/SM_box_open.SM_box_open",
+  "checkouts": 0,
+  "zones": [],
+  "planogram": {
+    "doubleSided": false,
+    "widthCm": 67.676,
+    "depthCm": 49.444,
+    "frontY": 0,
+    "meshYaw": 180,
+    "showCategorySign": false
+  },
+  "deliverySource": "C:\\Users\\mtass\\Desktop\\Miras_Magaza_Araclari_2026-10-04\\Models\\box_open",
+  "sourceBlend": "box_open.blend",
+  "staticPlacement": true,
+  "collision": {
+    "policy": "custom_ucx",
+    "pieces": 0
+  },
+  "geometryAudit": {
+    "overlapPairsBefore": 0,
+    "shiftedFaces": 0,
+    "overlapPairsAfter": 0
+  },
+  "sourceMaterialPalette": [
+    {
+      "name": "MI_cardboard",
+      "color": [
+        1.0,
+        1.0,
+        1.0,
+        1.0
+      ],
+      "roughness": 0.6399999856948853,
+      "metallic": 0.0,
+      "baseTexture": "AssetInbox/Environment/Stores/Desktop/box_open/Textures/cardboard.png"
+    }
+  ]
+}

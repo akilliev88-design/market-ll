@@ -1,0 +1,202 @@
+{
+  "schemaVersion": 1,
+  "id": "kt_shoe_island_1000",
+  "displayName": "Iki yuzlu ayakkabi teshir adasi",
+  "family": "shoe",
+  "mesh": "SM_KtShoeIsland1000.fbx",
+  "dimensionsMm": {
+    "width": 1000.0,
+    "depth": 671.5,
+    "height": 1375.0
+  },
+  "origin": "floor_center",
+  "frontAxis": "-Y",
+  "materials": [
+    "MI_Rubber",
+    "MI_Ivory",
+    "MI_Oak",
+    "MI_Teal",
+    "MI_Graphite",
+    "MI_Walnut"
+  ],
+  "zones": [
+    {
+      "id": "front_l00",
+      "face": "front",
+      "level": 0,
+      "centerCm": [
+        0.0,
+        -18.874999165534973,
+        36.8
+      ],
+      "usableWidthCm": 88.5,
+      "usableDepthCm": 23.0,
+      "clearanceHeightCm": 25
+    },
+    {
+      "id": "front_l01",
+      "face": "front",
+      "level": 1,
+      "centerCm": [
+        0.0,
+        -18.874999165534973,
+        79.80000000000001
+      ],
+      "usableWidthCm": 88.5,
+      "usableDepthCm": 23.0,
+      "clearanceHeightCm": 25
+    },
+    {
+      "id": "front_l02",
+      "face": "front",
+      "level": 2,
+      "centerCm": [
+        0.0,
+        -18.874999165534973,
+        122.8
+      ],
+      "usableWidthCm": 88.5,
+      "usableDepthCm": 23.0,
+      "clearanceHeightCm": 25
+    },
+    {
+      "id": "front_l03",
+      "face": "front",
+      "level": 3,
+      "centerCm": [
+        0.0,
+        17.125000834465027,
+        36.8
+      ],
+      "usableWidthCm": 88.5,
+      "usableDepthCm": 23.0,
+      "clearanceHeightCm": 25
+    },
+    {
+      "id": "front_l04",
+      "face": "front",
+      "level": 4,
+      "centerCm": [
+        0.0,
+        17.125000834465027,
+        79.80000000000001
+      ],
+      "usableWidthCm": 88.5,
+      "usableDepthCm": 23.0,
+      "clearanceHeightCm": 25
+    },
+    {
+      "id": "front_l05",
+      "face": "front",
+      "level": 5,
+      "centerCm": [
+        0.0,
+        17.125000834465027,
+        122.8
+      ],
+      "usableWidthCm": 88.5,
+      "usableDepthCm": 23.0,
+      "clearanceHeightCm": 25
+    }
+  ],
+  "checkouts": 0,
+  "planogram": {
+    "doubleSided": true,
+    "widthCm": 88.5,
+    "depthCm": 23.0,
+    "showCategorySign": false,
+    "frontY": -30.374999165534973,
+    "meshYaw": 180
+  },
+  "collision": {
+    "policy": "custom_ucx",
+    "pieces": 1
+  },
+  "reference": {
+    "url": "https://www.kantarci.com.tr/en/products/supermarket-shelf-systems/shoe-store-shelves/",
+    "accuracy": "Category-inspired original geometry, not exact manufacturer CAD, SKU or measured reproduction"
+  },
+  "delivery": {
+    "status": "Standalone, not integrated",
+    "sourceUnits": "metres",
+    "fbxUnits": "centimetres",
+    "editableParts": "Named vertex groups"
+  },
+  "unrealMesh": "/Game/Stores/Desktop/kt_shoe_island_1000/SM_KtShoeIsland1000.SM_KtShoeIsland1000",
+  "deliverySource": "C:\\Users\\mtass\\Desktop\\Miras_Kantarci_Alternatif_Modeller_2026-10-04\\Yeni_Modeller\\kt_shoe_island_1000",
+  "sourceBlend": "Source/kt_shoe_island_1000.blend",
+  "staticPlacement": true,
+  "geometryAudit": {
+    "overlapPairsBefore": 0,
+    "shiftedFaces": 0,
+    "overlapPairsAfter": 0
+  },
+  "sourceMaterialPalette": [
+    {
+      "name": "MI_Rubber",
+      "color": [
+        0.008999999612569809,
+        0.012000000104308128,
+        0.014000000432133675,
+        1.0
+      ],
+      "roughness": 0.6499999761581421,
+      "metallic": 0.0
+    },
+    {
+      "name": "MI_Ivory",
+      "color": [
+        0.7799999713897705,
+        0.7699999809265137,
+        0.6899999976158142,
+        1.0
+      ],
+      "roughness": 0.3400000035762787,
+      "metallic": 0.07999999821186066
+    },
+    {
+      "name": "MI_Oak",
+      "color": [
+        0.3799999952316284,
+        0.23000000417232513,
+        0.10000000149011612,
+        1.0
+      ],
+      "roughness": 0.4300000071525574,
+      "metallic": 0.0
+    },
+    {
+      "name": "MI_Teal",
+      "color": [
+        0.017999999225139618,
+        0.23999999463558197,
+        0.25,
+        1.0
+      ],
+      "roughness": 0.30000001192092896,
+      "metallic": 0.2199999988079071
+    },
+    {
+      "name": "MI_Graphite",
+      "color": [
+        0.03500000014901161,
+        0.04699999839067459,
+        0.0560000017285347,
+        1.0
+      ],
+      "roughness": 0.30000001192092896,
+      "metallic": 0.5
+    },
+    {
+      "name": "MI_Walnut",
+      "color": [
+        0.1599999964237213,
+        0.07800000160932541,
+        0.03500000014901161,
+        1.0
+      ],
+      "roughness": 0.4000000059604645,
+      "metallic": 0.0
+    }
+  ]
+}

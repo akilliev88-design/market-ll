@@ -1,0 +1,74 @@
+{
+  "id": "meat_diced",
+  "displayName": "Kusbasilik et parcasi",
+  "sourcePhoto": 4,
+  "unit": "metre",
+  "pivot": "floor_bounds_center",
+  "frontAxis": "-Y",
+  "dimensionsMm": {
+    "width": 55.52,
+    "depth": 46.64,
+    "height": 38.0
+  },
+  "triangles": 94,
+  "materials": [
+    "MI_raw_meat",
+    "MI_MeatFat"
+  ],
+  "collisionCount": 0,
+  "collisionNote": "Simple part colliders; attached cargo should not simulate against its carrier",
+  "dimensionsAreApproximate": true,
+  "gameIntegration": false,
+  "rawMeat": true,
+  "independentAccessory": true,
+  "family": "prop",
+  "mesh": "SM_meat_diced.fbx",
+  "unrealMesh": "/Game/Stores/Desktop/meat_diced/SM_meat_diced.SM_meat_diced",
+  "checkouts": 0,
+  "zones": [],
+  "planogram": {
+    "doubleSided": false,
+    "widthCm": 5.5520000000000005,
+    "depthCm": 4.664,
+    "frontY": 0,
+    "meshYaw": 180,
+    "showCategorySign": false
+  },
+  "deliverySource": "C:\\Users\\mtass\\Desktop\\Miras_Magaza_Araclari_2026-10-04\\Models\\meat_diced",
+  "sourceBlend": "meat_diced.blend",
+  "staticPlacement": true,
+  "collision": {
+    "policy": "custom_ucx",
+    "pieces": 0
+  },
+  "geometryAudit": {
+    "overlapPairsBefore": 0,
+    "shiftedFaces": 0,
+    "overlapPairsAfter": 0
+  },
+  "sourceMaterialPalette": [
+    {
+      "name": "MI_raw_meat",
+      "color": [
+        1.0,
+        1.0,
+        1.0,
+        1.0
+      ],
+      "roughness": 0.6399999856948853,
+      "metallic": 0.0,
+      "baseTexture": "AssetInbox/Environment/Stores/Desktop/meat_diced/Textures/raw_meat.png"
+    },
+    {
+      "name": "MI_MeatFat",
+      "color": [
+        0.7200000286102295,
+        0.6000000238418579,
+        0.4300000071525574,
+        1.0
+      ],
+      "roughness": 0.49000000953674316,
+      "metallic": 0.0
+    }
+  ]
+}

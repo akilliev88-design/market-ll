@@ -1,0 +1,87 @@
+{
+  "schemaVersion": 1,
+  "id": "child_cart_450",
+  "displayName": "Cocuk alisveris arabasi",
+  "mesh": "SM_ChildCart450.fbx",
+  "family": "cart",
+  "unrealMesh": "/Game/Stores/Desktop/child_cart_450/SM_ChildCart450.SM_ChildCart450",
+  "dimensionsMm": {
+    "width": 440.0,
+    "depth": 592.0,
+    "height": 739.0
+  },
+  "origin": "floor_center",
+  "frontAxis": "-Y",
+  "materials": [
+    "MI_BrushedSteel",
+    "MI_Rubber",
+    "MI_RedPolymer"
+  ],
+  "collision": {
+    "policy": "custom_ucx",
+    "pieces": 1
+  },
+  "zones": [],
+  "checkouts": 0,
+  "planogram": {
+    "doubleSided": false,
+    "widthCm": 44.0,
+    "depthCm": 59.2,
+    "frontY": -24.5,
+    "meshYaw": 180,
+    "showCategorySign": false
+  },
+  "reference": {
+    "url": "http://www.buzrefrigeration.com/tr/urun/magaza-duzenleme",
+    "accuracy": "Reference-inspired authored proportions; not manufacturer CAD or technical dimensions"
+  },
+  "delivery": {
+    "status": "Standalone Blender asset, not integrated",
+    "sourceUnits": "metres",
+    "fbxUnits": "centimetres",
+    "editableParts": "Named vertex groups"
+  },
+  "deliverySource": "C:\\Users\\mtass\\Desktop\\Miras_Blender_Ekipman_2026-10-03\\Yeni_Modeller\\child_cart_450",
+  "sourceBlend": "Source/child_cart_450.blend",
+  "staticPlacement": true,
+  "geometryAudit": {
+    "overlapPairsBefore": 0,
+    "shiftedFaces": 0,
+    "overlapPairsAfter": 0
+  },
+  "sourceMaterialPalette": [
+    {
+      "name": "MI_BrushedSteel",
+      "color": [
+        0.5,
+        0.5400000214576721,
+        0.5699999928474426,
+        1.0
+      ],
+      "roughness": 0.2800000011920929,
+      "metallic": 0.8199999928474426
+    },
+    {
+      "name": "MI_Rubber",
+      "color": [
+        0.012000000104308128,
+        0.017000000923871994,
+        0.019999999552965164,
+        1.0
+      ],
+      "roughness": 0.6499999761581421,
+      "metallic": 0.0
+    },
+    {
+      "name": "MI_RedPolymer",
+      "color": [
+        0.5600000023841858,
+        0.03500000014901161,
+        0.02500000037252903,
+        1.0
+      ],
+      "roughness": 0.3499999940395355,
+      "metallic": 0.0
+    }
+  ]
+}

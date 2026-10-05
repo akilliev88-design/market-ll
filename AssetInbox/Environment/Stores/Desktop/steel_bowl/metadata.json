@@ -1,0 +1,21 @@
+{
+  "id": "steel_bowl",
+  "displayName": "Celik kase",
+  "sourcePhoto": 4,
+  "unit": "metre",
+  "pivot": "floor_bounds_center",
+  "frontAxis": "-Y",
+  "dimensionsMm": {
+    "width": 222.0,
+    "depth": 222.0,
+    "height": 112.0
+  },
+  "triangles": 1052,
+  "materials": [
+    "MI_steel"
+  ],
+  "collisionCount": 0,
+  "collisionNote": "Simple part colliders; attached cargo should not simulate against its carrier",
+  "dimensionsAreApproximate": true,
+  "gameIntegration": false
+}

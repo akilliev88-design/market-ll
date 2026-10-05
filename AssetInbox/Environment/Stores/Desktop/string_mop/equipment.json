@@ -1,0 +1,95 @@
+{
+  "id": "string_mop",
+  "displayName": "Ipli mop",
+  "sourcePhoto": 10,
+  "unit": "metre",
+  "pivot": "floor_bounds_center",
+  "frontAxis": "-Y",
+  "dimensionsMm": {
+    "width": 139.56,
+    "depth": 141.83,
+    "height": 1465.24
+  },
+  "triangles": 9236,
+  "materials": [
+    "MI_steel",
+    "MI_turquoise",
+    "MI_black",
+    "MI_paper"
+  ],
+  "collisionCount": 0,
+  "collisionNote": "Simple part colliders; attached cargo should not simulate against its carrier",
+  "dimensionsAreApproximate": true,
+  "gameIntegration": false,
+  "family": "prop",
+  "mesh": "SM_string_mop.fbx",
+  "unrealMesh": "/Game/Stores/Desktop/string_mop/SM_string_mop.SM_string_mop",
+  "checkouts": 0,
+  "zones": [],
+  "planogram": {
+    "doubleSided": false,
+    "widthCm": 13.956,
+    "depthCm": 14.183000000000002,
+    "frontY": 0,
+    "meshYaw": 180,
+    "showCategorySign": false
+  },
+  "deliverySource": "C:\\Users\\mtass\\Desktop\\Miras_Magaza_Araclari_2026-10-04\\Models\\string_mop",
+  "sourceBlend": "string_mop.blend",
+  "staticPlacement": true,
+  "collision": {
+    "policy": "custom_ucx",
+    "pieces": 0
+  },
+  "geometryAudit": {
+    "overlapPairsBefore": 0,
+    "shiftedFaces": 0,
+    "overlapPairsAfter": 0
+  },
+  "sourceMaterialPalette": [
+    {
+      "name": "MI_steel",
+      "color": [
+        0.4000000059604645,
+        0.44999998807907104,
+        0.49000000953674316,
+        1.0
+      ],
+      "roughness": 0.27000001072883606,
+      "metallic": 0.8199999928474426
+    },
+    {
+      "name": "MI_turquoise",
+      "color": [
+        0.009999999776482582,
+        0.33000001311302185,
+        0.4000000059604645,
+        1.0
+      ],
+      "roughness": 0.4000000059604645,
+      "metallic": 0.0
+    },
+    {
+      "name": "MI_black",
+      "color": [
+        0.012000000104308128,
+        0.01600000075995922,
+        0.020999999716877937,
+        1.0
+      ],
+      "roughness": 0.47999998927116394,
+      "metallic": 0.10000000149011612
+    },
+    {
+      "name": "MI_paper",
+      "color": [
+        0.7799999713897705,
+        0.7699999809265137,
+        0.7200000286102295,
+        1.0
+      ],
+      "roughness": 0.8500000238418579,
+      "metallic": 0.0
+    }
+  ]
+}

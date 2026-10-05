@@ -1,0 +1,71 @@
+{
+  "schemaVersion": 1,
+  "kind": "garlic",
+  "estimatedPieceMassGrams": 60,
+  "massIsApproximate": true,
+  "originUnit": "one piece",
+  "placement": "asset floor pivot; rotation may lay long vegetables flat",
+  "id": "garlic",
+  "displayName": "Sarimsak",
+  "category": "produce",
+  "mesh": "SM_garlic.fbx",
+  "dimensionsMm": {
+    "width": 71.85,
+    "depth": 74.46,
+    "height": 75.42
+  },
+  "triangles": 598,
+  "unit": "metre",
+  "pivot": "floor_bounds_center",
+  "frontAxis": "-Y",
+  "categorySign": false,
+  "family": "prop",
+  "unrealMesh": "/Game/Stores/Desktop/garlic/SM_garlic.SM_garlic",
+  "checkouts": 0,
+  "zones": [],
+  "planogram": {
+    "doubleSided": false,
+    "widthCm": 7.185,
+    "depthCm": 7.446,
+    "frontY": 0,
+    "meshYaw": 180,
+    "showCategorySign": false
+  },
+  "deliverySource": "C:\\Users\\mtass\\Desktop\\Miras_Manav_Modelleri_2026-10-04\\Models\\garlic",
+  "sourceBlend": "garlic.blend",
+  "staticPlacement": true,
+  "collision": {
+    "policy": "custom_ucx",
+    "pieces": 0
+  },
+  "geometryAudit": {
+    "overlapPairsBefore": 0,
+    "shiftedFaces": 0,
+    "overlapPairsAfter": 0
+  },
+  "sourceMaterialPalette": [
+    {
+      "name": "MI_garlic",
+      "color": [
+        0.7900000214576721,
+        0.7400000095367432,
+        0.6200000047683716,
+        1.0
+      ],
+      "roughness": 0.44999998807907104,
+      "metallic": 0.0,
+      "baseTexture": "AssetInbox/Environment/Stores/Desktop/garlic/Textures/garlic.png"
+    },
+    {
+      "name": "MI_Stem",
+      "color": [
+        0.1599999964237213,
+        0.07500000298023224,
+        0.024000000208616257,
+        1.0
+      ],
+      "roughness": 0.75,
+      "metallic": 0.0
+    }
+  ]
+}

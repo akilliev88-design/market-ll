@@ -1,0 +1,141 @@
+{
+  "schemaVersion": 1,
+  "id": "warehouse_rack_2400",
+  "displayName": "Hafif depo raf unitesi",
+  "mesh": "SM_WarehouseRack2400.fbx",
+  "family": "storage",
+  "unrealMesh": "/Game/Stores/Desktop/warehouse_rack_2400/SM_WarehouseRack2400.SM_WarehouseRack2400",
+  "dimensionsMm": {
+    "width": 2470.0,
+    "depth": 700.0,
+    "height": 2349.944
+  },
+  "origin": "floor_center",
+  "frontAxis": "-Y",
+  "materials": [
+    "MI_BrushedSteel",
+    "MI_Anthracite"
+  ],
+  "collision": {
+    "policy": "custom_ucx",
+    "pieces": 1
+  },
+  "zones": [
+    {
+      "id": "front_l00",
+      "face": "front",
+      "level": 0,
+      "centerCm": [
+        0,
+        0,
+        16.0
+      ],
+      "usableWidthCm": 223.99999999999997,
+      "usableDepthCm": 52.5,
+      "clearanceHeightCm": 28
+    },
+    {
+      "id": "front_l01",
+      "face": "front",
+      "level": 1,
+      "centerCm": [
+        0,
+        0,
+        62.0
+      ],
+      "usableWidthCm": 223.99999999999997,
+      "usableDepthCm": 52.5,
+      "clearanceHeightCm": 28
+    },
+    {
+      "id": "front_l02",
+      "face": "front",
+      "level": 2,
+      "centerCm": [
+        0,
+        0,
+        108.0
+      ],
+      "usableWidthCm": 223.99999999999997,
+      "usableDepthCm": 52.5,
+      "clearanceHeightCm": 28
+    },
+    {
+      "id": "front_l03",
+      "face": "front",
+      "level": 3,
+      "centerCm": [
+        0,
+        0,
+        154.0
+      ],
+      "usableWidthCm": 223.99999999999997,
+      "usableDepthCm": 52.5,
+      "clearanceHeightCm": 28
+    },
+    {
+      "id": "front_l04",
+      "face": "front",
+      "level": 4,
+      "centerCm": [
+        0,
+        0,
+        200.0
+      ],
+      "usableWidthCm": 223.99999999999997,
+      "usableDepthCm": 52.5,
+      "clearanceHeightCm": 28
+    }
+  ],
+  "checkouts": 0,
+  "planogram": {
+    "doubleSided": false,
+    "widthCm": 223.99999999999997,
+    "depthCm": 52.5,
+    "frontY": -24.5,
+    "meshYaw": 180,
+    "showCategorySign": false
+  },
+  "reference": {
+    "url": "http://www.buzrefrigeration.com/tr/urun/magaza-duzenleme",
+    "accuracy": "Reference-inspired authored proportions; not manufacturer CAD or technical dimensions"
+  },
+  "delivery": {
+    "status": "Standalone Blender asset, not integrated",
+    "sourceUnits": "metres",
+    "fbxUnits": "centimetres",
+    "editableParts": "Named vertex groups"
+  },
+  "deliverySource": "C:\\Users\\mtass\\Desktop\\Miras_Blender_Ekipman_2026-10-03\\Yeni_Modeller\\warehouse_rack_2400",
+  "sourceBlend": "Source/warehouse_rack_2400.blend",
+  "staticPlacement": true,
+  "geometryAudit": {
+    "overlapPairsBefore": 0,
+    "shiftedFaces": 0,
+    "overlapPairsAfter": 0
+  },
+  "sourceMaterialPalette": [
+    {
+      "name": "MI_BrushedSteel",
+      "color": [
+        0.5,
+        0.5400000214576721,
+        0.5699999928474426,
+        1.0
+      ],
+      "roughness": 0.2800000011920929,
+      "metallic": 0.8199999928474426
+    },
+    {
+      "name": "MI_Anthracite",
+      "color": [
+        0.029999999329447746,
+        0.03999999910593033,
+        0.05000000074505806,
+        1.0
+      ],
+      "roughness": 0.3199999928474426,
+      "metallic": 0.44999998807907104
+    }
+  ]
+}

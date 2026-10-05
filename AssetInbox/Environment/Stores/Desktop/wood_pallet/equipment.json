@@ -1,0 +1,83 @@
+{
+  "id": "wood_pallet",
+  "displayName": "Ahsap palet",
+  "sourcePhoto": 2,
+  "unit": "metre",
+  "pivot": "floor_bounds_center",
+  "frontAxis": "-Y",
+  "dimensionsMm": {
+    "width": 801.0,
+    "depth": 1200.0,
+    "height": 151.95
+  },
+  "triangles": 4600,
+  "materials": [
+    "MI_wood",
+    "MI_steel"
+  ],
+  "collisionCount": 20,
+  "collisionNote": "Simple part colliders; attached cargo should not simulate against its carrier",
+  "dimensionsAreApproximate": true,
+  "gameIntegration": false,
+  "nominalSizeMetres": [
+    0.799500048160553,
+    1.2000000476837158,
+    0.15150000154972076
+  ],
+  "forkEntry": "front and back",
+  "cargoDeckMetres": [
+    -0.0004999786615371704,
+    0.0,
+    0.15150000154972076
+  ],
+  "family": "prop",
+  "mesh": "SM_wood_pallet.fbx",
+  "unrealMesh": "/Game/Stores/Desktop/wood_pallet/SM_wood_pallet.SM_wood_pallet",
+  "checkouts": 0,
+  "zones": [],
+  "planogram": {
+    "doubleSided": false,
+    "widthCm": 80.1,
+    "depthCm": 120.0,
+    "frontY": 0,
+    "meshYaw": 180,
+    "showCategorySign": false
+  },
+  "deliverySource": "C:\\Users\\mtass\\Desktop\\Miras_Magaza_Araclari_2026-10-04\\Models\\wood_pallet",
+  "sourceBlend": "wood_pallet.blend",
+  "staticPlacement": true,
+  "collision": {
+    "policy": "custom_ucx",
+    "pieces": 20
+  },
+  "geometryAudit": {
+    "overlapPairsBefore": 0,
+    "shiftedFaces": 0,
+    "overlapPairsAfter": 0
+  },
+  "sourceMaterialPalette": [
+    {
+      "name": "MI_wood",
+      "color": [
+        1.0,
+        1.0,
+        1.0,
+        1.0
+      ],
+      "roughness": 0.6399999856948853,
+      "metallic": 0.0,
+      "baseTexture": "AssetInbox/Environment/Stores/Desktop/wood_pallet/Textures/wood.png"
+    },
+    {
+      "name": "MI_steel",
+      "color": [
+        0.4000000059604645,
+        0.44999998807907104,
+        0.49000000953674316,
+        1.0
+      ],
+      "roughness": 0.27000001072883606,
+      "metallic": 0.8199999928474426
+    }
+  ]
+}

@@ -1,0 +1,30 @@
+{
+  "id": "box_long",
+  "displayName": "Uzun koli",
+  "sourcePhoto": 1,
+  "unit": "metre",
+  "pivot": "floor_bounds_center",
+  "frontAxis": "-Y",
+  "dimensionsMm": {
+    "width": 900.0,
+    "depth": 252.0,
+    "height": 222.35
+  },
+  "triangles": 1318,
+  "materials": [
+    "MI_cardboard",
+    "MI_black",
+    "MI_packing_tape",
+    "MI_carton_mark"
+  ],
+  "collisionCount": 1,
+  "collisionNote": "Simple part colliders; attached cargo should not simulate against its carrier",
+  "dimensionsAreApproximate": true,
+  "gameIntegration": false,
+  "nominalSizeMetres": [
+    0.8999999761581421,
+    0.25,
+    0.2199999988079071
+  ],
+  "cargoOnly": true
+}

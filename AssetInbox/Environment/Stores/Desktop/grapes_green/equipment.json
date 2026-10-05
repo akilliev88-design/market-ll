@@ -1,0 +1,82 @@
+{
+  "schemaVersion": 1,
+  "kind": "grapes",
+  "estimatedPieceMassGrams": 350,
+  "massIsApproximate": true,
+  "originUnit": "one bunch",
+  "placement": "asset floor pivot; rotation may lay long vegetables flat",
+  "id": "grapes_green",
+  "displayName": "Yesil uzum salkimi",
+  "category": "produce",
+  "mesh": "SM_grapes_green.fbx",
+  "dimensionsMm": {
+    "width": 117.66,
+    "depth": 117.86,
+    "height": 172.87
+  },
+  "triangles": 4412,
+  "unit": "metre",
+  "pivot": "floor_bounds_center",
+  "frontAxis": "-Y",
+  "categorySign": false,
+  "family": "prop",
+  "unrealMesh": "/Game/Stores/Desktop/grapes_green/SM_grapes_green.SM_grapes_green",
+  "checkouts": 0,
+  "zones": [],
+  "planogram": {
+    "doubleSided": false,
+    "widthCm": 11.766,
+    "depthCm": 11.786,
+    "frontY": 0,
+    "meshYaw": 180,
+    "showCategorySign": false
+  },
+  "deliverySource": "C:\\Users\\mtass\\Desktop\\Miras_Manav_Modelleri_2026-10-04\\Models\\grapes_green",
+  "sourceBlend": "grapes_green.blend",
+  "staticPlacement": true,
+  "collision": {
+    "policy": "custom_ucx",
+    "pieces": 0
+  },
+  "geometryAudit": {
+    "overlapPairsBefore": 0,
+    "shiftedFaces": 0,
+    "overlapPairsAfter": 0
+  },
+  "sourceMaterialPalette": [
+    {
+      "name": "MI_grapes_green",
+      "color": [
+        0.27000001072883606,
+        0.47999998927116394,
+        0.054999999701976776,
+        1.0
+      ],
+      "roughness": 0.44999998807907104,
+      "metallic": 0.0,
+      "baseTexture": "AssetInbox/Environment/Stores/Desktop/grapes_green/Textures/grapes_green.png"
+    },
+    {
+      "name": "MI_Stem",
+      "color": [
+        0.1599999964237213,
+        0.07500000298023224,
+        0.024000000208616257,
+        1.0
+      ],
+      "roughness": 0.75,
+      "metallic": 0.0
+    },
+    {
+      "name": "MI_Leaf",
+      "color": [
+        0.02800000086426735,
+        0.1599999964237213,
+        0.014999999664723873,
+        1.0
+      ],
+      "roughness": 0.699999988079071,
+      "metallic": 0.0
+    }
+  ]
+}

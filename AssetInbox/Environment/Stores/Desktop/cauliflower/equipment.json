@@ -1,0 +1,71 @@
+{
+  "schemaVersion": 1,
+  "kind": "cauliflower",
+  "estimatedPieceMassGrams": 1300,
+  "massIsApproximate": true,
+  "originUnit": "one piece",
+  "placement": "asset floor pivot; rotation may lay long vegetables flat",
+  "id": "cauliflower",
+  "displayName": "Karnabahar",
+  "category": "produce",
+  "mesh": "SM_cauliflower.fbx",
+  "dimensionsMm": {
+    "width": 200.0,
+    "depth": 174.28,
+    "height": 157.4
+  },
+  "triangles": 16576,
+  "unit": "metre",
+  "pivot": "floor_bounds_center",
+  "frontAxis": "-Y",
+  "categorySign": false,
+  "family": "prop",
+  "unrealMesh": "/Game/Stores/Desktop/cauliflower/SM_cauliflower.SM_cauliflower",
+  "checkouts": 0,
+  "zones": [],
+  "planogram": {
+    "doubleSided": false,
+    "widthCm": 20.0,
+    "depthCm": 17.428,
+    "frontY": 0,
+    "meshYaw": 180,
+    "showCategorySign": false
+  },
+  "deliverySource": "C:\\Users\\mtass\\Desktop\\Miras_Manav_Modelleri_2026-10-04\\Models\\cauliflower",
+  "sourceBlend": "cauliflower.blend",
+  "staticPlacement": true,
+  "collision": {
+    "policy": "custom_ucx",
+    "pieces": 0
+  },
+  "geometryAudit": {
+    "overlapPairsBefore": 0,
+    "shiftedFaces": 0,
+    "overlapPairsAfter": 0
+  },
+  "sourceMaterialPalette": [
+    {
+      "name": "MI_Leaf",
+      "color": [
+        0.02800000086426735,
+        0.1599999964237213,
+        0.014999999664723873,
+        1.0
+      ],
+      "roughness": 0.699999988079071,
+      "metallic": 0.0
+    },
+    {
+      "name": "MI_cauliflower",
+      "color": [
+        0.75,
+        0.7099999785423279,
+        0.5199999809265137,
+        1.0
+      ],
+      "roughness": 0.44999998807907104,
+      "metallic": 0.0,
+      "baseTexture": "AssetInbox/Environment/Stores/Desktop/cauliflower/Textures/cauliflower.png"
+    }
+  ]
+}

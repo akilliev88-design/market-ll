@@ -1,0 +1,21 @@
+{
+  "id": "cutting_board",
+  "displayName": "Kirmizi kesim tablasi",
+  "sourcePhoto": 4,
+  "unit": "metre",
+  "pivot": "floor_bounds_center",
+  "frontAxis": "-Y",
+  "dimensionsMm": {
+    "width": 1400.0,
+    "depth": 660.0,
+    "height": 42.0
+  },
+  "triangles": 188,
+  "materials": [
+    "MI_red"
+  ],
+  "collisionCount": 0,
+  "collisionNote": "Simple part colliders; attached cargo should not simulate against its carrier",
+  "dimensionsAreApproximate": true,
+  "gameIntegration": false
+}

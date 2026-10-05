@@ -1,0 +1,22 @@
+{
+  "schemaVersion": 1,
+  "kind": "cabbage",
+  "estimatedPieceMassGrams": 1500,
+  "massIsApproximate": true,
+  "originUnit": "one piece",
+  "placement": "asset floor pivot; rotation may lay long vegetables flat",
+  "id": "cabbage",
+  "displayName": "Lahana",
+  "category": "produce",
+  "mesh": "SM_cabbage",
+  "dimensionsMm": {
+    "width": 202.4,
+    "depth": 194.22,
+    "height": 184.75
+  },
+  "triangles": 7488,
+  "unit": "metre",
+  "pivot": "floor_bounds_center",
+  "frontAxis": "-Y",
+  "categorySign": false
+}

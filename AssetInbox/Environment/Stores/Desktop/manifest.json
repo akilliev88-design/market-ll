@@ -1,0 +1,796 @@
+{
+  "assets": [
+    {
+      "id": "bread_selfservice_1200",
+      "folder": "AssetInbox/Environment/Stores/Desktop/bread_selfservice_1200",
+      "source": "C:\\Users\\mtass\\Desktop\\Miras_Blender_Ekipman_2026-10-03\\Yeni_Modeller\\bread_selfservice_1200",
+      "mesh": "/Game/Stores/Desktop/bread_selfservice_1200/SM_BreadSelfservice1200.SM_BreadSelfservice1200"
+    },
+    {
+      "id": "checkout_impulse_1200",
+      "folder": "AssetInbox/Environment/Stores/Desktop/checkout_impulse_1200",
+      "source": "C:\\Users\\mtass\\Desktop\\Miras_Blender_Ekipman_2026-10-03\\Yeni_Modeller\\checkout_impulse_1200",
+      "mesh": "/Game/Stores/Desktop/checkout_impulse_1200/SM_CheckoutImpulse1200.SM_CheckoutImpulse1200"
+    },
+    {
+      "id": "checkout_tower_600",
+      "folder": "AssetInbox/Environment/Stores/Desktop/checkout_tower_600",
+      "source": "C:\\Users\\mtass\\Desktop\\Miras_Blender_Ekipman_2026-10-03\\Yeni_Modeller\\checkout_tower_600",
+      "mesh": "/Game/Stores/Desktop/checkout_tower_600/SM_CheckoutTower600.SM_CheckoutTower600"
+    },
+    {
+      "id": "child_cart_450",
+      "folder": "AssetInbox/Environment/Stores/Desktop/child_cart_450",
+      "source": "C:\\Users\\mtass\\Desktop\\Miras_Blender_Ekipman_2026-10-03\\Yeni_Modeller\\child_cart_450",
+      "mesh": "/Game/Stores/Desktop/child_cart_450/SM_ChildCart450.SM_ChildCart450"
+    },
+    {
+      "id": "combo_freezer_2400",
+      "folder": "AssetInbox/Environment/Stores/Desktop/combo_freezer_2400",
+      "source": "C:\\Users\\mtass\\Desktop\\Miras_Blender_Ekipman_2026-10-03\\Yeni_Modeller\\combo_freezer_2400",
+      "mesh": "/Game/Stores/Desktop/combo_freezer_2400/SM_ComboFreezer2400.SM_ComboFreezer2400"
+    },
+    {
+      "id": "corner_service_90",
+      "folder": "AssetInbox/Environment/Stores/Desktop/corner_service_90",
+      "source": "C:\\Users\\mtass\\Desktop\\Miras_Blender_Ekipman_2026-10-03\\Yeni_Modeller\\corner_service_90",
+      "mesh": "/Game/Stores/Desktop/corner_service_90/SM_CornerService90.SM_CornerService90"
+    },
+    {
+      "id": "curved_pastry_1800",
+      "folder": "AssetInbox/Environment/Stores/Desktop/curved_pastry_1800",
+      "source": "C:\\Users\\mtass\\Desktop\\Miras_Blender_Ekipman_2026-10-03\\Yeni_Modeller\\curved_pastry_1800",
+      "mesh": "/Game/Stores/Desktop/curved_pastry_1800/SM_CurvedPastry1800.SM_CurvedPastry1800"
+    },
+    {
+      "id": "diy_long_goods_1200",
+      "folder": "AssetInbox/Environment/Stores/Desktop/diy_long_goods_1200",
+      "source": "C:\\Users\\mtass\\Desktop\\Miras_Blender_Ekipman_2026-10-03\\Yeni_Modeller\\diy_long_goods_1200",
+      "mesh": "/Game/Stores/Desktop/diy_long_goods_1200/SM_DiyLongGoods1200.SM_DiyLongGoods1200"
+    },
+    {
+      "id": "drink_cooler_3door_2100",
+      "folder": "AssetInbox/Environment/Stores/Desktop/drink_cooler_3door_2100",
+      "source": "C:\\Users\\mtass\\Desktop\\Miras_Blender_Ekipman_2026-10-03\\Yeni_Modeller\\drink_cooler_3door_2100",
+      "mesh": "/Game/Stores/Desktop/drink_cooler_3door_2100/SM_DrinkCooler3Door2100.SM_DrinkCooler3Door2100"
+    },
+    {
+      "id": "entry_barrier_1500",
+      "folder": "AssetInbox/Environment/Stores/Desktop/entry_barrier_1500",
+      "source": "C:\\Users\\mtass\\Desktop\\Miras_Blender_Ekipman_2026-10-03\\Yeni_Modeller\\entry_barrier_1500",
+      "mesh": "/Game/Stores/Desktop/entry_barrier_1500/SM_EntryBarrier1500.SM_EntryBarrier1500"
+    },
+    {
+      "id": "entry_swing_gate_900",
+      "folder": "AssetInbox/Environment/Stores/Desktop/entry_swing_gate_900",
+      "source": "C:\\Users\\mtass\\Desktop\\Miras_Blender_Ekipman_2026-10-03\\Yeni_Modeller\\entry_swing_gate_900",
+      "mesh": "/Game/Stores/Desktop/entry_swing_gate_900/SM_EntrySwingGate900.SM_EntrySwingGate900"
+    },
+    {
+      "id": "hardware_pegboard_1200",
+      "folder": "AssetInbox/Environment/Stores/Desktop/hardware_pegboard_1200",
+      "source": "C:\\Users\\mtass\\Desktop\\Miras_Blender_Ekipman_2026-10-03\\Yeni_Modeller\\hardware_pegboard_1200",
+      "mesh": "/Game/Stores/Desktop/hardware_pegboard_1200/SM_HardwarePegboard1200.SM_HardwarePegboard1200"
+    },
+    {
+      "id": "island_endcap_1050",
+      "folder": "AssetInbox/Environment/Stores/Desktop/island_endcap_1050",
+      "source": "C:\\Users\\mtass\\Desktop\\Miras_Blender_Ekipman_2026-10-03\\Yeni_Modeller\\island_endcap_1050",
+      "mesh": "/Game/Stores/Desktop/island_endcap_1050/SM_IslandEndcap1050.SM_IslandEndcap1050"
+    },
+    {
+      "id": "library_shelf_1200",
+      "folder": "AssetInbox/Environment/Stores/Desktop/library_shelf_1200",
+      "source": "C:\\Users\\mtass\\Desktop\\Miras_Blender_Ekipman_2026-10-03\\Yeni_Modeller\\library_shelf_1200",
+      "mesh": "/Game/Stores/Desktop/library_shelf_1200/SM_LibraryShelf1200.SM_LibraryShelf1200"
+    },
+    {
+      "id": "pharmacy_drawer_unit_1200",
+      "folder": "AssetInbox/Environment/Stores/Desktop/pharmacy_drawer_unit_1200",
+      "source": "C:\\Users\\mtass\\Desktop\\Miras_Blender_Ekipman_2026-10-03\\Yeni_Modeller\\pharmacy_drawer_unit_1200",
+      "mesh": "/Game/Stores/Desktop/pharmacy_drawer_unit_1200/SM_PharmacyDrawerUnit1200.SM_PharmacyDrawerUnit1200"
+    },
+    {
+      "id": "plastic_cart_600",
+      "folder": "AssetInbox/Environment/Stores/Desktop/plastic_cart_600",
+      "source": "C:\\Users\\mtass\\Desktop\\Miras_Blender_Ekipman_2026-10-03\\Yeni_Modeller\\plastic_cart_600",
+      "mesh": "/Game/Stores/Desktop/plastic_cart_600/SM_PlasticCart600.SM_PlasticCart600"
+    },
+    {
+      "id": "plug_in_service_1500",
+      "folder": "AssetInbox/Environment/Stores/Desktop/plug_in_service_1500",
+      "source": "C:\\Users\\mtass\\Desktop\\Miras_Blender_Ekipman_2026-10-03\\Yeni_Modeller\\plug_in_service_1500",
+      "mesh": "/Game/Stores/Desktop/plug_in_service_1500/SM_PlugInService1500.SM_PlugInService1500"
+    },
+    {
+      "id": "plug_in_service_900",
+      "folder": "AssetInbox/Environment/Stores/Desktop/plug_in_service_900",
+      "source": "C:\\Users\\mtass\\Desktop\\Miras_Blender_Ekipman_2026-10-03\\Yeni_Modeller\\plug_in_service_900",
+      "mesh": "/Game/Stores/Desktop/plug_in_service_900/SM_PlugInService900.SM_PlugInService900"
+    },
+    {
+      "id": "produce_chilled_island_2200",
+      "folder": "AssetInbox/Environment/Stores/Desktop/produce_chilled_island_2200",
+      "source": "C:\\Users\\mtass\\Desktop\\Miras_Blender_Ekipman_2026-10-03\\Yeni_Modeller\\produce_chilled_island_2200",
+      "mesh": "/Game/Stores/Desktop/produce_chilled_island_2200/SM_ProduceChilledIsland2200.SM_ProduceChilledIsland2200"
+    },
+    {
+      "id": "rolling_basket_450",
+      "folder": "AssetInbox/Environment/Stores/Desktop/rolling_basket_450",
+      "source": "C:\\Users\\mtass\\Desktop\\Miras_Blender_Ekipman_2026-10-03\\Yeni_Modeller\\rolling_basket_450",
+      "mesh": "/Game/Stores/Desktop/rolling_basket_450/SM_RollingBasket450.SM_RollingBasket450"
+    },
+    {
+      "id": "upright_freezer_2door_1400",
+      "folder": "AssetInbox/Environment/Stores/Desktop/upright_freezer_2door_1400",
+      "source": "C:\\Users\\mtass\\Desktop\\Miras_Blender_Ekipman_2026-10-03\\Yeni_Modeller\\upright_freezer_2door_1400",
+      "mesh": "/Game/Stores/Desktop/upright_freezer_2door_1400/SM_UprightFreezer2Door1400.SM_UprightFreezer2Door1400"
+    },
+    {
+      "id": "upright_freezer_4door_2800",
+      "folder": "AssetInbox/Environment/Stores/Desktop/upright_freezer_4door_2800",
+      "source": "C:\\Users\\mtass\\Desktop\\Miras_Blender_Ekipman_2026-10-03\\Yeni_Modeller\\upright_freezer_4door_2800",
+      "mesh": "/Game/Stores/Desktop/upright_freezer_4door_2800/SM_UprightFreezer4Door2800.SM_UprightFreezer4Door2800"
+    },
+    {
+      "id": "upright_freezer_5door_3500",
+      "folder": "AssetInbox/Environment/Stores/Desktop/upright_freezer_5door_3500",
+      "source": "C:\\Users\\mtass\\Desktop\\Miras_Blender_Ekipman_2026-10-03\\Yeni_Modeller\\upright_freezer_5door_3500",
+      "mesh": "/Game/Stores/Desktop/upright_freezer_5door_3500/SM_UprightFreezer5Door3500.SM_UprightFreezer5Door3500"
+    },
+    {
+      "id": "warehouse_heavy_2700",
+      "folder": "AssetInbox/Environment/Stores/Desktop/warehouse_heavy_2700",
+      "source": "C:\\Users\\mtass\\Desktop\\Miras_Blender_Ekipman_2026-10-03\\Yeni_Modeller\\warehouse_heavy_2700",
+      "mesh": "/Game/Stores/Desktop/warehouse_heavy_2700/SM_WarehouseHeavy2700.SM_WarehouseHeavy2700"
+    },
+    {
+      "id": "warehouse_rack_2400",
+      "folder": "AssetInbox/Environment/Stores/Desktop/warehouse_rack_2400",
+      "source": "C:\\Users\\mtass\\Desktop\\Miras_Blender_Ekipman_2026-10-03\\Yeni_Modeller\\warehouse_rack_2400",
+      "mesh": "/Game/Stores/Desktop/warehouse_rack_2400/SM_WarehouseRack2400.SM_WarehouseRack2400"
+    },
+    {
+      "id": "wire_display_bin_900",
+      "folder": "AssetInbox/Environment/Stores/Desktop/wire_display_bin_900",
+      "source": "C:\\Users\\mtass\\Desktop\\Miras_Blender_Ekipman_2026-10-03\\Yeni_Modeller\\wire_display_bin_900",
+      "mesh": "/Game/Stores/Desktop/wire_display_bin_900/SM_WireDisplayBin900.SM_WireDisplayBin900"
+    },
+    {
+      "id": "wire_hook_basket_600",
+      "folder": "AssetInbox/Environment/Stores/Desktop/wire_hook_basket_600",
+      "source": "C:\\Users\\mtass\\Desktop\\Miras_Blender_Ekipman_2026-10-03\\Yeni_Modeller\\wire_hook_basket_600",
+      "mesh": "/Game/Stores/Desktop/wire_hook_basket_600/SM_WireHookBasket600.SM_WireHookBasket600"
+    },
+    {
+      "id": "wire_peg_rack_900",
+      "folder": "AssetInbox/Environment/Stores/Desktop/wire_peg_rack_900",
+      "source": "C:\\Users\\mtass\\Desktop\\Miras_Blender_Ekipman_2026-10-03\\Yeni_Modeller\\wire_peg_rack_900",
+      "mesh": "/Game/Stores/Desktop/wire_peg_rack_900/SM_WirePegRack900.SM_WirePegRack900"
+    },
+    {
+      "id": "apple_green",
+      "folder": "AssetInbox/Environment/Stores/Desktop/apple_green",
+      "source": "C:\\Users\\mtass\\Desktop\\Miras_Manav_Modelleri_2026-10-04\\Models\\apple_green",
+      "mesh": "/Game/Stores/Desktop/apple_green/SM_apple_green.SM_apple_green"
+    },
+    {
+      "id": "apple_red",
+      "folder": "AssetInbox/Environment/Stores/Desktop/apple_red",
+      "source": "C:\\Users\\mtass\\Desktop\\Miras_Manav_Modelleri_2026-10-04\\Models\\apple_red",
+      "mesh": "/Game/Stores/Desktop/apple_red/SM_apple_red.SM_apple_red"
+    },
+    {
+      "id": "banana",
+      "folder": "AssetInbox/Environment/Stores/Desktop/banana",
+      "source": "C:\\Users\\mtass\\Desktop\\Miras_Manav_Modelleri_2026-10-04\\Models\\banana",
+      "mesh": "/Game/Stores/Desktop/banana/SM_banana.SM_banana"
+    },
+    {
+      "id": "broccoli",
+      "folder": "AssetInbox/Environment/Stores/Desktop/broccoli",
+      "source": "C:\\Users\\mtass\\Desktop\\Miras_Manav_Modelleri_2026-10-04\\Models\\broccoli",
+      "mesh": "/Game/Stores/Desktop/broccoli/SM_broccoli.SM_broccoli"
+    },
+    {
+      "id": "cabbage",
+      "folder": "AssetInbox/Environment/Stores/Desktop/cabbage",
+      "source": "C:\\Users\\mtass\\Desktop\\Miras_Manav_Modelleri_2026-10-04\\Models\\cabbage",
+      "mesh": "/Game/Stores/Desktop/cabbage/SM_cabbage.SM_cabbage"
+    },
+    {
+      "id": "carrot",
+      "folder": "AssetInbox/Environment/Stores/Desktop/carrot",
+      "source": "C:\\Users\\mtass\\Desktop\\Miras_Manav_Modelleri_2026-10-04\\Models\\carrot",
+      "mesh": "/Game/Stores/Desktop/carrot/SM_carrot.SM_carrot"
+    },
+    {
+      "id": "cauliflower",
+      "folder": "AssetInbox/Environment/Stores/Desktop/cauliflower",
+      "source": "C:\\Users\\mtass\\Desktop\\Miras_Manav_Modelleri_2026-10-04\\Models\\cauliflower",
+      "mesh": "/Game/Stores/Desktop/cauliflower/SM_cauliflower.SM_cauliflower"
+    },
+    {
+      "id": "cucumber",
+      "folder": "AssetInbox/Environment/Stores/Desktop/cucumber",
+      "source": "C:\\Users\\mtass\\Desktop\\Miras_Manav_Modelleri_2026-10-04\\Models\\cucumber",
+      "mesh": "/Game/Stores/Desktop/cucumber/SM_cucumber.SM_cucumber"
+    },
+    {
+      "id": "eggplant",
+      "folder": "AssetInbox/Environment/Stores/Desktop/eggplant",
+      "source": "C:\\Users\\mtass\\Desktop\\Miras_Manav_Modelleri_2026-10-04\\Models\\eggplant",
+      "mesh": "/Game/Stores/Desktop/eggplant/SM_eggplant.SM_eggplant"
+    },
+    {
+      "id": "garlic",
+      "folder": "AssetInbox/Environment/Stores/Desktop/garlic",
+      "source": "C:\\Users\\mtass\\Desktop\\Miras_Manav_Modelleri_2026-10-04\\Models\\garlic",
+      "mesh": "/Game/Stores/Desktop/garlic/SM_garlic.SM_garlic"
+    },
+    {
+      "id": "ginger",
+      "folder": "AssetInbox/Environment/Stores/Desktop/ginger",
+      "source": "C:\\Users\\mtass\\Desktop\\Miras_Manav_Modelleri_2026-10-04\\Models\\ginger",
+      "mesh": "/Game/Stores/Desktop/ginger/SM_ginger.SM_ginger"
+    },
+    {
+      "id": "grapes_green",
+      "folder": "AssetInbox/Environment/Stores/Desktop/grapes_green",
+      "source": "C:\\Users\\mtass\\Desktop\\Miras_Manav_Modelleri_2026-10-04\\Models\\grapes_green",
+      "mesh": "/Game/Stores/Desktop/grapes_green/SM_grapes_green.SM_grapes_green"
+    },
+    {
+      "id": "grapes_purple",
+      "folder": "AssetInbox/Environment/Stores/Desktop/grapes_purple",
+      "source": "C:\\Users\\mtass\\Desktop\\Miras_Manav_Modelleri_2026-10-04\\Models\\grapes_purple",
+      "mesh": "/Game/Stores/Desktop/grapes_purple/SM_grapes_purple.SM_grapes_purple"
+    },
+    {
+      "id": "lemon",
+      "folder": "AssetInbox/Environment/Stores/Desktop/lemon",
+      "source": "C:\\Users\\mtass\\Desktop\\Miras_Manav_Modelleri_2026-10-04\\Models\\lemon",
+      "mesh": "/Game/Stores/Desktop/lemon/SM_lemon.SM_lemon"
+    },
+    {
+      "id": "melon",
+      "folder": "AssetInbox/Environment/Stores/Desktop/melon",
+      "source": "C:\\Users\\mtass\\Desktop\\Miras_Manav_Modelleri_2026-10-04\\Models\\melon",
+      "mesh": "/Game/Stores/Desktop/melon/SM_melon.SM_melon"
+    },
+    {
+      "id": "onion",
+      "folder": "AssetInbox/Environment/Stores/Desktop/onion",
+      "source": "C:\\Users\\mtass\\Desktop\\Miras_Manav_Modelleri_2026-10-04\\Models\\onion",
+      "mesh": "/Game/Stores/Desktop/onion/SM_onion.SM_onion"
+    },
+    {
+      "id": "orange",
+      "folder": "AssetInbox/Environment/Stores/Desktop/orange",
+      "source": "C:\\Users\\mtass\\Desktop\\Miras_Manav_Modelleri_2026-10-04\\Models\\orange",
+      "mesh": "/Game/Stores/Desktop/orange/SM_orange.SM_orange"
+    },
+    {
+      "id": "pear",
+      "folder": "AssetInbox/Environment/Stores/Desktop/pear",
+      "source": "C:\\Users\\mtass\\Desktop\\Miras_Manav_Modelleri_2026-10-04\\Models\\pear",
+      "mesh": "/Game/Stores/Desktop/pear/SM_pear.SM_pear"
+    },
+    {
+      "id": "pepper_green",
+      "folder": "AssetInbox/Environment/Stores/Desktop/pepper_green",
+      "source": "C:\\Users\\mtass\\Desktop\\Miras_Manav_Modelleri_2026-10-04\\Models\\pepper_green",
+      "mesh": "/Game/Stores/Desktop/pepper_green/SM_pepper_green.SM_pepper_green"
+    },
+    {
+      "id": "pepper_red",
+      "folder": "AssetInbox/Environment/Stores/Desktop/pepper_red",
+      "source": "C:\\Users\\mtass\\Desktop\\Miras_Manav_Modelleri_2026-10-04\\Models\\pepper_red",
+      "mesh": "/Game/Stores/Desktop/pepper_red/SM_pepper_red.SM_pepper_red"
+    },
+    {
+      "id": "potato",
+      "folder": "AssetInbox/Environment/Stores/Desktop/potato",
+      "source": "C:\\Users\\mtass\\Desktop\\Miras_Manav_Modelleri_2026-10-04\\Models\\potato",
+      "mesh": "/Game/Stores/Desktop/potato/SM_potato.SM_potato"
+    },
+    {
+      "id": "produce_long_counter",
+      "folder": "AssetInbox/Environment/Stores/Desktop/produce_long_counter",
+      "source": "C:\\Users\\mtass\\Desktop\\Miras_Manav_Modelleri_2026-10-04\\Models\\produce_long_counter",
+      "mesh": "/Game/Stores/Desktop/produce_long_counter/SM_produce_long_counter.SM_produce_long_counter"
+    },
+    {
+      "id": "produce_panel_island",
+      "folder": "AssetInbox/Environment/Stores/Desktop/produce_panel_island",
+      "source": "C:\\Users\\mtass\\Desktop\\Miras_Manav_Modelleri_2026-10-04\\Models\\produce_panel_island",
+      "mesh": "/Game/Stores/Desktop/produce_panel_island/SM_produce_panel_island.SM_produce_panel_island"
+    },
+    {
+      "id": "produce_slatted_island",
+      "folder": "AssetInbox/Environment/Stores/Desktop/produce_slatted_island",
+      "source": "C:\\Users\\mtass\\Desktop\\Miras_Manav_Modelleri_2026-10-04\\Models\\produce_slatted_island",
+      "mesh": "/Game/Stores/Desktop/produce_slatted_island/SM_produce_slatted_island.SM_produce_slatted_island"
+    },
+    {
+      "id": "produce_two_tier",
+      "folder": "AssetInbox/Environment/Stores/Desktop/produce_two_tier",
+      "source": "C:\\Users\\mtass\\Desktop\\Miras_Manav_Modelleri_2026-10-04\\Models\\produce_two_tier",
+      "mesh": "/Game/Stores/Desktop/produce_two_tier/SM_produce_two_tier.SM_produce_two_tier"
+    },
+    {
+      "id": "tomato",
+      "folder": "AssetInbox/Environment/Stores/Desktop/tomato",
+      "source": "C:\\Users\\mtass\\Desktop\\Miras_Manav_Modelleri_2026-10-04\\Models\\tomato",
+      "mesh": "/Game/Stores/Desktop/tomato/SM_tomato.SM_tomato"
+    },
+    {
+      "id": "watermelon",
+      "folder": "AssetInbox/Environment/Stores/Desktop/watermelon",
+      "source": "C:\\Users\\mtass\\Desktop\\Miras_Manav_Modelleri_2026-10-04\\Models\\watermelon",
+      "mesh": "/Game/Stores/Desktop/watermelon/SM_watermelon.SM_watermelon"
+    },
+    {
+      "id": "zucchini",
+      "folder": "AssetInbox/Environment/Stores/Desktop/zucchini",
+      "source": "C:\\Users\\mtass\\Desktop\\Miras_Manav_Modelleri_2026-10-04\\Models\\zucchini",
+      "mesh": "/Game/Stores/Desktop/zucchini/SM_zucchini.SM_zucchini"
+    },
+    {
+      "id": "box_cube",
+      "folder": "AssetInbox/Environment/Stores/Desktop/box_cube",
+      "source": "C:\\Users\\mtass\\Desktop\\Miras_Magaza_Araclari_2026-10-04\\Models\\box_cube",
+      "mesh": "/Game/Stores/Desktop/box_cube/SM_box_cube.SM_box_cube"
+    },
+    {
+      "id": "box_flat",
+      "folder": "AssetInbox/Environment/Stores/Desktop/box_flat",
+      "source": "C:\\Users\\mtass\\Desktop\\Miras_Magaza_Araclari_2026-10-04\\Models\\box_flat",
+      "mesh": "/Game/Stores/Desktop/box_flat/SM_box_flat.SM_box_flat"
+    },
+    {
+      "id": "box_large",
+      "folder": "AssetInbox/Environment/Stores/Desktop/box_large",
+      "source": "C:\\Users\\mtass\\Desktop\\Miras_Magaza_Araclari_2026-10-04\\Models\\box_large",
+      "mesh": "/Game/Stores/Desktop/box_large/SM_box_large.SM_box_large"
+    },
+    {
+      "id": "box_long",
+      "folder": "AssetInbox/Environment/Stores/Desktop/box_long",
+      "source": "C:\\Users\\mtass\\Desktop\\Miras_Magaza_Araclari_2026-10-04\\Models\\box_long",
+      "mesh": "/Game/Stores/Desktop/box_long/SM_box_long.SM_box_long"
+    },
+    {
+      "id": "box_medium",
+      "folder": "AssetInbox/Environment/Stores/Desktop/box_medium",
+      "source": "C:\\Users\\mtass\\Desktop\\Miras_Magaza_Araclari_2026-10-04\\Models\\box_medium",
+      "mesh": "/Game/Stores/Desktop/box_medium/SM_box_medium.SM_box_medium"
+    },
+    {
+      "id": "box_open",
+      "folder": "AssetInbox/Environment/Stores/Desktop/box_open",
+      "source": "C:\\Users\\mtass\\Desktop\\Miras_Magaza_Araclari_2026-10-04\\Models\\box_open",
+      "mesh": "/Game/Stores/Desktop/box_open/SM_box_open.SM_box_open"
+    },
+    {
+      "id": "box_small",
+      "folder": "AssetInbox/Environment/Stores/Desktop/box_small",
+      "source": "C:\\Users\\mtass\\Desktop\\Miras_Magaza_Araclari_2026-10-04\\Models\\box_small",
+      "mesh": "/Game/Stores/Desktop/box_small/SM_box_small.SM_box_small"
+    },
+    {
+      "id": "butcher_knife",
+      "folder": "AssetInbox/Environment/Stores/Desktop/butcher_knife",
+      "source": "C:\\Users\\mtass\\Desktop\\Miras_Magaza_Araclari_2026-10-04\\Models\\butcher_knife",
+      "mesh": "/Game/Stores/Desktop/butcher_knife/SM_butcher_knife.SM_butcher_knife"
+    },
+    {
+      "id": "cargo_panel_bundle",
+      "folder": "AssetInbox/Environment/Stores/Desktop/cargo_panel_bundle",
+      "source": "C:\\Users\\mtass\\Desktop\\Miras_Magaza_Araclari_2026-10-04\\Models\\cargo_panel_bundle",
+      "mesh": "/Game/Stores/Desktop/cargo_panel_bundle/SM_cargo_panel_bundle.SM_cargo_panel_bundle"
+    },
+    {
+      "id": "cutting_board",
+      "folder": "AssetInbox/Environment/Stores/Desktop/cutting_board",
+      "source": "C:\\Users\\mtass\\Desktop\\Miras_Magaza_Araclari_2026-10-04\\Models\\cutting_board",
+      "mesh": "/Game/Stores/Desktop/cutting_board/SM_cutting_board.SM_cutting_board"
+    },
+    {
+      "id": "cutting_table",
+      "folder": "AssetInbox/Environment/Stores/Desktop/cutting_table",
+      "source": "C:\\Users\\mtass\\Desktop\\Miras_Magaza_Araclari_2026-10-04\\Models\\cutting_table",
+      "mesh": "/Game/Stores/Desktop/cutting_table/SM_cutting_table.SM_cutting_table"
+    },
+    {
+      "id": "detergent_bottle",
+      "folder": "AssetInbox/Environment/Stores/Desktop/detergent_bottle",
+      "source": "C:\\Users\\mtass\\Desktop\\Miras_Magaza_Araclari_2026-10-04\\Models\\detergent_bottle",
+      "mesh": "/Game/Stores/Desktop/detergent_bottle/SM_detergent_bottle.SM_detergent_bottle"
+    },
+    {
+      "id": "eas_pedestal",
+      "folder": "AssetInbox/Environment/Stores/Desktop/eas_pedestal",
+      "source": "C:\\Users\\mtass\\Desktop\\Miras_Magaza_Araclari_2026-10-04\\Models\\eas_pedestal",
+      "mesh": "/Game/Stores/Desktop/eas_pedestal/SM_eas_pedestal.SM_eas_pedestal"
+    },
+    {
+      "id": "hand_truck_blue",
+      "folder": "AssetInbox/Environment/Stores/Desktop/hand_truck_blue",
+      "source": "C:\\Users\\mtass\\Desktop\\Miras_Magaza_Araclari_2026-10-04\\Models\\hand_truck_blue",
+      "mesh": "/Game/Stores/Desktop/hand_truck_blue/SM_hand_truck_blue.SM_hand_truck_blue"
+    },
+    {
+      "id": "janitor_bag",
+      "folder": "AssetInbox/Environment/Stores/Desktop/janitor_bag",
+      "source": "C:\\Users\\mtass\\Desktop\\Miras_Magaza_Araclari_2026-10-04\\Models\\janitor_bag",
+      "mesh": "/Game/Stores/Desktop/janitor_bag/SM_janitor_bag.SM_janitor_bag"
+    },
+    {
+      "id": "janitor_cart",
+      "folder": "AssetInbox/Environment/Stores/Desktop/janitor_cart",
+      "source": "C:\\Users\\mtass\\Desktop\\Miras_Magaza_Araclari_2026-10-04\\Models\\janitor_cart",
+      "mesh": "/Game/Stores/Desktop/janitor_cart/SM_janitor_cart.SM_janitor_cart"
+    },
+    {
+      "id": "meat_bone_steak",
+      "folder": "AssetInbox/Environment/Stores/Desktop/meat_bone_steak",
+      "source": "C:\\Users\\mtass\\Desktop\\Miras_Magaza_Araclari_2026-10-04\\Models\\meat_bone_steak",
+      "mesh": "/Game/Stores/Desktop/meat_bone_steak/SM_meat_bone_steak.SM_meat_bone_steak"
+    },
+    {
+      "id": "meat_diced",
+      "folder": "AssetInbox/Environment/Stores/Desktop/meat_diced",
+      "source": "C:\\Users\\mtass\\Desktop\\Miras_Magaza_Araclari_2026-10-04\\Models\\meat_diced",
+      "mesh": "/Game/Stores/Desktop/meat_diced/SM_meat_diced.SM_meat_diced"
+    },
+    {
+      "id": "meat_steak",
+      "folder": "AssetInbox/Environment/Stores/Desktop/meat_steak",
+      "source": "C:\\Users\\mtass\\Desktop\\Miras_Magaza_Araclari_2026-10-04\\Models\\meat_steak",
+      "mesh": "/Game/Stores/Desktop/meat_steak/SM_meat_steak.SM_meat_steak"
+    },
+    {
+      "id": "pallet_jack_orange",
+      "folder": "AssetInbox/Environment/Stores/Desktop/pallet_jack_orange",
+      "source": "C:\\Users\\mtass\\Desktop\\Miras_Magaza_Araclari_2026-10-04\\Models\\pallet_jack_orange",
+      "mesh": "/Game/Stores/Desktop/pallet_jack_orange/SM_pallet_jack_orange.SM_pallet_jack_orange"
+    },
+    {
+      "id": "pallet_jack_yellow",
+      "folder": "AssetInbox/Environment/Stores/Desktop/pallet_jack_yellow",
+      "source": "C:\\Users\\mtass\\Desktop\\Miras_Magaza_Araclari_2026-10-04\\Models\\pallet_jack_yellow",
+      "mesh": "/Game/Stores/Desktop/pallet_jack_yellow/SM_pallet_jack_yellow.SM_pallet_jack_yellow"
+    },
+    {
+      "id": "paper_roll",
+      "folder": "AssetInbox/Environment/Stores/Desktop/paper_roll",
+      "source": "C:\\Users\\mtass\\Desktop\\Miras_Magaza_Araclari_2026-10-04\\Models\\paper_roll",
+      "mesh": "/Game/Stores/Desktop/paper_roll/SM_paper_roll.SM_paper_roll"
+    },
+    {
+      "id": "pos_dual_display",
+      "folder": "AssetInbox/Environment/Stores/Desktop/pos_dual_display",
+      "source": "C:\\Users\\mtass\\Desktop\\Miras_Magaza_Araclari_2026-10-04\\Models\\pos_dual_display",
+      "mesh": "/Game/Stores/Desktop/pos_dual_display/SM_pos_dual_display.SM_pos_dual_display"
+    },
+    {
+      "id": "security_hard_tag",
+      "folder": "AssetInbox/Environment/Stores/Desktop/security_hard_tag",
+      "source": "C:\\Users\\mtass\\Desktop\\Miras_Magaza_Araclari_2026-10-04\\Models\\security_hard_tag",
+      "mesh": "/Game/Stores/Desktop/security_hard_tag/SM_security_hard_tag.SM_security_hard_tag"
+    },
+    {
+      "id": "security_soft_label",
+      "folder": "AssetInbox/Environment/Stores/Desktop/security_soft_label",
+      "source": "C:\\Users\\mtass\\Desktop\\Miras_Magaza_Araclari_2026-10-04\\Models\\security_soft_label",
+      "mesh": "/Game/Stores/Desktop/security_soft_label/SM_security_soft_label.SM_security_soft_label"
+    },
+    {
+      "id": "spray_bottle",
+      "folder": "AssetInbox/Environment/Stores/Desktop/spray_bottle",
+      "source": "C:\\Users\\mtass\\Desktop\\Miras_Magaza_Araclari_2026-10-04\\Models\\spray_bottle",
+      "mesh": "/Game/Stores/Desktop/spray_bottle/SM_spray_bottle.SM_spray_bottle"
+    },
+    {
+      "id": "steel_bowl",
+      "folder": "AssetInbox/Environment/Stores/Desktop/steel_bowl",
+      "source": "C:\\Users\\mtass\\Desktop\\Miras_Magaza_Araclari_2026-10-04\\Models\\steel_bowl",
+      "mesh": "/Game/Stores/Desktop/steel_bowl/SM_steel_bowl.SM_steel_bowl"
+    },
+    {
+      "id": "string_mop",
+      "folder": "AssetInbox/Environment/Stores/Desktop/string_mop",
+      "source": "C:\\Users\\mtass\\Desktop\\Miras_Magaza_Araclari_2026-10-04\\Models\\string_mop",
+      "mesh": "/Game/Stores/Desktop/string_mop/SM_string_mop.SM_string_mop"
+    },
+    {
+      "id": "window_squeegee",
+      "folder": "AssetInbox/Environment/Stores/Desktop/window_squeegee",
+      "source": "C:\\Users\\mtass\\Desktop\\Miras_Magaza_Araclari_2026-10-04\\Models\\window_squeegee",
+      "mesh": "/Game/Stores/Desktop/window_squeegee/SM_window_squeegee.SM_window_squeegee"
+    },
+    {
+      "id": "wood_pallet",
+      "folder": "AssetInbox/Environment/Stores/Desktop/wood_pallet",
+      "source": "C:\\Users\\mtass\\Desktop\\Miras_Magaza_Araclari_2026-10-04\\Models\\wood_pallet",
+      "mesh": "/Game/Stores/Desktop/wood_pallet/SM_wood_pallet.SM_wood_pallet"
+    },
+    {
+      "id": "wringer_bucket",
+      "folder": "AssetInbox/Environment/Stores/Desktop/wringer_bucket",
+      "source": "C:\\Users\\mtass\\Desktop\\Miras_Magaza_Araclari_2026-10-04\\Models\\wringer_bucket",
+      "mesh": "/Game/Stores/Desktop/wringer_bucket/SM_wringer_bucket.SM_wringer_bucket"
+    },
+    {
+      "id": "sq_barcode_scanner",
+      "folder": "AssetInbox/Environment/Stores/Desktop/sq_barcode_scanner",
+      "source": "C:\\Users\\mtass\\Desktop\\Miras_Square_POS_Modeller_2026-10-04\\Modeller\\sq_barcode_scanner",
+      "mesh": "/Game/Stores/Desktop/sq_barcode_scanner/SM_SqBarcodeScanner.SM_SqBarcodeScanner"
+    },
+    {
+      "id": "sq_cash_drawer",
+      "folder": "AssetInbox/Environment/Stores/Desktop/sq_cash_drawer",
+      "source": "C:\\Users\\mtass\\Desktop\\Miras_Square_POS_Modeller_2026-10-04\\Modeller\\sq_cash_drawer",
+      "mesh": "/Game/Stores/Desktop/sq_cash_drawer/SM_SqCashDrawer.SM_SqCashDrawer"
+    },
+    {
+      "id": "sq_customer_display",
+      "folder": "AssetInbox/Environment/Stores/Desktop/sq_customer_display",
+      "source": "C:\\Users\\mtass\\Desktop\\Miras_Square_POS_Modeller_2026-10-04\\Modeller\\sq_customer_display",
+      "mesh": "/Game/Stores/Desktop/sq_customer_display/SM_SqCustomerDisplay.SM_SqCustomerDisplay"
+    },
+    {
+      "id": "sq_handheld",
+      "folder": "AssetInbox/Environment/Stores/Desktop/sq_handheld",
+      "source": "C:\\Users\\mtass\\Desktop\\Miras_Square_POS_Modeller_2026-10-04\\Modeller\\sq_handheld",
+      "mesh": "/Game/Stores/Desktop/sq_handheld/SM_SqHandheld.SM_SqHandheld"
+    },
+    {
+      "id": "sq_kiosk_counter",
+      "folder": "AssetInbox/Environment/Stores/Desktop/sq_kiosk_counter",
+      "source": "C:\\Users\\mtass\\Desktop\\Miras_Square_POS_Modeller_2026-10-04\\Modeller\\sq_kiosk_counter",
+      "mesh": "/Game/Stores/Desktop/sq_kiosk_counter/SM_SqKioskCounter.SM_SqKioskCounter"
+    },
+    {
+      "id": "sq_kiosk_floor",
+      "folder": "AssetInbox/Environment/Stores/Desktop/sq_kiosk_floor",
+      "source": "C:\\Users\\mtass\\Desktop\\Miras_Square_POS_Modeller_2026-10-04\\Modeller\\sq_kiosk_floor",
+      "mesh": "/Game/Stores/Desktop/sq_kiosk_floor/SM_SqKioskFloor.SM_SqKioskFloor"
+    },
+    {
+      "id": "sq_kiosk_wall_angled",
+      "folder": "AssetInbox/Environment/Stores/Desktop/sq_kiosk_wall_angled",
+      "source": "C:\\Users\\mtass\\Desktop\\Miras_Square_POS_Modeller_2026-10-04\\Modeller\\sq_kiosk_wall_angled",
+      "mesh": "/Game/Stores/Desktop/sq_kiosk_wall_angled/SM_SqKioskWallAngled.SM_SqKioskWallAngled"
+    },
+    {
+      "id": "sq_kiosk_wall_flat",
+      "folder": "AssetInbox/Environment/Stores/Desktop/sq_kiosk_wall_flat",
+      "source": "C:\\Users\\mtass\\Desktop\\Miras_Square_POS_Modeller_2026-10-04\\Modeller\\sq_kiosk_wall_flat",
+      "mesh": "/Game/Stores/Desktop/sq_kiosk_wall_flat/SM_SqKioskWallFlat.SM_SqKioskWallFlat"
+    },
+    {
+      "id": "sq_magstripe_audio",
+      "folder": "AssetInbox/Environment/Stores/Desktop/sq_magstripe_audio",
+      "source": "C:\\Users\\mtass\\Desktop\\Miras_Square_POS_Modeller_2026-10-04\\Modeller\\sq_magstripe_audio",
+      "mesh": "/Game/Stores/Desktop/sq_magstripe_audio/SM_SqMagstripeAudio.SM_SqMagstripeAudio"
+    },
+    {
+      "id": "sq_magstripe_lightning",
+      "folder": "AssetInbox/Environment/Stores/Desktop/sq_magstripe_lightning",
+      "source": "C:\\Users\\mtass\\Desktop\\Miras_Square_POS_Modeller_2026-10-04\\Modeller\\sq_magstripe_lightning",
+      "mesh": "/Game/Stores/Desktop/sq_magstripe_lightning/SM_SqMagstripeLightning.SM_SqMagstripeLightning"
+    },
+    {
+      "id": "sq_magstripe_usbc",
+      "folder": "AssetInbox/Environment/Stores/Desktop/sq_magstripe_usbc",
+      "source": "C:\\Users\\mtass\\Desktop\\Miras_Square_POS_Modeller_2026-10-04\\Modeller\\sq_magstripe_usbc",
+      "mesh": "/Game/Stores/Desktop/sq_magstripe_usbc/SM_SqMagstripeUsbc.SM_SqMagstripeUsbc"
+    },
+    {
+      "id": "sq_reader",
+      "folder": "AssetInbox/Environment/Stores/Desktop/sq_reader",
+      "source": "C:\\Users\\mtass\\Desktop\\Miras_Square_POS_Modeller_2026-10-04\\Modeller\\sq_reader",
+      "mesh": "/Game/Stores/Desktop/sq_reader/SM_SqReader.SM_SqReader"
+    },
+    {
+      "id": "sq_reader_dock",
+      "folder": "AssetInbox/Environment/Stores/Desktop/sq_reader_dock",
+      "source": "C:\\Users\\mtass\\Desktop\\Miras_Square_POS_Modeller_2026-10-04\\Modeller\\sq_reader_dock",
+      "mesh": "/Game/Stores/Desktop/sq_reader_dock/SM_SqReaderDock.SM_SqReaderDock"
+    },
+    {
+      "id": "sq_receipt_printer",
+      "folder": "AssetInbox/Environment/Stores/Desktop/sq_receipt_printer",
+      "source": "C:\\Users\\mtass\\Desktop\\Miras_Square_POS_Modeller_2026-10-04\\Modeller\\sq_receipt_printer",
+      "mesh": "/Game/Stores/Desktop/sq_receipt_printer/SM_SqReceiptPrinter.SM_SqReceiptPrinter"
+    },
+    {
+      "id": "sq_register",
+      "folder": "AssetInbox/Environment/Stores/Desktop/sq_register",
+      "source": "C:\\Users\\mtass\\Desktop\\Miras_Square_POS_Modeller_2026-10-04\\Modeller\\sq_register",
+      "mesh": "/Game/Stores/Desktop/sq_register/SM_SqRegister.SM_SqRegister"
+    },
+    {
+      "id": "sq_stand",
+      "folder": "AssetInbox/Environment/Stores/Desktop/sq_stand",
+      "source": "C:\\Users\\mtass\\Desktop\\Miras_Square_POS_Modeller_2026-10-04\\Modeller\\sq_stand",
+      "mesh": "/Game/Stores/Desktop/sq_stand/SM_SqStand.SM_SqStand"
+    },
+    {
+      "id": "sq_terminal",
+      "folder": "AssetInbox/Environment/Stores/Desktop/sq_terminal",
+      "source": "C:\\Users\\mtass\\Desktop\\Miras_Square_POS_Modeller_2026-10-04\\Modeller\\sq_terminal",
+      "mesh": "/Game/Stores/Desktop/sq_terminal/SM_SqTerminal.SM_SqTerminal"
+    },
+    {
+      "id": "sq_terminal_hub",
+      "folder": "AssetInbox/Environment/Stores/Desktop/sq_terminal_hub",
+      "source": "C:\\Users\\mtass\\Desktop\\Miras_Square_POS_Modeller_2026-10-04\\Modeller\\sq_terminal_hub",
+      "mesh": "/Game/Stores/Desktop/sq_terminal_hub/SM_SqTerminalHub.SM_SqTerminalHub"
+    },
+    {
+      "id": "checkout_dark_compact",
+      "folder": "AssetInbox/Environment/Stores/Desktop/checkout_dark_compact",
+      "source": "C:\\Users\\mtass\\Desktop\\Miras_Self_Servis_Kasa_Varyantlari_2026-10-04\\Modeller\\checkout_dark_compact",
+      "mesh": "/Game/Stores/Desktop/checkout_dark_compact/SM_CheckoutDarkCompact.SM_CheckoutDarkCompact"
+    },
+    {
+      "id": "checkout_pedestal_slim",
+      "folder": "AssetInbox/Environment/Stores/Desktop/checkout_pedestal_slim",
+      "source": "C:\\Users\\mtass\\Desktop\\Miras_Self_Servis_Kasa_Varyantlari_2026-10-04\\Modeller\\checkout_pedestal_slim",
+      "mesh": "/Game/Stores/Desktop/checkout_pedestal_slim/SM_CheckoutPedestalSlim.SM_CheckoutPedestalSlim"
+    },
+    {
+      "id": "checkout_white_tall",
+      "folder": "AssetInbox/Environment/Stores/Desktop/checkout_white_tall",
+      "source": "C:\\Users\\mtass\\Desktop\\Miras_Self_Servis_Kasa_Varyantlari_2026-10-04\\Modeller\\checkout_white_tall",
+      "mesh": "/Game/Stores/Desktop/checkout_white_tall/SM_CheckoutWhiteTall.SM_CheckoutWhiteTall"
+    },
+    {
+      "id": "kt_appliance_bay_1800",
+      "folder": "AssetInbox/Environment/Stores/Desktop/kt_appliance_bay_1800",
+      "source": "C:\\Users\\mtass\\Desktop\\Miras_Kantarci_Alternatif_Modeller_2026-10-04\\Yeni_Modeller\\kt_appliance_bay_1800",
+      "mesh": "/Game/Stores/Desktop/kt_appliance_bay_1800/SM_KtApplianceBay1800.SM_KtApplianceBay1800"
+    },
+    {
+      "id": "kt_bakery_1200",
+      "folder": "AssetInbox/Environment/Stores/Desktop/kt_bakery_1200",
+      "source": "C:\\Users\\mtass\\Desktop\\Miras_Kantarci_Alternatif_Modeller_2026-10-04\\Yeni_Modeller\\kt_bakery_1200",
+      "mesh": "/Game/Stores/Desktop/kt_bakery_1200/SM_KtBakery1200.SM_KtBakery1200"
+    },
+    {
+      "id": "kt_cantilever_2400",
+      "folder": "AssetInbox/Environment/Stores/Desktop/kt_cantilever_2400",
+      "source": "C:\\Users\\mtass\\Desktop\\Miras_Kantarci_Alternatif_Modeller_2026-10-04\\Yeni_Modeller\\kt_cantilever_2400",
+      "mesh": "/Game/Stores/Desktop/kt_cantilever_2400/SM_KtCantilever2400.SM_KtCantilever2400"
+    },
+    {
+      "id": "kt_checkout_2600",
+      "folder": "AssetInbox/Environment/Stores/Desktop/kt_checkout_2600",
+      "source": "C:\\Users\\mtass\\Desktop\\Miras_Kantarci_Alternatif_Modeller_2026-10-04\\Yeni_Modeller\\kt_checkout_2600",
+      "mesh": "/Game/Stores/Desktop/kt_checkout_2600/SM_KtCheckout2600.SM_KtCheckout2600"
+    },
+    {
+      "id": "kt_cosmetic_island_1200",
+      "folder": "AssetInbox/Environment/Stores/Desktop/kt_cosmetic_island_1200",
+      "source": "C:\\Users\\mtass\\Desktop\\Miras_Kantarci_Alternatif_Modeller_2026-10-04\\Yeni_Modeller\\kt_cosmetic_island_1200",
+      "mesh": "/Game/Stores/Desktop/kt_cosmetic_island_1200/SM_KtCosmeticIsland1200.SM_KtCosmeticIsland1200"
+    },
+    {
+      "id": "kt_cosmetic_wall_1200",
+      "folder": "AssetInbox/Environment/Stores/Desktop/kt_cosmetic_wall_1200",
+      "source": "C:\\Users\\mtass\\Desktop\\Miras_Kantarci_Alternatif_Modeller_2026-10-04\\Yeni_Modeller\\kt_cosmetic_wall_1200",
+      "mesh": "/Game/Stores/Desktop/kt_cosmetic_wall_1200/SM_KtCosmeticWall1200.SM_KtCosmeticWall1200"
+    },
+    {
+      "id": "kt_electronic_table_1600",
+      "folder": "AssetInbox/Environment/Stores/Desktop/kt_electronic_table_1600",
+      "source": "C:\\Users\\mtass\\Desktop\\Miras_Kantarci_Alternatif_Modeller_2026-10-04\\Yeni_Modeller\\kt_electronic_table_1600",
+      "mesh": "/Game/Stores/Desktop/kt_electronic_table_1600/SM_KtElectronicTable1600.SM_KtElectronicTable1600"
+    },
+    {
+      "id": "kt_endcap_1000",
+      "folder": "AssetInbox/Environment/Stores/Desktop/kt_endcap_1000",
+      "source": "C:\\Users\\mtass\\Desktop\\Miras_Kantarci_Alternatif_Modeller_2026-10-04\\Yeni_Modeller\\kt_endcap_1000",
+      "mesh": "/Game/Stores/Desktop/kt_endcap_1000/SM_KtEndcap1000.SM_KtEndcap1000"
+    },
+    {
+      "id": "kt_glassware_island_1500",
+      "folder": "AssetInbox/Environment/Stores/Desktop/kt_glassware_island_1500",
+      "source": "C:\\Users\\mtass\\Desktop\\Miras_Kantarci_Alternatif_Modeller_2026-10-04\\Yeni_Modeller\\kt_glassware_island_1500",
+      "mesh": "/Game/Stores/Desktop/kt_glassware_island_1500/SM_KtGlasswareIsland1500.SM_KtGlasswareIsland1500"
+    },
+    {
+      "id": "kt_glassware_wall_1200",
+      "folder": "AssetInbox/Environment/Stores/Desktop/kt_glassware_wall_1200",
+      "source": "C:\\Users\\mtass\\Desktop\\Miras_Kantarci_Alternatif_Modeller_2026-10-04\\Yeni_Modeller\\kt_glassware_wall_1200",
+      "mesh": "/Game/Stores/Desktop/kt_glassware_wall_1200/SM_KtGlasswareWall1200.SM_KtGlasswareWall1200"
+    },
+    {
+      "id": "kt_gondola_1250",
+      "folder": "AssetInbox/Environment/Stores/Desktop/kt_gondola_1250",
+      "source": "C:\\Users\\mtass\\Desktop\\Miras_Kantarci_Alternatif_Modeller_2026-10-04\\Yeni_Modeller\\kt_gondola_1250",
+      "mesh": "/Game/Stores/Desktop/kt_gondola_1250/SM_KtGondola1250.SM_KtGondola1250"
+    },
+    {
+      "id": "kt_hardware_1200",
+      "folder": "AssetInbox/Environment/Stores/Desktop/kt_hardware_1200",
+      "source": "C:\\Users\\mtass\\Desktop\\Miras_Kantarci_Alternatif_Modeller_2026-10-04\\Yeni_Modeller\\kt_hardware_1200",
+      "mesh": "/Game/Stores/Desktop/kt_hardware_1200/SM_KtHardware1200.SM_KtHardware1200"
+    },
+    {
+      "id": "kt_inclined_1000",
+      "folder": "AssetInbox/Environment/Stores/Desktop/kt_inclined_1000",
+      "source": "C:\\Users\\mtass\\Desktop\\Miras_Kantarci_Alternatif_Modeller_2026-10-04\\Yeni_Modeller\\kt_inclined_1000",
+      "mesh": "/Game/Stores/Desktop/kt_inclined_1000/SM_KtInclined1000.SM_KtInclined1000"
+    },
+    {
+      "id": "kt_pallet_rack_2700",
+      "folder": "AssetInbox/Environment/Stores/Desktop/kt_pallet_rack_2700",
+      "source": "C:\\Users\\mtass\\Desktop\\Miras_Kantarci_Alternatif_Modeller_2026-10-04\\Yeni_Modeller\\kt_pallet_rack_2700",
+      "mesh": "/Game/Stores/Desktop/kt_pallet_rack_2700/SM_KtPalletRack2700.SM_KtPalletRack2700"
+    },
+    {
+      "id": "kt_rolling_basket_440",
+      "folder": "AssetInbox/Environment/Stores/Desktop/kt_rolling_basket_440",
+      "source": "C:\\Users\\mtass\\Desktop\\Miras_Kantarci_Alternatif_Modeller_2026-10-04\\Yeni_Modeller\\kt_rolling_basket_440",
+      "mesh": "/Game/Stores/Desktop/kt_rolling_basket_440/SM_KtRollingBasket440.SM_KtRollingBasket440"
+    },
+    {
+      "id": "kt_service_desk_1600",
+      "folder": "AssetInbox/Environment/Stores/Desktop/kt_service_desk_1600",
+      "source": "C:\\Users\\mtass\\Desktop\\Miras_Kantarci_Alternatif_Modeller_2026-10-04\\Yeni_Modeller\\kt_service_desk_1600",
+      "mesh": "/Game/Stores/Desktop/kt_service_desk_1600/SM_KtServiceDesk1600.SM_KtServiceDesk1600"
+    },
+    {
+      "id": "kt_shoe_island_1000",
+      "folder": "AssetInbox/Environment/Stores/Desktop/kt_shoe_island_1000",
+      "source": "C:\\Users\\mtass\\Desktop\\Miras_Kantarci_Alternatif_Modeller_2026-10-04\\Yeni_Modeller\\kt_shoe_island_1000",
+      "mesh": "/Game/Stores/Desktop/kt_shoe_island_1000/SM_KtShoeIsland1000.SM_KtShoeIsland1000"
+    },
+    {
+      "id": "kt_shoe_wall_1200",
+      "folder": "AssetInbox/Environment/Stores/Desktop/kt_shoe_wall_1200",
+      "source": "C:\\Users\\mtass\\Desktop\\Miras_Kantarci_Alternatif_Modeller_2026-10-04\\Yeni_Modeller\\kt_shoe_wall_1200",
+      "mesh": "/Game/Stores/Desktop/kt_shoe_wall_1200/SM_KtShoeWall1200.SM_KtShoeWall1200"
+    },
+    {
+      "id": "kt_tripod_turnstile_700",
+      "folder": "AssetInbox/Environment/Stores/Desktop/kt_tripod_turnstile_700",
+      "source": "C:\\Users\\mtass\\Desktop\\Miras_Kantarci_Alternatif_Modeller_2026-10-04\\Yeni_Modeller\\kt_tripod_turnstile_700",
+      "mesh": "/Game/Stores/Desktop/kt_tripod_turnstile_700/SM_KtTripodTurnstile700.SM_KtTripodTurnstile700"
+    },
+    {
+      "id": "kt_wall_1250",
+      "folder": "AssetInbox/Environment/Stores/Desktop/kt_wall_1250",
+      "source": "C:\\Users\\mtass\\Desktop\\Miras_Kantarci_Alternatif_Modeller_2026-10-04\\Yeni_Modeller\\kt_wall_1250",
+      "mesh": "/Game/Stores/Desktop/kt_wall_1250/SM_KtWall1250.SM_KtWall1250"
+    },
+    {
+      "id": "kt_wire_bin_800",
+      "folder": "AssetInbox/Environment/Stores/Desktop/kt_wire_bin_800",
+      "source": "C:\\Users\\mtass\\Desktop\\Miras_Kantarci_Alternatif_Modeller_2026-10-04\\Yeni_Modeller\\kt_wire_bin_800",
+      "mesh": "/Game/Stores/Desktop/kt_wire_bin_800/SM_KtWireBin800.SM_KtWireBin800"
+    },
+    {
+      "id": "kt_wire_cart_580",
+      "folder": "AssetInbox/Environment/Stores/Desktop/kt_wire_cart_580",
+      "source": "C:\\Users\\mtass\\Desktop\\Miras_Kantarci_Alternatif_Modeller_2026-10-04\\Yeni_Modeller\\kt_wire_cart_580",
+      "mesh": "/Game/Stores/Desktop/kt_wire_cart_580/SM_KtWireCart580.SM_KtWireCart580"
+    },
+    {
+      "id": "kt_wood_island_1400",
+      "folder": "AssetInbox/Environment/Stores/Desktop/kt_wood_island_1400",
+      "source": "C:\\Users\\mtass\\Desktop\\Miras_Kantarci_Alternatif_Modeller_2026-10-04\\Yeni_Modeller\\kt_wood_island_1400",
+      "mesh": "/Game/Stores/Desktop/kt_wood_island_1400/SM_KtWoodIsland1400.SM_KtWoodIsland1400"
+    },
+    {
+      "id": "kt_wood_wall_1200",
+      "folder": "AssetInbox/Environment/Stores/Desktop/kt_wood_wall_1200",
+      "source": "C:\\Users\\mtass\\Desktop\\Miras_Kantarci_Alternatif_Modeller_2026-10-04\\Yeni_Modeller\\kt_wood_wall_1200",
+      "mesh": "/Game/Stores/Desktop/kt_wood_wall_1200/SM_KtWoodWall1200.SM_KtWoodWall1200"
+    }
+  ]
+}

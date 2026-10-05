@@ -1,0 +1,22 @@
+{
+  "schemaVersion": 1,
+  "kind": "round",
+  "estimatedPieceMassGrams": 220,
+  "massIsApproximate": true,
+  "originUnit": "one piece",
+  "placement": "asset floor pivot; rotation may lay long vegetables flat",
+  "id": "orange",
+  "displayName": "Portakal",
+  "category": "produce",
+  "mesh": "SM_orange",
+  "dimensionsMm": {
+    "width": 85.0,
+    "depth": 85.0,
+    "height": 89.99
+  },
+  "triangles": 660,
+  "unit": "metre",
+  "pivot": "floor_bounds_center",
+  "frontAxis": "-Y",
+  "categorySign": false
+}

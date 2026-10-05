@@ -1,0 +1,22 @@
+{
+  "schemaVersion": 1,
+  "kind": "onion",
+  "estimatedPieceMassGrams": 160,
+  "massIsApproximate": true,
+  "originUnit": "one piece",
+  "placement": "asset floor pivot; rotation may lay long vegetables flat",
+  "id": "onion",
+  "displayName": "Sogan",
+  "category": "produce",
+  "mesh": "SM_onion",
+  "dimensionsMm": {
+    "width": 88.0,
+    "depth": 88.82,
+    "height": 85.42
+  },
+  "triangles": 598,
+  "unit": "metre",
+  "pivot": "floor_bounds_center",
+  "frontAxis": "-Y",
+  "categorySign": false
+}

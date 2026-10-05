@@ -1,0 +1,22 @@
+{
+  "id": "paper_roll",
+  "displayName": "Kagit havlu rulosu",
+  "sourcePhoto": 10,
+  "unit": "metre",
+  "pivot": "floor_bounds_center",
+  "frontAxis": "-Y",
+  "dimensionsMm": {
+    "width": 134.0,
+    "depth": 134.0,
+    "height": 133.0
+  },
+  "triangles": 896,
+  "materials": [
+    "MI_paper_fibre",
+    "MI_black"
+  ],
+  "collisionCount": 0,
+  "collisionNote": "Simple part colliders; attached cargo should not simulate against its carrier",
+  "dimensionsAreApproximate": true,
+  "gameIntegration": false
+}

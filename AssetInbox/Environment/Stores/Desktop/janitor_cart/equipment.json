@@ -1,0 +1,112 @@
+{
+  "id": "janitor_cart",
+  "displayName": "Bos temizlik arabasi",
+  "sourcePhoto": 10,
+  "unit": "metre",
+  "pivot": "floor_bounds_center",
+  "frontAxis": "-Y",
+  "dimensionsMm": {
+    "width": 1285.0,
+    "depth": 698.4,
+    "height": 997.5
+  },
+  "triangles": 9328,
+  "materials": [
+    "MI_black",
+    "MI_rubber",
+    "MI_yellow",
+    "MI_steel"
+  ],
+  "collisionCount": 8,
+  "collisionNote": "Simple part colliders; attached cargo should not simulate against its carrier",
+  "dimensionsAreApproximate": true,
+  "gameIntegration": false,
+  "emptyByDefault": true,
+  "accessoriesCombined": false,
+  "bagAnchorMetres": [
+    -0.382500022649765,
+    0.0,
+    0.22499999403953552
+  ],
+  "bucketAnchorMetres": [
+    0.4624999761581421,
+    0.0,
+    0.20000000298023224
+  ],
+  "topShelfMetres": [
+    0.062499985098838806,
+    0.0,
+    0.9484999775886536
+  ],
+  "family": "prop",
+  "mesh": "SM_janitor_cart.fbx",
+  "unrealMesh": "/Game/Stores/Desktop/janitor_cart/SM_janitor_cart.SM_janitor_cart",
+  "checkouts": 0,
+  "zones": [],
+  "planogram": {
+    "doubleSided": false,
+    "widthCm": 128.5,
+    "depthCm": 69.84,
+    "frontY": 0,
+    "meshYaw": 180,
+    "showCategorySign": false
+  },
+  "deliverySource": "C:\\Users\\mtass\\Desktop\\Miras_Magaza_Araclari_2026-10-04\\Models\\janitor_cart",
+  "sourceBlend": "janitor_cart.blend",
+  "staticPlacement": true,
+  "collision": {
+    "policy": "custom_ucx",
+    "pieces": 8
+  },
+  "geometryAudit": {
+    "overlapPairsBefore": 0,
+    "shiftedFaces": 0,
+    "overlapPairsAfter": 0
+  },
+  "sourceMaterialPalette": [
+    {
+      "name": "MI_black",
+      "color": [
+        0.012000000104308128,
+        0.01600000075995922,
+        0.020999999716877937,
+        1.0
+      ],
+      "roughness": 0.47999998927116394,
+      "metallic": 0.10000000149011612
+    },
+    {
+      "name": "MI_rubber",
+      "color": [
+        0.007000000216066837,
+        0.008999999612569809,
+        0.012000000104308128,
+        1.0
+      ],
+      "roughness": 0.7599999904632568,
+      "metallic": 0.0
+    },
+    {
+      "name": "MI_yellow",
+      "color": [
+        0.800000011920929,
+        0.5299999713897705,
+        0.00800000037997961,
+        1.0
+      ],
+      "roughness": 0.3700000047683716,
+      "metallic": 0.12999999523162842
+    },
+    {
+      "name": "MI_steel",
+      "color": [
+        0.4000000059604645,
+        0.44999998807907104,
+        0.49000000953674316,
+        1.0
+      ],
+      "roughness": 0.27000001072883606,
+      "metallic": 0.8199999928474426
+    }
+  ]
+}

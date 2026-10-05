@@ -1,0 +1,22 @@
+{
+  "schemaVersion": 1,
+  "kind": "eggplant",
+  "estimatedPieceMassGrams": 300,
+  "massIsApproximate": true,
+  "originUnit": "one piece",
+  "placement": "asset floor pivot; rotation may lay long vegetables flat",
+  "id": "eggplant",
+  "displayName": "Patlican",
+  "category": "produce",
+  "mesh": "SM_eggplant",
+  "dimensionsMm": {
+    "width": 82.0,
+    "depth": 82.76,
+    "height": 236.11
+  },
+  "triangles": 522,
+  "unit": "metre",
+  "pivot": "floor_bounds_center",
+  "frontAxis": "-Y",
+  "categorySign": false
+}

@@ -139,6 +139,7 @@ FStoreStats MarketStoreKit::CalculateStats(const FStoreTemplate& S)
         if (E.Family==TEXT("produce")) Stats.ProduceM2+=Width*E.DimensionsCm.Y/100;
         if (E.Family==TEXT("deli")||E.Family==TEXT("butcher")||E.Family==TEXT("fish")||E.Family==TEXT("service")) Stats.Counters.AddUnique(E.Family);
         Stats.Checkouts+=E.CheckoutCount;
+        if(E.Family==TEXT("self_checkout")) Stats.SelfCheckouts+=E.CheckoutCount;
     }
     Stats.Counters.Sort(); return Stats;
 }

@@ -1,0 +1,71 @@
+{
+  "schemaVersion": 1,
+  "kind": "long",
+  "estimatedPieceMassGrams": 300,
+  "massIsApproximate": true,
+  "originUnit": "one piece",
+  "placement": "asset floor pivot; rotation may lay long vegetables flat",
+  "id": "zucchini",
+  "displayName": "Kabak",
+  "category": "produce",
+  "mesh": "SM_zucchini.fbx",
+  "dimensionsMm": {
+    "width": 65.55,
+    "depth": 65.61,
+    "height": 239.85
+  },
+  "triangles": 482,
+  "unit": "metre",
+  "pivot": "floor_bounds_center",
+  "frontAxis": "-Y",
+  "categorySign": false,
+  "family": "prop",
+  "unrealMesh": "/Game/Stores/Desktop/zucchini/SM_zucchini.SM_zucchini",
+  "checkouts": 0,
+  "zones": [],
+  "planogram": {
+    "doubleSided": false,
+    "widthCm": 6.555,
+    "depthCm": 6.561,
+    "frontY": 0,
+    "meshYaw": 180,
+    "showCategorySign": false
+  },
+  "deliverySource": "C:\\Users\\mtass\\Desktop\\Miras_Manav_Modelleri_2026-10-04\\Models\\zucchini",
+  "sourceBlend": "zucchini.blend",
+  "staticPlacement": true,
+  "collision": {
+    "policy": "custom_ucx",
+    "pieces": 0
+  },
+  "geometryAudit": {
+    "overlapPairsBefore": 0,
+    "shiftedFaces": 0,
+    "overlapPairsAfter": 0
+  },
+  "sourceMaterialPalette": [
+    {
+      "name": "MI_zucchini",
+      "color": [
+        0.18000000715255737,
+        0.3700000047683716,
+        0.09000000357627869,
+        1.0
+      ],
+      "roughness": 0.44999998807907104,
+      "metallic": 0.0,
+      "baseTexture": "AssetInbox/Environment/Stores/Desktop/zucchini/Textures/zucchini.png"
+    },
+    {
+      "name": "MI_Stem",
+      "color": [
+        0.1599999964237213,
+        0.07500000298023224,
+        0.024000000208616257,
+        1.0
+      ],
+      "roughness": 0.75,
+      "metallic": 0.0
+    }
+  ]
+}

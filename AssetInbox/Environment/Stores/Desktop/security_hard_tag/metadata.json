@@ -1,0 +1,22 @@
+{
+  "id": "security_hard_tag",
+  "displayName": "Sert guvenlik etiketi",
+  "sourcePhoto": 8,
+  "unit": "metre",
+  "pivot": "floor_bounds_center",
+  "frontAxis": "-Y",
+  "dimensionsMm": {
+    "width": 19.0,
+    "depth": 55.0,
+    "height": 16.6
+  },
+  "triangles": 808,
+  "materials": [
+    "MI_white",
+    "MI_steel"
+  ],
+  "collisionCount": 0,
+  "collisionNote": "Simple part colliders; attached cargo should not simulate against its carrier",
+  "dimensionsAreApproximate": true,
+  "gameIntegration": false
+}

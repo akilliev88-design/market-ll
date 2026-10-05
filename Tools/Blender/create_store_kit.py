@@ -227,8 +227,8 @@ def bulk_island():
 
 def ceiling_bay():
     reset()
-    black = mat("MI_Ceiling_BlackSteel", (.018, .022, .024), .72, .27)
-    duct = mat("MI_Ceiling_Galvanized", (.24, .27, .28), .82, .24)
+    black = mat("MI_Ceiling_BlackSteel", (.32, .35, .37), .35, .75)
+    duct = mat("MI_Ceiling_Galvanized", (.45, .48, .50), .35, .75)
     light = mat("MI_Ceiling_Light", (.82, .74, .54), .05, .18, emission=(1.0, .76, .46))
     sprinkler = mat("MI_Ceiling_SprinklerRed", (.34, .012, .008), .52, .36)
     parts = []

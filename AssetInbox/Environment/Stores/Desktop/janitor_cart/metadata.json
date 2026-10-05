@@ -1,0 +1,41 @@
+{
+  "id": "janitor_cart",
+  "displayName": "Bos temizlik arabasi",
+  "sourcePhoto": 10,
+  "unit": "metre",
+  "pivot": "floor_bounds_center",
+  "frontAxis": "-Y",
+  "dimensionsMm": {
+    "width": 1285.0,
+    "depth": 698.4,
+    "height": 997.5
+  },
+  "triangles": 9328,
+  "materials": [
+    "MI_black",
+    "MI_rubber",
+    "MI_yellow",
+    "MI_steel"
+  ],
+  "collisionCount": 8,
+  "collisionNote": "Simple part colliders; attached cargo should not simulate against its carrier",
+  "dimensionsAreApproximate": true,
+  "gameIntegration": false,
+  "emptyByDefault": true,
+  "accessoriesCombined": false,
+  "bagAnchorMetres": [
+    -0.382500022649765,
+    0.0,
+    0.22499999403953552
+  ],
+  "bucketAnchorMetres": [
+    0.4624999761581421,
+    0.0,
+    0.20000000298023224
+  ],
+  "topShelfMetres": [
+    0.062499985098838806,
+    0.0,
+    0.9484999775886536
+  ]
+}

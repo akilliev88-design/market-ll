@@ -1,0 +1,90 @@
+{
+  "id": "cutting_table",
+  "displayName": "Kesim tezgahi",
+  "sourcePhoto": 4,
+  "unit": "metre",
+  "pivot": "floor_bounds_center",
+  "frontAxis": "-Y",
+  "dimensionsMm": {
+    "width": 1400.0,
+    "depth": 660.0,
+    "height": 881.0
+  },
+  "triangles": 2632,
+  "materials": [
+    "MI_steel",
+    "MI_rubber",
+    "MI_red"
+  ],
+  "collisionCount": 6,
+  "collisionNote": "Simple part colliders; attached cargo should not simulate against its carrier",
+  "dimensionsAreApproximate": true,
+  "gameIntegration": false,
+  "emptyByDefault": true,
+  "accessoriesCombined": false,
+  "worktopMetres": [
+    2.9802322387695312e-08,
+    0.0,
+    0.8809999823570251
+  ],
+  "family": "prop",
+  "mesh": "SM_cutting_table.fbx",
+  "unrealMesh": "/Game/Stores/Desktop/cutting_table/SM_cutting_table.SM_cutting_table",
+  "checkouts": 0,
+  "zones": [],
+  "planogram": {
+    "doubleSided": false,
+    "widthCm": 140.0,
+    "depthCm": 66.0,
+    "frontY": 0,
+    "meshYaw": 180,
+    "showCategorySign": false
+  },
+  "deliverySource": "C:\\Users\\mtass\\Desktop\\Miras_Magaza_Araclari_2026-10-04\\Models\\cutting_table",
+  "sourceBlend": "cutting_table.blend",
+  "staticPlacement": true,
+  "collision": {
+    "policy": "custom_ucx",
+    "pieces": 6
+  },
+  "geometryAudit": {
+    "overlapPairsBefore": 0,
+    "shiftedFaces": 0,
+    "overlapPairsAfter": 0
+  },
+  "sourceMaterialPalette": [
+    {
+      "name": "MI_steel",
+      "color": [
+        0.4000000059604645,
+        0.44999998807907104,
+        0.49000000953674316,
+        1.0
+      ],
+      "roughness": 0.27000001072883606,
+      "metallic": 0.8199999928474426
+    },
+    {
+      "name": "MI_rubber",
+      "color": [
+        0.007000000216066837,
+        0.008999999612569809,
+        0.012000000104308128,
+        1.0
+      ],
+      "roughness": 0.7599999904632568,
+      "metallic": 0.0
+    },
+    {
+      "name": "MI_red",
+      "color": [
+        0.550000011920929,
+        0.012000000104308128,
+        0.014999999664723873,
+        1.0
+      ],
+      "roughness": 0.4000000059604645,
+      "metallic": 0.14000000059604645
+    }
+  ]
+}

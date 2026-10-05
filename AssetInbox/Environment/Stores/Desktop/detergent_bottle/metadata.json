@@ -1,0 +1,25 @@
+{
+  "id": "detergent_bottle",
+  "displayName": "Deterjan bidonu",
+  "sourcePhoto": 10,
+  "unit": "metre",
+  "pivot": "floor_bounds_center",
+  "frontAxis": "-Y",
+  "dimensionsMm": {
+    "width": 107.58,
+    "depth": 94.0,
+    "height": 269.0
+  },
+  "triangles": 1076,
+  "materials": [
+    "MI_BlueBottle",
+    "MI_cleaning_label",
+    "MI_white"
+  ],
+  "collisionCount": 0,
+  "collisionNote": "Simple part colliders; attached cargo should not simulate against its carrier",
+  "dimensionsAreApproximate": true,
+  "gameIntegration": false,
+  "labelOnBodySurface": true,
+  "labelUsesBodyUV": true
+}

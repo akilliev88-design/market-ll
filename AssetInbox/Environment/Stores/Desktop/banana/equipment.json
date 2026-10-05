@@ -1,0 +1,71 @@
+{
+  "schemaVersion": 1,
+  "kind": "banana",
+  "estimatedPieceMassGrams": 600,
+  "massIsApproximate": true,
+  "originUnit": "one bunch",
+  "placement": "asset floor pivot; rotation may lay long vegetables flat",
+  "id": "banana",
+  "displayName": "Muz demeti",
+  "category": "produce",
+  "mesh": "SM_banana.fbx",
+  "dimensionsMm": {
+    "width": 204.97,
+    "depth": 112.0,
+    "height": 82.13
+  },
+  "triangles": 1796,
+  "unit": "metre",
+  "pivot": "floor_bounds_center",
+  "frontAxis": "-Y",
+  "categorySign": false,
+  "family": "prop",
+  "unrealMesh": "/Game/Stores/Desktop/banana/SM_banana.SM_banana",
+  "checkouts": 0,
+  "zones": [],
+  "planogram": {
+    "doubleSided": false,
+    "widthCm": 20.497,
+    "depthCm": 11.2,
+    "frontY": 0,
+    "meshYaw": 180,
+    "showCategorySign": false
+  },
+  "deliverySource": "C:\\Users\\mtass\\Desktop\\Miras_Manav_Modelleri_2026-10-04\\Models\\banana",
+  "sourceBlend": "banana.blend",
+  "staticPlacement": true,
+  "collision": {
+    "policy": "custom_ucx",
+    "pieces": 0
+  },
+  "geometryAudit": {
+    "overlapPairsBefore": 0,
+    "shiftedFaces": 0,
+    "overlapPairsAfter": 0
+  },
+  "sourceMaterialPalette": [
+    {
+      "name": "MI_banana",
+      "color": [
+        0.8700000047683716,
+        0.6200000047683716,
+        0.02500000037252903,
+        1.0
+      ],
+      "roughness": 0.44999998807907104,
+      "metallic": 0.0,
+      "baseTexture": "AssetInbox/Environment/Stores/Desktop/banana/Textures/banana.png"
+    },
+    {
+      "name": "MI_Stem",
+      "color": [
+        0.1599999964237213,
+        0.07500000298023224,
+        0.024000000208616257,
+        1.0
+      ],
+      "roughness": 0.75,
+      "metallic": 0.0
+    }
+  ]
+}

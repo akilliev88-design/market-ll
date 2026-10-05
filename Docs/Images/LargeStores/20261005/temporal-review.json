@@ -1,0 +1,62 @@
+[
+  {
+    "store": "kucuk_01",
+    "fixedCameraPairs": [
+      {
+        "meanAbsoluteRGB": 0.41481295228004456,
+        "percentPixelsAbove20": 0.09833333333333333
+      },
+      {
+        "meanAbsoluteRGB": 0.5634252429008484,
+        "percentPixelsAbove20": 0.07333333333333333
+      }
+    ],
+    "passed": true,
+    "threshold": "<2% of pixels change more than 20/255",
+    "movingCameraFrames": [
+      "07.png",
+      "08.png"
+    ],
+    "scope": "Rendered appearance stability; not a proof against all temporal artifacts"
+  },
+  {
+    "store": "buyuk_01",
+    "fixedCameraPairs": [
+      {
+        "meanAbsoluteRGB": 0.4332386553287506,
+        "percentPixelsAbove20": 0.17416666666666666
+      },
+      {
+        "meanAbsoluteRGB": 0.6331319212913513,
+        "percentPixelsAbove20": 0.2446527777777778
+      }
+    ],
+    "passed": true,
+    "threshold": "<2% of pixels change more than 20/255",
+    "movingCameraFrames": [
+      "07.png",
+      "08.png"
+    ],
+    "scope": "Rendered appearance stability; not a proof against all temporal artifacts"
+  },
+  {
+    "store": "hiper_01",
+    "fixedCameraPairs": [
+      {
+        "meanAbsoluteRGB": 0.6277037262916565,
+        "percentPixelsAbove20": 0.14972222222222223
+      },
+      {
+        "meanAbsoluteRGB": 0.6383143663406372,
+        "percentPixelsAbove20": 0.1436111111111111
+      }
+    ],
+    "passed": true,
+    "threshold": "<2% of pixels change more than 20/255",
+    "movingCameraFrames": [
+      "07.png",
+      "08.png"
+    ],
+    "scope": "Rendered appearance stability; not a proof against all temporal artifacts"
+  }
+]

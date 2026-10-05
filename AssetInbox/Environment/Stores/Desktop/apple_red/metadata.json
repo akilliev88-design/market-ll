@@ -1,0 +1,22 @@
+{
+  "schemaVersion": 1,
+  "kind": "apple",
+  "estimatedPieceMassGrams": 180,
+  "massIsApproximate": true,
+  "originUnit": "one piece",
+  "placement": "asset floor pivot; rotation may lay long vegetables flat",
+  "id": "apple_red",
+  "displayName": "Kirmizi elma",
+  "category": "produce",
+  "mesh": "SM_apple_red",
+  "dimensionsMm": {
+    "width": 80.23,
+    "depth": 82.05,
+    "height": 81.46
+  },
+  "triangles": 490,
+  "unit": "metre",
+  "pivot": "floor_bounds_center",
+  "frontAxis": "-Y",
+  "categorySign": false
+}

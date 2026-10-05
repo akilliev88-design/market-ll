@@ -1,0 +1,22 @@
+{
+  "schemaVersion": 1,
+  "kind": "melon",
+  "estimatedPieceMassGrams": 2000,
+  "massIsApproximate": true,
+  "originUnit": "one piece",
+  "placement": "asset floor pivot; rotation may lay long vegetables flat",
+  "id": "melon",
+  "displayName": "Kavun",
+  "category": "produce",
+  "mesh": "SM_melon",
+  "dimensionsMm": {
+    "width": 190.0,
+    "depth": 190.0,
+    "height": 191.72
+  },
+  "triangles": 660,
+  "unit": "metre",
+  "pivot": "floor_bounds_center",
+  "frontAxis": "-Y",
+  "categorySign": false
+}
