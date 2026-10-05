@@ -1,3 +1,11 @@
+## 05.10.2026 — Codex — image-blaster uygunluğu
+
+Mustafa aracın oyunda işe yarayıp yaramayacağını sordu. GitHub README, dünya/tek nesne üretim kaynakları ve Ürün Stüdyosu kılavuzu incelendi. Değerlendirme: konsept/dekor/ses için yararlı olabilir; ölçülü ekipman ve raf ürünlerinde mevcut ortak geometri/etiket yolu tercih edilir. Unreal entegrasyonu, ölçek, çarpışma ve performans ayrıca doğrulanmalı. Kaynak: https://github.com/neilsonnn/image-blaster
+
+Doğrulama: yalnız kaynak incelemesi; kurulum/API çağrısı ve oyun kodu değişikliği yok. DERLE/TEST/Smoke çalıştırılmadı. Mevcut yerel değişiklikler korundu.
+
+Sıradaki: talep edilirse tek dekor denemesi. G-088/G-106 devam ediyor; yeni uygulama işi açılmadı.
+
 ## 05.10.2026 — Codex — G-106 dört farklı yönetim tasarımı
 
 **Mustafa:** Önceki iki yerleşimi beğenmedi; farklı farklı tasarımlar istedi.

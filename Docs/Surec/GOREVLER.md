@@ -125,3 +125,5 @@ Yeni görev en alta eklenir; biten görev silinmez, durumu değişir. Kimlikler 
 | G-110 | **İlk mağazayı kapatma** (M69): ilk mağaza da diğerleri gibi kapatılabilsin; kapatılınca gezilecek mağaza başka bir şubemize geçer, hiç mağaza kalmazsa oyun bitmez (yeni mağaza açılabilir) | Claude (kural) + Codex (3B geçiş) | Sırada | G-109 doğrulanınca |
 
 | G-111 | CLAUDE_KOS yerel doğrulama onarımı | Codex | Bitti (betik); M69 testleri başarısız | 04.10.2026: Git ayrışması derlemeyi durduruyordu; yerel DERLE/TEST/Smoke, başarısız derlemede durma ve açık sonuç penceresi. Oyun kaynağı değişmedi. DERLE başarılı. TEST: 171 başarılı + 1 uyarılı, 2 başarısız (Ledger.CashAudit: eski kira beklentisi; Subsidiaries.BrandCompaniesAndTransfers: şirket adı beklentisi). Smoke testler başarısız olduğu için çalıştırılmadı. Son çalıştırıcı sürümünün başarı/hata dönüşü ve CLAUDE_KOS_BITTI satırı geçici örneklerle doğrulandı. M69 tamamlanmış değildir; iç ad taşınmadı. |
+
+05.10.2026 — Codex: image-blaster kaynak incelemesi tamamlandı; kurulum yapılmadı. G-088/G-106 durumları değişmedi. Ayrıntı GUNLUK.
