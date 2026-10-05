@@ -1,3 +1,13 @@
+## 05.10.2026 — Codex — G-112 üretilmiş market aktarımı / HQ bekleniyor
+
+Mustafa ortamın üretildiğini, oyuna aktarıp hatalarını düzeltmeyi istedi; sonra aktarım CMD penceresini kapattığını sordu. Ortam SPZ/pano/collider bulundu; HQ işleme devam ediyordu. Mevcut servis işi tekrar kullanıldı, yeni dünya üretilmedi. Resmî World Labs mesh kılavuzu HQ üretiminin 1 saate kadar sürebileceğini ve pencere kapanınca devam ettiğini doğruluyor.
+
+Yapılan: Collider Blender ölçü/zemin denetimi ve Unreal'a ayrı import; arşiv kopyası AssetInbox/ImageBlaster/MahalleMarket/mahalle-market-collider.glb. MarketGeneratedStore ayrı GameMode, MARKET_GEZI.cmd, HQ/collider import Python, Blender inspector; fizik ve görsel geometri ayrı, baked doku için unlit malzeme yolu. Windows indirici kayıtlı operation'a devam eder; .partial dosyayı tamamlanınca GLB adına taşır. FinalizeGeneratedStore.ps1 mevcut modeli bekleme/inceleme/import/capture zinciri ve durum JSON'u; MARKET_AKTARIM_TAMAMLA.cmd ile yeniden başlatılabilir. Gizli yerel yardımcı PID 30452 başlatıldı, son durum waiting_mesh. API anahtarı okunup çıktıya yazılmadı.
+
+Doğrulama: DERLE başarılı; TEST 173 başarılı + 1 uyarı, 0 başarısız; Smoke geçti. Son fizik sürümü derlendi; Unreal gerçek karakter grounded=1 (z=-44.1, floor=-135.7), GENERATED_STORE_PHYSICS_PASSED. Python/Node/PowerShell sözdizimi kontrolleri geçti. HQ model henüz yok; görsel import, üç PNG ve kusur düzeltmeleri doğrulanmadı. Ana kampanya mağazası değişmedi; mevcut M69 kaynakları korundu. Varsayım: önce ayrı gezi sahnesi; üretilmiş pano daha uzun mağaza gösteriyor, ölçü tercihi/alan düzeltmesi görsel incelemeden sonra.
+
+Devam: Saved/ImageBlaster/finalize-status.json ve GeneratedStoreFinalize.log oku. review_ready -> Saved/Screenshots/GeneratedStore/01–03.png incele, giriş/cam/ölçü/performance sorunlarını gider. failed -> nedenini düzelt ve mevcut işe devam et. Current unreal-manifest collider testine aittir; yalnız HQ importer sonrası gezi modelini temsil eder. Görsel/kampanya aktarımı tamamlanmış değildir. G-112 devam ediyor.
+
 ## 05.10.2026 — Codex — mahalle marketi Image-blaster hazırlığı
 
 Mustafa cam cepheli, sokağa bağlı mahalle marketi üretip oyuna aktarmayı ve çalıştırmayı öğrenmek istedi. Yerleşik imagegen ile dolu konsept ve aynı mekânın boş mimari görseli üretildi; AssetInbox/ImageBlaster/MahalleMarket içinde PNG ve istem kaydı. Image-blaster 4acb43b Saved altında indirildi. Node Windows çalıştırıcı ve üç CMD, hesap/kredi/Unreal aktarım kılavuzu hazırlandı. Ortam GLB'sinin collider olduğu doğrulandı; oyuna giriş için ayrı dokulu HQ mesh dışa aktarımı eklendi. Bu kapsamda Claude Code/FAL gerekmez.

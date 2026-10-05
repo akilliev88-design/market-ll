@@ -1,6 +1,18 @@
 # Mahalle marketi — Image-blaster denemesi
 
-05.10.2026. Görseller hazır, 3B üretim ve oyuna aktarım henüz yapılmadı. Kullanıcının World Labs hesabı/API anahtarı bekleniyor.
+05.10.2026. Ortam üretildi. Collider Unreal'a ayrı klasöre aktarıldı; gerçek oyun karakteri zeminde duruyor (GENERATED_STORE_PHYSICS_PASSED). Dokulu HQ model World Labs'ta işleniyor. Görsel model aktarımı, ekran görüntülerinin incelenmesi ve kampanya bağlantısı tamamlanmadı.
+
+## Son devam durumu
+
+Codex yerel arka plan yardımcısını başlattı: `Tools/ImageBlaster/FinalizeGeneratedStore.ps1`. Mevcut HQ işi tamamlanınca indirir; Blender ile ölçü/doku/zemin kontrolünü yapar, Unreal'a aktarır ve üç kontrol görüntüsü alır. Durum: `Saved/ImageBlaster/finalize-status.json`. `review_ready` yalnız aktarım ve zemin kontrolünün geçtiğini söyler; görsel inceleme ve kusur düzeltmesi bekler. `failed` olursa mesaj/log incelenir.
+
+Pencere kapanması World Labs işini iptal etmez. [Resmî mesh kılavuzu](https://docs.worldlabs.ai/marble/export/mesh) HQ işleminin bir saate kadar sürebileceğini belirtiyor. Yerel yardımcı durduysa `MARKET_AKTARIM_TAMAMLA.cmd` ile aynı işe devam edilir. Unreal açıkken aktarım yapmaz; kullanıcı editörü kapatıp yeniden çalıştırır.
+
+Görsel model ve fizik ayrı: görünür HQ modelin çarpışması kapalı; ~38 bin üçgenli collider gizli fizik yüzeyi olarak kullanılır. Kaynak collider `AssetInbox/ImageBlaster/MahalleMarket/mahalle-market-collider.glb`, Unreal varlığı `/Game/Stores/Generated/MahalleCollision`. Giriş/cam kusurları henüz görsel olarak incelenmedi. Üretici mekânı ilk hedefteki 8×10 m dükkândan daha uzun yorumladı.
+
+`MARKET_GEZI.cmd` ayrı Unreal gezi oturumunu açar (WASD/fare, Esc). Dokulu model yoksa başlamaz. Bu sahne satış, müşteri ve kampanya kaydı oluşturmaz; ana oyunun mağazası henüz değiştirilmedi.
+
+Bu tur DERLE geçti; TEST 173 başarılı + 1 uyarı, 0 başarısız; Smoke geçti. Sonraki fizik kontrolü ve kaynak sürümü de derlendi, GENERATED_STORE_PHYSICS_PASSED. Son görsel aktarım/zemin kontrolü arka plan betiğinde; sonuç ve PNG'ler sonraki incelemede okunacak.
 
 ## Hazırlananlar
 

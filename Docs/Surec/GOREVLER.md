@@ -128,4 +128,4 @@ Yeni görev en alta eklenir; biten görev silinmez, durumu değişir. Kimlikler 
 
 05.10.2026 — Codex: image-blaster kaynak incelemesi tamamlandı; kurulum yapılmadı. G-088/G-106 durumları değişmedi. Ayrıntı GUNLUK.
 
-| G-112 | Image-blaster mahalle marketi: cam cepheli ortam üretimi ve Unreal denemesi | Codex + Mustafa (hesap) | Devam ediyor | 05.10.2026: konsept/boş PNG, yerel araç ve üç çalıştırıcı hazır; önizleme build/HTTP ve eksik anahtar duruşu geçti. World Labs hesabı/API anahtarı bekleniyor; 3B üretim ve oyuna aktarım yapılmadı. Kılavuz Docs/Environment/IMAGE_BLASTER_MAHALLE_MARKETI.md. |
+| G-112 | Image-blaster mahalle marketi: cam cepheli ortam üretimi ve Unreal denemesi | Codex | Devam ediyor | 05.10.2026: ortam üretildi; collider Unreal import ve gerçek karakter zemin kontrolü geçti. DERLE, TEST 173+1 uyarı, Smoke geçti. HQ model serviste bekleniyor; FinalizeGeneratedStore.ps1 arka planda mevcut işten indirme/import/capture yapacak. Durum Saved/ImageBlaster/finalize-status.json. PNG incelemesi/kusur düzeltmesi ve kampanya bağlantısı tamamlanmadı. |

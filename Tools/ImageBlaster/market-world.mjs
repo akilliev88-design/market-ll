@@ -1,4 +1,4 @@
-import { readFile, writeFile, copyFile, mkdir, readdir } from 'node:fs/promises';
+import { readFile, writeFile, copyFile, mkdir, readdir, rename } from 'node:fs/promises';
 import path from 'node:path';
 import { fileURLToPath, pathToFileURL } from 'node:url';
 
@@ -57,15 +57,22 @@ async function run() {
     return response.json();
   };
   const base = 'https://api.worldlabs.ai/marble/v1';
-  console.log('Dokulu HQ model aktarimi (yeni aktarimsa 3500 kredi).');
-  let operation = await request(`${base}/worlds/${encodeURIComponent(id)}:export`, { asset_type: 'mesh', format: 'glb', mesh_variant: 'textured' });
   const meta = path.join(dest, 'mesh-export-operation.json');
-  await writeFile(meta, JSON.stringify(operation, null, 2));
+  let previous;
+  try { previous = JSON.parse(await readFile(meta, 'utf8')); } catch (e) { if (e.code !== 'ENOENT') throw e; }
+  console.log('Dokulu HQ model aktarimi (yeni aktarimsa 3500 kredi; mevcut is tekrar kullanilir).');
+  let operation = previous?.world_id === id && previous?.operation_id
+    ? await request(`${base}/operations/${encodeURIComponent(previous.operation_id)}`)
+    : await request(`${base}/worlds/${encodeURIComponent(id)}:export`, { asset_type: 'mesh', format: 'glb', mesh_variant: 'textured' });
+  const saveOperation = () => writeFile(meta, JSON.stringify({ ...operation, world_id: id }, null, 2));
+  await saveOperation();
+  let polls = 0;
   while (!operation.done) {
     if (!operation.operation_id) throw new Error('Aktarim islem kimligi eksik.');
     await new Promise(resolve => setTimeout(resolve, 15000));
     operation = await request(`${base}/operations/${encodeURIComponent(operation.operation_id)}`);
-    await writeFile(meta, JSON.stringify(operation, null, 2));
+    await saveOperation();
+    if (++polls % 4 === 0) console.log('World Labs modeli hazirliyor; pencere kapanirsa is sunucuda devam eder.');
   }
   if (operation.error) throw new Error('HQ aktarimi basarisiz; mesh-export-operation.json dosyasini incele.');
   const url = operation.response?.url;
@@ -74,7 +81,8 @@ async function run() {
   if (!response.ok) throw new Error(`Model indirme HTTP ${response.status}`);
   const bytes = Buffer.from(await response.arrayBuffer());
   if (bytes.length < 12 || bytes.toString('ascii', 0, 4) !== 'glTF') throw new Error('Indirilen dosya GLB degil.');
-  await writeFile(target, bytes);
+  await writeFile(target + '.partial', bytes);
+  await rename(target + '.partial', target);
   console.log(`Unreal icin model hazir: ${target}`);
 }
 
