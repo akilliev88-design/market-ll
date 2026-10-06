@@ -770,7 +770,7 @@ FReply SMarketMenu::OnKeyDown(const FGeometry& MyGeometry, const FKeyEvent& InKe
     // G-086 main screen: Esc closes the province panel first, then leaves the zoomed region.
     if (Key == EKeys::Escape && G->MenuPage == Summary && PanelOpen()) { MapProvinceId.Reset(); DepotSel = INDEX_NONE; return FReply::Handled(); }
     if (Key == EKeys::Escape && G->MenuPage == Summary && !MapRegion.IsEmpty()) { MapRegion.Reset(); return FReply::Handled(); }
-    if (Key == EKeys::Escape || Key == EKeys::M) { G->CloseMenu(); return FReply::Handled(); }
+    if (Key == EKeys::Escape || Key == EKeys::M) { if (G->bInStore) G->CloseMenu(); else G->ReturnToStoreMap(); return FReply::Handled(); }
     // G-075 game speed: Space pauses, + / - change the speed (digits choose pages here).
     if (Key == EKeys::SpaceBar) { G->SetTimePaused(!G->bTimePaused); return FReply::Handled(); }
     if (Key == EKeys::Add || Key == EKeys::Equals) { G->SetGameSpeed(G->bTimePaused ? G->GameSpeed : G->GameSpeed + 1); return FReply::Handled(); }
@@ -807,6 +807,11 @@ namespace MarketMenuFrame
             { SMarketMenu::Channels, TEXT("bag"), TEXT("Sat\u0131\u015f"), true } };
         return Pages;
     }
+}
+
+void SMarketMenu::ShowStoreProvince(const FString& Country, const FString& Province)
+{
+    MapCountry = Country; MapProvinceId = Province; PanelId = Province; MapRegion.Reset();
 }
 
 bool SMarketMenu::PanelOpen() const
@@ -953,7 +958,7 @@ TSharedRef<SWidget> SMarketMenu::TopBar()
 TSharedRef<SWidget> SMarketMenu::BottomNav()
 {
     // G-086d: the dock at the bottom (every page; the map item only away from the map; digits 1-0 still work),
-    // the way into the first store, and the bell of the waiting decisions (bottom right; bottom left while the
+    // and the bell of the waiting decisions (bottom right; bottom left while the
     // province panel is open).
     auto G = [this] { return Game.Get(); };
     TSharedRef<SHorizontalBox> Row = SNew(SHorizontalBox);
@@ -990,23 +995,6 @@ TSharedRef<SWidget> SMarketMenu::BottomNav()
                 SNew(SVerticalBox)
                 + SVerticalBox::Slot().AutoHeight().HAlign(HAlign_Center)[ IconImage(TEXT("more"), 22.f, MoreTone) ]
                 + SVerticalBox::Slot().AutoHeight().HAlign(HAlign_Center).Padding(0.f, 4.f, 0.f, 0.f)[ TextPx([] { return FString(TEXT("Di\u011fer")); }, 11.f, MoreTone) ]
-            ]
-        ]
-    ];
-    Row->AddSlot().AutoWidth().VAlign(VAlign_Center).Padding(2.f, 0.f, 6.f, 0.f)
-    [ SNew(SBox).WidthOverride(1.f).HeightOverride(36.f)[ SNew(SBorder).BorderImage(&FlatBrush).BorderBackgroundColor(Col(ERole::Line)) ] ];
-    Row->AddSlot().AutoWidth().VAlign(VAlign_Center)
-    [
-        SNew(SBox).HeightOverride(58.f).ToolTip(Tip([] { return FString(TEXT("Ma\u011fazaya d\u00f6n (M ya da Esc)")); }))
-        [
-            SNew(SButton).ButtonStyle(&ItemStyle).IsFocusable(false).ContentPadding(FMargin(18.f, 0.f)).VAlign(VAlign_Center)
-            .ButtonColorAndOpacity(Col(ERole::Accent))
-            .IsEnabled_Lambda([G] { return G() && !G()->bNeedStart; })
-            .OnClicked_Lambda([this] { if (AMarketGameMode* Mode = Game.Get()) Mode->CloseMenu(); return FReply::Handled(); })
-            [
-                SNew(SHorizontalBox)
-                + SHorizontalBox::Slot().AutoWidth().VAlign(VAlign_Center).Padding(0.f, 0.f, 8.f, 0.f)[ IconImage(TEXT("house"), 18.f, [] { return ERole::OnAccent; }) ]
-                + SHorizontalBox::Slot().AutoWidth().VAlign(VAlign_Center)[ TextPx([] { return FString(TEXT("D\u00fckk\u00e2na gir")); }, 14.f, [] { return ERole::OnAccent; }, true) ]
             ]
         ]
     ];
@@ -1942,7 +1930,7 @@ TSharedRef<SWidget> SMarketMenu::ReportsPage()
         + SVerticalBox::Slot().AutoHeight().HAlign(HAlign_Right).Padding(0.f, 10.f, 0.f, 0.f)
         [
             SNew(SBox).Visibility_Lambda([G] { return G() && G()->bMenuDayReport ? EVisibility::Visible : EVisibility::Collapsed; })
-            [ Button([] { return FString(TEXT("Yeni g\u00fcne ba\u015fla")); }, [this] { if (AMarketGameMode* M = Game.Get()) M->CloseMenu(); }, true) ]
+            [ Button([this] { const auto* M = Game.Get(); return FString(M && M->bInStore ? TEXT("Yeni g\u00fcne ba\u015fla") : TEXT("Haritaya d\u00f6n")); }, [this] { if (AMarketGameMode* M = Game.Get()) { if (M->bInStore) M->CloseMenu(); else M->ReturnToStoreMap(); } }, true) ]
         ];
 }
 

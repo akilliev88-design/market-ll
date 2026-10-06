@@ -12,6 +12,7 @@
 #include "MarketPromotions.h"
 #include "MarketFinance.h"
 #include "MarketFirstStore.h"
+#include "MarketStoreVisit.h"
 #include "MarketOnline.h"
 #include "MarketAdvertising.h"
 #include "MarketPayments.h"
@@ -3044,19 +3045,14 @@ TSharedRef<SWidget> SMarketMenu::ProvinceCard()
                     + SVerticalBox::Slot().AutoHeight()[ TextPx(Name, 14.f, [] { return ERole::Text; }, true) ]
                     + SVerticalBox::Slot().AutoHeight()[ TextPx(Note, 12.f, [] { return ERole::Muted; }) ]
                 ]
-                + SHorizontalBox::Slot().AutoWidth().VAlign(VAlign_Center)
-                [
-                    SNew(SBox).ToolTip(Tip([] { return FString(TEXT("Ma\u011fazay\u0131 birinci \u015fah\u0131sla gezmek yak\u0131nda (G-087).")); }))
-                    [ TextPx([] { return FString(TEXT("Gez")); }, 13.f, [] { return ERole::Muted; }, true) ]
-                ]
             ];
     };
     TSharedRef<SVerticalBox> Shops = SNew(SVerticalBox);
     Shops->AddSlot().AutoHeight()
     [
-        SNew(SBox).Visibility_Lambda([Site] { return Site().bHome ? EVisibility::Visible : EVisibility::Collapsed; })
+        SNew(SBox).Visibility_Lambda([Site, G] { return Site().bHome && G() && MarketFirstStore::IsOpen(G()->State) ? EVisibility::Visible : EVisibility::Collapsed; })
         [ Row([] { return FString(TEXT("EV")); }, [this] { return Color(ERole::AccentSoft); }, [this] { return Color(ERole::Accent); },
-            [G] { return G() ? MarketStart::FirstStoreName(G()->State) : FString(); }, [] { return FString(TEXT("\u0130lk \u015fuben \u00b7 buradas\u0131n")); }) ]
+            [G] { return G() ? MarketStart::FirstStoreName(G()->State) : FString(); }, [] { return FString(TEXT("\u0130lk ma\u011faza")); }) ]
     ];
     for (int32 Slot = 0; Slot < 8; ++Slot)
     {
@@ -3081,6 +3077,24 @@ TSharedRef<SWidget> SMarketMenu::ProvinceCard()
                     return FString::Printf(TEXT("%s \u00b7 %s"), *Boss, *Signed(B.Last30Profit));
                 }) ]
         ];
+    }
+    TSharedRef<SVerticalBox> EntryTypes = SNew(SVerticalBox);
+    // A country may define extra formats; the catalogue and any existing branch formats bound the row count.
+    TArray<FString> EntryFormats;
+    for (const auto& Country : MarketCountry::All()) for (const auto& Format : MarketBranches::FormatsIn(Country.Id)) EntryFormats.AddUnique(Format);
+    if (G()) for (const auto& Branch : G()->State.Branches) EntryFormats.AddUnique(Branch.Format);
+    EntryFormats.AddUnique(TEXT("mahalle"));
+    for (int32 Slot = 0; Slot < EntryFormats.Num(); ++Slot)
+    {
+        auto Type = [this, G, Slot]() -> MarketStoreVisit::FTypeCount
+        {
+            if (G()) { const auto Rows = MarketStoreVisit::TypesIn(G()->State, ShownCountry(), PanelId); if (Rows.IsValidIndex(Slot)) return Rows[Slot]; }
+            return MarketStoreVisit::FTypeCount();
+        };
+        EntryTypes->AddSlot().AutoHeight().Padding(0.f, 3.f)
+        [ SNew(SBox).Visibility_Lambda([Type] { return Type().Count > 0 ? EVisibility::Visible : EVisibility::Collapsed; })
+            [ Button([Type] { const auto Row = Type(); return FString::Printf(TEXT("%s %d"), *Row.Name, Row.Count); },
+                [this, G, Type] { if (G()) G()->EnterStoreType(ShownCountry(), PanelId, Type().Format); }, true) ] ];
     }
     // G-086b: the province manager (INDEX_NONE = none), our open branches without the first store, and whether the
     // manager's skill covers them.
@@ -3257,6 +3271,7 @@ TSharedRef<SWidget> SMarketMenu::ProvinceCard()
                 + SHorizontalBox::Slot().AutoWidth().VAlign(VAlign_Center)[ Mono([Month, Signed] { return Signed(Month()); }, 12.f, [Month] { return Month() < 0 ? ERole::Bad : ERole::Accent; }) ]
             ]
         ]
+        + SVerticalBox::Slot().AutoHeight()[ EntryTypes ]
         + SVerticalBox::Slot().AutoHeight()[ Shops ]
         + SVerticalBox::Slot().AutoHeight()
         [ SNew(SBox).Visibility_Lambda([Ours] { return Ours() == 0 ? EVisibility::Visible : EVisibility::Collapsed; })
@@ -3476,7 +3491,7 @@ TSharedRef<SWidget> SMarketMenu::ShopsTab()
                     ]
                     // C3 (A4): walk through the branch; what you see comes from its numbers, the economy waits.
                     + SHorizontalBox::Slot().AutoWidth().VAlign(VAlign_Center).Padding(8.f, 0.f, 0.f, 0.f)
-                    [ Button([] { return FString(TEXT("Gez")); }, [G, Slot] { if (G()) G()->StartBranchVisit(Slot); }, false, [ShopOpen, Slot] { return ShopOpen(Slot); }) ]
+                    [ Button([] { return FString(TEXT("Gez")); }, [G, Slot] { if (G()) G()->EnterStore(Slot); }, false, [ShopOpen, Slot] { return ShopOpen(Slot); }) ]
                     // M38: this store's own campaign: the campaign page with the branch chosen.
                     + SHorizontalBox::Slot().AutoWidth().VAlign(VAlign_Center).Padding(8.f, 0.f, 0.f, 0.f)
                     [ Button([] { return FString(TEXT("Kampanya")); }, [this, Slot] { Manage(TEXT("PromoStore"), Slot); Go(SMarketMenu::Promotions); }, false, [ShopOpen, Slot] { return ShopOpen(Slot); }) ]

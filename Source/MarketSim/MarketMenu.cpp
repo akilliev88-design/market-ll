@@ -2,6 +2,7 @@
 // world keeps running behind the menu) and routing the menu's buttons through the same Command() rules as the
 // office-desk keys.
 #include "MarketGame.h"
+#include "MarketStoreVisit.h"
 #include "MarketCountry.h"
 #include "MarketStart.h"
 #include "MarketMenuWidget.h"
@@ -65,6 +66,7 @@ void AMarketGameMode::SetPauseInMenu(bool bPause)
 
 FString AMarketGameMode::SlotName(int32 Slot)
 {
+    if (FParse::Param(FCommandLine::Get(), TEXT("StoreEntryReview"))) return TEXT("MarketSim_StoreEntryReviewOnly");
     if (FParse::Param(FCommandLine::Get(), TEXT("SimSmoke"))) return TEXT("MarketSim_TestOnly");
     return Slot <= 1 ? FString(TEXT("MarketSim_Campaign_v1")) : FString::Printf(TEXT("MarketSim_Campaign_s%d"), Slot);
 }
@@ -139,7 +141,7 @@ void AMarketGameMode::StartNewCampaign(const FString& Country, const FString& Ci
     bNeedStart = false;
     bNewGameAsk = false;
     MapProvince = INDEX_NONE;
-    CloseMenu(); // karar L07: the game starts in the shop, in first person
+    EnterStore(MarketStoreVisit::FirstStore); // M70: a new campaign has one open store
     Notify(MarketStart::IntroText(State));
 }
 
@@ -241,7 +243,7 @@ void AMarketGameMode::OpenMenu(int32 Page, bool bDayReport)
 void AMarketGameMode::CloseMenu()
 {
     if (!bMenuOpen) return;
-    if (bNeedStart) return; // G-086: a province must be chosen first
+    if (bNeedStart || !bInStore) return; // G-119: map entry comes only from a province/type row
     bNewGameAsk = false;
     bMenuOpen = false;
     bMenuDayReport = false;
@@ -589,7 +591,7 @@ void AMarketGameMode::StaffCommand(FName Action, int32 Id)
     else if ((Action == TEXT("CloseFirstStore") || Action == TEXT("ReopenFirstStore")) && bOpen)
         Text = TEXT("D\u00fckk\u00e2n a\u00e7\u0131kken olmaz; \u00f6nce g\u00fcn\u00fc kapat.");
     else bChanged = MarketDirector::Command(State, Products, Action, Id, Text); // wholesaler, prices, ...
-    if (bChanged && (Action == TEXT("CloseFirstStore") || Action == TEXT("ReopenFirstStore"))) { ResetWorkerJobs(); RefreshDeliveryCrates(); SaveCampaign(); } // G-110
+    if (bChanged && (Action == TEXT("CloseFirstStore") || Action == TEXT("ReopenFirstStore"))) { ResetWorkerJobs(); RefreshDeliveryCrates(); RebuildShelfContents(); SaveCampaign(); if (Action == TEXT("CloseFirstStore")) ReturnToStoreMap(); } // G-110/G-119
     if (bChanged) { SyncWorkers(); RefreshPrices(); RefreshLabels(); } // people, supplier discount, shelf prices
     if (!Text.IsEmpty()) Notify(Text);
 }

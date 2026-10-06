@@ -2,6 +2,7 @@
 #include "MarketCountry.h"
 
 #include "MarketGame.h"
+#include "MarketStoreVisit.h"
 #include "MarketMenuWidget.h"
 #include "MarketVisuals.h"
 #include "MarketTheme.h"
@@ -182,7 +183,9 @@ void SMarketHud::Construct(const FArguments& InArgs)
         // The menu covers the screen and has its own status: the game screen steps aside.
         .Visibility_Lambda([this] { const AMarketGameMode* G = Game.Get(); return G && G->bMenuOpen ? EVisibility::Collapsed : EVisibility::HitTestInvisible; })
         + SOverlay::Slot().HAlign(HAlign_Center).VAlign(VAlign_Top).Padding(0.f, 24.f, 0.f, 0.f)
-        [ PausedBanner() ]
+        [ SNew(SVerticalBox)
+            + SVerticalBox::Slot().AutoHeight()[ Card(Text([this] { const auto* G = Game.Get(); return G ? G->StoreEntryHeader() : FString(); }, 11, ETone::Text), FMargin(12.f, 5.f)) ]
+            + SVerticalBox::Slot().AutoHeight().Padding(0.f, 4.f)[ PausedBanner() ] ]
         + SOverlay::Slot().HAlign(HAlign_Left).VAlign(VAlign_Top).Padding(24.f, 20.f)
         [
             SNew(SVerticalBox)
@@ -417,7 +420,7 @@ TSharedRef<SWidget> SMarketHud::HintCard()
 
 TSharedRef<SWidget> SMarketHud::MenuButtons()
 {
-    // The way to the main screen, like the dock's "D\u00fckk\u00e2na gir" in reverse: an accent pill with M.
+    // The management menu from inside the store: an accent pill with M.
     auto G = [this] { return Game.Get(); };
     auto Icon = [this](const FString& Name, ETone Tone) -> TSharedRef<SWidget>
     {

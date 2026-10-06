@@ -1,4 +1,6 @@
 #include "MarketBranchVisit.h"
+#include "MarketStoreVisit.h"
+#include "Components/TextRenderComponent.h"
 #include "MarketGame.h"
 #include "MarketStoreKit.h"
 #include "MarketStoreViews.h"
@@ -136,13 +138,22 @@ bool AMarketGameMode::StartBranchVisit(int32 BranchIndex)
     const FString Grade = MarketBranches::Grade(State, BranchIndex);
     if (Grade == TEXT("D") || Grade == TEXT("F")) for (int32 Index = 0; Index < 3; ++Index)
         Session->Dressing.Add(Box(Store->Receiving.At + FVector(120 + Index * 55, 100, 25), FVector(40,35,50), FLinearColor(.38f,.28f,.18f), false));
+    AActor* NameBoard = Box(Store->Entrance.At + FVector(0, 0, 245), FVector(300, 8, 45), FLinearColor(.04f,.11f,.09f), false);
+    auto* NameText = NewObject<UTextRenderComponent>(NameBoard);
+    NameText->SetupAttachment(NameBoard->GetRootComponent());
+    NameText->SetHorizontalAlignment(EHTA_Center); NameText->SetVerticalAlignment(EVRTA_TextCenter);
+    NameText->SetWorldSize(FMath::Clamp(280.f / FMath::Max(1, Branch.Name.Len()), 7.f, 22.f));
+    NameText->SetText(FText::FromString(Branch.Name)); NameText->SetTextRenderColor(FColor::White);
+    NameText->RegisterComponent(); NameText->SetRelativeLocationAndRotation(FVector(0, 6, 0), FRotator(0, 90, 0));
+    Session->Dressing.Add(NameBoard);
+    bInStore = true;
     CloseMenu(); ReportTime = MessageTime = 0;
     UGameplayStatics::SetGlobalTimeDilation(this, 1.f);
     Pawn->SetActorLocation(Store->PlayerStart.At, false, nullptr, ETeleportType::TeleportPhysics);
     Player->SetControlRotation(FRotator(0,Store->PlayerStart.Yaw,0)); Player->SetViewTarget(Pawn);
     Player->ResetIgnoreMoveInput(); Player->ResetIgnoreLookInput(); Player->bShowMouseCursor = false; Player->SetInputMode(FInputModeGameOnly());
     Session->Strip = SNew(SOverlay) + SOverlay::Slot().HAlign(HAlign_Center).VAlign(VAlign_Top).Padding(12) [SNew(SBorder).Padding(10).BorderImage(FCoreStyle::Get().GetBrush(TEXT("WhiteBrush"))).BorderBackgroundColor(FLinearColor(.025f,.035f,.04f,.96f))
-        [SNew(STextBlock).ColorAndOpacity(FLinearColor::White).Font(FCoreStyle::GetDefaultFontStyle(TEXT("Regular"),14)).Text(FText::FromString(FString::Printf(TEXT("%s  |  Karne %s  |  %s  |  Esc: cik  |  Zaman duruyor"), *Branch.Name, *Grade, Branch.ManagerName.IsEmpty()?TEXT("Mudur yok"):*Branch.ManagerName)))]];
+        [SNew(STextBlock).ColorAndOpacity(FLinearColor::White).Font(FCoreStyle::GetDefaultFontStyle(TEXT("Regular"),14)).Text(FText::FromString(FString::Printf(TEXT("%s  |  %s  |  Tab: sonraki  |  Esc: harita  |  Zaman duruyor"), *StoreEntryHeader(), *Branch.Name)))]];
     GEngine->GameViewport->AddViewportWidgetContent(Session->Strip.ToSharedRef(),60);
     FString VisitMessage; if (MarketDirector::Command(State, Products, TEXT("VisitBranch"), BranchIndex, VisitMessage) && !VisitMessage.IsEmpty()) Notify(VisitMessage); // C3: what the walk shows
     return true;

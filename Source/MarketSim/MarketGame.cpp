@@ -1,4 +1,5 @@
 #include "MarketGame.h"
+#include "MarketFirstStore.h"
 #include "MarketChains.h"
 #include "MarketStaff.h"
 #include "MarketTelevisionDisplay.h"
@@ -132,7 +133,7 @@ MARKET_ACTION(RandomizeShelves, "RandomFill")
 MARKET_ACTION(NextMood, "Mood")
 MARKET_ACTION(ToggleFullscreen, "Fullscreen")
 #undef MARKET_ACTION
-void AMarketCharacter::Quit() { if (auto* Game = GetMarket(this)) if (Game->IsBranchVisit()) { Game->EndBranchVisit(); return; } UKismetSystemLibrary::QuitGame(this, Cast<APlayerController>(GetController()), EQuitPreference::Quit, false); }
+void AMarketCharacter::Quit() { if (auto* Game = GetMarket(this)) if (!Game->bStoreTour) { Game->ReturnToStoreMap(); return; } UKismetSystemLibrary::QuitGame(this, Cast<APlayerController>(GetController()), EQuitPreference::Quit, false); }
 
 AMarketGameMode::AMarketGameMode()
 {
@@ -199,14 +200,14 @@ void AMarketGameMode::BeginPlay()
     Random.Initialize(CampaignSeedBase);
     RefreshLabels();
     // G-076: the last used slot comes back by itself, so a forgotten F9 never overwrites a long campaign.
-    const bool bAutomation = FParse::Param(FCommandLine::Get(), TEXT("SimSmoke")) || FParse::Param(FCommandLine::Get(), TEXT("SimCapture")) || FParse::Param(FCommandLine::Get(), TEXT("SimMenuCapture")) || FParse::Param(FCommandLine::Get(), TEXT("BranchVisitReview"));
+    const bool bAutomation = FParse::Param(FCommandLine::Get(), TEXT("SimSmoke")) || FParse::Param(FCommandLine::Get(), TEXT("SimCapture")) || FParse::Param(FCommandLine::Get(), TEXT("SimMenuCapture")) || FParse::Param(FCommandLine::Get(), TEXT("BranchVisitReview")) || FParse::Param(FCommandLine::Get(), TEXT("StoreEntryReview"));
     int32 LastSlot = 1;
     if (!bAutomation && GConfig && GConfig->GetInt(TEXT("MarketSim.Menu"), TEXT("LastSlot"), LastSlot, GGameUserSettingsIni)) ActiveSlot = FMath::Clamp(LastSlot, 1, SlotCount);
     RefreshSlotSummaries();
     const int32 DayBefore = State.Day;
     if (!bAutomation && SlotExists(ActiveSlot)) LoadCampaign(true);
     if (bTestMode) State.bUsedTestMode = true;
-    if (State.Day != DayBefore) { UE_LOG(LogTemp, Display, TEXT("MarketSim: slot %d loaded (day %d)."), ActiveSlot, State.Day); return; }
+    if (bPendingStoreEntry || State.Day != DayBefore) { UE_LOG(LogTemp, Display, TEXT("MarketSim: slot %d loaded (day %d)."), ActiveSlot, State.Day); return; }
     if (bAutomation)
     {
         // Smoke / capture runs keep the prototype's empty shop and never wait for a choice.
@@ -973,7 +974,10 @@ void AMarketGameMode::RefreshLabels()
 
 void AMarketGameMode::Command(FName Action)
 {
-    if (IsBranchVisit()) { if (Action == TEXT("ExitVisit")) EndBranchVisit(); return; }
+    if (Action == TEXT("ExitVisit")) { ReturnToStoreMap(); return; }
+    if (Action == TEXT("NextProduct") && !bArrange && !bStoreTour) { NextStore(); return; }
+    if (Action == TEXT("ToggleShop") && !MarketFirstStore::IsOpen(State)) { Notify(TEXT("\u0130lk ma\u011faza kapal\u0131.")); return; }
+    if (IsBranchVisit()) return;
     if (CategoryCommand(Action)) return;
     if (StoreTourCommand(Action)) return;
     if (Action == "Menu") { OpenMenu(MenuPage); return; } // G-059: clickable management menu (MarketMenu.cpp)
@@ -1364,6 +1368,8 @@ void AMarketGameMode::Checkout()
 void AMarketGameMode::Tick(float DeltaTime)
 {
     Super::Tick(DeltaTime);
+    ApplyLoadedStoreEntry();
+    if (!TickStoreEntryReview()) return;
     if (!TickMenuCapture()) return;
     if (!TickBranchVisitReview()) return;
     if (IsBranchVisit()) return;
@@ -1545,7 +1551,7 @@ void AMarketGameMode::CloseShop()
 }
 bool AMarketGameMode::SaveCampaign()
 {
-    if (IsBranchVisit() || FParse::Param(FCommandLine::Get(), TEXT("SimMenuCapture")) || FParse::Param(FCommandLine::Get(), TEXT("BranchVisitReview"))) return false;
+    if (FParse::Param(FCommandLine::Get(), TEXT("StoreEntryReview")) || IsBranchVisit() || FParse::Param(FCommandLine::Get(), TEXT("SimMenuCapture")) || FParse::Param(FCommandLine::Get(), TEXT("BranchVisitReview"))) return false;
     auto* Save = Cast<UMarketSave>(UGameplayStatics::CreateSaveGameObject(UMarketSave::StaticClass()));
     Save->State = State;
     Save->State.Version = FMarketState::CurrentVersion;
@@ -1561,6 +1567,7 @@ void AMarketGameMode::LoadCampaign(bool bQuiet)
     if (!Save || !Save->State.IsStructurallyValid()) { if (!bQuiet) Notify(TEXT("Uyumlu kayit bulunamadi. Mevcut kampanya korunuyor.")); return; }
     if (bArrange) ExitArrange(FString());
     DropCarriedDelivery();
+    EndBranchVisit();
     State = Save->State; Selected = 0; bWeekJustEnded = false; OrderDraftCases.Init(0, Products.Num());
     MarketCountry::SetActive(State.CountryId, State.RivalSeed); MarketEras::Activate(State); // G-084
     if (bTestMode) State.bUsedTestMode = true;
@@ -1583,6 +1590,7 @@ void AMarketGameMode::LoadCampaign(bool bQuiet)
         else UE_LOG(LogTemp, Warning, TEXT("MarketSim: the saved shelf plan does not fit this shop; Config/planograms.json is kept."));
     }
     ApplyCapacities();
+    bPendingStoreEntry = true;
     SyncWorkers();     // the walking workers follow the loaded roster
     ResetWorkerJobs(); // stock rows may have moved; workers pick new jobs
     RefreshLabels(); RefreshDeliveryCrates();

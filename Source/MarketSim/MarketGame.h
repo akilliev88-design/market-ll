@@ -305,6 +305,17 @@ public:
     bool StartBranchVisit(int32 BranchIndex);
     void EndBranchVisit();
     bool IsBranchVisit() const { return BranchVisit.IsValid(); }
+    // G-119: entering / leaving a scene is separate from opening the management menu.
+    bool bInStore = true;
+    bool bPendingStoreEntry = false;
+    int32 StoreEntrySeed = 0;
+    bool EnterStore(int32 Store);
+    void EnterStoreType(const FString& Country, const FString& Province, const FString& Format);
+    void NextStore();
+    void ReturnToStoreMap();
+    void ApplyLoadedStoreEntry();
+    FString StoreEntryHeader() const;
+    bool TickStoreEntryReview();
     bool TickBranchVisitReview();
     bool TickMenuCapture();
     bool StartStoreTour(const FString& Id, bool bRandom = false);

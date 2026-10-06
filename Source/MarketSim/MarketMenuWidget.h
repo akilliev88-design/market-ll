@@ -15,7 +15,7 @@ class SToolTip;
 
 // Clickable management menu (G-059, fully integrated in G-074, full screen in G-075). M (or E at the office desk)
 // opens it anywhere over a blurred view of the running shop (the world keeps its speed; Space pauses, the header has
-// the speed buttons); the mouse cursor appears; M, Esc or "Oyuna don" closes it. It fills the screen and scales
+// the speed buttons); the mouse cursor appears; M or Esc closes it when opened from inside a store; map entry uses the province/type rows. It fills the screen and scales
 // with it (design size 1440 x 820, x the text size setting). Every decision of the game is here, so
 // the player never has to walk to the desk or remember letter keys:
 //   1 Harita      G-086 main screen: the map of provinces fills the screen; region chips zoom in, a click on a
@@ -58,6 +58,7 @@ public:
 
     // Raporlar page: which tab is shown (the game opens the day tab when the shop closes).
     void ShowWeek(bool bWeek);
+    void ShowStoreProvince(const FString& Country, const FString& Province);
 
 private:
     TWeakObjectPtr<AMarketGameMode> Game;
