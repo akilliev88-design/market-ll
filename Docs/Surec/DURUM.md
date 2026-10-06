@@ -1,6 +1,6 @@
 # Güncel durum
 
-Son güncelleme: 06.10.2026 — Claude (Cowork). Bu dosya 06.10.2026'da sadeleştirildi. 27.09–06.10 arasındaki bütün eski girişler, doğrulama tablosu ve eski "sıradaki adımlar" listesi `Docs/Surec/Arsiv/DURUM_20261006_oncesi.md` içindedir (tarihçe; güncel yön değildir). Yeni girişleri **"Son girişler" bölümünün en üstüne** ekle ve bu dosyayı kısa tut: bir iş kapanınca girişini 2–3 satıra indir, ayrıntı GUNLUK'te kalır.
+Son güncelleme: 06.10.2026 — Codex (G-118). Bu dosya 06.10.2026'da sadeleştirildi. 27.09–06.10 arasındaki bütün eski girişler, doğrulama tablosu ve eski "sıradaki adımlar" listesi `Docs/Surec/Arsiv/DURUM_20261006_oncesi.md` içindedir (tarihçe; güncel yön değildir). Yeni girişleri **"Son girişler" bölümünün en üstüne** ekle ve bu dosyayı kısa tut: bir iş kapanınca girişini 2–3 satıra indir, ayrıntı GUNLUK'te kalır.
 
 ## Kısaca: oyun nerede
 
@@ -8,14 +8,14 @@ Son güncelleme: 06.10.2026 — Claude (Cowork). Bu dosya 06.10.2026'da sadeleş
 - **Oyunun aklı (Claude):** ekonomi, ilk mağaza günü, şubeler, il/ülke yapısı ve 10 ülke paketi, rakip zincirler ve dünya ligi, personel/yönetim kademeleri, depolar, finans/banka/defter, internet satışı, kampanyalar, hedefler, strateji yolları (D9a), otomatik oyuncu (bot) ve denge raporu. M69 yeni başlangıç (ülke, şehir, market adı, oyuncu adı, zorluk; aile devri; bina bizim; süresiz borç; bölüm/final yok).
 - **Dünya ve 3B (Codex):** 4 mağaza türü Blender binaları ve dünya örneklerine göre yerleşimleri (mahalle 20 ekipman/1 kasa, küçük 42/2, büyük 132/6, hiper 400/18), 132 yeni masaüstü ekipman modeli, yeni soğuk dolaplar, el yapımı 8×10 m mahalle marketi prototipi, sanat denemesi sahnesi, mağaza editörü, Ürün Stüdyosu, Raf Planı.
 - **Son doğrulama (06.10.2026, Codex G-117 sonrası):** DERLE geçti, TEST **175/175**, Smoke geçti. Bu koşu çalışma ağacındaki M69 değişiklikleriyle birlikte yapıldı.
-- **Git:** dal `akis-cc2`. M69 değişiklikleri hâlâ **commit edilmedi**; GitHub'daki D9b ile yerel M69 aynı dosyalara dokunduğu için birleştirme bekliyor.
+- **Git:** dal `akis-cc2`. Belgeler `0b31528`, M69 kodu `2b47108` ile kaydedildi. D9b (`df47d0d`) birleşimi MarketEconomy.h kaynak çakışması nedeniyle geri alındı; Claude çözümü bekleniyor. Push yapılmadı, iç ad dönüşümü başlamadı.
 
 ## Açık işler (öncelik sırasıyla)
 
 | # | İş | Sahip | Not |
 |---|---|---|---|
-| 1 | **M69'u commit et + GitHub D9b ile birleştir** | Mustafa onayı; Codex (git) | M69 doğrulandı (G-109). Birleştirmede çakışan dosyalar D9b ve M69'un ortak dokunduğu Claude dosyaları; çakışma çözümü Claude'a gelir. |
-| 2 | **İç ad MirasMarket → MarketSim** (M69c) | Claude hazırladı; Mustafa çalıştırır | Betik `Saved/Claude/m69_ic_ad.py` (git mv + metin + `[CoreRedirects]`). 1. madde bitmeden çalıştırma. |
+| 1 | **GitHub D9b ile M69 kaynak uzlaşması** | Claude (kaynak); Codex (git/doğrulama) | M69 kaydedildi; MarketEconomy.h kayıt sürümü satırı çakıştı. Birleşim geri alındı. Kanıt ve üç sürüm Saved/Claude/d9b/RAPOR.md yanında. |
+| 2 | **İç ad MirasMarket → MarketSim** (M69c) | Claude hazırladı; Codex (G-118) | Betik `Saved/Claude/m69_ic_ad.py` (git mv + metin + `[CoreRedirects]`). 1. madde bitmeden çalıştırma. |
 | 3 | **G-110 ilk mağazayı kapatma** | Claude (kural) + Codex (3B geçiş) | M69'un kalan parçası. |
 | 4 | **D9 kalanı:** M46 mağaza portföyü, M47 krizlere/rakip hamlelerine cevap | Claude | Sonra G-108 denge notları ve yeni bot koşusu. |
 | 5 | **Mustafa'nın değerlendirmesi** | Mustafa | Yeni mağaza yerleşimleri (`MAGAZA_GEZI.cmd`, `KUCUK_/BUYUK_MARKET_GEZI.cmd`, `HIPERMARKET_GEZI.cmd`), el yapımı mahalle marketi (`MAHALLE_MARKET_GEZI.cmd`), yönetim ekranı için 4 tasarım yönü (G-106, `Docs/Environment/YONETIM_PANELI_ON_TASARIM.md`). |
@@ -31,6 +31,9 @@ Son güncelleme: 06.10.2026 — Claude (Cowork). Bu dosya 06.10.2026'da sadeleş
 - World Labs API anahtarı Image-blaster klasörüyle silindi; platformda iptali Mustafa'da.
 
 ## Son girişler
+
+**06.10.2026 — Codex / G-118:** Belgeler `0b31528`, M69 kodu `2b47108` ile ayrı kaydedildi; son G-117 DERLE/TEST 175/175/Smoke doğrulaması geçerli. D9b mağaza portföyü ve kriz yanıtlarını getiriyor, ancak MarketEconomy.h kayıt sürümü satırı çakıştı (ortak ata 20; iki taraf 21). Birleşim geri alındı; temiz akis-cc2, push/iç ad yok. **Devam:** Claude kaynak uzlaşması; Saved/Claude/d9b/RAPOR.md ve üç dosyanın base/ours/theirs kopyaları hazır.
+
 
 **06.10.2026 — Claude (Cowork) / belge düzeni:** Codex'in G-117 temizliği okundu. DURUM sadeleştirildi (eskisi `Arsiv/DURUM_20261006_oncesi.md`); G-109 "doğrulandı, commit ve iç ad bekliyor" yapıldı; AGENTS'ta olmayan dosyalar (`MarketRetail`, `MarketCredit`, `Tools/Arsiv/katalog_olustur.py`) ve eski test alt sınırı düzeltildi; M69 öncesi tasarım belgelerine arşiv notu eklendi. Kod değişmedi; derleme gerekmez.
 

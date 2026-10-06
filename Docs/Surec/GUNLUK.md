@@ -1,3 +1,15 @@
+## 06.10.2026 — Codex — G-118 M69 kaydedildi; D9b kaynak çakışmasında duruldu
+
+Mustafa'nın onaylı üç aşamalı iş emri uygulandı. Ön kontrol: akis-cc2 dalı cloud/akis-cc2 takip ediyor; git fetch --all geçti. Başlangıçta 21 yerel / 1 uzak farklı commit vardı. Uzak df47d0d, M46 mağaza yaşlanması/yıllık karne/yenileme/taşıma/tür değişimi ve M47 rakip/kriz yanıtları (müdür hiyerarşisi, son onay, Müdahaleler sekmesi) getiriyor: 27 dosya, +1669/-18. origin/main, cloud/main ve yerel main çalışma dalının ataları; başlangıçta ayrım 0/82, 0/81, 0/81. main dalları değiştirilmedi. ON_KONTROL.md tüm yerel commit listesini ve D9b dosya özetini içeriyor.
+
+Aşama 1: 26 belge dosyası 0b31528 (Belgeler: DURUM sadelesti, M69 durumu, eski tasarim belgeleri arsiv notu), 111 M69 kod/ayar/test/izlenen adim.cmd dosyası 2b47108 (Saved/Claude/m69a_mesaj.txt mesajıyla). MirasMarket.uproject açıklaması ve Saved/Claude/adim.cmd, 04.10 M69 hazırlığının bilinen parçasıdır; beklenmeyen değişiklik yok. M69 kod/ayar dosyaları G-117 SHA256 listesiyle aynı: mevcut DERLE başarılı, TEST 175/175 (0 uyarı/hata), Smoke başarılı doğrulaması kullanıldı. Yalnız belge değişiklikleri için testler tekrarlanmadı.
+
+Aşama 2: birlesim-d9b dalında git merge cloud/akis-cc2 üç çakışma verdi: Docs/Surec/DURUM.md, Docs/Surec/GUNLUK.md, Source/MirasMarket/MarketEconomy.h. Kaynak çakışması CurrentVersion satırında; ortak ata 20, M69 ve D9b birbirinden bağımsız 21 yapmış (yorumlar/şemalar farklı). İş emrinin Source çakışmasını Claude'a bırak kuralıyla hiçbir çakışma çözülmedi. Abort öncesi her dosyanın git show :1/:2/:3 çıktıları UTF-8 baytları korunarak Saved/Claude/d9b içine .base/.ours/.theirs olarak kaydedildi; .conflict, cakismalar.json, merge-status.txt ve RAPOR.md eklendi. git merge --abort başarılı; akis-cc2'ye dönüldü, kullanılmamış geçici dal silindi. Yarım merge/taşıma yok.
+
+Sonuç: Aşama 1 tamamlandı, Aşama 2 kaynak uzlaşması bekliyor, Aşama 3 başlamadı. Push yok. Birleşim DERLE/TEST/Smoke yapılmadı çünkü temiz birleşim oluşmadı; M69c testleri/gezi kontrolleri de başlamadı. İç ad ve .uproject hâlâ MirasMarket; kalan Miras taraması iç ad aşamasında yapılacak. G-109 Bitti yapılmadı; G-118 Claude çözümü bekliyor, G-117 şablon kontrolü ayrı kaldı.
+
+Sonraki adım: Claude Saved/Claude/d9b/RAPOR.md ile kaynak/kayıt şeması uzlaşmasını hazırlasın. Ardından birleşim DERLE/TEST/Smoke ve cloud push; ancak bundan sonra M69c. Bu tur kaynak düzeltmesi, kayıt sürümü kararı ya da varsayımla çatışma çözümü yapılmadı.
+
 ## 06.10.2026 — Claude (Cowork) — G-117 sonrası belge düzeni
 
 **Mustafa:** proje durumu, yapılan/kalan işler ve gereksiz dosyaların listesi istendi; Image-blaster ve "market üret" zinciri silinecekler listesine. Claude listeyi `Docs/Surec/promptlar/codex_temizlik_20261006.md` olarak yazdı, Codex uyguladı (G-117). Ardından "sıra sende".
