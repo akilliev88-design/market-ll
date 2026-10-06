@@ -1,7 +1,7 @@
 @echo off
 setlocal
 set "UE_EDITOR=C:\Program Files\Epic Games\UE_5.8\Engine\Binaries\Win64\UnrealEditor-Cmd.exe"
-set "PROJECT=%~dp0MirasMarket.uproject"
+set "PROJECT=%~dp0MarketSim.uproject"
 
 if not exist "%UE_EDITOR%" (
   echo Unreal Editor bulunamadi: %UE_EDITOR%

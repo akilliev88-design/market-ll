@@ -22,9 +22,9 @@ powershell -NoProfile -ExecutionPolicy Bypass -File "%~dp0SmokeTest.ps1" > "%~dp
 if errorlevel 1 (set "STEP=Smoke - Saved\Logs\GameplaySmoke.log" & goto fail)
 
 echo [5/5] Ekran goruntusu (pencere acilip kendiliginden kapanir)...
-"%UE_GAME%" "%~dp0MirasMarket.uproject" -game -windowed -ResX=1280 -ResY=720 -MirasCapture
+"%UE_GAME%" "%~dp0MarketSim.uproject" -game -windowed -ResX=1280 -ResY=720 -SimCapture
 echo.
-echo HEPSI TAMAM. Goruntuler: Saved\Screenshots\MirasMarket*.png (giris, iki duvar, gondol, dokme reyon)
+echo HEPSI TAMAM. Goruntuler: Saved\Screenshots\MarketSim*.png (giris, iki duvar, gondol, dokme reyon)
 echo Oynamak icin OYNA.cmd
 pause
 exit /b 0

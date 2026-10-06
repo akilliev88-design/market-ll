@@ -21,7 +21,7 @@ def run(case,tune,years=10,seeds=3,style=None):
     assert not (target/'manifest.json').exists(),f'Existing experiment must not be overwritten: {target}'
     source=subprocess.check_output(['git','rev-parse','HEAD'],cwd=ROOT,text=True).strip()
     log=ROOT/'Saved/Logs'/f'C10_{case}.log'
-    command=[str(ENGINE),str(ROOT/'MirasMarket.uproject'),'-run=MirasAutoPlay',
+    command=[str(ENGINE),str(ROOT/'MarketSim.uproject'),'-run=MarketSimAutoPlay',
              f'-Years={years}',f'-Seeds={seeds}','-Seed=21',f'-Experiment={case}',
              '-unattended','-nop4','-nosound','-NullRHI',f'-abslog={log}']
     if style is not None:command.append(f'-Style={style}')

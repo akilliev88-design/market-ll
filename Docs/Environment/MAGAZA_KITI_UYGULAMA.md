@@ -50,9 +50,9 @@ Eski planogramlar `Category` değerini iki yüzde miras alır. Yeni isteğe bağ
 
 ## Önizleme ve doğrulama
 
-- `-MirasStorePreview=<id>`: oyuncu başlangıcı ve zemin çarpışması kontrolü, bağımsız sabit kamera, shader/ışık bekleme, beş 1280×720 PNG (çatı kaldırılmış genel görünüm, giriş/kasa, manav/teşhir, kolon/servis, tepeden plan). Yol: `Saved/Screenshots/Stores/<id>/01.png` … `05.png`.
+- `-SimStorePreview=<id>`: oyuncu başlangıcı ve zemin çarpışması kontrolü, bağımsız sabit kamera, shader/ışık bekleme, beş 1280×720 PNG (çatı kaldırılmış genel görünüm, giriş/kasa, manav/teşhir, kolon/servis, tepeden plan). Yol: `Saved/Screenshots/Stores/<id>/01.png` … `05.png`.
 - Sanat önizlemesi katalogdaki hazırlık ürünlerini de geçici olarak kullanır; bunların bir kısmı renkli prototip kutudur. Ürün kataloğu ve kampanya stoğu değişmez. Normal `Fill` yalnız aktif ürünleri kullanır.
-- `-MirasStoreBenchmark`: aynı beş açı 1920×1080, FPS logu, ekran görüntüsü yazmadan. Ölçüm offscreen editör oyununda yapılır; yürüme/müşteri simülasyonuyla ayrı performans testi değildir.
+- `-SimStoreBenchmark`: aynı beş açı 1920×1080, FPS logu, ekran görüntüsü yazmadan. Ölçüm offscreen editör oyununda yapılır; yürüme/müşteri simülasyonuyla ayrı performans testi değildir.
 - `validate_stores.py --write`: fiziksel ekipmandan stats hesaplar; bant, bölüm, kategori/id, noktalar, ekipman çakışması ve oyuncu başlangıcı denetlenir. Yazmasız çalıştırma eskimiş stats'ı reddeder.
 - `MarketStoreKitTests.cpp`: dört tür, kategoriye bağlı ve genel otomatik plan, benzersiz id, eksik bölüm/bant, bozuk JSON, Türkçe dönüşüm, offline atlas glifleri ve kayıt uyumu.
 

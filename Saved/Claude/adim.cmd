@@ -1,6 +1,6 @@
 @echo off
 rem Claude (Cowork) M69: iki tur. 1) eski hikaye kalintilari temizligi: derle, test, smoke; gecerse commit + push.
-rem 2) ic kod adi MirasMarket -> MarketSim (Saved\Claude\m69_ic_ad.py): derle, test, smoke; gecerse commit + push.
+rem 2) ic kod adi MarketSim -> MarketSim (Saved\Claude\m69_ic_ad.py): derle, test, smoke; gecerse commit + push.
 rem Cikti Saved\Claude\son.log'a gider.
 cd /d "%~dp0..\.."
 set "GITID=-c user.name=Claude-Cowork -c user.email=noreply@anthropic.com"
@@ -29,8 +29,8 @@ echo TUR1_COMMIT_TAMAM
 echo === TUR2 IC AD ===
 python "Saved\Claude\m69_ic_ad.py"
 if errorlevel 1 (echo TUR2_ICAD_BASARISIZ & goto bitti)
-if exist "Binaries\Win64\UnrealEditor-MirasMarket.dll" del /q "Binaries\Win64\UnrealEditor-MirasMarket*.*" >nul 2>nul
-if exist "Binaries\Win64\UnrealEditor-MirasMarketStudio.dll" del /q "Binaries\Win64\UnrealEditor-MirasMarketStudio*.*" >nul 2>nul
+if exist "Binaries\Win64\UnrealEditor-MarketSim.dll" del /q "Binaries\Win64\UnrealEditor-MarketSim*.*" >nul 2>nul
+if exist "Binaries\Win64\UnrealEditor-MarketSimStudio.dll" del /q "Binaries\Win64\UnrealEditor-MarketSimStudio*.*" >nul 2>nul
 echo === TUR2 DERLE ===
 if exist "Saved\Logs\DERLE_son.log" del /q "Saved\Logs\DERLE_son.log" >nul 2>nul
 call DERLE.cmd /q

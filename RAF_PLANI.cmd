@@ -7,9 +7,9 @@ if not exist "%MARKET_EDITOR%" (
   pause
   exit /b 1
 )
-if not exist "%~dp0Binaries\Win64\UnrealEditor-MirasMarketStudio.dll" (
+if not exist "%~dp0Binaries\Win64\UnrealEditor-MarketSimStudio.dll" (
   echo Raf Plani Editoru henuz derlenmedi. Once DERLE.cmd calistir.
   pause
   exit /b 1
 )
-start "" "%MARKET_EDITOR%" "%~dp0MirasMarket.uproject" -MirasPlanogram
+start "" "%MARKET_EDITOR%" "%~dp0MarketSim.uproject" -SimPlanogram

@@ -1,4 +1,4 @@
-# Miras Market insan üretim standardı
+# MarketSim insan üretim standardı
 
 Bu sistemin amacı her müşteri için sıfırdan MetaHuman ve animasyon hazırlamayı önlemektir. Oyun,
 `Content/MetaHumans/` altında adı `BP_MH_` ile başlayan bütün hazırlanmış karakterleri açılışta bulur
@@ -39,8 +39,8 @@ Stride Warping ancak bu klipler hazır olduğunda eklenmelidir; mevcut sabit hı
 
 ## Kontrol listesi
 
-- `Saved/Logs/METAHUMAN_ANIMASYON_son.log` içinde `MIRAS_METAHUMAN_ANIMATION_OK` var.
-- Oyun günlüğünde `MirasMarket shoppers: N MetaHuman(s)` satırında `N` sıfırdan büyük.
+- `Saved/Logs/METAHUMAN_ANIMASYON_son.log` içinde `SIM_METAHUMAN_ANIMATION_OK` var.
+- Oyun günlüğünde `MarketSim shoppers: N MetaHuman(s)` satırında `N` sıfırdan büyük.
 - Ayaklar hızlanırken geriye kaymıyor, hedefte aniden sıçramıyor.
 - Saç ve kıyafet gövdeyi takip ediyor; dizler ters bükülmüyor.
 - Beş müşterinin adımları ve dönüş hızları birebir aynı görünmüyor.

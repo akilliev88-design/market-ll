@@ -1,7 +1,7 @@
 # Canlılık hedefi — referans mağaza görünümü
 
 Referans: `Docs/Images/Referans/referans_dokme_reyon.png` (Mustafa, 28.09.2026).
-Karşılaştırılan oyun görüntüsü: `Saved/Screenshots/MirasMarket.png` (28.09.2026, Blender mağaza kiti sonrası).
+Karşılaştırılan oyun görüntüsü: `Saved/Screenshots/MarketSim.png` (28.09.2026, Blender mağaza kiti sonrası).
 
 Amaç sınırlamak değil: oyun bu fotoğraf kadar **dolu, aydınlık ve dokulu** görünmeli. "Yapay" hissin kaynağı tek bir ayar değil, aşağıdaki sekiz farkın toplamı.
 

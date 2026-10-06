@@ -17,4 +17,4 @@ if material is None:
     unreal.MaterialEditingLibrary.connect_material_property(roughness, '', unreal.MaterialProperty.MP_ROUGHNESS)
     unreal.MaterialEditingLibrary.recompile_material(material)
     unreal.EditorAssetLibrary.save_loaded_asset(material)
-unreal.log('MirasMarket material ready: ' + material.get_path_name())
+unreal.log('MarketSim material ready: ' + material.get_path_name())

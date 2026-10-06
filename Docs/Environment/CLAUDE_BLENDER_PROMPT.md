@@ -3,7 +3,7 @@
 Aşağıdaki metni kopyala; köşeli alanları doldur ve ajana bu depo ile birlikte ver.
 
 ```text
-Miras Market Unreal Engine projesi için Blender 5.2 uyumlu, oyun hazır bir çevre varlığı üret.
+MarketSim Unreal Engine projesi için Blender 5.2 uyumlu, oyun hazır bir çevre varlığı üret.
 
 VARLIK
 - Ad: [VARLIK_ADI]

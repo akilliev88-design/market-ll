@@ -1,4 +1,4 @@
-"""Create the first production-ready modular store fixture for Miras Market.
+"""Create the first production-ready modular store fixture for MarketSim.
 
 Run:
   blender --background --python Tools/Blender/create_gondola_shelf.py -- <project-root>
@@ -248,7 +248,7 @@ def main():
     export_asset(model, collisions)
     setup_preview(model)
     bpy.ops.wm.save_as_mainfile(filepath=str(SOURCE_DIR / "Gondola_1200.blend"))
-    print(f"MIRAS_ASSET_READY={ASSET_DIR}")
+    print(f"SIM_ASSET_READY={ASSET_DIR}")
 
 
 if __name__ == "__main__":

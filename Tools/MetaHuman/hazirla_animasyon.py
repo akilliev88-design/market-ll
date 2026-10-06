@@ -1,4 +1,4 @@
-"""Create the shared Miras Market MetaHuman IK retargeter and animation copies.
+"""Create the shared MarketSim MetaHuman IK retargeter and animation copies.
 
 Run through METAHUMAN_ANIMASYON_HAZIRLA.cmd while the Unreal Editor is closed.
 The script is idempotent: existing assets are updated and animation copies are overwritten.
@@ -91,7 +91,7 @@ def main():
         raise RuntimeError(f"Animasyon donusumu eksik: {len(created)}/{len(animations)}")
     unreal.EditorAssetLibrary.save_directory(ROOT, only_if_is_dirty=False, recursive=True)
     names = ", ".join(str(asset.asset_name) for asset in created)
-    unreal.log(f"MIRAS_METAHUMAN_ANIMATION_OK={names}")
+    unreal.log(f"SIM_METAHUMAN_ANIMATION_OK={names}")
 
 
 main()

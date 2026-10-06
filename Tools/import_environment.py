@@ -48,7 +48,7 @@ def main():
         if unreal.load_asset(mesh_path) is None:
             raise RuntimeError(f"Static mesh was not imported: {mesh_path}. Objects: {imported}")
         unreal.EditorAssetLibrary.save_directory(destination, only_if_is_dirty=False, recursive=True)
-        unreal.log(f"MIRAS_ENVIRONMENT_IMPORTED={mesh_path}")
+        unreal.log(f"SIM_ENVIRONMENT_IMPORTED={mesh_path}")
 
 
 main()

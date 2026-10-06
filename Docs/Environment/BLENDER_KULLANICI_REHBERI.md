@@ -1,4 +1,4 @@
-# Blender ile Miras Market varlığı üretme
+# Blender ile MarketSim varlığı üretme
 
 Bu rehber, Codex limiti olmasa da aynı kalitede raf, dolap, kasa veya teşhir ünitesi üretebilmen için hazırlanmıştır. Başlangıç örneği `AssetInbox/Environment/Shelves/Gondola_1200/Source/Gondola_1200.blend` dosyasıdır.
 

@@ -1,4 +1,4 @@
-"""Build the first realistic modular interior kit for Miras Market in Blender 5.2."""
+"""Build the first realistic modular interior kit for MarketSim in Blender 5.2."""
 
 import json
 import math
@@ -169,7 +169,7 @@ def save_asset(folder, mesh_name, model, collisions, metadata, camera_location, 
     (asset_dir / "equipment.json").write_text(json.dumps(metadata, ensure_ascii=False, indent=2), encoding="utf-8")
     preview(asset_dir, model, camera_location, target)
     bpy.ops.wm.save_as_mainfile(filepath=str(source_dir / f"{folder}.blend"))
-    print(f"MIRAS_STORE_KIT_ASSET={asset_dir}")
+    print(f"SIM_STORE_KIT_ASSET={asset_dir}")
 
 
 def wall_shelf():
@@ -423,4 +423,4 @@ if __name__ == "__main__":
     office_desk()
     refrigerated_wall()
     produce_island()
-    print("MIRAS_STORE_KIT_READY=7")
+    print("SIM_STORE_KIT_READY=7")

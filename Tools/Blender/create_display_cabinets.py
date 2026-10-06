@@ -148,4 +148,4 @@ for eid,label,f,w,d,h,style,levels,ref in SPECS:
         o.data.transform(o.matrix_world);o.matrix_world=Matrix.Identity(4);o.data.transform(Matrix.Scale(100,4));o.select_set(True)
     bpy.context.view_layer.objects.active=model;bpy.context.scene.unit_settings.scale_length=.01
     bpy.ops.export_scene.fbx(filepath=str(k.BASE/eid/(name+'.fbx')),use_selection=True,object_types={'MESH'},apply_unit_scale=True,apply_scale_options='FBX_SCALE_UNITS',axis_forward='-Y',axis_up='Z',mesh_smooth_type='FACE',add_leaf_bones=False,bake_anim=False)
-print('MIRAS_CABINET_LIBRARY_READY')
+print('SIM_CABINET_LIBRARY_READY')

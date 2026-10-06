@@ -11,7 +11,7 @@ if not exist "%UE_ROOT%\Engine\Build\BatchFiles\Build.bat" (
 )
 if not exist "%~dp0Saved\Logs" mkdir "%~dp0Saved\Logs"
 echo Derleniyor... Unreal Editor aciksa once kapat.
-call "%UE_ROOT%\Engine\Build\BatchFiles\Build.bat" MirasMarketEditor Win64 Development "-Project=%~dp0MirasMarket.uproject" -WaitMutex -NoHotReloadFromIDE -NoUBA > "%~dp0Saved\Logs\DERLE_son.log" 2>&1
+call "%UE_ROOT%\Engine\Build\BatchFiles\Build.bat" MarketSimEditor Win64 Development "-Project=%~dp0MarketSim.uproject" -WaitMutex -NoHotReloadFromIDE -NoUBA > "%~dp0Saved\Logs\DERLE_son.log" 2>&1
 set "RESULT=%ERRORLEVEL%"
 findstr /i /c:": error" /c:"Result:" "%~dp0Saved\Logs\DERLE_son.log"
 if not "%RESULT%"=="0" (

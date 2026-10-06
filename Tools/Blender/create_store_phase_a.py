@@ -145,4 +145,4 @@ if __name__=='__main__':
         for s in json.loads((ROOT/'Config/magazalar.json').read_text(encoding='utf-8'))['stores']: shell(s)
     from export_store_fbx import export_all
     export_all(ROOT)
-    print('MIRAS_PHASE_A_MODELS_READY')
+    print('SIM_PHASE_A_MODELS_READY')

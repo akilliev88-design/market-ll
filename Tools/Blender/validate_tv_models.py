@@ -38,4 +38,4 @@ for inches in (32, 43, 55, 65, 75):
     assert len([o for o in bpy.data.objects if o.type == 'MESH']) == 1
     reports.append(dict(id=meta['id'], source='metres', export='independent_product', widthMm=meta['widthMm']))
 (root / 'Saved/Logs/TV_assets.json').write_text(json.dumps(reports, indent=2))
-print('MIRAS_TV_ASSETS_VALIDATED=8/8')
+print('SIM_TV_ASSETS_VALIDATED=8/8')

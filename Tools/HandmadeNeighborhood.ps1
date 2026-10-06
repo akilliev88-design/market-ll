@@ -2,7 +2,7 @@ param([string]$EngineRoot='C:\Program Files\Epic Games\UE_5.8', [switch]$Rebuild
 $ErrorActionPreference='Stop'
 $marketRoot=Split-Path $PSScriptRoot -Parent
 $editor=Join-Path $EngineRoot 'Engine/Binaries/Win64/UnrealEditor-Cmd.exe'
-$project=Join-Path $marketRoot 'MirasMarket.uproject'
+$project=Join-Path $marketRoot 'MarketSim.uproject'
 if (Get-Process UnrealEditor,UnrealEditor-Cmd -ErrorAction SilentlyContinue) { throw 'Once Unreal pencerelerini kapatin.' }
 if ($RebuildAssets) {
     & 'C:\Program Files\Blender Foundation\Blender 5.2\blender.exe' -b --python "$marketRoot/Tools/Blender/create_neighborhood_store.py" -- $marketRoot
@@ -13,7 +13,7 @@ if ($RebuildAssets) {
 }
 $captureLog=Join-Path $marketRoot 'Saved/Logs/HandmadeCapture.log'
 $captureStarted=Get-Date
-& $editor $project '/Engine/Maps/Entry?game=/Script/MirasMarket.MarketArtTrialGameMode' -game -HandmadeNeighborhood -ArtTrialCapture -RenderOffscreen -unattended -nosound -nop4 -ResX=1600 -ResY=900 "-abslog=$captureLog"
+& $editor $project '/Engine/Maps/Entry?game=/Script/MarketSim.MarketArtTrialGameMode' -game -HandmadeNeighborhood -ArtTrialCapture -RenderOffscreen -unattended -nosound -nop4 -ResX=1600 -ResY=900 "-abslog=$captureLog"
 if ($LASTEXITCODE -ne 0 -or !(Select-String -LiteralPath $captureLog -Pattern 'ART_TRIAL_PASSED' -SimpleMatch -Quiet) -or !(Select-String -LiteralPath $captureLog -Pattern 'grounded=1 entry_clear=1 glass_solid=1' -SimpleMatch -Quiet)) { throw 'Gezinti veya goruntu kontrolu basarisiz.' }
 foreach ($n in 1..3) {
     $shot=Get-Item (Join-Path $marketRoot ('Saved/Screenshots/HandmadeNeighborhood/{0:00}.png' -f $n))

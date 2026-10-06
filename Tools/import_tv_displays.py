@@ -72,5 +72,5 @@ for path in paths:
         unreal.MaterialEditingLibrary.recompile_material(material)
         unreal.EditorAssetLibrary.save_loaded_asset(material)
     unreal.EditorAssetLibrary.save_loaded_asset(mesh)
-    unreal.log('MIRAS_TV_IMPORTED=' + name)
-unreal.log('MIRAS_TV_IMPORT_COMPLETE')
+    unreal.log('SIM_TV_IMPORTED=' + name)
+unreal.log('SIM_TV_IMPORT_COMPLETE')

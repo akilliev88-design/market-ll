@@ -38,6 +38,6 @@ try:
             node.set_editor_property('font_texture_page', 0)
     unreal.MaterialEditingLibrary.recompile_material(material)
     unreal.EditorAssetLibrary.save_loaded_asset(material)
-    unreal.log('MIRAS_TURKISH_FONT_CREATED=' + asset.get_path_name())
+    unreal.log('SIM_TURKISH_FONT_CREATED=' + asset.get_path_name())
 finally:
     gdi.RemoveFontResourceExW(str(source), 0x10, None)

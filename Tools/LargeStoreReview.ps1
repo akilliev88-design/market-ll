@@ -9,7 +9,7 @@ if($AllFormats) {$storeIds=@('mahalle_01')+$storeIds}
 foreach($id in $storeIds) {
     $log=Join-Path $marketRoot "Saved/Logs/LargeStore_$id.log"
     $started=Get-Date
-    & $editor (Join-Path $marketRoot 'MirasMarket.uproject') '/Engine/Maps/Entry?game=/Script/MirasMarket.MarketLargeStoreTrialGameMode' -game "-LargeStore=$id" -LargeStoreCapture -RenderOffscreen -unattended -nosound -nop4 -ResX=1600 -ResY=900 "-abslog=$log"
+    & $editor (Join-Path $marketRoot 'MarketSim.uproject') '/Engine/Maps/Entry?game=/Script/MarketSim.MarketLargeStoreTrialGameMode' -game "-LargeStore=$id" -LargeStoreCapture -RenderOffscreen -unattended -nosound -nop4 -ResX=1600 -ResY=900 "-abslog=$log"
     if($LASTEXITCODE -ne 0 -or !(Select-String -LiteralPath $log -SimpleMatch 'LARGE_STORE_PASSED:' -Quiet)) {throw "Magaza kontrolu basarisiz: $id"}
     if(Select-String -LiteralPath $log -Pattern 'Failed to compile Material|Missing input texture' -Quiet) {throw "Malzeme kontrolu basarisiz: $id"}
     if(!(Select-String -LiteralPath $log -SimpleMatch 'STORE_FACES_PASSED:' -Quiet)) {throw "Raf onune fiziksel erisim basarisiz: $id"}

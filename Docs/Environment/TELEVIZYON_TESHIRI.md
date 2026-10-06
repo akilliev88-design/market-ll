@@ -45,7 +45,7 @@ Bu yalnız örnektir; 55 inç olmak OLED veya 120 Hz olmak anlamına gelmez. `re
 & 'C:/Program Files/Blender Foundation/Blender 5.2/blender.exe' --background --python Tools/Blender/create_televisions.py -- 'C:/Users/mtass/Desktop/market-ll'
 ```
 
-Unreal Python: `Tools/import_tv_displays.py` yalnız bu sekiz modeli aktarır; cm ölçülerini ve stand UCX sayılarını doğrular. TV üreticisi var olan `display.json` dosyasının üzerine yazmaz. C++: `MarketTelevisionDisplay.*`; testler `MirasMarket.Visuals.TelevisionDisplay` ve `TelevisionLabels`.
+Unreal Python: `Tools/import_tv_displays.py` yalnız bu sekiz modeli aktarır; cm ölçülerini ve stand UCX sayılarını doğrular. TV üreticisi var olan `display.json` dosyasının üzerine yazmaz. C++: `MarketTelevisionDisplay.*`; testler `MarketSim.Visuals.TelevisionDisplay` ve `TelevisionLabels`.
 
 ## Yüzey çakışması kontrolü
 

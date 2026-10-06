@@ -1,6 +1,6 @@
 # Personel ve muhasebe (G-060)
 
-Kod: `Source/MirasMarket/MarketStaff.h/.cpp` (dünyadan bağımsız), testler `MarketStaffTests.cpp` (`MirasMarket.Staff.*`).
+Kod: `Source/MarketSim/MarketStaff.h/.cpp` (dünyadan bağımsız), testler `MarketStaffTests.cpp` (`MarketSim.Staff.*`).
 Oyunda: menü (M) → **Personel** sayfası; masada H (kasiyer) ve J/K (reyon görevlisi) tuşları çalışmaya devam eder.
 
 ## Kurgu

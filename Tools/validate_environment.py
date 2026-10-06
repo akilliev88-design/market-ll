@@ -15,7 +15,7 @@ SPECS = [
 
 
 def fail(message):
-    raise RuntimeError(f"MIRAS_ENVIRONMENT_VALIDATION_ERROR={message}")
+    raise RuntimeError(f"SIM_ENVIRONMENT_VALIDATION_ERROR={message}")
 
 
 for mesh_path, dimensions, material_minimum, collision_minimum in SPECS:
@@ -34,7 +34,7 @@ for mesh_path, dimensions, material_minimum, collision_minimum in SPECS:
     collision_count = sum(len(aggregate.get_editor_property(field)) for field in ("box_elems", "sphere_elems", "sphyl_elems", "convex_elems"))
     if collision_count < collision_minimum:
         fail(f"{mesh_path} collision count {collision_count} < {collision_minimum}")
-    unreal.log(f"MIRAS_ENVIRONMENT_VALIDATION_OK={mesh_path}: {size.x:.1f}x{size.y:.1f}x{size.z:.1f} cm, {len(materials)} materials, {collision_count} collisions")
+    unreal.log(f"SIM_ENVIRONMENT_VALIDATION_OK={mesh_path}: {size.x:.1f}x{size.y:.1f}x{size.z:.1f} cm, {len(materials)} materials, {collision_count} collisions")
 
 ceiling_path = "/Game/Environment/StoreKit/CeilingBay_6000/SM_CeilingBay_6000.SM_CeilingBay_6000"
 ceiling = unreal.load_asset(ceiling_path)
@@ -43,4 +43,4 @@ if ceiling is None:
 ceiling_size = ceiling.get_bounding_box().max - ceiling.get_bounding_box().min
 if abs(ceiling_size.x - 600.0) > 2 or abs(ceiling_size.y - 600.0) > 2:
     fail(f"ceiling footprint is {ceiling_size.x:.1f}x{ceiling_size.y:.1f} cm")
-unreal.log(f"MIRAS_ENVIRONMENT_VALIDATION_OK={ceiling_path}: {ceiling_size.x:.1f}x{ceiling_size.y:.1f}x{ceiling_size.z:.1f} cm")
+unreal.log(f"SIM_ENVIRONMENT_VALIDATION_OK={ceiling_path}: {ceiling_size.x:.1f}x{ceiling_size.y:.1f}x{ceiling_size.z:.1f} cm")

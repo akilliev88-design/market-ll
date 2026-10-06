@@ -58,7 +58,7 @@ def tick(delta):
     if captured < captures and elapsed > 25 + captured * 4:
         target = output if captured == 0 else output.with_name(f'UnrealShowroom_{captured + 1}.png')
         captured += 1
-        unreal.log(f'MIRAS_TV_FRAME_REQUEST={captured}')
+        unreal.log(f'SIM_TV_FRAME_REQUEST={captured}')
         # Screenshot preparation can re-enter Slate callbacks before returning.
         capturing = True
         try:
@@ -66,7 +66,7 @@ def tick(delta):
         finally:
             capturing = False
     if captured == captures and elapsed > 25 + captures * 4 + 6:
-        unreal.log('MIRAS_TV_RENDER_COMPLETE=' + str(output))
+        unreal.log('SIM_TV_RENDER_COMPLETE=' + str(output))
         unreal.unregister_slate_post_tick_callback(handle)
         unreal.SystemLibrary.quit_editor()
 

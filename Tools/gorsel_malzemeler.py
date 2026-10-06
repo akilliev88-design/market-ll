@@ -1,4 +1,4 @@
-"""Miras Market surface library for Unreal Engine 5.8 (run by GORSEL_HAZIRLA.cmd).
+"""MarketSim surface library for Unreal Engine 5.8 (run by GORSEL_HAZIRLA.cmd).
 
 1. Imports the procedural PNG textures from AssetInbox/Textures/Miras (Tools/doku_uret.py) and,
    when present, the free CC0 photo textures from AssetInbox/Textures/Harici.
@@ -35,7 +35,7 @@ TOOLS = unreal.AssetToolsHelpers.get_asset_tools()
 
 
 def fail(message):
-    raise RuntimeError(f"MIRAS_MATERIALS_ERROR={message}")
+    raise RuntimeError(f"SIM_MATERIALS_ERROR={message}")
 
 
 def import_textures():
@@ -61,7 +61,7 @@ def import_one(source, name, srgb):
     texture.set_editor_property("srgb", srgb)
     # Linear maps keep default compression so their sampler type matches the RoughTex/MacroTex defaults.
     unreal.EditorAssetLibrary.save_loaded_asset(texture)
-    unreal.log(f"MIRAS_TEXTURE_IMPORTED={name}")
+    unreal.log(f"SIM_TEXTURE_IMPORTED={name}")
 
 
 def import_external():
@@ -70,19 +70,19 @@ def import_external():
     for folder, (color_key, rough_key) in EXTERNAL.items():
         directory = EXTERNAL_SOURCE / folder
         if not directory.is_dir():
-            unreal.log_warning(f"MIRAS_MATERIALS_NOTE=external texture folder missing, skipped: {directory}")
+            unreal.log_warning(f"SIM_MATERIALS_NOTE=external texture folder missing, skipped: {directory}")
             continue
         files = sorted(directory.glob("*.png")) + sorted(directory.glob("*.jpg"))
         color = next((f for f in files if color_key.lower() in f.name.lower()), None)
         rough = next((f for f in files if rough_key.lower() in f.name.lower()), None)
         if color is None:
-            unreal.log_warning(f"MIRAS_MATERIALS_NOTE=no colour map in {directory}, skipped")
+            unreal.log_warning(f"SIM_MATERIALS_NOTE=no colour map in {directory}, skipped")
             continue
         import_one(color, f"T_Ext_{folder}_BC", True)
         if rough is not None:
             import_one(rough, f"T_Ext_{folder}_R", False)
         count += 1
-    unreal.log(f"MIRAS_EXTERNAL_TEXTURES={count}")
+    unreal.log(f"SIM_EXTERNAL_TEXTURES={count}")
     return count
 
 
@@ -205,7 +205,7 @@ def build_surface():
     to_property(scalar(m, "Specular", 0.5, 90, 600), "", unreal.MaterialProperty.MP_SPECULAR)
     MEL.recompile_material(m)
     unreal.EditorAssetLibrary.save_loaded_asset(m)
-    unreal.log("MIRAS_MATERIAL_READY=M_MirasSurface")
+    unreal.log("SIM_MATERIAL_READY=M_MirasSurface")
 
 
 def build_acrylic():
@@ -215,7 +215,7 @@ def build_acrylic():
     try:
         m.set_editor_property("translucency_lighting_mode", unreal.TranslucencyLightingMode.TLM_SURFACE_PER_PIXEL_LIGHTING)
     except Exception as error:  # optional quality setting; the material still works without it
-        unreal.log_warning(f"MIRAS_MATERIALS_NOTE=translucency lighting mode not set: {error}")
+        unreal.log_warning(f"SIM_MATERIALS_NOTE=translucency lighting mode not set: {error}")
     color = node(m, unreal.MaterialExpressionVectorParameter, -400, -100, parameter_name="Color", default_value=unreal.LinearColor(.9, .97, .95, 1))
     to_property(mask(m, color, -250, -100, r=True, g=True, b=True), "", unreal.MaterialProperty.MP_BASE_COLOR)
     to_property(scalar(m, "Opacity", 0.14, -400, 60), "", unreal.MaterialProperty.MP_OPACITY)
@@ -223,7 +223,7 @@ def build_acrylic():
     to_property(scalar(m, "Specular", 0.8, -400, 260), "", unreal.MaterialProperty.MP_SPECULAR)
     MEL.recompile_material(m)
     unreal.EditorAssetLibrary.save_loaded_asset(m)
-    unreal.log("MIRAS_MATERIAL_READY=M_MirasAcrylic")
+    unreal.log("SIM_MATERIAL_READY=M_MirasAcrylic")
 
 
 def enable_instancing():
@@ -243,8 +243,8 @@ def enable_instancing():
             MEL.recompile_material(asset)
             unreal.EditorAssetLibrary.save_loaded_asset(asset)
             changed += 1
-            unreal.log(f"MIRAS_INSTANCING_ENABLED={asset.get_path_name()}")
-    unreal.log(f"MIRAS_INSTANCING_READY={changed} materials updated")
+            unreal.log(f"SIM_INSTANCING_ENABLED={asset.get_path_name()}")
+    unreal.log(f"SIM_INSTANCING_READY={changed} materials updated")
 
 
 def main():
@@ -256,7 +256,7 @@ def main():
     for path in (f"{BASE}/M_MirasSurface.M_MirasSurface", f"{BASE}/M_MirasAcrylic.M_MirasAcrylic"):
         if unreal.load_asset(path) is None:
             fail(f"missing after save: {path}")
-    unreal.log(f"MIRAS_MATERIALS_READY=2 materials, 8 textures, {external} external texture sets")
+    unreal.log(f"SIM_MATERIALS_READY=2 materials, 8 textures, {external} external texture sets")
 
 
 main()

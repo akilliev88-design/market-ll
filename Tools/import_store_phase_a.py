@@ -34,5 +34,5 @@ for p in sorted((root/'AssetInbox/Environment/Stores').rglob('equipment.json')):
             unreal.MaterialEditingLibrary.set_material_usage(material,unreal.MaterialUsage.MATUSAGE_INSTANCED_STATIC_MESHES)
             unreal.MaterialEditingLibrary.recompile_material(material)
             unreal.EditorAssetLibrary.save_loaded_asset(material)
-    unreal.log('MIRAS_STORE_IMPORTED='+mesh.get_path_name()+f', UCX={count}')
+    unreal.log('SIM_STORE_IMPORTED='+mesh.get_path_name()+f', UCX={count}')
 unreal.EditorAssetLibrary.save_directory('/Game/Stores',only_if_is_dirty=True,recursive=True)

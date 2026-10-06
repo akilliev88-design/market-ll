@@ -8,7 +8,7 @@ import bpy
 
 
 def fail(message):
-    print(f"MIRAS_VALIDATION_ERROR={message}")
+    print(f"SIM_VALIDATION_ERROR={message}")
     raise SystemExit(1)
 
 
@@ -62,7 +62,7 @@ def main():
         if not required_file.exists() or required_file.stat().st_size < 1024:
             fail(f"missing or empty file={required_file}")
 
-    print("MIRAS_VALIDATION_OK=SM_Gondola_1200 1200x900x1600 mm, 5 materials, 3 UCX, 8 zones")
+    print("SIM_VALIDATION_OK=SM_Gondola_1200 1200x900x1600 mm, 5 materials, 3 UCX, 8 zones")
 
 
 if __name__ == "__main__":

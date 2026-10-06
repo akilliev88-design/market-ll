@@ -12,7 +12,7 @@ Proje kökündeki `SANAT_DENEME.cmd` dosyasına çift tıkla.
 - `0`: oyuncunun gözünden gezinmeye geç; WASD ve fare.
 - `Esc`: çık.
 
-Bu ayrı bir GameMode ile kurulan 8 × 10 m deneme alanıdır. Kampanya, stok, para ve oyun kaydı oluşturmaz. Yeni oyun ekranı veya menü tasarımı değildir. Kaynak: `Source/MirasMarket/MarketArtTrial.h/.cpp`.
+Bu ayrı bir GameMode ile kurulan 8 × 10 m deneme alanıdır. Kampanya, stok, para ve oyun kaydı oluşturmaz. Yeni oyun ekranı veya menü tasarımı değildir. Kaynak: `Source/MarketSim/MarketArtTrial.h/.cpp`.
 
 ## Denenen görünüm
 

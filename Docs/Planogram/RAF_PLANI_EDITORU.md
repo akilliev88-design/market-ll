@@ -1,6 +1,6 @@
 # Raf Planı Editörü
 
-`RAF_PLANI.cmd`, Unreal Editor'ı doğrudan Raf Planı Editörü ile açar. Aynı pencereye Unreal içinde **Tools > Miras Market > Raf Planı Editörü** yoluyla da ulaşılır.
+`RAF_PLANI.cmd`, Unreal Editor'ı doğrudan Raf Planı Editörü ile açar. Aynı pencereye Unreal içinde **Tools > MarketSim > Raf Planı Editörü** yoluyla da ulaşılır.
 
 ## Kavramlar
 
@@ -49,7 +49,7 @@ Her değişiklik anında `Config/planograms.json` dosyasına yazılır ve raf ek
 2. Her blokta: **← 5 cm / 5 cm →**, **Önde − / +**, **Yönü değiştir**, **Kat − / +**, **Seviyeye taşı S1…**, **Yüzü çevir**, **Aynısından ekle**, **Kaldır**.
 3. **Ürün ekle** listesinde her ürün için Ön/Arka **S1…** düğmeleri, ürünün yeni bir bloğunu o seviyenin sağ ucundaki boşluğa koyar. Rafta olmayan ürünler en üstte, turuncu kartla durur.
 4. Son işlemin sonucu (veya neden yapılmadığı) başlığın altında sarı yazıyla görünür.
-5. Oyun ve editör aynı kuralları kullanır (`Source/MirasMarket/PlanogramEdit.*`).
+5. Oyun ve editör aynı kuralları kullanır (`Source/MarketSim/PlanogramEdit.*`).
 
 Bir seviyedeki ürün blokları rafın kullanılabilir genişliğini (gondol 116 cm, duvar reyonu 235 cm) aşamaz: seviye, önde adet, yüz ve taşıma sığmayan değişikliği reddeder; editör her seviyenin doluluğunu (cm) ve taşmaları gösterir.
 

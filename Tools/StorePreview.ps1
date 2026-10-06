@@ -14,13 +14,13 @@ if ($StoreId) {
 }
 foreach ($previewStoreId in $storeIds) {
     $previewLog = Join-Path $storeProjectRoot "Saved\Logs\G088_$(if ($Benchmark) {'Benchmark'} else {'Preview'})_$previewStoreId.log"
-    $previewArgs = @((Join-Path $storeProjectRoot 'MirasMarket.uproject'), '-game', '-RenderOffscreen', '-unattended', '-nosound', '-nop4', '-ResX=1280', '-ResY=720', "-MirasStorePreview=$previewStoreId", "-abslog=$previewLog")
-    if ($Benchmark) { $previewArgs += '-MirasStoreBenchmark' }
+    $previewArgs = @((Join-Path $storeProjectRoot 'MarketSim.uproject'), '-game', '-RenderOffscreen', '-unattended', '-nosound', '-nop4', '-ResX=1280', '-ResY=720', "-SimStorePreview=$previewStoreId", "-abslog=$previewLog")
+    if ($Benchmark) { $previewArgs += '-SimStoreBenchmark' }
     & (Join-Path $EngineRoot 'Engine\Binaries\Win64\UnrealEditor-Cmd.exe') @previewArgs
-    if ($LASTEXITCODE -ne 0 -or -not (Select-String -LiteralPath $previewLog -SimpleMatch 'MirasStorePreview PASSED' -Quiet)) { throw "Store preview failed: $previewStoreId" }
+    if ($LASTEXITCODE -ne 0 -or -not (Select-String -LiteralPath $previewLog -SimpleMatch 'SimStorePreview PASSED' -Quiet)) { throw "Store preview failed: $previewStoreId" }
     if (-not $Benchmark) {
         $previewShots = Get-ChildItem -LiteralPath (Join-Path $storeProjectRoot "Saved\Screenshots\Stores\$previewStoreId") -Filter '*.png'
         if ($previewShots.Count -lt 5) { throw "Missing screenshots: $previewStoreId" }
     }
-    Select-String -LiteralPath $previewLog -Pattern 'MirasStorePreview FPS|MirasStoreKit built' | ForEach-Object Line
+    Select-String -LiteralPath $previewLog -Pattern 'SimStorePreview FPS|SimStoreKit built' | ForEach-Object Line
 }

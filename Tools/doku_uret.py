@@ -1,4 +1,4 @@
-"""Miras Market procedural PBR textures (tileable, 1024 px).
+"""MarketSim procedural PBR textures (tileable, 1024 px).
 
 Usage: python Tools/doku_uret.py [output_dir]
 Default output: AssetInbox/Textures/Miras. Requires numpy and Pillow.
@@ -79,7 +79,7 @@ def particles(name, background, palette, count, rx_range, ry_range, seed, mottle
 
 def save(img, out, name):
     Image.fromarray(np.clip(img, 0, 255).astype(np.uint8), "RGB").save(out / f"{name}.png", optimize=True)
-    print(f"MIRAS_TEXTURE={out / (name + '.png')}")
+    print(f"SIM_TEXTURE={out / (name + '.png')}")
 
 
 def terrazzo(out):
@@ -192,7 +192,7 @@ def main():
     chickpea(out)
     lentil(out)
     pistachio(out)
-    print("MIRAS_TEXTURES_READY=8")
+    print("SIM_TEXTURES_READY=8")
 
 
 if __name__ == "__main__":

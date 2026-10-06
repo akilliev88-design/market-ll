@@ -33,6 +33,6 @@ for eid in ('tv_wall_4800', 'tv_plinth_2400', 'tv_island_3000'):
             overlaps.append(dict(axis=a['axis'], sign=a['sign'], plane=round(a['plane'], 5),
                                  areaCm2=round(span[0] * span[1] * 10000, 2), materials=[a['material'], b['material']]))
     report.append(dict(id=eid, overlaps=overlaps))
-print('MIRAS_TV_COPLANAR=' + json.dumps(report))
+print('SIM_TV_COPLANAR=' + json.dumps(report))
 if '--strict' in sys.argv:
     assert not any(row['overlaps'] for row in report), 'Visible coplanar surface overlap'

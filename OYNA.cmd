@@ -6,9 +6,9 @@ if not exist "%MARKET_EDITOR%" (
   pause
   exit /b 1
 )
-if not exist "%~dp0Binaries\Win64\UnrealEditor-MirasMarket.dll" (
+if not exist "%~dp0Binaries\Win64\UnrealEditor-MarketSim.dll" (
   echo Once Build.ps1 ile projeyi derleyin.
   pause
   exit /b 1
 )
-"%MARKET_EDITOR%" "%~dp0MirasMarket.uproject" -game -windowed -ResX=1600 -ResY=900
+"%MARKET_EDITOR%" "%~dp0MarketSim.uproject" -game -windowed -ResX=1600 -ResY=900

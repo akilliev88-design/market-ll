@@ -2,7 +2,7 @@
 
 G-075: tam ekran, ekrana göre ölçekli (tasarım 1440×820), arkada bulanık dükkân; uzun açıklamalar "(i) Nasıl işler?" ipucunda.
 
-Tasarım: claude.ai "Miras Market Menü Tasarımı" maketi (A1 oyun ekranı, A2 özet; açık/koyu tema).
+Tasarım: claude.ai "MarketSim Menü Tasarımı" maketi (A1 oyun ekranı, A2 özet; açık/koyu tema).
 
 ## Kod
 
@@ -43,7 +43,7 @@ Menü yalnızca oyunu okur; her karar `AMarketGameMode::MenuCommand` (masadaki t
 9. **Şubeler** — Harita (katman: biz, BİM, A101, ŞOK, Migros, Onur; Türkiye/Trakya; ile tıkla), Lüleburgaz (şubeler, **Müdür seç** → `PromoteTo`, kapat, semt başına küçük/mahalle/büyük açılış ve açılamama nedeni), Şirket (şehirler +1/-1, yatırımlar).
 0. **Raporlar** — gün sonu (en büyük 3 sorun, düğmeli), hafta grafiği. Gün kapanınca menü burada açılır; "Yeni güne başla" kapatır.
 
-Smoke (`-MirasSmoke`) ve ekran görüntüsü (`-MirasCapture`) çalıştırmalarında menü kendiliğinden açılmaz; HUD'daki eski rapor kartı görünür.
+Smoke (`-SimSmoke`) ve ekran görüntüsü (`-SimCapture`) çalıştırmalarında menü kendiliğinden açılmaz; HUD'daki eski rapor kartı görünür.
 
 ## Mağazalar sayfası (G-086b, G-089)
 

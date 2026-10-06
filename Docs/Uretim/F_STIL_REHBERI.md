@@ -6,7 +6,7 @@ Sonuç gelince: seçilen yönü `Docs/STIL_REHBERI.md` olarak sakla; renk ve yaz
 
 ---
 
-Merhaba. "Miras Market" adlı bir PC oyunu için **sanat yönü ve stil rehberi ön tasarımı** istiyorum. İşi adım adım yapacağız: her adımda yalnız o adımı yap, ben bakıp düzelteyim, sonra bir sonrakine geçelim. **Oyunun kendi kimliği olsun:** başka bir oyunu ya da markayı örnek alma, taklit etme.
+Merhaba. "MarketSim" adlı bir PC oyunu için **sanat yönü ve stil rehberi ön tasarımı** istiyorum. İşi adım adım yapacağız: her adımda yalnız o adımı yap, ben bakıp düzelteyim, sonra bir sonrakine geçelim. **Oyunun kendi kimliği olsun:** başka bir oyunu ya da markayı örnek alma, taklit etme.
 
 ## Oyun ne
 
@@ -79,7 +79,7 @@ Ana ekran (il haritası, üstte ülke/bölge çipleri, solda hedefler, sağda il
 
 ### Adım 5: logo ve tanıtım görseli
 
-"Miras Market" oyun logosu (oyuncunun şirket logosundan ayrı) ve mağaza sayfası (Steam) için bir kapak görseli taslağı.
+"MarketSim" oyun logosu (oyuncunun şirket logosundan ayrı) ve mağaza sayfası (Steam) için bir kapak görseli taslağı.
 
 ### Biçim (her adım için)
 

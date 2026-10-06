@@ -29,6 +29,6 @@ for p in sorted((root/'AssetInbox/Environment/Stores').rglob('equipment.json')):
                 opacity.set_editor_property('r',.16);unreal.MaterialEditingLibrary.connect_material_property(opacity,'',unreal.MaterialProperty.MP_OPACITY)
                 rough=unreal.MaterialEditingLibrary.create_material_expression(mat,unreal.MaterialExpressionConstant);rough.set_editor_property('r',.08);unreal.MaterialEditingLibrary.connect_material_property(rough,'',unreal.MaterialProperty.MP_ROUGHNESS)
             unreal.MaterialEditingLibrary.recompile_material(mat);unreal.EditorAssetLibrary.save_loaded_asset(mat)
-    unreal.EditorAssetLibrary.save_loaded_asset(mesh);unreal.log('MIRAS_CABINET_IMPORTED='+name+f' UCX={count}')
+    unreal.EditorAssetLibrary.save_loaded_asset(mesh);unreal.log('SIM_CABINET_IMPORTED='+name+f' UCX={count}')
 unreal.EditorAssetLibrary.save_directory('/Game/Stores',only_if_is_dirty=True,recursive=True)
-unreal.log('MIRAS_CABINET_IMPORT_COMPLETE')
+unreal.log('SIM_CABINET_IMPORT_COMPLETE')

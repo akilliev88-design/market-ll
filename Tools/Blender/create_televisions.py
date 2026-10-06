@@ -113,4 +113,4 @@ for inches in (32, 43, 55, 65, 75):
 display = BASE / 'display.json'
 if not display.exists():
     display.write_text(json.dumps(dict(schemaVersion=1, products=profiles), indent=2), encoding='utf-8')
-print('MIRAS_TELEVISIONS_READY')
+print('SIM_TELEVISIONS_READY')
