@@ -1,3 +1,101 @@
+## 06.10.2026 — Codex — G-117 proje temizliği (Image-blaster kaldırıldı)
+
+Mustafa'nın onayladığı Claude iş emri uygulandı. Image-blaster'ın beş CMD'si, ayrı GameMode'u, import/Blender araçları, üretilmiş Unreal varlıkları, ham dosyaları, yerel indirici ve .env dosyası kaldırıldı. Yalnız .thumbnails içeren 26 bozuk adlı kök klasörünün listesi silmeden önce yazdırıldı; diğer kök klasörlere dokunulmadı. Python önbellekleri, iki katalog/raf .bak dosyası, Claude outputs, G-074 menü arşivi, C16 aktarım arşivi, eski katalog üreticisi ve listedeki Saved geçici dosyaları kaldırıldı. Altı stage_store_editor betiği vardı (iş emrinin tahmini yedisi değil); mevcut altısı silindi.
+
+M28/M29 ve M28/M30 yamaları silindi: G-094'ün tamamlanma kaydı, güncel MarketBanking/MarketChains uygulamaları ve RatingLoansAndCovenant, LineRestructureAndAcquisition, TakeoverBid, SubsidiaryAndExit testleriyle uygulandıkları/sonraki sürümlerle yer değiştirdikleri doğrulandı. Yamaların eski kuralları tekrar uygulanmadı.
+
+Doğrulama: DERLE başarılı; TEST 175/175 başarılı, 0 uyarılı/başarısız/çalışmayan; Smoke başarılı. Source, Tools, Config ve kök CMD/PS1 dosyalarında ImageBlaster, image-blaster, GeneratedStore, Stores/Generated taraması boş. Silinen 83 hedefin hiçbiri kalmadı. MAHALLE_MARKET_GEZI.cmd, Content/Characters/Mannequins, Tools/check_store_routes.py ve Saved/Claude altında m69_ic_ad.py, m69c_mesaj.txt, is.cmd, son.log korundu. Oturum başındaki mevcut değişikliklerin SHA256 karşılaştırması aynı; M69 ve iki mevcut iş emri dosyası temizlik commit'ine alınmadı. Başlangıç süreç kontrolünde Image-blaster yardımcı süreci ve açık Unreal Editor yoktu; süreçlerin komut satırı/API anahtarı çıktıya yazılmadı. İlk sandbox derlemesi sonuç vermeden durdu; gerekli motor önbellek/günlük erişimiyle yeniden çalıştırılan DERLE geçti.
+
+Silinen dosyaların mantıksal boyut toplamı **1039941631 bayt (yaklaşık 1,04 GB / 0,97 GiB)**, **24361 dosya**. Bu toplam çalışma klasöründen kaldırılan içeriktir; Git/LFS geçmişi temizlenmedi, derleme çıktılarının yeniden ürettiği alan düşülmedi. Aşağıda her silinen hedef ve altındaki dosya sayısı/boyutu bulunur.
+
+Kalan koşullu kontrol: Content/ThirdPerson, Content/LevelPrototyping, Content/__ExternalActors__/ThirdPerson, Content/__ExternalObjects__/ThirdPerson, Content/Developers ve Content/Input silinmedi. Kaynak/Config/Tools taramasında doğrudan referans bulunmadı; DefaultInput.ini ve MarketGame eski BindAction/BindAxis yolunu kullanıyor. Ancak iş emri Unreal Editor Reference Viewer ile varlık referanslarının incelenmesini ve editörden silmeyi istiyor; bu oturumda bu UI kontrolü kullanılamıyor. Kod taraması binary varlık referanslarının yokluğunu kanıtlamaz. Sonraki adım: editörde referansları inceleyip yalnız kullanılmayan şablonları editörden sil. Bölüm 4'ün bütün dosyaları korundu. AGENTS.md içindeki artık silinen Tools/Arsiv/katalog_olustur.py satırı mevcut M69 düzenlemesini karıştırmamak için bu tur değiştirilmedi; Claude sonraki belge düzenlemesinde kaldırabilir. World Labs anahtarının platformda iptali iş emrinde Mustafa'ya bırakılmıştır; bu oturumda API işlemi yapılmadı.
+
+| Silinen hedef | Dosya sayısı | Bayt |
+|---|---:|---:|
+| `MARKET_URET.cmd` | 1 | 252 |
+| `MARKET_ONIZLE.cmd` | 1 | 246 |
+| `MARKET_MODEL_AKTAR.cmd` | 1 | 263 |
+| `MARKET_AKTARIM_TAMAMLA.cmd` | 1 | 296 |
+| `MARKET_GEZI.cmd` | 1 | 584 |
+| `Source/MirasMarket/MarketGeneratedStore.h` | 1 | 690 |
+| `Source/MirasMarket/MarketGeneratedStore.cpp` | 1 | 6390 |
+| `Tools/ImageBlaster` | 2 | 9177 |
+| `Tools/import_generated_market.py` | 1 | 4892 |
+| `Tools/import_generated_collision.py` | 1 | 1554 |
+| `Tools/Blender/inspect_generated_market.py` | 1 | 1362 |
+| `Tools/Blender/render_generated_market.py` | 1 | 1307 |
+| `Content/Stores/Generated` | 5 | 123191326 |
+| `AssetInbox/ImageBlaster` | 7 | 157982659 |
+| `Saved/ImageBlaster` | 24229 | 742106292 |
+| `Saved/Screenshots/GeneratedStore` | 3 | 2827644 |
+| `Saved/Logs/GeneratedStoreFinalize.log` | 1 | 2170 |
+| `Docs/Environment/IMAGE_BLASTER_MAHALLE_MARKETI.md` | 1 | 7115 |
+| `Docs/Images/GeneratedMarket` | 4 | 4096768 |
+| `Tools/__pycache__` | 9 | 84570 |
+| `Tools/Blender/__pycache__` | 4 | 52956 |
+| `Config/products.json.bak` | 1 | 45063 |
+| `Config/planograms.json.bak` | 1 | 6852 |
+| `Claude outputs` | 15 | 7643958 |
+| `Docs/Devam_G074_Menu` | 20 | 298833 |
+| `Docs/Surec/bekleyen/C16` | 17 | 797476 |
+| `Tools/Arsiv/katalog_olustur.py` | 1 | 14722 |
+| `Saved/Claude/is_git_onceki.cmd` | 1 | 845 |
+| `Saved/Claude/son_git_onceki.log` | 1 | 7766 |
+| `Saved/Claude/m69_git.py` | 1 | 1823 |
+| `Docs/Surec/bekleyen/M28_M29_sirket_finansi.patch` | 1 | 93974 |
+| `Docs/Surec/bekleyen/M28_M30_sirket_finansi.patch` | 1 | 206522 |
+| `Saved/stage_g088.py` | 1 | 2257 |
+| `Saved/stage_g088_r2.py` | 1 | 4629 |
+| `Saved/finalize_g088.py` | 1 | 7076 |
+| `Saved/G088_R2_continuation.md` | 1 | 1392 |
+| `Saved/G088_R2_entry.md` | 1 | 3956 |
+| `Saved/G088Selected.patch` | 1 | 729 |
+| `Saved/store_contact_fix.py` | 1 | 3730 |
+| `Saved/store_map_revision.py` | 1 | 10561 |
+| `Saved/store_review_2d.py` | 1 | 3125 |
+| `Saved/store_review_r2.py` | 1 | 1034 |
+| `Saved/store_ui_turkish.py` | 1 | 1880 |
+| `Saved/store_visual_controls.py` | 1 | 5927 |
+| `Saved/update_g088_r2_docs.py` | 1 | 1864 |
+| `Saved/update_store_ui.py` | 1 | 13313 |
+| `Saved/check_store_routes.py` | 1 | 1710 |
+| `Saved/SM_Handmade_kucuk_017DBF3735451A9FB278DAEEA485B898EE.tmp` | 1 | 164986 |
+| `Saved/SM_Handmade_kucuk_01B490842445F67454E5D710B2CB5F0499.tmp` | 1 | 164986 |
+| `Saved/SM_HandmadeRoof_kucuk_0141E27B894C5A43706474D38C71687D15.tmp` | 1 | 19354 |
+| `Saved/SM_HandmadeRoof_kucuk_015A4B4422496F7D3EC908B9829258A664.tmp` | 1 | 19354 |
+| `Saved/stage_store_editor_r2.py` | 1 | 2210 |
+| `Saved/stage_store_editor_r3.py` | 1 | 2196 |
+| `Saved/stage_store_editor_r4.py` | 1 | 2268 |
+| `Saved/stage_store_editor_r5.py` | 1 | 2233 |
+| `Saved/stage_store_editor_r6.py` | 1 | 2257 |
+| `Saved/stage_store_editor.py` | 1 | 2257 |
+| `⸀` | 0 | 0 |
+| `ഀ⎡` | 0 | 0 |
+| `ﴀ` | 0 | 0 |
+| `봀₺` | 0 | 0 |
+| `쀀⨧` | 0 | 0 |
+| `쀀⩺` | 0 | 0 |
+| `쀀` | 0 | 0 |
+| `섀⨤` | 0 | 0 |
+| `쨀⨤` | 0 | 0 |
+| `匀곆` | 0 | 0 |
+| `欀⋛` | 0 | 0 |
+| `灡⹥湰g` | 0 | 0 |
+| `琀ⷧ` | 0 | 0 |
+| `琀` | 0 | 0 |
+| `䀀⨗` | 0 | 0 |
+| `䀀` | 0 | 0 |
+| `耀⨢` | 0 | 0 |
+| `耀㎣` | 0 | 0 |
+| `耀갯` | 0 | 0 |
+| `耀갴` | 0 | 0 |
+| `耀갵` | 0 | 0 |
+| `耀걂` | 0 | 0 |
+| `耀` | 0 | 0 |
+| `耀` | 0 | 0 |
+| `萀⨑` | 0 | 0 |
+| `礲ⴒ` | 0 | 0 |
+
 ## 05.10.2026 - Codex - G-116 dort format icin dunya market yerlesimleri
 
 Mustafa raf cesitlerinin uygun kullanilmasini ve dunya marketleri incelenerek yeni yerlesimler kurulmasini istedi. REWE kat plani, REWE To Go, Lawson Store 100, Walmart bolum/manav aciklamalari ve Lidl Strood depo/satis ayrimi incelendi. REWE ve Lidl PDF'leri Poppler ile render edilip goruldu; yalniz Saved/LayoutResearch arastirma kopyalaridir. Tasarim kaynaklarin birebir kopyasi degildir; 2.2/2.4 m ana gecisler oyun tercihi, yasal standart iddiasi degil. Yeni rehber Docs/Environment/DUNYA_MARKET_YERLESIMLERI.md kaynak baglantilarini ve kapsam sinirlarini tutar.
