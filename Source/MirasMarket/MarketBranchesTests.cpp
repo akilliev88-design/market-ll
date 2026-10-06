@@ -54,7 +54,7 @@ bool FMarketLayoutTest::RunTest(const FString& Parameters)
     TestTrue(TEXT("Household last"), MarketLayout::AisleRank(TEXT("temizlik")) > MarketLayout::AisleRank(TEXT("s\u00fct")));
 
     FMarketPlanogram Plan = MarketLayout::Fixtures(TEXT("mahalle"));
-    TestEqual(TEXT("The family shop's fixtures"), Plan.Fixtures.Num(), 10);
+    TestEqual(TEXT("The first store's fixtures"), Plan.Fixtures.Num(), 10);
     const TArray<float> Demand = { 20.f, 12.f, 15.f, 8.f, 6.f, 10.f, 5.f, 2.f };
     const MarketLayout::FResult Result = MarketLayout::Plan(Plan, Products, Demand);
     TestEqual(TEXT("Everything found a place"), Result.Placed, Products.Num());
@@ -111,10 +111,13 @@ bool FMarketBranchesTest::RunTest(const FString& Parameters)
     const FSite Home = SiteOf(S, TEXT("tr"), TEXT("kirklareli"));
     TestTrue(TEXT("Home province"), Home.bValid && Home.bHome && !Home.bAbroad);
     TestTrue(TEXT("Room from the population"), Room(Home) == FMath::Max(2, Home.PopulationK / PeoplePerStoreK));
-    FMarketState Poor = S; Poor.InheritedDebt = 100;
-    TestFalse(TEXT("The debt first"), CanOpen(Poor, Products, TEXT("tr"), TEXT("kirklareli"), TEXT("mahalle"), Message));
+    // M69: the inherited debt never blocks a branch (only the money, a few profitable days and the share do).
+    FMarketState Owing = S; Owing.InheritedDebt = 100;
+    FString OwingWhy;
+    CanOpen(Owing, Products, TEXT("tr"), TEXT("kirklareli"), TEXT("mahalle"), OwingWhy);
+    TestFalse(TEXT("The debt is never the reason"), OwingWhy.Contains(TEXT("bor\u00e7")));
     TestFalse(TEXT("Beyond the home province: HR and an accountant"), CanOpen(S, Products, TEXT("tr"), TEXT("tekirdag"), TEXT("mahalle"), Message));
-    TestFalse(TEXT("Hypermarket waits for its chapter"), CanOpen(S, Products, TEXT("tr"), TEXT("kirklareli"), TEXT("hiper"), Message));
+    TestFalse(TEXT("Hypermarket waits for a bigger company"), CanOpen(S, Products, TEXT("tr"), TEXT("kirklareli"), TEXT("hiper"), Message));
     TestFalse(TEXT("Unknown province"), CanOpen(S, Products, TEXT("tr"), TEXT("atlantis"), TEXT("mahalle"), Message));
     // C12 (M42): the first neighbourhood branch at home is cheap to fit out; the difficulty scales fit-out and rent.
     {
@@ -141,9 +144,9 @@ bool FMarketBranchesTest::RunTest(const FString& Parameters)
     TestEqual(TEXT("View-specific opening cost is deposit + fit-out + stock"), Cost, 2 * S.Branches[0].Rent + S.OtherCosts + OpeningStock);
     TestEqual(TEXT("In its province"), S.Branches[0].Province, FString(TEXT("kirklareli")));
     TestTrue(TEXT("Named after the province and type"), S.Branches[0].Name.Contains(TEXT("Mahalle 1")));
-    TestEqual(TEXT("Family shop + branch"), ShopsIn(S, TEXT("tr"), TEXT("kirklareli")), 2);
+    TestEqual(TEXT("First store + branch"), ShopsIn(S, TEXT("tr"), TEXT("kirklareli")), 2);
     TestTrue(TEXT("Shelves planned"), S.Branches[0].Items.ContainsByPredicate([](const FMarketStock& I) { return I.Capacity > 0; }));
-    TestTrue(TEXT("Not open yet: no effect on the family shop"), MainShopFactor(S) >= 1.f);
+    TestTrue(TEXT("Not open yet: no effect on the first store"), MainShopFactor(S) >= 1.f);
     {
         FString Country, Province, Format;
         const int32 Arg = EncodeSite(TEXT("tr"), TEXT("van"), TEXT("buyuk"));
@@ -155,7 +158,7 @@ bool FMarketBranchesTest::RunTest(const FString& Parameters)
     TestEqual(TEXT("Open"), S.Branches[0].Stage, static_cast<uint8>(EStage::Open));
     TestFalse(TEXT("A manager was hired"), S.Branches[0].ManagerName.IsEmpty());
     TestTrue(TEXT("Stocked"), S.Branches[0].Items.ContainsByPredicate([](const FMarketStock& I) { return I.Shelf > 0; }));
-    TestTrue(TEXT("Now it takes a little from the family shop"), MainShopFactor(S) < 1.f);
+    TestTrue(TEXT("Now it takes a little from the first store"), MainShopFactor(S) < 1.f);
     FMarketState Second = S;
     TestFalse(TEXT("Third shop needs HR"), [&] { Open(Second, Products, TEXT("tr"), TEXT("kirklareli"), TEXT("kucuk"), Message); return CanOpen(Second, Products, TEXT("tr"), TEXT("kirklareli"), TEXT("kucuk"), Message); }());
 

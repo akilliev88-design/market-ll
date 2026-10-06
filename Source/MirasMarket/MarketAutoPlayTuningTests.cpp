@@ -57,7 +57,7 @@ bool FMarketC10CostAllocation::RunTest(const FString& Parameters)
     AddStoreCost(Costs,1700,0);AddStoreCost(Costs,2300,HeadOfficeStore);
     Baseline.CloseDay();BeginClose(Baseline,Products);EndClose(Baseline);
     Costs.CloseDay();BeginClose(Costs,Products);EndClose(Costs);
-    TestEqual(TEXT("Same family result despite branch fitout"),Statement(Costs,10,10,FamilyShop).NetProfit,Statement(Baseline,10,10,FamilyShop).NetProfit);
+    TestEqual(TEXT("Same family result despite branch fitout"),Statement(Costs,10,10,FirstStore).NetProfit,Statement(Baseline,10,10,FirstStore).NetProfit);
     TestEqual(TEXT("Branch owns cost"),Statement(Costs,10,10,0).At(EAccount::Marketing),int64(-1700));
     TestEqual(TEXT("Head office owns cost"),Statement(Costs,10,10,HeadOfficeStore).At(EAccount::Marketing),int64(-2300));
     TestEqual(TEXT("Allocation preserves actual cash expense"),Costs.Cash-Baseline.Cash,int64(-4000));

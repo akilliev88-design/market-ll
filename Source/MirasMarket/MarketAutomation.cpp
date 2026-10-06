@@ -102,7 +102,7 @@ bool AMarketGameMode::TickAutomation()
             if (Next < 5) { SetView(Next); ++CaptureStage; CaptureAt=Now; }
             else { UE_LOG(LogTemp,Display,TEXT("MirasStorePreview PASSED: %s, five views"),*StorePreviewId); FPlatformMisc::RequestExitWithStatus(false,0); }
         }
-        return false; // previews have no family-shop customer/worker simulation
+        return false; // previews have no first-store customer/worker simulation
     }
     if (FParse::Param(FCommandLine::Get(), TEXT("MirasSmoke")))
     {

@@ -8,7 +8,7 @@ struct FMarketBranch;
 struct FMarketDecision;
 
 // C16 (Mustafa 03.10.2026: "oyun bir yerden sonra sadece \u015fube a\u00e7ma hissi veriyor"); D9 (04.10.2026): moved onto the one
-// store model: the strategy's draw is part of every store's pull (MarketStoreDemand::Pull), the family shop's too.
+// store model: the strategy's draw is part of every store's pull (MarketStoreDemand::Pull), the first store's too.
 // The middle game's own choices.
 // Independent of the world, tested (MirasMarket.Strategy.*).
 //

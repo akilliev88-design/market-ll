@@ -147,7 +147,7 @@ bool FMarketBalanceOnlineTest::RunTest(const FString& Parameters)
     for (FMarketStock& Row : S.Stock) { Row.Warehouse = 80; Row.Shelf = 20; }
     S.Stock[3].Shelf = 0;
     FString Message;
-    // M32: the family shop sells through the platform (the epidemic's months: many orders).
+    // M32: the first store sells through the platform (the epidemic's months: many orders).
     S.CountryId = TEXT("tr"); S.CityId = TEXT("kirklareli");
     S.Day = MarketOnline::PandemicStart(S) + 10;
     S.Online.Reputation = 90.f;

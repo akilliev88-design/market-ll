@@ -6,7 +6,7 @@
 // Management hierarchy (G-086b, Docs/Kurgu/03_MAGAZA_AGI.md \u00a74). Independent of the world, tested
 // (MirasMarket.Managers.*). Every branch has a store manager (FMarketBranch: hidden skill, honesty and style,
 // morale, warnings, a settling-in week). Above them come, when the network needs them:
-//  - a province manager (a province with 3+ of our branches; the family shop does not count; one per province),
+//  - a province manager (a province with 3+ of our branches; the first store does not count; one per province),
 //  - a sub-region manager (2+ province managers in the sub-region), a main-region director (2+ sub-region managers),
 //  - a country manager (any country with a shop; required in every country once the company is in two).
 // Nobody is appointed automatically. The people of a level that is not appointed answer to the next one above;
@@ -17,8 +17,8 @@
 // one does less and wears good store managers down. A sub-region manager lowers logistics losses, a director
 // brings +0.5 % margin. Managers' wages are paid at the day close like the branches' costs.
 // G-086b ek (Docs/Kurgu/01_KARARLAR.md M19-M22):
-//  - M19: the family shop can get a manager once a branch outside it is open; he counts as one of the player's
-//    people and runs the family's routine in the simulated day (FamilyRule: orders, passing on price rises, shelves).
+//  - M19: the first store can get a manager once a branch outside it is open; he counts as one of the player's
+//    people and runs the family's routine in the simulated day (FirstStoreRule: orders, passing on price rises, shelves).
 //  - M20: a country manager can be appointed once the company has shops in 5 provinces of that country (the family
 //    shop's province counts); before that the level is hidden. In two or more countries he is required everywhere.
 //  - M21: every manager has a hidden ceiling (Potential, 55..95); skill grows in good weeks with a chance that
@@ -34,7 +34,7 @@ namespace MarketManagers
     // packs; once the company is in 3+ countries, required for a continent with 2+ of our countries; a country alone
     // on its continent may keep its country manager under the player) and an optional general manager (Chief, Area
     // "merkez"; once 2 continent directors are appointed). Both are home-country hires; Country holds the campaign's.
-    enum class ELevel : uint8 { Store = 0, Province = 1, SubRegion = 2, Region = 3, Country = 4, FamilyShop = 5, Depot = 6, Continent = 7, Chief = 8 };
+    enum class ELevel : uint8 { Store = 0, Province = 1, SubRegion = 2, Region = 3, Country = 4, FirstStore = 5, Depot = 6, Continent = 7, Chief = 8 };
     // Hidden style of a store manager: careful (small stock, little waste, now and then an empty shelf),
     // generous (full shelves, more waste), price-minded (follows the rivals, may squeeze the margin).
     enum class EStyle : uint8 { Unknown = 0, Careful = 1, Generous = 2, PriceMinded = 3 };
@@ -96,9 +96,9 @@ namespace MarketManagers
     bool IsTierVisible(const FMarketState& State, ELevel Level, const FString& Country, const FString& Area);
     // Tiers() without the country level while it is hidden in that country.
     TArray<ELevel> VisibleTiers(const FMarketState& State, const FString& Country);
-    // Provinces of a country with an open branch of ours (the family shop's province counts in its country).
+    // Provinces of a country with an open branch of ours (the first store's province counts in its country).
     int32 ProvincesWithShops(const FMarketState& State, const FString& Country);
-    // C11 (M40): open shops in a country (the family shop counts at home) and the country manager's share of his band.
+    // C11 (M40): open shops in a country (the first store counts at home) and the country manager's share of his band.
     int32 ShopsInCountry(const FMarketState& State, const FString& Country);
     float CountryWageScale(const FMarketState& State, const FString& Country);
     // C13 (M43): the share of a band a level is paid now (country: shops in the country; depot: what it serves).
@@ -113,12 +113,12 @@ namespace MarketManagers
     const FMarketManager* SubRegionManager(const FMarketState& State, const FString& Country, const FString& SubRegion);
     const FMarketManager* RegionManager(const FMarketState& State, const FString& Country, const FString& Region);
     const FMarketManager* CountryManager(const FMarketState& State, const FString& Country);
-    // Everyone of a level (Store: every branch with a manager; FamilyShop: the family shop's manager if any).
+    // Everyone of a level (Store: every branch with a manager; FirstStore: the first store's manager if any).
     TArray<FPerson> People(const FMarketState& State, ELevel Level);
     // Manager index this person answers to (INDEX_NONE = the player).
     int32 BossOf(const FMarketState& State, const FPerson& Person);
 
-    // The people who answer directly to the player (the family shop only once it has a manager).
+    // The people who answer directly to the player (the first store only once it has a manager).
     TArray<FPerson> DirectReports(const FMarketState& State);
     int32 DirectCount(const FMarketState& State);
     // People beyond the limit and the skill they cost everyone who reports directly (0..25).
@@ -126,7 +126,7 @@ namespace MarketManagers
     int32 SpanPenalty(const FMarketState& State);
     bool ReportsToPlayer(const FMarketState& State, int32 BranchIndex);
 
-    // Our open branches in a province (the family shop never counts) and the skill a province manager needs there.
+    // Our open branches in a province (the first store never counts) and the skill a province manager needs there.
     int32 ProvinceBranches(const FMarketState& State, const FString& Country, const FString& Province);
     int32 RequiredSkill(const FMarketState& State, int32 ManagerIndex);
     int32 ProvinceRequiredSkill(int32 Shops);        // 40 + shops / 3
@@ -181,7 +181,7 @@ namespace MarketManagers
         int64 Wage = 0;                  // per day at today's wage level (what a store manager is paid)
     };
     // The 3 outside candidates of a level and area this week (Country empty = the campaign's; Store: Area = the
-    // province; Country / FamilyShop: Area may be empty). Names are unique in the pool and never one of
+    // province; Country / FirstStore: Area may be empty). Names are unique in the pool and never one of
     // State.Management.UsedNames or anyone working for us now.
     TArray<FCandidate> Candidates(const FMarketState& State, ELevel Level, const FString& Country, const FString& Area);
     // The candidates for a branch's store manager (its province's pool).
@@ -237,7 +237,7 @@ namespace MarketManagers
 
     // Menu command arguments: an area (level, country, area) and a promotion (branch, level: the area is the branch's own).
     // (Level x 100 + country index) x 1000 + area index into MarketCountry::All(), its Cities / SubRegions /
-    // Regions (Depot: Cities; Country and FamilyShop: 0). INDEX_NONE when unknown. A candidate choice adds one digit:
+    // Regions (Depot: Cities; Country and FirstStore: 0). INDEX_NONE when unknown. A candidate choice adds one digit:
     // area argument x 10 + candidate (0..2); a branch's candidate: branch index x 10 + candidate.
     int32 EncodeArea(ELevel Level, const FString& Country, const FString& Area);
     bool DecodeArea(int32 Arg, ELevel& OutLevel, FString& OutCountry, FString& OutArea);
@@ -253,9 +253,9 @@ namespace MarketManagers
     float GrowthChance(int32 Skill, int32 Potential, int32 TenureWeeks);
     int32 GrowSkill(int32 Skill, int32 Potential, int32 TenureWeeks, uint32 Roll, float Pace = 1.f);
 
-    // M19: how the family shop's manager runs its simulated day (MarketSimulation::PlayDay). Without a manager the
+    // M19: how the first store's manager runs its simulated day (MarketSimulation::PlayDay). Without a manager the
     // family's own routine (bManaged false: every value as before).
-    struct FFamilyRule
+    struct FFirstStoreRule
     {
         bool bManaged = false;
         int32 Skill = 0;                 // effective: morale, settling-in week, the player's span, the boss above
@@ -264,9 +264,9 @@ namespace MarketManagers
         int32 RefillEvery = 8;           // shelves are filled after every N shoppers (skill)
         int32 ForgetPermille = 0;        // lines of the order a weak manager forgets (skill)
     };
-    FFamilyRule FamilyRule(const FMarketState& State);
-    // The suggested order shaped by the family shop's manager (seeded by the campaign and the day).
-    void ShapeFamilyOrder(const FMarketState& State, const FFamilyRule& Rule, TArray<int32>& Draft);
+    FFirstStoreRule FirstStoreRule(const FMarketState& State);
+    // The suggested order shaped by the first store's manager (seeded by the campaign and the day).
+    void ShapeFirstStoreOrder(const FMarketState& State, const FFirstStoreRule& Rule, TArray<int32>& Draft);
     // Day close, right after MarketBranches::CloseDay: wages, morale, weekly marks (growth, leaving), the province
     // manager catching a skimmer, the missing country manager, the player's span, a weekly line.
     void CloseDay(FMarketState& State);

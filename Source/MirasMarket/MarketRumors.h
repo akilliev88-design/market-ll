@@ -32,7 +32,7 @@ namespace MarketRumors
     // Chance (0..1) the sources make it true, from Prior and every source.
     float Belief(const FMarketRumor& Rumor);
     FString BeliefName(float Belief);          // "zay\u0131f", "belirsiz", "g\u00fc\u00e7l\u00fc", "\u00e7ok g\u00fc\u00e7l\u00fc"
-    // "Bereket Market'in sat\u0131\u015fa \u00e7\u0131kaca\u011f\u0131 konu\u015fuluyor"
+    // "<zincir>'in sat\u0131\u015fa \u00e7\u0131kaca\u011f\u0131 konu\u015fuluyor"
     FString Headline(const FMarketState& State, const FMarketRumor& Rumor);
     // "2 g\u00fcvenilir do\u011fruluyor, 1 g\u00fcvensiz yalanl\u0131yor"
     FString SourcesText(const FMarketRumor& Rumor);

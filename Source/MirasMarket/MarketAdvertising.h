@@ -5,7 +5,7 @@
 
 // The company's advertising (karar M34, Mustafa 01.10.2026: "reklam verip al\u0131\u015fveri\u015fi art\u0131rabiliriz; reklam
 // \u00e7e\u015fitleri olsun, televizyon, sosyal medya, hepsi bir arada"). Independent of the world, tested
-// (MirasMarket.Advertising.*). The family shop's neighbourhood flyer stays a shop promotion (MarketPromotions).
+// (MirasMarket.Advertising.*). The first store's neighbourhood flyer stays a shop promotion (MarketPromotions).
 //  - Per country where we have shops, six channels, each with a budget level 0..3 (a month):
 //      TV        national, dear, the strongest and the slowest to fade; worth it for a big network.
 //      Radio     cheaper, regional voice, fades faster.

@@ -35,7 +35,7 @@
 
 float MarketDirector::TrafficFactor(const FMarketState& State, const TArray<FMarketProduct>& Products)
 {
-    return static_cast<float>(MarketStoreDemand::FamilyShoppers(State, Products, State.Day)) / static_cast<float>(MarketSimulation::ShoppersPerDay);
+    return static_cast<float>(MarketStoreDemand::FirstStoreShoppers(State, Products, State.Day)) / static_cast<float>(MarketSimulation::ShoppersPerDay);
 }
 
 double MarketDirector::ToleranceBonus(const FMarketState& State, const FMarketProduct& Product)
@@ -162,7 +162,7 @@ bool MarketDirector::Command(FMarketState& State, const TArray<FMarketProduct>& 
     if (Action == TEXT("Decide")) return MarketEvents::Decide(State, Products, Arg, OutMessage);
     if (Action == TEXT("FreshPolicy")) return MarketFreshness::SetPolicy(State, static_cast<MarketFreshness::EPolicy>(FMath::Clamp(Arg, 0, 2)), OutMessage);
     if (Action == TEXT("TakeLoan")) return MarketFinance::TakeLoan(State, Arg, OutMessage);
-    if (Action == TEXT("PromoStore")) return MarketPromotions::SetStore(State, Arg, OutMessage); // M38: -1 family shop, -1000 all, a branch
+    if (Action == TEXT("PromoStore")) return MarketPromotions::SetStore(State, Arg, OutMessage); // M38: -1 first store, -1000 all, a branch
     // M37: our salary (step), a dividend (step 0..2 = 25/50/100 % of what may be paid), personal money into the company.
     if (Action == TEXT("OwnerSalary")) return MarketOwner::SetSalary(State, Arg, OutMessage);
     if (Action == TEXT("Dividend")) return MarketOwner::PayDividend(State, Arg, OutMessage);
@@ -351,18 +351,18 @@ FString MarketDirector::ReportText(const FMarketState& State)
 void MarketDirector::CloseDay(FMarketState& State, const TArray<FMarketProduct>& Products)
 {
     State.DayNews.Reset();
-    // C3 order: the books open first (the family shop's day from FMarketState::CloseDay's counters), the eras set
+    // C3 order: the books open first (the first store's day from FMarketState::CloseDay's counters), the eras set
     // the day's economy, then every system; the books close and the goals look at the finished day last.
     MarketLedger::BeginClose(State, Products); // B2
     MarketEras::CloseDay(State);               // B4: this campaign's eras (price curve, effects, news)
     MarketPromotions::CloseDay(State, Products); // running promotions, results, funded offers (G-064)
-    if (State.Day % 7 == 1) // M38: the family shop's manager clears slow goods once a week, like every store manager
+    if (State.Day % 7 == 1) // M38: the first store's manager clears slow goods once a week, like every store manager
     {
         const FString Cleared = MarketPromotions::ManagerClearance(State, Products);
         if (!Cleared.IsEmpty()) State.DayNews.Add(Cleared);
     }
     MarketFreshness::CloseDay(State, Products);  // batches, waste, donations (G-067) - before the books
-    MarketStoreDemand::CloseDay(State, Products); // E2: the family shop's share of its province (one store formula)
+    MarketStoreDemand::CloseDay(State, Products); // E2: the first store's share of its province (one store formula)
     MarketChains::Poach(State, State.Day - 1);    // a chain of the home province offers one of our people a job
     MarketBranches::CloseDay(State, Products);   // opening steps and the simulated day of every branch (G-068)
     MarketManagers::CloseDay(State);             // managers' wages, morale, weekly marks, the player's span (G-086b)
@@ -384,7 +384,7 @@ void MarketDirector::CloseDay(FMarketState& State, const TArray<FMarketProduct>&
     MarketSuppliers::CloseDay(State); // price list, payment terms, bills due, wholesaler news (G-063)
     MarketStaff::CloseDay(State);     // till, fatigue, morale, notices, HR, accountant and the weekly tax (G-060)
     MarketEvents::CloseDay(State, Products); // decisions past their day, modifiers, snow, a new neighbourhood event (G-066)
-    MarketStory::CloseDay(State, Products);  // scenes, milestones, chapters (G-066)
+    MarketStory::CloseDay(State, Products);  // milestones and the identity choice (M69)
     MarketBanking::CloseDay(State);           // M28: company loans, the credit line (covers a negative till first), rating, covenants
     MarketBanking::CloseApps(State);          // C13 (M43): the banks' answers to our applications
     MarketFinance::CloseDay(State, Products); // loans, the money trouble ladder, month-end report (G-067)

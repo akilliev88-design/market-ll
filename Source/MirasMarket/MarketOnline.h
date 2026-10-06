@@ -19,14 +19,14 @@
 //   Web       a site, from 2 shops: big baskets, slow start, card commission.
 //   App       from the web site and 8 shops, built by a software house (a decision card: cheap / solid / premium);
 //             the dearest orders to deliver but the biggest and most loyal baskets.
-//   Platform  the country's platform (any shop, the family shop too): its couriers, its commission, its stars.
+//   Platform  the country's platform (any shop, the first store too): its couriers, its commission, its stars.
 //   Quick     our own 30-minute delivery: the app and a dark store in the province (from 4 of our shops there).
 // Where: every province with our shops is an area; it starts with the company's rule. A province manager does not
 // flip channels: at a month's end he looks at the last months (three losing months of a channel, a channel the
 // company has but the province misses, a dark store worth building) and sends a proposal up the line (the country
 // manager, else the region's, else the sub-region's); nothing changes until we approve the card. Without a
 // province manager the company's rule applies. The player can set an area himself and give it back. There is no courier to hire in a shop: own deliveries are paid per order (couriers of the company).
-// Orders are picked from the shops' stock (the family shop's depot and shelf, a branch's shelves); an empty item is
+// Orders are picked from the shops' stock (the first store's depot and shelf, a branch's shelves); an empty item is
 // replaced by the chosen rule. More own orders than a shop can pick come late or are cancelled.
 // Rivals: the country's chains go online in their own time (the assistant tells), the platform opens its own
 // market later and asks for more commission now and then (decision cards). An e-commerce manager raises the stars,
@@ -98,7 +98,7 @@ namespace MarketOnline
     float Stars(const FMarketState& State);
     float AppStars(const FMarketState& State);
 
-    // Our shops (family shop and open branches) in a province, and in the company.
+    // Our shops (first store and open branches) in a province, and in the company.
     int32 ShopsIn(const FMarketState& State, const FString& Country, const FString& Province);
     int32 TotalShops(const FMarketState& State);
 

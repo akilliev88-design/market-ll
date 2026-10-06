@@ -25,7 +25,7 @@ class SToolTip;
 //   4 Kampanya    discounts, 3-for-2, end caps, the wholesaler's offer, every running promotion
 //   5 Rakipler    local (live shares), national chains and the world league (MarketChains)
 //   6 Personel    staff, applicants, HR
-//   7 Finans      till, bank loans, taxes and the accountant, perishables, the rent to the parents (M36)
+//   7 Finans      till, bank loans, taxes and the accountant, perishables, the first store's building (M69)
 //   8 Satis       phone / web / platform orders, couriers, card and meal-card payments
 //   9 Magazalar   every shop by province (grade, manager and the decisions on him, close), management (the
 //                 player's span, province / regional / country managers, G-086b), the company (depots, trucks)
@@ -119,6 +119,9 @@ private:
     // G-084 new-game chooser (Ozet, ZAMAN card). Empty = the running campaign's country / the country's first city.
     FString NewCountry;
     FString NewCity;
+    FString NewMarketName;          // M69: the market's name (required)
+    FString NewPlayerName;          // M69: the player's own name (optional)
+    int32 NewDifficulty = 1;        // M69: 0 easy, 1 normal, 2 hard
 
     // A risky decision waiting for "Evet".
     FString ConfirmText;
@@ -225,7 +228,7 @@ private:
     TSharedRef<SWidget> WeekReport();
     TSharedRef<SWidget> GoalList();
     TSharedRef<SWidget> DecisionCard();   // G-066 waiting choice (story / event)
-    TSharedRef<SWidget> StoryCard();      // G-066 chapter goals, identity, last memory
+    TSharedRef<SWidget> StoryCard();      // M69: the company's identity and newest memories
     TSharedRef<SWidget> TodoList();       // G-074 what to do now
     TSharedRef<SWidget> GoalsCard();      // C3 (B6): three goals and the last celebrations
     TSharedRef<SWidget> RecordsView();    // C3 (B6): records and celebrations

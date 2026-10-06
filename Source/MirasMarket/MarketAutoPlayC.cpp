@@ -27,7 +27,7 @@ namespace MarketAutoPlayC
         const auto Site=MarketBranches::SiteOf(State,Country,Province);
         const auto& Kind=MarketBranches::FormatInfo(Format);
         if(!Site.bValid || Site.PopulationK<Kind.MinPopulationK)return false;
-        if(Kind.Chapter>0 && !MarketCompany::ChapterOpen(State,Kind.Chapter))return false;
+        {FString Why;if(!MarketBranches::FormatOpen(State,Kind.Id,Why))return false;}
         float Km=0.f;
         return !Kind.bNeedsDepot || MarketDepots::Nearest(State,Country,Province,false,Km)!=INDEX_NONE;
     }

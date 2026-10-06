@@ -6,7 +6,7 @@
 
 // Who the shopper is (G-062, Docs/Kurgu/00_KURGU_KITABI.md \u00a76). Independent of the world, tested
 // (MirasMarket.Customers.Segments). Every neighbourhood customer (MarketBasket loyalty id) has a fixed segment, so a
-// returning customer is recognisably the same kind of person; id 0 is Nermin teyze (retired, the street's memory).
+// returning customer is recognisably the same kind of person.
 // The segment decides when they come, what is on their list, how much they buy, how much they can spend, how far
 // the price may be above the rival's, how long they wait, how fast they walk and how long they look at a shelf.
 namespace MarketCustomers
@@ -27,8 +27,7 @@ namespace MarketCustomers
         float Preference[static_cast<int32>(MarketGoods::EGroup::Count)] = {};
     };
 
-    constexpr int32 NerminTeyzeId = 0;
-    // District mix of the starting street (\u0130stasyon), percent: retired, family, worker, student, trader, child.
+    // District mix of the starting street, percent: retired, family, worker, student, trader, child.
     constexpr int32 StationMix[static_cast<int32>(ESegment::Count)] = { 22, 28, 24, 12, 6, 8 };
 
     const FProfile& Profile(ESegment Segment);

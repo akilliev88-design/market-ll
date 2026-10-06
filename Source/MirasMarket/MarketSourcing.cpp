@@ -22,7 +22,7 @@ namespace MarketSourcingLocal
 
     int32 Shops(const FMarketState& State)
     {
-        int32 Count = 1; // the family shop
+        int32 Count = 1; // the first store
         for (const FMarketBranch& B : State.Branches) if (B.Stage == static_cast<uint8>(MarketBranches::EStage::Open)) ++Count;
         return Count;
     }
@@ -171,7 +171,7 @@ FString MarketSourcing::NextStep(const FMarketState& State, ELine Line)
 void MarketSourcing::CloseDay(FMarketState& State, const TArray<FMarketProduct>& Products)
 {
     MarketSourcingLocal::Fit(State);
-    // The family shop's day: what it sold is what it buys again.
+    // The first store's day: what it sold is what it buys again.
     for (int32 I = 0; I < Products.Num() && I < State.Stock.Num(); ++I)
         RecordPurchase(State, Products[I].Category, static_cast<int64>(State.Stock[I].Yesterday.Sold) * Products[I].Cost);
     FMarketSourcingState& S = State.Sourcing;

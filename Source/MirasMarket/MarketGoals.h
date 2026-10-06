@@ -9,18 +9,18 @@ struct FMarketProduct;
 // Ak\u0131\u015f B6 (Docs/Kurgu/07_AKIL_ISBOLUMU.md \u00a74, 06_GIDIS_YOLU.md \u00a72b "bir tur daha"): goals, milestones, records,
 // celebrations and the rhythm guard. Independent of the world, seeded, tested (MirasMarket.Goals.*).
 //
-//  - Goals in three scales run at the same time: short (this week), medium (this month), long (this year / the
-//    chapter). They follow the player's stage (family shop -> first branches -> provinces -> the country ->
-//    abroad) and the player's own recent numbers: never the same kind twice in a row, never one whose door is still
+//  - Goals in three scales run at the same time: short (this week), medium (this month), long (this year). None
+//    is required and none unlocks anything (M69: no chapters). They follow the player's stage (one shop -> first
+//    branches -> provinces -> the country -> abroad) and the player's own recent numbers: never the same kind twice in a row, never one whose door is still
 //    shut, never one already as good as done. A short goal is always on the screen (a shelf / service goal is the
 //    fallback), so something is always about to finish.
-//  - Firsts (first branch, 10th shop, debt closed...) and records (best day / week / month, most shops) write a
+//  - Firsts (first branch, 10th shop, first depot...) and records (best day / week / month, most shops) write a
 //    celebration (title, one sentence, importance 0..2). Rewards are small and meaningful: a memory, the team's
 //    morale, the wholesaler's trust; never a big sum of money.
 //  - Rhythm guard: a long quiet stretch (no event, no decision, no milestone; 15 / 20 / 25 days by difficulty)
 //    brings a pleasant or interesting event; too many bad events in 7 days (2 / 3 / 4 by difficulty) hold the next
 //    bad one back (MarketEvents asks HoldBadEvent).
-//  - The J02 finale hook for the world league (MarketChains, Ak\u0131\u015f C): OnLeagueYear.
+//  - The world league (MarketChains, Ak\u0131\u015f C) reports each league year: OnLeagueYear (firsts only; M69: no finale).
 
 // One running goal (MarketGoals::EGoal / EScale as uint8).
 USTRUCT()
@@ -63,7 +63,7 @@ struct FMarketGoals
     UPROPERTY() int64 BestMonthProfit = 0;
     UPROPERTY() int32 MostStores = 0;
     UPROPERTY() int32 RecordDay = 0;         // last record celebration (records are told at most once a week)
-    // The last 30 closed days (company revenue, company profit, family-shop shelf fill in per mille).
+    // The last 30 closed days (company revenue, company profit, the visited store's shelf fill in per mille).
     UPROPERTY() TArray<int64> RecentRevenue;
     UPROPERTY() TArray<int64> RecentProfit;
     UPROPERTY() TArray<int32> RecentFill;
@@ -73,10 +73,7 @@ struct FMarketGoals
     UPROPERTY() TArray<int32> BadEventDays;  // closed days of bad events (last 7 days)
     UPROPERTY() int32 QuietEvents = 0;       // pleasant events the guard brought
     UPROPERTY() int32 HeldBadEvents = 0;     // bad events it held back
-    // J02 (the world league, MarketChains): operating result of the running league year and the years in a row
-    // as the first.
-    UPROPERTY() int64 LeagueYearEbitda = 0;
-    UPROPERTY() int32 LeagueFirstYears = 0;
+    // The world league (MarketChains): our rank in the last league year (0 = not listed).
     UPROPERTY() int32 LastLeagueRank = 0;
 };
 
@@ -89,16 +86,13 @@ namespace MarketGoals
         DayRevenue = 0,   // a day's revenue
         WeekProfit,       // net profit this week
         ShelvesFull,      // shelves 90 % full three closes in a row
-        PayDebt,          // pay part of the inherited debt
         Service,          // shoppers served this week (always possible)
         // medium
         MoreStores,
         MonthProfit,
         LocalShare,
         FirstDepot,
-        DebtFree,
         // long
-        Chapter,          // the chapter's goals (MarketStory::Objectives)
         Provinces,
         NationalShare,    // per mille of a percent: Target 100 = 0.1 %
         Abroad,
@@ -107,12 +101,12 @@ namespace MarketGoals
     };
     enum class EFirst : uint8
     {
-        ProfitDay = 0, DebtCleared, FirstBranch, Stores5, Stores10, Stores25, Stores50, Stores100, Stores250, Stores500, Stores1000,
+        ProfitDay = 0, FirstBranch, Stores5, Stores10, Stores25, Stores50, Stores100, Stores250, Stores500, Stores1000,
         Provinces2, Provinces5, Provinces10, Provinces20, FirstDepot, Abroad, OnlineOrder, Share01, Share1, League10, League3, League1,
         Count
     };
 
-    // The player's stage: 0 family shop, 1 first branches, 2 more provinces, 3 the country, 4 abroad.
+    // The player's stage: 0 one shop, 1 first branches, 2 more provinces, 3 the country, 4 abroad.
     int32 Stage(const FMarketState& State);
 
     struct FGoalView
@@ -145,9 +139,7 @@ namespace MarketGoals
     int32 QuietDays(const FMarketState& State);   // difficulty threshold of a quiet stretch
     int32 BadLimit(const FMarketState& State);    // bad events allowed in 7 days
 
-    // J02: C's world league calls this when a league year closes (Rank 1 = first). Two league years in a row as the
-    // first, with a positive operating result and debt below three times it, in chapter 7, bring "Miras".
-    constexpr int32 FinaleYears = 2;
+    // C's world league calls this when a league year closes (Rank 1 = first, 0 = not listed): the league firsts.
     void OnLeagueYear(FMarketState& State, int32 Rank, bool bFullYear = true);
 
     // Day close (MarketDirector, Ak\u0131\u015f B block at the end, after MarketEvents and the books).

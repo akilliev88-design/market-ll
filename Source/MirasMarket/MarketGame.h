@@ -480,7 +480,8 @@ public:
     // capture runs keep the prototype's empty shop.
     void StartShop();
     // Menu "Yeni oyun": a fresh campaign in the active slot, in the chosen country and city.
-    void StartNewCampaign(const FString& Country, const FString& City);
+    // M69: the new-game screen's choices: country, city, the market's name, the player's name, the difficulty.
+    void StartNewCampaign(const FString& Country, const FString& City, const FString& MarketName, const FString& PlayerName, int32 Difficulty);
     AActor* Box(FVector Location, FVector Size, FLinearColor Color, bool bCollision = true);
     // bCenter: text is vertically centered on Location (signs, tags); otherwise it hangs from it.
     UTextRenderComponent* Label(FVector Location, FRotator Rotation, const FString& Text, float Size = 20, FColor Color = FColor::White, bool bCenter = false);

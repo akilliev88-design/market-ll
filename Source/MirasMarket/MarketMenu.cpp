@@ -90,7 +90,6 @@ void AMarketGameMode::RefreshSlotSummaries()
         if (Save->State.Version != FMarketState::CurrentVersion) { SlotSummaries.Add(TEXT("eski s\u00fcr\u00fcm \u00b7 yeni oyun ba\u015flat")); continue; }
         FString Text = FString::Printf(TEXT("G\u00fcn %d \u00b7 %s"), Save->State.Day, *MarketCalendar::DateText(Save->State.Day));
         if (Save->State.Story.bCampaignOver) Text += TEXT(" \u00b7 bitti");
-        else if (Save->State.Story.bEnded) Text += TEXT(" \u00b7 son sonras\u0131");
         if (Save->State.bUsedTestMode) Text += TEXT(" \u00b7 test");
         SlotSummaries.Add(Text);
     }
@@ -101,8 +100,11 @@ void AMarketGameMode::ResetCampaign()
     if (bArrange) ExitArrange(FString());
     DropCarriedDelivery();
     LoadPlanogram(); ++ArrangeVersion; // G-078 (#5): a new campaign starts from the shop's plan file
-    const FString Country = State.CountryId, City = State.CityId; // a new campaign stays in the chosen country
+    // A new campaign keeps the chosen country, city, names and difficulty (M69: the new-game screen sets them).
+    const FString Country = State.CountryId, City = State.CityId, Brand = State.Company.BrandName, Player = State.PlayerName;
+    const uint8 Difficulty = State.Difficulty;
     State.Initialize(CatalogBase); State.RivalSeed = FMath::Rand(); State.CountryId = Country; State.CityId = City;
+    State.Company.BrandName = Brand; State.PlayerName = Player; State.Difficulty = Difficulty;
     MarketCountry::SetActive(State.CountryId, State.RivalSeed); MarketEras::Activate(State); RefreshPrices(); bWeekJustEnded = false; RebuildShelfContents(); ApplyCapacities();
     StartShop();
     SyncWorkers(); ResetWorkerJobs(); OrderDraftCases.Init(0, Products.Num()); RefreshDeliveryCrates();
@@ -120,12 +122,17 @@ void AMarketGameMode::StartShop()
     RebuildShelfContents();
 }
 
-void AMarketGameMode::StartNewCampaign(const FString& Country, const FString& City)
+void AMarketGameMode::StartNewCampaign(const FString& Country, const FString& City, const FString& MarketName, const FString& PlayerName, int32 Difficulty)
 {
     if (bOpen) { Notify(TEXT("Yeni oyun i\u00e7in \u00f6nce g\u00fcn\u00fc kapat.")); return; }
     if (!MarketCountry::FindCity(Country, City)) { Notify(TEXT("\u00d6nce bir il se\u00e7.")); return; }
+    const FString Name = MarketName.TrimStartAndEnd();
+    if (Name.IsEmpty() || Name.Len() > 24) { Notify(TEXT("Marketin ad\u0131 1-24 harf olmal\u0131.")); return; }
     State.CountryId = Country;
     State.CityId = City;
+    State.Company.BrandName = Name;
+    State.PlayerName = PlayerName.TrimStartAndEnd().Left(MarketStart::MaxPlayerNameLength);
+    State.Difficulty = static_cast<uint8>(FMath::Clamp(Difficulty, 0, 2));
     ResetCampaign();
     SaveCampaign();
     RefreshSlotSummaries();
@@ -343,8 +350,6 @@ const TArray<FMarketTodo>& AMarketGameMode::Todos() const
     // E2: a chain's price war against us in the home province.
     const int32 War = MarketChains::WarIn(State, State.CountryId, MarketStart::HomeProvince(State), State.Day);
     if (War != INDEX_NONE) Add(1, TEXT("Rakip fiyat sava\u015f\u0131nda"), FString::Printf(TEXT("%s ilde fiyatlar\u0131n\u0131 k\u0131rd\u0131 (%d. g\u00fcne kadar)."), *State.Rivals.Chains[War].Name, State.Rivals.Chains[War].WarUntil), SMarketMenu::Rivals);
-    if (MarketCampaign::DebtOpen(State) && State.Cash >= MarketCampaign::InstallmentOf(State) * 3)
-        Add(0, TEXT("\u0130\u015fletmenin borcu"), FString::Printf(TEXT("%s kald\u0131. Kasa yetiyor: bir taksit \u00f6deyebilirsin."), *MarketCountry::Money(State.InheritedDebt)), SMarketMenu::Summary);
     if (!bOpen && OrderDraftCaseCount() > 0)
         Add(0, TEXT("Sipari\u015f listesi onay bekliyor"), FString::Printf(TEXT("%d koli, %s. Onaylanmazsa gelmez."), OrderDraftCaseCount(), *MarketCountry::Money(OrderDraftBill())), SMarketMenu::Orders);
     // G-086b management: a required country manager missing, the player's span beyond 5, a skimming store manager,
@@ -383,16 +388,16 @@ const TArray<FMarketTodo>& AMarketGameMode::Todos() const
             break; // one at a time
         }
     }
-    // G-086b ek (M19): the family shop can get a manager once the second shop is open; suggested for a week.
-    if (MarketManagers::FindManager(State, MarketManagers::ELevel::FamilyShop, State.CountryId, FString()) == INDEX_NONE)
+    // G-086b ek (M19): the first store can get a manager once the second shop is open; suggested for a week.
+    if (MarketManagers::FindManager(State, MarketManagers::ELevel::FirstStore, State.CountryId, FString()) == INDEX_NONE)
     {
         FString Reason;
         int32 FirstOpen = MAX_int32;
         for (const FMarketBranch& Branch : State.Branches)
             if (Branch.Stage == static_cast<uint8>(MarketBranches::EStage::Open)) FirstOpen = FMath::Min(FirstOpen, Branch.OpenedDay);
         if (FirstOpen != MAX_int32 && State.Day - FirstOpen < 7
-            && MarketManagers::CanAppoint(State, MarketManagers::ELevel::FamilyShop, State.CountryId, FString(), INDEX_NONE, Reason))
-            Add(0, TEXT("Aile d\u00fckk\u00e2n\u0131na m\u00fcd\u00fcr atanabilir"),
+            && MarketManagers::CanAppoint(State, MarketManagers::ELevel::FirstStore, State.CountryId, FString(), INDEX_NONE, Reason))
+            Add(0, TEXT("\u0130lk ma\u011fazana m\u00fcd\u00fcr atanabilir"),
                 TEXT("\u0130kinci ma\u011fazan a\u00e7\u0131ld\u0131. D\u00fckk\u00e2n\u0131 bir m\u00fcd\u00fcre b\u0131rak\u0131rsan sipari\u015f, zam ve raflar\u0131 o y\u00fcr\u00fct\u00fcr; sana ba\u011fl\u0131 5 ki\u015fiden biri say\u0131l\u0131r. Ma\u011fazalar \u203a Y\u00f6netim."), SMarketMenu::Branches);
     }
     // G-089 (M23) depots: one without a manager, one beyond its capacity, branches too far from any depot.
@@ -499,9 +504,8 @@ const TArray<FMarketTodo>& AMarketGameMode::Todos() const
         const EGoal K = Goal.Kind;
         const int32 GoalPage = K == EGoal::MoreStores || K == EGoal::Provinces || K == EGoal::Abroad || K == EGoal::FirstDepot ? SMarketMenu::Branches
             : K == EGoal::ShelvesFull ? SMarketMenu::Orders
-            : K == EGoal::PayDebt || K == EGoal::DebtFree ? SMarketMenu::Finance
             : K == EGoal::LocalShare || K == EGoal::NationalShare ? SMarketMenu::Promotions
-            : K == EGoal::Chapter ? SMarketMenu::Reports : SMarketMenu::Prices;
+            : K == EGoal::MonthProfit || K == EGoal::YearProfit || K == EGoal::WeekProfit ? SMarketMenu::Reports : SMarketMenu::Prices;
         Add(0, FString::Printf(TEXT("Hedef: %s"), *Goal.Title), FString::Printf(TEXT("%%%.0f tamam, %d g\u00fcn kald\u0131. %s"), Goal.Progress * 100.f, Goal.DaysLeft, *Goal.Why), GoalPage);
     }
     TodoCache.StableSort([](const FMarketTodo& A, const FMarketTodo& B) { return A.Severity > B.Severity; });

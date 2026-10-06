@@ -196,7 +196,6 @@ namespace MarketCountry
         float OnlinePlateau = 0.08f;    // M32: share of grocery bought online once it settles ("online.plateau")
         TArray<int32> ClimateTemperature; // M35: monthly mean temperature, January .. December ("climate.temperature")
         TArray<int32> ClimateRain;        // M35: chance of rain a day, percent ("climate.rain")
-        TArray<FString> Relatives;      // who left the shop ("teyzen", "aunt"...)
         TArray<FCity> Cities;           // G-086: the provinces (every one a possible start and store place)
         FString CitiesFile;             // province/map file, e.g. "iller.json" ("provinces"/"cities" given as a file name)
         TArray<FRegion> Regions;        // main regions

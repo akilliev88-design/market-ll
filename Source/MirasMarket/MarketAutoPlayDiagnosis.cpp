@@ -68,13 +68,13 @@ namespace MarketAutoPlayDiagnosis
             Stats.Hr += Role == MarketStaff::ERole::HrManager; Stats.Accountant += Role == MarketStaff::ERole::Accountant;
             Roster += FString::Printf(TEXT("%d:%s:%d:%lld|"), Person.Id, *Safe(Person.Name), static_cast<int32>(Role), Person.DailyWage);
         }
-        Stats.ManagerCost = Stats.FamilyManagerCost = 0; Stats.Managers.Empty();
+        Stats.ManagerCost = Stats.FirstStoreManagerCost = 0; Stats.Managers.Empty();
         Stats.ManagersBefore = State.Management.Managers;
         for (const auto& Manager : State.Management.Managers)
         {
             const int64 Cost = MarketStaff::EmployerCost(MarketManagers::DailyWage(State, Manager));
             Stats.ManagerCost += Cost;
-            if (Manager.Level == static_cast<uint8>(MarketManagers::ELevel::FamilyShop)) Stats.FamilyManagerCost += Cost;
+            if (Manager.Level == static_cast<uint8>(MarketManagers::ELevel::FirstStore)) Stats.FirstStoreManagerCost += Cost;
             Stats.Managers += FString::Printf(TEXT("%s:%d:%lld|"), *Safe(Manager.Name), Manager.Level, Cost);
         }
         Roster += Stats.Managers;
@@ -92,15 +92,15 @@ namespace MarketAutoPlayDiagnosis
             Stats.Events.Add(FString::Printf(TEXT("%d,lifeline,0,wholesaler\n"),Closed));
         if(State.LowCashWarnDay>Stats.WarningBefore)Stats.Events.Add(FString::Printf(TEXT("%d,goods_warning,0,cash\n"),Closed)); const auto Date = MarketCalendar::DateOf(Closed);
         using A = MarketLedger::EAccount;
-        const auto Family = MarketLedger::Statement(State, Closed, Closed, MarketLedger::FamilyShop);
+        const auto Family = MarketLedger::Statement(State, Closed, Closed, MarketLedger::FirstStore);
         const auto Company = MarketLedger::Statement(State, Closed, Closed);
         // Management is paid after the day has advanced. Read the booked gross total, including managers
         // removed by a rescue later in the same close, rather than using yesterday's wage index.
         Stats.ManagerCost = MarketStaff::EmployerCost(State.Management.LastWages);
-        Stats.FamilyManagerCost = 0;
+        Stats.FirstStoreManagerCost = 0;
         for (const auto& Manager : Stats.ManagersBefore)
-            if (Manager.Level == static_cast<uint8>(MarketManagers::ELevel::FamilyShop))
-                Stats.FamilyManagerCost += MarketStaff::EmployerCost(MarketManagers::DailyWage(State, Manager));
+            if (Manager.Level == static_cast<uint8>(MarketManagers::ELevel::FirstStore))
+                Stats.FirstStoreManagerCost += MarketStaff::EmployerCost(MarketManagers::DailyWage(State, Manager));
         int32 Sold = 0, Expensive = 0, Empty = 0, Missing = 0;
         for (const auto& Item : State.Stock) { Sold += Item.Yesterday.Sold; Expensive += Item.Yesterday.Expensive; Empty += Item.Yesterday.Empty; Missing += Item.Yesterday.NotCarried; }
         FString Row;
@@ -111,7 +111,7 @@ namespace MarketAutoPlayDiagnosis
         N(Family.Revenue); N(-Family.At(A::CostOfGoods)); N(Family.GrossProfit); N(-Family.At(A::Wages)); N(-Family.At(A::SocialSecurity)); N(-Family.At(A::Rent)); N(-Family.At(A::Utilities)); N(-Family.At(A::Waste));
         N(-Family.Expenses + Family.At(A::Wages) + Family.At(A::SocialSecurity) + Family.At(A::Rent) + Family.At(A::Utilities) + Family.At(A::Interest) + Family.At(A::Tax));
         N(Family.NetProfit - Family.At(A::Interest) - Family.At(A::Tax)); N(Company.NetProfit - Company.At(A::Interest) - Company.At(A::Tax)); N(Company.NetProfit); N(-Company.At(A::Interest)); N(-Company.At(A::Tax)); N(-Company.At(A::TaxPayment));
-        N(MarketSuppliers::OpenBills(State)); N(State.Cash); N(State.Owner.TotalSalary - Stats.SalaryBefore); N(State.Owner.TotalDividends - Stats.DividendBefore + Stats.PendingDividend); N(State.Owner.Wealth); N(Stats.ManagerCost); N(Stats.FamilyManagerCost);
+        N(MarketSuppliers::OpenBills(State)); N(State.Cash); N(State.Owner.TotalSalary - Stats.SalaryBefore); N(State.Owner.TotalDividends - Stats.DividendBefore + Stats.PendingDividend); N(State.Owner.Wealth); N(Stats.ManagerCost); N(Stats.FirstStoreManagerCost);
         N(Stats.StaffCount); N(Stats.Cashiers); N(Stats.Stockers); N(Stats.Hr); N(Stats.Accountant); F(Stats.Shelf); F(Stats.List); F(Stats.Purchase); F(Stats.Book); F(Stats.Target); F(MarketPrices::ListLevel(Closed)); F(State.MarketShare); F(MarketDirector::BudgetFactor(State, 0)); F(MarketEras::BudgetFactor(State)); F(MarketEras::ImportCostFactor(State, 1.f, Closed)); F(MarketEras::NonFoodDemand(State, Closed));
         MarketEras::FEra Era; S(MarketEras::Current(State, Closed, Era) ? FString::FromInt(static_cast<int32>(Era.Kind)) : TEXT("none"));
         S(FString::Printf(TEXT("%.4f"), MarketDirector::RivalPriceFactor(State, FString()))); // E2: the home province's rival price level

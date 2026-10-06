@@ -12,6 +12,7 @@ bool FMarketSubsidiariesTest::RunTest(const FString& Parameters)
 {
     using namespace MarketSubsidiaries;
     FMarketState S; S.RivalSeed = 3; S.Day = 40; S.Cash = 10000000; S.CountryId = MarketCountry::DefaultId();
+    S.Company.BrandName = TEXT("Deniz Market"); // M69: the player names the market at the start
     const MarketCountry::FProfile& HomePack = MarketCountry::FindOrDefault(S.CountryId);
 
     // The parent company at home: the brand + the country's first legal form, no cost.
@@ -39,8 +40,8 @@ bool FMarketSubsidiariesTest::RunTest(const FString& Parameters)
     TestEqual(TEXT("Next suggestion"), NextSuggestion(S, Abroad), Brand(S) + TEXT(" ") + Pack.LegalForms[1]);
     TestFalse(TEXT("Empty refused"), SetLegalName(S, Abroad, TEXT("   "), Message));
     TestFalse(TEXT("Too long refused"), SetLegalName(S, Abroad, FString::ChrN(MaxNameLength + 1, TEXT('a')), Message));
-    TestTrue(TEXT("Own name"), SetLegalName(S, Abroad, TEXT("Miras  Avrupa   Holding"), Message));
-    TestEqual(TEXT("Spaces tidied"), LegalName(S, Abroad), FString(TEXT("Miras Avrupa Holding")));
+    TestTrue(TEXT("Own name"), SetLegalName(S, Abroad, TEXT("Deniz Market  Avrupa   Holding"), Message));
+    TestEqual(TEXT("Spaces tidied"), LegalName(S, Abroad), FString(TEXT("Deniz Market Avrupa Holding")));
 
     // A new brand: names that carry the old one follow it.
     TestTrue(TEXT("New brand"), SetBrand(S, TEXT("Yildiz"), Message));

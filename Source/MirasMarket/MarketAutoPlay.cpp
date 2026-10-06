@@ -98,7 +98,7 @@ namespace MarketAutoPlay
         FString Message;
         const int64 Reserve = FMath::Max(Buffer(State, Profile), MarketAutoPlayFinance::NetworkReserve(State));
         // Estimate recoverable gross profit from visible service losses, never total gross profit.
-        const auto Family=MarketLedger::Statement(State,FMath::Max(1,State.Day-30),State.Day-1,MarketLedger::FamilyShop);
+        const auto Family=MarketLedger::Statement(State,FMath::Max(1,State.Day-30),State.Day-1,MarketLedger::FirstStore);
         int64 Sold=0; int32 Days=0;
         for(const auto& Day:State.History)if(Day.Day>=State.Day-30 && Day.Day<State.Day){Sold+=Day.Served;++Days;}
         const int64 GrossPerBasket=FMath::Max<int64>(0,Family.GrossProfit)/FMath::Max<int64>(1,Sold);
@@ -164,12 +164,12 @@ namespace MarketAutoPlay
                 MarketManagers::CanAppoint(State, Level, Country, Area, INDEX_NONE, Reason))
             {
                 const auto Candidates=MarketManagers::Candidates(State,Level,Country,Area);
-                if(!Candidates.IsEmpty() && (Level!=MarketManagers::ELevel::FamilyShop ||
+                if(!Candidates.IsEmpty() && (Level!=MarketManagers::ELevel::FirstStore ||
                     MarketAutoPlayFinance::WorthHiring(State,(QueueBenefit+ShelfBenefit)/2,Candidates[0].Wage)))
                     Command(State, Products, TEXT("AppointCandidate"), MarketManagers::EncodeArea(Level, Country, Area) * 10, Run);
             }
         };
-        Appoint(MarketManagers::ELevel::FamilyShop, State.CountryId, FString());
+        Appoint(MarketManagers::ELevel::FirstStore, State.CountryId, FString());
         for (const MarketCountry::FProfile& Country : MarketCountry::All())
         {
             for (const MarketCountry::FCity& Province : Country.Cities) Appoint(MarketManagers::ELevel::Province, Country.Id, Province.Id);
@@ -239,7 +239,7 @@ namespace MarketAutoPlay
         if (MarketDepots::Count(State) > 0 && State.Company.Trucks < MarketDepots::TrucksNeeded(State)) Command(State, Products, TEXT("Build"), 1, Run);
         if (Stores >= 20) Command(State, Products, TEXT("Build"), 3, Run);
         FString Format = Stores >= Profile.HyperAt ? TEXT("hiper") : Stores >= Profile.SuperAt ? TEXT("buyuk") : TEXT("mahalle");
-        if(Format==TEXT("hiper") && !MarketCompany::ChapterOpen(State,MarketBranches::FormatInfo(Format).Chapter))Format=TEXT("buyuk");
+        {FString Why;if(Format==TEXT("hiper") && !MarketBranches::FormatOpen(State,Format,Why))Format=TEXT("buyuk");}
         // D8 (04.10.2026 report: 74 growth turns stopped at "for the third shop hire an HR manager first", the balanced
         // player sat at 3 shops for two years): the third shop needs an HR manager, so a player who wants it hires one.
         if (MarketBranches::OpenCount(State) >= 2 && !MarketStaff::HasHr(State) && State.Cash > Reserve * 2)
@@ -411,7 +411,7 @@ namespace MarketAutoPlay
         const double Rival=MarketDirector::RivalPriceFactor(State,Product.Category); // E2: the home province's chains
         const double Factor=FMath::Min(Growing?Profile.GrowthPriceFactor:Profile.PriceFactor,Rival*(State.MarketShare<Lead?1.0:1.03));
         const int64 Desired=FMath::Max(FMath::RoundToInt64(Product.Cost*1.05),FMath::RoundToInt64(Product.BasePrice*Factor));
-        // An opening or share threshold must not cause an abrupt family-shop price jump.
+        // An opening or share threshold must not cause an abrupt first-store price jump.
         return State.Stock[Index].Price>0?FMath::Min(Desired,FMath::RoundToInt64(State.Stock[Index].Price*1.03)):Desired;
     }
     void SetPrices(FMarketState& State, const TArray<FMarketProduct>& Products, const FProfile& Profile)
@@ -570,7 +570,7 @@ namespace MarketAutoPlay
                 Trial.AuditFailures += Problems.Num();
                 for (const FString& Problem : Problems) Trial.Issues.AddUnique(Problem);
                 if (DayResult.AuditFailures) Trial.Issues.AddUnique(TEXT("Satis, siparis veya gun kapanisinda kasa uyusmazligi."));
-                Trial.Expenses.FindOrAdd(TEXT("Aile dukkaninin ucretleri")) += Payroll;
+                Trial.Expenses.FindOrAdd(TEXT("Ilk magazanin ucretleri")) += Payroll;
                 Trial.Expenses.FindOrAdd(TEXT("Mal alimi (stok yatirimi)")) += DayResult.Ordered;
                 Trial.Expenses.FindOrAdd(TEXT("Isletme giderleri (ucret haric)")) += FMath::Max<int64>(0, State.LastOperatingCost - Payroll);
                 Trial.Expenses.FindOrAdd(TEXT("Vergi odemeleri")) += State.Books.TotalTaxPaid - TaxBefore;
@@ -584,11 +584,11 @@ namespace MarketAutoPlay
                         Trial.Expenses.FindOrAdd(TEXT("Zararli subeler (net zarar)")) += FMath::Max<int64>(0, -Branch.LastProfit);
                     }
                 Trial.Expenses.FindOrAdd(TEXT("Depo ve merkez giderleri")) += FMath::Max<int64>(0, -State.Company.LastProfit);
-                Trial.Results.FindOrAdd(TEXT("Aile dukkani")) += DayResult.FamilyProfit;
+                Trial.Results.FindOrAdd(TEXT("Ilk magaza")) += DayResult.FirstStoreProfit;
                 Trial.Results.FindOrAdd(TEXT("Subeler")) += BranchNet - State.Online.LastBranchProfit; // M32: their online orders count under Internet
                 Trial.Results.FindOrAdd(TEXT("Internet satisi")) += State.Online.LastProfit;
                 Trial.Results.FindOrAdd(TEXT("Depo ve merkez")) += State.Company.LastProfit;
-                Trial.Results.FindOrAdd(TEXT("Diger (yonetim, banka, fire, kasa farki)")) += DayResult.Profit - DayResult.FamilyProfit - (BranchNet - State.Online.LastBranchProfit) - State.Online.LastProfit - State.Company.LastProfit;
+                Trial.Results.FindOrAdd(TEXT("Diger (yonetim, banka, fire, kasa farki)")) += DayResult.Profit - DayResult.FirstStoreProfit - (BranchNet - State.Online.LastBranchProfit) - State.Online.LastProfit - State.Company.LastProfit;
                 if (State.Cash < 0) ++Trial.NegativeDays;
                 if (State.TroubleStage > 0) ++Trial.TroubleDays;
                 const FRow Today = Row(State); Trial.Daily.Add(Today);
@@ -716,7 +716,7 @@ namespace MarketAutoPlay
             Text += MarketAutoPlayRescue::Report(Trial.RescueStats);
             for (const FString& Problem : Trial.Issues) Text += TEXT("- Kontrol: ") + Problem + TEXT("\n");
         }
-        Text += TEXT("\n## Denetimin kapsami\n\nSatis fisi, siparis bedeli, gun kapanisi ve mal kabul aktarimi bagimsiz hesapla kontrol edilir. Negatif stok, gecersiz sayilar ve pay sinirlari her gun denetlenir. Bagli muhasebe defterinin kasa farki hem isaretli hem mutlak toplamla C bolumunde verilir. Kasa eksisi oyun sonu degildir. Ligler yillik, subeler ilk 180 gunun gercek defter satirlariyla olculur.\n\nFiyatlar normal oyuncunun kullandigi adimlarla degisir. Kredi, sube, depo, yonetici ve kararlar normal komutlardan gecer. Aile dukkani PlayDay ile oynar; test modu, bedava mal veya para kullanilmaz. CSV tutarlari kurustur.\n");
+        Text += TEXT("\n## Denetimin kapsami\n\nSatis fisi, siparis bedeli, gun kapanisi ve mal kabul aktarimi bagimsiz hesapla kontrol edilir. Negatif stok, gecersiz sayilar ve pay sinirlari her gun denetlenir. Bagli muhasebe defterinin kasa farki hem isaretli hem mutlak toplamla C bolumunde verilir. Kasa eksisi oyun sonu degildir. Ligler yillik, subeler ilk 180 gunun gercek defter satirlariyla olculur.\n\nFiyatlar normal oyuncunun kullandigi adimlarla degisir. Kredi, sube, depo, yonetici ve kararlar normal komutlardan gecer. Ilk magaza PlayDay ile oynar; test modu, bedava mal veya para kullanilmaz. CSV tutarlari kurustur.\n");
         for (const FString& Error : Report.Errors) Text += TEXT("- Hata: ") + Error + TEXT("\n");
         struct FTranslation { const TCHAR* From; const TCHAR* To; };
         const FTranslation Translations[] = {

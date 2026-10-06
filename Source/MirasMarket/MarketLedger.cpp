@@ -83,7 +83,7 @@ FString MarketLedger::AccountName(EAccount Account)
     case EAccount::CreditBook: return TEXT("Veresiye");
     case EAccount::TaxPayment: return TEXT("Vergi \u00f6demesi");
     case EAccount::OwnerDraw: return TEXT("K\u00e2r pay\u0131 (ortak)");
-    case EAccount::InheritedDebt: return TEXT("Babadan kalan bor\u00e7");
+    case EAccount::InheritedDebt: return TEXT("Devral\u0131nan bor\u00e7");
     case EAccount::Capital: return TEXT("Sermaye");
     case EAccount::Unexplained: return TEXT("A\u00e7\u0131klanamayan fark");
     case EAccount::DepartmentSales: return TEXT("Reyon sat\u0131\u015flar\u0131");
@@ -182,7 +182,7 @@ void MarketLedger::BeginClose(FMarketState& State, const TArray<FMarketProduct>&
     L.bClosing = true;
     L.ClosingDay = FMath::Max(1, Closed);
     if (Closed < 1) return;
-    // FMarketState::CloseDay has just run: its counters hold the family shop's closed day, before any other system
+    // FMarketState::CloseDay has just run: its counters hold the first store's closed day, before any other system
     // adds its own lines to them.
     Post(State, EAccount::Sales, State.LastRevenue);
     Post(State, EAccount::CostOfGoods, -State.LastCostOfGoods, false);
@@ -325,6 +325,7 @@ MarketLedger::FBalance MarketLedger::Balance(const FMarketState& State, const TA
         }
     }
     B.DepartmentStock = MarketDepartments::StockValue(State); // C3 (M26)
+    B.Building = MarketFinance::BuildingValue(State); // M69
     B.CardReceivable = State.Payments.CardToday + State.Payments.CardTomorrow;
     B.Payables = MarketSuppliers::OpenBills(State);
     B.Loans = MarketFinance::Debt(State) + MarketBanking::Debt(State); // M28: company loans and the credit line

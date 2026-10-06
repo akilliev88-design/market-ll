@@ -4,7 +4,7 @@
   "useFictional": true,
   "chains": [
     {
-      "id": "bereket",
+      "id": "mahalle_marketi",
       "real": "Mahalle marketi",
       "fictional": "Mahalle marketi",
       "nameFrom": "MarketCast::RivalShop (M30: ulkenin soyadlarindan)",

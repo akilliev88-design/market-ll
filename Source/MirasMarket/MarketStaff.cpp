@@ -349,7 +349,7 @@ MarketStaff::FBranchStaffDay MarketStaff::BranchDay(FMarketState& State, int32 B
         FMarketBranch& B = State.Branches[BranchIndex];
         const int64 Minimum = MinimumDailyWage(Closed);
         for (FMarketEmployee& E : B.Staff) if (E.DailyWage < Minimum) E.DailyWage = Minimum;
-        // 1. The tills: the cashiers on duty share the day's shoppers (the family shop's rule).
+        // 1. The tills: the cashiers on duty share the day's shoppers (the first store's rule).
         int32 Cashiers = 0, Stockers = 0;
         for (const FMarketEmployee& E : B.Staff)
         {

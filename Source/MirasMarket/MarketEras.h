@@ -83,7 +83,7 @@ namespace MarketEras
 
     // x the shoppers of a kind of goods (C: MarketDepartments::Day, each department's demand). Recession: electronics
     // -25 %, clothing and toys -20 %; recovery: +10..15 %; the epidemic: clothing -30 %, electronics and fresh up.
-    // Grocery is 1: the family shop's groups already get the eras' MarketEvents modifiers.
+    // Grocery is 1: the first store's groups already get the eras' MarketEvents modifiers.
     float DemandFactor(const FMarketState& State, EGoods Goods, int32 Day, const FString& Country = FString());
     // The average of electronics, clothing, toys and home goods; and fresh goods (greengrocer, butcher, bakery).
     float NonFoodDemand(const FMarketState& State, int32 Day, const FString& Country = FString());
@@ -95,7 +95,7 @@ namespace MarketEras
     float GroupImportShare(uint8 Group);   // MarketGoods::EGroup as uint8
     // x the purchase cost of goods with that import share. A currency shock lifts it over two weeks (peak: share x
     // 25 % x the era's strength), it holds while the shock lasts and comes down slowly over 300 days after it.
-    // C: MarketDirector::ApplyPrices (department goods) with ImportShare(GoodsOf(department)). The family shop's
+    // C: MarketDirector::ApplyPrices (department goods) with ImportShare(GoodsOf(department)). The first store's
     // groups follow it already (MarketEvents::Factor, CostFactor).
     float ImportCostFactor(const FMarketState& State, float Share, int32 Day, const FString& Country = FString());
     float ImportCostFactor(const FMarketState& State, EGoods Goods, int32 Day, const FString& Country = FString());

@@ -280,7 +280,6 @@ bool MarketCountry::Parse(const FString& Json, TArray<FProfile>& OutProfiles, TA
             if ((*Climate)->TryGetArrayField(TEXT("temperature"), Values) && Values->Num() == 12) for (const TSharedPtr<FJsonValue>& V : *Values) P.ClimateTemperature.Add(FMath::RoundToInt32(V->AsNumber()));
             if ((*Climate)->TryGetArrayField(TEXT("rain"), Values) && Values->Num() == 12) for (const TSharedPtr<FJsonValue>& V : *Values) P.ClimateRain.Add(FMath::Clamp(FMath::RoundToInt32(V->AsNumber()), 0, 100));
         }
-        O->TryGetStringArrayField(TEXT("relatives"), P.Relatives);
         const TArray<TSharedPtr<FJsonValue>>* Cities = nullptr;
         if (O->TryGetArrayField(TEXT("provinces"), Cities) || O->TryGetArrayField(TEXT("cities"), Cities))
         {

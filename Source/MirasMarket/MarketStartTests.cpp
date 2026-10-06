@@ -22,24 +22,18 @@ namespace MarketStartTest
     }
 }
 
-IMPLEMENT_SIMPLE_AUTOMATION_TEST(FMarketStartTest, "MirasMarket.Start.InheritedShop", EAutomationTestFlags::EditorContext | EAutomationTestFlags::EngineFilter)
+IMPLEMENT_SIMPLE_AUTOMATION_TEST(FMarketStartTest, "MirasMarket.Start.HandedOverShop", EAutomationTestFlags::EditorContext | EAutomationTestFlags::EngineFilter)
 bool FMarketStartTest::RunTest(const FString& Parameters)
 {
-    // G-084 (karar L02-L03): a new campaign in a country and a city, the shop left by a relative.
+    // G-084, M69: a new campaign in a country and a city: a family handed its small market over to the player.
     using namespace MarketStart;
     const TArray<FMarketProduct> Products = MarketStartTest::Catalog();
 
-    // Older saves keep the father.
-    FMarketState Old; Old.Initialize(Products);
-    TestEqual(TEXT("Old save: father"), Relative(Old, ECase::Plain), FString(TEXT("baban")));
-    TestEqual(TEXT("Old save: mine"), Relative(Old, ECase::Mine), FString(TEXT("babam\u0131n")));
-
-    // A new shop (M36): the father's, one cashier and two stockers, a week of wages in the till.
+    // A new shop: one cashier and two stockers, a month of costs in the till.
     FMarketState S; S.Initialize(Products);
+    S.Company.BrandName = TEXT("Y\u0131ld\u0131z Market"); S.PlayerName = TEXT("  Deniz  ");
     const int64 CashBefore = S.Cash;
     Setup(S, TEXT("tr"), FString(), 4242);
-    TestTrue(TEXT("A known relative"), RelativeKeys().Contains(S.RelativeKey));
-    TestEqual(TEXT("Our own father"), S.RelativeKey, FString(TEXT("baba")));
     TestEqual(TEXT("Three people"), S.Staff.Num(), 3);
     TestEqual(TEXT("One cashier"), MarketStaff::Count(S, MarketStaff::ERole::Cashier), 1);
     TestEqual(TEXT("Two stockers"), MarketStaff::Count(S, MarketStaff::ERole::Stocker), 2);
@@ -48,9 +42,9 @@ bool FMarketStartTest::RunTest(const FString& Parameters)
     int64 Payroll = 0;
     for (const FMarketEmployee& E : S.Staff) Payroll += E.DailyWage;
     TestTrue(TEXT("Wages are paid"), Payroll > 0);
-    // M37: a month of the shop's fixed costs in the till, the father's debt a month and a half.
+    // M37: a month of the shop's fixed costs in the till, the inherited debt a month and a half.
     TestTrue(TEXT("A month of costs in the till"), S.Cash > 30 * Payroll && S.Cash != CashBefore);
-    TestTrue(TEXT("The father's debt"), S.InheritedDebt == S.StartDebt && S.InheritedDebt > S.Cash);
+    TestTrue(TEXT("The inherited debt"), S.InheritedDebt == S.StartDebt && S.InheritedDebt > S.Cash);
     TestEqual(TEXT("Our salary"), S.Owner.SalaryX10, MarketOwner::StartSalaryX10);
     TestEqual(TEXT("Seed kept"), S.RivalSeed, 4242);
     TestEqual(TEXT("Country"), S.CountryId, FString(TEXT("tr")));
@@ -84,7 +78,6 @@ bool FMarketStartTest::RunTest(const FString& Parameters)
     // Same seed, same shop (a reload or a replay never rerolls it).
     FMarketState Again; Again.Initialize(Products);
     Setup(Again, TEXT("tr"), FString(), 4242);
-    TestEqual(TEXT("Same relative"), Again.RelativeKey, S.RelativeKey);
     TestEqual(TEXT("Same cashier"), Again.Staff[0].Name, S.Staff[0].Name);
 
     // Unknown country: Turkey.
@@ -92,11 +85,14 @@ bool FMarketStartTest::RunTest(const FString& Parameters)
     Setup(Lost, TEXT("atlantis"), TEXT("x"), 1);
     TestEqual(TEXT("Unknown country falls back"), Lost.CountryId, FString(TEXT("tr")));
 
-    // Texts (M36): the parents retired and left us the shop.
+    // Texts (M69): the family handed the market over; no father, no year, the player's and the market's names.
     const FString Intro = IntroText(S);
-    TestTrue(TEXT("Intro: parents retired"), Intro.Contains(TEXT("emekli")));
-    TestTrue(TEXT("Intro names the father"), Intro.Contains(TEXT("baban")));
-    TestTrue(TEXT("Capital first letter"), FChar::IsUpper(Relative(S, ECase::Ablative, true)[0]));
+    TestTrue(TEXT("Intro: the family handed it over"), Intro.Contains(TEXT("aile")) && Intro.Contains(TEXT("devretti")));
+    TestFalse(TEXT("Intro: no father"), Intro.Contains(TEXT("baba")));
+    TestTrue(TEXT("Intro: the market's name"), Intro.Contains(TEXT("Y\u0131ld\u0131z Market")));
+    TestTrue(TEXT("Intro: the player's name"), Intro.StartsWith(TEXT("Deniz")));
+    TestEqual(TEXT("Player name trimmed"), PlayerName(S), FString(TEXT("Deniz")));
+    TestTrue(TEXT("First store's name: market and city"), FirstStoreName(S).StartsWith(TEXT("Y\u0131ld\u0131z Market ")));
     TestTrue(TEXT("Place text"), PlaceText(S).Contains(TEXT("T\u00fcrkiye")));
 
     // Shelves in order but not full: 40-75 % of each shelf, units only move from the warehouse.

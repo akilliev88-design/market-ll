@@ -112,7 +112,7 @@ namespace MarketAutoPlayOnline
         Track(State,State.Day,Stats);
     }
     template<typename T> T Value(const TArray<T>& Values,int32 Index) {return Values.IsValidIndex(Index)?Values[Index]:T(0);}
-    void Observe(const FMarketState& State,int32 Year,int32 FamilyShoppers,FStats& Stats)
+    void Observe(const FMarketState& State,int32 Year,int32 FirstStoreShoppers,FStats& Stats)
     {
         const int32 Day=State.Day-1;if(Day<=Stats.LastDay)return;Stats.LastDay=Day;
         const bool Rolled=MarketCalendar::DateOf(State.Day).Day==1;
@@ -126,7 +126,7 @@ namespace MarketAutoPlayOnline
             Row.Contribution[Channel]+=Profit;Variable+=Profit;
         }
         ++Row.Days;Row.TotalProfit+=O.LastProfit;Row.CommonCosts+=Variable-O.LastProfit;
-        Row.StoreRevenue+=State.LastRevenue;int64 Shoppers=FamilyShoppers;
+        Row.StoreRevenue+=State.LastRevenue;int64 Shoppers=FirstStoreShoppers;
         for(const auto& Branch:State.Branches)if(Branch.Stage==static_cast<uint8>(MarketBranches::EStage::Open)) {Row.StoreRevenue+=Branch.LastRevenue;Shoppers+=Branch.LastShoppers;}
         Row.Shoppers+=Shoppers;Row.Traffic+=MarketOnline::StoreTrafficFactorOn(State,Day);Row.CountryShare=MarketOnline::OnlineShare(State,Day);
         Row.DarkStores=0;for(const auto& Area:O.Areas)Row.DarkStores+=Area.DarkStoreDay>0?1:0;

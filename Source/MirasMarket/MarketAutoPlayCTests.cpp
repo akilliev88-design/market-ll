@@ -78,14 +78,16 @@ bool FMarketAutoPlayCObserver::RunTest(const FString& Parameters)
 IMPLEMENT_SIMPLE_AUTOMATION_TEST(FMarketAutoPlaySitePolicy,"MirasMarket.AutoPlay.ExpansionSite",EAutomationTestFlags::EditorContext|EAutomationTestFlags::EngineFilter)
 bool FMarketAutoPlaySitePolicy::RunTest(const FString& Parameters)
 {
-    FMarketState State;State.CountryId=TEXT("tr");State.Story.Chapter=5;
+    // M69: big store types open with the company's size (8 shops in 2 provinces), not a chapter.
+    FMarketState State;State.CountryId=TEXT("tr");
+    for(int32 Index=0;Index<7;++Index){FMarketBranch B;B.Country=TEXT("tr");B.Province=Index<4?TEXT("tekirdag"):TEXT("edirne");B.Format=TEXT("mahalle");B.Stage=static_cast<uint8>(MarketBranches::EStage::Open);State.Branches.Add(B);}
     TestTrue(TEXT("Ordinary shop can use small province"),MarketAutoPlayC::SiteSuitable(State,TEXT("tr"),TEXT("kirklareli"),TEXT("mahalle")));
     TestFalse(TEXT("Hyper cannot use small province"),MarketAutoPlayC::SiteSuitable(State,TEXT("tr"),TEXT("kirklareli"),TEXT("hiper")));
     TestFalse(TEXT("Big province alone is not enough for hyper"),MarketAutoPlayC::SiteSuitable(State,TEXT("tr"),TEXT("istanbul"),TEXT("hiper")));
     FMarketDepot Depot;Depot.Country=TEXT("tr");Depot.Province=TEXT("istanbul");State.Company.DepotSites.Add(Depot);
     TestTrue(TEXT("Suitable big province with depot can be selected"),MarketAutoPlayC::SiteSuitable(State,TEXT("tr"),TEXT("istanbul"),TEXT("hiper")));
-    State.Story.Chapter=4;
-    TestFalse(TEXT("Chapter lock still applies"),MarketAutoPlayC::SiteSuitable(State,TEXT("tr"),TEXT("istanbul"),TEXT("hiper")));
+    State.Branches.SetNum(2);
+    TestFalse(TEXT("Size lock still applies"),MarketAutoPlayC::SiteSuitable(State,TEXT("tr"),TEXT("istanbul"),TEXT("hiper")));
     return true;
 }
 IMPLEMENT_SIMPLE_AUTOMATION_TEST(FMarketAutoPlayGrowingStyles,"MirasMarket.AutoPlay.LateCarefulGrowth",EAutomationTestFlags::EditorContext|EAutomationTestFlags::EngineFilter)

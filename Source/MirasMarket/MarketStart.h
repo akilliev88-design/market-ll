@@ -3,34 +3,36 @@
 #include "CoreMinimal.h"
 #include "MarketEconomy.h"
 
-// A new campaign (G-084, karar L02-L03; M36): the player picks a country and a city; father and mother retire and
-// leave their market to us (the building stays theirs: the shop pays them rent like any other shop): one cashier
-// and two shelf stockers, the father's debt to the wholesaler and shelves in order but not full. Independent of the world, tested (MirasMarket.Start.*).
+// A new campaign (G-084, karar L02-L03; M69): the player picks a country, a city, the market's name, their own name
+// and the difficulty. The one story is the start: a small market (not a corner kiosk), the only shop of its kind in
+// its town, which a family ran for years; they grew tired and handed it over to the player. The building comes with
+// it (no rent for the first store). One cashier and two shelf stockers, a light debt to the wholesaler the shop
+// already had (no deadline, no interest, it locks nothing) and shelves in order but not full.
+// Independent of the world, tested (MirasMarket.Start.*).
 namespace MarketStart
 {
-    enum class ECase : uint8 { Plain = 0, Genitive, Ablative, With, Mine };
-    // M37: the father's debt in months of the shop's fixed costs (the till holds one month).
+    // M37: the inherited debt in months of the shop's fixed costs (the till holds one month).
     constexpr double StartDebtMonths = 1.5;
+    constexpr int32 MaxPlayerNameLength = 30;
 
-    // Seeds the campaign: country, city, the relative, the starting staff and the debt. Call after
-    // FMarketState::Initialize. Days of the prototype stay as they are (day 1 = the first morning).
+    // Seeds the campaign: country, city, the starting staff and the debt. Call after FMarketState::Initialize
+    // (the market's and the player's names and the difficulty are already on State). Day 1 is the first morning.
     void Setup(FMarketState& State, const FString& CountryId, const FString& CityId, int32 Seed);
     // After the shelf capacities are known (ApplyShelfCapacities): 40-75 % of every shelf from the warehouse,
     // seeded. Returns the units moved.
     int32 StockShelvesPartly(FMarketState& State, int32 Seed);
-    // The father who left us the shop (M36), in Turkish with the possessive ("baban", "baban\u0131n", "babandan",
-    // "babanla"; Mine = "babam\u0131n", as the player says it). bCapital: first letter upper case.
-    FString Relative(const FMarketState& State, ECase Case, bool bCapital = false);
     // There is no default start province (Mustafa, 29.09.2026): the player picks one. This is only the fallback
     // of automated runs without a province: the country's median province by population (M61b: no province is
     // special), else its first province.
     FString FallbackProvince(const FString& CountryId);
-    // The province of the family shop (the campaign's, else FallbackProvince).
+    // The province of the first store (the campaign's, else FallbackProvince).
     FString HomeProvince(const FMarketState& State);
-    // "K\u0131rklareli, T\u00fcrkiye" (the country alone when the province is unknown).
+    // "<city>, <country>" (the country alone when the province is unknown).
     FString PlaceText(const FMarketState& State);
+    // M69: the first store is called by its name: the market's name and its city ("<brand> <city>").
+    FString FirstStoreName(const FMarketState& State);
+    // The player's name as written at the start ("" when none was given).
+    FString PlayerName(const FMarketState& State);
     // The first notice of a new campaign.
     FString IntroText(const FMarketState& State);
-    // Keys of the relatives the game knows.
-    const TArray<FString>& RelativeKeys();
 }

@@ -8,7 +8,7 @@
 
 class AMarketGameMode;
 
-// In-game HUD (G-074, menu design A1): a plain game screen. Top left: day and clock, cash, the father's debt and
+// In-game HUD (G-074, menu design A1): a plain game screen. Top left: day and clock, cash, today's revenue and
 // whether the shop is open. Top right: at most three notices (AMarketGameMode::Todos) that name the menu page
 // solving them. Bottom: the queue and today's sales, the context hint with its key, "M Yonetim". Everything else
 // lives in the management menu (M); F1 adds the stock list and the key list. The HUD hides while the menu is open

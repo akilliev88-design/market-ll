@@ -102,7 +102,7 @@ struct FMarketStock
     UPROPERTY() uint8 Markdown = 0;          // percent off
     UPROPERTY() int32 MarkdownUntil = 0;
 
-    // E3c (11_TEK_EKONOMI): one product record for every store. The family shop's rows start with the inherited
+    // E3c (11_TEK_EKONOMI): one product record for every store. The first store's rows start with the inherited
     // stock in the back room; a branch's rows start empty and keep all their goods on the shelves (Shelf; the
     // branch has no separate back room), yesterday's sales and empty-shelf wishes in Yesterday.
     static FMarketStock Empty(const FString& InId = FString())
@@ -185,8 +185,8 @@ struct FMarketSupplierAccount
     UPROPERTY() int64 Volume30 = 0;     // purchases of about the last 30 days (decays by 1/30 a day), kurus
     UPROPERTY() int32 OnTime = 0;
     UPROPERTY() int32 Late = 0;
-    UPROPERTY() int32 LifelineDay = 0;  // C9: the last day the father's wholesaler gave goods in a cash crisis
-    UPROPERTY() int32 LifelineUses = 0; // M64: times the father's name opened the door (MarketSuppliers::LifelineMax in a campaign)
+    UPROPERTY() int32 LifelineDay = 0;  // C9: the last day the old wholesaler gave goods in a cash crisis
+    UPROPERTY() int32 LifelineUses = 0; // M64: times the shop's old standing opened the door (MarketSuppliers::LifelineMax in a campaign)
 };
 
 // A bill bought on payment terms, due at the close of DueDay.
@@ -220,7 +220,7 @@ struct FMarketPromotion
     UPROPERTY() uint8 Scope = 0;         // MarketPromotions::EScope
     UPROPERTY() FString ScopeKey;        // brand / subcategory / category name the campaign covers
     UPROPERTY() uint8 Mechanic = 0;      // MarketPromotions::EMechanic
-    // M38: every store has the same campaigns. Store: MarketLedger::FamilyShop (-1), a branch index, or
+    // M38: every store has the same campaigns. Store: MarketLedger::FirstStore (-1), a branch index, or
     // MarketLedger::AllStores (the company's campaign in every store). bManager: the store manager started it.
     UPROPERTY() int32 Store = -1;
     UPROPERTY() bool bManager = false;
@@ -253,18 +253,13 @@ struct FMarketModifier
     UPROPERTY() FString Source;
 };
 
-// Where the story is (MarketStory.h).
+// The company's own history (MarketStory.h; M69: no chapters, no finale).
 USTRUCT()
 struct FMarketStoryState
 {
     GENERATED_BODY()
-    UPROPERTY() int32 Chapter = 1;
-    UPROPERTY() int64 Beats = 0;             // bit flags of scenes already played
+    UPROPERTY() int64 Beats = 0;             // bit flags of milestones already written
     UPROPERTY() uint8 Identity = 0;          // MarketStory::EIdentity (0 = not chosen)
-    UPROPERTY() uint8 Ending = 0;            // MarketStory::EEnding reached last (0 = none)
-    // Karar J02 (Game Dev Tycoon style): the finale is shown once; afterwards the simulation goes on but no new
-    // chapter, scene or story content arrives. Replaces the old chapter 99 trick.
-    UPROPERTY() bool bEnded = false;
     // Karar J03: the player sold the shop and chose "Burada bitsin": the campaign is over (new game only).
     UPROPERTY() bool bCampaignOver = false;
     UPROPERTY() TArray<FString> Memories;    // milestones, newest last ("12 Mart, 1. y\u0131l: ilk k\u00e2rl\u0131 g\u00fcn")
@@ -309,7 +304,7 @@ struct FMarketLoan
     UPROPERTY() float MonthlyRate = 0.f;
     UPROPERTY() int64 Installment = 0;
     UPROPERTY() int32 NextDueDay = 0;
-    UPROPERTY() bool bMortgage = false;  // the family shop's deed stands behind it
+    UPROPERTY() bool bMortgage = false;  // the first store's deed stands behind it
     UPROPERTY() int32 LateSince = 0;     // C7: first missed day (0 = on time); a late fee once a month, not every day
 };
 
@@ -349,8 +344,8 @@ struct FMarketBranch
     UPROPERTY() float PriceIndex = 1.f;  // shelf prices / list price
     UPROPERTY() float Maturity = 0.f;    // 0..1: the district's habit of shopping here
     UPROPERTY() float Satisfaction = 55.f;
-    UPROPERTY() TArray<FMarketStock> Items; // E3c: the same product record as the family shop (FMarketStock::Empty)
-    UPROPERTY() TArray<FMarketBatch> Batches; // E3c2 (M63): its perishable goods in batches, the family shop's rule (MarketFreshness)
+    UPROPERTY() TArray<FMarketStock> Items; // E3c: the same product record as the first store (FMarketStock::Empty)
+    UPROPERTY() TArray<FMarketBatch> Batches; // E3c2 (M63): its perishable goods in batches, the first store's rule (MarketFreshness)
     UPROPERTY() int64 LastRevenue = 0;
     UPROPERTY() int64 LastProfit = 0;
     UPROPERTY() int32 LastShoppers = 0;
@@ -410,7 +405,7 @@ struct FMarketDepot
     UPROPERTY() FString CaughtName;         // the depot manager caught taking goods (until he is replaced)
 };
 
-// The company beyond the family shop (MarketCompany.h). Older saves: nothing built.
+// The company beyond the first store (MarketCompany.h). Older saves: nothing built.
 // M65 (Mustafa 03.10.2026): our company in a country. The campaign's own country holds the parent company; every
 // other country we enter gets a subsidiary with its own registered name and its own accounts (its stores'
 // statements), whose month profit goes to the parent (MarketSubsidiaries.h).
@@ -497,7 +492,7 @@ USTRUCT()
 struct FMarketCompany
 {
     GENERATED_BODY()
-    UPROPERTY() FString BrandName = TEXT("Miras"); // M65: the short name everyone uses (signs, news, lists)
+    UPROPERTY() FString BrandName;          // M65/M69: the market's name, chosen at the start (signs, news, lists)
     UPROPERTY() TArray<FMarketSubsidiary> Subsidiaries; // M65: the parent (own country) and one per country entered
     UPROPERTY() TArray<FMarketResearch> Research;        // M58: market studies of countries not entered yet
     UPROPERTY() TArray<FMarketFranchise> Franchises;     // D6 (M67): partners abroad under our brand
@@ -505,12 +500,11 @@ struct FMarketCompany
     UPROPERTY() int32 Trucks = 0;
     UPROPERTY() bool bCentralBuying = false;  // buying for all stores at once
     UPROPERTY() bool bPrivateLabel = false;   // "Miras" own brand
-    UPROPERTY() int32 LeadershipDays = 0;     // chapter 7: days leading on every measure in a row
     UPROPERTY() int64 LastProfit = 0;         // all city stores + head office, last closed day
     UPROPERTY() int64 WeekProfit = 0;
 };
 
-// G-086b: a manager above the shops (province / sub-region / main region / country) or the family shop's manager
+// G-086b: a manager above the shops (province / sub-region / main region / country) or the first store's manager
 // (MarketManagers.h, Docs/Kurgu/03_MAGAZA_AGI.md \u00a74). Store managers of branches live in FMarketBranch.
 USTRUCT()
 struct FMarketManager
@@ -518,7 +512,7 @@ struct FMarketManager
     GENERATED_BODY()
     UPROPERTY() uint8 Level = 1;            // MarketManagers::ELevel
     UPROPERTY() FString Country;            // pack id
-    UPROPERTY() FString Area;               // province / sub-region / main region id; the country id; family shop: home province
+    UPROPERTY() FString Area;               // province / sub-region / main region id; the country id; first store: home province
     UPROPERTY() FString Name;
     UPROPERTY() int32 Skill = 50;
     UPROPERTY() int32 Honesty = 70;
@@ -529,7 +523,7 @@ struct FMarketManager
     UPROPERTY() int32 BonusDay = 0;
     UPROPERTY() int32 WarnedDay = 0;
     UPROPERTY() bool bPromoted = false;     // came up from a store manager
-    // G-086b ek (M19, M21): hidden style (MarketManagers::EStyle; the family shop's manager runs the shop by it;
+    // G-086b ek (M19, M21): hidden style (MarketManagers::EStyle; the first store's manager runs the shop by it;
     // 0 = not set yet, seeded once) and hidden ceiling of skill (55..95; 0 = not set yet, derived once).
     UPROPERTY() uint8 Style = 0;
     UPROPERTY() int32 Potential = 0;
@@ -988,7 +982,7 @@ struct FMarketState
     static constexpr int64 StockerDailyWage = 2000;
 
     // Save format version. 2 (G-076): story finale flags, test-mode mark. Older saves load and are migrated.
-    static constexpr int32 CurrentVersion = 20; // D9: strategy (M48-M50); // D6: franchises; // M54/M58/M59; // E4b: loans abroad; // M65: subsidiaries; // E4: the exchange difference account; // E3c2c: branch staff are people; // M64: the father's favour is counted; // E3c2 (M27): branch goods use the family shop's record, the v0.1 staff flags are gone; older saves start a new game
+    static constexpr int32 CurrentVersion = 21; // M69: no chapters, the player's and the market's names, the first store owns its building; // D9: strategy (M48-M50); // D6: franchises; // M54/M58/M59; // E4b: loans abroad; // M65: subsidiaries; // E4: the exchange difference account; // E3c2c: branch staff are people; // M64: the father's favour is counted; // E3c2 (M27): branch goods use the first store's record, the v0.1 staff flags are gone; older saves start a new game
     UPROPERTY() int32 Version = CurrentVersion;
     UPROPERTY() int32 Day = 1;
     UPROPERTY() int64 Cash = 35000;
@@ -1002,8 +996,8 @@ struct FMarketState
     // G-084: the country pack (Config/ulkeler.json) and start city of the campaign. Older saves: Turkey.
     UPROPERTY() FString CountryId = TEXT("tr");
     UPROPERTY() FString CityId;
-    // G-084: who left the shop (MarketStart.h: teyze, dayi, hala, amca, buyukanne). Empty = the father.
-    UPROPERTY() FString RelativeKey;
+    // M69: the player's own name, written on the new-game screen (MarketStart::PlayerName).
+    UPROPERTY() FString PlayerName;
     UPROPERTY() int32 ProfitableDays = 0;
     UPROPERTY() float MarketShare = 25.f;
     UPROPERTY() int64 Revenue = 0;
@@ -1094,10 +1088,8 @@ struct FMarketState
     UPROPERTY() int32 RescueUntil = 0;      // C7: under the bank's plan until this day (no new loans or branches)
     UPROPERTY() FMarketOwner Owner;         // M37: our salary and personal wealth (MarketOwner)
     UPROPERTY() int32 LowCashWarnDay = 0;   // C9: the last "goods money is running out" warning
-    UPROPERTY() int32 PromoStore = -1;      // M38: where the player's next campaign runs (family shop / all stores)
-    UPROPERTY() int64 StartDebt = 30000;    // M37: the father's debt at the start (the goal bar)
-    // M36: the family shop's rent paid to the parents this month (MarketFinance).
-    UPROPERTY() int64 MonthRent = 0;
+    UPROPERTY() int32 PromoStore = -1;      // M38: where the player's next campaign runs (first store / all stores)
+    UPROPERTY() int64 StartDebt = 30000;    // M37/M69: the inherited debt at the start (the progress bar)
     UPROPERTY() int32 TroubleStage = 0;
     // Branches (MarketBranches.h).
     UPROPERTY() TArray<FMarketBranch> Branches;
@@ -1120,7 +1112,7 @@ struct FMarketState
     UPROPERTY() FMarketPayments Payments;
     // Difficulty (MarketSimulation.h): 0 easy, 1 normal, 2 hard. Days played by the strategic advance.
     UPROPERTY() uint8 Difficulty = 1;
-    // Growth beyond the family shop (MarketCompany.h).
+    // Growth beyond the first store (MarketCompany.h).
     UPROPERTY() FMarketCompany Company;
     // G-086b: province, regional and country managers (MarketManagers.h).
     UPROPERTY() FMarketManagement Management;

@@ -5,7 +5,7 @@
 
 // Akis C2b (Docs/Kurgu/07_AKIL_ISBOLUMU.md, Mustafa 30.09.2026: "iyi bir rakip listesi, akillari iyi olsun; dunya
 // ligine gitmek ne cok zor ne cok kolay"): the rival chains of every country we play in and the world's giants.
-// Independent of the world, tested (MirasMarket.Chains.*). E2: this is the one rival model; the family shop's rivals
+// Independent of the world, tested (MirasMarket.Chains.*). E2: this is the one rival model; the first store's rivals
 // are the chains of its province like every store's (the street model and the daily rival news were removed):
 //  - Three layers, every name fictional (L12): local family chains of a province and a regional chain of each
 //    sub-region; 6-8 national chains a country, each with a character (discounter, fast discounter, supermarket,
@@ -104,7 +104,7 @@ namespace MarketChains
     // a content one says no, an unhappy one (morale < 45) gives notice. Called at the day close.
     void Poach(FMarketState& State, int32 Closed);
 
-    // Revenue a year (kurus at today's level): a chain, and ours in a country (branches + the family shop at home).
+    // Revenue a year (kurus at today's level): a chain, and ours in a country (branches + the first store at home).
     int64 YearRevenue(const FMarketState& State, int32 ChainIndex);
     int64 OurYearRevenue(const FMarketState& State, const FString& Country);
     int32 TotalStores(const FMarketChain& Chain);

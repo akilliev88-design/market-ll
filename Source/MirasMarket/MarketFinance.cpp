@@ -74,12 +74,12 @@ namespace MarketFinance
         return D;
     }
 
-    // C7: what the family shop needs for a month (its people, the head office left, running costs, the rent to
-    // the parents) and to fill its shelves again (a shelf and a half of every carried product).
-    int64 FamilyMonthCost(const FMarketState& State)
+    // C7: what the first store needs for a month (its people, the head office left, running costs; M69: no rent,
+    // the building is ours) and to fill its shelves again (a shelf and a half of every carried product).
+    int64 FirstStoreMonthCost(const FMarketState& State)
     {
         const int64 Wages = State.DailyPayroll() + MarketManagers::DailyWages(State);
-        return 30 * (Wages + MarketStaff::EmployerShare(Wages) + MarketPrices::Scaled(2200, State.Day) + RentToday(State));
+        return 30 * (Wages + MarketStaff::EmployerShare(Wages) + MarketPrices::Scaled(2200, State.Day));
     }
 
     int64 RefillCost(const FMarketState& State, const TArray<FMarketProduct>& Products)
@@ -94,7 +94,7 @@ namespace MarketFinance
         return Cost;
     }
 
-    // The family shop's revenue in a month: the better of the last 90 days and the last year (a shop with empty
+    // The first store's revenue in a month: the better of the last 90 days and the last year (a shop with empty
     // shelves is judged by what it sold before).
     int64 MonthRevenue(const FMarketState& State)
     {
@@ -224,14 +224,7 @@ void MarketFinance::CloseDay(FMarketState& State, const TArray<FMarketProduct>& 
     }
     State.Loans.RemoveAll([](const FMarketLoan& L) { return L.Remaining <= 0; });
 
-    // M36 (Mustafa 02.10.2026): the family shop is a shop like the others. The building is the parents': it pays
-    // the province's rent of a neighbourhood market, and the rent is their pension (no money taken home any more).
-    const int64 Rent = RentToday(State);
-    State.Cash -= Rent;
-    MarketLedger::Post(State, MarketLedger::EAccount::Rent, -Rent); // B2
-    State.LastProfit -= Rent;
-    State.Books.PeriodProfit -= Rent; // the books closed before the rent: it lowers taxable profit
-    State.MonthRent += Rent;
+    // M69: the first store's building is ours; it pays no rent (the branches pay theirs in MarketBranches).
 
     // C9 (Codex C8: the shop ran out of goods money before the ladder said anything): an early warning when the till
     // holds less than a week of the usual purchases, at most once a month.
@@ -288,7 +281,7 @@ void MarketFinance::CloseDay(FMarketState& State, const TArray<FMarketProduct>& 
             break;
         }
         default:
-            // M36: the building is the parents': no deed to mortgage. The bank's rescue plan comes at 60 days.
+            // The bank's rescue plan comes at 60 days.
             News.Add(FString::Printf(TEXT("Bir ayd\u0131r kasa eksi. %s otuz g\u00fcn i\u00e7inde kurtarma plan\u0131 uygulayacak; \u015fimdi giderleri k\u0131s, mal\u0131 sat."), *MarketCast::Bank(0)));
             break;
         }
@@ -311,17 +304,16 @@ void MarketFinance::CloseDay(FMarketState& State, const TArray<FMarketProduct>& 
             const MarketCalendar::FDate D = MarketCalendar::DateOf(R.Day);
             if (D.Year == Month.Year && D.Month == Month.Month) { Revenue += R.Revenue; Profit += R.Profit; ++Days; }
         }
-        News.Add(FString::Printf(TEXT("Ay sonu raporu (%s): %d g\u00fcn, ciro %s, net %s, annenle babana kira %s. Kasa %s, toptanc\u0131ya bor\u00e7 %s, banka borcu %s."),
+        News.Add(FString::Printf(TEXT("Ay sonu raporu (%s): %d g\u00fcn, ciro %s, net %s. Kasa %s, toptanc\u0131ya bor\u00e7 %s, banka borcu %s."),
             *MarketCalendar::MonthText(Closed),
-            Days, *FinanceTl(Revenue), *FinanceTl(Profit), *FinanceTl(State.MonthRent), *FinanceTl(State.Cash),
+            Days, *FinanceTl(Revenue), *FinanceTl(Profit), *FinanceTl(State.Cash),
             *FinanceTl(MarketSuppliers::OpenBills(State)), *FinanceTl(Debt(State))));
-        State.MonthRent = 0;
     }
 }
 
 int64 MarketFinance::CompanyMonthCost(const FMarketState& State)
 {
-    int64 Total = FamilyMonthCost(State);
+    int64 Total = FirstStoreMonthCost(State);
     for (const FMarketBranch& B : State.Branches)
         if (B.Stage != static_cast<uint8>(MarketBranches::EStage::Closed))
             Total += MarketBranches::MonthlyFixedCost(State, MarketBranches::CountryOf(State, B), B.Province, B.Format);
@@ -337,12 +329,12 @@ int64 MarketFinance::HeadOfficeDailyCost(const FMarketState& State)
         + MarketCompany::DailyOfficeCost(State, State.Day) + MarketPayments::DailyFees(State);
 }
 
-int64 MarketFinance::RentToday(const FMarketState& State)
+int64 MarketFinance::BuildingValue(const FMarketState& State)
 {
-    // A neighbourhood market's rent in the home province, at today's price level (like a branch opened today).
+    // A neighbourhood market's rent in the home province at today's price level, times BuildingRentMonths.
     const MarketBranches::FSite Site = MarketBranches::SiteOf(State, State.CountryId, MarketStart::HomeProvince(State));
     const double Factor = Site.bValid ? Site.Rent : 1.0;
-    return FMath::RoundToInt64(FamilyRentBase * Factor * Level(State) / 30.0); // C12: the parents' rent does not follow the branch rents (M42)
+    return FMath::RoundToInt64(BuildingRentReference * BuildingRentMonths * Factor * Level(State));
 }
 
 bool MarketFinance::Resolve(FMarketState& State, const TArray<FMarketProduct>& Products, const FMarketDecision& D, int32 Option, FString& OutMessage)
@@ -403,7 +395,7 @@ TArray<FString> MarketFinance::Rescue(FMarketState& State, const TArray<FMarketP
         for (int32 I = State.Management.Managers.Num() - 1; I >= 0; --I)
         {
             const MarketManagers::ELevel Tier = static_cast<MarketManagers::ELevel>(State.Management.Managers[I].Level);
-            // C8 (Codex C7: the family shop's manager cost as much as all its people): the family runs the shop again.
+            // C8 (Codex C7: the first store's manager cost as much as all its people): the family runs the shop again.
             State.Management.UsedNames.AddUnique(State.Management.Managers[I].Name);
             State.Management.Managers.RemoveAt(I);
             ++Left;
@@ -444,7 +436,7 @@ TArray<FString> MarketFinance::Rescue(FMarketState& State, const TArray<FMarketP
         State.Staff.RemoveAll([](const FMarketEmployee& E) { return MarketStaff::RoleOf(E) == MarketStaff::ERole::HrManager; });
         if (State.Staff.Num() < HrBefore) { Lines.Add(TEXT("\u0130K m\u00fcd\u00fcr\u00fc ayr\u0131ld\u0131: tek d\u00fckk\u00e2nda i\u015fi yok.")); }
 
-        // The family shop keeps its best few.
+        // The first store keeps its best few.
         TArray<int32> Workers;
         for (int32 I = 0; I < State.Staff.Num(); ++I)
             if (MarketStaff::RoleOf(State.Staff[I]) == MarketStaff::ERole::Cashier || MarketStaff::RoleOf(State.Staff[I]) == MarketStaff::ERole::Stocker) Workers.Add(I);
@@ -454,7 +446,7 @@ TArray<FString> MarketFinance::Rescue(FMarketState& State, const TArray<FMarketP
             TArray<int32> Going(Workers.GetData() + RescueKeepStaff, Workers.Num() - RescueKeepStaff);
             Going.Sort([](int32 A, int32 B) { return A > B; });
             for (const int32 I : Going) State.Staff.RemoveAt(I);
-            Lines.Add(FString::Printf(TEXT("Aile d\u00fckk\u00e2n\u0131nda kasa ve rafta %d ki\u015fi kald\u0131; %d ki\u015fi \u00fccreti \u00f6denemedi\u011fi i\u00e7in ayr\u0131ld\u0131."), RescueKeepStaff, Going.Num()));
+            Lines.Add(FString::Printf(TEXT("\u0130lk ma\u011fazada kasa ve rafta %d ki\u015fi kald\u0131; %d ki\u015fi \u00fccreti \u00f6denemedi\u011fi i\u00e7in ayr\u0131ld\u0131."), RescueKeepStaff, Going.Num()));
         }
     }
 
@@ -512,6 +504,6 @@ TArray<FString> MarketFinance::Rescue(FMarketState& State, const TArray<FMarketP
     State.NegativeCashDays = 0;
     State.TroubleStage = 0;
     State.Decisions.RemoveAll([](const FMarketDecision& D) { return D.Id.StartsWith(TEXT("finance.")); }); // the ladder's open offers are void now
-    Lines.Add(TEXT("\u015eirket aile d\u00fckk\u00e2n\u0131ndan yeniden ba\u015fl\u0131yor. Ders: her \u015fubenin ayl\u0131k gideri kadar yedek tut."));
+    Lines.Add(TEXT("\u015eirket ilk ma\u011fazas\u0131ndan yeniden ba\u015fl\u0131yor. Ders: her \u015fubenin ayl\u0131k gideri kadar yedek tut."));
     return Lines;
 }
