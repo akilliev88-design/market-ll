@@ -89,6 +89,9 @@ namespace MarketBranches
     constexpr float UnitsPerShopper = 2.2f;
     constexpr int32 PeoplePerStoreK = 40;    // room for one of our shops per 40 000 people (at least 2)
     constexpr int32 PeoplePerSlotK = 80;     // above one shop per 80 000 people ours start to share customers
+    // M70: the boss walks through a store (MarketBranches::Visit): its people's morale and the day's service rise a little.
+    constexpr float BossMorale = 3.f;
+    constexpr float BossService = 1.05f;
 
     const TArray<FString>& FormatIds();      // kucuk, mahalle, buyuk, hiper (every country; the store kits)
     // M54 (Mustafa 03.10.2026): + yakin (convenience store, kombini) and toptan (cash-and-carry, atacarejo). Menu and

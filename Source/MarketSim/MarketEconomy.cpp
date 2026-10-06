@@ -27,6 +27,7 @@ bool FMarketState::Order(int32 Index, const TArray<FMarketProduct>& Products)
 bool FMarketState::SubmitOrder(const TArray<int32>& Cases, const TArray<FMarketProduct>& Products, int64* OutBill, int32* OutUnits, int64 CreditAllowance)
 {
     if (Products.Num() != Stock.Num() || Cases.Num() != Products.Num()) return false;
+    if (FirstStoreStatus != 0) return false; // G-110 (M70): a closed first store orders nothing
     int64 Bill = 0;
     int32 TotalUnits = 0;
     for (int32 I = 0; I < Products.Num(); ++I)
@@ -127,6 +128,12 @@ bool FMarketState::SellBasket(const TArray<FMarketSaleLine>& Lines, const TArray
     return true;
 }
 
+double FMarketState::FirstStoreRunning() const
+{
+    // G-110 (M70): 0 open, 1 empty building, 2 sold, 3 leased.
+    return FirstStoreStatus == 0 ? 1.0 : FirstStoreStatus == 1 ? 0.25 : 0.0;
+}
+
 int64 FMarketState::DailyPayroll() const
 {
     int64 Total = 0;
@@ -140,7 +147,7 @@ void FMarketState::CloseDay()
     // fridges work harder in summer and the shop is heated in winter.
     const MarketCalendar::ESeason Season = MarketCalendar::SeasonOf(MarketCalendar::DateOf(Day).Month);
     const double Utilities = Season == MarketCalendar::ESeason::Summer ? 1.15 : Season == MarketCalendar::ESeason::Winter ? 1.10 : 1.0;
-    LastOperatingCost = FMath::RoundToInt64(2200.0 * MarketPrices::ListLevel(Day) * Utilities) + DailyPayroll() + Marketing + OtherCosts;
+    LastOperatingCost = FMath::RoundToInt64(2200.0 * MarketPrices::ListLevel(Day) * Utilities * FirstStoreRunning()) + DailyPayroll() + Marketing + OtherCosts;
     Marketing = 0;
     OtherCosts = 0;
     // Branches add their own day later in the close (MarketBranches::CloseDay, chains we own: MarketChains).

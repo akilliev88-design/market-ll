@@ -11,6 +11,7 @@
 #include "MarketSuppliers.h"
 #include "MarketPromotions.h"
 #include "MarketFinance.h"
+#include "MarketFirstStore.h"
 #include "MarketOnline.h"
 #include "MarketAdvertising.h"
 #include "MarketPayments.h"
@@ -1679,7 +1680,29 @@ TSharedRef<SWidget> SMarketMenu::FinancePage()
         // M69: the first store's building is ours: no rent, an asset.
         + SHorizontalBox::Slot().FillWidth(1.f)
         [ Stat(TEXT("B\u0130NA \u00b7 \u0130LK MA\u011eAZA"), [G] { return G() ? MarketMenuUi::Tl(MarketFinance::BuildingValue(G()->State)) : FString(); },
-               [] { return FString(TEXT("bizim \u00b7 kira yok")); }) ];
+               [G] { return G() ? MarketFirstStore::StatusText(G()->State) : FString(); }) ]; // G-110: open, empty, sold or leased
+
+    // G-110 (M70): close the first store (the building: sell / keep empty / lease) or open it again.
+    auto FirstStoreButton = [this, G](bool bWhenOpen, TFunction<FString()> Text, TFunction<FString()> Question, FName Action, int32 Arg) -> TSharedRef<SWidget>
+    {
+        return SNew(SBox)
+            .Visibility_Lambda([G, bWhenOpen] { return G() && MarketFirstStore::IsOpen(G()->State) == bWhenOpen && (bWhenOpen || MarketFirstStore::StatusOf(G()->State) != MarketFirstStore::EStatus::Sold) ? EVisibility::Visible : EVisibility::Collapsed; })
+            [ RiskyButton(MoveTemp(Text), MoveTemp(Question), [this, Action, Arg] { Manage(Action, Arg); },
+                [G, bWhenOpen] { FString Why; return G() && (bWhenOpen ? MarketFirstStore::CanClose(G()->State, Why) : MarketFirstStore::CanReopen(G()->State, Why)); }) ];
+    };
+    TSharedRef<SWidget> FirstStoreRow = SNew(SHorizontalBox)
+        + SHorizontalBox::Slot().AutoWidth().Padding(0.f, 0.f, 8.f, 0.f)
+        [ FirstStoreButton(true, [] { return FString(TEXT("\u0130lk ma\u011fazay\u0131 kapat \u00b7 binay\u0131 sat")); },
+            [G] { return G() ? MarketFirstStore::CloseQuestion(G()->State, MarketFirstStore::EBuilding::Sell) : FString(); }, TEXT("CloseFirstStore"), 0) ]
+        + SHorizontalBox::Slot().AutoWidth().Padding(0.f, 0.f, 8.f, 0.f)
+        [ FirstStoreButton(true, [] { return FString(TEXT("Kapat \u00b7 bina bo\u015f kals\u0131n")); },
+            [G] { return G() ? MarketFirstStore::CloseQuestion(G()->State, MarketFirstStore::EBuilding::Keep) : FString(); }, TEXT("CloseFirstStore"), 1) ]
+        + SHorizontalBox::Slot().AutoWidth().Padding(0.f, 0.f, 8.f, 0.f)
+        [ FirstStoreButton(true, [] { return FString(TEXT("Kapat \u00b7 binay\u0131 kiraya ver")); },
+            [G] { return G() ? MarketFirstStore::CloseQuestion(G()->State, MarketFirstStore::EBuilding::Lease) : FString(); }, TEXT("CloseFirstStore"), 2) ]
+        + SHorizontalBox::Slot().AutoWidth()
+        [ FirstStoreButton(false, [] { return FString(TEXT("\u0130lk ma\u011fazay\u0131 yeniden a\u00e7")); },
+            [G] { return G() ? MarketFirstStore::ReopenQuestion(G()->State) : FString(); }, TEXT("ReopenFirstStore"), 0) ];
 
     // M37: our salary and our own money (MarketOwner). The company's till is not ours.
     auto SalaryChip = [this, G](int32 Step) -> TSharedRef<SWidget>
@@ -1914,6 +1937,7 @@ TSharedRef<SWidget> SMarketMenu::FinancePage()
     [
         SNew(SVerticalBox)
         + SVerticalBox::Slot().AutoHeight()[ Top ]
+        + SVerticalBox::Slot().AutoHeight().Padding(0.f, 8.f, 0.f, 0.f)[ FirstStoreRow ] // G-110
         + SVerticalBox::Slot().AutoHeight().Padding(0.f, 12.f, 0.f, 0.f)[ OwnerCard ]
         + SVerticalBox::Slot().AutoHeight().Padding(0.f, 12.f, 0.f, 0.f)[ Companies ]
         // C5 (A istek 3): the company's rating, banks and limit first; the first store's loan after it.
@@ -3459,7 +3483,7 @@ TSharedRef<SWidget> SMarketMenu::ShopsTab()
                     + SHorizontalBox::Slot().AutoWidth().VAlign(VAlign_Center).Padding(8.f, 0.f, 0.f, 0.f)
                     [ RiskyButton([] { return FString(TEXT("Kapat")); },
                         [G, Slot] { return G() && G()->State.Branches.IsValidIndex(Slot)
-                            ? FString::Printf(TEXT("%s kapans\u0131n m\u0131? Raftaki mal ilk ma\u011fazan\u0131n deposuna ta\u015f\u0131n\u0131r, s\u0131\u011fmayan yar\u0131 fiyat\u0131na sat\u0131l\u0131r; \u00e7al\u0131\u015fanlar ayr\u0131l\u0131r."), *G()->State.Branches[Slot].Name) : FString(); },
+                            ? FString::Printf(TEXT("%s kapans\u0131n m\u0131? Raftaki mal di\u011fer ma\u011fazalar\u0131m\u0131za ta\u015f\u0131n\u0131r, s\u0131\u011fmayan yar\u0131 fiyat\u0131na sat\u0131l\u0131r; \u00e7al\u0131\u015fanlar ayr\u0131l\u0131r."), *G()->State.Branches[Slot].Name) : FString(); },
                         [this, Slot] { if (PromoteBranch == Slot) PromoteBranch = INDEX_NONE; Manage(TEXT("CloseBranch"), Slot); },
                         [BranchOpen, Slot] { return BranchOpen(Slot); }) ]
                 ]

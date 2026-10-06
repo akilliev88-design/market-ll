@@ -77,7 +77,7 @@ float MarketStoreDemand::NeutralShare(const FMarketState& State, const FString& 
 float MarketStoreDemand::Cannibalization(const FMarketState& State, const FStoreDay& Store)
 {
     const MarketBranches::FSite Where = MarketStoreDemandLocal::SiteOf(State, Store);
-    float Others = Where.bHome && Store.Self != FirstStore ? 1.f : 0.f; // the first store
+    float Others = Where.bHome && Store.Self != FirstStore && State.FirstStoreStatus == 0 ? 1.f : 0.f; // the first store (G-110: while open)
     for (int32 I = 0; I < State.Branches.Num(); ++I)
     {
         const FMarketBranch& B = State.Branches[I];
@@ -144,6 +144,7 @@ MarketStoreDemand::FStoreDay MarketStoreDemand::FirstStoreDay(const FMarketState
 
 int32 MarketStoreDemand::FirstStoreShoppers(const FMarketState& State, const TArray<FMarketProduct>& Products, int32 Day)
 {
+    if (State.FirstStoreStatus != 0) return 0; // G-110 (M70): a closed first store has no shoppers
     return Shoppers(State, FirstStoreDay(State, Products, Day), Day);
 }
 

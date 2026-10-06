@@ -38,7 +38,7 @@ namespace MarketCompany
 
 int32 MarketCompany::TotalStores(const FMarketState& State)
 {
-    int32 Count = 1;
+    int32 Count = State.FirstStoreStatus == 0 ? 1 : 0; // G-110 (M70): the first store counts while it is open
     for (const FMarketBranch& B : State.Branches) if (IsOpen(B)) ++Count;
     return Count;
 }

@@ -192,7 +192,7 @@ void MarketLedger::BeginClose(FMarketState& State, const TArray<FMarketProduct>&
     // and other costs; the v0.1 second store's aggregate came in.
     const MarketCalendar::ESeason Season = MarketCalendar::SeasonOf(MarketCalendar::DateOf(Closed).Month);
     const double Seasonal = Season == MarketCalendar::ESeason::Summer ? 1.15 : Season == MarketCalendar::ESeason::Winter ? 1.10 : 1.0;
-    const int64 Utilities = FMath::RoundToInt64(2200.0 * MarketPrices::ListLevel(Closed) * Seasonal);
+    const int64 Utilities = FMath::RoundToInt64(2200.0 * MarketPrices::ListLevel(Closed) * Seasonal * State.FirstStoreRunning()); // G-110: a closed first store
     const int64 Payroll = State.DailyPayroll();
     // C11: the HR manager and the accountant serve the whole company: their pay is the head office's, so the family
     // shop's books show only the shop's own people. The till paid the whole payroll; only the books split it.

@@ -33,6 +33,7 @@
 #include "MarketFranchise.h"
 #include "MarketStrategy.h"
 #include "MarketPortfolio.h"
+#include "MarketFirstStore.h"
 #include "MarketResponse.h"
 
 float MarketDirector::TrafficFactor(const FMarketState& State, const TArray<FMarketProduct>& Products)
@@ -177,6 +178,9 @@ bool MarketDirector::Command(FMarketState& State, const TArray<FMarketProduct>& 
         return MarketBranches::Open(State, Products, Country, Province, Format, OutMessage);
     }
     if (Action == TEXT("CloseBranch")) return MarketBranches::Close(State, Products, Arg, OutMessage);
+    // G-110 (M70): the first store; Arg = MarketFirstStore::EBuilding (0 sell, 1 keep empty, 2 lease).
+    if (Action == TEXT("CloseFirstStore")) return MarketFirstStore::Close(State, Products, static_cast<MarketFirstStore::EBuilding>(FMath::Clamp(Arg, 0, 2)), OutMessage);
+    if (Action == TEXT("ReopenFirstStore")) return MarketFirstStore::Reopen(State, OutMessage);
     if (Action == TEXT("RenovateBranch")) return MarketPortfolio::Renovate(State, Products, Arg, OutMessage);   // D9b (M46): Arg = branch
     if (Action == TEXT("RelocateBranch")) return MarketPortfolio::Relocate(State, Products, Arg, OutMessage);
     if (Action == TEXT("ReformatBranch")) // D9b (M46): Arg = MarketPortfolio::EncodeFormat
@@ -376,6 +380,7 @@ void MarketDirector::CloseDay(FMarketState& State, const TArray<FMarketProduct>&
     MarketStoreDemand::CloseDay(State, Products); // E2: the first store's share of its province (one store formula)
     MarketChains::Poach(State, State.Day - 1);    // a chain of the home province offers one of our people a job
     MarketBranches::CloseDay(State, Products);   // opening steps and the simulated day of every branch (G-068)
+    MarketFirstStore::CloseDay(State);           // G-110 (M70): a leased first store's rent of the day
     MarketManagers::CloseDay(State);             // managers' wages, morale, weekly marks, the player's span (G-086b)
     MarketCommand::CloseDay(State, Products);    // M33: province managers propose opening or closing a branch (up the line)
     MarketDepots::CloseDay(State);               // depots: a caught depot manager, missing managers, losses (G-089)

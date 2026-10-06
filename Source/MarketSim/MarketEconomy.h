@@ -1027,7 +1027,7 @@ struct FMarketState
     static constexpr int64 StockerDailyWage = 2000;
 
     // Save format version. 2 (G-076): story finale flags, test-mode mark. Older saves load and are migrated.
-    static constexpr int32 CurrentVersion = 22; // D9b: portfolio and answers (M46, M47); // M69: no chapters, the player's and the market's names, the first store owns its building; // D9: strategy (M48-M50); // D6: franchises; // M54/M58/M59; // E4b: loans abroad; // M65: subsidiaries; // E4: the exchange difference account; // E3c2c: branch staff are people; // M64: the father's favour is counted; // E3c2 (M27): branch goods use the first store's record, the v0.1 staff flags are gone; older saves start a new game
+    static constexpr int32 CurrentVersion = 23; // G-110: the first store can be closed (M70); // D9b: portfolio and answers (M46, M47); // M69: no chapters, the player's and the market's names, the first store owns its building; // D9: strategy (M48-M50); // D6: franchises; // M54/M58/M59; // E4b: loans abroad; // M65: subsidiaries; // E4: the exchange difference account; // E3c2c: branch staff are people; // M64: the father's favour is counted; // E3c2 (M27): branch goods use the first store's record, the v0.1 staff flags are gone; older saves start a new game
     UPROPERTY() int32 Version = CurrentVersion;
     UPROPERTY() int32 Day = 1;
     UPROPERTY() int64 Cash = 35000;
@@ -1066,6 +1066,9 @@ struct FMarketState
     // waits until it is 0. There is no deadline: the story goes on until the shop stands on its own feet.
     UPROPERTY() int64 InheritedDebt = 30000;
     UPROPERTY() int32 DebtClearedDay = 0;   // day the debt was closed (0 = still open)
+    // G-110 (M70): the first store is open (0), closed with its building empty (1), sold (2) or leased (3); MarketFirstStore.
+    UPROPERTY() uint8 FirstStoreStatus = 0;
+    UPROPERTY() int32 FirstStoreClosedDay = 0;
     // Running week (days 1-7, 8-14, ...) and the last finished week, for the weekly report.
     UPROPERTY() int64 WeekRevenue = 0;
     UPROPERTY() int64 WeekProfit = 0;
@@ -1180,6 +1183,9 @@ struct FMarketState
 
     // Wages of everyone on the payroll (paid days off included).
     int64 DailyPayroll() const;
+    // G-110 (M70): share of the first store's daily running costs paid today: 1 open, a quarter for an empty
+    // building, 0 when it is sold or leased (MarketFirstStore::RunningShare).
+    double FirstStoreRunning() const;
 
     void Initialize(const TArray<FMarketProduct>& Products);
     bool Order(int32 Index, const TArray<FMarketProduct>& Products);

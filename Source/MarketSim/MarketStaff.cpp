@@ -435,6 +435,11 @@ bool MarketStaff::Hire(FMarketState& State, int32 CandidateIndex, FString& OutMe
     FMarketEmployee Hired = State.Candidates[CandidateIndex];
     const ERole Role = RoleOf(Hired);
     if (Role == ERole::Accountant) return HireAccountant(State, OutMessage);
+    if ((Role == ERole::Cashier || Role == ERole::Stocker) && State.FirstStoreStatus != 0) // G-110 (M70)
+    {
+        OutMessage = TEXT("\u0130lk ma\u011faza kapal\u0131: kasiyer ve reyon g\u00f6revlisi al\u0131nmaz.");
+        return false;
+    }
     if (Role == ERole::HrManager && !HrUnlocked(State))
     {
         OutMessage = FString::Printf(TEXT("\u0130K m\u00fcd\u00fcr\u00fc i\u00e7in \u00f6nce en az %d kasiyer/reyon g\u00f6revlisi \u00e7al\u0131\u015fmal\u0131."), HrUnlockStaff);

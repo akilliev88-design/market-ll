@@ -586,7 +586,10 @@ void AMarketGameMode::StaffCommand(FName Action, int32 Id)
             OpenDayReport();
         }
     }
+    else if ((Action == TEXT("CloseFirstStore") || Action == TEXT("ReopenFirstStore")) && bOpen)
+        Text = TEXT("D\u00fckk\u00e2n a\u00e7\u0131kken olmaz; \u00f6nce g\u00fcn\u00fc kapat.");
     else bChanged = MarketDirector::Command(State, Products, Action, Id, Text); // wholesaler, prices, ...
+    if (bChanged && (Action == TEXT("CloseFirstStore") || Action == TEXT("ReopenFirstStore"))) { ResetWorkerJobs(); RefreshDeliveryCrates(); SaveCampaign(); } // G-110
     if (bChanged) { SyncWorkers(); RefreshPrices(); RefreshLabels(); } // people, supplier discount, shelf prices
     if (!Text.IsEmpty()) Notify(Text);
 }

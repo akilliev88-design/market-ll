@@ -1152,7 +1152,7 @@ void MarketOnline::CloseDay(FMarketState& State, const TArray<FMarketProduct>& P
     for (int32 AreaIndex = 0; AreaIndex < O.Areas.Num(); ++AreaIndex)
     {
         const FMarketOnlineArea& A = O.Areas[AreaIndex];
-        if (A.Country == State.CountryId && A.Province == Home)
+        if (A.Country == State.CountryId && A.Province == Home && State.FirstStoreStatus == 0) // G-110: a closed first store picks no orders
         {
             int32 Workers = 0;
             for (const FMarketEmployee& E : State.Staff) if (MarketStaff::RoleOf(E) != MarketStaff::ERole::Accountant) ++Workers;

@@ -14,7 +14,7 @@ Son güncelleme: 06.10.2026 — Codex (G-118). Bu dosya 06.10.2026'da sadeleşti
 
 | # | İş | Sahip | Not |
 |---|---|---|---|
-| 1 | **G-110 ilk mağazayı kapatma** | Claude (kural) + Codex (3B geçiş) | M69'un kalan parçası. G-109 ve G-118 tamamlandı. |
+| 1 | **G-110 ilk mağazayı kapatma + haritadan giriş kuralları** (M70), ardından **G-119** haritadan 3B giriş | Claude (G-110) → Codex (G-119) | M70 06.10.2026'da kararlaştırıldı: "Dükkâna git" kalkar, il kartında türe tıklanıp o türden bir mağazamıza girilir; bina sat/boş tut/kiraya ver. |
 | 2 | **G-108 denge notları ve yeni bot koşusu** | Claude | D9a + D9b doğrulandı. Bu turdaki iki yıllık bot uzun dönem denge ölçümü değildir. |
 | 3 | **Mustafa'nın değerlendirmesi** | Mustafa | Yeni mağaza yerleşimleri, el yapımı mahalle marketi, G-106 yönetim ekranı için dört tasarım yönü. |
 | 4 | **Yeni reyonların satılabilir ürünleri** | Claude | Manav ve bazı gıda dışı reyonlar yalnız görüntü; katalog/stok/fiyat karşılığı gerekiyor. |
@@ -29,6 +29,12 @@ Son güncelleme: 06.10.2026 — Codex (G-118). Bu dosya 06.10.2026'da sadeleşti
 - World Labs API anahtarı Image-blaster klasörüyle silindi; platformda iptali Mustafa'da.
 
 ## Son girişler
+
+**06.10.2026 — Codex / G-110 doğrulama:** DERLE, TEST 184/184, Smoke başarılı; derleme düzeltmesi yok, kayıt sürümü 23. G-119 giriş akışı devam ediyor; Finans/3B arayüz kontrolü sırada.
+
+**06.10.2026 — Claude (Cowork) / G-110 yazıldı (derlenmedi):** İlk mağazayı kapatma (Finans sayfasında: kapat · binayı sat / boş tut / kiraya ver; yeniden aç), kapalı ilk mağazanın müşterisi, siparişi, kasiyeri, internet toplaması ve gideri yok; kapanan mağazaların malı diğer açık mağazalara gider; mağaza yoksa oyun sürer. Haritadan giriş kuralları `MarketStoreVisit` (Pick/Next/Header/StartsInStore) ve patron etkisi (moral +3, o günün hizmeti ×1,05). Kayıt sürümü 23, Test.ps1 184. **Devam:** Codex derler/test eder, sonra G-119 (iş emri `Docs/Surec/promptlar/codex_g110_g119_20261006.md`).
+
+**06.10.2026 — Claude (Cowork) / G-118 kontrolü ve M70:** Codex'in D9b birleşimi ve MarketSim iç adı doğrulandı. Mustafa M70'i onayladı: mağazaya haritadan (il kartı → tür) girilir, ağırlıklı rastgele seçim, Tab ile diğeri; tek mağazada oyun içeride açılır; ilk mağaza kapatılabilir, bina sat/boş tut/kiraya ver. G-110 (Claude) ve G-119 (Codex) tanımlandı. Kod değişmedi.
 
 **06.10.2026 — Codex / G-118 tamamlandı:** Claude çözümü manifestle doğrulandı; D9b `5dc33ea`, iç ad MarketSim `2d2e495`, kayıt sürümü 22. Her iki aşamada DERLE/180 test/Smoke geçti; bot iki yıl, denetim hatası 0. Yeni ve eski yönlendirilen sınıf yollarıyla sanat/mahalle/büyük mağaza/normal gezi geçti. **Devam:** G-110 ve G-108; ayrıntı GUNLUK.
 

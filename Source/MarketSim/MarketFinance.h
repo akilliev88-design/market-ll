@@ -50,6 +50,9 @@ namespace MarketFinance
     void CloseDay(FMarketState& State, const TArray<FMarketProduct>& Products);
     // M69: what the first store's building is worth today (an asset in the balance sheet; no rent is paid).
     int64 BuildingValue(const FMarketState& State);
+    // G-110 (M70): what the building is worth whoever owns it (BuildingValue is 0 once it is sold); its rent is a
+    // BuildingRentMonths-th of it (MarketFirstStore::MonthlyLease).
+    int64 BuildingReferenceValue(const FMarketState& State);
     // M37: a month of the company's fixed costs (the first store's people and running costs, the head office's
     // managers, every open branch); the dividend leaves at least this in the till.
     int64 CompanyMonthCost(const FMarketState& State);

@@ -1,3 +1,35 @@
+## 06.10.2026 — Codex — G-110 doğrulandı, G-119 başlıyor
+
+Beklenen Claude değişiklikleri kontrol edildi; beklenmeyen dosya yok. DERLE başarılı, TEST 184/184 (başarısız 0), Smoke başarılı. Derleme düzeltmesi gerekmedi. Kayıt sürümü 23. G-110 ayrı commit ve cloud/akis-cc2 gönderimi; G-119 giriş akışı sıradaki adım. Finans/3B kontrolü bu oturumda Unreal arayüz otomasyonu ile yapılacak; elle kontrol henüz yapılmadı.
+
+## 06.10.2026 — Claude (Cowork) — G-110: ilk mağazayı kapatma ve haritadan giriş kuralları (derlenmedi)
+
+**Yapılan (M70):**
+- Yeni `MarketFirstStore` (kapat / yeniden aç / kira günü): kasiyer ve reyon görevlileri tazminatla çıkar (İK müdürü ve mali müşavir genel merkezde kalır); bozulmayan mal önce aynı ildeki, sonra ülkedeki açık mağazalarımıza (yolda, Incoming; raf kapasitesinin 1,5 katına kadar), bozulabilir ve sığmayan mal toptancıya yarı maliyetine; ilk mağazanın kampanyaları biter. Bina: sat (değeri kasaya, `Divestment`; bilançodan çıkar, bir daha açılmaz), boş tut (giderin dörtte biri, ücretsiz yeniden açılır), kiraya ver (aylık `BuildingReferenceValue / 120` kira, günlük `OtherIncome`; yeniden açmak kiracıya bir aylık kira). `FMarketState::FirstStoreStatus` / `FirstStoreClosedDay`, kayıt sürümü 23.
+- Kapalı ilk mağaza: müşteri 0 (`FirstStoreShoppers`), sipariş yok (`SubmitOrder`), kasiyer/reyon görevlisi alınmaz, internet siparişi toplamaz, gider payı `FirstStoreRunning()` (gün kapanışı ve defter aynı formül), mağaza sayısı ve il listesi saymaz, çevre yamyamlığına girmez. İlk şube kuralı (kârlı gün, çevre payı) ilk mağaza kapalıyken uygulanmaz. Kapanan şubenin malı ilk mağaza kapalıysa diğer açık mağazalara gider.
+- Yeni `MarketStoreVisit`: il kartı için türe göre sayım (`TypesIn`), ağırlıklı rastgele giriş (`Pick`: boş raf, kuyruk, memnuniyet < 55, karne D/E, 30 günden yeni; son 3 günde gezilen ×0,4), Tab sırası (`Next`), üst satır (`Header`, "İl · Tür n/N"), tek açık mağazada içeride açılış (`StartsInStore`, `OnlyStore`).
+- Patron etkisi: `MarketBranches::Visit` günde bir kez şube çalışanlarının moraline +3, o günün hizmetine ×1,05 (`BossMorale`, `BossService`).
+- Menü: Finans'ta bina kutusu durumu gösterir; "İlk mağazayı kapat · binayı sat", "Kapat · bina boş kalsın", "Kapat · binayı kiraya ver", "İlk mağazayı yeniden aç" (onaylı). Dükkân açıkken kapatılmaz. Şube kapatma sorusu "mal diğer mağazalarımıza taşınır" oldu.
+- Testler: `MarketSim.FirstStore.CloseAndSell`, `.LeaseAndReopen`, `.CompanyGoesOn`, `MarketSim.StoreVisit.PickAndNext`. Test.ps1 184.
+
+**Varsayımlar (Mustafa değiştirebilir):** boş bina giderin %25'i; kira = binanın referans kirası; kiracıyı çıkarmak bir aylık kira; mal ilk mağazadan yalnız bozulmayanlar gider; patron etkisi +3 moral / %5 hizmet.
+
+**Doğrulama:** derlenmedi. Bu ortamda derleyici yok; yeni kodda kullanılan bütün fonksiyon/alan adları mevcut başlıklara karşı tarandı, C++ ASCII.
+
+**Bilinen eksik (G-119'a):** 3B'de kapalı ilk mağazada O ile dükkân açılabiliyor (müşteri gelmez); haritadan giriş, Tab ve "Dükkâna git"in kaldırılması Codex'in G-119'u.
+
+**Sıradaki:** Codex `codex_g110_g119_20261006.md`: önce G-110 derleme/test/smoke, sonra G-119.
+
+## 06.10.2026 — Claude (Cowork) — G-118 kontrolü ve M70 kararı
+
+**Kontrol:** Codex'in G-118 raporu okundu: D9b 5dc33ea, iç ad 2d2e495, kayıt sürümü 22, iki aşamada DERLE + TEST 180/180 + Smoke, iki yıllık bot denetim hatası 0, eski script yolları CoreRedirects ile açılıyor; kalan "Miras" satırları bilerek korunan varlık yolları. Bot notu (G-108 için): iki yılda 10 mağazanın son karnesi hepsi A; karne ölçeği uzun koşuda gözden geçirilmeli.
+
+**Mustafa (M70):** "Dükkâna git tuşunu istemiyorum; ildeki mağaza türlerinden birine tıklar gider, rastgele mağaza gösteririz." Bina için "oyuncu seçsin". Claude'un önerisi onaylandı: il kartında türe göre mağaza sayısı; ağırlıklı rastgele giriş (sorunlu mağaza daha olası), Tab ile aynı türden diğerine; tek mağazada oyun içeride, ikinciden sonra haritada açılır; her mağazada elle çalışılır, "patron burada" etkisi; ilk mağaza kapatılabilir, bina sat / boş tut / kiraya ver; mal ve personel devri.
+
+**Yapılan:** `01_KARARLAR.md` M70, kurgu kitabı §2, GOREVLER G-110 (kurallar, Claude) ve yeni G-119 (3B giriş, Codex), DURUM. Kod değişmedi.
+
+**Sıradaki:** Claude G-110 kodu (derlenmeden yazılır, Codex/CLAUDE_KOS derler), sonra Codex G-119.
+
 ## 06.10.2026 — Codex — G-118 tamamlandı: D9b birleşimi ve MarketSim iç adı
 
 Claude'un 27 çözüm dosyasının once_blob kimlikleri yerel HEAD ile, cozum_blob kimlikleri dosya içerikleri ve birleşim indeksleriyle birebir doğrulandı; fark yok. Yeni iş emri bea1e8c ile kaydedildi. D9b birleşimi 5dc33ea: M46 mağaza yaşlanması/yıllık karne/yenileme/taşıma/tür değişimi ve M47 müdür hiyerarşisi üzerinden rakip/kriz yanıtları. Claude çözümü kayıt sürümünü 22 yaptı; portföyde eski bölüm kilidi yerine MarketBranches::FormatOpen kullanıldı. Codex davranış/kural düzeltmesi yapmadı; derleme düzeyinde hata düzeltmesi gerekmedi.

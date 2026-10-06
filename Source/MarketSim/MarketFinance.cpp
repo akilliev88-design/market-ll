@@ -331,6 +331,11 @@ int64 MarketFinance::HeadOfficeDailyCost(const FMarketState& State)
 
 int64 MarketFinance::BuildingValue(const FMarketState& State)
 {
+    return State.FirstStoreStatus == 2 ? 0 : BuildingReferenceValue(State); // G-110: a sold building is no longer ours
+}
+
+int64 MarketFinance::BuildingReferenceValue(const FMarketState& State)
+{
     // A neighbourhood market's rent in the home province at today's price level, times BuildingRentMonths.
     const MarketBranches::FSite Site = MarketBranches::SiteOf(State, State.CountryId, MarketStart::HomeProvince(State));
     const double Factor = Site.bValid ? Site.Rent : 1.0;

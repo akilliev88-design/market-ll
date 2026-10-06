@@ -29,7 +29,8 @@ Bundan sonraki hikâyeyi oyuncunun kararları yazar. Oyun bölümlere ayrılmaz,
 - Bina bizimdir: kira ödenmez, bilançoda varlık olarak durur (`MarketFinance::BuildingValue`). Şubeler kiracıdır.
 - **Devralınan borç:** ilk ayın sabit giderlerinin bir buçuk katı. Süresi, faizi, cezası yoktur; hiçbir şeyi kilitlemez, hedef ya da kutlama değildir. Oyuncu istediği zaman bir taksit (P) ya da tamamını (Finans) öder.
 - İlk şube için yalnız oyunun kendi şartları vardır: birkaç kârlı gün, ilk mağazanın çevresinde yeterli pay ve açılış parası (`MarketBranches::CanOpen`).
-- İlk mağaza da diğerleri gibi **kapatılabilecek** (karar M69; kodu G-110'da: kapatılınca gezilecek mağaza başka bir şubemize geçer).
+- İlk mağaza da diğerleri gibi **kapatılabilecek** (M69, M70; kodu G-110). Oyuncu binayı satar, boş tutar ya da kiraya verir.
+- **Mağazaya haritadan girilir (M70):** il kartında türe tıklanır, o türden bir mağazamıza (sorunlu olana daha çok ihtimalle) girilir, Tab ile aynı türden diğerine geçilir. Tek mağaza varken oyun içeride açılır; ikinci mağazadan sonra haritada. Her mağazada elle çalışılabilir; girilen mağazaya "patron burada" etkisi gelir.
 
 ## 3. Zaman
 
