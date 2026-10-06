@@ -1,3 +1,5 @@
+> **ARŞİV (06.10.2026):** Bu belge M69 öncesi kurguyu ve eski planı anlatır (2011, Lüleburgaz, "Miras Market", babadan kalan dükkân, hikâye bölümleri). **Güncel değildir; ajanlar buna göre kod ya da metin yazmasın.** Güncel kurgu `Docs/Kurgu/00_KURGU_KITABI.md`, kararlar `Docs/Kurgu/01_KARARLAR.md`, durum `Docs/Surec/DURUM.md`.
+
 # Davranış, otomatik yerleşim ve öğrenen modeller
 
 Durum: mimari ve deney planı. Bu turda model eğitimi, oyun kodu veya veri seti oluşturulmadı. "Yapay zekâ" başlığı altındaki her özellik sinir ağı gerektirmez.

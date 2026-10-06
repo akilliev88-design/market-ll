@@ -1,264 +1,98 @@
-# Miras Market — Kurgu kitabı
+# Kurgu kitabı
 
 Sahibi: Claude (Mustafa'nın 28.09.2026 kararı: 3B model üretimi ve arayüz tasarımı dışında oyunun bütün kurgusu ve arka plan kodu Claude'da).
-Bu belge oyunun **tek kaynak kurgusudur**. Kod bu belgeyi uygular. Sayılar kodda tek bir yerde durur (her modülün başındaki `constexpr` sabitleri) ve burada özetlenir. Tasarım paketi (`Docs/Planlama/`) hedef oyunu tarif eder; bu kitap onu oynanabilir kurallara çevirir ve sırayla gerçekleştirir.
+Bu belge oyunun **bugünkü** kurgusudur. Geçmiş kararların gerekçesi `01_KARARLAR.md`'de durur; geçersiz kalanlar orada "Geçersiz" diye işaretlidir ve uygulanmaz. Ayrıntılı dünya yapısı `09_DUNYA_YENIDEN.md`, ülke paketi standardı `10_ULKE_STANDARDI.md`, tek ekonomi `11_TEK_EKONOMI.md`.
 
-Kural: **her sistem dünyadan bağımsız bir modüldür** (`Source/MirasMarket/Market*.h/.cpp`), otomasyon testi vardır ve oyuna tek bir yerden bağlanır (`MarketDirector`: gün açılışı, gün kapanışı, anlık çarpanlar). Rastgelelik kampanya tohumu + gün + nesneye bağlıdır: kaydı yüklemek sonucu değiştirmez.
+**04.10.2026 (M69) yeniden yazıldı.** Önceki sürüm 2011, Lüleburgaz, "babandan kalan dükkân", Nermin teyze, Cem, Selim, Bereket Market ve yedi hikâye bölümü anlatıyordu. Bunların hiçbiri oyunda yok; yeni işte bu eski anlatıma dönülmez.
+
+Kural: **her sistem dünyadan bağımsız bir modüldür** (`Market*.h/.cpp`), otomasyon testi vardır ve oyuna tek bir yerden bağlanır (`MarketDirector`: gün açılışı, gün kapanışı, anlık çarpanlar). Rastgelelik kampanya tohumu + gün + nesneye bağlıdır: kaydı yüklemek sonucu değiştirmez. Motor ülke bilmez (M52): ülkeye özgü her şey `Config/ulkeler.json`'dadır.
 
 ## 1. Oyunun sözü
 
-7 Mart 2011, Pazartesi. Lüleburgaz'da, İstasyon Caddesi'nin arka sokağında babandan kalan küçük bakkal-marketin kepengini açıyorsun. Kasada biraz bozuk para var. Depoda karışık koliler duruyor. Toptancıya 300 TL borç yazılı. Babanın hesap defterinin ilk sayfasında da tek bir not var: **"Bu dükkânın müşterisini tanı."**
+Football Manager gibi süren bir **işletme simülasyonu ve tycoon**. Oyuncu küçük bir marketle başlar ve onu kendi oyunuyla büyütür; dünya devi olmak mümkündür ama herkes olamaz. Oyunun sonu yoktur: şirket var olduğu sürece oyun sürer (M56, M69).
 
-Oyun, o dükkânın bir mahalle markası, sonra Trakya'nın, sonra Türkiye'nin ve sonunda başka ülkelerin tabelası olup olmayacağıdır. Her büyüme adımı öncekinin emeğine dayanır: müşterinin güveni, tedarikçinin güveni, çalışanın güveni, bankanın güveni.
+**Yeni oyun (M69):** oyuncu sırayla seçer:
 
-## 2. Zaman
+1. başlangıç **ülkesi** (ülke paketi: para birimi, takvim, yasalar, rakipler, ekonomi),
+2. **şehri** (il; varsayılan il yok),
+3. **marketin adı** (zorunlu; tabelada, haberlerde, listelerde bu ad geçer; `Company.BrandName`),
+4. **kendi adı** (isteğe bağlı; `PlayerName`),
+5. **zorluk** (Rahat / Normal / Zor).
+
+**Tek hikâye başlangıçtır:** ilçede tek şubeli küçük bir market (bakkal değil). Onu yıllarca bir aile işletti; aile yoruldu ve işi oyuncuya devretti. Bina marketle birlikte gelir (oyuncunun mülküdür, kira yoktur). Kasada bir aylık gider, bir kasiyer, iki reyon görevlisi, yarı dolu raflar ve toptancıya **hafif bir borç** vardır. Anne, baba ya da başka akraba yoktur; "aile dükkânı" sözü kullanılmaz.
+
+Bundan sonraki hikâyeyi oyuncunun kararları yazar. Oyun bölümlere ayrılmaz, zorunlu hedef yoktur; dönüm noktaları **hatıra** ve **ilk** olarak kaydedilir (ilk şube, ilk il, ilk yurt dışı mağaza, dünya listesine giriş, dünya birinciliği…).
+
+## 2. İlk mağaza ve borç
+
+- İlk mağaza oyunda **kendi adıyla** geçer: market adı + şehir ("Yıldız Market Van"). Gerektiğinde yanında "ilk şuben" yazar (`MarketStart::FirstStoreName`).
+- Bina bizimdir: kira ödenmez, bilançoda varlık olarak durur (`MarketFinance::BuildingValue`). Şubeler kiracıdır.
+- **Devralınan borç:** ilk ayın sabit giderlerinin bir buçuk katı. Süresi, faizi, cezası yoktur; hiçbir şeyi kilitlemez, hedef ya da kutlama değildir. Oyuncu istediği zaman bir taksit (P) ya da tamamını (Finans) öder.
+- İlk şube için yalnız oyunun kendi şartları vardır: birkaç kârlı gün, ilk mağazanın çevresinde yeterli pay ve açılış parası (`MarketBranches::CanOpen`).
+- İlk mağaza da diğerleri gibi **kapatılabilecek** (karar M69; kodu G-110'da: kapatılınca gezilecek mağaza başka bir şubemize geçer).
+
+## 3. Zaman
 
 | Kavram | Kural | Modül |
 |---|---|---|
-| Oyun günü | Bir oynanan gün = bir takvim günü (dükkân açık kaldığı sürece gerçek 4 dakika) | `MarketGame` |
-| Başlangıç | Gün 1 = 7 Mart 2011 Pazartesi. Hafta Pazartesi başlar, 6. ve 7. günler hafta sonudur | `MarketCalendar` |
-| Mevsim | İlkbahar (Mar–May), yaz, sonbahar, kış | `MarketCalendar` |
-| Bayram ve özel günler | 2011 için gerçek tarihler: 23 Nisan, 1 Mayıs, 19 Mayıs, Anneler Günü (8 Mayıs), Babalar Günü (19 Haziran), Ramazan (1–29 Ağustos), Ramazan Bayramı (30 Ağu–1 Eyl), 30 Ağustos, okul açılışı (19 Eylül), 29 Ekim, Kurban Bayramı (6–9 Kasım), yılbaşı. Sonraki yıllarda hicri bayramlar her yıl ~11 gün öne kayar | `MarketCalendar` |
-| Maaş günleri | Ayın 1'i ve 15'i (memur/emekli), ayın son iş günü: trafik ve sepet büyür. Ay sonuna doğru bütçe daralır | `MarketCalendar` |
-| Hava | Mevsime göre deterministik: sıcak gün içecek/dondurma/ayran, soğuk ve yağmurlu gün çay/çorba/makarna ve daha az yaya | `MarketCalendar` |
-| Enflasyon | **Oyunun kendi eğrisi** (Mustafa 29.09.2026: eğlence, birebir tarih değil): 2011 %9 · 2012 %7 · 2013 %7,5 · 2014 %8 · 2015 %8,5 · 2016 %9 · 2017 %11 · 2018 %16 · 2019 %12 · 2020 %13 · 2021 %19 · 2022 %30 · 2023 %28 · 2024 %22 · sonra yavaş düşüş (%8'e). Tanıdık biçim (2018 sarsıntısı, 2021-23 zor dönem), yumuşak tepeler. Toptancının aylık listesi her kampanyada ve her ay ±%2 oynar (ilk ay hariç) | `MarketPrices`, `MarketSuppliers` |
-| Asgari ücret | 2011/1 net 659 TL; her Ocak ve Temmuz'da o yarı yılın sonundaki fiyat düzeyine göre ayarlanır, üstüne yılda %1,5 reel artış. Ücretler fiyatların biraz önünde gider, kopmaz | `MarketPrices` |
+| Oyun günü | Bir oynanan gün = bir takvim günü (mağaza açıkken gerçek 4 dakika) | `MarketGame` |
+| Yıl | **Oyunda gerçek yıl yoktur** (M60): metinler "3. yıl" der. İçerideki sabit takvim tarihi yalnız hafta günü ve bayram hesabı içindir | `MarketCalendar` |
+| Mevsim, hava | Deterministik; kategori talebini ve yaya sayısını etkiler (ülkenin iklimi pakette) | `MarketCalendar` |
+| Bayram ve özel günler | Ülke paketinden; hicri bayramlar her yıl kayar | `MarketCalendar` |
+| Maaş günleri | Ayın başı, ortası ve son iş günü sepet büyür; ay sonu bütçe daralır | `MarketCalendar` |
+| Enflasyon ve ücret | Her ülkenin kendi eğrisi (paket `economy`), kampanya yılına göre; toptancı listesi her ay ±%2 oynar | `MarketPrices`, `MarketSuppliers` |
+| Dönemler | Kur şoku, durgunluk, salgın, yüksek enflasyon, toparlanma: her kampanyada kayarak gelir (M60) | `MarketEras` |
 
-Takvim, bayramlar ve zincirlerin gelişi tarihe yakındır; ekonomi rakamları ise oyunun kendi eğrisidir, gerçek rakamı bilen oyuncu geleceği okuyamaz. Salgın dönemi (§10) de her kampanyada farklı yaşanır.
+Uzun oyun için **stratejik ilerletme** vardır: mağaza kapalıyken bir gün, hafta ya da ay aynı kurallarla, yürüyen insan olmadan oynanır; karar bekleyince, kasa eksiye düşünce ya da rapor gelince durur (`MarketSimulation`).
 
-Uzun oyun için **stratejik ilerletme** vardır: işler devredildiyse oyuncu bir günü, haftayı ya da ayı mağazada oynamadan simüle eder. Mağaza aynı kurallarla, fiziksel müşteri yerine özet talepten işler (bkz. §10).
+## 4. Müşteriler
 
-## 3. Yer: Lüleburgaz ve ötesi
+Müşteri bir **segment** ile gelir (`MarketCustomers`): emekli, aile, iş çıkışı, öğrenci, esnaf, çocuk. Segment; geliş saatini, listeyi, adedi, bütçeyi, fiyat hoşgörüsünü, sabrı, yürüme hızını ve raf önünde bakma süresini belirler. Tanıdık müşterinin segmenti sabittir. Bütçe maaş gününde artar, ay sonunda düşer. Pahalı ürünü alma ihtimali rakip fiyatına göre değişir (`MarketProductDemand`). Her mağazanın günlük müşterisi tek formülden gelir (`MarketStoreDemand`): ilin alışverişi × pay × alışkanlık × yamyamlık.
 
-İlk harita dükkân ve sokağıdır. Ekonomik harita semtlerden oluşur. Semt adları gerçek ilçeden esinlenir ama sokaklar ve işletmeler kurgudur.
+**Hareket** (`MarketMotion`): kişiye sabit yürüyüş tarzı; listeyi en kısa yürüyüş sırasına koyma; kalabalıkta yol verme; uzun kuyrukta sepeti bırakma; iki tanıdığın kısa sohbeti.
 
-| Semt (kurgu) | Nüfus | Gelir | Kira (aylık) | Not |
-|---|---|---|---|---|
-| **İstasyon** (başlangıç) | orta | orta-düşük | yok (aile mülkü) | Eski esnaf, emekliler, tren yolu |
-| **Çarşı** | yüksek yaya | orta | yüksek | Esnaf, öğle arası, toplu alım |
-| **Kocasinan** | yüksek | orta | orta | Aileler, haftalık alışveriş |
-| **Yeni Mahalle / Toki** | artıyor (yıllar içinde büyür) | orta-düşük | düşük | Genç aileler, fiyat duyarlı |
-| **Üniversite yolu** | orta, dönemlik | düşük | orta | Öğrenci, gece geç saat, hazır yiyecek |
-| **Sanayi** | az konut | orta | düşük | İşçi, sabah erken, toplu kahvaltılık |
-| **Villa / Evrensekiz yolu** | düşük | yüksek | yüksek | Premium, taze, marka sadakati |
+## 5. Rakipler
 
-Sonraki haritalar: Kırklareli (merkez, Babaeski, Pınarhisar), Tekirdağ (Çorlu, Çerkezköy), Edirne; sonra Türkiye bölgeleri; ilk yurt dışı pilotu **Bulgaristan** (Trakya'ya komşu, lev, farklı ürün boyları).
+Rakipler bütçesi, stratejisi ve hafızası olan **zincirlerdir** (`MarketChains`): il, bölge, ülke ve dünya kadrosu; aylık kararlar, fiyat savaşı, ezeli rakip, satılık zincirler ve satın alma. Rakipler oyuncunun verisini görmez; gözlenebilene (raf fiyatı, pay, açılan mağaza) tepki verir. Yerel küçük marketler ülkenin soyadlarından kurgu adlar alır (`MarketCast`). Listeye girmek bir başarıdır: dünya ilk 50, ülke listesi nüfusa göre 10–30 (M53).
 
-## 4. Karakterler
+## 6. Tedarik
 
-| Karakter | Kim | Oyundaki işlevi | İlk görünüş |
-|---|---|---|---|
-| **Nermin teyze** | Mahallenin hafızası, babanın 30 yıllık müşterisi | Veresiye, dedikodu (müşteri memnuniyeti ipuçları), aile itibarı. Dükkâna küserse yarım mahalle küser | 1. gün sabah |
-| **Cem** | Babanın 17 yaşından beri yanında çalışan çırağı, şimdi 26 | İlk aday: dürüst, deneyimli, yavaş. Eğitimle şube müdürü olur (3. bölüm) | 2. gün, aday listesinde özel aday |
-| **Selim** | Trakya Gıda Dağıtım'ın satış temsilcisi | Tedarik koşulları: vade, iskonto, kampanya desteği. Düzenli ödeme ve hacimle koşullar iyileşir. Geç ödenirse soğur | İlk sipariş |
-| **Necati Bey** | Babanın mali müşaviri | Vergi, defter, kasa farkı, nakit uyarısı (G-060) | Masa, istenince |
-| **Kadir Bereketoğlu** | Karşı sokaktaki **Bereket Market**'in sahibi (kurgu) | İlk rakip: fiyat savaşı, dedikodu, 2. haftada dükkânı satın alma teklifi, yıllar sonra ortaklık ya da satış teklifi | 1. hafta |
-| **Derya** | Operasyon yöneticisi adayı (İstanbul'da zincirde çalışmış) | Şube raporları, görev devri, merkezi depo | 3. bölüm sonu |
-| **Banka şube müdürü (Ziraat/Halk… kurgu: "Trakya Bankası")** | Kredi | İlk kredi, faiz, teminat | Nakit sıkıntısı veya şube kararı |
-| **Belediye / zabıta** | Denetim, ruhsat | Yeni şube izin süreci, tabela, hijyen | Olay |
+- **Eski toptancı** (adı ülke paketinden): market yıllardır onunla çalıştığı için güven biraz yüksek başlar. Peşin başlar; düzenli ödeme 7, sonra 14 gün vade getirir; hacim %3–5 iskonto getirir. Nakit sıkıntısında "dükkânın eski hatırına" kampanya başına en çok üç kez üç günlük mal verir (M64).
+- **Ucuz toptancı:** biraz sonra gelir, %4 ucuz ama eksik/kırık mal ve vade yok.
+- **Tedarik ağı:** hat kademeleri, markalarla doğrudan anlaşma, depolar ve kamyonlar (`MarketSourcing`, `MarketDepots`, `MarketBrands`).
+- Zam listesi ayın 1'inde gelir; zammı rafa yansıtmayanın marjı erir.
 
-Gerçek zincirler (BİM, A101, Migros, Şok, CarrefourSA) yalnızca **olağan ticari davranış** gösterir: fiyat, kampanya, mağaza açma. Suistimal ya da suç gibi olumsuz kurgu olaylar hiçbir zaman gerçek şirkete atfedilmez; bunlar kurgu şirketlerle anlatılır (Bereket Market, "Özdemir Toptan", "Anadolu Perakende A.Ş.").
+## 7. Mağaza işleri
 
-## 5. Bölümler (ana hikâye)
+- **Raf dizimi:** oyuncu elle dizer; görevliler kurala göre doldurur (`StaffPlanner`). Yeni şubeye otomatik planogram (`MarketLayout`).
+- **Tazelik:** parti ve son kullanma günü, FEFO, son gün indirimi, fire (`MarketFreshness`).
+- **Kampanyalar:** reyon indirimi, 3 al 2 öde, broşür, gondol başı, toptancı destekli teklif (`MarketPromotions`); şirket reklamı (`MarketAdvertising`).
+- **Olaylar:** dolap arızası, elektrik kesintisi, denetim, düğün siparişi, taziye, kar, kamyon arızası…; her biri bir karar sunar, ritim koruyucusu üst üste kötü olayı tutar (`MarketEvents`, `MarketGoals`).
+- **Kimlik:** ilk haftalardan sonra bir kez sorulur: Mahalle Marketi, Kaliteli Market ya da Hızlı İndirim. Bütün mağazalar bu kimliği taşır (`MarketStory`).
 
-Başarısızlık hikâyeyi bitirmez. Her bölümün **hedefleri** state'ten ölçülür, **dönüm noktaları** hatıra olarak kaydedilir.
+## 8. Şubeler ve şirket
 
-| # | Bölüm | Gerilim | Hedefler (hepsi) | Açtığı şey |
-|---|---|---|---|---|
-| 1 | **Defter** (İlk hafta) | Dükkânı ayakta tutmak | İlk sipariş · ilk kârlı gün · 7 gün tamamla | Hafta raporu, Cem adaylığı |
-| 2 | **Karşı Dükkân** (Mahalle) | Bereket Market ve zincirlerle rekabet | Babanın borcunu kapat · yerel pay %35 · 15 sadık müşteri · sat/devam kararı | Strateji kimliği seçimi, kampanyalar, veresiye |
-| 3 | **İkinci Tabela** (İlçe) | Tek kişi her işe yetişemez | 2. ve 3. şube · ilk müdür · oyuncusuz geçen bir gün | Şube yönetimi, stratejik ilerletme, İK müdürü |
-| 4 | **Trakya** (Bölge) | Hacim artar, sevkiyat yetişmez | 8 şube, 2 il · bölge deposu · ilk kamyon | Merkezi satın alma, doğrudan üretici anlaşmaları |
-| 5 | **Tabela Türkiye'de** (Ulusal) | Büyüme ile kontrol | 50 şube · özel marka · ulusal pazar payı %2 | Yatırımcı/borç/halka arz yolları, bölge müdürlükleri |
-| 6 | **Dünyaya Açılış** (Uluslararası; D6/M67: ana ülkede 25 mağaza ve 5 ille açılır) | Başka pazarda yeniden öğrenmek | Bulgaristan pilotu kârlı · 2. ülke | Ülke profilleri, kur |
-| 7 | **Miras** (Liderlik) | Büyükken dayanıklı kalmak | Birden çok ölçütte birkaç yıl liderlik | Serbest oyun, alternatif sonlar |
+- Şube açmak bir süreçtir: il ve tür seç → sözleşme ve depozito → tadilat → izin → işe alım → açılış stoğu → olgunlaşma (`MarketBranches`). Türler: ucuzcu, mahalle, yakın, süpermarket; büyük türler (hipermarket, toptan) şirket **8 mağaza ve 2 ile** ulaşınca açılır (M69: bölüm yerine büyüklük).
+- Ziyaret edilmeyen mağazalar özet simülasyonla işler; ziyaret edilen mağaza aynı veriden kurulur (`MarketBranchVisit`).
+- Yönetim kademeleri: mağaza, il, bölge, direktör, ülke, kıta müdürleri; doğrudan bağlı 5 kişi sınırı (`MarketManagers`).
+- Yurt dışı şirketin büyüklüğüyle açılır (ana ülkede 25 mağaza, 5 il; M67); önce birkaç ay süren pazar araştırması ve "girmeye değer / zor / girmeyin" sonucu (M68); kendi mağazayla ya da ortaklıkla giriş; her ülkede bir alt şirket (M65).
+- Strateji yolları ve il atağı (M48–M50, `MarketStrategy`).
 
-**Sat ya da devam et (Bölüm 2):** 10. gün civarında (en geç borç kapanınca) Kadir Bereketoğlu dükkânı ister. Teklif, dükkânın o günkü değerine göre hesaplanır. Oyuncu satarsa "Sattın" sonu gösterilir ve hatıralara yazılır, sonra seçim gelir: **"Rüyaymış: dükkâna dön"** (satış parası gelmemiş olur, kimlik seçimiyle hikâye sürer; 3 gün içinde seçilmezse bu olur) ya da **"Burada bitsin"** (serbest oyun). Son görülür ama oyuncu kaybetmez. Devam ederse **strateji kimliğini** seçer:
+## 9. Satış kanalları ve ödeme
 
-| Kimlik | Güçlü yan | Bedeli |
-|---|---|---|
-| **Mahallenin Bakkalı** (uygun fiyat + samimiyet) | Sadakat ve veresiye güçlü, müşteri fiyatı daha az sorgular | Marj düşük, büyüme yavaş |
-| **Kaliteli Yerel** (taze, yöresel, Trakya ürünleri) | Yüksek marj, premium semtlerde güçlü | Fire riski, pahalı tedarik |
-| **Hızlı İndirim Zinciri** (az çeşit, koli teşhiri, ölçek) | Şube açmak ucuz, alış iskontosu | Sadakat zayıf, zincirlerle doğrudan savaş |
+İnternet mağazacılığı telefonla başlar; web ve platform kampanyanın ilerleyen yıllarında açılır. Kurye kapasitesi, depodan/raftan toplama, ikame kuralı, itibar; ilin online payı mağazalardan müşteri çeker (`MarketOnline`). Salgın dönemi her kampanyada farklı yaşanır, kapatılabilir. Ödeme: nakit, kart, yemek kartı; POS kirası ve komisyonu (`MarketPayments`).
 
-Hiçbiri her koşulda üstün değildir. Kimlik, rakiplerin oyuncuya nasıl tepki verdiğini de değiştirir.
+## 10. Finans
 
-## 6. Müşteriler
+- Muhasebe defteri: her para hareketi kayda geçer; gelir tablosu, bilanço (ilk mağazanın binası dahil), kasa denetimi (`MarketLedger`).
+- Banka kredisi, kredi hattı, yabancı para kredisi (`MarketBanking`, `MarketFinance`); vergi ve mali müşavir (`MarketStaff`).
+- Oyuncunun maaşı ve kişisel serveti şirketin kasasından ayrıdır (M37, `MarketOwner`).
+- Ödeme sıkıntısında oyun bitmez: önce uyarı, sonra vadeler kapanır, seçenekler sunulur, en sonda bankanın kurtarma planı (M31).
 
-Müşteri bir **segment** ve bir **alışveriş amacı** ile gelir (`MarketCustomers`).
+## 11. Hedefler, ilkler, rekorlar
 
-| Segment | Pay (İstasyon) | Liste | Bütçe | Fiyat duyarlılığı | Sevdiği | Saat |
-|---|---|---|---|---|---|---|
-| Emekli | %22 | 1–3 | düşük | yüksek | süt, çay, temel gıda | sabah |
-| Ev (haftalık aile) | %28 | 3–6 | yüksek | orta | süt, makarna, temizlik, içecek | öğleden sonra, hafta sonu |
-| Çalışan (iş çıkışı) | %24 | 1–3 | orta | düşük | içecek, hazır, atıştırmalık | akşam |
-| Öğrenci | %12 | 1–2 | çok düşük | çok yüksek | içecek, bisküvi, makarna | öğle, akşam |
-| Esnaf (toplu alım) | %6 | 2–4 çok adet | yüksek | orta | çay, içecek, temizlik | sabah |
-| Çocuk / hızlı eksik | %8 | 1 | çok düşük | düşük | bisküvi, gazoz, ayran | okul çıkışı |
+Kısa (hafta), orta (ay) ve uzun (yıl) ölçekte **öneri** hedefler oyuncunun kendi sayılarından türetilir; hiçbiri zorunlu değildir ve hiçbir şeyi açmaz. İlkler (ilk şube, 5/10/25… mağaza, 2/5/10/20 il, ilk depo, yurt dışı, ulusal pay, dünya ilk 10 / ilk 3 / birinci) ve rekorlar kutlama kartı ve hatıra olur (`MarketGoals`).
 
-Semt değişince segment payları değişir (Üniversite yolunda öğrenci %40). Bütçe maaş gününde artar, ay sonunda düşer. Müşteri listesini semt + mevsim + hava + bayram ağırlıklarıyla seçer. Pahalı gelen ürünü alma ihtimali segmentin duyarlılığına göre değişir. Sadakat (G-053) ve rakip fiyatı (G-054) korunur.
+## 12. Ad
 
-**Hareket (G-070, `MarketMotion`, uygulandı, derlenmedi).** Her mahalle sakininin sabit bir yürüyüşü vardır:
-
-| Kim | Yürüyüş |
-|---|---|
-| Emekliler | Çoğu ağır adımlı yürür, durup etrafa bakar ve sohbeti sever |
-| Aileler | Oyalanır, sık durur, listeyi yazdığı sırayla gezer |
-| İş çıkışı | Seri yürür, kapanışa doğru hızlanır |
-| Öğrenciler | Yarısı telefona dalıktır: yalpalar, raf önünde uzun kalır |
-| Çocuklar | Koşturur ve önce istediği şeye gider |
-
-Dolu sepet yavaşlatır. Diğerleri listelerini en kısa yürüyüş sırasına koyar (en yakın raf, sonra 2-opt).
-
-Raf önünde:
-
-- Tanıdık müşteri yeri bilir, hızlıdır.
-- Raf boşsa aramaya zaman harcar.
-- Fiyat rakipten pahalıysa ürünü alıp karşılaştırır.
-
-Kasada kuyruk sepetine göre uzunsa bazıları sepeti bırakır. İş çıkışı ve çocuklar en az bekleyenlerdir, dolu sepetli emekli en çok bekleyendir.
-
-Kalabalıkta herkes kişisel alanını korur: öndekinin arkasında yavaşlar, karşıdan gelene sağdan geçer. Reyon dışına çıkmaz. İki sadık müşteri karşılaşınca 3–7 saniye sohbet edebilir. En çok iki emekli sohbet eder; iş çıkışı ve çocuk pek durmaz.
-
-**Veresiye:** tanınan müşteriler (sadakat havuzu) ödeme gününe kadar deftere yazdırabilir. Oyuncu kişi başı limit koyar. Ödemeler maaş günlerinde gelir; bazıları gecikir, çok azı hiç ödemez. Veresiye sadakati ve Nermin teyzenin gözündeki itibarı artırır ama nakdi bağlar (`MarketCredit`).
-
-## 7. Rakipler
-
-Rakipler bütçesi, stratejisi ve hafızası olan **şirketlerdir** (`MarketCompetitors`). Oyuncunun verisini görmezler; yalnızca gözlenebilen şeye tepki verirler: raf fiyatlarımız, pazar payımız, açtığımız şube.
-
-| Şirket | Format | Strateji | Tepkisi |
-|---|---|---|---|
-| **Bereket Market** (kurgu, yerel) | mahalle marketi | Duygusal, kinci, nakdi az | Payımız artınca 2–3 gün sonra en çok sattığımız reyonda indirim; nakdi biterse pes eder; 2. bölümde satın alma teklifi; yıllar sonra satılık olur (satın alınabilir) |
-| **BİM** | indirim | Düşük maliyet, sabit çeşit, "aktüel" günleri | Haftalık aktüel ürün kampanyası; fiyat savaşına girmez, sadece her zaman ucuzdur |
-| **Migros** | süpermarket | Geniş çeşit, kart kampanyaları | Hafta sonu kampanyası, premium semtlerde güçlü |
-| **A101** | indirim | Agresif açılış | 15. gün ilçeye girer (G-054), payımız yüksek semtlere şube açar |
-| **Şok** (2011 ortasından) | indirim | Yeni sahiple hızlı büyüme | 2011 yazından sonra yeni şubeler |
-
-Pazar payı modeli: bir semtteki alışveriş gücü, dükkânlar arasında çekiciliğe göre bölünür. Çekicilik = fiyat algısı + bulunurluk + hizmet (bekleme) + mesafe + sadakat + kampanya. Yerel payımız (şu anki `MarketShare`) bu modelin İstasyon semtindeki sonucudur.
-
-## 8. Tedarik
-
-| Kaynak | Açılış | Koşul |
-|---|---|---|
-| **Trakya Gıda Dağıtım (Selim)** | Başlangıç | Liste fiyatı, 50 TL asgari, peşin. 4 hafta düzenli ödeme → 7 gün vade. Aylık hacim 1.500 TL → %3 iskonto |
-| **Özdemir Toptan** (kurgu, ucuz) | 2. bölüm | %4 ucuz, ama eksik/hasar 3 kat, bazen gecikir |
-| **Üretici doğrudan** (Sütaş, Pınar, Coca-Cola bayisi…) | Bölge hacmi | Kategori bazında %8–12 ucuz, büyük asgari sipariş, raf/kampanya şartı |
-| **Bölge deposu** (kendi) | 4. bölüm | Kendi dağıtımın; kamyon, rota, soğuk zincir |
-
-Zamlar: enflasyon maliyeti her gün biraz artırır; toptancı liste fiyatını ayın 1'inde günceller ve oyuncuya "zam listesi" gelir. Raf fiyatını güncellemeyen oyuncunun marjı erir. Zamdan önce stok yapmak meşru bir stratejidir ama depo ve nakit sınırlıdır.
-
-## 9. Mağaza işleri
-
-- **Raf dizimi:** oyuncunun elle dizmesi (G-045…047) ve görevlilerin kuralları (G-049) korunur. Yeni şubeler için **otomatik planogram** (`MarketLayout`): reyonlar kategori komşuluğuna göre sıralanır (süt ile kahvaltılık, içecek ile atıştırmalık, temizlik ayrı ve gıdadan uzak). Ön yüz sayısı talep ve marjla orantılıdır. Yüksek marjlı ürün göz hizasına, ağır ürün alt rafa konur. Her ürün en az bir koli alır. Oyuncu bu planı şablon olarak kaydedip başka şubeye uygulayabilir.
-- **Tazelik:** süt ürünleri ve ekmek gibi ürünlerde parti ve son kullanma günü vardır. Görevli önce eskisini öne koyar (FEFO). Son gün %30 indirim rafı açılır, süresi geçen ürün fire olur. Fire, gün raporunda "neden" olarak görünür (`MarketFreshness`).
-- **Kampanyalar (oyuncu):** reyon indirimi, "3 al 2 öde", haftalık broşür (bedelli, trafik artırır), gondol başı teşhir (görünürlük), tedarikçi destekli kampanya (Selim bedelin bir kısmını karşılar). Her birinin maliyeti, süresi ve rakibin tepkisi vardır (`MarketPromotions`).
-- **Olaylar:** dolap arızası, elektrik kesintisi, zabıta denetimi, mahalle düğünü (toplu alım), cenaze evi (veresiye/ikram), öğrenci gecesi, kar yağışı, su baskını, tedarikçi grevi, geri çağırma. Her olay bir karar sunar. Günde en çok bir büyük olay gelir (olay bütçesi). Aynı olay 2 haftadan önce tekrar etmez (`MarketEvents`).
-
-## 10. Şubeler
-
-Şube açmak bir **süreçtir** (`MarketBranches`): semt seç → kira sözleşmesi (depozito) → tadilat ve ekipman (format bütçesi) → izin (3–10 gün, zabıta olayı olabilir) → işe alım (İK) → açılış stoğu (merkezden transfer ya da sipariş) → açılış günü kampanyası → olgunlaşma (ilk 30 günde müşteri alışkanlığı oluşur).
-
-Ziyaret edilmeyen şubeler **özet simülasyonla** işler. Talebi semt, segment, takvim, rakipler, stok bulunurluğu, personel ve fiyat belirler. Aynı `MarketDemand` kuralları müşteri başına değil, grup halinde uygulanır. Stok, para ve fire tek kaynaktan yürür; ziyaret edilen şube aynı veriden kurulur. Yeni şube yakındaki kendi şubemizden müşteri çalar (**yamyamlık**).
-
-Müdür: şubeye **hedef ve yetki** verilir (asgari bulunurluk, fiyat bandı, sipariş bütçesi, personel sayısı). Müdür bunlar içinde sipariş verir, fiyatı rakibe göre ayarlar ve istisnaları raporlar. Müdürün becerisi ve dürüstlüğü G-060 kişi modelinden gelir.
-
-### İnternet mağazacılığı ve ödeme (G-069, uygulandı, derlenmedi)
-
-Kanallar dönemle açılır (`MarketOnline`):
-
-- **Telefon siparişi (2011+):** bakkal geleneği. Tanıdık müşteri (3+ ziyaret, memnun) arar; en çok emekliler ve aileler. Kurye yoksa günde 4 siparişi kapanıştan sonra oyuncu götürür. Evde hizmet almak sadakat sayılır.
-- **Web sitesi (2014+):** kurulum ve barındırma masrafı var, en az bir kurye ister, kartla ödenir (%1,8). Bütün semtten büyük sepetler gelir. İnsanların siteyi öğrenmesi iki ay sürer.
-- **Platform (2016+, kurgu ad "Getirsin"):** kuryeyi platform sağlar, komisyonu %18'dir. Sipariş sayısını yıldız belirler; yıldız, online itibardan gelir.
-
-Online sipariş dükkânın stoğunu paylaşır: kapanışta önce depodan, sonra raftan toplanır. Eksik ürün için oyuncu bir kural seçer: müşteriyi arayıp sorar, aynı reyondan benzerini koyar ya da ürünü çıkarır. Kuryenin taşıyabileceğinden fazla sipariş gelirse bir kısmı geç kalır, bir kısmı iptal olur. Her iki durumda itibar düşer. Toplama işi reyon görevlisini yorar.
-
-İlçedeki market alışverişinin bir kısmı her yıl internete kayar: 2016'da ~%1,2, 2023'te ~%5. Bu müşteriler **her dükkânın** kapısından eksilir. Yalnızca online olan dükkân bir kısmını sipariş olarak geri kazanır. Online olmamanın bedeli yavaş yavaş azalan müşteridir; online olmanın bedeli kurye, komisyon ve toplama işidir. Kurye sabit maliyettir, bu yüzden hacim yoksa zarar ettirir (taklitli simülasyon: 2024'te 4 sipariş/gün için 2 kurye zarar ettirir).
-
-**2020–2021 profili (Mustafa 29.09.2026: varsayılan açık, her kampanyada farklı; `PandemicProfile` komutuyla kapatılır):** başlangıç 1–21 Mart 2020 arasında, panik 8–14 gün, iki dalga hafta sonu kısıtlamasında hafta sonlarının ~üçte ikisi kapalı (hangileri olduğu kampanyaya göre), 2021 baharında 10–20 günlük tam kapanma, bitiş 20 Mayıs – 9 Temmuz 2021 arası.
-
-- Mart 2020'de on günlük panik alışverişi: temel gıda, temizlik ve kâğıt talebi ×2.
-- 2020 baharında ve 2020-21 kışında hafta sonu kısıtlamaları: dükkân kısa saat açık, müşteri ×0,4.
-- 29 Nisan – 17 Mayıs 2021 tam kapanma.
-- Online payı ×3,5, sonra ×2,5, 2022 sonuna kadar ×1,4.
-- Hastalık ya da ölüm içeriği yoktur.
-
-**Ödeme (`MarketPayments`):**
-
-- **Kartla ödemek isteyenlerin payı yıllara göre artar:** 2011'de %25, 2021'de %75. Emekliler nakit öder; beyaz yakalılar ve öğrenciler kart kullanır; çocuklar hep nakit öder.
-- **POS yoksa:** kart isteyen müşterinin %35'i sepeti kasada bırakır, kalanı söylenerek nakit öder.
-- **POS varsa:** aylık kira ve %1,8 komisyon ödenir; para ertesi gün hesaba geçer. Kartla ödeyen müşteri sepete biraz daha fazla koyar.
-- **Yemek kartı:** POS ister. Komisyonu %6'dır ve aylık aidatı vardır; karşılığında öğlen işçiler uğrar (müşteri +%3).
-- **Veresiyeye yazılan sepet** o gün ödenmez.
-
-## 11. Finans
-
-- **Nakit, borç ve varlık** ayrı izlenir. Ay sonunda (Necati Bey varsa) kâr-zarar, nakit akışı ve basit bilanço hazırlanır.
-- **Kira** (yeni şubeler), **elektrik** (dolap sayısı ve mevsim), **bakım**.
-- **Banka kredisi:** limit, nakit akışı ve teminata (dükkân tapusu) bağlıdır. Faiz yılın faiz ortamını izler: 2011 %15 dolayı, 2018–19 %25+, 2021–23 dalgalı. Taksitler aylıktır.
-- **Tedarikçi vadesi:** ücretsiz kısa vadeli finansmandır.
-- **Ev harçlığı (G-071):** aile dükkândan geçinir; her akşam 30 TL × asgari ücret endeksi eve gider. Kasa darsa yarısı gider, boşsa hiç gitmez. İşletme gideri değildir, kârı değil nakdi azaltır. Ay sonu raporunda "eve" satırı vardır.
-- **Ödeme sıkıntısı:** otomatik iflas yoktur. Önce uyarı gelir, sonra toptancı sevkiyatı durdurur, sonra borç yapılandırma, stok eritme, şube kapatma, varlık satışı. En son aile dükkânı ipoteklenir. Oyuncu her aşamayı önceden görür.
-
-## 12. Büyüme ve şirket
-
-Aile dükkânı → ilçe zinciri → bölge (depo, kamyon) → ulusal (özel marka "Miras", bölge müdürlükleri, merkezi satın alma) → uluslararası (ülke profili: para birimi, ürün boyları, rakipler, kira). Her aşamanın açılma koşulu **birden çok ölçüttür** (nakit, hizmet, ekip, borç yapısı); tek başına para yetmez. Şirket adı ve tabela kimliği oyuncunun seçimidir. İlk dükkânın aile tabelası korunabilir.
-
-**Uygulandı (G-072, `MarketCompany`, derlenmedi).** Lüleburgaz dışındaki mağazalar şehir başına **toplu** işler. Her şehir için ayrı raf ya da yürüyen insan yoktur. Bir mağazanın günü şöyle hesaplanır:
-
-- Ciro: 2.500 TL × şehrin cüzdanı ÷ rekabet × alışkanlık (60 günde oluşur) × takvim × fiyat düzeyi.
-- Brüt marj: %20.
-- Lojistik kaybı: depo yoksa uzak mağazada %3; kamyon yetmezse (8 mağazaya bir kamyon) %1,5; yurt dışında %1.
-- Giderler: kira, 5 kişi ve işletme gideri.
-
-Yatırımların marja ve maliyete etkisi:
-
-| Yatırım | Etki |
-|---|---|
-| Bölge deposu (≥4 mağaza) | Marj +%1,5 |
-| Merkezi satın alma (depo + ≥8 mağaza) | Marj +%2 |
-| "Miras" özel markası (Türkiye bölümü + ≥20 mağaza) | Marj +%1,5, müşteri +%3 |
-| Karanlık mağaza (web + ≥20 mağaza) | Web kapasitesi ve siparişi artar |
-
-Merkez gideri: 8 mağazadan sonra her 10 mağazaya bir bölge müdürü; ayrıca depo, kamyon ve karanlık mağaza giderleri.
-
-**Şehirler bölümle açılır:**
-
-- **Trakya (4. bölüm):** Babaeski, Kırklareli, Çorlu, Tekirdağ, Edirne, Keşan.
-- **Türkiye (5. bölüm):** İstanbul Avrupa ve Anadolu, Bursa, İzmir, Ankara, Kocaeli.
-- **Sınır ötesi (6. bölüm):** Kırcaali, Filibe, Köstence.
-
-Başka şehirde mağaza açmak için İK müdürü ve mali müşavir gerekir. Yeni ülkede ilk 90 gün marj %3 düşüktür. Ulusal pay mağaza başına ~%0,04'tür.
-
-**Bölüm hedefleri state'ten ölçülür:**
-
-- **4. bölüm:** 2 ilde 8 mağaza, depo ve kamyon.
-- **5. bölüm:** 50 mağaza, Miras markası ve %2 ulusal pay.
-- **6. bölüm:** Kırcaali pilotu 30 günde kârlı; Romanya'da mağaza.
-- **7. bölüm:** bir yıl her ölçüde önde olmak: yerel pay %40, 60 mağaza, kârlı gün, sadık müşteri memnuniyeti %60. Bu **"Miras" sonunu** (`EEnding::Legacy`) verir; oyun serbest devam eder. Koşul bozulan günde sayaç 3 gün geri gider.
-
-Döviz kuru ve ülke profilleri (ürün boyları, yerel rakipler) sonraki aşamadır.
-
-Sonlar: **Sattın** (2. bölüm), **Mahallenin dükkânı** (tek dükkânda kalıp sağlam yaşamak da bir sondur), **Trakya'nın markası**, **Türkiye'nin markası**, **Sınır ötesi**, **Miras** (birden çok ölçütte liderlik). Hiçbiri "kaybettin" değildir.
-
-## 13. Uygulama sırası ve durum
-
-| Adım | Modül | Durum |
-|---|---|---|
-| Personel ve muhasebe | `MarketStaff` | G-060, derlenmedi |
-| Takvim, mevsim, bayram, hava, maaş günü | `MarketCalendar` | G-061, derlenmedi (trafik, sipariş öngörüsü, akşam raporu bağlı) |
-| Müşteri segmentleri | `MarketCustomers` | G-062 |
-| Tedarik, enflasyon, zam | `MarketSuppliers` | G-063 |
-| Oyuncu kampanyaları | `MarketPromotions` | G-064 |
-| Rakip şirketler ve pazar payı | `MarketCompetitors` | G-065 |
-| Hikâye bölümleri ve olaylar | `MarketStory`, `MarketEvents` | G-066 |
-| Tazelik, veresiye, finans | `MarketFreshness`, `MarketCredit`, `MarketFinance` | G-067 |
-| Şubeler ve otomatik raf dizimi | `MarketBranches`, `MarketLayout` | G-068 |
-| İnternet mağazacılığı ve ödeme | `MarketOnline`, `MarketPayments` | G-069, derlenmedi |
-| İnsan hareketi zekâsı | `MarketMotion` (+ `MarketPeople` animasyon) | G-070, derlenmedi |
-| Stratejik ilerletme ve zorluk | `MarketSimulation` | G-071, derlenmedi |
-| Şirket büyümesi | `MarketCompany` | G-072, derlenmedi |
-| Oyuna bağlama noktası | `MarketDirector` | her adımda büyür |
-
-**Stratejik ilerletme (G-071):** dükkân kapalıyken "1 gün / 1 hafta ilerlet" ile gün, yürüyen insan olmadan aynı kurallarla oynanır. Aile rutin işleri yapar: zammı rafa yansıtır, vergiyi ve borç taksitini öder, rafı doldurur, önerilen siparişi verir. Karar bekleyince, kasa eksiye düşünce ya da hafta bitince durur. **Zorluk:** Rahat (müşteri +%10, fiyat hoşgörüsü +0,05), Normal, Zor (müşteri −%8, hoşgörü −0,04). Tarih (enflasyon, bayramlar, rakip açılışları) zorlukla değişmez.
-
-Her adım: modül + test + `MarketDirector` bağlantısı + bu kitapta ilgili bölümün "uygulandı" notu + GUNLUK girişi + commit.
+Oyunun satış adı henüz seçilmedi (aday: Supermarketing, Market Share, Chainmaker). Oyuncuya görünen ad tek yerden gelir (`Config/DefaultGame.ini` → `ProjectName`). İç kod adı satış adından bağımsızdır: **MarketSim** (M69). "Miras" adı hiçbir yerde kullanılmaz.

@@ -1,3 +1,5 @@
+> **ARŞİV (06.10.2026):** Bu belge M69 öncesi kurguyu ve eski planı anlatır (2011, Lüleburgaz, "Miras Market", babadan kalan dükkân, hikâye bölümleri). **Güncel değildir; ajanlar buna göre kod ya da metin yazmasın.** Güncel kurgu `Docs/Kurgu/00_KURGU_KITABI.md`, kararlar `Docs/Kurgu/01_KARARLAR.md`, durum `Docs/Surec/DURUM.md`.
+
 # Miras Market — oyun tasarımı
 
 > Bu dosya ilk prototipin v0.1 tasarım kaydıdır. Kullanıcının sonraki ayrıntılı planlama isteği için güncel ana belge: [Planlama v0.2](Planlama/00_OKUMA_REHBERI.md). Bu yönlendirme oyun kodunu değiştirmez.

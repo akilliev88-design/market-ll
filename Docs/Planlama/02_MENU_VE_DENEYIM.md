@@ -1,3 +1,5 @@
+> **ARŞİV (06.10.2026):** Bu belge M69 öncesi kurguyu ve eski planı anlatır (2011, Lüleburgaz, "Miras Market", babadan kalan dükkân, hikâye bölümleri). **Güncel değildir; ajanlar buna göre kod ya da metin yazmasın.** Güncel kurgu `Docs/Kurgu/00_KURGU_KITABI.md`, kararlar `Docs/Kurgu/01_KARARLAR.md`, durum `Docs/Surec/DURUM.md`.
+
 # Menü ve kullanıcı deneyimi şartnamesi
 
 Durum: tasarım; ekran veya oyun kodu üretilmedi. Tesla referansı, temiz durum/komut sunumuna yöneliktir. Aşağıdaki renkler, ölçüler ve akışlar Miras Market için öneridir; Tesla'nın resmî tasarım değerleri değildir.

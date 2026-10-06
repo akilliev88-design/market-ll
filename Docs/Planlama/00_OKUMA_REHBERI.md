@@ -1,3 +1,5 @@
+> **ARŞİV (06.10.2026):** Bu belge M69 öncesi kurguyu ve eski planı anlatır (2011, Lüleburgaz, "Miras Market", babadan kalan dükkân, hikâye bölümleri). **Güncel değildir; ajanlar buna göre kod ya da metin yazmasın.** Güncel kurgu `Docs/Kurgu/00_KURGU_KITABI.md`, kararlar `Docs/Kurgu/01_KARARLAR.md`, durum `Docs/Surec/DURUM.md`.
+
 # Miras Market — ana plan, sürüm 0.2
 
 Tarih: 27 Eylül 2026. **Bu paket yalnızca tasarımdır. Buradaki editörler, menüler ve sistemler henüz geliştirilmedi.** Oyun koduna, prototip ayarlarına ve varlıklarına müdahale edilmez. Önceki v0.1 belgeleri prototipin tarihçesidir; hedef oyun için bu paket önceliklidir.

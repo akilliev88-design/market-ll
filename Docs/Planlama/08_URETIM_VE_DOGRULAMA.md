@@ -1,3 +1,5 @@
+> **ARŞİV (06.10.2026):** Bu belge M69 öncesi kurguyu ve eski planı anlatır (2011, Lüleburgaz, "Miras Market", babadan kalan dükkân, hikâye bölümleri). **Güncel değildir; ajanlar buna göre kod ya da metin yazmasın.** Güncel kurgu `Docs/Kurgu/00_KURGU_KITABI.md`, kararlar `Docs/Kurgu/01_KARARLAR.md`, durum `Docs/Surec/DURUM.md`.
+
 # Üretim süreci, araçlar ve doğrulama kapıları
 
 Durum: gelecekte uygulanacak plan. Bu tur yalnızca belgeler/promptlar üretir; prototip geliştirmesi, yeni varlık üretimi, araç kurulumu veya eğitim çalıştırılması kapsam dışıdır.

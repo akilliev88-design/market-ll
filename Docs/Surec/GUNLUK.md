@@ -1,3 +1,17 @@
+## 06.10.2026 — Claude (Cowork) — G-117 sonrası belge düzeni
+
+**Mustafa:** proje durumu, yapılan/kalan işler ve gereksiz dosyaların listesi istendi; Image-blaster ve "market üret" zinciri silinecekler listesine. Claude listeyi `Docs/Surec/promptlar/codex_temizlik_20261006.md` olarak yazdı, Codex uyguladı (G-117). Ardından "sıra sende".
+
+**Yapılan (yalnız belgeler, kod değişmedi):**
+- `DURUM.md` sadeleştirildi (133 KB → kısa): oyunun durumu, öncelikli açık işler tablosu, riskler, son girişlerin özeti. Eski tam hâli `Docs/Surec/Arsiv/DURUM_20261006_oncesi.md`.
+- G-109 (M69) durumu "Doğrulandı; commit ve iç ad bekliyor": 05.10.2026 00:38 CLAUDE_KOS koşusunda DERLE + TEST + Smoke geçmişti (`Saved/Claude/son.log`), ama DURUM/GOREVLER "derlenmedi" demeye devam ediyordu. Codex'in sonraki bütün koşuları (son G-117: TEST 175/175) M69'lu çalışma ağacıyla yapıldı.
+- AGENTS.md: artık olmayan `MarketRetail.*`, `MarketCredit.*` ve silinen `Tools/Arsiv/katalog_olustur.py` satırları düzeltildi/kaldırıldı; `MarketWorldMap`, `MarketBanking` eklendi; Test alt sınırı "en az 7" → 174; `Docs/Planlama/` eski diye işaretlendi.
+- M69 öncesi kurguyu anlatan 15 belgenin başına ARŞİV notu kondu: `Docs/OYUN_TASARIMI.md`, `GELISTIRME_PLANI.md`, `DOGRULAMA.md`, `Docs/Planlama/*` (10), `Docs/Kurgu/02_DERIN_INCELEME.md`, `05_YOL_HARITASI.md`. Dosyalar yerinde bırakıldı (taşıma isteğe bağlı, Codex `git mv` ile `Docs/Arsiv/` altına alabilir).
+
+**Doğrulama:** yalnız belge; DERLE/TEST gerekmez. Yazılan her dosya geri okunup karşılaştırıldı.
+
+**Sıradaki:** (1) Mustafa onayıyla M69 commit + GitHub D9b birleştirmesi, (2) iç ad MarketSim (`Saved/Claude/m69_ic_ad.py`), (3) G-110 ilk mağazayı kapatma, (4) D9 kalanı M46/M47. G-117 kalanı: Unreal şablon klasörleri için editörde referans kontrolü.
+
 ## 06.10.2026 — Codex — G-117 proje temizliği (Image-blaster kaldırıldı)
 
 Mustafa'nın onayladığı Claude iş emri uygulandı. Image-blaster'ın beş CMD'si, ayrı GameMode'u, import/Blender araçları, üretilmiş Unreal varlıkları, ham dosyaları, yerel indirici ve .env dosyası kaldırıldı. Yalnız .thumbnails içeren 26 bozuk adlı kök klasörünün listesi silmeden önce yazdırıldı; diğer kök klasörlere dokunulmadı. Python önbellekleri, iki katalog/raf .bak dosyası, Claude outputs, G-074 menü arşivi, C16 aktarım arşivi, eski katalog üreticisi ve listedeki Saved geçici dosyaları kaldırıldı. Altı stage_store_editor betiği vardı (iş emrinin tahmini yedisi değil); mevcut altısı silindi.
