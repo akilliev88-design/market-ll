@@ -1,3 +1,13 @@
+## 06.10.2026 — Codex — G-110 doğrulandı; G-119 haritadan giriş
+
+G-110 `7254ec7` ayrı kaydedildi ve cloud/akis-cc2 dalına gönderildi. Claude kaynaklarında düzeltme gerekmedi; DERLE/184 test/Smoke geçti, kayıt sürümü 23.
+
+G-119 `5e7a403`: il kartı tür/sayı düğmeleri hazır Pick kuralını çağırır; eski doğrudan ilk mağazaya giriş kalktı, şube listesindeki Gez korunuyor. Yeni MarketStoreEntry.cpp sahne yönlendirmesini toplar. Şube kendi görünümü, adı ve stok doluluğuyla açılır; küçük üst başlık, Tab ile aynı il/türün sıradakisi, Esc ile harita. Yüklenen kampanya tek açık mağazayla içeride, birden fazla/sıfır mağazayla haritada başlar. Kapalı ilk mağazaya sahne girişi ve O engellenir; Finans kapatma haritaya döndürür, raf görseli yenilenir. Menü/rapor dönüşleri haritada ilk mağazayı açmaz.
+
+Son kaynak: DERLE başarılı, TEST 184/184 (0 başarısız/çalışmamış), Smoke başarılı. StoreEntryTest.ps1 gerçek Slate düğmeleri ve oyuncunun Tab/Esc tuş bağlarıyla geçti: açık gün kapatma reddi; boş tut/yeniden aç; stok sıfır, görevli ve kasiyer yok; O/giriş kilidi; il kartından iki farklı stoklu şubeye giriş ve Tab; Esc; kapalı ilk mağaza + iki şubeli izole kayıt yüklemesi; yalnız ilk mağaza, yalnız şube ve sıfır mağaza açılışı. Altı PNG Docs/Images/G110 ve G119 altında, görsel olarak incelendi. Test yuvası MarketSim_StoreEntryReviewOnly sonunda silindi; normal yuvalar kullanılmadı. İlk kontrol kodunun const/include hataları ve onay penceresi kare beklemesi düzeltildi; kural/test beklentisi değişmedi.
+
+Elle kontrol yapılmadı (bu oturumda yerel uygulama kontrolü kullanılamıyor); otomasyon elle kontrol diye sunulmadı. Finans'ta açıkken üç kapatma seçeneği, kapalı/satılmamışken yeniden aç görünür; dört düğme birlikte görünmez. Şube gezisi mevcut zaman duran görüntü modunu korur; elle şube işletmesi G-105. Yarım kod yok. Devam: Mustafa kısa elle Finans/giriş kontrolü; Claude G-108 denge notları. Ayrıntı G110_G119_DOGRULAMA.md.
+
 ## 06.10.2026 — Codex — G-110 doğrulandı, G-119 başlıyor
 
 Beklenen Claude değişiklikleri kontrol edildi; beklenmeyen dosya yok. DERLE başarılı, TEST 184/184 (başarısız 0), Smoke başarılı. Derleme düzeltmesi gerekmedi. Kayıt sürümü 23. G-110 ayrı commit ve cloud/akis-cc2 gönderimi; G-119 giriş akışı sıradaki adım. Finans/3B kontrolü bu oturumda Unreal arayüz otomasyonu ile yapılacak; elle kontrol henüz yapılmadı.
