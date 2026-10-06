@@ -16,6 +16,8 @@
 //      opening a branch: a province manager whose shops all earn money and whose province has room proposes a
 //      new neighbourhood market when the till can carry it (three times its opening cost); one proposal per
 //      province in 180 days.
+//      renewing a store (D9b, M46): the oldest store of his province past eight years, when the till holds three
+//      times the works; one proposal per province in 180 days.
 //  - Without a province manager nobody proposes: the player runs the province himself.
 namespace MarketCommand
 {
@@ -23,6 +25,7 @@ namespace MarketCommand
     constexpr int32 MatureDays = 90;
     constexpr int32 CloseQuietDays = 90;
     constexpr int32 OpenQuietDays = 180;
+    constexpr int32 RenewYears = 8;   // D9b (M46): a province manager proposes renewing a store this old (180 days apart)
 
     // "\u00fclke m\u00fcd\u00fcr\u00fc Ay\u015fe Kaya" who brings a province's proposal up ("" nobody: it comes straight to the player).
     FString Forwarder(const FMarketState& State, const FString& Country, const FString& Province);

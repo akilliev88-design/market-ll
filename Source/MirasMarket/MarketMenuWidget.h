@@ -76,7 +76,7 @@ private:
     int32 LedgerPeriod = 1;         // C3 (B2): Finans \u203a gelir tablosu: 0 d\u00fcn, 1 bu hafta, 2 bu ay, 3 bu y\u0131l
     int32 AdCountry = 0;     // M34: the advertising card's country (MarketAdvertising::Countries index)
     int32 RivalScope = 0;           // Rakipler: 0 local, 1 national, 2 international
-    int32 BranchTab = 0;            // Magazalar: 0 shops, 1 company, 2 management (G-086b)
+    int32 BranchTab = 0;            // Magazalar: 0 shops, 1 company, 2 management (G-086b), 3 answers (D9b)
     int32 MapLayer = 0;             // main map: 0 our shops, 1 rivals, 2 opportunities
     // G-086 main screen: the country shown (empty = the campaign's), the main region the map is zoomed to (empty =
     // the whole country) and the province whose panel is open (empty = no panel).
@@ -251,6 +251,7 @@ private:
     TSharedRef<SWidget> ShopsTab();
     TSharedRef<SWidget> CompanyTab();
     TSharedRef<SWidget> ManagementTab();  // G-086b: the player's span, the tree of levels, appointments
+    TSharedRef<SWidget> ResponsesTab();   // D9b (M47): answers to rivals' moves and crises, by managers and the player
     // "Sana dogrudan bagli: 4 / 5" (warn colour at the limit, bad beyond it; the rules in "Nasil isler?").
     TSharedRef<SWidget> SpanCounter(bool bOpensManagement);
     // Opens Magazalar > Yonetim with the appointment of an area chosen (MarketManagers::EncodeArea).

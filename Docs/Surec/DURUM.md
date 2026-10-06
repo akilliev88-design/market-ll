@@ -45,6 +45,8 @@ Son güncelleme: 06.10.2026 — Codex (G-118). Bu dosya 06.10.2026'da sadeleşti
 
 **05.10.2026 00:38 — CLAUDE_KOS:** M69'lu kod DERLE + TEST + Smoke geçti (G-109 doğrulaması).
 
+**04.10.2026 — Claude Code / D9b (M46, M47):** mağaza portföyü (`MarketPortfolio`: yaşlanma, yıllık karne, yenile/taşı/tür değiştir) ve rakip hamlelerine/krizlere cevap (`MarketResponse`: müdür hiyerarşisi, son onay kartı, Mağazalar › Müdahaleler). GitHub `cloud/akis-cc2` df47d0d; derlenmeden yazıldı, 06.10.2026 M69 ile birleştirildi (G-118).
+
 **04.10.2026 — Claude (Cowork) / G-109 M69:** yeni başlangıç ve eski hikâye temizliği yazıldı; kayıt sürümü 21. Ayrıntı GUNLUK 04.10.2026.
 
 **04.10.2026 — Claude Code / D9a:** M48–M50 (il atağı, yol ayrımları, yollar) yeni yapıya taşındı ve doğrulandı.

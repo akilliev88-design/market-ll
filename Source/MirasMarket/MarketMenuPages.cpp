@@ -43,6 +43,8 @@
 #include "MarketFranchise.h"
 #include "MarketWorldMap.h"
 #include "MarketStrategy.h"
+#include "MarketPortfolio.h"
+#include "MarketResponse.h"
 #include "Widgets/Layout/SSpacer.h"
 #include "Widgets/Images/SImage.h"
 #include "Widgets/Input/SButton.h"
@@ -3329,14 +3331,16 @@ TSharedRef<SWidget> SMarketMenu::BranchesPage()
             SNew(SHorizontalBox)
             + SHorizontalBox::Slot().AutoWidth().Padding(0.f, 0.f, 6.f, 0.f)[ Choice(TEXT("Ma\u011fazalar"), [this] { return BranchTab == 0; }, [this] { BranchTab = 0; }) ]
             + SHorizontalBox::Slot().AutoWidth().Padding(0.f, 0.f, 6.f, 0.f)[ Choice(TEXT("Y\u00f6netim"), [this] { return BranchTab == 2; }, [this] { BranchTab = 2; }) ]
-            + SHorizontalBox::Slot().AutoWidth()[ Choice(TEXT("\u015eirket"), [this] { return BranchTab == 1; }, [this] { BranchTab = 1; }) ]
+            + SHorizontalBox::Slot().AutoWidth().Padding(0.f, 0.f, 6.f, 0.f)[ Choice(TEXT("\u015eirket"), [this] { return BranchTab == 1; }, [this] { BranchTab = 1; }) ]
+            + SHorizontalBox::Slot().AutoWidth()[ Choice(TEXT("M\u00fcdahaleler"), [this] { return BranchTab == 3; }, [this] { BranchTab = 3; }) ]
         ]
         + SVerticalBox::Slot().FillHeight(1.f)
         [
-            SNew(SWidgetSwitcher).WidgetIndex_Lambda([this] { return FMath::Clamp(BranchTab, 0, 2); })
+            SNew(SWidgetSwitcher).WidgetIndex_Lambda([this] { return FMath::Clamp(BranchTab, 0, 3); })
             + SWidgetSwitcher::Slot()[ ShopsTab() ]
             + SWidgetSwitcher::Slot()[ CompanyTab() ]
             + SWidgetSwitcher::Slot()[ ManagementTab() ]
+            + SWidgetSwitcher::Slot()[ ResponsesTab() ]
         ];
 }
 
@@ -3373,6 +3377,23 @@ TSharedRef<SWidget> SMarketMenu::ShopsTab()
         return MarketMenuPagesUi::SupplyShort(G()->State, Slot, LinkCache->Links);
     };
 
+    // D9b (M46): why a store's works cannot start ("" they can) and the question with their price.
+    auto CanWorks = [G](int32 Slot, MarketPortfolio::EWorks Kind, const FString& Format) -> FString
+    {
+        if (!G()) return FString();
+        if (Kind == MarketPortfolio::EWorks::Reformat && Format.IsEmpty()) return FString(TEXT("Bu y\u00f6nde ba\u015fka t\u00fcr yok."));
+        FString Reason;
+        return MarketPortfolio::CanStart(G()->State, G()->Products, Slot, Kind, Format, Reason) ? FString() : Reason;
+    };
+    auto Works = [G](int32 Slot, MarketPortfolio::EWorks Kind, const FString& Format, const TCHAR* Ask) -> FString
+    {
+        if (!G() || !G()->State.Branches.IsValidIndex(Slot)) return FString();
+        const FMarketBranch& B = G()->State.Branches[Slot];
+        const FString Into = Kind == MarketPortfolio::EWorks::Reformat && !Format.IsEmpty() ? FString::Printf(TEXT(" (%s)"), MarketBranches::FormatInfo(Format).Name) : FString();
+        return FString::Printf(TEXT("%s%s %s? Masraf %s (kapal\u0131 g\u00fcnlerin kiras\u0131 ve maa\u015flar\u0131 dahil), %d g\u00fcn kapal\u0131 kal\u0131r."), *B.Name, *Into, Ask,
+            *MarketMenuUi::Tl(MarketPortfolio::WorksCost(G()->State, G()->Products, Slot, Kind, Format)),
+            MarketPortfolio::WorksDays(Kind == MarketPortfolio::EWorks::Reformat && !Format.IsEmpty() ? Format : B.Format));
+    };
     TSharedRef<SVerticalBox> Shops = SNew(SVerticalBox);
     for (int32 Slot = 0; Slot < 80; ++Slot)
     {
@@ -3490,6 +3511,41 @@ TSharedRef<SWidget> SMarketMenu::ShopsTab()
                     ]
                 ]
                     ]
+                // D9b (M46): the store's age, its yearly card and the works (renew, relocate, a larger or smaller type).
+                + SVerticalBox::Slot().AutoHeight().Padding(36.f, 4.f, 0.f, 0.f)
+                [
+                    SNew(SBox).HeightOverride(30.f).Visibility_Lambda([BranchOpen, Slot] { return BranchOpen(Slot) ? EVisibility::Visible : EVisibility::Collapsed; })
+                    [
+                        SNew(SHorizontalBox)
+                        + SHorizontalBox::Slot().FillWidth(1.f).VAlign(VAlign_Center)
+                        [ LabelBy([G, Slot] { return G() ? MarketPortfolio::Line(G()->State, Slot) : FString(); }, 10,
+                            [G, Slot] { return G() && G()->State.Branches.IsValidIndex(Slot) && !MarketPortfolio::Advice(G()->State, Slot).IsEmpty() ? ERole::Warn : ERole::Muted; }) ]
+                        + SHorizontalBox::Slot().AutoWidth().VAlign(VAlign_Center).Padding(4.f, 0.f, 0.f, 0.f)
+                        [ Hinted(RiskyButton([] { return FString(TEXT("Yenile")); },
+                            [Works, Slot] { return Works(Slot, MarketPortfolio::EWorks::Renovate, FString(), TEXT("yenilensin mi")); },
+                            [this, Slot] { Manage(TEXT("RenovateBranch"), Slot); },
+                            [CanWorks, Slot] { return CanWorks(Slot, MarketPortfolio::EWorks::Renovate, FString()).IsEmpty(); }),
+                            [CanWorks, Slot] { const FString Why = CanWorks(Slot, MarketPortfolio::EWorks::Renovate, FString()); return Why.IsEmpty() ? FString(TEXT("Ya\u015f\u0131n\u0131 s\u0131f\u0131rlar, ilk y\u0131l m\u00fc\u015fteri %4 fazla gelir. 2-3 hafta kapal\u0131 kal\u0131r.")) : Why; }) ]
+                        + SHorizontalBox::Slot().AutoWidth().VAlign(VAlign_Center).Padding(4.f, 0.f, 0.f, 0.f)
+                        [ Hinted(RiskyButton([] { return FString(TEXT("Ta\u015f\u0131")); },
+                            [Works, Slot] { return Works(Slot, MarketPortfolio::EWorks::Relocate, FString(), TEXT("ayn\u0131 ilde ba\u015fka bir yere ta\u015f\u0131ns\u0131n m\u0131")); },
+                            [this, Slot] { Manage(TEXT("RelocateBranch"), Slot); },
+                            [CanWorks, Slot] { return CanWorks(Slot, MarketPortfolio::EWorks::Relocate, FString()).IsEmpty(); }),
+                            [CanWorks, Slot] { const FString Why = CanWorks(Slot, MarketPortfolio::EWorks::Relocate, FString()); return Why.IsEmpty() ? FString(TEXT("Ayn\u0131 ilde daha iyi bir yere: aceleyle se\u00e7ilmi\u015f zay\u0131f yer d\u00fczelir, ya\u015f\u0131 s\u0131f\u0131rlan\u0131r; m\u00fc\u015fterinin bir k\u0131sm\u0131 yeni yeri sonradan \u00f6\u011frenir.")) : Why; }) ]
+                        + SHorizontalBox::Slot().AutoWidth().VAlign(VAlign_Center).Padding(4.f, 0.f, 0.f, 0.f)
+                        [ Hinted(RiskyButton([] { return FString(TEXT("B\u00fcy\u00fct")); },
+                            [G, Works, Slot] { return G() ? Works(Slot, MarketPortfolio::EWorks::Reformat, MarketPortfolio::Larger(G()->State, Slot), TEXT("b\u00fcy\u00fcs\u00fcn m\u00fc")) : FString(); },
+                            [this, G, Slot] { if (G()) Manage(TEXT("ReformatBranch"), MarketPortfolio::EncodeFormat(Slot, MarketPortfolio::Larger(G()->State, Slot))); },
+                            [G, CanWorks, Slot] { return G() && CanWorks(Slot, MarketPortfolio::EWorks::Reformat, MarketPortfolio::Larger(G()->State, Slot)).IsEmpty(); }),
+                            [G, CanWorks, Slot] { if (!G()) return FString(); const FString Why = CanWorks(Slot, MarketPortfolio::EWorks::Reformat, MarketPortfolio::Larger(G()->State, Slot)); return Why.IsEmpty() ? FString(TEXT("Bir b\u00fcy\u00fck t\u00fcre \u00e7evir: yeni raflar, daha \u00e7ok \u00e7al\u0131\u015fan, yeni kira.")) : Why; }) ]
+                        + SHorizontalBox::Slot().AutoWidth().VAlign(VAlign_Center).Padding(4.f, 0.f, 0.f, 0.f)
+                        [ Hinted(RiskyButton([] { return FString(TEXT("K\u00fc\u00e7\u00fclt")); },
+                            [G, Works, Slot] { return G() ? Works(Slot, MarketPortfolio::EWorks::Reformat, MarketPortfolio::Smaller(G()->State, Slot), TEXT("k\u00fc\u00e7\u00fcls\u00fcn m\u00fc")) : FString(); },
+                            [this, G, Slot] { if (G()) Manage(TEXT("ReformatBranch"), MarketPortfolio::EncodeFormat(Slot, MarketPortfolio::Smaller(G()->State, Slot))); },
+                            [G, CanWorks, Slot] { return G() && CanWorks(Slot, MarketPortfolio::EWorks::Reformat, MarketPortfolio::Smaller(G()->State, Slot)).IsEmpty(); }),
+                            [G, CanWorks, Slot] { if (!G()) return FString(); const FString Why = CanWorks(Slot, MarketPortfolio::EWorks::Reformat, MarketPortfolio::Smaller(G()->State, Slot)); return Why.IsEmpty() ? FString(TEXT("Bir k\u00fc\u00e7\u00fck t\u00fcre \u00e7evir: kira ve \u00e7al\u0131\u015fan azal\u0131r; zay\u0131f bir ilde zarar\u0131 durdurabilir.")) : Why; }) ]
+                    ]
+                ]
             ]
         ];
     }
@@ -3862,6 +3918,30 @@ TSharedRef<SWidget> SMarketMenu::CandidateCards(TFunction<int32()> Target, TFunc
         + SVerticalBox::Slot().AutoHeight().Padding(-5.f, 0.f)[ Row ]
         + SVerticalBox::Slot().AutoHeight().Padding(0.f, 6.f, 0.f, 0.f)[ SNew(SBox).HeightOverride(30.f).VAlign(VAlign_Top)[ Label(Note, 9, ERole::Muted, false, true) ] ]
         + SVerticalBox::Slot().AutoHeight()[ Why(Blocked) ];
+}
+
+// D9b (M47): what the managers and the player answered to rivals' moves and crises, province by province.
+TSharedRef<SWidget> SMarketMenu::ResponsesTab()
+{
+    auto G = [this] { return Game.Get(); };
+    TSharedRef<SVerticalBox> Rows = SNew(SVerticalBox);
+    for (int32 Slot = 0; Slot < MarketResponse::LogSize; ++Slot)
+    {
+        Rows->AddSlot().AutoHeight().Padding(0.f, 3.f)
+        [
+            SNew(SBorder).BorderImage(&SmallBrush).BorderBackgroundColor(Col(ERole::Inset)).Padding(FMargin(12.f, 7.f))
+            .Visibility_Lambda([G, Slot] { return G() && Slot < MarketResponse::LogCount(G()->State) ? EVisibility::Visible : EVisibility::Collapsed; })
+            [ LabelBy([G, Slot] { return G() ? MarketResponse::LogLine(G()->State, Slot) : FString(); }, 10,
+                [G, Slot] { return G() && MarketResponse::LogActive(G()->State, Slot) ? ERole::Text : ERole::Muted; }) ]
+        ];
+    }
+    TSharedRef<SVerticalBox> Body = SNew(SVerticalBox)
+        + SVerticalBox::Slot().AutoHeight()[ Label([] { return FString(TEXT("\u0130L KARARLARI VE M\u00dcDAHALELER")); }, 9, ERole::Muted, true) ]
+        + SVerticalBox::Slot().AutoHeight().Padding(0.f, 6.f, 0.f, 10.f)
+        [ Label([G] { return G() ? MarketResponse::Summary(G()->State) : FString(); }, 10, ERole::Text, false, true) ]
+        + SVerticalBox::Slot().AutoHeight()[ Rows ];
+    return SNew(SBorder).BorderImage(&CardBrush).BorderBackgroundColor(Col(ERole::Sheet)).Padding(FMargin(26.f, 24.f, 26.f, 22.f))
+    [ SNew(SScrollBox) + SScrollBox::Slot()[ Body ] ];
 }
 
 TSharedRef<SWidget> SMarketMenu::ManagementTab()

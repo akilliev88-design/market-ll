@@ -3,6 +3,7 @@
 #include "MarketResearch.h"
 #include "MarketFranchise.h"
 #include "MarketStrategy.h"
+#include "MarketPortfolio.h"
 #include "MarketTuning.h"
 #include "MarketSimulation.h"
 #include "MarketOrderAdvice.h"
@@ -77,6 +78,14 @@ namespace MarketAutoPlay
                 static const int32 Picks[3][3] = { { 0, 2, 1 }, { 2, 1, 0 }, { 1, 0, 2 } };
                 const int32 Fork = Choice.Id == TEXT("strategy.focus") ? 0 : Choice.Id == TEXT("strategy.growth") ? 1 : 2;
                 Option = Picks[FMath::Clamp(static_cast<int32>(Profile.Style), 0, 2)][Fork];
+            }
+            // D9b (M47): the bold player fights (price, a campaign, chances in a crisis), the careful one holds and
+            // tightens the belt, the balanced one takes the manager's proposal.
+            if (Choice.Id.StartsWith(TEXT("response.")) && Profile.Style != EStyle::Balanced)
+            {
+                const int32 Kind = FCString::Atoi(*Choice.Id.RightChop(9));
+                static const int32 Picks[2][3] = { { 2, 2, 0 }, { 0, 0, 2 } };
+                Option = Picks[Profile.Style == EStyle::Bold ? 1 : 0][FMath::Clamp(Kind, 0, 2)];
             }
             if(Run.bNoGrowth && (Choice.Id.StartsWith(TEXT("command.open")) || Choice.Id.StartsWith(TEXT("finance.")))) Option=FMath::Min(1, Choice.Options.Num()-1);
             Option = FMath::Clamp(Option, 0, FMath::Max(0, Choice.Options.Num() - 1));
@@ -214,6 +223,23 @@ namespace MarketAutoPlay
                     Command(State, Products, TEXT("ProvincePush"), MarketBranches::EncodeSite(Country, Province, TEXT("mahalle")), Run);
                     break;
                 }
+        }
+        // D9b (M46): every player renews worn stores (up to two a turn) and moves a hastily chosen one, as the
+        // yearly card advises, when the till keeps three times the works above the reserve.
+        if (!Run.bNoGrowth)
+        {
+            int32 Renewed = 0;
+            for (int32 I = 0; I < State.Branches.Num() && Renewed < 2; ++I)
+            {
+                const FMarketBranch& B = State.Branches[I];
+                if (B.Stage != static_cast<uint8>(MarketBranches::EStage::Open) || B.Works != 0) continue;
+                const bool bWorn = MarketPortfolio::IsAgeing(State, B);
+                const bool bWeakSite = B.bHasty && MarketPortfolio::AgeDays(State, B) >= MarketPortfolio::YearDays;
+                if (!bWorn && !bWeakSite) continue;
+                const MarketPortfolio::EWorks Works = bWorn ? MarketPortfolio::EWorks::Renovate : MarketPortfolio::EWorks::Relocate;
+                if (State.Cash < Reserve + 3 * MarketPortfolio::WorksCost(State, Products, I, Works)) continue;
+                if (Command(State, Products, bWorn ? TEXT("RenovateBranch") : TEXT("RelocateBranch"), I, Run)) ++Renewed;
+            }
         }
         // C15 (M45): the careful and the balanced player read the menu's warning and wait for management; the bold one takes the gamble.
         if (Profile.Style != EStyle::Bold && MarketBranches::GrowthStrain(State, 1) > 0.f) { ++Run.C.Blocked.FindOrAdd(TEXT("B\u00fcy\u00fcme turu: y\u00f6netim yeti\u015fmiyor, bekliyor")); return; }

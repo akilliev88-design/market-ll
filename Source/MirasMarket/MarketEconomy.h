@@ -386,6 +386,20 @@ struct FMarketBranch
     UPROPERTY() int32 QuietUntil = 0;      // M33: a turned-down closing proposal: none before this day
     UPROPERTY() int32 SignedDay = 0;       // C15 (M45): the lease was signed (MarketBranches::Open); acquired shops 0
     UPROPERTY() uint8 bHasty = 0;          // C15 (M45): picked while growth outran management: a weaker site, found out at the opening
+    // D9b (M46, MarketPortfolio.h): the store's portfolio. RenewedDay: the last renovation, relocation or change of
+    // type was finished (0: never; its age counts from OpenedDay). Works: the job under way while Stage is
+    // Renovation again (0 none = a new opening, 1 renovation, 2 change of type, 3 relocation) and the type it
+    // becomes. The year's running sums for the yearly report card, and the last card (1 A .. 5 E, 0 none).
+    UPROPERTY() int32 RenewedDay = 0;
+    UPROPERTY() uint8 Works = 0;
+    UPROPERTY() FString WorksFormat;
+    UPROPERTY() int64 YearRevenue = 0;
+    UPROPERTY() int64 YearProfit = 0;
+    UPROPERTY() int32 YearDays = 0;
+    UPROPERTY() uint8 Card = 0;
+    UPROPERTY() int32 CardYear = 0;
+    UPROPERTY() int64 CardRevenue = 0;
+    UPROPERTY() int64 CardProfit = 0;
 };
 
 // G-089 (karar M23): a big depot in a province (MarketDepots.h). It serves our branches of its country within
@@ -467,6 +481,37 @@ struct FMarketStrategyState
     UPROPERTY() int32 LoyaltyDay = 0;        // the loyalty programme was last paid on this day
     UPROPERTY() int64 LoyaltyPaid = 0;       // counters for the reports
     UPROPERTY() int64 PushPaid = 0;
+};
+
+// D9b (M47, MarketResponse.h): an answer to a rival's move or a crisis, decided by a manager or the player, and its
+// effect until EndDay. Kind: MarketResponse::EKind; Option: the answer's index in that kind's options.
+USTRUCT()
+struct FMarketResponse
+{
+    GENERATED_BODY()
+    UPROPERTY() uint8 Kind = 0;
+    UPROPERTY() FString Country;             // pack id
+    UPROPERTY() FString Province;            // empty: company-wide (a crisis)
+    UPROPERTY() FString Rival;               // the chain's name ("" for a crisis)
+    UPROPERTY() uint8 Option = 0;
+    UPROPERTY() FString Decider;             // "Tekirda\u011f il m\u00fcd\u00fcr\u00fc Ay\u015fe Kaya" / "sen"
+    UPROPERTY() bool bPlayer = false;        // the player approved or chose it
+    UPROPERTY() bool bProposed = false;      // a manager proposed it and the player had the last word
+    UPROPERTY() int32 Day = 0;
+    UPROPERTY() int32 EndDay = 0;
+    UPROPERTY() int64 Spent = 0;             // what the answer cost so far (kurus)
+};
+
+USTRUCT()
+struct FMarketResponses
+{
+    GENERATED_BODY()
+    UPROPERTY() TArray<FMarketResponse> Log;  // newest last; the oldest go beyond MarketResponse::LogSize
+    UPROPERTY() TMap<FString, int32> RivalSeen; // "country|province" -> the chains' stores there at the last look
+    UPROPERTY() TMap<FString, int32> WarSeen;   // "chain id|province" -> the WarUntil already answered
+    UPROPERTY() int32 EraSeen = -1;           // the crisis already answered (era kind x 10 + wave)
+    UPROPERTY() int32 Answered = 0;           // every answer so far
+    UPROPERTY() int32 ByPlayer = 0;           // of them, the player's
 };
 
 // D6 (M67): a master franchise in a country: a local partner opens stores under our brand and pays a royalty
@@ -982,7 +1027,7 @@ struct FMarketState
     static constexpr int64 StockerDailyWage = 2000;
 
     // Save format version. 2 (G-076): story finale flags, test-mode mark. Older saves load and are migrated.
-    static constexpr int32 CurrentVersion = 21; // M69: no chapters, the player's and the market's names, the first store owns its building; // D9: strategy (M48-M50); // D6: franchises; // M54/M58/M59; // E4b: loans abroad; // M65: subsidiaries; // E4: the exchange difference account; // E3c2c: branch staff are people; // M64: the father's favour is counted; // E3c2 (M27): branch goods use the first store's record, the v0.1 staff flags are gone; older saves start a new game
+    static constexpr int32 CurrentVersion = 22; // D9b: portfolio and answers (M46, M47); // M69: no chapters, the player's and the market's names, the first store owns its building; // D9: strategy (M48-M50); // D6: franchises; // M54/M58/M59; // E4b: loans abroad; // M65: subsidiaries; // E4: the exchange difference account; // E3c2c: branch staff are people; // M64: the father's favour is counted; // E3c2 (M27): branch goods use the first store's record, the v0.1 staff flags are gone; older saves start a new game
     UPROPERTY() int32 Version = CurrentVersion;
     UPROPERTY() int32 Day = 1;
     UPROPERTY() int64 Cash = 35000;
@@ -1128,6 +1173,7 @@ struct FMarketState
     // B4: eras of the economy (MarketEras.h).
     UPROPERTY() FMarketEras Eras;
     UPROPERTY() FMarketStrategyState Strategy; // D9 (M48-M50): province pushes, strategic forks, paths (MarketStrategy.h)
+    UPROPERTY() FMarketResponses Responses;    // D9b (M47): answers to rivals' moves and crises (MarketResponse.h)
     // B6: goals, firsts, records, celebrations, the rhythm guard (MarketGoals.h).
     UPROPERTY() FMarketGoals Goals;
     // ===== Ak\u0131\u015f B son =====

@@ -350,6 +350,22 @@ Sıradaki: talep edilirse tek dekor denemesi. G-088/G-106 devam ediyor; yeni uyg
 
 **Sıradaki:** Mustafa yönü seçer; Adım 2'de tam renk rolleri, font uygulaması, özgün SVG ikonlar ve bileşenler. G-106 genel işi devam ediyor; Claude D9a koduna dokunulmadı.
 
+## 04.10.2026 — Claude Code — D9b: M46 mağaza portföyü, M47 rakip ve krize cevap (derlenmedi)
+
+**Mustafa:** "1 uygun; 2 aynı il mantıklı, yoksa zaten şubeyi kapatıp başka ilde açabilir; 3 karar kartları bize son onay olarak gelsin, belli etkiye kadar müdürler kendi hiyerarşisinde ayarlasın; bunları il bazında kararlar ve müdahaleler olarak başka bir menüde görelim."
+
+**Yapılan:**
+- `MarketPortfolio` (M46): yaşlanma (6. yıldan sonra yılda %2,5, en çok %15), yıllık karne A–E ve öneri, Yenile / Taşı (aynı il) / Büyüt / Küçült. İşler 14–21 gün kapatır, kapalı günlerin kirası ve maaşı işle ödenir. İl müdürü 8 yaşını geçen en eski mağazanın yenilenmesini önerir (`MarketCommand`, `command.renew:`). Şube satırına üçüncü satır: yaş, karne, öneri, dört düğme.
+- `MarketResponse` (M47): fiyat savaşı, rakip açılışı (haftalık), kriz. Müdür tarzına göre cevap verir; cironun %10+'ı olan ildeki hamle ve her kriz oyuncuya son onay kartı olarak gelir (öneri varsayılan, 5 gün). Mağazalar › Müdahaleler sekmesi (son 80 kayıt). Fiyat/hizmetle cevap verilen savaşta rakip kaybetmiş sayılır.
+- Bağlantılar: `MarketStoreDemand::Pull` (yaş, cevap çekimi), şube günü (cevap fiyatı, kriz tasarrufu, yıllık toplamlar, iş bitişi), kira/tadilat (kriz fırsatı), `MarketChains` savaş sonu, `MarketDirector` (`RenovateBranch`, `RelocateBranch`, `ReformatBranch`, gün kapanışı), `MarketEvents` (`response.*`), bot (tarza göre cevap, eski mağazayı yenileme, zayıf yeri taşıma, rapor satırı "Portföy ve müdahaleler (D9b)").
+- Kayıt sürümü 21. 5 yeni test (Portfolio 3, Response 2), Test.ps1 179.
+
+**Varsayımlar (Mustafa değiştirebilir):** yenileme %40, tür değişikliği %70, taşıma %60 (kurulum payı); yenileme için en az 3 yaş, taşıma için 6 ay; büyük il eşiği cironun %10'u; aile dükkânı yaşlanmaz.
+
+**Doğrulama:** Derlenmedi.
+
+**Sıradaki:** Mustafa D9a + D9b'yi birlikte derler (CLAUDE_KOS); sonra kısa bot (15 yıl, dengeli) ve G-108 denge.
+
 ## 04.10.2026 — Claude Code — D9a: M48–M50 yeni yapıya taşındı (derlenmedi)
 
 **Mustafa:** "D9'u yapalım, o da sonuçlara etki edecek."

@@ -12,6 +12,8 @@
 #include "MarketSimulation.h"
 #include "MarketStart.h"
 #include "MarketStrategy.h"
+#include "MarketPortfolio.h"
+#include "MarketResponse.h"
 #include "MarketTuning.h"
 
 namespace MarketStoreDemandLocal
@@ -39,12 +41,16 @@ float MarketStoreDemand::Trips(const FMarketState& State, const FStoreDay& Store
 
 float MarketStoreDemand::Pull(const FMarketState& State, const FStoreDay& Store)
 {
+    const MarketBranches::FSite Where = MarketStoreDemandLocal::SiteOf(State, Store);
     return FMath::Exp(-(Store.PriceIndex - 1.f) / PriceSensitivity) * Store.Availability * Store.Service *
         (0.8f + Store.Satisfaction / 250.f) * (0.9f + 0.4f * Store.Maturity) * (Store.bNew ? 1.3f : 1.f) * MarketCompany::TrafficBonus(State)
         * Store.PullExtra
         // D9 (M48-M50): a province push, the paths, the chain's focus, the growth model's service; every store alike.
-        * MarketStrategy::PullFactor(State, MarketStoreDemandLocal::SiteOf(State, Store).Country, MarketStoreDemandLocal::SiteOf(State, Store).Province, State.Day)
-        * MarketStrategy::ServiceFactor(State);
+        * MarketStrategy::PullFactor(State, Where.Country, Where.Province, State.Day)
+        * MarketStrategy::ServiceFactor(State)
+        // D9b (M46, M47): an old store loses its shine, a renewed one draws; the answers to rivals and crises.
+        * MarketPortfolio::AgeFactor(State, Store.Self)
+        * MarketResponse::PullFactor(State, Where.Country, Where.Province, State.Day);
 }
 
 float MarketStoreDemand::Share(const FMarketState& State, const FStoreDay& Store, int32 Day)
