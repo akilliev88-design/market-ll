@@ -5,23 +5,21 @@ Son güncelleme: 06.10.2026 — Codex (G-118). Bu dosya 06.10.2026'da sadeleşti
 ## Kısaca: oyun nerede
 
 - **Ne:** Steam'e çıkacak işletme simülasyonu + tycoon (iç kod adı MarketSim, satış adı açık). Kurgu `Docs/Kurgu/00_KURGU_KITABI.md`, kararlar `Docs/Kurgu/01_KARARLAR.md` (son yön M69).
-- **Oyunun aklı (Claude):** ekonomi, ilk mağaza günü, şubeler, il/ülke yapısı ve 10 ülke paketi, rakip zincirler ve dünya ligi, personel/yönetim kademeleri, depolar, finans/banka/defter, internet satışı, kampanyalar, hedefler, strateji yolları (D9a), otomatik oyuncu (bot) ve denge raporu. M69 yeni başlangıç (ülke, şehir, market adı, oyuncu adı, zorluk; aile devri; bina bizim; süresiz borç; bölüm/final yok).
+- **Oyunun aklı (Claude):** ekonomi, ilk mağaza günü, şubeler, il/ülke yapısı ve 10 ülke paketi, rakip zincirler ve dünya ligi, personel/yönetim kademeleri, depolar, finans/banka/defter, internet satışı, kampanyalar, hedefler, strateji yolları (D9a) ve mağaza portföyü/kriz yanıtları (D9b), otomatik oyuncu (bot) ve denge raporu. M69 yeni başlangıç (ülke, şehir, market adı, oyuncu adı, zorluk; aile devri; bina bizim; süresiz borç; bölüm/final yok).
 - **Dünya ve 3B (Codex):** 4 mağaza türü Blender binaları ve dünya örneklerine göre yerleşimleri (mahalle 20 ekipman/1 kasa, küçük 42/2, büyük 132/6, hiper 400/18), 132 yeni masaüstü ekipman modeli, yeni soğuk dolaplar, el yapımı 8×10 m mahalle marketi prototipi, sanat denemesi sahnesi, mağaza editörü, Ürün Stüdyosu, Raf Planı.
-- **Son doğrulama (06.10.2026, Codex G-117 sonrası):** DERLE geçti, TEST **175/175**, Smoke geçti. Bu koşu çalışma ağacındaki M69 değişiklikleriyle birlikte yapıldı.
-- **Git:** dal `akis-cc2`. Belgeler `0b31528`, M69 kodu `2b47108` ile kaydedildi. D9b (`df47d0d`) birleşimi MarketEconomy.h kaynak çakışması nedeniyle geri alındı; Claude çözümü bekleniyor. Push yapılmadı, iç ad dönüşümü başlamadı.
+- **Son doğrulama (06.10.2026, G-118/M69c):** MarketSim DERLE, TEST **180/180**, Smoke geçti. Sanat, el yapımı mahalle marketi, üç büyük format ve normal gezi kontrolleri geçti; eski script yolu CoreRedirects ile açıldı. İki yıllık bot denetim hatası 0.
+- **Git:** dal `akis-cc2`; M69 `2b47108`, D9b birleşimi `5dc33ea`, iç ad dönüşümü `2d2e495`. D9b kaynak uzlaşması uygulandı, kayıt sürümü 22. Proje `MarketSim.uproject`; runtime/stüdyo modülleri MarketSim/MarketSimStudio. M69, D9b ve M69c cloud/akis-cc2 dalına gönderildi; main değişmedi.
 
 ## Açık işler (öncelik sırasıyla)
 
 | # | İş | Sahip | Not |
 |---|---|---|---|
-| 1 | **GitHub D9b ile M69 kaynak uzlaşması** | Claude (kaynak); Codex (git/doğrulama) | M69 kaydedildi; MarketEconomy.h kayıt sürümü satırı çakıştı. Birleşim geri alındı. Kanıt ve üç sürüm Saved/Claude/d9b/RAPOR.md yanında. |
-| 2 | **İç ad MirasMarket → MarketSim** (M69c) | Claude hazırladı; Codex (G-118) | Betik `Saved/Claude/m69_ic_ad.py` (git mv + metin + `[CoreRedirects]`). 1. madde bitmeden çalıştırma. |
-| 3 | **G-110 ilk mağazayı kapatma** | Claude (kural) + Codex (3B geçiş) | M69'un kalan parçası. |
-| 4 | **D9 kalanı:** M46 mağaza portföyü, M47 krizlere/rakip hamlelerine cevap | Claude | Sonra G-108 denge notları ve yeni bot koşusu. |
-| 5 | **Mustafa'nın değerlendirmesi** | Mustafa | Yeni mağaza yerleşimleri (`MAGAZA_GEZI.cmd`, `KUCUK_/BUYUK_MARKET_GEZI.cmd`, `HIPERMARKET_GEZI.cmd`), el yapımı mahalle marketi (`MAHALLE_MARKET_GEZI.cmd`), yönetim ekranı için 4 tasarım yönü (G-106, `Docs/Environment/YONETIM_PANELI_ON_TASARIM.md`). |
-| 6 | **Yeni reyonların satılabilir ürünleri** | Claude (katalog/stok/fiyat) | Manav meyveleri ve bazı gıda dışı reyonlar şu an yalnız görüntü; katalogda karşılıkları yok. |
-| 7 | **G-117 kalanı:** Unreal şablon klasörleri (`Content/ThirdPerson`, `LevelPrototyping`, `__ExternalActors__/ThirdPerson`, `__ExternalObjects__/ThirdPerson`, `Developers`, `Input`) | Codex/Mustafa (editörde) | Kod taraması referans bulmadı; editörde Reference Viewer ile bakıp editörden silinmeli. `Content/Characters/Mannequins` kullanılıyor, silinmez. |
-| 8 | Sonra | — | G-104 öğretici, G-105 mağaza ziyareti modu, G-107 İngilizce, G-088 kalan 16 hazır mağaza görünümü, G-011 dönem etiketleri (M69 ile "gerçek yıl" kalktı; klasör adları 2011… yeniden düşünülmeli). |
+| 1 | **G-110 ilk mağazayı kapatma** | Claude (kural) + Codex (3B geçiş) | M69'un kalan parçası. G-109 ve G-118 tamamlandı. |
+| 2 | **G-108 denge notları ve yeni bot koşusu** | Claude | D9a + D9b doğrulandı. Bu turdaki iki yıllık bot uzun dönem denge ölçümü değildir. |
+| 3 | **Mustafa'nın değerlendirmesi** | Mustafa | Yeni mağaza yerleşimleri, el yapımı mahalle marketi, G-106 yönetim ekranı için dört tasarım yönü. |
+| 4 | **Yeni reyonların satılabilir ürünleri** | Claude | Manav ve bazı gıda dışı reyonlar yalnız görüntü; katalog/stok/fiyat karşılığı gerekiyor. |
+| 5 | **G-117 kalanı: Unreal şablon klasörleri** | Codex/Mustafa (editörde) | Reference Viewer ile kontrol edip kullanılmayanları editörden sil. Mannequins kullanılıyor, silinmez. |
+| 6 | Sonra | — | G-104 öğretici, G-105 mağaza ziyareti modu, G-107 İngilizce, G-088 kalan 16 mağaza görünümü, G-011 dönem etiketleri. |
 
 ## Bilinen riskler / dikkat
 
@@ -31,6 +29,9 @@ Son güncelleme: 06.10.2026 — Codex (G-118). Bu dosya 06.10.2026'da sadeleşti
 - World Labs API anahtarı Image-blaster klasörüyle silindi; platformda iptali Mustafa'da.
 
 ## Son girişler
+
+**06.10.2026 — Codex / G-118 tamamlandı:** Claude çözümü manifestle doğrulandı; D9b `5dc33ea`, iç ad MarketSim `2d2e495`, kayıt sürümü 22. Her iki aşamada DERLE/180 test/Smoke geçti; bot iki yıl, denetim hatası 0. Yeni ve eski yönlendirilen sınıf yollarıyla sanat/mahalle/büyük mağaza/normal gezi geçti. **Devam:** G-110 ve G-108; ayrıntı GUNLUK.
+
 
 **06.10.2026 — Codex / G-118:** Belgeler `0b31528`, M69 kodu `2b47108` ile ayrı kaydedildi; son G-117 DERLE/TEST 175/175/Smoke doğrulaması geçerli. D9b mağaza portföyü ve kriz yanıtlarını getiriyor, ancak MarketEconomy.h kayıt sürümü satırı çakıştı (ortak ata 20; iki taraf 21). Birleşim geri alındı; temiz akis-cc2, push/iç ad yok. **Devam:** Claude kaynak uzlaşması; Saved/Claude/d9b/RAPOR.md ve üç dosyanın base/ours/theirs kopyaları hazır.
 
